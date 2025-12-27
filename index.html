@@ -4,7 +4,128 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Łukasz Michta · Technical Writer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Homemade+Apple&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/general.css" />
   </head>
-  <body></body>
+  <body>
+    <div class="resume">
+      <header class="hero" aria-label="Profile summary">
+        <div class="hero__title">
+          <div class="logo-circle" id="brand-initials" aria-hidden="true"></div>
+          <div>
+            <h1 id="name"></h1>
+            <p id="role"></p>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="main-column" aria-label="Professional profile">
+          <article class="section" aria-labelledby="summary-heading">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2 id="summary-heading">Summary</h2>
+            </div>
+            <p id="summary" class="summary-text"></p>
+          </article>
+
+          <article class="section" id="github-activity-card" aria-labelledby="github-activity-heading">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2 id="github-activity-heading">GitHub Activity</h2>
+            </div>
+            <a
+              id="github-activity-link"
+              class="github-activity__link"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <img
+                id="github-activity-image"
+                class="github-activity__image"
+                alt="GitHub activity"
+                loading="lazy"
+              />
+            </a>
+          </article>
+
+          <article class="section" aria-labelledby="experience-heading">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2 id="experience-heading">Experience</h2>
+            </div>
+            <div id="experience-list" class="timeline"></div>
+          </article>
+
+          <article class="section" aria-labelledby="education-heading">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2 id="education-heading">Education</h2>
+            </div>
+            <div id="education-list" class="timeline timeline--compact"></div>
+          </article>
+
+          <article class="section" aria-labelledby="courses-heading">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2 id="courses-heading">Courses</h2>
+            </div>
+            <div id="courses-list" class="timeline timeline--compact timeline--courses"></div>
+          </article>
+        </section>
+
+        <aside class="sidebar" aria-label="Supporting information">
+          <section class="card">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2>Personal Info</h2>
+            </div>
+            <dl id="contact-list" class="contact-list"></dl>
+            <div id="qr-list" class="qr-list"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2>Skills</h2>
+            </div>
+            <div id="skills-list" class="meter-list"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2>Tech stack</h2>
+            </div>
+            <ul id="tech-stack" class="pill-list"></ul>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2>Languages</h2>
+            </div>
+            <div id="languages-list" class="meter-list meter-list--compact"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2>Interests</h2>
+            </div>
+            <ul id="interests-list" class="pill-list"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="scripts/js-yaml.min.js"></script>
+    <script src="scripts/main.js"></script>
+  </body>
 </html>

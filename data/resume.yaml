@@ -1,0 +1,95 @@
+name: "Ariana Holt"
+brand_initials: "AH"
+role: "Lead Product Scientist"
+summary: |
+  I am an inventive Product Scientist blending UX research and data science to deliver humane AI tools.
+  During the past seven years I have led cross-functional teams for developer platforms, building frameworks
+  that balance experimentation with governance. I communicate clearly with stakeholders, prototype quickly,
+  and never stop learning.
+contact:
+  - label: Location
+    value: "Portland, OR"
+  - label: Phone
+    value: +1 555 204 1130
+    link: tel:+15552041130
+  - label: E-mail
+    value: ariana.holt@example.com
+    link: mailto:ariana.holt@example.com
+  - label: LinkedIn
+    value: linkedin.com/in/arianaholt
+    link: https://www.linkedin.com/in/arianaholt
+  - label: Portfolio
+    value: arianaholt.dev
+    link: https://arianaholt.dev
+qr_codes:
+  - label: Personal Site
+    image: images/qrs/qr.png
+    size: 130
+skills:
+  - name: Product Discovery
+    level: 4
+  - name: Data Storytelling
+    level: 4
+  - name: Experiment Design
+    level: 5
+tech_stack:
+  - Python
+  - TypeScript
+  - React
+  - Snowflake
+  - Looker
+  - Linear
+  - Figma
+  - Notion
+languages:
+  - name: English
+    level_text: Native
+    level: 5
+  - name: Spanish
+    level_text: Professional
+    level: 3
+interests:
+  - Urban hiking
+  - Ceramic design
+  - Sci-fi literature
+  - Volunteering
+experience:
+  - period: "2022-03 – now"
+    company: Nova Labs
+    role: Lead Product Scientist
+    highlights:
+      - Shipped experimentation platform adopted company-wide, reducing validation time by 40%
+      - Mentored 6 researchers and analysts on data storytelling and stakeholder facilitation
+      - Co-created ethical AI framework applied to 5 flagship products
+  - period: "2019-07 – 2022-02"
+    company: Interlink Systems
+    role: Senior UX Researcher
+    highlights:
+      - Led discovery for developer tooling suite used by 1500+ engineers
+      - Introduced continuous interview practice and mixed-method dashboards
+      - Partnered with PMs to build roadmap prioritization model with 93% stakeholder alignment
+  - period: "2016-01 – 2019-06"
+    company: Harbor Robotics
+    role: Research Engineer
+    highlights:
+      - Designed safety telemetry instrumentation for warehouse robots
+      - Built experimentation playbook adopted across 4 business units
+      - Presented quarterly insights directly to executive staff and investors
+education:
+  - period: "2014-09 – 2015-12"
+    school: New York Institute of Technology, Master of Human-Computer Interaction
+    detail: "Thesis: Interpretable analytics for autonomous systems"
+  - period: "2010-09 – 2014-06"
+    school: Oregon State University, Bachelor of Computer Science
+    detail: "Minor in Cognitive Science"
+courses:
+  - year: 2025
+    name: Responsible AI Systems Certification – Gradient School
+  - year: 2024
+    name: Product Strategy Sprint – Reforge
+  - year: 2023
+    name: Narrative Visualization – Stanford Continuing Studies
+  - year: 2021
+    name: Advanced Experimentation – Udacity
+  - year: 2020
+    name: Leadership Intensive – On Deck
