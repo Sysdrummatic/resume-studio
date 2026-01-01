@@ -1,21 +1,242 @@
-async function loadResume() {
+const PUBLIC_VIEW = {
+  localesConfigPath: 'data/public/locales.yaml',
+  storageKey: 'resume-studio:locale',
+  defaultLocale: 'en',
+};
+
+const FALLBACK_LABELS = Object.freeze({
+  language_switcher: 'Language',
+  summary_heading: 'Summary',
+  github_activity_heading: 'GitHub Activity',
+  experience_heading: 'Experience',
+  education_heading: 'Education',
+  courses_heading: 'Courses',
+  personal_info_heading: 'Personal Info',
+  skills_heading: 'Skills',
+  tech_stack_heading: 'Tech stack',
+  languages_heading: 'Languages',
+  interests_heading: 'Interests',
+  continuation_template: '{heading} {current}/{total}',
+  public_view_badge: 'Public view',
+});
+
+let currentProfile;
+
+let localeMetadata;
+let activeLocaleCode;
+let activeLabels = { ...FALLBACK_LABELS };
+let localeRequestToken = 0;
+let languageSwitcherBusy = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initNavbarBehaviour();
+  initPublicView();
+});
+
+async function initPublicView() {
   try {
-    const response = await fetch('data/resume.yaml');
-    if (!response.ok) {
-      throw new Error('Unable to load resume data');
+    localeMetadata = await loadLocalesConfig();
+    if (!localeMetadata.locales.length) {
+      throw new Error('No locales configured for public view.');
     }
-    const yamlText = await response.text();
-    const data = jsyaml.load(yamlText);
-    renderResume(data);
+    const initialLocale = resolveInitialLocale(localeMetadata);
+    renderLocaleSwitcher(localeMetadata.locales, initialLocale);
+    await applyLocale(initialLocale);
   } catch (error) {
     showError(error);
   }
 }
 
+async function loadLocalesConfig() {
+  const raw = await fetchYaml(PUBLIC_VIEW.localesConfigPath);
+  const locales = [];
+  const map = new Map();
+
+  if (raw && Array.isArray(raw.locales)) {
+    raw.locales.forEach((entry) => {
+      if (!entry) return;
+      const code = String(entry.code || '').trim().toLowerCase();
+      const resumePath = String(entry.resume_path || '').trim();
+      if (!code || !resumePath || map.has(code)) return;
+      const normalized = {
+        code,
+        resumePath,
+        label: String(entry.label || code.toUpperCase()),
+      };
+      map.set(code, normalized);
+      locales.push(normalized);
+    });
+  }
+
+  let defaultLocale = String(raw?.default_locale || PUBLIC_VIEW.defaultLocale).trim().toLowerCase();
+  if (!map.has(defaultLocale) && locales.length) {
+    defaultLocale = locales[0].code;
+  }
+
+  return { defaultLocale, locales, map };
+}
+
+function resolveInitialLocale(metadata) {
+  try {
+    const stored = window.localStorage?.getItem(PUBLIC_VIEW.storageKey);
+    if (stored && metadata.map.has(stored)) {
+      return stored;
+    }
+  } catch (storageError) {
+    // ignore storage access issues
+  }
+
+  const navigatorLanguage = (navigator.language || navigator.userLanguage || '').slice(0, 2).toLowerCase();
+  if (navigatorLanguage && metadata.map.has(navigatorLanguage)) {
+    return navigatorLanguage;
+  }
+
+  return metadata.defaultLocale;
+}
+
+async function applyLocale(requestedCode) {
+  if (!localeMetadata) return;
+  const token = ++localeRequestToken;
+  const targetCode = localeMetadata.map.has(requestedCode)
+    ? requestedCode
+    : localeMetadata.defaultLocale;
+  const localeEntry = localeMetadata.map.get(targetCode);
+  if (!localeEntry) {
+    setLanguageSwitcherBusy(false);
+    showError(new Error('Selected locale is not available.'));
+    return;
+  }
+
+  setLanguageSwitcherBusy(true);
+
+  try {
+    const raw = await fetchYaml(localeEntry.resumePath);
+    if (token !== localeRequestToken) {
+      return;
+    }
+
+    const {
+      labels = {},
+      locale: localeTag,
+      language_name: languageName,
+      ...profile
+    } = raw || {};
+
+    activeLabels = { ...FALLBACK_LABELS, ...labels };
+    activeLocaleCode = localeEntry.code;
+
+    if (localeTag || localeEntry.code) {
+      document.documentElement.lang = (localeTag || localeEntry.code).toLowerCase();
+    }
+    if (languageName) {
+      document.documentElement.setAttribute('data-language-name', languageName);
+    } else {
+      document.documentElement.removeAttribute('data-language-name');
+    }
+
+    try {
+      window.localStorage?.setItem(PUBLIC_VIEW.storageKey, activeLocaleCode);
+    } catch (storageError) {
+      // ignore storage persistence errors
+    }
+
+    applyLabels(activeLabels);
+    renderResume(profile);
+    currentProfile = profile;
+    renderLocaleSwitcher(localeMetadata.locales, activeLocaleCode);
+  } catch (error) {
+    if (token === localeRequestToken) {
+      showError(error);
+    }
+  } finally {
+    if (token === localeRequestToken) {
+      setLanguageSwitcherBusy(false);
+    }
+  }
+}
+
+async function fetchYaml(path) {
+  const response = await fetch(path, { cache: 'no-cache' });
+  if (!response.ok) {
+    throw new Error(`Unable to load resource: ${path}`);
+  }
+  const text = await response.text();
+  return jsyaml.load(text);
+}
+
+function renderLocaleSwitcher(locales, activeCode) {
+  const container = document.getElementById('language-switcher');
+  if (!container) return;
+
+  container.innerHTML = '';
+  container.setAttribute('aria-label', activeLabels.language_switcher);
+
+  locales.forEach((locale) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'language-switcher__option';
+    button.dataset.locale = locale.code;
+    button.textContent = locale.label;
+    if (locale.code === activeCode) {
+      button.classList.add('language-switcher__option--active');
+    }
+    button.addEventListener('click', () => {
+      if (locale.code !== activeLocaleCode && !languageSwitcherBusy) {
+        applyLocale(locale.code);
+      }
+    });
+    container.appendChild(button);
+  });
+
+  updateLanguageSwitcherState();
+}
+
+function setLanguageSwitcherBusy(state) {
+  languageSwitcherBusy = state;
+  updateLanguageSwitcherState();
+}
+
+function updateLanguageSwitcherState() {
+  const container = document.getElementById('language-switcher');
+  if (!container) return;
+
+  container.classList.toggle('language-switcher--busy', languageSwitcherBusy);
+  const buttons = container.querySelectorAll('button');
+  buttons.forEach((button) => {
+    const isActive = button.dataset.locale === activeLocaleCode;
+    button.disabled = languageSwitcherBusy || isActive;
+    button.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+function applyLabels(labels) {
+  setText('summary-heading', labels.summary_heading);
+  setText('github-activity-heading', labels.github_activity_heading);
+  setText('experience-heading', labels.experience_heading);
+  setText('education-heading', labels.education_heading);
+  setText('courses-heading', labels.courses_heading);
+  setText('personal-info-heading', labels.personal_info_heading);
+  setText('skills-heading', labels.skills_heading);
+  setText('tech-stack-heading', labels.tech_stack_heading);
+  setText('languages-heading', labels.languages_heading);
+  setText('interests-heading', labels.interests_heading);
+  setText('public-view-badge', labels.public_view_badge);
+}
+
 function renderResume(data) {
+  if (!data || typeof data !== 'object') {
+    return;
+  }
+
+  const name = data.name ?? '';
+  const role = data.role ?? '';
+  if (name) {
+    document.title = role ? `${name} · ${role}` : name;
+  }
+
   setText('brand-initials', data.brand_initials ?? 'LM');
-  setText('name', data.name ?? '');
-  setText('role', data.role ?? '');
+  setText('name', name);
+  setText('role', role);
   setText('summary', (data.summary || '').trim());
 
   renderTimeline('experience-list', data.experience || [], {
@@ -33,6 +254,7 @@ function renderResume(data) {
     headingKey: 'name',
     customPeriod: (course) => (course.year ? String(course.year) : ''),
   });
+
   renderContactList('contact-list', data.contact || []);
   renderQrList('qr-list', data.qr_codes || []);
   renderMeters('skills-list', data.skills || []);
@@ -44,7 +266,9 @@ function renderResume(data) {
 
 function setText(elementId, text) {
   const element = document.getElementById(elementId);
-  if (element) {
+  if (element && typeof text === 'string' && text.length > 0) {
+    element.textContent = text;
+  } else if (element && typeof text === 'string') {
     element.textContent = text;
   }
 }
@@ -214,7 +438,7 @@ function formatPeriod(periodText, customFormatter, item) {
   return `${parts[0]}\n${parts.slice(1).join(' – ')}`;
 }
 
-function formatContactValue(value, label) {
+function formatContactValue(value) {
   if (!value) return '';
   let formatted = value;
   if (value.includes('@')) {
@@ -260,10 +484,12 @@ function showError(error) {
   console.error(error);
   const resume = document.querySelector('.resume');
   if (!resume) return;
-  const errorBanner = document.createElement('div');
+  const errorBanner = document.querySelector('.error-banner') || document.createElement('div');
   errorBanner.className = 'error-banner';
   errorBanner.textContent = `Something went wrong while loading the resume. ${error.message}`;
-  resume.appendChild(errorBanner);
+  if (!errorBanner.isConnected) {
+    resume.appendChild(errorBanner);
+  }
 }
 
 function initNavbarBehaviour() {
@@ -285,7 +511,3 @@ function initNavbarBehaviour() {
   window.addEventListener('scroll', onScroll, { passive: true });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadResume();
-  initNavbarBehaviour();
-});

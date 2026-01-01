@@ -1,0 +1,147 @@
+locale: en
+language_name: English
+labels:
+  language_switcher: Language
+  language_native: Polish
+  language_english: English
+  summary_heading: Summary
+  github_activity_heading: GitHub Activity
+  experience_heading: Experience
+  education_heading: Education
+  courses_heading: Courses
+  personal_info_heading: Personal Info
+  skills_heading: Skills
+  tech_stack_heading: Tech stack
+  languages_heading: Languages
+  interests_heading: Interests
+  continuation_template: "{heading} {current}/{total}"
+  public_view_badge: Public view
+brand_initials: "LM"
+name: "Łukasz Michta"
+role: "Technical Writer"
+summary: |
+  I am a Technical Writer with nearly four years of experience (ten years of documentation practice overall), focused on API documentation and hands-on tutorials for end users. I partner closely with product owners and developers to keep technical communication consistent across initiatives. I also own the Developer Portal, keeping content current and data-informed so it reflects what our developer community needs. I treat documentation like code with the same care. I am an emerging leader with two years of experience growing a team. Right now I am deepening my knowledge of AI tools.
+contact:
+  - label: Address
+    value: 41-200 Sosnowiec, Poland
+  - label: Phone
+    value: +48 506 034 580
+  - label: E-mail
+    value: lukaszmichta@gmail.com
+    link: mailto:lukaszmichta@gmail.com
+  - label: LinkedIn
+    value: linkedin.com/in/lukasz-michta/
+    link: https://www.linkedin.com/in/lukasz-michta/
+  - label: Portfolio
+    value: developer.cdq.com
+    link: https://developer.cdq.com/
+qr_codes:
+  - label: LinkedIn Profile
+    image: images/qrs/linkedin.png
+    size: 120
+  - label: Developer Portal
+    image: images/qrs/portal.png
+    size: 120
+skills:
+  - name: Training delivery
+    level: 4
+  - name: Product presentations
+    level: 3
+  - name: Time management
+    level: 3
+  - name: Learning new skills
+    level: 5
+tech_stack:
+  - Git
+  - GitHub & Bitbucket
+  - Jira
+  - Slack
+  - JavaScript
+  - Redocly
+  - Markdown
+  - MDX
+  - Markdoc
+  - AsciiDoc
+  - ChatGPT
+  - Codex
+  - Gemini
+github_activity:
+  label: GitHub Activity
+  image: https://ghchart.rshah.org/Sysdrummatic
+  profile: https://github.com/Sysdrummatic
+languages:
+  - name: English
+    level_text: Advanced
+    level: 4
+  - name: Polish
+    level_text: Native
+    level: 5
+interests:
+  - Travel
+  - Drums
+  - Survival
+  - Off-road
+  - Drones
+experience:
+  - period: "2021-11 – present"
+    company: CDQ Poland
+    role: Technical Writer
+    highlights:
+      - Create API documentation and maintain documentation standards
+      - Develop end-user tutorials and walkthroughs
+      - Collaborate with Sales, Product Architects, Product Owners, and engineering teams
+      - Maintain and evolve the Developer Portal
+      - Prototype JavaScript enhancements that extend documentation capabilities
+  - period: "2019-01 – 2021-10"
+    company: IBS Poland – Dassault Systèmes Platinum Partner
+    role: Senior Business Consultant / Solution Architect
+    highlights:
+      - Delivered 3DExperience solutions across the 2019x, 2020x, and 2021x releases
+      - Supported customer implementations end to end
+      - Prepared deployment methodologies and enablement materials
+      - Led product demonstrations for prospects and customers
+      - Provided technical sales support
+      - Conducted on-site and remote training sessions
+  - period: "2015-04 – 2018-12"
+    company: Alstom Konstal S.A., Industrialisation Department
+    role: Digital IT Systems Lead, Key User
+    highlights:
+      - Deployed and tested 3DExperience 2014x and 2016x
+      - Built new digital solutions for manufacturing teams
+      - Authored operating procedures and user guidance
+      - Ran training programs and mentored Key Users
+      - Led the local end-user group and coordinated troubleshooting
+education:
+  - period: "2013-10 – 2015-05"
+    school: Silesian University of Technology, Mechanics, Master of Engineering
+    detail: "Specialization: Computer-aided design"
+  - period: "2009-10 – 2013-02"
+    school: Częstochowa University of Technology, Applied Physics, Bachelor of Engineering
+    detail: "Specialization: Applied Physics"
+courses:
+  - year: 2012
+    name: Autodesk AutoCAD and Inventor Advance
+  - year: 2013
+    name: Catia V5 Basic, Generative Sheet Metal Design
+  - year: 2014
+    name: 3DExperience KeyUser Training
+  - year: 2016
+    name: Train the Trainer
+  - year: 2017
+    name: Internal Auditor – ISO 9001:2015, ISO 14001:2015, OHSAS 18001, ISO TS 22163:2017
+  - year: 2018
+    name: SAP (ECC06) – MTHF
+  - year: 2019
+    name: 3DExperience Solution Architect – Dassault Systèmes Certification
+  - year: 2020
+    name: 3DExperience Infrastructure Architect – Dassault Systèmes Certification
+  - year: 2020
+    name: 3DExperience Infrastructure Consultant – Dassault Systèmes Certification
+  - year: 2022
+    name: ITCQF Certified Technical Communication Professional Foundation Level
+  - year: 2023
+    name: JavaScript Developer Course by ALX
+  - year: 2024
+    name: "OpenAPI: Beginner to Guru"
+  - year: 2025
+    name: "Technical Writing: How to Write Software & API Documentation"

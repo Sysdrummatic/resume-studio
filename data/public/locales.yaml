@@ -1,0 +1,8 @@
+default_locale: en
+locales:
+  - code: en
+    label: English
+    resume_path: data/public/resume-en.yaml
+  - code: pl
+    label: Polski
+    resume_path: data/public/resume-pl.yaml
