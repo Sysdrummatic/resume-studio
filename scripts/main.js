@@ -266,9 +266,7 @@ function renderResume(data) {
 
 function setText(elementId, text) {
   const element = document.getElementById(elementId);
-  if (element && typeof text === 'string' && text.length > 0) {
-    element.textContent = text;
-  } else if (element && typeof text === 'string') {
+  if (element && typeof text === 'string') {
     element.textContent = text;
   }
 }
