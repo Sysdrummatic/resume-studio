@@ -1,0 +1,147 @@
+locale: pl
+language_name: Polski
+labels:
+  language_switcher: Język
+  language_native: Polski
+  language_english: Angielski
+  summary_heading: Podsumowanie
+  github_activity_heading: Aktywność na GitHubie
+  experience_heading: Doświadczenie
+  education_heading: Wykształcenie
+  courses_heading: Kursy
+  personal_info_heading: Informacje osobiste
+  skills_heading: Umiejętności
+  tech_stack_heading: Stos technologiczny
+  languages_heading: Języki
+  interests_heading: Zainteresowania
+  continuation_template: "{heading} {current}/{total}"
+  public_view_badge: Widok publiczny
+brand_initials: "LM"
+name: "Łukasz Michta"
+role: "Technical Writer"
+summary: |
+  Jestem Technical Writerem z niemal czteroletnim doświadczeniem (dziesięć lat praktyki dokumentacyjnej), specjalizującym się w tworzeniu dokumentacji API i opracowywaniu samouczków dla użytkowników końcowych. Współpracuję z właścicielami produktów i deweloperami, zapewniając spójność komunikacji technicznej w projektach. Odpowiadam również za utrzymanie i rozwój Developer Portalu, dbając o aktualność treści oraz analizując dane, by dopasować serwis do potrzeb społeczności deweloperskiej. Dokumentację traktuję jak kod z pełną dbałością. Jestem młodym liderem z dwuletnim doświadczeniem w zarządzaniu zespołem i fokusie na rozwój ludzi. Obecnie aktywnie zgłębiam narzędzia AI.
+contact:
+  - label: Adres
+    value: 41-200 Sosnowiec, Polska
+  - label: Telefon
+    value: +48 506 034 580
+  - label: E-mail
+    value: lukaszmichta@gmail.com
+    link: mailto:lukaszmichta@gmail.com
+  - label: LinkedIn
+    value: linkedin.com/in/lukasz-michta/
+    link: https://www.linkedin.com/in/lukasz-michta/
+  - label: Portfolio
+    value: developer.cdq.com
+    link: https://developer.cdq.com/
+qr_codes:
+  - label: Profil LinkedIn
+    image: images/qrs/linkedin.png
+    size: 120
+  - label: Developer Portal
+    image: images/qrs/portal.png
+    size: 120
+skills:
+  - name: Prowadzenie szkoleń
+    level: 4
+  - name: Prezentacje produktowe
+    level: 3
+  - name: Zarządzanie czasem
+    level: 3
+  - name: Nauka nowych umiejętności
+    level: 5
+tech_stack:
+  - Git
+  - GitHub & Bitbucket
+  - Jira
+  - Slack
+  - JavaScript
+  - Redocly
+  - Markdown
+  - MDX
+  - Markdoc
+  - AsciiDoc
+  - ChatGPT
+  - Codex
+  - Gemini
+github_activity:
+  label: Aktywność na GitHubie
+  image: https://ghchart.rshah.org/Sysdrummatic
+  profile: https://github.com/Sysdrummatic
+languages:
+  - name: Angielski
+    level_text: Zaawansowany
+    level: 4
+  - name: Polski
+    level_text: Ojczysty
+    level: 5
+interests:
+  - Podróże
+  - Perkusja
+  - Survival
+  - Off-road
+  - Drony
+experience:
+  - period: "2021-11 – teraz"
+    company: CDQ Poland
+    role: Technical Writer
+    highlights:
+      - Tworzę dokumentację API oraz standardy dokumentacyjne
+      - Opracowuję samouczki dla użytkowników końcowych
+      - Współpracuję z Sales, Product Architects, Product Owners i zespołami developerskimi
+      - Utrzymuję i rozwijam Developer Portal
+      - Projektuję funkcje JavaScript wspierające dokumentację
+  - period: "2019-01 – 2021-10"
+    company: IBS Poland – Dassault Systèmes Platinum Partner
+    role: Senior Business Consultant / Solution Architect
+    highlights:
+      - Rozwijałem rozwiązania 3DExperience 2019x, 2020x, 2021x
+      - Wspierałem wdrożenia u klientów
+      - Przygotowywałem metodologie i scenariusze wdrożeniowe
+      - Prezentowałem produkt klientom
+      - Wspierałem dział sprzedaży technicznej
+      - Prowadziłem szkolenia stacjonarne i zdalne
+  - period: "2015-04 – 2018-12"
+    company: Alstom Konstal S.A., Dział Industrializacji
+    role: Lider Systemów IT, Key User
+    highlights:
+      - Wdrażanie i testowanie 3DExperience 2014x i 2016x
+      - Opracowywanie nowych rozwiązań
+      - Przygotowywanie metod pracy i instrukcji dla użytkowników
+      - Szkolenia oraz mentoring Key Userów
+      - Kierowanie zespołem użytkowników końcowych
+education:
+  - period: "2013-10 – 2015-05"
+    school: Politechnika Śląska, Mechanika, magister inż.
+    detail: "Specjalność: Komputerowe wspomaganie projektowania"
+  - period: "2009-10 – 2013-02"
+    school: Politechnika Częstochowska, Fizyka stosowana, inż.
+    detail: "Specjalność: Fizyka stosowana"
+courses:
+  - year: 2012
+    name: Autodesk AutoCAD i Inventor Advance
+  - year: 2013
+    name: Catia V5 Basic, Generative Sheet Metal Design
+  - year: 2014
+    name: 3DExperience KeyUser Training
+  - year: 2016
+    name: Train the Trainer
+  - year: 2017
+    name: Auditor wewnętrzny – ISO 9001:2015, ISO 14001:2015, OHSAS 18001, ISO TS 22163:2017
+  - year: 2018
+    name: SAP (ECC06) – MTHF
+  - year: 2019
+    name: 3DExperience Solution Architect – certyfikacja Dassault Systèmes
+  - year: 2020
+    name: 3DExperience Infrastructure Architect – certyfikacja Dassault Systèmes
+  - year: 2020
+    name: 3DExperience Infrastructure Consultant – certyfikacja Dassault Systèmes
+  - year: 2022
+    name: ITCQF Certified Technical Communication Professional Foundation Level
+  - year: 2023
+    name: JavaScript Developer Course by ALX
+  - year: 2024
+    name: "OpenAPI: Beginner to Guru"
+  - year: 2025
+    name: "Technical Writing: How to Write Software & API Documentation"
