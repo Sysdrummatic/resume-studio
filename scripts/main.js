@@ -331,7 +331,7 @@ function renderContactList(containerId, contacts) {
     const term = document.createElement('dt');
     term.textContent = item.label;
     const definition = document.createElement('dd');
-    const formattedValue = formatContactValue(item.value || '', item.label || '');
+    const formattedValue = formatContactValue(item.value || '');
     if (item.link) {
       const link = document.createElement('a');
       link.href = item.link;
