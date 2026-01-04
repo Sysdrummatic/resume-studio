@@ -3,6 +3,8 @@ locales:
   - code: en
     label: English
     resume_path: data/public/resume-en.yaml
+    config_path: data/public/config/en.yaml
   - code: pl
     label: Polski
     resume_path: data/public/resume-pl.yaml
+    config_path: data/public/config/pl.yaml

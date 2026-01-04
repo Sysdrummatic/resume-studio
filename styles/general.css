@@ -10,19 +10,6 @@
   --timeline-dot-size: 14px;
 }
 
-  .hero__actions {
-    width: 100%;
-    justify-content: flex-start;
-    margin-left: 0;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .language-switcher {
-    width: auto;
-  }
-
-
 * {
   box-sizing: border-box;
 }
@@ -53,14 +40,14 @@ img {
   top: 0;
   z-index: 20;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 16px;
   padding: 16px 32px;
   margin-bottom: 32px;
   background: transparent;
   transition: background 0.15s ease-out, box-shadow 0.15s ease-out;
-  flex-wrap: wrap;
 }
 
 .hero::before {
@@ -88,13 +75,32 @@ img {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero__language {
+  display: flex;
+  align-items: center;
+}
+
+.hero__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
 }
 
 .hero__actions {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin: 0;
+}
+
+.hero__actions .hero__language {
+  flex-shrink: 0;
 }
 
 .public-view-badge {
@@ -508,6 +514,14 @@ img {
   border: 1px dashed var(--border);
 }
 
+.admin-config {
+  margin: 0 32px 48px;
+  padding: 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border);
+}
+
 .admin-login-form {
   display: grid;
   gap: 12px;
@@ -558,9 +572,9 @@ img {
 }
 
 .admin-panel {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 .admin-panel__title {

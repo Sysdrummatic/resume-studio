@@ -1,22 +1,3 @@
-locale: pl
-language_name: Polski
-labels:
-  language_switcher: Język
-  language_native: Polski
-  language_english: Angielski
-  summary_heading: Podsumowanie
-  github_activity_heading: Aktywność na GitHubie
-  experience_heading: Doświadczenie
-  education_heading: Wykształcenie
-  courses_heading: Kursy
-  personal_info_heading: Informacje osobiste
-  skills_heading: Umiejętności
-  tech_stack_heading: Stos technologiczny
-  languages_heading: Języki
-  interests_heading: Zainteresowania
-  continuation_template: "{heading} {current}/{total}"
-  public_view_badge: Widok publiczny
-  private_view_badge: Widok prywatny
 brand_initials: "AH"
 name: "Ariana Holt"
 role: "Lead Product Scientist"

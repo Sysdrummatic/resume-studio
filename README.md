@@ -5,7 +5,9 @@ This project renders an interactive résumé directly from YAML data. The page i
 ## Structure
 
 - `index.html` – layout, markup, language switcher, and public view controls.
-- `data/public/locales.yaml` – locale registry (code, label, and YAML path per language).
+- `user.html` – editor login view and configuration panel.
+- `data/public/locales.yaml` – locale registry (code, label, resume path, and config path per language).
+- `data/public/config/*.yaml` – per-locale UI labels and language metadata.
 - `data/public/resume-*.yaml` – per-locale public data (EN/PL provided). Keep private data in `data/resume-private.yaml`.
 - `scripts/main.js` – locale loading, DOM rendering, and UI behaviour.
 - `styles/general.css` – layout, timeline and sidebar styling.
@@ -56,13 +58,11 @@ The admin panel requires the password to come from the `ADMIN_PASSWORD` environm
 
 ## Locale management
 
-- Register new locales in `data/public/locales.yaml` by adding an entry with `code`, `label`, and `resume_path`.
-- Provide a per-locale YAML file that follows the structure in `data/public/resume-en.yaml` / `data/public/resume-pl.yaml`. Each file must include localized UI labels under `labels` and the CV content for that locale.
+- Register new locales in `data/public/locales.yaml` by adding an entry with `code`, `label`, `resume_path`, and `config_path`.
+- Provide a per-locale resume file that follows the structure in `data/public/resume-en.yaml` / `data/public/resume-pl.yaml`. Store UI labels and locale metadata in a matching file under `data/public/config`.
 - The app persists the last selected locale in `localStorage` and falls back to browser language (two-letter code) or the configured default.
 
 ## Manual QA checklist
 
 - Toggle between Polish and English and verify that all headings, content blocks, and sidebar cards localize correctly.
 - Validate YAML via an external linter when editing locale data.
-
-Feel free to fork/extend for your own résumé.
