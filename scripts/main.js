@@ -1214,19 +1214,184 @@ function applyVisibilitySnapshot(snapshot) {
   persistItemVisibility();
 }
 
+// Preset name dialog state and helpers
+let presetNameDialogElements = null;
+
+function ensurePresetNameDialog() {
+  if (presetNameDialogElements) {
+    return presetNameDialogElements;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'preset-name-dialog-overlay';
+  overlay.style.position = 'fixed';
+  overlay.style.inset = '0';
+  overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '10000';
+
+  const dialog = document.createElement('div');
+  dialog.className = 'preset-name-dialog';
+  dialog.style.backgroundColor = '#fff';
+  dialog.style.borderRadius = '4px';
+  dialog.style.padding = '16px';
+  dialog.style.maxWidth = '400px';
+  dialog.style.width = '100%';
+  dialog.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+
+  const title = document.createElement('h2');
+  title.textContent = 'Preset name';
+  title.style.margin = '0 0 8px';
+
+  const label = document.createElement('label');
+  label.textContent = 'Enter a name for this preset:';
+  label.style.display = 'block';
+  label.style.marginBottom = '4px';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.maxLength = 50;
+  input.style.width = '100%';
+  input.style.boxSizing = 'border-box';
+  input.style.marginBottom = '4px';
+
+  const hint = document.createElement('div');
+  hint.textContent = 'Max 50 characters.';
+  hint.style.fontSize = '12px';
+  hint.style.color = '#666';
+  hint.style.marginBottom = '4px';
+
+  const error = document.createElement('div');
+  error.style.color = '#c00';
+  error.style.fontSize = '12px';
+  error.style.minHeight = '16px';
+  error.style.marginBottom = '8px';
+
+  const buttons = document.createElement('div');
+  buttons.style.display = 'flex';
+  buttons.style.justifyContent = 'flex-end';
+  buttons.style.gap = '8px';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.textContent = 'Cancel';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.textContent = 'Save';
+
+  buttons.appendChild(cancelBtn);
+  buttons.appendChild(saveBtn);
+
+  dialog.appendChild(title);
+  dialog.appendChild(label);
+  dialog.appendChild(input);
+  dialog.appendChild(hint);
+  dialog.appendChild(error);
+  dialog.appendChild(buttons);
+
+  overlay.appendChild(dialog);
+
+  presetNameDialogElements = {
+    overlay,
+    dialog,
+    input,
+    error,
+    cancelBtn,
+    saveBtn,
+  };
+
+  return presetNameDialogElements;
+}
+
+function openPresetNameDialog() {
+  const { overlay, input, error, cancelBtn, saveBtn } = ensurePresetNameDialog();
+
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    function cleanup() {
+      if (overlay.parentNode) {
+        document.body.removeChild(overlay);
+      }
+      cancelBtn.removeEventListener('click', onCancel);
+      saveBtn.removeEventListener('click', onSave);
+      overlay.removeEventListener('click', onOverlayClick);
+      overlay.removeEventListener('keydown', onKeyDown, true);
+    }
+
+    function onCancel() {
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      resolve(null);
+    }
+
+    function onSave() {
+      const raw = input.value;
+      const name = raw.trim();
+      if (!name) {
+        error.textContent = 'Name cannot be empty.';
+        return;
+      }
+      if (name.length > 50) {
+        error.textContent = 'Name must be at most 50 characters.';
+        return;
+      }
+      error.textContent = '';
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      resolve(name);
+    }
+
+    function onOverlayClick(event) {
+      if (event.target === overlay) {
+        onCancel();
+      }
+    }
+
+    function onKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCancel();
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        onSave();
+      }
+    }
+
+    input.value = '';
+    error.textContent = '';
+
+    document.body.appendChild(overlay);
+    input.focus();
+
+    cancelBtn.addEventListener('click', onCancel);
+    saveBtn.addEventListener('click', onSave);
+    overlay.addEventListener('click', onOverlayClick);
+    overlay.addEventListener('keydown', onKeyDown, true);
+  });
+}
+
 function saveNewPreset() {
-  const name = window.prompt('Preset name');
-  if (!name) return;
-  const snapshot = collectVisibilitySnapshot();
-  const id = generatePresetId(name);
-  const newPreset = { id, name: name.trim(), visibility: snapshot };
-  adminPresets = [DEFAULT_PRESET, ...adminPresets.filter((preset) => preset.id !== DEFAULT_PRESET.id && preset.id !== id), newPreset];
-  persistPresets();
-  activePresetId = id;
-  saveActivePreset(activePresetId);
-  updatePresetQueryParam(activePresetId);
-  renderPresetOptions();
-  updatePresetButtonsState();
+  openPresetNameDialog().then((name) => {
+    if (!name) {
+      return;
+    }
+    const snapshot = collectVisibilitySnapshot();
+    const id = generatePresetId(name);
+    const newPreset = { id, name, visibility: snapshot };
+    adminPresets = [DEFAULT_PRESET, ...adminPresets.filter((preset) => preset.id !== DEFAULT_PRESET.id && preset.id !== id), newPreset];
+    persistPresets();
+    activePresetId = id;
+    saveActivePreset(activePresetId);
+    updatePresetQueryParam(activePresetId);
+    renderPresetOptions();
+    updatePresetButtonsState();
+  });
 }
 
 function updateExistingPreset() {
