@@ -111,21 +111,23 @@ async function loadLocalesConfig() {
   const locales = [];
   const map = new Map();
 
-  if (raw && Array.isArray(raw.locales)) {
-    raw.locales.forEach((entry) => {
-      if (!entry) return;
-      const code = String(entry.code || '').trim().toLowerCase();
-      const resumePath = String(entry.resume_path || '').trim();
-      if (!code || !resumePath || map.has(code)) return;
-      const normalized = {
-        code,
-        resumePath,
-        label: String(entry.label || code.toUpperCase()),
-      };
-      map.set(code, normalized);
-      locales.push(normalized);
-    });
-  }
+    if (raw && Array.isArray(raw.locales)) {
+      raw.locales.forEach((entry) => {
+        if (!entry) return;
+        const code = String(entry.code || '').trim().toLowerCase();
+        const resumePath = String(entry.resume_path || '').trim();
+        if (!code || !resumePath || map.has(code)) return;
+        const configPath = String(entry.config_path || `data/public/config/${code}.yaml`).trim();
+        const normalized = {
+          code,
+          resumePath,
+          configPath,
+          label: String(entry.label || code.toUpperCase()),
+        };
+        map.set(code, normalized);
+        locales.push(normalized);
+      });
+    }
 
   let defaultLocale = String(raw?.default_locale || PUBLIC_VIEW.defaultLocale).trim().toLowerCase();
   if (!map.has(defaultLocale) && locales.length) {
@@ -166,44 +168,57 @@ async function applyLocale(requestedCode) {
     return;
   }
 
-  setLanguageSwitcherBusy(true);
-
-  try {
-    const raw = await fetchYaml(localeEntry.resumePath);
-    if (token !== localeRequestToken) {
-      return;
-    }
-
-    const {
-      labels = {},
-      locale: localeTag,
-      language_name: languageName,
-      ...profile
-    } = raw || {};
-
-    activeLabels = { ...FALLBACK_LABELS, ...labels };
-    activeLocaleCode = localeEntry.code;
-
-    if (localeTag || localeEntry.code) {
-      document.documentElement.lang = (localeTag || localeEntry.code).toLowerCase();
-    }
-    if (languageName) {
-      document.documentElement.setAttribute('data-language-name', languageName);
-    } else {
-      document.documentElement.removeAttribute('data-language-name');
-    }
+    setLanguageSwitcherBusy(true);
 
     try {
-      window.localStorage?.setItem(PUBLIC_VIEW.storageKey, activeLocaleCode);
-    } catch (storageError) {
-      // ignore storage persistence errors
-    }
+      const resumeData = await fetchYaml(localeEntry.resumePath);
+      let configData = {};
+      if (localeEntry.configPath) {
+        try {
+          configData = await fetchYaml(localeEntry.configPath);
+        } catch (configError) {
+          console.warn(`Unable to load locale config for ${localeEntry.code}`, configError);
+        }
+      }
 
-    applyLabels(activeLabels);
-    renderResume(profile);
-    currentProfile = profile;
-    renderLocaleSwitcher(localeMetadata.locales, activeLocaleCode);
-  } catch (error) {
+      if (token !== localeRequestToken) {
+        return;
+      }
+
+      const {
+        labels: resumeLabels = {},
+        locale: resumeLocale,
+        language_name: resumeLanguageName,
+        ...profile
+      } = resumeData || {};
+
+      const configLabels = configData?.labels || {};
+      const localeTag = configData?.locale || resumeLocale;
+      const languageName = configData?.language_name || resumeLanguageName;
+      activeLabels = { ...FALLBACK_LABELS, ...resumeLabels, ...configLabels };
+
+      activeLocaleCode = localeEntry.code;
+
+      if (localeTag || localeEntry.code) {
+        document.documentElement.lang = (localeTag || localeEntry.code).toLowerCase();
+      }
+      if (languageName) {
+        document.documentElement.setAttribute('data-language-name', languageName);
+      } else {
+        document.documentElement.removeAttribute('data-language-name');
+      }
+
+      try {
+        window.localStorage?.setItem(PUBLIC_VIEW.storageKey, activeLocaleCode);
+      } catch (storageError) {
+        // ignore storage persistence errors
+      }
+
+      applyLabels(activeLabels);
+      renderResume(profile);
+      currentProfile = profile;
+      renderLocaleSwitcher(localeMetadata.locales, activeLocaleCode);
+    } catch (error) {
     if (token === localeRequestToken) {
       showError(error);
     }
@@ -587,7 +602,6 @@ function showError(error) {
 function initNavbarBehaviour() {
   const hero = document.querySelector('.hero');
   if (!hero) return;
-  let lastScrollY = window.scrollY;
   const threshold = 20;
 
   function onScroll() {
@@ -597,7 +611,6 @@ function initNavbarBehaviour() {
     } else {
       hero.classList.remove('hero--scrolled');
     }
-    lastScrollY = Math.max(currentScroll, 0);
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -613,6 +626,36 @@ function extractSectionData(data) {
     languages: Array.isArray(data.languages) ? data.languages : [],
     interests: Array.isArray(data.interests) ? data.interests : [],
   };
+}
+
+function ensureActiveConfigSection() {
+  // Keep the admin section selection aligned with available configuration slots.
+  if (!CONFIGURABLE_SECTIONS.length) {
+    activeConfigSectionId = '';
+    return activeConfigSectionId;
+  }
+  const hasActive = CONFIGURABLE_SECTIONS.some((section) => section.id === activeConfigSectionId);
+  if (!hasActive) {
+    activeConfigSectionId = CONFIGURABLE_SECTIONS[0].id;
+  }
+  return activeConfigSectionId;
+}
+
+function applyVisibilityChange(sectionId, updater, options = {}) {
+  // Centralizes visibility updates to keep storage, UI, and resume rendering in sync.
+  if (!sectionId) {
+    return;
+  }
+  const items = currentSectionData[sectionId] || [];
+  const currentSet = itemVisibilityMap.get(sectionId) || new Set(createFullIndexArray(items.length));
+  const nextSet = updater(new Set(currentSet), items.length, items) || new Set();
+  itemVisibilityMap.set(sectionId, nextSet);
+  persistItemVisibility();
+  syncPresetSelectionFromVisibility();
+  if (options.refreshDetail !== false && sectionId === activeConfigSectionId) {
+    renderSectionDetail(activeConfigSectionId);
+  }
+  renderResume(currentProfile, { skipVisibilityInit: true });
 }
 
 function initializeItemVisibilitySets() {
@@ -837,9 +880,7 @@ function unlockAdminPanel() {
     panel.hidden = false;
   }
 
-  if (!activeConfigSectionId && CONFIGURABLE_SECTIONS.length) {
-    activeConfigSectionId = CONFIGURABLE_SECTIONS[0].id;
-  }
+  ensureActiveConfigSection();
 
   updateViewModeBadge();
   updateLogoutButtonVisibility();
@@ -972,9 +1013,7 @@ function renderSectionSelection() {
     return;
   }
 
-  if (!activeConfigSectionId || !CONFIGURABLE_SECTIONS.some((section) => section.id === activeConfigSectionId)) {
-    activeConfigSectionId = CONFIGURABLE_SECTIONS[0].id;
-  }
+  const activeSectionId = ensureActiveConfigSection();
 
   CONFIGURABLE_SECTIONS.forEach((section) => {
     const label = document.createElement('label');
@@ -986,7 +1025,7 @@ function renderSectionSelection() {
     radio.name = 'admin-section';
     radio.value = section.id;
     radio.className = 'admin-section-option__input';
-    radio.checked = section.id === activeConfigSectionId;
+    radio.checked = section.id === activeSectionId;
     radio.addEventListener('change', handleSectionRadioChange);
 
     const text = document.createElement('span');
@@ -1068,42 +1107,31 @@ function handleDetailCheckboxChange(event) {
   const index = Number(checkbox.dataset.index);
   if (!sectionId || Number.isNaN(index)) return;
 
-  const items = currentSectionData[sectionId] || [];
-  const visibleSet = itemVisibilityMap.get(sectionId) || new Set(createFullIndexArray(items.length));
-
-  if (checkbox.checked) {
-    visibleSet.add(index);
-  } else {
-    visibleSet.delete(index);
-  }
-
-  itemVisibilityMap.set(sectionId, new Set(visibleSet));
-  persistItemVisibility();
-  syncPresetSelectionFromVisibility();
-  renderResume(currentProfile, { skipVisibilityInit: true });
+  applyVisibilityChange(sectionId, (visibility) => {
+    if (checkbox.checked) {
+      visibility.add(index);
+    } else {
+      visibility.delete(index);
+    }
+    return visibility;
+  }, { refreshDetail: false });
 }
 
 function handleDetailSelectAll() {
-  if (!activeConfigSectionId) return;
-  const items = currentSectionData[activeConfigSectionId] || [];
-  itemVisibilityMap.set(activeConfigSectionId, new Set(createFullIndexArray(items.length)));
-  persistItemVisibility();
-  syncPresetSelectionFromVisibility();
-  renderSectionDetail(activeConfigSectionId);
-  renderResume(currentProfile, { skipVisibilityInit: true });
+  const sectionId = ensureActiveConfigSection();
+  if (!sectionId) return;
+  applyVisibilityChange(sectionId, (_, length) => new Set(createFullIndexArray(length)));
 }
 
 function handleDetailClear() {
-  if (!activeConfigSectionId) return;
-  itemVisibilityMap.set(activeConfigSectionId, new Set());
-  persistItemVisibility();
-  syncPresetSelectionFromVisibility();
-  renderSectionDetail(activeConfigSectionId);
-  renderResume(currentProfile, { skipVisibilityInit: true });
+  const sectionId = ensureActiveConfigSection();
+  if (!sectionId) return;
+  applyVisibilityChange(sectionId, () => new Set());
 }
 
 function refreshAdminDynamicUI() {
   if (!adminUnlocked) return;
+  ensureActiveConfigSection();
   renderSectionSelection();
   renderSectionDetail(activeConfigSectionId);
   renderPresetOptions();
@@ -1121,6 +1149,7 @@ function getSectionDisplayName(section) {
 
 function updateAdminSectionLabels() {
   if (!adminUnlocked) return;
+  ensureActiveConfigSection();
   renderSectionSelection();
   renderSectionDetail(activeConfigSectionId);
 }
