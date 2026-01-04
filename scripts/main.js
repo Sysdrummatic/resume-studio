@@ -1292,11 +1292,12 @@ function updatePresetQueryParam(id) {
 }
 
 function generatePresetId(name) {
-  const base = name
+  const baseSlug = name
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || `preset-${Date.now()}`;
+    .replace(/^-+|-+$/g, '');
+  const base = baseSlug || 'preset';
   let candidate = base;
   let index = 1;
   while (getPresetById(candidate)) {
