@@ -1005,8 +1005,9 @@ function handleAdminLogout() {
   }
 
   const currentPath = window.location.pathname || '';
-  const editorPattern = new RegExp(`${PAGE_FILENAMES.editor}$`);
-  const targetPath = currentPath.replace(editorPattern, PAGE_FILENAMES.public);
+  const targetPath = currentPath.endsWith(PAGE_FILENAMES.editor)
+    ? currentPath.slice(0, -PAGE_FILENAMES.editor.length) + PAGE_FILENAMES.public
+    : currentPath;
   window.location.href = targetPath === currentPath ? `/${PAGE_FILENAMES.public}` : targetPath;
 }
 
