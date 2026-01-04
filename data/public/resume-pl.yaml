@@ -17,6 +17,8 @@ labels:
   continuation_template: "{heading} {current}/{total}"
   public_view_badge: Widok publiczny
   private_view_badge: Widok prywatny
+  edit_button_label: Edytuj
+  save_button_label: Zapisz
 brand_initials: "AH"
 name: "Ariana Holt"
 role: "Lead Product Scientist"

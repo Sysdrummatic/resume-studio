@@ -19,6 +19,8 @@ const FALLBACK_LABELS = Object.freeze({
   continuation_template: '{heading} {current}/{total}',
   public_view_badge: 'Public view',
   private_view_badge: 'Private view',
+  edit_button_label: 'Edit',
+  save_button_label: 'Save',
 });
 
 const RESOLVED_ADMIN_PASSWORD = (() => {
@@ -80,7 +82,7 @@ let currentSectionData = {};
 let activeConfigSectionId = '';
 
 const PAGE_CONTEXT = document.body?.dataset.viewMode || 'public';
-const isAdminView = PAGE_CONTEXT === 'admin';
+const isEditorView = PAGE_CONTEXT === 'user';
 
 document.addEventListener('DOMContentLoaded', () => {
   restoreAdminState();
@@ -277,6 +279,8 @@ function applyLabels(labels) {
   setText('tech-stack-heading', labels.tech_stack_heading);
   setText('languages-heading', labels.languages_heading);
   setText('interests-heading', labels.interests_heading);
+  setText('edit-view-button', labels.edit_button_label);
+  setText('admin-logout-button', labels.save_button_label);
   updateAdminSectionLabels();
   updateViewModeBadge();
 }
@@ -660,7 +664,7 @@ function restoreAdminState() {
     persisted = false;
   }
 
-  adminUnlocked = Boolean(persisted && isAdminView && ADMIN_CONFIG.password);
+  adminUnlocked = Boolean(persisted && isEditorView && ADMIN_CONFIG.password);
 
   const storedPresets = loadStoredPresets();
   adminPresets = [DEFAULT_PRESET, ...storedPresets];
@@ -752,7 +756,7 @@ function initAdminPanel() {
   const submitButton = loginForm.querySelector('button[type="submit"]');
   const passwordInput = loginForm.querySelector('input[name="password"]');
   const defaultErrorMessage = errorElement ? errorElement.textContent : 'Incorrect password. Try again.';
-  const disabledMessage = 'Admin login disabled. Configure the ADMIN_PASSWORD environment variable.';
+  const disabledMessage = 'Editor login disabled. Configure the ADMIN_PASSWORD environment variable.';
 
   const passwordConfigured = Boolean(ADMIN_CONFIG.password);
   if (!passwordConfigured) {
@@ -817,9 +821,17 @@ function initAdminPanel() {
 
 function unlockAdminPanel() {
   const loginForm = document.getElementById('admin-login-form');
+  const accessSection = document.getElementById('admin-access');
   const panel = document.getElementById('admin-panel');
+  const panelSection = document.getElementById('admin-config');
+  if (accessSection) {
+    accessSection.hidden = true;
+  }
   if (loginForm) {
     loginForm.hidden = true;
+  }
+  if (panelSection) {
+    panelSection.hidden = false;
   }
   if (panel) {
     panel.hidden = false;
@@ -831,6 +843,13 @@ function unlockAdminPanel() {
 
   updateViewModeBadge();
   updateLogoutButtonVisibility();
+
+  if (isEditorView) {
+    const layout = document.querySelector('.layout');
+    if (layout) {
+      layout.hidden = true;
+    }
+  }
 
   renderPresetOptions();
   updatePresetButtonsState();
@@ -889,7 +908,7 @@ function unlockAdminPanel() {
 }
 
 function initLogoutButton() {
-  if (!isAdminView) return;
+  if (!isEditorView) return;
   const button = document.getElementById('admin-logout-button');
   if (!button || button.dataset.handlerBound) return;
   button.dataset.handlerBound = 'true';
@@ -898,7 +917,7 @@ function initLogoutButton() {
 }
 
 function updateLogoutButtonVisibility() {
-  if (!isAdminView) return;
+  if (!isEditorView) return;
   const button = document.getElementById('admin-logout-button');
   if (!button) return;
   button.hidden = !adminUnlocked;
@@ -915,17 +934,32 @@ function handleAdminLogout() {
   updateViewModeBadge();
 
   const panel = document.getElementById('admin-panel');
+  const panelSection = document.getElementById('admin-config');
+  const accessSection = document.getElementById('admin-access');
   const loginForm = document.getElementById('admin-login-form');
   if (panel) {
     panel.hidden = true;
+  }
+  if (panelSection) {
+    panelSection.hidden = true;
+  }
+  if (accessSection) {
+    accessSection.hidden = false;
   }
   if (loginForm) {
     loginForm.hidden = false;
     loginForm.reset();
   }
 
+  if (isEditorView) {
+    const layout = document.querySelector('.layout');
+    if (layout) {
+      layout.hidden = false;
+    }
+  }
+
   const currentPath = window.location.pathname || '';
-  const targetPath = currentPath.replace(/admin\.html$/, 'index.html');
+  const targetPath = currentPath.replace(/user\.html$/, 'index.html');
   window.location.href = targetPath === currentPath ? '/index.html' : targetPath;
 }
 
@@ -1094,7 +1128,7 @@ function updateAdminSectionLabels() {
 function updateViewModeBadge() {
   const badge = document.getElementById('public-view-badge');
   if (!badge) return;
-  const usePrivateBadge = adminUnlocked && isAdminView;
+  const usePrivateBadge = adminUnlocked && isEditorView;
   const labelKey = usePrivateBadge ? 'private_view_badge' : 'public_view_badge';
   const text = activeLabels[labelKey] || FALLBACK_LABELS[labelKey];
   badge.textContent = text;

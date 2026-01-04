@@ -5,6 +5,7 @@ This project renders an interactive résumé directly from YAML data. The page i
 ## Structure
 
 - `index.html` – layout, markup, language switcher, and public view controls.
+- `user.html` – editor login view and configuration panel.
 - `data/public/locales.yaml` – locale registry (code, label, and YAML path per language).
 - `data/public/resume-*.yaml` – per-locale public data (EN/PL provided). Keep private data in `data/resume-private.yaml`.
 - `scripts/main.js` – locale loading, DOM rendering, and UI behaviour.

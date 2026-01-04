@@ -15,25 +15,27 @@
   </head>
   <body data-view-mode="public">
     <div class="resume">
-      <header class="hero" aria-label="Profile summary">
-        <div class="hero__title">
-          <div class="logo-circle" id="brand-initials" aria-hidden="true"></div>
-          <div>
-            <h1 id="name"></h1>
-            <p id="role"></p>
+        <header class="hero" aria-label="Profile summary">
+          <div class="hero__title">
+            <div class="logo-circle" id="brand-initials" aria-hidden="true"></div>
+            <div class="hero__identity">
+              <h1 id="name"></h1>
+              <p id="role"></p>
+            </div>
           </div>
-        </div>
-        <div class="hero__actions">
-          <span class="public-view-badge" id="public-view-badge">Public view</span>
-          <a class="hero__login-button" href="admin.html">Login</a>
-          <div
-            class="language-switcher"
-            id="language-switcher"
-            role="group"
-            aria-label="Language"
-          ></div>
-        </div>
-      </header>
+          <div class="hero__actions">
+            <div class="hero__language">
+              <div
+                class="language-switcher"
+                id="language-switcher"
+                role="group"
+                aria-label="Language"
+              ></div>
+            </div>
+            <span class="public-view-badge" id="public-view-badge">Public view</span>
+            <a class="hero__login-button" id="edit-view-button" href="user.html">Edit</a>
+          </div>
+        </header>
 
       <main class="layout">
         <section class="main-column" aria-label="Professional profile">
