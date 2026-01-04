@@ -46,6 +46,8 @@ const ADMIN_CONFIG = Object.freeze({
   customPresetId: '__custom__',
 });
 
+const NAVBAR_SCROLL_THRESHOLD = 20;
+
 const SECTION_DEFINITIONS = Object.freeze([
   { id: 'summary', selector: '[data-section="summary"]', fallbackLabel: 'Summary', configurable: false },
   { id: 'github', selector: '[data-section="github"]', fallbackLabel: 'GitHub Activity', configurable: false },
@@ -602,7 +604,7 @@ function showError(error) {
 function initNavbarBehaviour() {
   const hero = document.querySelector('.hero');
   if (!hero) return;
-  const threshold = 20;
+  const threshold = NAVBAR_SCROLL_THRESHOLD;
 
   function onScroll() {
     const currentScroll = window.scrollY;
