@@ -877,7 +877,9 @@ function handleAdminLogout() {
     loginForm.reset();
   }
 
-  window.location.href = 'index.html';
+  const currentPath = window.location.pathname || '';
+  const targetPath = currentPath.replace(/admin\.html$/, 'index.html');
+  window.location.href = targetPath === currentPath ? '/index.html' : targetPath;
 }
 
 function renderSectionSelection() {
