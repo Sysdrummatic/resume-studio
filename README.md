@@ -17,6 +17,45 @@ This project renders an interactive résumé directly from YAML data. The page i
 2. In VS Code right-click `index.html` → “Open with Live Server”. Alternatively run a static server (`npx serve .` or `python3 -m http.server`).
 3. Refresh the page after changing any YAML file – the app fetches locale files dynamically.
 
+## Configuring the admin password
+
+The admin panel expects the password to be supplied via the `ADMIN_PASSWORD` environment variable. A small generator script writes the value into `scripts/admin-config.js`, which is ignored by git so secrets stay local.
+
+### Windows (PowerShell)
+
+1. Set the variable for the current session:
+	```powershell
+	$env:ADMIN_PASSWORD = "your-strong-password"
+	```
+	To persist it for all future sessions, run:
+	```powershell
+	setx ADMIN_PASSWORD "your-strong-password"
+	```
+	(Restart the terminal after using `setx`.)
+2. Generate the client config file:
+	```powershell
+	node scripts/generate-admin-config.js
+	```
+3. Launch your static server (e.g. Live Server or `npx serve .`).
+
+### Windows (Command Prompt)
+
+1. Set and persist the variable:
+	```cmd
+	setx ADMIN_PASSWORD "your-strong-password"
+	```
+	For the current window only use:
+	```cmd
+	set ADMIN_PASSWORD=your-strong-password
+	```
+2. Run the generator:
+	```cmd
+	node scripts\generate-admin-config.js
+	```
+3. Start your preferred static server.
+
+If the variable is missing, the generator falls back to `test-admin`, matching the previous behaviour.
+
 ## Locale management
 
 - Register new locales in `data/public/locales.yaml` by adding an entry with `code`, `label`, and `resume_path`.

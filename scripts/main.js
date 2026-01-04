@@ -21,8 +21,18 @@ const FALLBACK_LABELS = Object.freeze({
   private_view_badge: 'Private view',
 });
 
+const RESOLVED_ADMIN_PASSWORD = (() => {
+  if (typeof ADMIN_PASSWORD === 'string' && ADMIN_PASSWORD.trim()) {
+    return ADMIN_PASSWORD.trim();
+  }
+  if (typeof ADMIN_PASSWORD === 'number') {
+    return String(ADMIN_PASSWORD);
+  }
+  return 'test-admin';
+})();
+
 const ADMIN_CONFIG = Object.freeze({
-  password: (typeof ADMIN_PASSWORD !== 'undefined' ? ADMIN_PASSWORD : null),
+  password: RESOLVED_ADMIN_PASSWORD,
   storageKeys: {
     unlocked: 'resume-studio:admin-unlocked',
     presets: 'resume-studio:presets:v2',
