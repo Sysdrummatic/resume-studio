@@ -22,7 +22,7 @@ const FALLBACK_LABELS = Object.freeze({
 });
 
 const ADMIN_CONFIG = Object.freeze({
-  password: 'test-admin',
+  password: (typeof ADMIN_PASSWORD !== 'undefined' ? ADMIN_PASSWORD : null),
   storageKeys: {
     unlocked: 'resume-studio:admin-unlocked',
     presets: 'resume-studio:presets:v2',
