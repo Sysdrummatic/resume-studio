@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Łukasz Michta · Technical Writer</title>
+    <title>Resume Studio Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,7 +13,7 @@
     />
     <link rel="stylesheet" href="styles/general.css" />
   </head>
-  <body data-view-mode="public">
+  <body data-view-mode="admin">
     <div class="resume">
       <header class="hero" aria-label="Profile summary">
         <div class="hero__title">
@@ -25,7 +25,9 @@
         </div>
         <div class="hero__actions">
           <span class="public-view-badge" id="public-view-badge">Public view</span>
-          <a class="hero__login-button" href="admin.html">Login</a>
+          <button class="hero__login-button hero__logout-button" id="admin-logout-button" type="button" hidden>
+            Logout
+          </button>
           <div
             class="language-switcher"
             id="language-switcher"
@@ -34,6 +36,68 @@
           ></div>
         </div>
       </header>
+
+      <section class="admin-access" id="admin-access" aria-label="Admin access">
+        <form id="admin-login-form" class="admin-login-form" autocomplete="off">
+          <h2 class="admin-login-form__title">Admin login (test)</h2>
+          <label class="admin-login-form__label" for="admin-password">Password</label>
+          <input
+            class="admin-login-form__input"
+            id="admin-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Enter test password"
+          />
+          <button class="admin-login-form__button" type="submit">Unlock editor</button>
+          <p id="admin-login-error" class="admin-login-form__error" role="alert" hidden>
+            Incorrect password. Try again.
+          </p>
+          <p class="admin-login-form__note">Temporary client-side login for sandbox use only.</p>
+        </form>
+        <div id="admin-panel" class="admin-panel" hidden>
+          <h2 class="admin-panel__title">Configuration panel</h2>
+          <p class="admin-panel__note">Settings are stored locally in this browser session.</p>
+          <div class="admin-panel__section admin-panel__section--layout">
+            <form id="section-select-form" class="admin-section-list" aria-label="Choose resume section"></form>
+            <div id="section-detail-panel" class="admin-section-detail" hidden>
+              <div class="admin-section-detail__header">
+                <h4 id="section-detail-title" class="admin-section-detail__title"></h4>
+                <div class="admin-section-detail__actions">
+                  <button type="button" id="section-detail-select-all" class="admin-panel__button admin-panel__button--small">
+                    Select all
+                  </button>
+                  <button type="button" id="section-detail-clear" class="admin-panel__button admin-panel__button--small">
+                    Clear all
+                  </button>
+                </div>
+              </div>
+              <form id="section-detail-form" class="admin-detail-list" aria-live="polite"></form>
+            </div>
+          </div>
+          <button type="button" id="reset-visibility-button" class="admin-panel__button">
+            Reset all sections
+          </button>
+          <div class="admin-panel__section">
+            <h3 class="admin-panel__heading">Presets</h3>
+            <div class="admin-presets">
+              <label class="admin-presets__label" for="preset-select">Active preset</label>
+              <select id="preset-select" class="admin-presets__select"></select>
+              <div class="admin-presets__actions">
+                <button type="button" id="preset-save-button" class="admin-presets__button">
+                  Save as new preset
+                </button>
+                <button type="button" id="preset-update-button" class="admin-presets__button">
+                  Save changes
+                </button>
+                <button type="button" id="preset-delete-button" class="admin-presets__button admin-presets__button--danger">
+                  Delete preset
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <main class="layout">
         <section class="main-column" aria-label="Professional profile">

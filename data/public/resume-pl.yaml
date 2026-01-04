@@ -16,132 +16,99 @@ labels:
   interests_heading: Zainteresowania
   continuation_template: "{heading} {current}/{total}"
   public_view_badge: Widok publiczny
-brand_initials: "LM"
-name: "Łukasz Michta"
-role: "Technical Writer"
+  private_view_badge: Widok prywatny
+brand_initials: "AH"
+name: "Ariana Holt"
+role: "Lead Product Scientist"
 summary: |
-  Jestem Technical Writerem z niemal czteroletnim doświadczeniem (dziesięć lat praktyki dokumentacyjnej), specjalizującym się w tworzeniu dokumentacji API i opracowywaniu samouczków dla użytkowników końcowych. Współpracuję z właścicielami produktów i deweloperami, zapewniając spójność komunikacji technicznej w projektach. Odpowiadam również za utrzymanie i rozwój Developer Portalu, dbając o aktualność treści oraz analizując dane, by dopasować serwis do potrzeb społeczności deweloperskiej. Dokumentację traktuję jak kod z pełną dbałością. Jestem młodym liderem z dwuletnim doświadczeniem w zarządzaniu zespołem i fokusie na rozwój ludzi. Obecnie aktywnie zgłębiam narzędzia AI.
+  Jestem innowacyjną Product Scientistką, która łączy badania UX i data science, aby tworzyć humanitarne narzędzia AI.
+  W ciągu ostatnich siedmiu lat prowadziłam zespoły interdyscyplinarne rozwijające platformy deweloperskie, budując ramy,
+  które równoważą eksperymentowanie z nadzorem. Klarownie komunikuję się z interesariuszami, szybko tworzę prototypy
+  i nieustannie się uczę.
 contact:
-  - label: Adres
-    value: 41-200 Sosnowiec, Polska
+  - label: Lokalizacja
+    value: "Portland, OR"
   - label: Telefon
-    value: +48 506 034 580
+    value: +1 555 204 1130
+    link: tel:+15552041130
   - label: E-mail
-    value: lukaszmichta@gmail.com
-    link: mailto:lukaszmichta@gmail.com
+    value: ariana.holt@example.com
+    link: mailto:ariana.holt@example.com
   - label: LinkedIn
-    value: linkedin.com/in/lukasz-michta/
-    link: https://www.linkedin.com/in/lukasz-michta/
+    value: linkedin.com/in/arianaholt
+    link: https://www.linkedin.com/in/arianaholt
   - label: Portfolio
-    value: developer.cdq.com
-    link: https://developer.cdq.com/
+    value: arianaholt.dev
+    link: https://arianaholt.dev
 qr_codes:
-  - label: Profil LinkedIn
-    image: images/qrs/linkedin.png
-    size: 120
-  - label: Developer Portal
-    image: images/qrs/portal.png
-    size: 120
+  - label: Strona prywatna
+    image: images/qrs/qr.png
+    size: 130
 skills:
-  - name: Prowadzenie szkoleń
+  - name: Odkrywanie produktu
     level: 4
-  - name: Prezentacje produktowe
-    level: 3
-  - name: Zarządzanie czasem
-    level: 3
-  - name: Nauka nowych umiejętności
+  - name: Narracja danych
+    level: 4
+  - name: Projektowanie eksperymentów
     level: 5
 tech_stack:
-  - Git
-  - GitHub & Bitbucket
-  - Jira
-  - Slack
-  - JavaScript
-  - Redocly
-  - Markdown
-  - MDX
-  - Markdoc
-  - AsciiDoc
-  - ChatGPT
-  - Codex
-  - Gemini
-github_activity:
-  label: Aktywność na GitHubie
-  image: https://ghchart.rshah.org/Sysdrummatic
-  profile: https://github.com/Sysdrummatic
+  - Python
+  - TypeScript
+  - React
+  - Snowflake
+  - Looker
+  - Linear
+  - Figma
+  - Notion
 languages:
   - name: Angielski
-    level_text: Zaawansowany
-    level: 4
-  - name: Polski
     level_text: Ojczysty
     level: 5
+  - name: Hiszpański
+    level_text: Profesjonalny
+    level: 3
 interests:
-  - Podróże
-  - Perkusja
-  - Survival
-  - Off-road
-  - Drony
+  - Miejskie wędrówki
+  - Projektowanie ceramiki
+  - Literatura science fiction
+  - Wolontariat
 experience:
-  - period: "2021-11 – teraz"
-    company: CDQ Poland
-    role: Technical Writer
+  - period: "2022-03 – teraz"
+    company: Nova Labs
+    role: Lead Product Scientist
     highlights:
-      - Tworzę dokumentację API oraz standardy dokumentacyjne
-      - Opracowuję samouczki dla użytkowników końcowych
-      - Współpracuję z Sales, Product Architects, Product Owners i zespołami developerskimi
-      - Utrzymuję i rozwijam Developer Portal
-      - Projektuję funkcje JavaScript wspierające dokumentację
-  - period: "2019-01 – 2021-10"
-    company: IBS Poland – Dassault Systèmes Platinum Partner
-    role: Senior Business Consultant / Solution Architect
+      - Wdrożyłam platformę eksperymentów przyjętą w całej firmie, skracając czas walidacji o 40%
+      - Mentorowałam 6 badaczy i analityków w zakresie narracji danych oraz facylitacji interesariuszy
+      - Współtworzyłam ramy etycznej AI zastosowane w 5 kluczowych produktach
+  - period: "2019-07 – 2022-02"
+    company: Interlink Systems
+    role: Senior UX Researcher
     highlights:
-      - Rozwijałem rozwiązania 3DExperience 2019x, 2020x, 2021x
-      - Wspierałem wdrożenia u klientów
-      - Przygotowywałem metodologie i scenariusze wdrożeniowe
-      - Prezentowałem produkt klientom
-      - Wspierałem dział sprzedaży technicznej
-      - Prowadziłem szkolenia stacjonarne i zdalne
-  - period: "2015-04 – 2018-12"
-    company: Alstom Konstal S.A., Dział Industrializacji
-    role: Lider Systemów IT, Key User
+      - Prowadziłam badania odkrywcze dla pakietu narzędzi deweloperskich używanego przez ponad 1500 inżynierów
+      - Wprowadziłam stałą praktykę wywiadów oraz pulpity łączące metody jakościowe i ilościowe
+      - Współpracowałam z product managerami przy budowie modelu priorytetyzacji roadmapy, który uzyskał 93% zgodności interesariuszy
+  - period: "2016-01 – 2019-06"
+    company: Harbor Robotics
+    role: Research Engineer
     highlights:
-      - Wdrażanie i testowanie 3DExperience 2014x i 2016x
-      - Opracowywanie nowych rozwiązań
-      - Przygotowywanie metod pracy i instrukcji dla użytkowników
-      - Szkolenia oraz mentoring Key Userów
-      - Kierowanie zespołem użytkowników końcowych
+      - Zaprojektowałam telemetryczne instrumenty bezpieczeństwa dla robotów magazynowych
+      - Stworzyłam podręcznik eksperymentowania przyjęty w 4 jednostkach biznesowych
+      - Prezentowałam kwartalne wnioski bezpośrednio kadrze zarządzającej i inwestorom
 education:
-  - period: "2013-10 – 2015-05"
-    school: Politechnika Śląska, Mechanika, magister inż.
-    detail: "Specjalność: Komputerowe wspomaganie projektowania"
-  - period: "2009-10 – 2013-02"
-    school: Politechnika Częstochowska, Fizyka stosowana, inż.
-    detail: "Specjalność: Fizyka stosowana"
+  - period: "2014-09 – 2015-12"
+    school: New York Institute of Technology, Master of Human-Computer Interaction
+    detail: "Praca magisterska: Interpretowalne analizy dla systemów autonomicznych"
+  - period: "2010-09 – 2014-06"
+    school: Oregon State University, Bachelor of Computer Science
+    detail: "Specjalizacja dodatkowa: Nauki kognitywne"
 courses:
-  - year: 2012
-    name: Autodesk AutoCAD i Inventor Advance
-  - year: 2013
-    name: Catia V5 Basic, Generative Sheet Metal Design
-  - year: 2014
-    name: 3DExperience KeyUser Training
-  - year: 2016
-    name: Train the Trainer
-  - year: 2017
-    name: Auditor wewnętrzny – ISO 9001:2015, ISO 14001:2015, OHSAS 18001, ISO TS 22163:2017
-  - year: 2018
-    name: SAP (ECC06) – MTHF
-  - year: 2019
-    name: 3DExperience Solution Architect – certyfikacja Dassault Systèmes
-  - year: 2020
-    name: 3DExperience Infrastructure Architect – certyfikacja Dassault Systèmes
-  - year: 2020
-    name: 3DExperience Infrastructure Consultant – certyfikacja Dassault Systèmes
-  - year: 2022
-    name: ITCQF Certified Technical Communication Professional Foundation Level
-  - year: 2023
-    name: JavaScript Developer Course by ALX
-  - year: 2024
-    name: "OpenAPI: Beginner to Guru"
   - year: 2025
-    name: "Technical Writing: How to Write Software & API Documentation"
+    name: Responsible AI Systems Certification – Gradient School
+  - year: 2024
+    name: Product Strategy Sprint – Reforge
+  - year: 2023
+    name: Narrative Visualization – Stanford Continuing Studies
+  - year: 2021
+    name: Advanced Experimentation – Udacity
+  - year: 2020
+    name: Leadership Intensive – On Deck
