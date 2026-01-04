@@ -19,7 +19,7 @@ This project renders an interactive résumé directly from YAML data. The page i
 
 ## Configuring the admin password
 
-The admin panel expects the password to be supplied via the `ADMIN_PASSWORD` environment variable. A small generator script writes the value into `scripts/admin-config.js`, which is ignored by git so secrets stay local.
+The admin panel requires the password to come from the `ADMIN_PASSWORD` environment variable. After setting the variable, run `node scripts/generate-admin-config.js` to emit `scripts/admin-config.js` (ignored by git). If the generator runs without a value, it writes `null` and the admin login stays disabled.
 
 ### Windows (PowerShell)
 
@@ -53,8 +53,6 @@ The admin panel expects the password to be supplied via the `ADMIN_PASSWORD` env
 	node scripts\generate-admin-config.js
 	```
 3. Start your preferred static server.
-
-If the variable is missing, the generator falls back to `test-admin`, matching the previous behaviour.
 
 ## Locale management
 

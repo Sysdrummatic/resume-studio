@@ -22,13 +22,14 @@ const FALLBACK_LABELS = Object.freeze({
 });
 
 const RESOLVED_ADMIN_PASSWORD = (() => {
-  if (typeof ADMIN_PASSWORD === 'string' && ADMIN_PASSWORD.trim()) {
-    return ADMIN_PASSWORD.trim();
+  if (typeof ADMIN_PASSWORD === 'string') {
+    const trimmed = ADMIN_PASSWORD.trim();
+    return trimmed ? trimmed : null;
   }
   if (typeof ADMIN_PASSWORD === 'number') {
     return String(ADMIN_PASSWORD);
   }
-  return 'test-admin';
+  return null;
 })();
 
 const ADMIN_CONFIG = Object.freeze({
@@ -648,12 +649,18 @@ function toggleSectionVisibility(sectionId, hasContent) {
 }
 
 function restoreAdminState() {
+  let persisted = false;
   try {
-    const persisted = window.localStorage?.getItem(ADMIN_CONFIG.storageKeys.unlocked) === '1';
-    adminUnlocked = Boolean(persisted && isAdminView);
+    persisted = window.localStorage?.getItem(ADMIN_CONFIG.storageKeys.unlocked) === '1';
+    if (!ADMIN_CONFIG.password && persisted) {
+      window.localStorage?.removeItem(ADMIN_CONFIG.storageKeys.unlocked);
+      persisted = false;
+    }
   } catch (error) {
-    adminUnlocked = false;
+    persisted = false;
   }
+
+  adminUnlocked = Boolean(persisted && isAdminView && ADMIN_CONFIG.password);
 
   const storedPresets = loadStoredPresets();
   adminPresets = [DEFAULT_PRESET, ...storedPresets];
@@ -742,12 +749,51 @@ function initAdminPanel() {
   const errorElement = document.getElementById('admin-login-error');
   if (!loginForm || !panel) return;
 
+  const submitButton = loginForm.querySelector('button[type="submit"]');
+  const passwordInput = loginForm.querySelector('input[name="password"]');
+  const defaultErrorMessage = errorElement ? errorElement.textContent : 'Incorrect password. Try again.';
+  const disabledMessage = 'Admin login disabled. Configure the ADMIN_PASSWORD environment variable.';
+
+  const passwordConfigured = Boolean(ADMIN_CONFIG.password);
+  if (!passwordConfigured) {
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.disabled = true;
+    }
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+    if (errorElement) {
+      errorElement.textContent = disabledMessage;
+      errorElement.hidden = false;
+    }
+  } else {
+    if (passwordInput) {
+      passwordInput.disabled = false;
+    }
+    if (submitButton) {
+      submitButton.disabled = false;
+    }
+    if (errorElement) {
+      errorElement.textContent = defaultErrorMessage;
+      errorElement.hidden = true;
+    }
+  }
+
   if (adminUnlocked) {
     unlockAdminPanel();
   }
 
   loginForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!ADMIN_CONFIG.password) {
+      if (errorElement) {
+        errorElement.textContent = disabledMessage;
+        errorElement.hidden = false;
+      }
+      loginForm.reset();
+      return;
+    }
     const formData = new FormData(loginForm);
     const password = (formData.get('password') || '').toString().trim();
     if (password === ADMIN_CONFIG.password) {
@@ -762,6 +808,7 @@ function initAdminPanel() {
         errorElement.hidden = true;
       }
     } else if (errorElement) {
+      errorElement.textContent = defaultErrorMessage;
       errorElement.hidden = false;
     }
     loginForm.reset();
