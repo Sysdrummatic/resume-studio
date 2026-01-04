@@ -4,6 +4,11 @@ const PUBLIC_VIEW = {
   defaultLocale: 'en',
 };
 
+const PAGE_FILENAMES = Object.freeze({
+  editor: 'user.html',
+  public: 'index.html',
+});
+
 const FALLBACK_LABELS = Object.freeze({
   language_switcher: 'Language',
   summary_heading: 'Summary',
@@ -1000,8 +1005,9 @@ function handleAdminLogout() {
   }
 
   const currentPath = window.location.pathname || '';
-  const targetPath = currentPath.replace(/user\.html$/, 'index.html');
-  window.location.href = targetPath === currentPath ? '/index.html' : targetPath;
+  const editorPattern = new RegExp(`${PAGE_FILENAMES.editor}$`);
+  const targetPath = currentPath.replace(editorPattern, PAGE_FILENAMES.public);
+  window.location.href = targetPath === currentPath ? `/${PAGE_FILENAMES.public}` : targetPath;
 }
 
 function renderSectionSelection() {
