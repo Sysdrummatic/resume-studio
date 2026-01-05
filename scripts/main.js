@@ -133,7 +133,7 @@ function focusFirstAdminControl() {
     panel.dataset.adminFocusTabindex = 'true';
   }
   if (panel && !focusElement(panel)) {
-    if (panel && panel.dataset.adminFocusTabindex === 'true') {
+    if (panel.dataset.adminFocusTabindex === 'true') {
       panel.removeAttribute('tabindex');
       delete panel.dataset.adminFocusTabindex;
     }
