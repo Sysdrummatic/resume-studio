@@ -23,6 +23,25 @@ body {
   overflow-x: hidden;
 }
 
+.loading-indicator {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(246, 248, 248, 0.92);
+  backdrop-filter: blur(2px);
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  z-index: 2000;
+}
+
+.loading-indicator[hidden] {
+  display: none;
+}
+
 img {
   max-width: 100%;
   height: auto;
