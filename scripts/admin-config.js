@@ -74,5 +74,4 @@
   });
 
   window.adminEnvPromise = envPromise;
-  window.__adminEnvPromise = envPromise;
 })();
