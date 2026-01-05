@@ -220,7 +220,7 @@ async function loadLocalesConfig() {
       throw new ValidationError(`Locale "${code}" is missing a resume_path value.`, PUBLIC_VIEW.localesConfigPath);
     }
     if (map.has(code)) {
-      console.warn(`Duplicate locale code "${code}" found in locales manifest. Subsequent entries will be ignored.`);
+      console.warn(`Duplicate locale code "${code}" found in locales manifest. This duplicate entry will be ignored.`);
       return;
     }
     const configPath = String(entry.config_path || `data/public/config/${code}.yaml`).trim();
