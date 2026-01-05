@@ -65,7 +65,7 @@
     return password;
   }
 
-  window.__adminEnvPromise = bootstrap().catch((error) => {
+  window.adminEnvPromise = bootstrap().catch((error) => {
     console.error('Unexpected error while loading admin environment.', error);
     emit(null);
     return null;
