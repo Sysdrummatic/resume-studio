@@ -14,6 +14,7 @@ This project renders an interactive résumé directly from YAML data. The page i
 - `scripts/admin-config.js` – runtime loader for the admin password environment file.
 - `styles/general.css` – layout, timeline and sidebar styling.
 - `images/qrs` – QR assets referenced by the YAML data.
+- `tests/` – automated regression checks for the admin panel UX helpers.
 
 ## How to run
 
@@ -39,6 +40,12 @@ Set-Content -Path data/private/user.env -Value 'ADMIN_PASSWORD=your-strong-passw
 ```
 
 Start your static server (Live Server, `npx serve .`, etc.) and reload the editor view.
+
+## Running tests
+
+1. Install dev dependencies: `npm install`.
+2. Execute the suite: `npm test`.
+3. The Node test runner (with jsdom) verifies admin login focus/state behaviour.
 
 ## Locale management
 

@@ -103,6 +103,43 @@ let currentSectionData = {};
 let activeConfigSectionId = '';
 let adminLoginFormState = null;
 
+function focusElement(element) {
+  if (!element || typeof element.focus !== 'function') {
+    return false;
+  }
+  if (typeof element.matches === 'function' && element.matches('[disabled], [aria-disabled="true"]')) {
+    return false;
+  }
+  try {
+    element.focus({ preventScroll: true });
+  } catch (focusError) {
+    element.focus();
+  }
+  return document.activeElement === element;
+}
+
+function focusFirstAdminControl() {
+  const activeSectionRadio = document.querySelector('#section-select-form input[name="admin-section"]');
+  if (focusElement(activeSectionRadio)) {
+    return;
+  }
+  const presetSelect = document.getElementById('preset-select');
+  if (focusElement(presetSelect)) {
+    return;
+  }
+  const panel = document.getElementById('admin-panel');
+  if (panel && !panel.hasAttribute('tabindex')) {
+    panel.setAttribute('tabindex', '-1');
+    panel.dataset.adminFocusTabindex = 'true';
+  }
+  if (panel && !focusElement(panel)) {
+    if (panel && panel.dataset.adminFocusTabindex === 'true') {
+      panel.removeAttribute('tabindex');
+      delete panel.dataset.adminFocusTabindex;
+    }
+  }
+}
+
 const PAGE_CONTEXT = document.body?.dataset.viewMode || 'public';
 const isEditorView = PAGE_CONTEXT === 'user';
 
@@ -974,6 +1011,9 @@ function refreshAdminLoginState() {
 
   if (passwordInput) {
     passwordInput.disabled = false;
+    if (document.activeElement !== passwordInput) {
+      focusElement(passwordInput);
+    }
   }
   if (submitButton) {
     submitButton.disabled = false;
@@ -1044,6 +1084,16 @@ function initAdminPanel() {
     disabledMessage,
   };
 
+  if (passwordInput && !passwordInput.dataset.handlerBound) {
+    passwordInput.dataset.handlerBound = 'true';
+    passwordInput.addEventListener('input', () => {
+      if (errorElement && !errorElement.hidden && errorElement.textContent !== disabledMessage) {
+        errorElement.textContent = defaultErrorMessage;
+        errorElement.hidden = true;
+      }
+    });
+  }
+
   refreshAdminLoginState();
 
   if (adminUnlocked) {
@@ -1076,6 +1126,7 @@ function initAdminPanel() {
     } else if (errorElement) {
       errorElement.textContent = defaultErrorMessage;
       errorElement.hidden = false;
+      focusElement(passwordInput);
     }
     loginForm.reset();
   });
@@ -1165,6 +1216,8 @@ function unlockAdminPanel() {
     clearButton.dataset.handlerBound = 'true';
     clearButton.addEventListener('click', handleDetailClear);
   }
+
+  focusFirstAdminControl();
 }
 
 function initLogoutButton() {
@@ -1759,6 +1812,27 @@ function persistPresets() {
   } catch (error) {
     // ignore persistence failures
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.__ADMIN_TEST_HOOKS = {
+    focusElement,
+    focusFirstAdminControl,
+    refreshAdminLoginState,
+    setAdminPassword(value) {
+      ADMIN_CONFIG.password = value;
+    },
+    getAdminPassword() {
+      return ADMIN_CONFIG.password;
+    },
+    initAdminPanel,
+    setAdminLoginFormState(state) {
+      adminLoginFormState = state;
+    },
+    getAdminLoginFormState() {
+      return adminLoginFormState;
+    },
+  };
 }
 
 function saveActivePreset(id) {
