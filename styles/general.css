@@ -1032,8 +1032,6 @@ img {
 
   .sidebar {
     position: static;
-    top: auto;
-    order: 0;
     margin-top: 24px;
   }
 
