@@ -62,6 +62,12 @@ The admin panel requires the password to come from the `ADMIN_PASSWORD` environm
 - Provide a per-locale resume file that follows the structure in `data/public/resume-en.yaml` / `data/public/resume-pl.yaml`. Store UI labels and locale metadata in a matching file under `data/public/config`.
 - The app persists the last selected locale in `localStorage` and falls back to browser language (two-letter code) or the configured default.
 
+## Data loading safeguards
+
+- YAML files are validated for basic schema expectations (object root, string fields, array sections). Validation errors are surfaced in the UI banner and in the console.
+- Fetches are cached in `localStorage` for 10 minutes. When the network is unavailable the app falls back to the most recent cached copy and logs a warning.
+- A loading overlay appears while locale data is being fetched or revalidated to prevent partial renders.
+
 ## Manual QA checklist
 
 - Toggle between Polish and English and verify that all headings, content blocks, and sidebar cards localize correctly.

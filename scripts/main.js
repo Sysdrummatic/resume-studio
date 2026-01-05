@@ -67,6 +67,19 @@ const DEFAULT_PRESET = Object.freeze({
   visibility: {},
 });
 
+const RESOURCE_CACHE = Object.freeze({
+  prefix: 'resume-studio:cache:',
+  ttlMs: 1000 * 60 * 10,
+});
+
+class ValidationError extends Error {
+  constructor(message, context = '') {
+    super(message);
+    this.name = 'ValidationError';
+    this.context = context;
+  }
+}
+
 let currentProfile;
 
 let localeMetadata;
@@ -92,6 +105,87 @@ document.addEventListener('DOMContentLoaded', () => {
   initLogoutButton();
 });
 
+function setAppLoading(state) {
+  const isBusy = Boolean(state);
+  document.documentElement.classList.toggle('is-loading', isBusy);
+  const indicator = document.getElementById('app-loading-indicator');
+  if (indicator) {
+    indicator.hidden = !isBusy;
+    indicator.setAttribute('aria-hidden', String(!isBusy));
+    indicator.setAttribute('aria-busy', String(isBusy));
+  }
+}
+
+function getCacheKey(path) {
+  return `${RESOURCE_CACHE.prefix}${path}`;
+}
+
+function readCachedResource(path) {
+  try {
+    const key = getCacheKey(path);
+    const stored = window.localStorage?.getItem(key);
+    if (!stored) {
+      return null;
+    }
+    const payload = JSON.parse(stored);
+    if (!payload || typeof payload !== 'object') {
+      window.localStorage?.removeItem(key);
+      return null;
+    }
+    const timestamp = Number(payload.timestamp);
+    if (!Number.isFinite(timestamp)) {
+      window.localStorage?.removeItem(key);
+      return null;
+    }
+    const age = Date.now() - timestamp;
+    if (Number.isNaN(age) || age > RESOURCE_CACHE.ttlMs) {
+      window.localStorage?.removeItem(key);
+      return null;
+    }
+    return typeof payload.value === 'string' ? payload.value : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function writeCachedResource(path, text) {
+  try {
+    const payload = JSON.stringify({ value: text, timestamp: Date.now() });
+    window.localStorage?.setItem(getCacheKey(path), payload);
+  } catch (error) {
+    // Ignore storage quota errors
+  }
+}
+
+async function fetchResourceWithCache(path) {
+  try {
+    const response = await fetch(path, { cache: 'no-cache' });
+    if (!response.ok) {
+      throw new Error(`Unable to load resource: ${path}`);
+    }
+    const text = await response.text();
+    writeCachedResource(path, text);
+    return { text, fromCache: false };
+  } catch (networkError) {
+    const cached = readCachedResource(path);
+    if (cached !== null) {
+      console.warn(`Using cached data for ${path} after fetch failure`, networkError);
+      return { text: cached, fromCache: true };
+    }
+    throw networkError;
+  }
+}
+
+function parseYaml(text, path) {
+  try {
+    return jsyaml.load(text);
+  } catch (parseError) {
+    const error = new ValidationError(`YAML parsing failed for ${path}. ${parseError.message}`, path);
+    error.cause = parseError;
+    throw error;
+  }
+}
+
 async function initPublicView() {
   try {
     localeMetadata = await loadLocalesConfig();
@@ -111,23 +205,34 @@ async function loadLocalesConfig() {
   const locales = [];
   const map = new Map();
 
-    if (raw && Array.isArray(raw.locales)) {
-      raw.locales.forEach((entry) => {
-        if (!entry) return;
-        const code = String(entry.code || '').trim().toLowerCase();
-        const resumePath = String(entry.resume_path || '').trim();
-        if (!code || !resumePath || map.has(code)) return;
-        const configPath = String(entry.config_path || `data/public/config/${code}.yaml`).trim();
-        const normalized = {
-          code,
-          resumePath,
-          configPath,
-          label: String(entry.label || code.toUpperCase()),
-        };
-        map.set(code, normalized);
-        locales.push(normalized);
-      });
+  if (!raw || !Array.isArray(raw.locales)) {
+    throw new ValidationError('Locale manifest must include a "locales" array.', PUBLIC_VIEW.localesConfigPath);
+  }
+
+  raw.locales.forEach((entry, index) => {
+    if (!entry) return;
+    const code = String(entry.code || '').trim().toLowerCase();
+    const resumePath = String(entry.resume_path || '').trim();
+    if (!code) {
+      throw new ValidationError(`Locale entry at index ${index} is missing a locale code.`, PUBLIC_VIEW.localesConfigPath);
     }
+    if (!resumePath) {
+      throw new ValidationError(`Locale "${code}" is missing a resume_path value.`, PUBLIC_VIEW.localesConfigPath);
+    }
+    if (map.has(code)) {
+      console.warn(`Duplicate locale code "${code}" found in locales manifest. This duplicate entry will be ignored.`);
+      return;
+    }
+    const configPath = String(entry.config_path || `data/public/config/${code}.yaml`).trim();
+    const normalized = {
+      code,
+      resumePath,
+      configPath,
+      label: String(entry.label || code.toUpperCase()),
+    };
+    map.set(code, normalized);
+    locales.push(normalized);
+  });
 
   let defaultLocale = String(raw?.default_locale || PUBLIC_VIEW.defaultLocale).trim().toLowerCase();
   if (!map.has(defaultLocale) && locales.length) {
@@ -164,18 +269,20 @@ async function applyLocale(requestedCode) {
   const localeEntry = localeMetadata.map.get(targetCode);
   if (!localeEntry) {
     setLanguageSwitcherBusy(false);
+    setAppLoading(false);
     showError(new Error('Selected locale is not available.'));
     return;
   }
 
+    setAppLoading(true);
     setLanguageSwitcherBusy(true);
 
     try {
-      const resumeData = await fetchYaml(localeEntry.resumePath);
+      const resumeData = validateResumeData(await fetchYaml(localeEntry.resumePath), localeEntry.resumePath);
       let configData = {};
       if (localeEntry.configPath) {
         try {
-          configData = await fetchYaml(localeEntry.configPath);
+          configData = validateLocaleConfig(await fetchYaml(localeEntry.configPath), localeEntry.configPath);
         } catch (configError) {
           console.warn(`Unable to load locale config for ${localeEntry.code}`, configError);
         }
@@ -225,17 +332,65 @@ async function applyLocale(requestedCode) {
   } finally {
     if (token === localeRequestToken) {
       setLanguageSwitcherBusy(false);
+        setAppLoading(false);
     }
   }
 }
 
 async function fetchYaml(path) {
-  const response = await fetch(path, { cache: 'no-cache' });
-  if (!response.ok) {
-    throw new Error(`Unable to load resource: ${path}`);
+  const { text } = await fetchResourceWithCache(path);
+  return parseYaml(text, path);
+}
+
+function validateResumeData(data, path) {
+  if (!data || typeof data !== 'object') {
+    throw new ValidationError('Resume file must define an object with resume fields.', path);
   }
-  const text = await response.text();
-  return jsyaml.load(text);
+
+  const scalarFields = ['name', 'role', 'brand_initials', 'summary'];
+  scalarFields.forEach((field) => {
+    if (field in data && data[field] !== null && typeof data[field] !== 'string') {
+      throw new ValidationError(`Field "${field}" must be a string in resume data.`, path);
+    }
+  });
+
+  const arrayFields = [
+    'experience',
+    'education',
+    'courses',
+    'skills',
+    'languages',
+    'tech_stack',
+    'interests',
+    'contact',
+    'qr_codes',
+  ];
+  arrayFields.forEach((field) => {
+    if (field in data && data[field] !== null && !Array.isArray(data[field])) {
+      throw new ValidationError(`Field "${field}" must be an array in resume data.`, path);
+    }
+  });
+
+  return data;
+}
+
+function validateLocaleConfig(data, path) {
+  if (!data || typeof data !== 'object') {
+    throw new ValidationError('Locale config must be an object.', path);
+  }
+
+  if ('labels' in data && (typeof data.labels !== 'object' || data.labels === null)) {
+    throw new ValidationError('Locale config "labels" must be an object map.', path);
+  }
+
+  const scalarFields = ['locale', 'language_name'];
+  scalarFields.forEach((field) => {
+    if (field in data && data[field] !== null && typeof data[field] !== 'string') {
+      throw new ValidationError(`Locale config field "${field}" must be a string.`, path);
+    }
+  });
+
+  return data;
 }
 
 function renderLocaleSwitcher(locales, activeCode) {
@@ -593,7 +748,8 @@ function showError(error) {
   if (!resume) return;
   const errorBanner = document.querySelector('.error-banner') || document.createElement('div');
   errorBanner.className = 'error-banner';
-  errorBanner.textContent = `Something went wrong while loading the resume. ${error.message}`;
+  const detail = error instanceof ValidationError ? error.message : error?.message || 'Unexpected error occurred.';
+  errorBanner.textContent = `Something went wrong while loading the resume. ${detail}`;
   if (!errorBanner.isConnected) {
     resume.appendChild(errorBanner);
   }
