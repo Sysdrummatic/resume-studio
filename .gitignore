@@ -24,9 +24,9 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
-scripts/admin-config.js
+data/private/user.env
 
 # Private resume data
-data/resume-private.yaml
+data/private/resume-private.yaml
 images/qrs/linkedin.png
 images/qrs/portal.png

@@ -8,8 +8,10 @@ This project renders an interactive résumé directly from YAML data. The page i
 - `user.html` – editor login view and configuration panel.
 - `data/public/locales.yaml` – locale registry (code, label, resume path, and config path per language).
 - `data/public/config/*.yaml` – per-locale UI labels and language metadata.
-- `data/public/resume-*.yaml` – per-locale public data (EN/PL provided). Keep private data in `data/resume-private.yaml`.
+- `data/public/resume-*.yaml` – per-locale public résumé data (EN/PL provided) that can be served to recruiters.
+- `data/private/resume-private.yaml` – optional private résumé details (e.g. full contact info, internal notes) kept out of the public bundle. This file is distinct from `data/private/user.env`, which only stores the admin password.
 - `scripts/main.js` – locale loading, DOM rendering, and UI behaviour.
+- `scripts/admin-config.js` – runtime loader for the admin password environment file.
 - `styles/general.css` – layout, timeline and sidebar styling.
 - `images/qrs` – QR assets referenced by the YAML data.
 
@@ -21,40 +23,22 @@ This project renders an interactive résumé directly from YAML data. The page i
 
 ## Configuring the admin password
 
-The admin panel requires the password to come from the `ADMIN_PASSWORD` environment variable. After setting the variable, run `node scripts/generate-admin-config.js` to emit `scripts/admin-config.js` (ignored by git). If the generator runs without a value, it writes `null` and the admin login stays disabled.
+The editor reads its password from `data/private/user.env` at runtime. The file is ignored by git, so create it locally with a single line:
 
-### Windows (PowerShell)
+```
+ADMIN_PASSWORD=your-strong-password
+```
 
-1. Set the variable for the current session:
-	```powershell
-	$env:ADMIN_PASSWORD = "your-strong-password"
-	```
-	To persist it for all future sessions, run:
-	```powershell
-	setx ADMIN_PASSWORD "your-strong-password"
-	```
-	(Restart the terminal after using `setx`.)
-2. Generate the client config file:
-	```powershell
-	node scripts/generate-admin-config.js
-	```
-3. Launch your static server (e.g. Live Server or `npx serve .`).
+Reload the page after changing the file. If the password is missing or empty the admin login stays disabled.
 
-### Windows (Command Prompt)
+### Windows quick setup
 
-1. Set and persist the variable:
-	```cmd
-	setx ADMIN_PASSWORD "your-strong-password"
-	```
-	For the current window only use:
-	```cmd
-	set ADMIN_PASSWORD=your-strong-password
-	```
-2. Run the generator:
-	```cmd
-	node scripts\generate-admin-config.js
-	```
-3. Start your preferred static server.
+```powershell
+New-Item -ItemType Directory -Force -Path data/private | Out-Null
+Set-Content -Path data/private/user.env -Value 'ADMIN_PASSWORD=your-strong-password'
+```
+
+Start your static server (Live Server, `npx serve .`, etc.) and reload the editor view.
 
 ## Locale management
 

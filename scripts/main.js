@@ -23,28 +23,36 @@ const FALLBACK_LABELS = Object.freeze({
   save_button_label: 'Save',
 });
 
-const RESOLVED_ADMIN_PASSWORD = (() => {
-  if (typeof ADMIN_PASSWORD === 'string') {
-    const trimmed = ADMIN_PASSWORD.trim();
+function normalizeAdminPassword(value) {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
     return trimmed ? trimmed : null;
   }
-  if (typeof ADMIN_PASSWORD === 'number') {
-    return String(ADMIN_PASSWORD);
+  if (typeof value === 'number') {
+    return String(value);
   }
   return null;
-})();
+}
 
-const ADMIN_CONFIG = Object.freeze({
-  password: RESOLVED_ADMIN_PASSWORD,
-  storageKeys: {
-    unlocked: 'resume-studio:admin-unlocked',
-    presets: 'resume-studio:presets:v2',
-    activePreset: 'resume-studio:active-preset:v2',
-    items: 'resume-studio:item-visibility:v1',
-  },
-  presetQueryParam: 'version',
-  customPresetId: '__custom__',
-});
+const ADMIN_CONFIG = (() => {
+  let password = normalizeAdminPassword(window.ADMIN_PASSWORD);
+  return {
+    storageKeys: Object.freeze({
+      unlocked: 'resume-studio:admin-unlocked',
+      presets: 'resume-studio:presets:v2',
+      activePreset: 'resume-studio:active-preset:v2',
+      items: 'resume-studio:item-visibility:v1',
+    }),
+    presetQueryParam: 'version',
+    customPresetId: '__custom__',
+    get password() {
+      return password;
+    },
+    set password(next) {
+      password = normalizeAdminPassword(next);
+    },
+  };
+})();
 
 const SECTION_DEFINITIONS = Object.freeze([
   { id: 'summary', selector: '[data-section="summary"]', fallbackLabel: 'Summary', configurable: false },
@@ -93,17 +101,46 @@ let activePresetId = DEFAULT_PRESET.id;
 let itemVisibilityMap = new Map();
 let currentSectionData = {};
 let activeConfigSectionId = '';
+let adminLoginFormState = null;
 
 const PAGE_CONTEXT = document.body?.dataset.viewMode || 'public';
 const isEditorView = PAGE_CONTEXT === 'user';
 
 document.addEventListener('DOMContentLoaded', () => {
-  restoreAdminState();
   initNavbarBehaviour();
   initPublicView();
+  bootstrapAdminFeatures().catch((error) => {
+    console.error('Admin features failed to initialize.', error);
+  });
+});
+
+window.addEventListener('admin-env-ready', (event) => {
+  const password = normalizeAdminPassword(event?.detail?.password);
+  ADMIN_CONFIG.password = password;
+  refreshAdminLoginState();
+});
+
+async function bootstrapAdminFeatures() {
+  const password = await resolveAdminPassword();
+  ADMIN_CONFIG.password = password;
+  restoreAdminState();
   initAdminPanel();
   initLogoutButton();
-});
+}
+
+async function resolveAdminPassword() {
+  try {
+    const candidate = window.__adminEnvPromise;
+    if (candidate && typeof candidate.then === 'function') {
+      const resolved = await candidate;
+      return normalizeAdminPassword(resolved);
+    }
+    return normalizeAdminPassword(window.ADMIN_PASSWORD);
+  } catch (error) {
+    console.error('Unable to resolve admin password from environment.', error);
+    return null;
+  }
+}
 
 function setAppLoading(state) {
   const isBusy = Boolean(state);
@@ -908,6 +945,45 @@ function loadStoredActivePreset() {
   }
 }
 
+function refreshAdminLoginState() {
+  if (!adminLoginFormState) return;
+
+  const {
+    passwordInput,
+    submitButton,
+    errorElement,
+    defaultErrorMessage,
+    disabledMessage,
+  } = adminLoginFormState;
+
+  const passwordConfigured = Boolean(ADMIN_CONFIG.password);
+  if (!passwordConfigured) {
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.disabled = true;
+    }
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+    if (errorElement) {
+      errorElement.textContent = disabledMessage;
+      errorElement.hidden = false;
+    }
+    return;
+  }
+
+  if (passwordInput) {
+    passwordInput.disabled = false;
+  }
+  if (submitButton) {
+    submitButton.disabled = false;
+  }
+  if (errorElement) {
+    errorElement.textContent = defaultErrorMessage;
+    errorElement.hidden = true;
+  }
+}
+
 function loadStoredItemVisibility() {
   try {
     const raw = window.localStorage?.getItem(ADMIN_CONFIG.storageKeys.items);
@@ -954,34 +1030,21 @@ function initAdminPanel() {
 
   const submitButton = loginForm.querySelector('button[type="submit"]');
   const passwordInput = loginForm.querySelector('input[name="password"]');
-  const defaultErrorMessage = errorElement ? errorElement.textContent : 'Incorrect password. Try again.';
+  const defaultErrorMessage = errorElement && typeof errorElement.textContent === 'string'
+    ? (errorElement.textContent.trim() || 'Incorrect password. Try again.')
+    : 'Incorrect password. Try again.';
   const disabledMessage = 'Editor login disabled. Configure the ADMIN_PASSWORD environment variable.';
 
-  const passwordConfigured = Boolean(ADMIN_CONFIG.password);
-  if (!passwordConfigured) {
-    if (passwordInput) {
-      passwordInput.value = '';
-      passwordInput.disabled = true;
-    }
-    if (submitButton) {
-      submitButton.disabled = true;
-    }
-    if (errorElement) {
-      errorElement.textContent = disabledMessage;
-      errorElement.hidden = false;
-    }
-  } else {
-    if (passwordInput) {
-      passwordInput.disabled = false;
-    }
-    if (submitButton) {
-      submitButton.disabled = false;
-    }
-    if (errorElement) {
-      errorElement.textContent = defaultErrorMessage;
-      errorElement.hidden = true;
-    }
-  }
+  adminLoginFormState = {
+    form: loginForm,
+    submitButton,
+    passwordInput,
+    errorElement,
+    defaultErrorMessage,
+    disabledMessage,
+  };
+
+  refreshAdminLoginState();
 
   if (adminUnlocked) {
     unlockAdminPanel();
