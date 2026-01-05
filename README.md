@@ -8,7 +8,8 @@ This project renders an interactive résumé directly from YAML data. The page i
 - `user.html` – editor login view and configuration panel.
 - `data/public/locales.yaml` – locale registry (code, label, resume path, and config path per language).
 - `data/public/config/*.yaml` – per-locale UI labels and language metadata.
-- `data/public/resume-*.yaml` – per-locale public data (EN/PL provided). Keep private data in `data/private/resume-private.yaml`.
+- `data/public/resume-*.yaml` – per-locale public résumé data (EN/PL provided) that can be served to recruiters.
+- `data/private/resume-private.yaml` – optional private résumé details (e.g. full contact info, internal notes) kept out of the public bundle. This file is distinct from `data/private/user.env`, which only stores the admin password.
 - `scripts/main.js` – locale loading, DOM rendering, and UI behaviour.
 - `scripts/admin-config.js` – runtime loader for the admin password environment file.
 - `styles/general.css` – layout, timeline and sidebar styling.
