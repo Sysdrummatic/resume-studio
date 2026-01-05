@@ -61,13 +61,17 @@
 
   async function bootstrap() {
     const password = await loadPassword();
+    window.ADMIN_PASSWORD = password;
     emit(password);
     return password;
   }
 
-  window.adminEnvPromise = bootstrap().catch((error) => {
+  const envPromise = bootstrap().catch((error) => {
     console.error('Unexpected error while loading admin environment.', error);
     emit(null);
+    window.ADMIN_PASSWORD = null;
     return null;
   });
+
+  window.adminEnvPromise = envPromise;
 })();
