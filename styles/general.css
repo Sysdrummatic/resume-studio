@@ -92,7 +92,7 @@ img {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 0px;
+  border-radius: 0;
   background: var(--bg);
   box-shadow: none;
   z-index: -1;
