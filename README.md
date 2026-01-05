@@ -15,6 +15,7 @@ This project renders an interactive résumé directly from YAML data. The page i
 - `styles/general.css` – layout, timeline and sidebar styling.
 - `images/qrs` – QR assets referenced by the YAML data.
 - `tests/` – automated regression checks for the admin panel UX helpers.
+- `docs/` – project documentation, workflows, and operational checklists.
 
 ## How to run
 
@@ -26,7 +27,7 @@ This project renders an interactive résumé directly from YAML data. The page i
 
 The editor reads its password from `data/private/user.env` at runtime. The file is ignored by git, so create it locally with a single line:
 
-```
+```env
 ADMIN_PASSWORD=your-strong-password
 ```
 
@@ -63,3 +64,10 @@ Start your static server (Live Server, `npx serve .`, etc.) and reload the edito
 
 - Toggle between Polish and English and verify that all headings, content blocks, and sidebar cards localize correctly.
 - Validate YAML via an external linter when editing locale data.
+
+## Documentation
+
+- [Documentation index](docs/README.md)
+- [Local development setup](docs/guides/local-development.md)
+- [Content update workflow](docs/guides/content-update-workflow.md)
+- [Deployment and QA checklist](docs/guides/deployment-qa.md)
