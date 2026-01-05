@@ -132,7 +132,12 @@ function readCachedResource(path) {
       window.localStorage?.removeItem(key);
       return null;
     }
-    const age = Date.now() - Number(payload.timestamp || 0);
+    const timestamp = Number(payload.timestamp);
+    if (!Number.isFinite(timestamp)) {
+      window.localStorage?.removeItem(key);
+      return null;
+    }
+    const age = Date.now() - timestamp;
     if (Number.isNaN(age) || age > RESOURCE_CACHE.ttlMs) {
       window.localStorage?.removeItem(key);
       return null;
