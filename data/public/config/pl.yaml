@@ -14,8 +14,10 @@ labels:
   tech_stack_heading: Stos technologiczny
   languages_heading: Języki
   interests_heading: Zainteresowania
+  faq_heading: Najczęstsze pytania
   continuation_template: "{heading} {current}/{total}"
   public_view_badge: Widok publiczny
   private_view_badge: Widok prywatny
   edit_button_label: Edytuj
   save_button_label: Zapisz
+  ats_download_label: Pobierz wersję ATS

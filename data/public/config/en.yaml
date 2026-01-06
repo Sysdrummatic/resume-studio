@@ -14,8 +14,10 @@ labels:
   tech_stack_heading: Tech stack
   languages_heading: Languages
   interests_heading: Interests
+  faq_heading: FAQ
   continuation_template: "{heading} {current}/{total}"
   public_view_badge: Public view
   private_view_badge: Private view
   edit_button_label: Edit
   save_button_label: Save
+  ats_download_label: Download ATS text
