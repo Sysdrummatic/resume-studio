@@ -1208,8 +1208,10 @@ function buildFaqEntries(profile) {
 
   if (email || linkedinLink) {
     const parts = [];
-    if (email) parts.push(`email ${email}`);
-    if (linkedinLink) parts.push(`LinkedIn ${linkedinLink}`);
+    const emailLabel = faqLabels.contactEmailLabel || 'email';
+    const linkedinLabel = faqLabels.contactLinkedinLabel || 'LinkedIn';
+    if (email) parts.push(`${emailLabel} ${email}`);
+    if (linkedinLink) parts.push(`${linkedinLabel} ${linkedinLink}`);
     const connector = faqLabels.contactConnector || ', ';
     const channels = parts.join(connector);
     entries.push({
