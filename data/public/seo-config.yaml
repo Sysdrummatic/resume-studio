@@ -1,0 +1,50 @@
+default_locale: en
+site:
+  canonical: https://arianaholt.dev/resume
+  base_url: https://arianaholt.dev/resume/
+  robots: index,follow
+  keywords:
+    - Ariana Holt
+    - Product Scientist resume
+    - UX research
+    - data science
+  og:
+    type: profile
+    site_name: Ariana Holt Resume
+  twitter:
+    card: summary
+  sitemap:
+    entries:
+      - path: index.html
+        changefreq: weekly
+        priority: 0.8
+locales:
+  pl:
+    keywords:
+      - Ariana Holt
+      - CV Product Scientist
+      - badania UX
+      - data science
+ats:
+  default_locale: en
+  locales:
+    en:
+      sections:
+        summary: SUMMARY
+        experience: EXPERIENCE
+        education: EDUCATION
+        courses: COURSES & CERTIFICATIONS
+        skills: SKILLS
+        tech_stack: TECHNOLOGIES
+        languages: LANGUAGES
+        interests: INTERESTS
+    pl:
+      sections:
+        summary: PODSUMOWANIE
+        experience: DOŚWIADCZENIE
+        education: WYKSZTAŁCENIE
+        courses: KURSY I CERTYFIKATY
+        skills: UMIEJĘTNOŚCI
+        tech_stack: TECHNOLOGIE
+        languages: JĘZYKI
+        interests: ZAINTERESOWANIA

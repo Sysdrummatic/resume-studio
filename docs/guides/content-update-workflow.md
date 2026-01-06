@@ -14,18 +14,25 @@ This workflow covers adding or modifying résumé sections and ensuring each loc
 2. Keep section ordering aligned between locales so the UI displays a parallel structure.
 3. When adding new sections, also update the locale configuration in `data/public/config/*` if labels or toggles are required.
 
-## 3. Verify Locally
+## 3. Update Metadata (when needed)
+
+- Adjust canonical URLs, keywords, or ATS headings in `data/public/seo-config.yaml` as required.
+- Run `npm run build:metadata` to regenerate `index.html`, `robots.txt`, and `sitemap.xml` so they match the latest metadata.
+- Commit the generated artifacts alongside the YAML change.
+
+## 4. Verify Locally
 
 - Restart or refresh the static site server to pull in the changed YAML.
 - Switch between languages from the header to confirm parity.
 - Validate hyperlinks, bullet lists, and timeline entries render correctly.
+- Confirm updated meta tags and structured data render in the head by inspecting the page source.
 
-## 4. Run Automated Checks
+## 5. Run Automated Checks
 
 - Execute `npm test` to ensure admin panel helpers still pass regression checks.
 - If markdown or documentation was touched, run `npm run lint:md` (when available) or `npx markdownlint "**/*.md"`.
 
-## 5. Submit for Review
+## 6. Submit for Review
 
 - Commit changes with descriptive messages, referencing issues when possible.
 - Open a pull request summarizing the content updates and outline manual QA steps performed.

@@ -37,6 +37,7 @@ This guide explains how to run and iterate on the résumé locally.
 - Update locale YAML files in `data/public`. The app fetches them dynamically; refresh the page to reload data.
 - Keep private resume details in `data/private/resume-private.yaml`. The file is ignored by git.
 - When editing YAML, validate structure using a YAML linter (`npm run lint:yaml` if available or an editor plugin).
+- If you change `data/public/seo-config.yaml`, run `npm run build:metadata` to sync the canonical link, sitemap, and robots file.
 
 ## Running Automated Tests
 

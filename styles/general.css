@@ -152,6 +152,35 @@ img {
   letter-spacing: 0.01em;
 }
 
+.hero__download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--accent-dark);
+  font: inherit;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease-out, color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.hero__download-button:hover:not(:disabled),
+.hero__download-button:focus-visible {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: var(--shadow-float);
+}
+
+.hero__download-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .hero__login-button {
   display: inline-flex;
   align-items: center;
@@ -302,6 +331,34 @@ img {
   padding: var(--space-lg);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
+}
+
+.faq-list {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.faq-list details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--card-bg);
+}
+
+.faq-list summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.faq-list summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-list p {
+  margin: var(--space-xs) 0 0;
+  color: var(--muted);
+  font-size: var(--font-size-sm);
 }
 
 .card {

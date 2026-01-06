@@ -4,7 +4,21 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Łukasz Michta · Technical Writer</title>
+    <meta name="description" id="meta-description" content="Interactive resume for Ariana Holt, Lead Product Scientist specializing in humane AI platforms." />
+    <meta name="keywords" content="Ariana Holt, Product Scientist resume, UX research, data science" />
+    <meta name="author" id="meta-author" content="Ariana Holt" />
+    <meta name="robots" content="index,follow" />
+    <meta property="og:type" content="profile" />
+    <meta property="og:title" id="og-title" content="Ariana Holt · Lead Product Scientist" />
+    <meta property="og:description" id="og-description" content="Inventive Product Scientist blending UX and data science to deliver humane AI tools." />
+    <meta property="og:site_name" content="Ariana Holt Resume" />
+    <meta property="og:locale" id="og-locale" content="en_US" />
+    <meta property="og:url" id="og-url" content="https://arianaholt.dev/resume" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" id="twitter-title" content="Ariana Holt · Lead Product Scientist" />
+    <meta name="twitter:description" id="twitter-description" content="Inventive Product Scientist blending UX and data science to deliver humane AI tools." />
+    <title>Ariana Holt · Lead Product Scientist</title>
+    <link rel="canonical" id="canonical-link" href="https://arianaholt.dev/resume" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,6 +26,48 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles/general.css" />
+    <script type="application/ld+json" id="person-structured-data">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Ariana Holt",
+        "jobTitle": "Lead Product Scientist",
+        "url": "https://arianaholt.dev",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Nova Labs"
+        },
+        "knowsAbout": ["Product discovery", "Experiment design", "Data storytelling"],
+        "sameAs": [
+          "https://www.linkedin.com/in/arianaholt",
+          "https://arianaholt.dev"
+        ]
+      }
+    </script>
+    <script type="application/ld+json" id="faq-structured-data">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What type of roles does Ariana Holt focus on?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Ariana Holt leads product science initiatives that combine UX research and data science for humane AI tooling."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How can recruiters contact Ariana Holt?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Reach out via ariana.holt@example.com or connect on LinkedIn at linkedin.com/in/arianaholt."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body data-view-mode="public">
     <div class="loading-indicator" id="app-loading-indicator" aria-live="polite" aria-hidden="true" hidden>
@@ -36,6 +92,9 @@
               ></div>
             </div>
             <span class="public-view-badge" id="public-view-badge">Public view</span>
+            <button class="hero__download-button" id="download-ats-button" type="button" disabled>
+              Download ATS text
+            </button>
             <a class="hero__login-button" id="edit-view-button" href="user.html">Edit</a>
           </div>
         </header>
@@ -92,6 +151,14 @@
               <h2 id="courses-heading">Courses</h2>
             </div>
             <div id="courses-list" class="timeline timeline--compact timeline--courses"></div>
+          </article>
+
+          <article class="section section--faq" id="faq-section" aria-labelledby="faq-heading" hidden>
+            <div class="section-title">
+              <span class="section-dot" aria-hidden="true"></span>
+              <h2 id="faq-heading">FAQ</h2>
+            </div>
+            <div id="faq-list" class="faq-list"></div>
           </article>
         </section>
 

@@ -4,6 +4,47 @@ const PUBLIC_VIEW = {
   defaultLocale: 'en',
 };
 
+const SEO_CONFIG = Object.freeze({
+  path: 'data/public/seo-config.yaml',
+});
+
+const OG_LOCALE_MAP = Object.freeze({
+  en: 'en_US',
+  pl: 'pl_PL',
+});
+
+const DEFAULT_OG_LOCALE = 'en_US';
+const SUMMARY_SNIPPET_LENGTH = 155;
+
+const LANGUAGE_PRESETS = Object.freeze({
+  en: {
+    faq: {
+      roleQuestion: 'What type of roles does {name} focus on?',
+      roleFallback: '{name} focuses on {role}.',
+      locationQuestion: 'Where is {name} based?',
+      locationAnswer: '{name} is currently based in {location}.',
+      contactQuestion: 'How can recruiters contact {name}?',
+      contactAnswerPrefix: 'Please reach out to {name} via {channels}.',
+      contactConnector: ' or ',
+      toolsQuestion: 'What tools does {name} work with?',
+      toolsAnswer: '{name} regularly collaborates with {tools}.',
+    },
+  },
+  pl: {
+    faq: {
+      roleQuestion: 'Jakimi rolami zajmuje się {name}?',
+      roleFallback: '{name} koncentruje się na roli {role}.',
+      locationQuestion: 'Gdzie obecnie pracuje {name}?',
+      locationAnswer: '{name} działa w {location}.',
+      contactQuestion: 'Jak skontaktować się z {name}?',
+      contactAnswerPrefix: 'Skontaktuj się z {name} przez {channels}.',
+      contactConnector: ' lub ',
+      toolsQuestion: 'Z jakich narzędzi korzysta {name}?',
+      toolsAnswer: '{name} najczęściej korzysta z {tools}.',
+    },
+  },
+});
+
 const FALLBACK_LABELS = Object.freeze({
   language_switcher: 'Language',
   summary_heading: 'Summary',
@@ -16,11 +57,13 @@ const FALLBACK_LABELS = Object.freeze({
   tech_stack_heading: 'Tech stack',
   languages_heading: 'Languages',
   interests_heading: 'Interests',
+  faq_heading: 'FAQ',
   continuation_template: '{heading} {current}/{total}',
   public_view_badge: 'Public view',
   private_view_badge: 'Private view',
   edit_button_label: 'Edit',
   save_button_label: 'Save',
+  ats_download_label: 'Download ATS text',
 });
 
 function normalizeAdminPassword(value) {
@@ -88,11 +131,294 @@ class ValidationError extends Error {
   }
 }
 
+function condenseWhitespace(text) {
+  if (typeof text !== 'string') return '';
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function formatTemplate(template, dictionary) {
+  if (typeof template !== 'string') return '';
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+    const replacement = dictionary?.[key];
+    if (replacement === undefined || replacement === null) {
+      return match;
+    }
+    return String(replacement);
+  });
+}
+
+function extractFirstSentence(text) {
+  const condensed = condenseWhitespace(text);
+  if (!condensed) return '';
+  const match = condensed.match(/.+?[.!?](?=\s|$)/);
+  return (match ? match[0] : condensed).trim();
+}
+
+function mergeNestedConfigs(target, source) {
+  if (!source || typeof source !== 'object') {
+    return target;
+  }
+  const result = { ...target };
+  Object.entries(source).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      result[key] = [...value];
+    } else if (value && typeof value === 'object') {
+      const existing = result[key] && typeof result[key] === 'object' ? result[key] : {};
+      result[key] = mergeNestedConfigs(existing, value);
+    } else if (value !== undefined) {
+      result[key] = value;
+    }
+  });
+  return result;
+}
+
+function slugify(value) {
+  const raw = String(value || '').trim();
+  const normalized = typeof raw.normalize === 'function' ? raw.normalize('NFKD') : raw;
+  const base = normalized
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .toLowerCase();
+  return base || 'resume';
+}
+
+function getPageUrl() {
+  if (typeof window === 'undefined' || !window.location) {
+    return '';
+  }
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+function setMetaContentById(id, value) {
+  const node = document.getElementById(id);
+  if (node && typeof value === 'string' && value) {
+    node.setAttribute('content', value);
+  }
+}
+
+function setMetaContentBySelector(selector, value) {
+  if (typeof value !== 'string' || !value) {
+    return;
+  }
+  const node = document.querySelector(selector);
+  if (node) {
+    node.setAttribute('content', value);
+  }
+}
+
+function deriveMetaDescription(profile) {
+  if (!profile) return '';
+  const summarySentence = extractFirstSentence(profile.summary || '');
+  if (summarySentence) {
+    if (summarySentence.length > SUMMARY_SNIPPET_LENGTH) {
+      return `${summarySentence.slice(0, SUMMARY_SNIPPET_LENGTH - 1)}…`;
+    }
+    return summarySentence;
+  }
+  const role = profile.role ? ` · ${profile.role}` : '';
+  return `${profile.name || 'Resume'}${role}`.trim();
+}
+
+function mapLocaleToOg(localeCode) {
+  if (!localeCode) return DEFAULT_OG_LOCALE;
+  return OG_LOCALE_MAP[localeCode] || DEFAULT_OG_LOCALE;
+}
+
+function findContactEntry(contactItems, matcher) {
+  if (!Array.isArray(contactItems)) return null;
+  return contactItems.find((item) => {
+    if (!item) return false;
+    try {
+      return matcher(item);
+    } catch (matcherError) {
+      console.warn('Contact matcher error', matcherError);
+      return false;
+    }
+  }) || null;
+}
+
+function findContactValue(contactItems, predicate) {
+  const entry = findContactEntry(contactItems, predicate);
+  if (!entry) return '';
+  if (typeof entry.value === 'string' && entry.value.trim()) {
+    return entry.value.trim();
+  }
+  if (typeof entry.link === 'string' && entry.link.trim()) {
+    return entry.link.trim();
+  }
+  return '';
+}
+
+function findContactLink(contactItems, prefix) {
+  const entry = findContactEntry(contactItems, (item) => typeof item.link === 'string' && item.link.startsWith(prefix));
+  return entry?.link?.trim() || '';
+}
+
+function collectSameAsLinks(contactItems) {
+  if (!Array.isArray(contactItems)) return [];
+  return contactItems
+    .map((item) => (typeof item?.link === 'string' ? item.link.trim() : ''))
+    .filter((link) => link && !link.startsWith('mailto:') && !link.startsWith('tel:'));
+}
+
+function pruneEmptyFields(payload) {
+  if (!payload || typeof payload !== 'object') return {};
+  const result = Array.isArray(payload) ? [] : {};
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) {
+      return;
+    }
+    if (Array.isArray(value)) {
+      const cleaned = value
+        .map((entry) => (typeof entry === 'object' ? pruneEmptyFields(entry) : entry))
+        .filter((entry) => {
+          if (entry === undefined || entry === null) return false;
+          if (typeof entry === 'object') {
+            return Object.keys(entry).length > 0;
+          }
+          return String(entry).trim().length > 0;
+        });
+      if (cleaned.length) {
+        if (Array.isArray(result)) {
+          result.push(...cleaned);
+        } else {
+          result[key] = cleaned;
+        }
+      }
+      return;
+    }
+    if (typeof value === 'object') {
+      const nested = pruneEmptyFields(value);
+      if (Object.keys(nested).length) {
+        if (Array.isArray(result)) {
+          result.push(nested);
+        } else {
+          result[key] = nested;
+        }
+      }
+      return;
+    }
+    const strValue = typeof value === 'string' ? value.trim() : value;
+    if (strValue !== '' && strValue !== undefined) {
+      if (Array.isArray(result)) {
+        result.push(strValue);
+      } else {
+        result[key] = strValue;
+      }
+    }
+  });
+  return result;
+}
+
+function updateMetaTags(profile, localeCode) {
+  if (!profile) return;
+  const seoSettings = getSeoSettingsForLocale(localeCode);
+  if (seoSettings.robots) {
+    setMetaContentBySelector('meta[name="robots"]', seoSettings.robots);
+  }
+  if (seoSettings.keywords) {
+    const keywordValue = Array.isArray(seoSettings.keywords)
+      ? seoSettings.keywords.join(', ')
+      : seoSettings.keywords;
+    setMetaContentBySelector('meta[name="keywords"]', keywordValue);
+  }
+  if (seoSettings.og?.type) {
+    setMetaContentBySelector('meta[property="og:type"]', seoSettings.og.type);
+  }
+  if (seoSettings.og?.site_name) {
+    setMetaContentBySelector('meta[property="og:site_name"]', seoSettings.og.site_name);
+  }
+  if (seoSettings.twitter?.card) {
+    setMetaContentBySelector('meta[name="twitter:card"]', seoSettings.twitter.card);
+  }
+  const title = profile.role ? `${profile.name} · ${profile.role}` : profile.name || document.title;
+  const description = deriveMetaDescription(profile);
+  const authorMeta = document.getElementById('meta-author');
+  if (authorMeta && profile.name) {
+    authorMeta.setAttribute('content', profile.name);
+  }
+
+  setMetaContentById('meta-description', description);
+  setMetaContentById('og-title', title);
+  setMetaContentById('og-description', description);
+  setMetaContentById('twitter-title', title);
+  setMetaContentById('twitter-description', description);
+
+  const localeTag = mapLocaleToOg(localeCode);
+  setMetaContentById('og-locale', localeTag);
+
+  const canonical = document.getElementById('canonical-link');
+  const canonicalUrl = seoSettings.canonical || getPageUrl();
+  if (canonical && canonicalUrl) {
+    canonical.setAttribute('href', canonicalUrl);
+  }
+  if (canonicalUrl) {
+    setMetaContentById('og-url', canonicalUrl);
+  }
+}
+
+function updateStructuredData(profile, localeCode) {
+  const script = document.getElementById('person-structured-data');
+  if (!script || !profile) return;
+
+  const contactItems = Array.isArray(profile.contact) ? profile.contact : [];
+  const location = findContactValue(contactItems, (item) => String(item.label || '').toLowerCase().includes('location'));
+  const emailLink = findContactLink(contactItems, 'mailto:');
+  const phoneLink = findContactLink(contactItems, 'tel:');
+  const sameAs = collectSameAsLinks(contactItems);
+  const latestExperience = Array.isArray(profile.experience) && profile.experience.length ? profile.experience[0] : null;
+  const skills = Array.isArray(profile.skills) ? profile.skills.map((skill) => skill?.name).filter(Boolean).slice(0, 6) : [];
+  const description = extractFirstSentence(profile.summary || '');
+  const seoSettings = getSeoSettingsForLocale(localeCode);
+  const canonicalUrl = seoSettings.canonical || getPageUrl();
+  const baseUrl = seoSettings.base_url;
+  const schemaSameAs = Array.from(
+    new Set([
+      ...sameAs,
+      typeof baseUrl === 'string' ? baseUrl : null,
+      typeof canonicalUrl === 'string' ? canonicalUrl : null,
+    ].filter(Boolean))
+  );
+
+  const personData = pruneEmptyFields({
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: profile.name,
+    jobTitle: profile.role,
+    description,
+    url: canonicalUrl || schemaSameAs[0],
+    worksFor: latestExperience?.company
+      ? {
+          '@type': 'Organization',
+          name: latestExperience.company,
+        }
+      : undefined,
+    address: location
+      ? {
+          '@type': 'PostalAddress',
+          addressLocality: location,
+        }
+      : undefined,
+    email: emailLink ? emailLink.replace(/^mailto:/, '') : undefined,
+    telephone: phoneLink ? phoneLink.replace(/^tel:/, '') : undefined,
+    sameAs: schemaSameAs.length ? schemaSameAs : undefined,
+    knowsAbout: skills,
+    speaksLanguage:
+      Array.isArray(profile.languages)
+        ? profile.languages.map((item) => item?.name).filter(Boolean)
+        : undefined,
+  });
+
+  script.textContent = JSON.stringify(personData, null, 2);
+}
 let currentProfile;
 
 let localeMetadata;
 let activeLocaleCode;
 let activeLabels = { ...FALLBACK_LABELS };
+let seoMetadata;
 let localeRequestToken = 0;
 let languageSwitcherBusy = false;
 let adminUnlocked = false;
@@ -145,6 +471,7 @@ const isEditorView = PAGE_CONTEXT === 'user';
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavbarBehaviour();
+  initAtsExport();
   initPublicView();
   bootstrapAdminFeatures().catch((error) => {
     console.error('Admin features failed to initialize.', error);
@@ -262,7 +589,15 @@ function parseYaml(text, path) {
 
 async function initPublicView() {
   try {
-    localeMetadata = await loadLocalesConfig();
+    const [loadedSeoConfig, localesConfig] = await Promise.all([
+      loadSeoConfig().catch((error) => {
+        console.warn('Unable to load SEO metadata configuration.', error);
+        return null;
+      }),
+      loadLocalesConfig(),
+    ]);
+    seoMetadata = loadedSeoConfig;
+    localeMetadata = localesConfig;
     if (!localeMetadata.locales.length) {
       throw new Error('No locales configured for public view.');
     }
@@ -467,6 +802,74 @@ function validateLocaleConfig(data, path) {
   return data;
 }
 
+function validateSeoConfig(data, path) {
+  if (!data || typeof data !== 'object') {
+    throw new ValidationError('SEO configuration must be an object.', path);
+  }
+
+  if ('site' in data && (typeof data.site !== 'object' || data.site === null)) {
+    throw new ValidationError('SEO config "site" must be an object.', path);
+  }
+
+  if ('locales' in data && (typeof data.locales !== 'object' || data.locales === null)) {
+    throw new ValidationError('SEO config "locales" must be an object map.', path);
+  }
+
+  if ('ats' in data && (typeof data.ats !== 'object' || data.ats === null)) {
+    throw new ValidationError('SEO config "ats" must be an object.', path);
+  }
+
+  return data;
+}
+
+async function loadSeoConfig() {
+  const data = await fetchYaml(SEO_CONFIG.path);
+  return validateSeoConfig(data, SEO_CONFIG.path);
+}
+
+function getSeoSettingsForLocale(localeCode) {
+  if (!seoMetadata || typeof seoMetadata !== 'object') {
+    return {};
+  }
+  const siteConfig = seoMetadata.site || {};
+  const locales = seoMetadata.locales || {};
+  const defaultLocale = seoMetadata.default_locale;
+  const defaultOverrides = defaultLocale ? locales[defaultLocale] : null;
+  const localeOverrides = localeCode ? locales[localeCode] : null;
+  let merged = mergeNestedConfigs({}, siteConfig);
+  merged = mergeNestedConfigs(merged, defaultOverrides);
+  merged = mergeNestedConfigs(merged, localeOverrides);
+  return merged;
+}
+
+function getAtsSettingsForLocale(localeCode) {
+  if (!seoMetadata || typeof seoMetadata !== 'object' || !seoMetadata.ats) {
+    return {};
+  }
+  const atsLocales = seoMetadata.ats.locales || {};
+  const defaultLocale = seoMetadata.ats.default_locale;
+  const defaultOverrides = defaultLocale ? atsLocales[defaultLocale] : null;
+  const localeOverrides = localeCode ? atsLocales[localeCode] : null;
+  let merged = mergeNestedConfigs({}, defaultOverrides || {});
+  merged = mergeNestedConfigs(merged, localeOverrides || {});
+  return merged;
+}
+
+function getAtsHeadings(localeCode) {
+  const settings = getAtsSettingsForLocale(localeCode);
+  const sections = settings.sections || {};
+  return {
+    summary: sections.summary || 'SUMMARY',
+    experience: sections.experience || 'EXPERIENCE',
+    education: sections.education || 'EDUCATION',
+    courses: sections.courses || 'COURSES & CERTIFICATIONS',
+    skills: sections.skills || 'SKILLS',
+    tech_stack: sections.tech_stack || 'TECHNOLOGIES',
+    languages: sections.languages || 'LANGUAGES',
+    interests: sections.interests || 'INTERESTS',
+  };
+}
+
 function renderLocaleSwitcher(locales, activeCode) {
   const container = document.getElementById('language-switcher');
   if (!container) return;
@@ -523,7 +926,9 @@ function applyLabels(labels) {
   setText('tech-stack-heading', labels.tech_stack_heading);
   setText('languages-heading', labels.languages_heading);
   setText('interests-heading', labels.interests_heading);
+  setText('faq-heading', labels.faq_heading);
   setText('edit-view-button', labels.edit_button_label);
+  setText('download-ats-button', labels.ats_download_label);
   setText('admin-logout-button', labels.save_button_label);
   updateAdminSectionLabels();
   updateViewModeBadge();
@@ -547,6 +952,11 @@ function renderResume(data, options = {}) {
 
   currentProfile = data;
   currentSectionData = extractSectionData(data);
+
+  renderFaq(data);
+  updateMetaTags(data, activeLocaleCode);
+  updateStructuredData(data, activeLocaleCode);
+  updateAtsButtonState(data);
 
   if (options.skipVisibilityInit) {
     reconcileItemVisibilityWithCurrentData();
@@ -761,6 +1171,251 @@ function renderPills(containerId, items) {
     pill.textContent = item;
     container.appendChild(pill);
   });
+}
+
+function buildFaqEntries(profile) {
+  if (!profile) return [];
+  const entries = [];
+  const name = profile.name || 'This professional';
+  const preset = LANGUAGE_PRESETS[activeLocaleCode] || LANGUAGE_PRESETS.en;
+  const faqLabels = preset.faq;
+  const summarySentence = extractFirstSentence(profile.summary || '');
+  const contactItems = Array.isArray(profile.contact) ? profile.contact : [];
+  const location = findContactValue(contactItems, (item) => String(item.label || '').toLowerCase().includes('location'));
+  const emailLink = findContactLink(contactItems, 'mailto:');
+  const email = emailLink ? emailLink.replace(/^mailto:/, '') : '';
+  const linkedinLink = findContactValue(contactItems, (item) => typeof item.link === 'string' && item.link.includes('linkedin.com'));
+  const techStack = Array.isArray(profile.tech_stack) ? profile.tech_stack.filter(Boolean).slice(0, 5).join(', ') : '';
+
+  if (profile.role || summarySentence) {
+    entries.push({
+      question: formatTemplate(faqLabels.roleQuestion, { name }),
+      answer:
+        summarySentence ||
+        formatTemplate(faqLabels.roleFallback, {
+          name,
+          role: profile.role || 'product leadership roles',
+        }),
+    });
+  }
+
+  if (location) {
+    entries.push({
+      question: formatTemplate(faqLabels.locationQuestion, { name }),
+      answer: formatTemplate(faqLabels.locationAnswer, { name, location }),
+    });
+  }
+
+  if (email || linkedinLink) {
+    const parts = [];
+    if (email) parts.push(`email ${email}`);
+    if (linkedinLink) parts.push(`LinkedIn ${linkedinLink}`);
+    const connector = faqLabels.contactConnector || ', ';
+    const channels = parts.join(connector);
+    entries.push({
+      question: formatTemplate(faqLabels.contactQuestion, { name }),
+      answer: formatTemplate(faqLabels.contactAnswerPrefix, { name, channels }),
+    });
+  }
+
+  if (techStack) {
+    entries.push({
+      question: formatTemplate(faqLabels.toolsQuestion, { name }),
+      answer: formatTemplate(faqLabels.toolsAnswer, { name, tools: techStack }),
+    });
+  }
+
+  return entries;
+}
+
+function updateFaqStructuredData(entries) {
+  const script = document.getElementById('faq-structured-data');
+  if (!script) return;
+  if (!Array.isArray(entries) || !entries.length) {
+    script.textContent = '';
+    return;
+  }
+
+  const faqPayload = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: entries.map((entry) => ({
+      '@type': 'Question',
+      name: entry.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: entry.answer,
+      },
+    })),
+  };
+
+  script.textContent = JSON.stringify(faqPayload, null, 2);
+}
+
+function renderFaq(profile) {
+  const container = document.getElementById('faq-list');
+  const section = document.getElementById('faq-section');
+  if (!container) return;
+  container.innerHTML = '';
+  const entries = buildFaqEntries(profile);
+  if (!entries.length) {
+    if (section) {
+      section.hidden = true;
+    }
+    updateFaqStructuredData([]);
+    return;
+  }
+
+  if (section) {
+    section.hidden = false;
+  }
+
+  entries.forEach((entry, index) => {
+    const details = document.createElement('details');
+    if (index === 0) {
+      details.open = true;
+    }
+    const summary = document.createElement('summary');
+    summary.textContent = entry.question;
+    const answer = document.createElement('p');
+    answer.textContent = entry.answer;
+    details.appendChild(summary);
+    details.appendChild(answer);
+    container.appendChild(details);
+  });
+
+  updateFaqStructuredData(entries);
+}
+
+function updateAtsButtonState(profile) {
+  const button = document.getElementById('download-ats-button');
+  if (!button) return;
+  button.disabled = !profile;
+}
+
+function initAtsExport() {
+  const button = document.getElementById('download-ats-button');
+  if (!button) return;
+  button.addEventListener('click', () => {
+    if (!currentProfile) return;
+    const text = buildAtsPlainText(currentProfile, activeLocaleCode);
+    if (!text) return;
+    if (typeof Blob === 'undefined' || typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      console.warn('Current environment does not support file downloads.');
+      return;
+    }
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const nameSlug = slugify(currentProfile.name || 'resume');
+    link.download = `${nameSlug}-resume.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.setTimeout(() => URL.revokeObjectURL(url), 750);
+  });
+}
+
+function buildAtsPlainText(profile, localeCode) {
+  if (!profile) return '';
+  const lines = [];
+  const headings = getAtsHeadings(localeCode);
+  const contactItems = Array.isArray(profile.contact) ? profile.contact : [];
+  const location = findContactValue(contactItems, (item) => String(item.label || '').toLowerCase().includes('location'));
+  const emailLink = findContactLink(contactItems, 'mailto:');
+  const phoneLink = findContactLink(contactItems, 'tel:');
+  const otherLinks = collectSameAsLinks(contactItems);
+
+  if (profile.name) {
+    lines.push(profile.name);
+  }
+  if (profile.role) {
+    lines.push(profile.role);
+  }
+
+  const contactParts = [];
+  if (location) contactParts.push(location);
+  if (phoneLink) contactParts.push(phoneLink.replace(/^tel:/, ''));
+  if (emailLink) contactParts.push(emailLink.replace(/^mailto:/, ''));
+  contactParts.push(...otherLinks);
+  if (contactParts.length) {
+    lines.push(contactParts.join(' | '));
+  }
+
+  lines.push('');
+
+  if (profile.summary) {
+    lines.push(headings.summary);
+    lines.push(condenseWhitespace(profile.summary));
+    lines.push('');
+  }
+
+  if (Array.isArray(profile.experience) && profile.experience.length) {
+    lines.push(headings.experience);
+    profile.experience.forEach((item) => {
+      const headerParts = [item.period, item.role, item.company].filter(Boolean);
+      if (headerParts.length) {
+        lines.push(headerParts.join(' | '));
+      }
+      if (Array.isArray(item.highlights)) {
+        item.highlights.forEach((highlight) => {
+          lines.push(`- ${condenseWhitespace(highlight)}`);
+        });
+      }
+      lines.push('');
+    });
+  }
+
+  if (Array.isArray(profile.education) && profile.education.length) {
+    lines.push(headings.education);
+    profile.education.forEach((item) => {
+      const headerParts = [item.period, item.school].filter(Boolean);
+      if (headerParts.length) {
+        lines.push(headerParts.join(' | '));
+      }
+      if (item.detail) {
+        lines.push(condenseWhitespace(item.detail));
+      }
+      lines.push('');
+    });
+  }
+
+  if (Array.isArray(profile.courses) && profile.courses.length) {
+    lines.push(headings.courses);
+    profile.courses.forEach((course) => {
+      const entry = [course.year, course.name].filter(Boolean).join(' | ');
+      lines.push(entry);
+    });
+    lines.push('');
+  }
+
+  if (Array.isArray(profile.skills) && profile.skills.length) {
+    lines.push(headings.skills);
+    lines.push(profile.skills.map((item) => item?.name).filter(Boolean).join(', '));
+    lines.push('');
+  }
+
+  if (Array.isArray(profile.tech_stack) && profile.tech_stack.length) {
+    lines.push(headings.tech_stack);
+    lines.push(profile.tech_stack.join(', '));
+    lines.push('');
+  }
+
+  if (Array.isArray(profile.languages) && profile.languages.length) {
+    lines.push(headings.languages);
+    lines.push(profile.languages.map((item) => `${item?.name}${item?.level_text ? ` (${item.level_text})` : ''}`).filter(Boolean).join(', '));
+    lines.push('');
+  }
+
+  if (Array.isArray(profile.interests) && profile.interests.length) {
+    lines.push(headings.interests);
+    lines.push(profile.interests.join(', '));
+    lines.push('');
+  }
+
+  const text = lines.join('\n').replace(/\n{3,}/g, '\n\n');
+  return text.trim();
 }
 
 function formatPeriod(periodText, customFormatter, item) {
