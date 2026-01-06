@@ -1194,7 +1194,7 @@ function buildFaqEntries(profile) {
         summarySentence ||
         formatTemplate(faqLabels.roleFallback, {
           name,
-          role: profile.role || 'product leadership roles',
+          role: profile.role,
         }),
     });
   }
