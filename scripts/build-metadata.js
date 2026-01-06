@@ -24,7 +24,12 @@ function updateMetaBySelector(html, selector, attribute, value) {
     'i'
   );
   if (!pattern.test(html)) {
-    console.warn(`Skipped meta update for selector ${selector}; tag not found.`);
+    console.warn(
+      `Warning: Skipped meta update for selector "${selector}" - tag not found in index.html.\n` +
+      `  → This is expected if you haven't added this meta tag yet.\n` +
+      `  → To apply this configuration, add the corresponding <meta> tag to index.html.\n` +
+      `  → To suppress this warning, remove the configuration from seo-config.yaml.`
+    );
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
@@ -38,7 +43,12 @@ function updateMetaById(html, id, value) {
     'i'
   );
   if (!pattern.test(html)) {
-    console.warn(`Skipped meta update for id ${id}; tag not found.`);
+    console.warn(
+      `Warning: Skipped meta update for id "${id}" - tag not found in index.html.\n` +
+      `  → This is expected if you haven't added this meta tag yet.\n` +
+      `  → To apply this configuration, add the corresponding <meta id="${id}"> tag to index.html.\n` +
+      `  → To suppress this warning, remove the configuration from seo-config.yaml.`
+    );
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
@@ -49,7 +59,13 @@ function updateLinkCanonical(html, value) {
   const escaped = escapeAttribute(value);
   const pattern = /(<link\b[^>]*rel\s*=\s*"canonical"[^>]*href\s*=\s*")(.*?)(")/i;
   if (!pattern.test(html)) {
-    console.warn('Skipped canonical update; <link rel="canonical"> not found.');
+    console.warn(
+      `Warning: Skipped canonical URL update - <link rel="canonical"> not found in index.html.\n` +
+      `  → This is expected if you haven't added a canonical link tag yet.\n` +
+      `  → To apply this configuration, add <link rel="canonical" href=""> to index.html.\n` +
+      `  → To suppress this warning, remove the canonical configuration from seo-config.yaml.\n` +
+      `  → Note: Canonical URLs are important for SEO to avoid duplicate content issues.`
+    );
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
