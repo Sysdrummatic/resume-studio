@@ -2,6 +2,8 @@
 
 This guide explains how to run and iterate on the résumé locally.
 
+**Security Note:** The editor view (`user.html`) is designed for local development only and uses client-side password authentication. It is excluded from GitHub Pages deployment to prevent public access, as client-side authentication cannot provide true security on a static site.
+
 ## Prerequisites
 
 - Node.js 22 or newer (for running tests and tooling).

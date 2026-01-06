@@ -30,6 +30,10 @@ jobs:
         run: npm run build:metadata  
       - name: Run tests
         run: npm test
+      - name: Prepare deployment files
+        run: |
+          mkdir -p _deploy
+          rsync -av --exclude='user.html' --exclude='data/private' --exclude='_deploy' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='tests' --exclude='docs' . _deploy/
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
@@ -37,7 +41,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_deploy'
 
   deploy:
     needs: build
