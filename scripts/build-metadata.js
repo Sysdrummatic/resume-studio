@@ -24,7 +24,11 @@ function updateMetaBySelector(html, selector, attribute, value) {
     'i'
   );
   if (!pattern.test(html)) {
-    console.warn(`Skipped meta update for selector ${selector}; tag not found.`);
+    console.warn(
+      `Skipped meta update for selector ${selector}; tag not found in HTML. ` +
+      `This is safe to ignore if the tag is optional for your site. ` +
+      `However, if the config specifies a value for this tag, ensure it exists in index.html.`
+    );
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
@@ -38,7 +42,11 @@ function updateMetaById(html, id, value) {
     'i'
   );
   if (!pattern.test(html)) {
-    console.warn(`Skipped meta update for id ${id}; tag not found.`);
+    console.warn(
+      `Skipped meta update for id ${id}; tag not found in HTML. ` +
+      `This is safe to ignore if the tag is optional for your site. ` +
+      `However, if the config specifies a value for this tag, ensure it exists in index.html.`
+    );
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
@@ -49,7 +57,11 @@ function updateLinkCanonical(html, value) {
   const escaped = escapeAttribute(value);
   const pattern = /(<link\b[^>]*rel\s*=\s*"canonical"[^>]*href\s*=\s*")(.*?)(")/i;
   if (!pattern.test(html)) {
-    console.warn('Skipped canonical update; <link rel="canonical"> not found.');
+    console.warn(
+      'Skipped canonical update; <link rel="canonical"> not found in HTML. ' +
+      'This is safe to ignore if canonical links are not needed for your site. ' +
+      'However, for SEO best practices, ensure a canonical link exists in index.html when specified in the config.'
+    );
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
