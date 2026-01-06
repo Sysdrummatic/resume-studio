@@ -5,7 +5,7 @@ This project renders an interactive résumé directly from YAML data. The page i
 ## Structure
 
 - `index.html` – layout, markup, language switcher, and public view controls.
-- `user.html` – editor login view and configuration panel.
+- `user.html` – editor login view and configuration panel (local development only, excluded from deployment).
 - `data/public/locales.yaml` – locale registry (code, label, resume path, and config path per language).
 - `data/public/config/*.yaml` – per-locale UI labels and language metadata.
 - `data/public/seo-config.yaml` – shared SEO, social, and ATS metadata applied per locale.
@@ -30,7 +30,9 @@ This project renders an interactive résumé directly from YAML data. The page i
 
 ## Configuring the admin password
 
-The editor reads its password from `data/private/user.env` at runtime. The file is ignored by git, so create it locally with a single line:
+The editor (`user.html`) is designed for local development only and is excluded from GitHub Pages deployment for security reasons. Client-side authentication cannot provide true access control on a static site.
+
+To use the editor locally, create `data/private/user.env` with a single line:
 
 ```env
 ADMIN_PASSWORD=your-strong-password
