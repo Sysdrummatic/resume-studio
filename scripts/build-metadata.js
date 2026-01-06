@@ -8,7 +8,8 @@ const PROJECT_ROOT = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(PROJECT_ROOT, 'data/public/seo-config.yaml');
 const INDEX_PATH = path.join(PROJECT_ROOT, 'index.html');
 const ROBOTS_PATH = path.join(PROJECT_ROOT, 'robots.txt');
-const SITEMAP_PATH = path.join(PROJECT_ROOT, 'sitemap.xml');
+const SITEMAP_FILENAME = 'sitemap.xml';
+const SITEMAP_PATH = path.join(PROJECT_ROOT, SITEMAP_FILENAME);
 
 function escapeAttribute(value) {
   return String(value)
@@ -126,7 +127,7 @@ async function updateRobots(config) {
   const sitemapEntries = config.site?.sitemap?.entries || [];
   let sitemapUrl = '';
   if (sitemapEntries.length && baseUrl) {
-    sitemapUrl = new URL('sitemap.xml', ensureTrailingSlash(baseUrl)).href;
+    sitemapUrl = new URL(SITEMAP_FILENAME, ensureTrailingSlash(baseUrl)).href;
   }
   const lines = ['User-agent: *', 'Allow: /'];
   if (sitemapUrl) {
