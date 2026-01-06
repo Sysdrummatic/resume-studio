@@ -24,7 +24,7 @@ function updateMetaBySelector(html, selector, attribute, value) {
     'i'
   );
   if (!pattern.test(html)) {
-    console.warn(`Skipped meta update for selector ${selector}; tag not found.`);
+    console.warn(`Skipped meta update for selector ${selector}; tag not found. This is expected if the tag is not present in index.html. Add the tag if SEO configuration requires it.`);
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
@@ -38,7 +38,7 @@ function updateMetaById(html, id, value) {
     'i'
   );
   if (!pattern.test(html)) {
-    console.warn(`Skipped meta update for id ${id}; tag not found.`);
+    console.warn(`Skipped meta update for id ${id}; tag not found. This is expected if the tag is not present in index.html. Add the tag if SEO configuration requires it.`);
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
@@ -49,7 +49,7 @@ function updateLinkCanonical(html, value) {
   const escaped = escapeAttribute(value);
   const pattern = /(<link\b[^>]*rel\s*=\s*"canonical"[^>]*href\s*=\s*")(.*?)(")/i;
   if (!pattern.test(html)) {
-    console.warn('Skipped canonical update; <link rel="canonical"> not found.');
+    console.warn('Skipped canonical update; <link rel="canonical"> not found. This is expected if the canonical link is not present in index.html. Add the tag if SEO configuration requires it.');
     return html;
   }
   return html.replace(pattern, `$1${escaped}$3`);
