@@ -4,144 +4,73 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Łukasz Michta · Technical Writer</title>
+    <title>ResumeStudio · Build and share your professional resume</title>
+    <meta
+      name="description"
+      content="ResumeStudio helps professionals create one master resume, tailor public versions, and share role-specific links."
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Homemade+Apple&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles/general.css" />
+    <link rel="stylesheet" href="styles/landing.css" />
   </head>
-  <body data-view-mode="public">
-    <div class="loading-indicator" id="app-loading-indicator" aria-live="polite" aria-hidden="true" hidden>
-      Loading resume data…
-    </div>
-    <div class="resume">
-        <header class="hero" aria-label="Profile summary">
-          <div class="hero__title">
-            <div class="logo-circle" id="brand-initials" aria-hidden="true"></div>
-            <div class="hero__identity">
-              <h1 id="name"></h1>
-              <p id="role"></p>
-            </div>
-          </div>
-          <div class="hero__actions">
-            <div class="hero__language">
-              <div
-                class="language-switcher"
-                id="language-switcher"
-                role="group"
-                aria-label="Language"
-              ></div>
-            </div>
-            <span class="public-view-badge" id="public-view-badge">Public view</span>
-            <a class="hero__login-button" id="edit-view-button" href="user.html">Edit</a>
-          </div>
-        </header>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="ResumeStudio home">ResumeStudio</a>
+      <nav class="topbar__actions" aria-label="Primary">
+        <a class="btn btn--ghost" href="resume.html">Public preview</a>
+        <button class="btn btn--primary" type="button" disabled aria-disabled="true">Sign in (coming soon)</button>
+      </nav>
+    </header>
 
-      <main class="layout">
-        <section class="main-column" aria-label="Professional profile">
-          <article class="section" data-section="summary" aria-labelledby="summary-heading">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="summary-heading">Summary</h2>
-            </div>
-            <p id="summary" class="summary-text"></p>
-          </article>
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <p class="eyebrow">Fast, modern resume publishing</p>
+        <h1 id="hero-title">Create one master resume. Share tailored versions in seconds.</h1>
+        <p class="hero__lead">
+          ResumeStudio is becoming a full SaaS platform for professionals who want one source of truth for their career history
+          and multiple public links for role-specific applications.
+        </p>
+        <div class="hero__cta">
+          <button class="btn btn--primary" type="button" disabled aria-disabled="true">Get started free (coming soon)</button>
+          <a class="btn btn--ghost" href="resume.html">See live renderer</a>
+        </div>
+      </section>
 
-          <article class="section" data-section="github" id="github-activity-card" aria-labelledby="github-activity-heading">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="github-activity-heading">GitHub Activity</h2>
-            </div>
-            <a
-              id="github-activity-link"
-              class="github-activity__link"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              <img
-                id="github-activity-image"
-                class="github-activity__image"
-                alt="GitHub activity"
-                loading="lazy"
-              />
-            </a>
-          </article>
+      <section class="features" aria-label="Key product capabilities">
+        <article class="feature-card">
+          <h2>Master resume model</h2>
+          <p>Maintain one up-to-date career record and selectively expose content by target role.</p>
+        </article>
+        <article class="feature-card">
+          <h2>Shareable public links</h2>
+          <p>Create default and role-specific public resume links from your visibility configurations.</p>
+        </article>
+        <article class="feature-card">
+          <h2>Import from existing CV</h2>
+          <p>Start with deterministic parsing first, then evolve with AI-assisted enrichment in later phases.</p>
+        </article>
+      </section>
 
-          <article class="section" data-section="experience" aria-labelledby="experience-heading">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="experience-heading">Experience</h2>
-            </div>
-            <div id="experience-list" class="timeline"></div>
-          </article>
+      <section class="timeline" aria-labelledby="timeline-title">
+        <h2 id="timeline-title">Roadmap status</h2>
+        <ol>
+          <li><strong>Live now:</strong> Landing page and public resume preview.</li>
+          <li><strong>Next:</strong> Account system with email verification and anti-temporary-email protection.</li>
+          <li><strong>Then:</strong> User dashboard, visibility presets, and public link controls.</li>
+        </ol>
+      </section>
+    </main>
 
-          <article class="section" data-section="education" aria-labelledby="education-heading">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="education-heading">Education</h2>
-            </div>
-            <div id="education-list" class="timeline timeline--compact"></div>
-          </article>
+    <footer class="footer">
+      <p>© <span id="current-year"></span> ResumeStudio. Built for modern job search workflows.</p>
+    </footer>
 
-          <article class="section" data-section="courses" aria-labelledby="courses-heading">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="courses-heading">Courses</h2>
-            </div>
-            <div id="courses-list" class="timeline timeline--compact timeline--courses"></div>
-          </article>
-        </section>
-
-        <aside class="sidebar" aria-label="Supporting information">
-          <section class="card" data-section="personal-info">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="personal-info-heading">Personal Info</h2>
-            </div>
-            <dl id="contact-list" class="contact-list"></dl>
-            <div id="qr-list" class="qr-list"></div>
-          </section>
-
-          <section class="card" data-section="skills">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="skills-heading">Skills</h2>
-            </div>
-            <div id="skills-list" class="meter-list"></div>
-          </section>
-
-          <section class="card" data-section="tech-stack">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="tech-stack-heading">Tech stack</h2>
-            </div>
-            <ul id="tech-stack" class="pill-list"></ul>
-          </section>
-
-          <section class="card" data-section="languages">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="languages-heading">Languages</h2>
-            </div>
-            <div id="languages-list" class="meter-list meter-list--compact"></div>
-          </section>
-
-          <section class="card" data-section="interests">
-            <div class="section-title">
-              <span class="section-dot" aria-hidden="true"></span>
-              <h2 id="interests-heading">Interests</h2>
-            </div>
-            <ul id="interests-list" class="pill-list"></ul>
-          </section>
-        </aside>
-      </main>
-    </div>
-
-    <script src="scripts/js-yaml.min.js"></script>
-    <script src="scripts/admin-config.js"></script>
-    <script src="scripts/main.js"></script>
+    <script>
+      document.getElementById('current-year').textContent = String(new Date().getFullYear());
+    </script>
   </body>
 </html>
