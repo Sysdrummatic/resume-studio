@@ -30,7 +30,8 @@ This guide explains how to run and iterate on the résumé locally.
    echo "ADMIN_PASSWORD=change-me" > data/private/user.env
    ```
 
-4. Start a static server from the repository root and open `index.html` in your browser.
+4. Start a static server from the repository root and open `index.html` for the landing page.
+5. Open `resume.html` when you want to test the resume renderer directly.
 
 ## Iterating on Content
 

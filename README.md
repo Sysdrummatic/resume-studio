@@ -1,10 +1,11 @@
 # Personal Resume
 
-This project renders an interactive résumé directly from YAML data. The page is pure HTML/CSS/JS and loads locale-specific content from `data/public`. A recruiter-facing public view is served by default with language selection in the header.
+This project currently includes a production-style landing page and an interactive résumé renderer powered by YAML data. The renderer is pure HTML/CSS/JS and loads locale-specific content from `data/public`, with language selection in the header.
 
 ## Structure
 
-- `index.html` – layout, markup, language switcher, and public view controls.
+- `index.html` – marketing landing page (Phase A entry point).
+- `resume.html` – recruiter-facing public resume renderer with language switcher.
 - `user.html` – editor login view and configuration panel.
 - `data/public/locales.yaml` – locale registry (code, label, resume path, and config path per language).
 - `data/public/config/*.yaml` – per-locale UI labels and language metadata.
@@ -21,7 +22,8 @@ This project renders an interactive résumé directly from YAML data. The page i
 
 1. Clone the repo and install Live Server (e.g. VS Code extension “Live Server” / “Five Server”).
 2. In VS Code right-click `index.html` → “Open with Live Server”. Alternatively run a static server (`npx serve .` or `python3 -m http.server`).
-3. Refresh the page after changing any YAML file – the app fetches locale files dynamically.
+3. Open `resume.html` to preview the resume renderer directly.
+4. Refresh the page after changing any YAML file – the app fetches locale files dynamically.
 
 ## Configuring the admin password
 
