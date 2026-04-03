@@ -1,16 +1,22 @@
 # Personal Resume
 
-This project renders an interactive résumé directly from YAML data. The page is pure HTML/CSS/JS and loads locale-specific content from `data/public`. A recruiter-facing public view is served by default with language selection in the header.
+This project currently includes a production-style landing page and an interactive résumé renderer powered by YAML data. The renderer is pure HTML/CSS/JS and loads locale-specific content from `data/public`, with language selection in the header.
 
 ## Structure
 
-- `index.html` – layout, markup, language switcher, and public view controls.
+- `index.html` – marketing landing page (Phase A entry point).
+- `resume.html` – recruiter-facing public resume renderer with language switcher.
+- `login.html` – authentication page for sign in, sign up, and password reset.
+- `dashboard.html` – protected route placeholder available only to authenticated users.
 - `user.html` – editor login view and configuration panel.
 - `data/public/locales.yaml` – locale registry (code, label, resume path, and config path per language).
 - `data/public/config/*.yaml` – per-locale UI labels and language metadata.
 - `data/public/resume-*.yaml` – per-locale public résumé data (EN/PL provided) that can be served to recruiters.
 - `data/private/resume-private.yaml` – optional private résumé details (e.g. full contact info, internal notes) kept out of the public bundle. This file is distinct from `data/private/user.env`, which only stores the admin password.
 - `scripts/main.js` – locale loading, DOM rendering, and UI behaviour.
+- `scripts/auth.js` – authentication flow handlers (sign in/sign up/reset + disposable email check).
+- `scripts/protected.js` – protected route session guard and sign-out logic.
+- `scripts/auth-config.js` – public Supabase client configuration for browser auth flows.
 - `scripts/admin-config.js` – runtime loader for the admin password environment file.
 - `styles/general.css` – layout, timeline and sidebar styling.
 - `images/qrs` – QR assets referenced by the YAML data.
@@ -21,7 +27,25 @@ This project renders an interactive résumé directly from YAML data. The page i
 
 1. Clone the repo and install Live Server (e.g. VS Code extension “Live Server” / “Five Server”).
 2. In VS Code right-click `index.html` → “Open with Live Server”. Alternatively run a static server (`npx serve .` or `python3 -m http.server`).
-3. Refresh the page after changing any YAML file – the app fetches locale files dynamically.
+3. Open `resume.html` to preview the resume renderer directly.
+4. Open `login.html` to test Phase B authentication flows.
+5. Refresh the page after changing any YAML file – the app fetches locale files dynamically.
+
+
+## Phase B auth configuration
+
+1. Copy the config template:
+
+```bash
+cp scripts/auth-config.example.js scripts/auth-config.js
+```
+
+2. Update `scripts/auth-config.js` with your Supabase project URL and anon key.
+3. In Supabase Auth settings, enable email verification and include redirect URLs for:
+   - `https://<your-domain>/dashboard.html`
+   - `https://<your-domain>/login.html`
+
+Sign up uses a free disposable-email check API (`disify.com`).
 
 ## Configuring the admin password
 
