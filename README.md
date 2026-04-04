@@ -46,6 +46,7 @@ cp scripts/auth-config.example.js scripts/auth-config.js
    - `https://<your-domain>/login.html`
 
 Sign up uses a free disposable-email check API (`disify.com`).
+For full click-by-click setup, see [Supabase UI Setup (Phase B)](docs/guides/supabase-ui-setup.md).
 
 ## Configuring the admin password
 
