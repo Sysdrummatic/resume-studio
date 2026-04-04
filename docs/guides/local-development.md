@@ -33,6 +33,14 @@ This guide explains how to run and iterate on the résumé locally.
 4. Start a static server from the repository root and open `index.html` for the landing page.
 5. Open `resume.html` when you want to test the resume renderer directly.
 
+6. Configure browser auth client settings:
+
+   ```bash
+   cp scripts/auth-config.example.js scripts/auth-config.js
+   ```
+
+   Then edit `scripts/auth-config.js` with your Supabase URL and anon key.
+
 ## Iterating on Content
 
 - Update locale YAML files in `data/public`. The app fetches them dynamically; refresh the page to reload data.
@@ -42,6 +50,7 @@ This guide explains how to run and iterate on the résumé locally.
 ## Running Automated Tests
 
 - Execute `npm test` to run jsdom-based regression checks for the admin login workflow.
+- Open `login.html` to test sign in/sign up/password reset flows.
 - Use `npm test -- --watch` while iterating on UI behaviour to re-run affected suites automatically.
 
 ## Troubleshooting

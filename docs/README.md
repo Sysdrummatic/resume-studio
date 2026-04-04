@@ -9,3 +9,5 @@ Authoritative guides and workflows for maintaining the résumé project.
 - [Deployment and QA Checklist](guides/deployment-qa.md)
 - [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [Future Features Backlog](guides/future-features-backlog.md)
+- [Supabase UI Setup (Phase B)](guides/supabase-ui-setup.md)
+

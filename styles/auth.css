@@ -1,0 +1,70 @@
+.auth-shell {
+  width: min(520px, 100%);
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 18px;
+  padding: 1.4rem;
+}
+
+.auth-shell h1 {
+  font-size: 1.6rem;
+}
+
+.auth-shell__lead {
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.auth-tab {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  padding: 0.45rem 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-tab.is-active {
+  background: var(--surface);
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.auth-form + .auth-form {
+  margin-top: 1rem;
+}
+
+.auth-form input {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  padding: 0.68rem;
+}
+
+.auth-hint {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.auth-status {
+  min-height: 1.3rem;
+  margin-top: 0.9rem;
+  color: #c8d2ff;
+}
+
+.auth-status.is-error {
+  color: #ff9d9d;
+}
