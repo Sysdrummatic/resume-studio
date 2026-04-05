@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResumeStudio · Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles/landing.css" />
+    <link rel="stylesheet" href="styles/auth.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="ResumeStudio home">ResumeStudio</a>
+      <nav class="topbar__actions" aria-label="Primary">
+        <a class="btn btn--ghost" href="resume.html">Public preview</a>
+        <button class="btn btn--primary" id="signout-button" type="button">Sign out</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="auth-shell" aria-labelledby="dashboard-title">
+        <h1 id="dashboard-title">Protected dashboard</h1>
+        <p class="auth-shell__lead">You are authenticated. Phase C now includes schema-backed profile checks and admin tools.</p>
+        <p id="session-email" class="auth-hint"></p>
+        <p id="profile-status" class="auth-status" role="status" aria-live="polite"></p>
+
+        <section id="admin-panel" class="admin-tools" hidden>
+          <h2>Admin controls</h2>
+          <div id="admin-stats" class="admin-stats"></div>
+          <div class="admin-users">
+            <h3>Users</h3>
+            <ul id="admin-user-list" class="admin-user-list"></ul>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scripts/auth-config.js"></script>
+    <script src="scripts/protected.js"></script>
+  </body>
+</html>
