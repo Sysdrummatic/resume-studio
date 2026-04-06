@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResumeStudio · Sign in</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles/landing.css" />
+    <link rel="stylesheet" href="styles/auth.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="ResumeStudio home">ResumeStudio</a>
+      <nav class="topbar__actions" aria-label="Primary">
+        <a class="btn btn--ghost" href="resume.html">Public preview</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="auth-shell" aria-labelledby="auth-title">
+        <h1 id="auth-title">Account access</h1>
+        <p class="auth-shell__lead">Phase B includes sign up, sign in, password reset, and email verification.</p>
+
+        <div class="auth-tabs" role="tablist" aria-label="Authentication forms">
+          <button class="auth-tab is-active" data-tab="signin" role="tab" aria-selected="true">Sign in</button>
+          <button class="auth-tab" data-tab="signup" role="tab" aria-selected="false">Sign up</button>
+          <button class="auth-tab" data-tab="reset" role="tab" aria-selected="false">Reset password</button>
+        </div>
+
+        <form id="signin-form" class="auth-form" data-panel="signin">
+          <label for="signin-email">Email</label>
+          <input id="signin-email" name="email" type="email" required autocomplete="email" />
+          <label for="signin-password">Password</label>
+          <input id="signin-password" name="password" type="password" required autocomplete="current-password" />
+          <button class="btn btn--primary" type="submit">Sign in</button>
+        </form>
+
+        <form id="signup-form" class="auth-form" data-panel="signup" hidden>
+          <label for="signup-email">Email</label>
+          <input id="signup-email" name="email" type="email" required autocomplete="email" />
+          <label for="signup-password">Password</label>
+          <input id="signup-password" name="password" type="password" minlength="8" required autocomplete="new-password" />
+          <button class="btn btn--primary" type="submit">Create account</button>
+          <p class="auth-hint">Email verification must be completed before protected routes are available.</p>
+        </form>
+
+        <form id="reset-form" class="auth-form" data-panel="reset" hidden>
+          <label for="reset-email">Email</label>
+          <input id="reset-email" name="email" type="email" required autocomplete="email" />
+          <button class="btn btn--primary" type="submit">Send reset link</button>
+        </form>
+
+        <p id="auth-status" class="auth-status" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scripts/auth-config.js"></script>
+    <script src="scripts/auth.js"></script>
+  </body>
+</html>
