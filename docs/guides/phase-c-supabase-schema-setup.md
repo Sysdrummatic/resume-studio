@@ -29,6 +29,11 @@ After this setup, your project will have:
 
 If any statement fails, stop and fix the failing line before re-running.
 
+If your dashboard shows `infinite recursion detected in policy for relation "profiles"`, run:
+
+1. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql`
+2. Reload `dashboard.html` and test sign-in again.
+
 ---
 
 ## 2) Verify tables were created
@@ -125,3 +130,4 @@ Then verify in **Table Editor** → `profiles` that role is `admin`.
 - This migration intentionally adds `allow_indexing` on both `resumes` and `public_links` to support your product decision that users choose SEO indexing.
 - Phase C completion enforces one master resume per user with a unique index on `resumes.user_id`.
 - If you need rollback, create a dedicated rollback migration instead of deleting tables manually.
+- The recursion fix migration replaces admin RLS policies to use `public.is_admin_user()` instead of direct `profiles` subqueries.

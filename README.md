@@ -54,6 +54,7 @@ After Auth is connected and working, apply both Phase C migrations in order:
 
 - SQL migration: `supabase/migrations/20260405_phase_c_foundation.sql`
 - SQL migration: `supabase/migrations/20260405_phase_c_completion.sql`
+- SQL migration (if you see policy recursion error): `supabase/migrations/20260406_fix_profiles_policy_recursion.sql`
 - Click-by-click guide: [Supabase Schema Setup (Phase C)](docs/guides/phase-c-supabase-schema-setup.md)
 
 This enables profiles, seeded master resumes, visibility configurations, public links, admin stats/actions, uploaded files, and RLS policies.
