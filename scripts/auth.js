@@ -14,6 +14,10 @@
   }
 
   const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+  const inactiveReason = new URLSearchParams(window.location.search).get('reason');
+  if (inactiveReason === 'inactive') {
+    setStatus('Your account is inactive. Contact support or an administrator.', true);
+  }
 
   setupTabs();
   bindForms(supabaseClient, config);
@@ -52,6 +56,30 @@
       if (error) {
         setStatus(error.message, true);
         return;
+      }
+
+      const {
+        data: { user }
+      } = await client.auth.getUser();
+
+      if (user?.id) {
+        const { data: profile, error: profileError } = await client
+          .from('profiles')
+          .select('is_active')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          setStatus(profileError.message, true);
+          await client.auth.signOut();
+          return;
+        }
+
+        if (!profile.is_active) {
+          await client.auth.signOut();
+          setStatus('Your account is inactive. Contact support.', true);
+          return;
+        }
       }
 
       setStatus('Signed in. Redirecting...');

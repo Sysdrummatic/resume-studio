@@ -23,8 +23,18 @@
     <main>
       <section class="auth-shell" aria-labelledby="dashboard-title">
         <h1 id="dashboard-title">Protected dashboard</h1>
-        <p class="auth-shell__lead">You are authenticated. Phase C will add schema-backed user data and admin tools.</p>
+        <p class="auth-shell__lead">You are authenticated. Phase C now includes schema-backed profile checks and admin tools.</p>
         <p id="session-email" class="auth-hint"></p>
+        <p id="profile-status" class="auth-status" role="status" aria-live="polite"></p>
+
+        <section id="admin-panel" class="admin-tools" hidden>
+          <h2>Admin controls</h2>
+          <div id="admin-stats" class="admin-stats"></div>
+          <div class="admin-users">
+            <h3>Users</h3>
+            <ul id="admin-user-list" class="admin-user-list"></ul>
+          </div>
+        </section>
       </section>
     </main>
 

@@ -10,4 +10,4 @@ Authoritative guides and workflows for maintaining the résumé project.
 - [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [Future Features Backlog](guides/future-features-backlog.md)
 - [Supabase UI Setup (Phase B)](guides/supabase-ui-setup.md)
-
+- [Supabase Schema Setup (Phase C)](guides/phase-c-supabase-schema-setup.md)

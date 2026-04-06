@@ -48,6 +48,26 @@ cp scripts/auth-config.example.js scripts/auth-config.js
 Sign up uses a free disposable-email check API (`disify.com`).
 For full click-by-click setup, see [Supabase UI Setup (Phase B)](docs/guides/supabase-ui-setup.md).
 
+## Phase C database foundation
+
+After Auth is connected and working, apply both Phase C migrations in order:
+
+- SQL migration: `supabase/migrations/20260405_phase_c_foundation.sql`
+- SQL migration: `supabase/migrations/20260405_phase_c_completion.sql`
+- Click-by-click guide: [Supabase Schema Setup (Phase C)](docs/guides/phase-c-supabase-schema-setup.md)
+
+This enables profiles, seeded master resumes, visibility configurations, public links, admin stats/actions, uploaded files, and RLS policies.
+
+### Public links and SEO indexing
+
+- Netlify serves public resumes from `/r/{slug}` via `netlify.toml` redirects.
+- Indexing is controlled by both database flags:
+  - `resumes.allow_indexing`
+  - `public_links.allow_indexing`
+- Public page sets `meta[name="robots"]` to:
+  - `index,follow` only when both flags are `true`,
+  - otherwise `noindex,nofollow`.
+
 ## Configuring the admin password
 
 The editor reads its password from `data/private/user.env` at runtime. The file is ignored by git, so create it locally with a single line:

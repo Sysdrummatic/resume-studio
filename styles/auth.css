@@ -1,5 +1,5 @@
 .auth-shell {
-  width: min(520px, 100%);
+  width: min(920px, 100%);
   margin: 0 auto;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.03);
@@ -67,4 +67,63 @@
 
 .auth-status.is-error {
   color: #ff9d9d;
+}
+
+.admin-tools {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.admin-stats {
+  display: grid;
+  gap: 0.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.admin-user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem;
+}
+
+.admin-user-row--error {
+  color: #ff9d9d;
+}
+
+.admin-user-row__email {
+  margin: 0;
+  font-weight: 600;
+}
+
+.admin-user-row__meta {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.admin-user-row__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.public-resume h2,
+.public-resume h3 {
+  margin-top: 0.85rem;
+}
+
+.public-resume ul {
+  margin: 0.3rem 0 0.9rem 1.1rem;
 }
