@@ -7,3 +7,7 @@ Authoritative guides and workflows for maintaining the résumé project.
 - [Local Development Setup](guides/local-development.md)
 - [Content Update Workflow](guides/content-update-workflow.md)
 - [Deployment and QA Checklist](guides/deployment-qa.md)
+- [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
+- [Future Features Backlog](guides/future-features-backlog.md)
+- [Supabase UI Setup (Phase B)](guides/supabase-ui-setup.md)
+- [Supabase Schema Setup (Phase C)](guides/phase-c-supabase-schema-setup.md)

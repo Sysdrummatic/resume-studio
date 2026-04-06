@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResumeStudio · Master resume editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles/landing.css" />
+    <link rel="stylesheet" href="styles/auth.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="ResumeStudio home">ResumeStudio</a>
+      <nav class="topbar__actions" aria-label="Primary">
+        <a class="btn btn--ghost" href="dashboard.html">Dashboard</a>
+        <button class="btn btn--primary" id="signout-button" type="button">Sign out</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="auth-shell" aria-labelledby="editor-title">
+        <h1 id="editor-title">Master resume editor</h1>
+        <p class="auth-shell__lead">Phase D: multi-step editor with draft save/restore and review-before-publish.</p>
+        <p id="editor-status" class="auth-status" role="status" aria-live="polite"></p>
+
+        <form id="resume-editor-form">
+          <section class="editor-step" data-step="0">
+            <h2>Step 1 · Personal details</h2>
+            <label for="full-name">Full name</label>
+            <input id="full-name" name="fullName" type="text" required />
+            <label for="headline">Headline</label>
+            <input id="headline" name="headline" type="text" />
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" />
+            <label for="location">Location</label>
+            <input id="location" name="location" type="text" />
+          </section>
+
+          <section class="editor-step" data-step="1" hidden>
+            <h2>Step 2 · Summary</h2>
+            <label for="summary">Professional summary</label>
+            <textarea id="summary" name="summary" rows="6"></textarea>
+          </section>
+
+          <section class="editor-step" data-step="2" hidden>
+            <h2>Step 3 · Experience</h2>
+            <label for="experience">Experience entries (one per line: Role @ Company)</label>
+            <textarea id="experience" name="experience" rows="8"></textarea>
+          </section>
+
+          <section class="editor-step" data-step="3" hidden>
+            <h2>Step 4 · Skills</h2>
+            <label for="skills">Skills (comma-separated)</label>
+            <input id="skills" name="skills" type="text" />
+          </section>
+
+          <section class="editor-step" data-step="4" hidden>
+            <h2>Step 5 · Review</h2>
+            <pre id="review-output" class="editor-review"></pre>
+          </section>
+        </form>
+
+        <div class="editor-actions">
+          <button id="back-button" class="btn btn--ghost" type="button">Back</button>
+          <button id="next-button" class="btn btn--ghost" type="button">Next</button>
+          <button id="save-draft-button" class="btn btn--ghost" type="button">Save draft</button>
+          <button id="publish-button" class="btn btn--primary" type="button">Publish master resume</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scripts/auth-config.js"></script>
+    <script src="scripts/master-resume-editor.js"></script>
+  </body>
+</html>
