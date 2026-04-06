@@ -53,6 +53,15 @@
   padding: 0.68rem;
 }
 
+.auth-shell textarea {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  padding: 0.68rem;
+  resize: vertical;
+}
+
 .auth-hint {
   margin: 0.45rem 0 0;
   color: var(--muted);
@@ -126,4 +135,29 @@
 
 .public-resume ul {
   margin: 0.3rem 0 0.9rem 1.1rem;
+}
+
+.editor-step h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.7rem;
+}
+
+.editor-step {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.editor-review {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  overflow: auto;
+}
+
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
 }

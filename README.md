@@ -68,6 +68,13 @@ This enables profiles, seeded master resumes, visibility configurations, public 
   - `index,follow` only when both flags are `true`,
   - otherwise `noindex,nofollow`.
 
+## Phase D master resume editor
+
+- Open `master-resume.html` after sign-in.
+- The editor provides multi-step input (personal, summary, experience, skills) with a review screen.
+- `Save draft` stores in-progress form data in browser localStorage.
+- `Publish master resume` updates the existing single `resumes` row for the signed-in user.
+
 ## Configuring the admin password
 
 The editor reads its password from `data/private/user.env` at runtime. The file is ignored by git, so create it locally with a single line:
