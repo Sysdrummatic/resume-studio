@@ -46,3 +46,11 @@ This file tracks post-MVP ideas mentioned during product planning.
 - Smart normalization of job titles, dates, and technology names.
 - Suggested improvements for ATS readability.
 
+
+
+## Frontend modernization (React phase)
+
+- Incremental migration from static pages to React + TypeScript.
+- Shared component system for resume blocks, forms, and dashboard widgets.
+- Route-level feature flags for safe rollout and rollback.
+- React test coverage baseline for migrated screens.

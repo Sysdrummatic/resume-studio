@@ -261,3 +261,15 @@ For every update:
   - **Control:** Strict RLS tests for `anon`, `authenticated`, and `admin` roles.
 - **Risk:** Parser quality issues.
   - **Control:** Deterministic baseline parser + mandatory user review + AI enhancement only as additive layer.
+
+
+## 10) Frontend modernization checkpoint (React adoption timing)
+
+Although React is the long-term frontend target, the current repository remains static-first today.
+Treat React adoption as a controlled future phase gated by:
+
+1. Stable static production flows and support baseline.
+2. Agreed migration plan with parity criteria per route.
+3. Incremental rollout with rollback safety (feature flags or route fallbacks).
+
+No migration slice should ship unless parity, security, and observability checks are met.
