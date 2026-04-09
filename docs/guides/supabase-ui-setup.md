@@ -162,3 +162,11 @@ You do **not** need these yet for basic Phase B auth:
 - Admin data model and moderation tables.
 
 Phase B is successful once auth, verification, reset, and protected-route behavior are working.
+
+
+---
+
+## 12) Future React route note
+
+When auth pages move to React routes (for example `/app/login` and `/app/dashboard`), add those exact URLs to Supabase Redirect URLs in addition to legacy static paths during migration.
+Remove legacy URLs only after static pages are fully retired.

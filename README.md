@@ -31,6 +31,14 @@ This project contains a landing page, public sample resume renderer, and SaaS tr
 4. Open `resume.html` to verify the public sample renderer.
 5. Open `login.html` to test auth flows.
 
+## Future React phase (planned)
+
+The current app remains static-first (HTML/CSS/JS), but a future phase will introduce a React frontend incrementally.
+
+- Migration will be gradual and parity-driven (no big-bang rewrite).
+- Existing YAML data contracts and Supabase flows must remain stable during transition.
+- See [React Frontend Transition Plan](docs/guides/react-frontend-transition-plan.md) for the migration guardrails.
+
 ## Phase B auth configuration
 
 1. Copy config template:
