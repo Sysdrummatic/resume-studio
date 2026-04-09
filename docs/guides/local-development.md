@@ -1,12 +1,12 @@
-# Local Development Setup
+﻿# Local Development Setup
 
-This guide explains how to run and iterate on the résumé locally.
+This guide explains how to run and iterate on ResumeStudio locally.
 
 ## Prerequisites
 
-- Node.js 22 or newer (for running tests and tooling).
+- Node.js 22 or newer.
 - A static HTTP server (Live Server extension, `npx serve`, or `python -m http.server`).
-- Git with access to this repository.
+- Git access to this repository.
 
 ## First-Time Setup
 
@@ -18,43 +18,45 @@ This guide explains how to run and iterate on the résumé locally.
    npm install
    ```
 
-2. Create the private configuration directory if it does not exist:
-
-   ```bash
-   mkdir -p data/private
-   ```
-
-3. Add the admin password file:
-
-   ```bash
-   echo "ADMIN_PASSWORD=change-me" > data/private/user.env
-   ```
-
-4. Start a static server from the repository root and open `index.html` for the landing page.
-5. Open `resume.html` when you want to test the resume renderer directly.
-
-6. Configure browser auth client settings:
+2. Configure auth client settings:
 
    ```bash
    cp scripts/auth-config.example.js scripts/auth-config.js
    ```
 
-   Then edit `scripts/auth-config.js` with your Supabase URL and anon key.
+   Then edit `scripts/auth-config.js` with Supabase URL and anon key.
 
-## Iterating on Content
+3. Start a static server from repository root.
+4. Open `index.html` for landing page, `resume.html` for public sample preview.
 
-- Update locale YAML files in `data/public`. The app fetches them dynamically; refresh the page to reload data.
-- Keep private resume details in `data/private/resume-private.yaml`. The file is ignored by git.
-- When editing YAML, validate structure using a YAML linter (`npm run lint:yaml` if available or an editor plugin).
+## Supabase Migrations (Phase C + D)
+
+Run migrations in order:
+
+1. `supabase/migrations/20260405_phase_c_foundation.sql`
+2. `supabase/migrations/20260405_phase_c_completion.sql`
+3. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql` (only if recursion issue appears)
+4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql`
+
+This adds profile/auth-backed data model and YAML template/content fields used by `master-resume.html`.
+
+## Working with YAML Content
+
+- Public sample CV content lives in `data/public/resume-en.yaml` and `data/public/resume-pl.yaml`.
+- The public sample is available from home page links and `resume.html`.
+- Master resume editor (`master-resume.html`) uses DB template/content fields:
+  - `resumes.template_yaml` as base template,
+  - `resumes.content_yaml` as editable YAML output,
+  - `resumes.data` as structured JSON mirror.
 
 ## Running Automated Tests
 
-- Execute `npm test` to run jsdom-based regression checks for the admin login workflow.
-- Open `login.html` to test sign in/sign up/password reset flows.
-- Use `npm test -- --watch` while iterating on UI behaviour to re-run affected suites automatically.
+- Run `npm test` to execute jsdom-based regression checks.
+- Use `npm test -- --watch` while iterating.
 
 ## Troubleshooting
 
-- If the admin login is disabled, ensure `data/private/user.env` exists and contains a non-empty password.
-- To reset locale caches, clear `localStorage` for the domain or run the app in a private browsing session.
-- When fetch requests fail, check the console for validation errors and confirm the static server allows cross-origin file access.
+- If auth pages redirect unexpectedly, verify `scripts/auth-config.js` values.
+- If master editor shows missing row errors, confirm all Phase C/D migrations are applied.
+- If YAML parsing fails, check generated YAML preview in editor and browser console.
+- To clear local draft/cache state, remove keys from `localStorage` for your local domain.
