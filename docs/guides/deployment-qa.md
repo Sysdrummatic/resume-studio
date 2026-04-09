@@ -25,3 +25,13 @@ Use this checklist when preparing a release or validating changes after deployme
 - [ ] Re-run the admin tests if any environment variables changed.
 - [ ] Capture screenshots or PDFs for archival records.
 - [ ] Close related issues and note outstanding follow-ups in the tracker.
+
+
+## Future React-phase QA additions
+
+When React rollout begins, extend this checklist with:
+
+- Route parity checks between static and migrated React pages.
+- Hydration/runtime console error checks in production preview.
+- Component-level regression checks for migrated flows.
+- Bundle/performance review for initial React shell pages.

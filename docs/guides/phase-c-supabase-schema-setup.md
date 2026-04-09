@@ -131,3 +131,9 @@ Then verify in **Table Editor** → `profiles` that role is `admin`.
 - Phase C completion enforces one master resume per user with a unique index on `resumes.user_id`.
 - If you need rollback, create a dedicated rollback migration instead of deleting tables manually.
 - The recursion fix migration replaces admin RLS policies to use `public.is_admin_user()` instead of direct `profiles` subqueries.
+
+
+## Future React client note
+
+Phase C schema/RLS decisions are frontend-framework agnostic.
+During React migration, reuse the same tables, policies, and RPC contracts to avoid backend drift between static and React clients.

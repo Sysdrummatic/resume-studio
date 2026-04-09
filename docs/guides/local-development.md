@@ -58,3 +58,14 @@ This guide explains how to run and iterate on the résumé locally.
 - If the admin login is disabled, ensure `data/private/user.env` exists and contains a non-empty password.
 - To reset locale caches, clear `localStorage` for the domain or run the app in a private browsing session.
 - When fetch requests fail, check the console for validation errors and confirm the static server allows cross-origin file access.
+
+
+## Future React workflow (planned phase)
+
+When the React migration phase starts, local workflow will expand with:
+
+- `npm run dev` for Vite development server.
+- Route-level migration checks between static and React implementations.
+- Additional component tests (React Testing Library) for migrated UI scope.
+
+Until that phase is officially started, the static-server flow in this guide remains the source of truth.

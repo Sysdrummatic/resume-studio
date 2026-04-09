@@ -32,6 +32,14 @@ This project currently includes a production-style landing page and an interacti
 5. Refresh the page after changing any YAML file – the app fetches locale files dynamically.
 
 
+## Future React phase (planned)
+
+The current app remains static-first (HTML/CSS/JS), but a future phase will introduce a React frontend incrementally.
+
+- Migration will be gradual and parity-driven (no big-bang rewrite).
+- Existing YAML data contracts and Supabase flows must remain stable during transition.
+- See [React Frontend Transition Plan](docs/guides/react-frontend-transition-plan.md) for the migration guardrails.
+
 ## Phase B auth configuration
 
 1. Copy the config template:
