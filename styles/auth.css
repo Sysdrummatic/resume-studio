@@ -41,6 +41,10 @@
   gap: 0.55rem;
 }
 
+.auth-form[hidden] {
+  display: none;
+}
+
 .auth-form + .auth-form {
   margin-top: 1rem;
 }
@@ -76,6 +80,10 @@
 
 .auth-status.is-error {
   color: #ff9d9d;
+}
+
+.auth-inline-action {
+  margin-top: 0.35rem;
 }
 
 .admin-tools {
