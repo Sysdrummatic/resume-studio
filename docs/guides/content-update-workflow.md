@@ -30,3 +30,9 @@ This workflow covers adding or modifying résumé sections and ensuring each loc
 - Commit changes with descriptive messages, referencing issues when possible.
 - Open a pull request summarizing the content updates and outline manual QA steps performed.
 - Note any follow-up tasks or pending translations so reviewers can plan additional work.
+
+
+## Future React migration note
+
+During the React transition phase, YAML content files remain the canonical source unless a formal schema migration is announced.
+UI migration must not silently change locale keys or data shape without synchronized updates and release notes.
