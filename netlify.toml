@@ -1,7 +1,48 @@
 [build]
-  publish = "."
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [[redirects]]
-  from = "/r/*"
-  to = "/r/index.html"
-  status = 200
+  from = "/index.html"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/login.html"
+  to = "/login"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/dashboard.html"
+  to = "/dashboard"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/master-resume.html"
+  to = "/master-resume"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/resume.html"
+  to = "/resume"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/user.html"
+  to = "/user"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/r/index.html"
+  to = "/resume"
+  status = 301
+  force = true

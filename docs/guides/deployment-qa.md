@@ -1,27 +1,42 @@
 # Deployment and QA Checklist
 
-Use this checklist when preparing a release or validating changes after deployment.
+Use this checklist for PR previews and production release validation.
 
-## Pre-Deployment
+## Pre-deploy checks
 
-- [ ] Ensure GitHub Actions workflows pass (`workflow-deploy-pages.yml`).
-- [ ] Confirm `npm test` succeeds locally.
-- [ ] Verify private files (`data/private/*`) are excluded from commits.
-- [ ] Update documentation or changelog entries linked in the README.
+- [ ] CI workflow `.github/workflows/ci.yml` is green.
+- [ ] `npm run lint` passes.
+- [ ] `npm run typecheck` passes.
+- [ ] `npm test` passes (or documented environment constraint).
+- [ ] Required Supabase migrations are applied:
+  - Phase B YAML data layer migration.
+  - Phase C auth/RBAC/admin migration.
 
-## Manual QA
+## Functional QA (Phase C baseline)
 
-1. Open the live preview (or staging environment) in Chrome and Firefox.
-2. Switch between English and Polish to validate localization.
-3. Test the admin login flow:
-   - Enter the password from `data/private/user.env`.
-   - Toggle visibility of optional sections and confirm layout updates.
-4. Inspect the responsive layout at widths 1280px, 1024px, 768px, and 480px.
-5. Generate a print preview and confirm print-specific styles hide admin-only controls.
+1. Auth:
+   - sign up with permanent email,
+   - verify email,
+   - sign in,
+   - sign out,
+   - sign in again with same account.
+2. Protected routes:
+   - unauthenticated access to `/dashboard` redirects to `/login`,
+   - inactive account cannot access protected routes.
+3. Admin panel:
+   - admin sees user list and can update role/status/delete users,
+   - manager cannot modify or delete admin/manager accounts.
+4. Audit:
+   - privileged operations create rows in `admin_audit_logs`.
+5. Editor canvas (Phase D):
+   - open `/master-resume` and verify split form + live preview.
+   - switch locale EN/PL and verify separate content.
+   - save draft, reload page, restore draft.
+   - publish and verify new revision appears.
+   - rollback to an earlier revision and verify preview updates.
 
-## Post-Deployment
+## Post-deploy
 
-- [ ] Confirm the GitHub Pages URL (or hosting target) serves the latest build.
-- [ ] Re-run the admin tests if any environment variables changed.
-- [ ] Capture screenshots or PDFs for archival records.
-- [ ] Close related issues and note outstanding follow-ups in the tracker.
+- [ ] Validate Netlify production deploy serves Next.js app correctly.
+- [ ] Confirm legacy redirects (`*.html`) still resolve.
+- [ ] Run smoke check for `/login`, `/dashboard`, `/admin`, `/r/{slug}`.

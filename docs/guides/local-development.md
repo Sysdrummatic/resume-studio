@@ -1,60 +1,58 @@
 # Local Development Setup
 
-This guide explains how to run and iterate on the résumé locally.
+This guide describes local development for the Next.js rebuild.
 
 ## Prerequisites
 
-- Node.js 22 or newer (for running tests and tooling).
-- A static HTTP server (Live Server extension, `npx serve`, or `python -m http.server`).
-- Git with access to this repository.
+- Node.js 22+.
+- npm 10+.
+- Supabase project with:
+  - Auth enabled,
+  - Phase B and Phase C SQL migrations applied.
 
-## First-Time Setup
+## Setup
 
-1. Clone the repository and install dependencies:
+1. Install dependencies:
 
-   ```bash
-   git clone <repo-url>
-   cd plm-resume
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. Create the private configuration directory if it does not exist:
+2. Create `.env.local` from template:
 
-   ```bash
-   mkdir -p data/private
-   ```
+```bash
+cp .env.development.example .env.local
+```
 
-3. Add the admin password file:
+3. Fill required values:
 
-   ```bash
-   echo "ADMIN_PASSWORD=change-me" > data/private/user.env
-   ```
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-4. Start a static server from the repository root and open `index.html` for the landing page.
-5. Open `resume.html` when you want to test the resume renderer directly.
+4. Start app:
 
-6. Configure browser auth client settings:
+```bash
+npm run dev
+```
 
-   ```bash
-   cp scripts/auth-config.example.js scripts/auth-config.js
-   ```
+## Key routes
 
-   Then edit `scripts/auth-config.js` with your Supabase URL and anon key.
+- `/login` - sign in/sign up/reset and verification resend.
+- `/dashboard` - protected user panel.
+- `/admin` - protected admin/manager user management.
+- `/master-resume` - protected editor entry (Phase D target).
 
-## Iterating on Content
+## Validation commands
 
-- Update locale YAML files in `data/public`. The app fetches them dynamically; refresh the page to reload data.
-- Keep private resume details in `data/private/resume-private.yaml`. The file is ignored by git.
-- When editing YAML, validate structure using a YAML linter (`npm run lint:yaml` if available or an editor plugin).
+```bash
+npm run lint
+npm run typecheck
+npm test
+```
 
-## Running Automated Tests
+If `npm test` fails in restricted shell environments with `spawn EPERM`, run critical suites directly:
 
-- Execute `npm test` to run jsdom-based regression checks for the admin login workflow.
-- Open `login.html` to test sign in/sign up/password reset flows.
-- Use `npm test -- --watch` while iterating on UI behaviour to re-run affected suites automatically.
-
-## Troubleshooting
-
-- If the admin login is disabled, ensure `data/private/user.env` exists and contains a non-empty password.
-- To reset locale caches, clear `localStorage` for the domain or run the app in a private browsing session.
-- When fetch requests fail, check the console for validation errors and confirm the static server allows cross-origin file access.
+```bash
+node tests/phase-b-yaml-data-layer.test.js
+```

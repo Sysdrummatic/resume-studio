@@ -48,16 +48,22 @@ cp scripts/auth-config.example.js scripts/auth-config.js
 Sign up uses a free disposable-email check API (`disify.com`).
 For full click-by-click setup, see [Supabase UI Setup (Phase B)](docs/guides/supabase-ui-setup.md).
 
-## Phase C database foundation
+## Phase B/C database foundation
 
-After Auth is connected and working, apply both Phase C migrations in order:
+Apply migrations in order:
 
 - SQL migration: `supabase/migrations/20260405_phase_c_foundation.sql`
 - SQL migration: `supabase/migrations/20260405_phase_c_completion.sql`
-- SQL migration (if you see policy recursion error): `supabase/migrations/20260406_fix_profiles_policy_recursion.sql`
-- Click-by-click guide: [Supabase Schema Setup (Phase C)](docs/guides/phase-c-supabase-schema-setup.md)
+- SQL migration (policy recursion fix): `supabase/migrations/20260406_fix_profiles_policy_recursion.sql`
+- SQL migration: `supabase/migrations/20260410_phase_b_yaml_data_layer.sql`
+- SQL migration: `supabase/migrations/20260410_phase_c_auth_rbac_admin.sql`
 
-This enables profiles, seeded master resumes, visibility configurations, public links, admin stats/actions, uploaded files, and RLS policies.
+Guides:
+
+- [Phase B YAML data layer guide](docs/guides/phase-b-yaml-data-layer.md)
+- [Phase C auth + RBAC guide](docs/guides/phase-c-auth-rbac-admin.md)
+
+This enables YAML-first resume documents, revisions/rollback primitives, role-aware RLS, staff RPC management flows, and audit logging.
 
 ### Public links and SEO indexing
 
@@ -124,3 +130,6 @@ Start your static server (Live Server, `npx serve .`, etc.) and reload the edito
 - [Local development setup](docs/guides/local-development.md)
 - [Content update workflow](docs/guides/content-update-workflow.md)
 - [Deployment and QA checklist](docs/guides/deployment-qa.md)
+- [Phase B YAML data layer guide](docs/guides/phase-b-yaml-data-layer.md)
+- [Phase C auth + RBAC guide](docs/guides/phase-c-auth-rbac-admin.md)
+- [Phase D editor canvas guide](docs/guides/phase-d-editor-canvas.md)

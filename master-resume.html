@@ -1,15 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ResumeStudio · Master resume editor</title>
+    <title>ResumeStudio - Master resume editor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles/landing.css" />
     <link rel="stylesheet" href="styles/auth.css" />
+    <link rel="stylesheet" href="styles/master-resume-editor.css" />
   </head>
   <body>
     <header class="topbar">
@@ -21,54 +22,126 @@
     </header>
 
     <main>
-      <section class="auth-shell" aria-labelledby="editor-title">
-        <h1 id="editor-title">Master resume editor</h1>
-        <p class="auth-shell__lead">Phase D: multi-step editor with draft save/restore and review-before-publish.</p>
-        <p id="editor-status" class="auth-status" role="status" aria-live="polite"></p>
+      <section class="editor-canvas" aria-labelledby="editor-title">
+        <div class="editor-canvas__form-pane">
+          <h1 id="editor-title">Master resume editor</h1>
+          <p class="auth-shell__lead">Fill the CV fields on the left. The preview on the right updates live.</p>
+          <p id="editor-status" class="auth-status" role="status" aria-live="polite"></p>
 
-        <form id="resume-editor-form">
-          <section class="editor-step" data-step="0">
-            <h2>Step 1 · Personal details</h2>
-            <label for="full-name">Full name</label>
-            <input id="full-name" name="fullName" type="text" required />
-            <label for="headline">Headline</label>
-            <input id="headline" name="headline" type="text" />
-            <label for="email">Email</label>
-            <input id="email" name="email" type="email" />
-            <label for="location">Location</label>
-            <input id="location" name="location" type="text" />
-          </section>
+          <form id="resume-editor-form" class="resume-editor-form">
+            <section class="editor-section">
+              <h2>Profile</h2>
+              <div class="editor-grid editor-grid--2">
+                <label for="brand-initials">
+                  Brand initials
+                  <input id="brand-initials" type="text" maxlength="4" />
+                </label>
+                <label for="full-name">
+                  Full name
+                  <input id="full-name" type="text" />
+                </label>
+                <label for="role">
+                  Role
+                  <input id="role" type="text" />
+                </label>
+                <label for="locale">
+                  Locale
+                  <select id="locale">
+                    <option value="en">English</option>
+                    <option value="pl">Polski</option>
+                  </select>
+                </label>
+              </div>
+              <label for="summary">
+                Summary
+                <textarea id="summary" rows="5"></textarea>
+              </label>
+            </section>
 
-          <section class="editor-step" data-step="1" hidden>
-            <h2>Step 2 · Summary</h2>
-            <label for="summary">Professional summary</label>
-            <textarea id="summary" name="summary" rows="6"></textarea>
-          </section>
+            <section class="editor-section">
+              <div class="editor-section__header">
+                <h2>Contact</h2>
+                <button id="contact-add-button" class="btn btn--ghost" type="button">Add row</button>
+              </div>
+              <div id="contact-rows" class="repeater-list"></div>
+            </section>
 
-          <section class="editor-step" data-step="2" hidden>
-            <h2>Step 3 · Experience</h2>
-            <label for="experience">Experience entries (one per line: Role @ Company)</label>
-            <textarea id="experience" name="experience" rows="8"></textarea>
-          </section>
+            <section class="editor-section">
+              <div class="editor-section__header">
+                <h2>Experience</h2>
+                <button id="experience-add-button" class="btn btn--ghost" type="button">Add role</button>
+              </div>
+              <div id="experience-rows" class="repeater-list"></div>
+            </section>
 
-          <section class="editor-step" data-step="3" hidden>
-            <h2>Step 4 · Skills</h2>
-            <label for="skills">Skills (comma-separated)</label>
-            <input id="skills" name="skills" type="text" />
-          </section>
+            <section class="editor-section">
+              <div class="editor-section__header">
+                <h2>Education</h2>
+                <button id="education-add-button" class="btn btn--ghost" type="button">Add entry</button>
+              </div>
+              <div id="education-rows" class="repeater-list"></div>
+            </section>
 
-          <section class="editor-step" data-step="4" hidden>
-            <h2>Step 5 · Review</h2>
-            <pre id="review-output" class="editor-review"></pre>
-          </section>
-        </form>
+            <section class="editor-section">
+              <div class="editor-section__header">
+                <h2>Courses</h2>
+                <button id="courses-add-button" class="btn btn--ghost" type="button">Add course</button>
+              </div>
+              <div id="courses-rows" class="repeater-list"></div>
+            </section>
 
-        <div class="editor-actions">
-          <button id="back-button" class="btn btn--ghost" type="button">Back</button>
-          <button id="next-button" class="btn btn--ghost" type="button">Next</button>
-          <button id="save-draft-button" class="btn btn--ghost" type="button">Save draft</button>
-          <button id="publish-button" class="btn btn--primary" type="button">Publish master resume</button>
+            <section class="editor-section">
+              <div class="editor-section__header">
+                <h2>Skills</h2>
+                <button id="skills-add-button" class="btn btn--ghost" type="button">Add skill</button>
+              </div>
+              <div id="skills-rows" class="repeater-list"></div>
+            </section>
+
+            <section class="editor-section">
+              <div class="editor-section__header">
+                <h2>Languages</h2>
+                <button id="languages-add-button" class="btn btn--ghost" type="button">Add language</button>
+              </div>
+              <div id="languages-rows" class="repeater-list"></div>
+            </section>
+
+            <section class="editor-section">
+              <div class="editor-section__header">
+                <h2>QR codes</h2>
+                <button id="qr-codes-add-button" class="btn btn--ghost" type="button">Add QR</button>
+              </div>
+              <div id="qr-codes-rows" class="repeater-list"></div>
+            </section>
+
+            <section class="editor-section">
+              <h2>Tech stack</h2>
+              <label for="tech-stack">
+                One item per line
+                <textarea id="tech-stack" rows="4"></textarea>
+              </label>
+            </section>
+
+            <section class="editor-section">
+              <h2>Interests</h2>
+              <label for="interests">
+                One item per line
+                <textarea id="interests" rows="4"></textarea>
+              </label>
+            </section>
+
+            <section class="editor-actions">
+              <button id="save-draft-button" class="btn btn--ghost" type="button">Save draft</button>
+              <button id="clear-form-button" class="btn btn--ghost" type="button">Clear form</button>
+              <button id="publish-button" class="btn btn--primary" type="button">Publish master resume</button>
+            </section>
+          </form>
         </div>
+
+        <aside class="editor-canvas__preview-pane" aria-label="Live preview">
+          <div class="editor-canvas__preview-title">Live CV preview</div>
+          <iframe id="resume-live-preview" src="editor-preview.html" title="Live resume preview"></iframe>
+        </aside>
       </section>
     </main>
 
