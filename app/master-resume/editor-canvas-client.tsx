@@ -113,11 +113,14 @@ export default function EditorCanvasClient() {
     }
 
     let nextResume = defaultResumeDocument(loadedActor?.displayName || "");
+    let nextYamlPanel = payload.document.yaml_content;
+    let nextStatus = "Resume document loaded.";
+    let nextIsError = false;
     try {
       nextResume = parseYamlToResumeDocument(payload.document.yaml_content, loadedActor?.displayName || "");
     } catch (error) {
-      setStatus(`Failed to parse YAML from database: ${error instanceof Error ? error.message : "unknown error"}`);
-      setIsError(true);
+      nextStatus = `Failed to parse YAML from database: ${error instanceof Error ? error.message : "unknown error"}`;
+      nextIsError = true;
     }
 
     const draftKey = loadedActor ? getDraftKey(loadedActor.userId, nextLocale) : "";
@@ -128,8 +131,9 @@ export default function EditorCanvasClient() {
           const draftPayload = JSON.parse(draftRaw) as { yamlContent?: string };
           if (draftPayload.yamlContent) {
             nextResume = parseYamlToResumeDocument(draftPayload.yamlContent, loadedActor?.displayName || "");
-            setStatus("Draft restored from browser storage.");
-            setIsError(false);
+            nextYamlPanel = draftPayload.yamlContent;
+            nextStatus = "Draft restored from browser storage.";
+            nextIsError = false;
           }
         } catch {
           localStorage.removeItem(draftKey);
@@ -139,13 +143,13 @@ export default function EditorCanvasClient() {
 
     setDocumentRow(payload.document);
     setResume(nextResume);
-    setYamlPanel(payload.document.yaml_content);
+    setYamlPanel(nextYamlPanel);
     setIsPublic(payload.document.is_public);
     setAllowIndexing(payload.document.allow_indexing);
     setRevisions(payload.revisions || []);
     setIsLoading(false);
-    setStatus("Resume document loaded.");
-    setIsError(false);
+    setStatus(nextStatus);
+    setIsError(nextIsError);
   }, []);
 
   useEffect(() => {
@@ -378,9 +382,12 @@ export default function EditorCanvasClient() {
     }
   }
 
-  function clearDraft() {
+  function clearDraft(options: { skipStatusUpdate?: boolean } = {}) {
     if (!actor) return;
     localStorage.removeItem(getDraftKey(actor.userId, locale));
+    if (options.skipStatusUpdate) {
+      return;
+    }
     setStatus("Draft cleared.");
     setIsError(false);
   }
@@ -422,8 +429,12 @@ export default function EditorCanvasClient() {
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = fileName;
+    document.body.append(anchor);
     anchor.click();
-    URL.revokeObjectURL(url);
+    anchor.remove();
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 0);
     setStatus(`Exported ${fileName}.`);
     setIsError(false);
   }
@@ -469,7 +480,7 @@ export default function EditorCanvasClient() {
     setStatus("Resume published. New revision created.");
     setIsError(false);
     setIsBusy(false);
-    clearDraft();
+    clearDraft({ skipStatusUpdate: true });
   }
 
   async function rollbackToRevision(revisionNumber: number) {
@@ -735,7 +746,7 @@ export default function EditorCanvasClient() {
               <button type="button" className="button button--ghost" onClick={restoreDraft}>
                 Restore draft
               </button>
-              <button type="button" className="button button--danger" onClick={clearDraft}>
+              <button type="button" className="button button--danger" onClick={() => clearDraft()}>
                 Clear draft
               </button>
             </div>

@@ -190,7 +190,7 @@ export async function publishResumeDocument(
     document = updateResult.data[0] as unknown as ResumeDocumentRow;
   }
 
-  await callRpc<number>({
+  const revisionResult = await callRpc<number>({
     functionName: "create_resume_revision",
     payload: {
       input_document_id: document.id,
@@ -198,6 +198,9 @@ export async function publishResumeDocument(
     },
     accessToken,
   });
+  if (revisionResult.error || !revisionResult.data) {
+    return null;
+  }
 
   const revisions = await fetchRevisions(accessToken, document.id);
   return {
@@ -213,7 +216,7 @@ export async function rollbackResumeDocument(
   documentId: string,
   revisionNumber: number,
 ): Promise<ResumeDocumentPayload | null> {
-  await callRpc<string>({
+  const rollbackResult = await callRpc<string>({
     functionName: "rollback_resume_document",
     payload: {
       input_document_id: documentId,
@@ -222,6 +225,9 @@ export async function rollbackResumeDocument(
     },
     accessToken,
   });
+  if (rollbackResult.error || !rollbackResult.data) {
+    return null;
+  }
 
   const locale = normalizeLocale(localeInput);
   const document = await fetchDocumentByLocale(accessToken, userId, locale);
