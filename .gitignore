@@ -8,6 +8,9 @@ yarn-error.log*
 # Build artifacts
 /dist/
 /build/
+/\.next/
+/out/
+*.tsbuildinfo
 /.parcel-cache/
 /.cache/
 
@@ -21,9 +24,12 @@ Thumbs.db
 *.code-workspace
 
 # Environment files
-.env
-.env.local
-.env.*.local
+.env*
+!.env.example
+!.env.development.example
+!.env.preview.example
+!.env.production.example
+!.env*.example
 data/private/user.env
 
 # Private resume data

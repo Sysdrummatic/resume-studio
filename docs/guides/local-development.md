@@ -1,62 +1,73 @@
-﻿# Local Development Setup
+# Local Development Setup
 
-This guide explains how to run and iterate on ResumeStudio locally.
+This guide covers local development for both the legacy static app and the Next.js rebuild.
 
 ## Prerequisites
 
-- Node.js 22 or newer.
-- A static HTTP server (Live Server extension, `npx serve`, or `python -m http.server`).
-- Git access to this repository.
+- Node.js 22+.
+- npm 10+.
+- Supabase project (for auth/data flows).
 
-## First-Time Setup
+## Setup
 
-1. Clone the repository and install dependencies:
+1. Install dependencies:
 
-   ```bash
-   git clone <repo-url>
-   cd plm-resume
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. Configure auth client settings:
+2. Create `.env.local` from template:
 
-   ```bash
-   cp scripts/auth-config.example.js scripts/auth-config.js
-   ```
+```bash
+cp .env.development.example .env.local
+```
 
-   Then edit `scripts/auth-config.js` with Supabase URL and anon key.
+3. Fill required values:
 
-3. Start a static server from repository root.
-4. Open `index.html` for landing page, `resume.html` for public sample preview.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-## Supabase Migrations (Phase C + D)
+4. Start Next.js app:
 
-Run migrations in order:
+```bash
+npm run dev
+```
+
+## Key routes (Next.js)
+
+- `/login` - sign in/sign up/reset + resend verification
+- `/dashboard` - protected user panel
+- `/admin` - protected admin/manager panel
+- `/master-resume` - canvas editor (Phase D)
+
+## Static legacy routes (still present)
+
+- `index.html`, `resume.html`, `login.html`, `dashboard.html`, `master-resume.html`, `user.html`
+
+## Required migrations
+
+Apply SQL migrations in order:
 
 1. `supabase/migrations/20260405_phase_c_foundation.sql`
 2. `supabase/migrations/20260405_phase_c_completion.sql`
-3. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql` (only if recursion issue appears)
-4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql`
+3. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql` (if required)
+4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql` (legacy static Phase D iteration)
+5. `supabase/migrations/20260410_phase_b_yaml_data_layer.sql`
+6. `supabase/migrations/20260410_phase_c_auth_rbac_admin.sql`
 
-This adds profile/auth-backed data model and YAML template/content fields used by `master-resume.html`.
+## Validation
 
-## Working with YAML Content
+```bash
+npm run lint
+npm run typecheck
+npm test
+```
 
-- Public sample CV content lives in `data/public/resume-en.yaml` and `data/public/resume-pl.yaml`.
-- The public sample is available from home page links and `resume.html`.
-- Master resume editor (`master-resume.html`) uses DB template/content fields:
-  - `resumes.template_yaml` as base template,
-  - `resumes.content_yaml` as editable YAML output,
-  - `resumes.data` as structured JSON mirror.
+If `npm test` fails in restricted shell environments with `spawn EPERM`, run suites directly:
 
-## Running Automated Tests
-
-- Run `npm test` to execute jsdom-based regression checks.
-- Use `npm test -- --watch` while iterating.
-
-## Troubleshooting
-
-- If auth pages redirect unexpectedly, verify `scripts/auth-config.js` values.
-- If master editor shows missing row errors, confirm all Phase C/D migrations are applied.
-- If YAML parsing fails, check generated YAML preview in editor and browser console.
-- To clear local draft/cache state, remove keys from `localStorage` for your local domain.
+```bash
+node tests/phase-b-yaml-data-layer.test.js
+node tests/phase-c-sql-migration.test.js
+node tests/phase-d-editor-implementation.test.js
+```

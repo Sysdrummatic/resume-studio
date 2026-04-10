@@ -3,9 +3,30 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint app next.config.ts eslint.config.mjs --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "test": "node --test",
+    "phaseb:migrate": "node scripts/phase-b/legacy-data-migrator.js",
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "devDependencies": {
-    "jsdom": "^24.0.0"
+    "@netlify/plugin-nextjs": "^5.15.9",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.3",
+    "jsdom": "^24.0.0",
+    "prettier": "^3.8.2",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "next": "^16.2.3",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   }
 }

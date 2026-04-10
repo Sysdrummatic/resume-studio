@@ -13,3 +13,6 @@ Authoritative guides and workflows for maintaining the résumé project.
 - [Custom Codex Instruction](guides/codex-custom-instruction.md)
 - [Supabase UI Setup (Phase B)](guides/supabase-ui-setup.md)
 - [Supabase Schema Setup (Phase C)](guides/phase-c-supabase-schema-setup.md)
+- [Phase B YAML Data Layer](guides/phase-b-yaml-data-layer.md)
+- [Phase C Auth + RBAC + Admin](guides/phase-c-auth-rbac-admin.md)
+- [Phase D Resume Editor Canvas](guides/phase-d-editor-canvas.md)

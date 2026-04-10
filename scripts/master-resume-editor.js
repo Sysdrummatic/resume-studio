@@ -2,24 +2,8 @@
   const config = window.RESUME_STUDIO_CONFIG || {};
   const statusEl = document.getElementById('editor-status');
   const formEl = document.getElementById('resume-editor-form');
-  const yamlPreviewEl = document.getElementById('yaml-preview');
-  const signOutButton = document.getElementById('signout-button');
-
-  const KNOWN_KEYS = [
-    'brand_initials',
-    'name',
-    'role',
-    'summary',
-    'contact',
-    'qr_codes',
-    'skills',
-    'tech_stack',
-    'languages',
-    'interests',
-    'experience',
-    'education',
-    'courses'
-  ];
+  const previewFrame = document.getElementById('resume-live-preview');
+  const draftKeyBase = 'resume-studio:master-resume-draft:v2';
 
   const REPEATER_CONFIGS = {
     contact: {
@@ -86,7 +70,7 @@
     }
   };
 
-  const DEFAULT_TEMPLATE = {
+  const EMPTY_RESUME = {
     brand_initials: '',
     name: '',
     role: '',
@@ -102,10 +86,32 @@
     courses: []
   };
 
-  if (!window.jsyaml) {
-    setStatus('YAML library not loaded. Check scripts/js-yaml.min.js.', true);
-    return;
-  }
+  const PREVIEW_LABELS = {
+    en: {
+      summary_heading: 'Summary',
+      github_activity_heading: 'GitHub Activity',
+      experience_heading: 'Experience',
+      education_heading: 'Education',
+      courses_heading: 'Courses',
+      personal_info_heading: 'Personal Info',
+      skills_heading: 'Skills',
+      tech_stack_heading: 'Tech stack',
+      languages_heading: 'Languages',
+      interests_heading: 'Interests'
+    },
+    pl: {
+      summary_heading: 'Podsumowanie',
+      github_activity_heading: 'Aktywnosc GitHub',
+      experience_heading: 'Doswiadczenie',
+      education_heading: 'Edukacja',
+      courses_heading: 'Kursy',
+      personal_info_heading: 'Dane osobowe',
+      skills_heading: 'Umiejetnosci',
+      tech_stack_heading: 'Stack technologiczny',
+      languages_heading: 'Jezyki',
+      interests_heading: 'Zainteresowania'
+    }
+  };
 
   if (!config.supabaseUrl || !config.supabaseAnonKey) {
     setStatus('Supabase config missing. Update scripts/auth-config.js first.', true);
@@ -122,8 +128,6 @@
     return;
   }
 
-  const draftKey = `resume-studio:master-resume-draft:v2:${session.user.id}`;
-
   const { data: profile, error: profileError } = await client
     .from('profiles')
     .select('id, is_active')
@@ -136,9 +140,21 @@
     return;
   }
 
+  const draftKey = `${draftKeyBase}:${session.user.id}`;
+  let currentResumeRow = null;
+  let previewReady = false;
+
+  bindRepeaterButtons();
+  bindFormEvents();
+
+  previewFrame?.addEventListener('load', () => {
+    previewReady = true;
+    syncPreview();
+  });
+
   const { data: resumeRows, error: resumeError } = await client
     .from('resumes')
-    .select('id, title, locale, data, template_yaml, content_yaml')
+    .select('id, title, data, locale')
     .eq('user_id', session.user.id)
     .limit(1);
 
@@ -147,50 +163,40 @@
     return;
   }
 
-  const currentResumeRow = resumeRows?.[0] || null;
-  if (!currentResumeRow?.id) {
-    setStatus('Master resume row not found. Apply latest Supabase migrations first.', true);
-    return;
-  }
-
-  const templateYamlText = normalizeText(currentResumeRow.template_yaml) || dumpYaml(DEFAULT_TEMPLATE);
-  const templateData = normalizeResumeData(parseYamlObject(templateYamlText, DEFAULT_TEMPLATE));
-  const parsedContentYaml = parseYamlObject(currentResumeRow.content_yaml, null);
-  const rawSourceData = parsedContentYaml || currentResumeRow.data || templateData;
-  const sourceData = normalizeResumeData(rawSourceData);
-  const preservedFields = extractPreservedFields(rawSourceData);
-
-  bindRepeaterButtons();
-  bindEditorEvents();
-
+  currentResumeRow = resumeRows?.[0] || null;
   const draft = loadDraft(draftKey);
+
   if (draft && typeof draft === 'object') {
-    fillForm(normalizeResumeData(draft.payload || templateData), draft.locale || currentResumeRow.locale || 'en');
-    setStatus('Draft restored from your browser. Template source: database.');
+    fillForm(normalizeResumeData(draft.payload), draft.locale || currentResumeRow?.locale || 'en');
+    setStatus('Draft restored from your browser.');
   } else {
-    fillForm(sourceData, currentResumeRow.locale || 'en');
-    setStatus('Template loaded from database.');
+    fillForm(normalizeResumeData(currentResumeRow?.data || EMPTY_RESUME), currentResumeRow?.locale || 'en');
+    setStatus('Master resume loaded.');
   }
 
-  updateYamlPreview();
+  syncPreview();
 
   document.getElementById('save-draft-button').addEventListener('click', () => {
-    const payload = buildResumePayload(preservedFields);
-    const locale = getValue('locale') || currentResumeRow.locale || 'en';
+    const payload = collectPayload();
+    const locale = value('locale') || 'en';
     localStorage.setItem(draftKey, JSON.stringify({ payload, locale }));
     setStatus('Draft saved in this browser.');
   });
 
-  document.getElementById('reset-template-button').addEventListener('click', () => {
-    fillForm(templateData, currentResumeRow.locale || 'en');
-    updateYamlPreview();
-    setStatus('Form reset to template loaded from database.');
+  document.getElementById('clear-form-button').addEventListener('click', () => {
+    fillForm(EMPTY_RESUME, value('locale') || 'en');
+    syncPreview();
+    setStatus('Form cleared.');
   });
 
   document.getElementById('publish-button').addEventListener('click', async () => {
-    const payload = buildResumePayload(preservedFields);
-    const locale = getValue('locale') || 'en';
-    const contentYaml = dumpYaml(payload);
+    const payload = collectPayload();
+    const locale = value('locale') || 'en';
+
+    if (!currentResumeRow?.id) {
+      setStatus('Master resume row not found. Run Phase C completion migration first.', true);
+      return;
+    }
 
     setStatus('Publishing...');
 
@@ -198,9 +204,8 @@
       .from('resumes')
       .update({
         title: payload.name ? `${payload.name} - Master resume` : 'Master resume',
-        locale,
         data: payload,
-        content_yaml: contentYaml
+        locale
       })
       .eq('id', currentResumeRow.id)
       .eq('user_id', session.user.id);
@@ -211,11 +216,11 @@
     }
 
     localStorage.removeItem(draftKey);
-    updateYamlPreview();
     setStatus('Master resume published successfully.');
+    syncPreview();
   });
 
-  signOutButton.addEventListener('click', async () => {
+  document.getElementById('signout-button').addEventListener('click', async () => {
     await client.auth.signOut();
     window.location.href = 'login.html';
   });
@@ -225,14 +230,18 @@
       const addButton = document.getElementById(sectionConfig.addButtonId);
       addButton?.addEventListener('click', () => {
         appendRepeaterRow(sectionId, {});
-        updateYamlPreview();
+        syncPreview();
       });
     });
   }
 
-  function bindEditorEvents() {
+  function bindFormEvents() {
     formEl.addEventListener('input', () => {
-      updateYamlPreview();
+      syncPreview();
+    });
+
+    formEl.addEventListener('change', () => {
+      syncPreview();
     });
 
     formEl.addEventListener('click', (event) => {
@@ -249,18 +258,19 @@
       if (rowsContainer && rowsContainer.children.length === 0) {
         appendRepeaterRow(sectionId, {});
       }
-      updateYamlPreview();
+
+      syncPreview();
     });
   }
 
-  function fillForm(data, locale) {
+  function fillForm(data, localeCode) {
     setValue('brand-initials', data.brand_initials || '');
     setValue('full-name', data.name || '');
     setValue('role', data.role || '');
     setValue('summary', data.summary || '');
     setValue('tech-stack', normalizeStringArray(data.tech_stack).join('\n'));
     setValue('interests', normalizeStringArray(data.interests).join('\n'));
-    setValue('locale', locale || 'en');
+    setValue('locale', localeCode || 'en');
 
     renderRepeater('contact', normalizeObjectArray(data.contact));
     renderRepeater('experience', normalizeObjectArray(data.experience));
@@ -336,57 +346,50 @@
     rowsContainer.appendChild(rowEl);
   }
 
-  function buildResumePayload(preservedFields) {
-    const payload = {
-      brand_initials: getValue('brand-initials'),
-      name: getValue('full-name'),
-      role: getValue('role'),
-      summary: getValue('summary'),
+  function collectPayload() {
+    return {
+      brand_initials: value('brand-initials'),
+      name: value('full-name'),
+      role: value('role'),
+      summary: value('summary'),
       contact: collectRepeaterRows('contact'),
       qr_codes: collectRepeaterRows('qr_codes'),
       skills: collectRepeaterRows('skills'),
-      tech_stack: parseLineList(getValue('tech-stack')),
+      tech_stack: parseLineList(value('tech-stack')),
       languages: collectRepeaterRows('languages'),
-      interests: parseLineList(getValue('interests')),
+      interests: parseLineList(value('interests')),
       experience: collectRepeaterRows('experience'),
       education: collectRepeaterRows('education'),
       courses: collectRepeaterRows('courses')
     };
-
-    return { ...payload, ...preservedFields };
   }
 
   function collectRepeaterRows(sectionId) {
     const sectionConfig = REPEATER_CONFIGS[sectionId];
     const rowsContainer = sectionConfig ? document.getElementById(sectionConfig.rowsId) : null;
-    if (!rowsContainer || !sectionConfig) {
-      return [];
-    }
+    if (!rowsContainer || !sectionConfig) return [];
 
-    const rows = Array.from(rowsContainer.querySelectorAll('.repeater-row'));
-    const result = rows
+    return Array.from(rowsContainer.querySelectorAll('.repeater-row'))
       .map((rowEl) => {
         const item = {};
 
         sectionConfig.fields.forEach((field) => {
           const input = rowEl.querySelector(`[data-field="${field.key}"]`);
           const raw = String(input?.value || '').trim();
-          if (!raw) {
-            return;
-          }
+          if (!raw) return;
 
           if (field.key === 'highlights') {
-            const values = parseLineList(raw);
-            if (values.length > 0) {
-              item[field.key] = values;
+            const list = parseLineList(raw);
+            if (list.length > 0) {
+              item.highlights = list;
             }
             return;
           }
 
           if (field.type === 'number') {
-            const numeric = Number.parseInt(raw, 10);
-            if (Number.isFinite(numeric)) {
-              item[field.key] = numeric;
+            const parsed = Number.parseInt(raw, 10);
+            if (Number.isFinite(parsed)) {
+              item[field.key] = parsed;
             }
             return;
           }
@@ -397,38 +400,50 @@
         return item;
       })
       .filter((item) => Object.keys(item).length > 0);
-
-    return result;
   }
 
-  function updateYamlPreview() {
-    const payload = buildResumePayload(preservedFields);
-    yamlPreviewEl.textContent = dumpYaml(payload);
-  }
+  function syncPreview() {
+    if (!previewReady || !previewFrame?.contentWindow) return;
 
-  function parseYamlObject(yamlText, fallback) {
-    const source = normalizeText(yamlText);
-    if (!source) return fallback;
-    try {
-      const parsed = window.jsyaml.load(source);
-      return parsed && typeof parsed === 'object' ? parsed : fallback;
-    } catch (error) {
-      console.warn('Unable to parse YAML from database.', error);
-      return fallback;
-    }
-  }
+    const payload = collectPayload();
+    const locale = value('locale') || 'en';
+    const labels = PREVIEW_LABELS[locale] || PREVIEW_LABELS.en;
 
-  function dumpYaml(value) {
-    return window.jsyaml.dump(value, {
-      lineWidth: 120,
-      noRefs: true,
-      sortKeys: false
-    });
+    previewFrame.contentWindow.postMessage(
+      {
+        type: 'resume-preview:update',
+        payload,
+        labels
+      },
+      window.location.origin
+    );
   }
 
   function normalizeResumeData(source) {
     const data = source && typeof source === 'object' ? source : {};
+
+    if (data.personal && typeof data.personal === 'object') {
+      const mapped = {
+        ...EMPTY_RESUME,
+        name: data.personal.name || '',
+        role: data.personal.headline || data.role || '',
+        summary: data.summary || '',
+        experience: normalizeLegacyExperience(data.experience),
+        skills: normalizeLegacySkills(data.skills)
+      };
+
+      if (data.personal.email) {
+        mapped.contact.push({ label: 'Email', value: data.personal.email, link: `mailto:${data.personal.email}` });
+      }
+      if (data.personal.location) {
+        mapped.contact.push({ label: 'Location', value: data.personal.location });
+      }
+
+      return mapped;
+    }
+
     return {
+      ...EMPTY_RESUME,
       brand_initials: normalizeText(data.brand_initials),
       name: normalizeText(data.name),
       role: normalizeText(data.role),
@@ -445,17 +460,36 @@
     };
   }
 
-  function extractPreservedFields(source) {
-    if (!source || typeof source !== 'object') return {};
-    const preserved = {};
+  function normalizeLegacyExperience(value) {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((item) => {
+        if (typeof item === 'string') {
+          return { company: item, role: '', period: '', highlights: [] };
+        }
+        return {
+          company: item.company || '',
+          role: item.role || item.title || '',
+          period: item.period || '',
+          highlights: Array.isArray(item.highlights) ? item.highlights : []
+        };
+      })
+      .filter((item) => item.company || item.role || item.period || item.highlights.length > 0);
+  }
 
-    Object.keys(source).forEach((key) => {
-      if (!KNOWN_KEYS.includes(key)) {
-        preserved[key] = source[key];
-      }
-    });
-
-    return preserved;
+  function normalizeLegacySkills(value) {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((item) => {
+        if (typeof item === 'string') {
+          return { name: item, level: 3 };
+        }
+        return {
+          name: item.name || '',
+          level: typeof item.level === 'number' ? item.level : Number.parseInt(item.level, 10) || 3
+        };
+      })
+      .filter((item) => item.name);
   }
 
   function normalizeObjectArray(value) {
@@ -467,9 +501,7 @@
 
   function normalizeStringArray(value) {
     if (!Array.isArray(value)) return [];
-    return value
-      .map((item) => normalizeText(item))
-      .filter(Boolean);
+    return value.map((item) => normalizeText(item)).filter(Boolean);
   }
 
   function parseLineList(value) {
@@ -479,9 +511,9 @@
       .filter(Boolean);
   }
 
-  function loadDraft(key) {
+  function loadDraft(storageKey) {
     try {
-      const raw = localStorage.getItem(key);
+      const raw = localStorage.getItem(storageKey);
       if (!raw) return null;
       return JSON.parse(raw);
     } catch {
@@ -489,14 +521,15 @@
     }
   }
 
-  function getValue(id) {
+  function value(id) {
     return String(document.getElementById(id)?.value || '').trim();
   }
 
-  function setValue(id, value) {
-    const element = document.getElementById(id);
-    if (!element) return;
-    element.value = value || '';
+  function setValue(id, nextValue) {
+    const input = document.getElementById(id);
+    if (input) {
+      input.value = nextValue || '';
+    }
   }
 
   function normalizeText(value) {
