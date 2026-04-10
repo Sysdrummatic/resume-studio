@@ -32,3 +32,20 @@ test("phase D client includes draft, YAML import/export and revision rollback ac
   assert.equal(source.includes("Export YAML file"), true);
   assert.equal(source.includes("rollbackToRevision"), true);
 });
+
+test("phase D client keeps draft-restored YAML in panel and preserves publish status", () => {
+  const source = read("app/master-resume/editor-canvas-client.tsx");
+
+  assert.equal(source.includes("nextYamlPanel = draftPayload.yamlContent"), true);
+  assert.equal(source.includes("setYamlPanel(nextYamlPanel)"), true);
+  assert.equal(source.includes("clearDraft({ skipStatusUpdate: true })"), true);
+});
+
+test("phase D server rejects publish/rollback success when RPC calls fail", () => {
+  const source = read("app/lib/resume-server.ts");
+
+  assert.equal(source.includes("const revisionResult = await callRpc<number>"), true);
+  assert.equal(source.includes("if (revisionResult.error || !revisionResult.data)"), true);
+  assert.equal(source.includes("const rollbackResult = await callRpc<string>"), true);
+  assert.equal(source.includes("if (rollbackResult.error || !rollbackResult.data)"), true);
+});
