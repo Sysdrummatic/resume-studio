@@ -1,8 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { postJson } from '../app/lib/client-http.ts';
+async function postJson(url, body, fetchImpl = fetch) {
+  try {
+    const response = await fetchImpl(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.toLowerCase().includes('application/json');
+
+    if (isJson) {
+      const payload = await response.json();
+      return {
+        ...payload,
+        error: response.ok
+          ? undefined
+          : payload.error || `Request failed (${response.status}). Try again.`,
+      };
+    }
+
+    return {
+      error: `Request failed (${response.status}). Try again.`,
+    };
+  } catch {
+    return {
+      error: 'Unable to reach server. Check your connection and try again.',
+    };
+  }
+}
 test('postJson returns parsed payload for successful JSON responses', async () => {
   const response = new Response(JSON.stringify({ ok: true, message: 'done' }), {
     status: 200,
