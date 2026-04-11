@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isValidEmailAddress } from "../../../lib/disposable-email";
 import { setAuthCookies } from "../../../lib/auth-cookies";
-import { fetchProfileById, signInWithPassword, signOut } from "../../../lib/supabase-http";
+import { fetchProfileById, fetchProfileByIdAsService, signInWithPassword, signOut } from "../../../lib/supabase-http";
 
 type SignInBody = {
   email?: string;
@@ -15,6 +15,20 @@ function normalizeEmail(value: unknown): string {
 
 function mapUpstreamStatus(status: number): number {
   return status >= 500 ? 503 : 400;
+}
+
+async function resolveProfileForSignIn(userId: string, accessToken: string) {
+  const profileResult = await fetchProfileById(userId, accessToken);
+  if (profileResult.data || profileResult.status < 500) {
+    return profileResult;
+  }
+
+  const fallbackResult = await fetchProfileByIdAsService(userId);
+  if (fallbackResult.data) {
+    return fallbackResult;
+  }
+
+  return profileResult;
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -60,7 +74,7 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: "Email verification is required before sign in." }, { status: 403 });
     }
 
-    const profileResult = await fetchProfileById(user.id, session.access_token);
+    const profileResult = await resolveProfileForSignIn(user.id, session.access_token);
     if (!profileResult.data || profileResult.error) {
       await signOut(session.access_token);
       const status = profileResult.status >= 500 ? 503 : 403;
