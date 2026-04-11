@@ -45,18 +45,22 @@ function clampLevel(value, fallback = 3) {
   return Math.min(5, Math.max(1, parsed));
 }
 
+function toLetterOnly(value) {
+  return normalizeText(value).replace(/[^\p{L}]/gu, "");
+}
+
 function deriveInitials(name) {
   const words = normalizeText(name)
     .split(/\s+/)
-    .map((part) => part.replace(/[^a-zA-Z]/g, ""))
+    .map((part) => toLetterOnly(part))
     .filter(Boolean);
   if (words.length === 0) {
     return "";
   }
   if (words.length === 1) {
-    return words[0].slice(0, 2).toUpperCase();
+    return Array.from(words[0]).slice(0, 2).join("").toLocaleUpperCase();
   }
-  return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  return `${Array.from(words[0])[0]}${Array.from(words[1])[0]}`.toLocaleUpperCase();
 }
 
 function normalizeStringList(value) {
@@ -101,7 +105,15 @@ function normalizeQrCodes(value) {
         size: toInteger(source.size, 130),
       };
     })
-    .filter((entry) => entry.label || entry.image);
+    .filter((entry) => entry.label && entry.image);
+}
+
+function validateStringArrayField(fieldName, list, errors) {
+  asArray(list).forEach((item, index) => {
+    if (typeof item !== "string" || !normalizeText(item)) {
+      errors.push(`${fieldName}[${index}] must be a non-empty string.`);
+    }
+  });
 }
 
 function normalizeSkills(value) {
@@ -340,17 +352,8 @@ function validateResumeDocumentShape(input) {
     }
   });
 
-  asArray(doc.tech_stack).forEach((item, index) => {
-    if (typeof item !== "string" || !normalizeText(item)) {
-      errors.push(`tech_stack[${index}] must be a non-empty string.`);
-    }
-  });
-
-  asArray(doc.interests).forEach((item, index) => {
-    if (typeof item !== "string" || !normalizeText(item)) {
-      errors.push(`interests[${index}] must be a non-empty string.`);
-    }
-  });
+  validateStringArrayField("tech_stack", doc.tech_stack, errors);
+  validateStringArrayField("interests", doc.interests, errors);
 
   asArray(doc.experience).forEach((item, index) => {
     if (!item || typeof item !== "object") {
@@ -368,6 +371,9 @@ function validateResumeDocumentShape(input) {
     }
     if (item.highlights !== undefined && !Array.isArray(item.highlights)) {
       errors.push(`experience[${index}].highlights must be an array.`);
+    }
+    if (Array.isArray(item.highlights)) {
+      validateStringArrayField(`experience[${index}].highlights`, item.highlights, errors);
     }
   });
 

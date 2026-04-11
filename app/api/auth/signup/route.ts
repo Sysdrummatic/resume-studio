@@ -42,7 +42,10 @@ export async function POST(request: Request): Promise<Response> {
   const emailRedirectTo = `${getAppBaseUrl()}/login?verified=1`;
   const signUpResult = await signUpWithPassword(email, password, emailRedirectTo);
   if (!signUpResult.data || signUpResult.error) {
-    return NextResponse.json({ error: signUpResult.error || "Sign up failed." }, { status: 400 });
+    return NextResponse.json(
+      { error: signUpResult.error || "Sign up failed." },
+      { status: signUpResult.status >= 500 ? 503 : 400 },
+    );
   }
 
   return NextResponse.json({
