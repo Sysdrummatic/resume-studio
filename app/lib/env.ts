@@ -10,6 +10,10 @@ type SupabaseServerConfig = SupabasePublicConfig & {
 function readEnvValue(name: string): string {
   const value = process.env[name];
   if (!value) {
+    console.error(
+      `[env] Missing required environment variable: ${name}. ` +
+      `Set it in your hosting provider's dashboard (e.g. Netlify Environment Variables).`,
+    );
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;

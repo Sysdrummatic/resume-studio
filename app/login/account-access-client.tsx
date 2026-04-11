@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { postJson } from "../lib/client-http";
 
-type TabId = "signin" | "signup" | "reset";
+type TabId = "signin" | "signup" | "reset" | "new-password";
 
 const DEFAULT_STATUS = "";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function parseHashParams(hash: string): URLSearchParams {
+  return new URLSearchParams(hash.replace(/^#/, ""));
 }
 
 type Props = {
@@ -28,6 +32,8 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [recoveryToken, setRecoveryToken] = useState("");
 
   const contextualMessage = useMemo(() => {
     if (verified === "1") {
@@ -41,6 +47,18 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     }
     return "";
   }, [reason, verified]);
+
+  useEffect(() => {
+    const hashParams = parseHashParams(window.location.hash);
+    if (hashParams.get("type") === "recovery" && hashParams.get("access_token")) {
+      setRecoveryToken(hashParams.get("access_token")!);
+      setActiveTab("new-password");
+      setStatus("Set your new password below.");
+      setError(false);
+      // Clean hash from URL without reload
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, []);
 
   async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -171,6 +189,37 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     }
   }
 
+  async function handleUpdatePassword(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsBusy(true);
+    setStatus("Updating password...");
+    setError(false);
+
+    try {
+      const payload = await postJson("/api/auth/update-password", {
+        accessToken: recoveryToken,
+        password: newPassword,
+      });
+
+      if (payload.error) {
+        setStatus(payload.error);
+        setError(true);
+        return;
+      }
+
+      setStatus(payload.message || "Password updated. You can sign in now.");
+      setError(false);
+      setRecoveryToken("");
+      setNewPassword("");
+      setActiveTab("signin");
+    } catch {
+      setStatus("Unexpected error. Try again.");
+      setError(true);
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
   return (
     <section className="card auth-card">
       <h1>Account access</h1>
@@ -202,6 +251,15 @@ export default function AccountAccessClient({ reason, verified }: Props) {
         >
           Reset password
         </button>
+        {recoveryToken && (
+          <button
+            type="button"
+            className={`tab ${activeTab === "new-password" ? "is-active" : ""}`}
+            onClick={() => setActiveTab("new-password")}
+          >
+            New password
+          </button>
+        )}
       </div>
 
       {activeTab === "signin" && (
@@ -278,6 +336,25 @@ export default function AccountAccessClient({ reason, verified }: Props) {
           </label>
           <button className="button button--primary" type="submit" disabled={isBusy}>
             {isBusy ? "Sending..." : "Send reset link"}
+          </button>
+        </form>
+      )}
+
+      {activeTab === "new-password" && recoveryToken && (
+        <form className="stack" onSubmit={handleUpdatePassword}>
+          <label>
+            New password
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={10}
+              required
+            />
+          </label>
+          <button className="button button--primary" type="submit" disabled={isBusy}>
+            {isBusy ? "Updating..." : "Update password"}
           </button>
         </form>
       )}

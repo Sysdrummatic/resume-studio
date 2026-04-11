@@ -107,7 +107,8 @@ export async function POST(request: Request): Promise<Response> {
         emailConfirmed: true,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("[signin] Unhandled error during sign-in:", err);
     return NextResponse.json(
       {
         error: "Authentication service is temporarily unavailable. Try again.",
