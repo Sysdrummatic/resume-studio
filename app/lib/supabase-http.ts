@@ -337,6 +337,23 @@ type CallRpcOptions = {
   useServiceRole?: boolean;
 };
 
+export async function updateUserPassword(
+  accessToken: string,
+  newPassword: string,
+): Promise<AuthResult<Record<string, unknown>>> {
+  const { url } = getSupabasePublicConfig();
+  return requestSupabase<Record<string, unknown>>(
+    () =>
+      fetch(`${url}/auth/v1/user`, {
+        method: "PUT",
+        headers: buildHeaders({ accessToken, contentType: "application/json" }),
+        body: JSON.stringify({ password: newPassword }),
+        cache: "no-store",
+      }),
+    "Password update failed.",
+  );
+}
+
 export async function callRpc<T>({
   functionName,
   payload = {},
