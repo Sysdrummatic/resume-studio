@@ -27,7 +27,7 @@ export async function POST(request: Request): Promise<Response> {
   const redirectTo = `${getAppBaseUrl()}/login`;
   const result = await sendPasswordResetEmail(email, redirectTo);
   if (result.error) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
+    return NextResponse.json({ error: result.error }, { status: result.status >= 500 ? 503 : 400 });
   }
 
   return NextResponse.json({ ok: true, message: "Password reset email sent." });

@@ -81,6 +81,22 @@ function buildLoginMarkup() {
   `;
 }
 
+function buildAdminPanelDependencyMarkup() {
+  return `
+    <button id="reset-visibility-button" type="button"></button>
+    <button id="preset-save-button" type="button"></button>
+    <button id="preset-update-button" type="button"></button>
+    <button id="preset-delete-button" type="button"></button>
+    <button id="section-detail-select-all" type="button"></button>
+    <button id="section-detail-clear" type="button"></button>
+    <form id="section-select-form"></form>
+    <div id="section-detail-panel" hidden></div>
+    <h4 id="section-detail-title"></h4>
+    <form id="section-detail-form"></form>
+    <select id="preset-select"></select>
+  `;
+}
+
 test('refreshAdminLoginState disables controls when no password is configured', (t) => {
   const { window, document, cleanup } = createDom(buildLoginMarkup());
   t.after(cleanup);
@@ -134,17 +150,7 @@ test('refreshAdminLoginState enables controls and focuses the input when passwor
 test('failed login attempts show the default error and refocus the password field', (t) => {
   const markup = `
     ${buildLoginMarkup()}
-    <button id="reset-visibility-button" type="button"></button>
-    <button id="preset-save-button" type="button"></button>
-    <button id="preset-update-button" type="button"></button>
-    <button id="preset-delete-button" type="button"></button>
-    <button id="section-detail-select-all" type="button"></button>
-    <button id="section-detail-clear" type="button"></button>
-    <form id="section-select-form"></form>
-    <div id="section-detail-panel" hidden></div>
-    <h4 id="section-detail-title"></h4>
-    <form id="section-detail-form"></form>
-    <select id="preset-select"></select>
+    ${buildAdminPanelDependencyMarkup()}
   `;
   const { window, document, cleanup } = createDom(markup);
   t.after(cleanup);
@@ -168,17 +174,7 @@ test('failed login attempts show the default error and refocus the password fiel
 test('typing after an error hides the feedback message', (t) => {
   const markup = `
     ${buildLoginMarkup()}
-    <button id="reset-visibility-button" type="button"></button>
-    <button id="preset-save-button" type="button"></button>
-    <button id="preset-update-button" type="button"></button>
-    <button id="preset-delete-button" type="button"></button>
-    <button id="section-detail-select-all" type="button"></button>
-    <button id="section-detail-clear" type="button"></button>
-    <form id="section-select-form"></form>
-    <div id="section-detail-panel" hidden></div>
-    <h4 id="section-detail-title"></h4>
-    <form id="section-detail-form"></form>
-    <select id="preset-select"></select>
+    ${buildAdminPanelDependencyMarkup()}
   `;
   const { window, document, cleanup } = createDom(markup);
   t.after(cleanup);
@@ -236,4 +232,60 @@ test('focusFirstAdminControl falls back to preset select when no radios exist', 
 
   const select = document.getElementById('preset-select');
   assert.equal(document.activeElement, select);
+});
+
+test('successful login unlocks admin panel and hides the access form', (t) => {
+  const markup = `
+    ${buildLoginMarkup()}
+    <section class="layout"></section>
+    ${buildAdminPanelDependencyMarkup()}
+  `;
+  const { window, document, cleanup } = createDom(markup);
+  t.after(cleanup);
+  const hooks = window.__ADMIN_TEST_HOOKS;
+  hooks.setAdminPassword('secret');
+  hooks.initAdminPanel();
+
+  const loginForm = document.getElementById('admin-login-form');
+  const passwordInput = document.getElementById('admin-password');
+  const errorElement = document.getElementById('admin-login-error');
+  const accessSection = document.getElementById('admin-access');
+  const panel = document.getElementById('admin-panel');
+  const panelSection = document.getElementById('admin-config');
+
+  passwordInput.value = 'secret';
+  loginForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+
+  assert.equal(errorElement.hidden, true);
+  assert.equal(accessSection.hidden, true);
+  assert.equal(panel.hidden, false);
+  assert.equal(panelSection.hidden, false);
+  assert.equal(loginForm.hidden, true);
+});
+
+test('submitting login while admin password is not configured keeps panel locked', (t) => {
+  const markup = `
+    ${buildLoginMarkup()}
+    ${buildAdminPanelDependencyMarkup()}
+  `;
+  const { window, document, cleanup } = createDom(markup);
+  t.after(cleanup);
+  const hooks = window.__ADMIN_TEST_HOOKS;
+  hooks.setAdminPassword(null);
+  hooks.initAdminPanel();
+
+  const loginForm = document.getElementById('admin-login-form');
+  const passwordInput = document.getElementById('admin-password');
+  const errorElement = document.getElementById('admin-login-error');
+  const accessSection = document.getElementById('admin-access');
+  const panel = document.getElementById('admin-panel');
+
+  passwordInput.value = 'anything';
+  loginForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+
+  assert.equal(errorElement.hidden, false);
+  assert.equal(errorElement.textContent, DISABLED_MESSAGE);
+  assert.equal(accessSection.hidden, false);
+  assert.equal(panel.hidden, true);
+  assert.equal(window.localStorage.getItem('resume-studio:admin-unlocked'), null);
 });

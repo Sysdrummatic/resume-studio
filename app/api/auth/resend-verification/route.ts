@@ -27,7 +27,7 @@ export async function POST(request: Request): Promise<Response> {
   const emailRedirectTo = `${getAppBaseUrl()}/login?verified=1`;
   const result = await resendVerificationEmail(email, emailRedirectTo);
   if (result.error) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
+    return NextResponse.json({ error: result.error }, { status: result.status >= 500 ? 503 : 400 });
   }
 
   return NextResponse.json({

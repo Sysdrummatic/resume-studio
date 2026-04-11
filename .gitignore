@@ -36,3 +36,4 @@ data/private/user.env
 data/private/resume-private.yaml
 images/qrs/linkedin.png
 images/qrs/portal.png
+.next/
