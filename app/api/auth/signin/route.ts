@@ -13,6 +13,10 @@ function normalizeEmail(value: unknown): string {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
+function mapUpstreamStatus(status: number): number {
+  return status >= 500 ? 503 : 400;
+}
+
 export async function POST(request: Request): Promise<Response> {
   let body: SignInBody;
   try {
@@ -31,52 +35,70 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const authResult = await signInWithPassword(email, password);
-  if (!authResult.data || authResult.error) {
-    const isInvalidCredentials = /invalid login credentials/i.test(authResult.error || "");
+  try {
+    const authResult = await signInWithPassword(email, password);
+    if (!authResult.data || authResult.error) {
+      const isInvalidCredentials = /invalid login credentials/i.test(authResult.error || "");
+      return NextResponse.json(
+        {
+          error: isInvalidCredentials
+            ? "Invalid login credentials. Confirm email and password, then try again."
+            : authResult.error || "Sign in failed.",
+        },
+        { status: isInvalidCredentials ? 401 : mapUpstreamStatus(authResult.status) },
+      );
+    }
+
+    const session = authResult.data;
+    const user = session.user;
+    if (!user?.id) {
+      return NextResponse.json({ error: "Sign in failed. Missing user context." }, { status: 400 });
+    }
+
+    if (!user.email_confirmed_at) {
+      await signOut(session.access_token);
+      return NextResponse.json({ error: "Email verification is required before sign in." }, { status: 403 });
+    }
+
+    const profileResult = await fetchProfileById(user.id, session.access_token);
+    if (!profileResult.data || profileResult.error) {
+      await signOut(session.access_token);
+      const status = profileResult.status >= 500 ? 503 : 403;
+      return NextResponse.json(
+        {
+          error:
+            status === 503
+              ? "Authentication service is temporarily unavailable. Try again."
+              : "Profile not found. Contact support.",
+        },
+        { status },
+      );
+    }
+
+    if (!profileResult.data.is_active) {
+      await signOut(session.access_token);
+      return NextResponse.json({ error: "Your account is inactive. Contact support." }, { status: 403 });
+    }
+
+    const cookieStore = await cookies();
+    setAuthCookies(cookieStore, session);
+
+    return NextResponse.json({
+      ok: true,
+      user: {
+        id: user.id,
+        email: user.email ?? email,
+        role: profileResult.data.role,
+        isActive: profileResult.data.is_active,
+        emailConfirmed: true,
+      },
+    });
+  } catch {
     return NextResponse.json(
       {
-        error: isInvalidCredentials
-          ? "Invalid login credentials. Confirm email and password, then try again."
-          : authResult.error || "Sign in failed.",
+        error: "Authentication service is temporarily unavailable. Try again.",
       },
-      { status: isInvalidCredentials ? 401 : 400 },
+      { status: 503 },
     );
   }
-
-  const session = authResult.data;
-  const user = session.user;
-  if (!user?.id) {
-    return NextResponse.json({ error: "Sign in failed. Missing user context." }, { status: 400 });
-  }
-
-  if (!user.email_confirmed_at) {
-    await signOut(session.access_token);
-    return NextResponse.json({ error: "Email verification is required before sign in." }, { status: 403 });
-  }
-
-  const profileResult = await fetchProfileById(user.id, session.access_token);
-  if (!profileResult.data || profileResult.error) {
-    await signOut(session.access_token);
-    return NextResponse.json({ error: "Profile not found. Contact support." }, { status: 403 });
-  }
-
-  if (!profileResult.data.is_active) {
-    await signOut(session.access_token);
-    return NextResponse.json({ error: "Your account is inactive. Contact support." }, { status: 403 });
-  }
-
-  const cookieStore = await cookies();
-  setAuthCookies(cookieStore, session);
-
-  return NextResponse.json({
-    ok: true,
-    user: {
-      id: user.id,
-      email: user.email ?? email,
-      role: profileResult.data.role,
-      isActive: profileResult.data.is_active,
-      emailConfirmed: true,
-    },
-  });
 }

@@ -1,28 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { postJson } from "../lib/client-http";
 
 type TabId = "signin" | "signup" | "reset";
-
-type ApiResponse = {
-  ok?: boolean;
-  error?: string;
-  message?: string;
-};
 
 const DEFAULT_STATUS = "";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-async function postJson<T>(url: string, payload: Record<string, unknown>): Promise<T> {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return (await response.json()) as T;
 }
 
 type Props = {
@@ -63,23 +49,34 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     setError(false);
 
     const email = normalizeEmail(signinEmail);
-    const payload = await postJson<ApiResponse>("/api/auth/signin", {
-      email,
-      password: signinPassword,
-    });
+    let shouldRedirect = false;
 
-    if (payload.error) {
-      setStatus(payload.error);
+    try {
+      const payload = await postJson("/api/auth/signin", {
+        email,
+        password: signinPassword,
+      });
+
+      if (payload.error) {
+        setStatus(payload.error);
+        setError(true);
+        setPendingVerificationEmail(email);
+        return;
+      }
+
+      setPendingVerificationEmail("");
+      setStatus("Signed in. Redirecting...");
+      setError(false);
+      shouldRedirect = true;
+      window.location.href = "/dashboard";
+    } catch {
+      setStatus("Unexpected sign-in error. Try again.");
       setError(true);
-      setPendingVerificationEmail(email);
-      setIsBusy(false);
-      return;
+    } finally {
+      if (!shouldRedirect) {
+        setIsBusy(false);
+      }
     }
-
-    setPendingVerificationEmail("");
-    setStatus("Signed in. Redirecting...");
-    setError(false);
-    window.location.href = "/dashboard";
   }
 
   async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
@@ -89,24 +86,30 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     setError(false);
 
     const email = normalizeEmail(signupEmail);
-    const payload = await postJson<ApiResponse>("/api/auth/signup", {
-      email,
-      password: signupPassword,
-    });
 
-    if (payload.error) {
-      setStatus(payload.error);
+    try {
+      const payload = await postJson("/api/auth/signup", {
+        email,
+        password: signupPassword,
+      });
+
+      if (payload.error) {
+        setStatus(payload.error);
+        setError(true);
+        return;
+      }
+
+      setStatus(payload.message || "Account created. Verify your email before sign in.");
+      setPendingVerificationEmail(email);
+      setError(false);
+      setActiveTab("signin");
+      setSigninEmail(email);
+    } catch {
+      setStatus("Unexpected sign-up error. Try again.");
       setError(true);
+    } finally {
       setIsBusy(false);
-      return;
     }
-
-    setStatus(payload.message || "Account created. Verify your email before sign in.");
-    setPendingVerificationEmail(email);
-    setError(false);
-    setIsBusy(false);
-    setActiveTab("signin");
-    setSigninEmail(email);
   }
 
   async function handleResetPassword(event: React.FormEvent<HTMLFormElement>) {
@@ -116,20 +119,26 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     setError(false);
 
     const email = normalizeEmail(resetEmail);
-    const payload = await postJson<ApiResponse>("/api/auth/reset-password", {
-      email,
-    });
 
-    if (payload.error) {
-      setStatus(payload.error);
+    try {
+      const payload = await postJson("/api/auth/reset-password", {
+        email,
+      });
+
+      if (payload.error) {
+        setStatus(payload.error);
+        setError(true);
+        return;
+      }
+
+      setStatus(payload.message || "Password reset email sent.");
+      setError(false);
+    } catch {
+      setStatus("Unexpected password reset error. Try again.");
       setError(true);
+    } finally {
       setIsBusy(false);
-      return;
     }
-
-    setStatus(payload.message || "Password reset email sent.");
-    setError(false);
-    setIsBusy(false);
   }
 
   async function handleResendVerification() {
@@ -144,17 +153,22 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     setStatus("Sending verification email...");
     setError(false);
 
-    const payload = await postJson<ApiResponse>("/api/auth/resend-verification", { email });
-    if (payload.error) {
-      setStatus(payload.error);
-      setError(true);
-      setIsBusy(false);
-      return;
-    }
+    try {
+      const payload = await postJson("/api/auth/resend-verification", { email });
+      if (payload.error) {
+        setStatus(payload.error);
+        setError(true);
+        return;
+      }
 
-    setStatus(payload.message || "Verification email sent.");
-    setError(false);
-    setIsBusy(false);
+      setStatus(payload.message || "Verification email sent.");
+      setError(false);
+    } catch {
+      setStatus("Unexpected verification error. Try again.");
+      setError(true);
+    } finally {
+      setIsBusy(false);
+    }
   }
 
   return (
