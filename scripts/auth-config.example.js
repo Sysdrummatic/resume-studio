@@ -1,7 +1,14 @@
-window.RESUME_STUDIO_CONFIG = {
-  supabaseUrl: 'https://YOUR_PROJECT.supabase.co',
-  supabaseAnonKey: 'YOUR_PUBLIC_ANON_KEY',
-  appRedirectUrl: 'http://localhost:8000/dashboard.html',
-  emailVerificationRedirectUrl: 'http://localhost:8000/login.html',
-  passwordResetRedirectUrl: 'http://localhost:8000/login.html'
+window.RESUME_STUDIO_AUTH_ENV = {
+  production: {
+    supabaseUrl: 'https://YOUR_PRODUCTION_PROJECT.supabase.co',
+    supabaseAnonKey: 'YOUR_PRODUCTION_PUBLIC_ANON_KEY'
+  },
+  preview: {
+    supabaseUrl: 'https://YOUR_TEST_PROJECT.supabase.co',
+    supabaseAnonKey: 'YOUR_TEST_PUBLIC_ANON_KEY'
+  },
+  development: {
+    supabaseUrl: 'https://YOUR_TEST_PROJECT.supabase.co',
+    supabaseAnonKey: 'YOUR_TEST_PUBLIC_ANON_KEY'
+  }
 };
