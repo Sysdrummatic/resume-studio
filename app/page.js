@@ -5,35 +5,64 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import yaml from 'js-yaml';
 import {
   FileText, Plus, Eye, Trash2, LogOut, User, Shield, Globe,
   ChevronRight, Briefcase, GraduationCap, Languages, Star, Mail,
-  Phone, MapPin, Calendar, Edit, Users, Settings, Download, ArrowLeft,
-  CheckCircle, AlertCircle
+  Phone, MapPin, Calendar, Edit, Users, ArrowLeft,
+  CheckCircle, AlertCircle, Code, Zap, Lock, Search
 } from 'lucide-react';
 
 // ======================== TRANSLATIONS ========================
 const translations = {
   pl: {
-    // Landing
-    heroTitle: 'Twórz profesjonalne CV w kilka minut',
-    heroSubtitle: 'Kreator CV z podglądem na żywo, eksportem YAML i zarządzaniem rolami. Nowoczesne narzędzie dla profesjonalistów.',
-    getStarted: 'Rozpocznij',
-    features: 'Funkcje',
+    heroTitle1: 'CV, które traktujesz',
+    heroTitle2: 'jak kod.',
+    heroTitle3: 'Nie formularz.',
+    heroSub: 'Twórz profesjonalne CV w formacie YAML, zarządzaj wersjami i publikuj z pełną kontrolą. Nowoczesne narzędzie dla profesjonalistów.',
+    heroEyebrow: 'kreator CV · YAML · zarządzanie rolami',
+    getStarted: 'Utwórz swoje CV →',
+    seeHow: 'Zobacz jak to działa',
+    statYaml: 'YAML',
+    statYamlLabel: 'Otwarte formaty',
+    statPreview: 'Live',
+    statPreviewLabel: 'Podgląd w czasie rzeczywistym',
+    statExport: 'PDF & Web',
+    statExportLabel: 'Eksport jednym kliknięciem',
+    statRoles: '4 role',
+    statRolesLabel: 'System uprawnień',
+    sectionHow: '// jak to działa',
+    howTitle: 'Piszesz strukturę.\nMy generujemy resztę.',
+    howSub: 'Jeden plik YAML. Pełna kontrola nad danymi. Zero zależności od platformy.',
+    sectionFeatures: '// funkcje',
+    featuresTitle: 'Wszystko, czego\npotrzebujesz.',
+    featuresSub: 'Jeden standard, dziesiątki możliwości.',
     featureCreator: 'Kreator CV',
-    featureCreatorDesc: 'Intuicyjny formularz, który strukturyzuje Twoje dane w profesjonalny format YAML.',
+    featureCreatorDesc: 'Intuicyjny formularz strukturyzujący dane w format YAML. Podgląd na żywo.',
     featurePreview: 'Podgląd na żywo',
     featurePreviewDesc: 'Oglądaj swoje CV z nałożonymi stylami CSS w czasie rzeczywistym.',
     featureRoles: 'System ról',
-    featureRolesDesc: 'Zarządzanie użytkownikami z rolami: Admin, Manager, Rekruter, Użytkownik.',
-    // Auth
+    featureRolesDesc: 'Admin, Manager, Rekruter, Użytkownik — granularne uprawnienia.',
+    featureVersion: 'Version control',
+    featureVersionDesc: 'Każda zmiana w CV jest zapisana. Edytuj i aktualizuj bez straty danych.',
+    featureExport: 'Eksport YAML',
+    featureExportDesc: 'Twoje CV w czystym formacie YAML — przenośne i czytelne.',
+    featureMultilang: 'Wielojęzyczność',
+    featureMultilangDesc: 'Obsługa polskiego, niemieckiego i angielskiego. Zmień język jednym kliknięciem.',
+    sectionWho: '// dla kogo',
+    whoTitle: 'Jeden standard.\nDwa światy.',
+    personaUserTag: 'użytkownik indywidualny',
+    personaUserTitle: 'Profesjonalista,\nktóry wie czego chce.',
+    personaUserDesc: 'Dla każdego kto chce mieć CV pod kontrolą.',
+    personaUserList: ['Twórz CV w edytorze z podglądem', 'Strukturyzuj dane w formacie YAML', 'Edytuj i aktualizuj w dowolnym momencie', 'Podglądaj gotowe CV ze stylami'],
+    personaRecTag: 'rekruter / HR',
+    personaRecTitle: 'Rekruter, który\nprzestał parsować PDFy.',
+    personaRecDesc: 'Dostęp do ustrukturyzowanych CV. Przeglądaj profile kandydatów.',
+    personaRecList: ['Przeglądaj wszystkie CV w systemie', 'Standaryzowane pola — zero interpretacji', 'Szybki dostęp do danych kandydatów', 'Filtruj i szukaj talentów'],
     login: 'Zaloguj się',
     register: 'Zarejestruj się',
     email: 'Email',
@@ -46,7 +75,6 @@ const translations = {
     noAccount: 'Nie masz konta?',
     haveAccount: 'Masz już konto?',
     resetSuccess: 'Hasło zostało zmienione!',
-    // Dashboard
     dashboard: 'Panel główny',
     myCvs: 'Moje CV',
     createNew: 'Utwórz nowe CV',
@@ -55,7 +83,6 @@ const translations = {
     preview: 'Podgląd',
     edit: 'Edytuj',
     delete: 'Usuń',
-    // CV Creator
     cvCreator: 'Kreator CV',
     cvTitle: 'Tytuł CV',
     personalInfo: 'Dane osobowe',
@@ -84,39 +111,69 @@ const translations = {
     save: 'Zapisz CV',
     yamlPreview: 'Podgląd YAML',
     cvPreview: 'Podgląd CV',
-    // Admin
     adminPanel: 'Panel administracyjny',
     userManagement: 'Zarządzanie użytkownikami',
     role: 'Rola',
     changeRole: 'Zmień rolę',
     deleteUser: 'Usuń użytkownika',
-    // Recruiter
     allCvs: 'Wszystkie CV',
     browseCvs: 'Przeglądaj CV',
     author: 'Autor',
-    // Common
     loading: 'Ładowanie...',
     error: 'Błąd',
     success: 'Sukces',
-    cancel: 'Anuluj',
-    confirm: 'Potwierdź',
     back: 'Powrót',
     logout: 'Wyloguj się',
     present: 'Obecnie',
     skillPlaceholder: 'np. JavaScript, React, Node.js',
-    removed: 'Usunięto',
+    livePreview: 'live preview',
+    generatedCv: 'Wygenerowane CV',
+    exampleYaml: 'przykład.cv.yaml',
   },
   en: {
-    heroTitle: 'Create professional CVs in minutes',
-    heroSubtitle: 'CV creator with live preview, YAML export, and role management. A modern tool for professionals.',
-    getStarted: 'Get Started',
-    features: 'Features',
+    heroTitle1: 'CV you treat',
+    heroTitle2: 'like code.',
+    heroTitle3: 'Not a form.',
+    heroSub: 'Create professional CVs in YAML format, manage versions and publish with full control. A modern tool for professionals.',
+    heroEyebrow: 'CV creator · YAML · role management',
+    getStarted: 'Create your CV →',
+    seeHow: 'See how it works',
+    statYaml: 'YAML',
+    statYamlLabel: 'Open formats',
+    statPreview: 'Live',
+    statPreviewLabel: 'Real-time preview',
+    statExport: 'PDF & Web',
+    statExportLabel: 'One-click export',
+    statRoles: '4 roles',
+    statRolesLabel: 'Permission system',
+    sectionHow: '// how it works',
+    howTitle: 'You write the structure.\nWe generate the rest.',
+    howSub: 'One YAML file. Full control over data. Zero platform lock-in.',
+    sectionFeatures: '// features',
+    featuresTitle: 'Everything you\nneed.',
+    featuresSub: 'One standard, dozens of possibilities.',
     featureCreator: 'CV Creator',
-    featureCreatorDesc: 'Intuitive form that structures your data into a professional YAML format.',
+    featureCreatorDesc: 'Intuitive form structuring data into YAML format. Live preview.',
     featurePreview: 'Live Preview',
     featurePreviewDesc: 'View your CV with applied CSS styles in real-time.',
     featureRoles: 'Role System',
-    featureRolesDesc: 'User management with roles: Admin, Manager, Recruiter, User.',
+    featureRolesDesc: 'Admin, Manager, Recruiter, User — granular permissions.',
+    featureVersion: 'Version control',
+    featureVersionDesc: 'Every CV change is saved. Edit and update without losing data.',
+    featureExport: 'YAML Export',
+    featureExportDesc: 'Your CV in clean YAML format — portable and readable.',
+    featureMultilang: 'Multi-language',
+    featureMultilangDesc: 'Polish, German, and English support. Switch language with one click.',
+    sectionWho: '// for whom',
+    whoTitle: 'One standard.\nTwo worlds.',
+    personaUserTag: 'individual user',
+    personaUserTitle: 'Professional who\nknows what they want.',
+    personaUserDesc: 'For anyone who wants full control over their CV.',
+    personaUserList: ['Create CV with live preview editor', 'Structure data in YAML format', 'Edit and update at any time', 'Preview styled CV in real-time'],
+    personaRecTag: 'recruiter / HR',
+    personaRecTitle: 'Recruiter who\nstopped parsing PDFs.',
+    personaRecDesc: 'Access to structured CVs. Browse candidate profiles.',
+    personaRecList: ['Browse all CVs in the system', 'Standardized fields — zero interpretation', 'Quick access to candidate data', 'Filter and search for talents'],
     login: 'Log In',
     register: 'Register',
     email: 'Email',
@@ -176,25 +233,58 @@ const translations = {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
-    cancel: 'Cancel',
-    confirm: 'Confirm',
     back: 'Back',
     logout: 'Log Out',
     present: 'Present',
     skillPlaceholder: 'e.g. JavaScript, React, Node.js',
-    removed: 'Removed',
+    livePreview: 'live preview',
+    generatedCv: 'Generated CV',
+    exampleYaml: 'example.cv.yaml',
   },
   de: {
-    heroTitle: 'Erstellen Sie professionelle Lebensläufe in Minuten',
-    heroSubtitle: 'Lebenslauf-Ersteller mit Live-Vorschau, YAML-Export und Rollenverwaltung. Ein modernes Tool für Profis.',
-    getStarted: 'Loslegen',
-    features: 'Funktionen',
+    heroTitle1: 'Lebenslauf, den du',
+    heroTitle2: 'wie Code behandelst.',
+    heroTitle3: 'Kein Formular.',
+    heroSub: 'Erstellen Sie professionelle Lebensläufe im YAML-Format, verwalten Sie Versionen und veröffentlichen Sie mit voller Kontrolle.',
+    heroEyebrow: 'Lebenslauf-Ersteller · YAML · Rollenverwaltung',
+    getStarted: 'Lebenslauf erstellen →',
+    seeHow: 'So funktioniert es',
+    statYaml: 'YAML',
+    statYamlLabel: 'Offene Formate',
+    statPreview: 'Live',
+    statPreviewLabel: 'Echtzeit-Vorschau',
+    statExport: 'PDF & Web',
+    statExportLabel: 'Export mit einem Klick',
+    statRoles: '4 Rollen',
+    statRolesLabel: 'Berechtigungssystem',
+    sectionHow: '// wie es funktioniert',
+    howTitle: 'Sie schreiben die Struktur.\nWir generieren den Rest.',
+    howSub: 'Eine YAML-Datei. Volle Kontrolle über die Daten. Kein Platform-Lock-in.',
+    sectionFeatures: '// funktionen',
+    featuresTitle: 'Alles, was Sie\nbrauchen.',
+    featuresSub: 'Ein Standard, Dutzende Möglichkeiten.',
     featureCreator: 'Lebenslauf-Ersteller',
-    featureCreatorDesc: 'Intuitives Formular, das Ihre Daten in ein professionelles YAML-Format strukturiert.',
+    featureCreatorDesc: 'Intuitives Formular zur Strukturierung von Daten im YAML-Format.',
     featurePreview: 'Live-Vorschau',
-    featurePreviewDesc: 'Sehen Sie Ihren Lebenslauf mit angewandten CSS-Stilen in Echtzeit.',
+    featurePreviewDesc: 'Sehen Sie Ihren Lebenslauf mit CSS-Stilen in Echtzeit.',
     featureRoles: 'Rollensystem',
-    featureRolesDesc: 'Benutzerverwaltung mit Rollen: Admin, Manager, Recruiter, Benutzer.',
+    featureRolesDesc: 'Admin, Manager, Recruiter, Benutzer — granulare Berechtigungen.',
+    featureVersion: 'Versionskontrolle',
+    featureVersionDesc: 'Jede Änderung wird gespeichert. Bearbeiten ohne Datenverlust.',
+    featureExport: 'YAML-Export',
+    featureExportDesc: 'Ihr Lebenslauf im sauberen YAML-Format — portabel und lesbar.',
+    featureMultilang: 'Mehrsprachig',
+    featureMultilangDesc: 'Polnisch, Deutsch und Englisch. Sprache mit einem Klick wechseln.',
+    sectionWho: '// für wen',
+    whoTitle: 'Ein Standard.\nZwei Welten.',
+    personaUserTag: 'Einzelbenutzer',
+    personaUserTitle: 'Profi, der weiß,\nwas er will.',
+    personaUserDesc: 'Für jeden, der volle Kontrolle über seinen Lebenslauf will.',
+    personaUserList: ['Lebenslauf mit Live-Vorschau erstellen', 'Daten im YAML-Format strukturieren', 'Jederzeit bearbeiten und aktualisieren', 'Gestylten Lebenslauf in Echtzeit ansehen'],
+    personaRecTag: 'Recruiter / HR',
+    personaRecTitle: 'Recruiter, der aufgehört\nhat PDFs zu parsen.',
+    personaRecDesc: 'Zugang zu strukturierten Lebensläufen.',
+    personaRecList: ['Alle Lebensläufe im System durchsuchen', 'Standardisierte Felder', 'Schneller Zugriff auf Kandidatendaten', 'Talente filtern und suchen'],
     login: 'Anmelden',
     register: 'Registrieren',
     email: 'E-Mail',
@@ -254,17 +344,17 @@ const translations = {
     loading: 'Laden...',
     error: 'Fehler',
     success: 'Erfolg',
-    cancel: 'Abbrechen',
-    confirm: 'Bestätigen',
     back: 'Zurück',
     logout: 'Abmelden',
     present: 'Aktuell',
     skillPlaceholder: 'z.B. JavaScript, React, Node.js',
-    removed: 'Entfernt',
+    livePreview: 'Live-Vorschau',
+    generatedCv: 'Generierter Lebenslauf',
+    exampleYaml: 'beispiel.cv.yaml',
   },
 };
 
-const languageNames = { pl: 'Polski', en: 'English', de: 'Deutsch' };
+const languageNames = { pl: 'PL', en: 'EN', de: 'DE' };
 
 // ======================== HELPERS ========================
 const apiCall = async (path, options = {}) => {
@@ -320,66 +410,39 @@ export default function App() {
   };
 
   const handleLogin = async (email, password) => {
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       const data = await apiCall('auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
       localStorage.setItem('cvManagerToken', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      setView('dashboard');
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+      setToken(data.token); setUser(data.user); setView('dashboard');
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
   };
 
   const handleRegister = async (name, email, password) => {
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       const data = await apiCall('auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) });
       localStorage.setItem('cvManagerToken', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      setView('dashboard');
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+      setToken(data.token); setUser(data.user); setView('dashboard');
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
   };
 
   const handleResetPassword = async (email, newPassword) => {
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       await apiCall('auth/reset-password', { method: 'POST', body: JSON.stringify({ email, newPassword }) });
       setSuccess(t.resetSuccess);
       setTimeout(() => { setView('login'); setSuccess(''); }, 2000);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('cvManagerToken');
-    setToken(null);
-    setUser(null);
-    setCvs([]);
-    setView('landing');
+    setToken(null); setUser(null); setCvs([]); setView('landing');
   };
 
   const loadCvs = useCallback(async () => {
-    try {
-      const data = await apiCall('cv');
-      setCvs(data.cvs || []);
-    } catch (e) {
-      console.error(e);
-    }
+    try { const data = await apiCall('cv'); setCvs(data.cvs || []); } catch (e) { console.error(e); }
   }, []);
 
   useEffect(() => {
@@ -387,31 +450,19 @@ export default function App() {
   }, [view, user, loadCvs]);
 
   const handleSaveCv = async (title, cvData) => {
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       if (editCvId) {
         await apiCall(`cv/${editCvId}`, { method: 'PUT', body: JSON.stringify({ title, data: cvData }) });
       } else {
         await apiCall('cv', { method: 'POST', body: JSON.stringify({ title, data: cvData }) });
       }
-      setEditCvId(null);
-      setView('dashboard');
-      loadCvs();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+      setEditCvId(null); setView('dashboard'); loadCvs();
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
   };
 
   const handleDeleteCv = async (id) => {
-    try {
-      await apiCall(`cv/${id}`, { method: 'DELETE' });
-      loadCvs();
-    } catch (e) {
-      setError(e.message);
-    }
+    try { await apiCall(`cv/${id}`, { method: 'DELETE' }); loadCvs(); } catch (e) { setError(e.message); }
   };
 
   const clearMessages = () => { setError(''); setSuccess(''); };
@@ -419,16 +470,18 @@ export default function App() {
   // ======================== LANGUAGE SWITCHER ========================
   const LanguageSwitcher = () => (
     <div className="flex items-center gap-1">
-      <Globe className="h-4 w-4 text-muted-foreground" />
+      <Globe className="h-3.5 w-3.5" style={{ color: 'var(--muted)' }} />
       {Object.entries(languageNames).map(([key, name]) => (
         <button
           key={key}
           onClick={() => changeLang(key)}
-          className={`px-2 py-1 text-xs rounded-md transition-colors ${
-            lang === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className="px-2 py-1 text-xs rounded-md transition-all font-mono"
+          style={{
+            background: lang === key ? 'var(--primary)' : 'transparent',
+            color: lang === key ? '#fff' : 'var(--muted)',
+          }}
         >
-          {key.toUpperCase()}
+          {name}
         </button>
       ))}
     </div>
@@ -436,163 +489,433 @@ export default function App() {
 
   // ======================== NAVBAR ========================
   const Navbar = () => (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between">
+    <nav className="sticky top-0 z-50 w-full" style={{
+      borderBottom: '1px solid var(--border-subtle)',
+      background: 'rgba(8,6,15,0.85)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+    }}>
+      <div className="max-w-[1100px] mx-auto px-8 flex items-center justify-between h-[60px]">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => user ? setView('dashboard') : setView('landing')}>
-          <FileText className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">CV Manager</span>
+          <div className="w-7 h-7 rounded-[7px] flex items-center justify-center text-xs font-bold font-mono text-white" style={{ background: 'var(--primary)' }}>
+            CV
+          </div>
+          <span className="font-bold text-lg tracking-tight" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>
+            Open<span style={{ color: 'var(--primary-soft)' }}>CV</span>
+          </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full ml-1" style={{
+            background: 'rgba(124,58,237,0.2)',
+            color: 'var(--primary-soft)',
+            border: '1px solid var(--cv-border)',
+          }}>v1.0</span>
         </div>
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           {user && (
             <>
-              <Badge variant="outline" className="hidden sm:flex">
-                <User className="h-3 w-3 mr-1" />
+              <div className="hidden sm:flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-lg" style={{
+                background: 'var(--void-3)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--cv-white)',
+              }}>
+                <User className="h-3 w-3" style={{ color: 'var(--primary-soft)' }} />
                 {user.name}
-              </Badge>
-              <Badge variant="secondary" className="hidden sm:flex">{user.role}</Badge>
+              </div>
+              <span className="hidden sm:inline text-[10px] font-mono px-2 py-0.5 rounded" style={{
+                background: 'var(--accent-bg)',
+                color: 'var(--accent)',
+                border: '1px solid var(--accent-border)',
+              }}>{user.role}</span>
               {(user.role === 'ADMIN' || user.role === 'MANAGER') && (
-                <Button variant="ghost" size="sm" onClick={() => setView('admin')}>
+                <button onClick={() => setView('admin')} className="p-2 rounded-lg transition-colors hover:opacity-80" style={{ color: 'var(--primary-soft)' }}>
                   <Shield className="h-4 w-4" />
-                </Button>
+                </button>
               )}
               {(user.role === 'ADMIN' || user.role === 'RECRUITER') && (
-                <Button variant="ghost" size="sm" onClick={() => setView('recruiter')}>
+                <button onClick={() => setView('recruiter')} className="p-2 rounded-lg transition-colors hover:opacity-80" style={{ color: 'var(--primary-soft)' }}>
                   <Users className="h-4 w-4" />
-                </Button>
+                </button>
               )}
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <button onClick={handleLogout} className="p-2 rounded-lg transition-colors hover:opacity-80" style={{ color: 'var(--muted)' }}>
                 <LogOut className="h-4 w-4" />
-              </Button>
+              </button>
             </>
+          )}
+          {!user && (
+            <button onClick={() => setView('login')} className="text-sm font-medium px-4 py-1.5 rounded-lg transition-all" style={{
+              background: 'var(--primary)',
+              color: '#fff',
+              fontFamily: 'Sora, sans-serif',
+            }}>
+              {t.login}
+            </button>
           )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 
   // ======================== LANDING PAGE ========================
   const LandingPage = () => (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Orbs */}
+      <div className="fixed pointer-events-none" style={{ width: 600, height: 600, borderRadius: '50%', filter: 'blur(120px)', background: 'var(--orb-1)', top: -100, left: -100, zIndex: 0 }} />
+      <div className="fixed pointer-events-none" style={{ width: 500, height: 500, borderRadius: '50%', filter: 'blur(120px)', background: 'var(--orb-2)', top: 200, right: -100, zIndex: 0 }} />
+      <div className="fixed pointer-events-none" style={{ width: 400, height: 400, borderRadius: '50%', filter: 'blur(120px)', background: 'var(--orb-3)', bottom: 100, left: '30%', zIndex: 0 }} />
+
       <Navbar />
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
-        <div className="container relative py-24 md:py-32">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="secondary" className="mb-4">CV Manager 2025</Badge>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-              {t.heroTitle}
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t.heroSubtitle}
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-lg px-8" onClick={() => setView('register')}>
-                {t.getStarted}
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8" onClick={() => setView('login')}>
-                {t.login}
-              </Button>
+
+      {/* HERO */}
+      <section className="relative" style={{ padding: '120px 0 100px' }}>
+        <div className="max-w-[1100px] mx-auto px-8 relative z-10">
+          {/* Eyebrow */}
+          <div className="animate-fade-up inline-flex items-center gap-2 text-xs font-mono font-medium px-3 py-1.5 rounded-full mb-7" style={{
+            color: 'var(--accent)',
+            background: 'var(--accent-bg)',
+            border: '1px solid var(--accent-border)',
+            letterSpacing: '0.02em',
+          }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)', animation: 'pulse-dot 2s infinite' }} />
+            {t.heroEyebrow}
+          </div>
+
+          {/* Title */}
+          <h1 className="animate-fade-up-delay-1 font-extrabold tracking-tight mb-6" style={{
+            fontFamily: 'Sora, sans-serif',
+            fontSize: 'clamp(44px, 6vw, 76px)',
+            lineHeight: 1.05,
+            letterSpacing: '-0.03em',
+            color: 'var(--cv-white)',
+            maxWidth: 820,
+          }}>
+            {t.heroTitle1}<br />
+            <span style={{ color: 'var(--primary-soft)' }}>{t.heroTitle2}</span><br />
+            <span style={{ color: 'var(--accent)' }}>{t.heroTitle3}</span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="animate-fade-up-delay-2 text-lg mb-10" style={{
+            color: 'var(--muted)',
+            maxWidth: 520,
+            lineHeight: 1.65,
+          }}>
+            {t.heroSub}
+          </p>
+
+          {/* Actions */}
+          <div className="animate-fade-up-delay-3 flex items-center gap-3.5 flex-wrap">
+            <button onClick={() => setView('register')} className="inline-flex items-center gap-2 px-7 py-3.5 rounded-[10px] text-[15px] font-semibold transition-all hover:-translate-y-0.5" style={{
+              background: 'var(--primary)',
+              color: '#fff',
+              fontFamily: 'Sora, sans-serif',
+            }}>
+              {t.getStarted}
+            </button>
+            <button onClick={() => document.getElementById('how-section')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-[10px] text-[15px] font-medium transition-all" style={{
+              background: 'transparent',
+              color: 'var(--primary-soft)',
+              border: '1px solid var(--cv-border)',
+            }}>
+              {t.seeHow}
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="animate-fade-up-delay-4 flex gap-10 mt-16 pt-10 flex-wrap" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+            {[
+              { num: t.statYaml, sub: <><span style={{ color: 'var(--accent)' }}>+</span>JSON</>, label: t.statYamlLabel },
+              { num: t.statPreview, sub: <><span style={{ color: 'var(--accent)' }}>-</span>preview</>, label: t.statPreviewLabel },
+              { num: t.statExport, sub: '', label: t.statExportLabel },
+              { num: t.statRoles, sub: '', label: t.statRolesLabel },
+            ].map((stat, i) => (
+              <div key={i}>
+                <div className="text-[28px] font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>
+                  {stat.num}{stat.sub}
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS - Code Section */}
+      <section id="how-section" className="relative z-10" style={{ padding: '80px 0' }}>
+        <div className="max-w-[1100px] mx-auto px-8">
+          <div className="mb-12">
+            <div className="text-[11px] font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--accent)' }}>{t.sectionHow}</div>
+            <h2 className="font-bold tracking-tight mb-4 whitespace-pre-line" style={{
+              fontFamily: 'Sora, sans-serif',
+              fontSize: 'clamp(28px, 4vw, 42px)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.025em',
+            }}>{t.howTitle}</h2>
+            <p className="text-base mb-12" style={{ color: 'var(--muted)', maxWidth: 480, lineHeight: 1.65 }}>{t.howSub}</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* YAML Code Block */}
+            <div className="rounded-[14px] overflow-hidden" style={{ background: 'var(--void-3)', border: '1px solid var(--cv-border)' }}>
+              <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--cv-border)', background: 'rgba(0,0,0,0.15)' }}>
+                <span className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+                <span className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
+                <span className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
+                <span className="text-xs font-mono ml-1" style={{ color: 'var(--muted)' }}>{t.exampleYaml}</span>
+              </div>
+              <div className="p-5 font-mono text-[13px] leading-[1.9] overflow-x-auto" style={{ color: '#C4B5FD' }}>
+                <div><span className="yaml-com"># OpenCV Standard v1.0</span></div>
+                <div><span className="yaml-key">meta</span>:</div>
+                <div>  <span className="yaml-key">version</span>: <span className="yaml-val">&quot;1.0&quot;</span></div>
+                <div>  <span className="yaml-key">schema</span>: <span className="yaml-str">opencvstandard.org/v1</span></div>
+                <div></div>
+                <div><span className="yaml-key">personal</span>:</div>
+                <div>  <span className="yaml-key">name</span>: <span className="yaml-val">&quot;Jan Kowalski&quot;</span></div>
+                <div>  <span className="yaml-key">title</span>: <span className="yaml-val">&quot;Senior Frontend Dev&quot;</span></div>
+                <div>  <span className="yaml-key">location</span>: <span className="yaml-val">&quot;Warszawa, PL&quot;</span></div>
+                <div>  <span className="yaml-key">email</span>: <span className="yaml-str">jan@kowalski.dev</span></div>
+                <div></div>
+                <div><span className="yaml-key">experience</span>:</div>
+                <div>  - <span className="yaml-key">company</span>: <span className="yaml-val">&quot;Acme Corp&quot;</span></div>
+                <div>    <span className="yaml-key">role</span>: <span className="yaml-val">&quot;Lead Developer&quot;</span></div>
+                <div>    <span className="yaml-key">from</span>: <span className="yaml-arr">2021-03</span></div>
+                <div>    <span className="yaml-key">to</span>: <span className="yaml-arr">present</span></div>
+                <div></div>
+                <div><span className="yaml-key">skills</span>:</div>
+                <div>  <span className="yaml-key">languages</span>: <span className="yaml-arr">[TypeScript, React, Go]</span></div>
+              </div>
+            </div>
+
+            {/* CV Preview */}
+            <div className="rounded-[14px] overflow-hidden" style={{ background: 'var(--void-3)', border: '1px solid var(--cv-border)' }}>
+              <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--cv-border)', background: 'rgba(0,0,0,0.15)' }}>
+                <span className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+                <span className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
+                <span className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
+                <span className="text-xs font-mono ml-1" style={{ color: 'var(--muted)' }}>{t.generatedCv}</span>
+                <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded" style={{
+                  background: 'var(--accent-bg)',
+                  color: 'var(--accent)',
+                  border: '1px solid var(--accent-border)',
+                }}>{t.livePreview}</span>
+              </div>
+              <div className="p-6">
+                <div className="text-[22px] font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>Jan Kowalski</div>
+                <div className="text-[13px] mt-1 mb-4" style={{ color: 'var(--primary-soft)' }}>Senior Frontend Developer · Warszawa</div>
+                <div className="flex gap-1.5 flex-wrap mb-5">
+                  {['TypeScript', 'React', 'Go'].map(s => (
+                    <span key={s} className="text-[11px] px-2.5 py-0.5 rounded font-mono font-medium" style={{
+                      background: 'var(--cv-border)',
+                      color: 'var(--primary-pale)',
+                      border: '1px solid var(--cv-border)',
+                    }}>{s}</span>
+                  ))}
+                  <span className="text-[11px] px-2.5 py-0.5 rounded font-mono font-medium" style={{
+                    background: 'var(--accent-bg)',
+                    color: 'var(--accent)',
+                    border: '1px solid var(--accent-border)',
+                  }}>open to work</span>
+                </div>
+                <div className="h-px my-4" style={{ background: 'var(--border-subtle)' }} />
+                <div className="text-[10px] font-semibold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>{t.experience}</div>
+                <div className="mb-3">
+                  <div className="text-[13px] font-medium" style={{ color: 'var(--cv-white)' }}>Lead Developer — Acme Corp</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>mar 2021 → present</div>
+                </div>
+                <div className="mb-3">
+                  <div className="text-[13px] font-medium" style={{ color: 'var(--cv-white)' }}>Frontend Engineer — Beta Labs</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>jun 2019 → mar 2021</div>
+                </div>
+                <div className="h-px my-4" style={{ background: 'var(--border-subtle)' }} />
+                <div className="text-[10px] font-semibold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>{t.skills}</div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {['k8s', 'Figma', 'Rust'].map(s => (
+                    <span key={s} className="text-[11px] px-2.5 py-0.5 rounded font-mono font-medium" style={{
+                      background: 'var(--cv-border)',
+                      color: 'var(--primary-pale)',
+                      border: '1px solid var(--cv-border)',
+                    }}>{s}</span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 bg-muted/30">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">{t.features}</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <FileText className="h-6 w-6 text-primary" />
+      {/* FEATURES */}
+      <section className="relative z-10" style={{ padding: '80px 0' }}>
+        <div className="max-w-[1100px] mx-auto px-8">
+          <div className="mb-12">
+            <div className="text-[11px] font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--accent)' }}>{t.sectionFeatures}</div>
+            <h2 className="font-bold tracking-tight whitespace-pre-line" style={{
+              fontFamily: 'Sora, sans-serif',
+              fontSize: 'clamp(28px, 4vw, 42px)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.025em',
+            }}>{t.featuresTitle}</h2>
+            <p className="text-base mt-3" style={{ color: 'var(--muted)', lineHeight: 1.65 }}>{t.featuresSub}</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { icon: <Zap className="h-[18px] w-[18px]" />, title: t.featureCreator, desc: t.featureCreatorDesc, lime: false },
+              { icon: <Eye className="h-[18px] w-[18px]" />, title: t.featurePreview, desc: t.featurePreviewDesc, lime: true },
+              { icon: <Lock className="h-[18px] w-[18px]" />, title: t.featureRoles, desc: t.featureRolesDesc, lime: false },
+              { icon: <Code className="h-[18px] w-[18px]" />, title: t.featureVersion, desc: t.featureVersionDesc, lime: true },
+              { icon: <FileText className="h-[18px] w-[18px]" />, title: t.featureExport, desc: t.featureExportDesc, lime: false },
+              { icon: <Languages className="h-[18px] w-[18px]" />, title: t.featureMultilang, desc: t.featureMultilangDesc, lime: true },
+            ].map((f, i) => (
+              <div key={i} className="rounded-[14px] p-7 transition-all hover:border-[rgba(124,58,237,0.3)]" style={{
+                background: 'var(--void-2)',
+                border: '1px solid var(--border-subtle)',
+              }}>
+                <div className="w-[42px] h-[42px] rounded-[10px] flex items-center justify-center mb-4.5" style={{
+                  background: f.lime ? 'var(--accent-bg)' : 'rgba(124,58,237,0.15)',
+                  border: f.lime ? '1px solid var(--accent-border)' : '1px solid rgba(124,58,237,0.25)',
+                  color: f.lime ? 'var(--accent)' : 'var(--primary-soft)',
+                }}>
+                  {f.icon}
                 </div>
-                <CardTitle>{t.featureCreator}</CardTitle>
-                <CardDescription>{t.featureCreatorDesc}</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Eye className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>{t.featurePreview}</CardTitle>
-                <CardDescription>{t.featurePreviewDesc}</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>{t.featureRoles}</CardTitle>
-                <CardDescription>{t.featureRolesDesc}</CardDescription>
-              </CardHeader>
-            </Card>
+                <div className="text-base font-semibold tracking-tight mb-2 mt-4" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>{f.title}</div>
+                <div className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>{f.desc}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Hero Image */}
-      <section className="py-16">
-        <div className="container">
-          <div className="rounded-xl overflow-hidden shadow-2xl max-w-4xl mx-auto">
-            <img
-              src="https://images.unsplash.com/photo-1730382625230-3756013c515c?w=1200&h=600&fit=crop"
-              alt="Career Building"
-              className="w-full h-64 md:h-96 object-cover"
-            />
+      {/* FOR WHO */}
+      <section className="relative z-10" style={{ padding: '80px 0' }}>
+        <div className="max-w-[1100px] mx-auto px-8">
+          <div className="mb-12">
+            <div className="text-[11px] font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--accent)' }}>{t.sectionWho}</div>
+            <h2 className="font-bold tracking-tight whitespace-pre-line" style={{
+              fontFamily: 'Sora, sans-serif',
+              fontSize: 'clamp(28px, 4vw, 42px)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.025em',
+            }}>{t.whoTitle}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* User persona */}
+            <div className="rounded-2xl p-9 relative overflow-hidden transition-all" style={{
+              background: 'var(--void-2)',
+              border: '1px solid var(--border-subtle)',
+              borderTop: '2px solid var(--primary)',
+            }}>
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider px-2.5 py-1 rounded inline-block mb-5" style={{
+                background: 'rgba(124,58,237,0.15)',
+                color: 'var(--primary-soft)',
+                border: '1px solid rgba(124,58,237,0.25)',
+              }}>{t.personaUserTag}</span>
+              <div className="text-2xl font-bold tracking-tight mb-3 whitespace-pre-line" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>{t.personaUserTitle}</div>
+              <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--muted)' }}>{t.personaUserDesc}</p>
+              <ul className="space-y-2.5">
+                {t.personaUserList.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-[13px]" style={{ color: '#9B8BC0' }}>
+                    <span className="font-mono text-xs mt-0.5 flex-shrink-0" style={{ color: 'var(--primary-soft)' }}>→</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Recruiter persona */}
+            <div className="rounded-2xl p-9 relative overflow-hidden transition-all" style={{
+              background: 'var(--void-2)',
+              border: '1px solid var(--border-subtle)',
+              borderTop: '2px solid var(--accent)',
+            }}>
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider px-2.5 py-1 rounded inline-block mb-5" style={{
+                background: 'var(--accent-bg)',
+                color: 'var(--accent)',
+                border: '1px solid var(--accent-border)',
+              }}>{t.personaRecTag}</span>
+              <div className="text-2xl font-bold tracking-tight mb-3 whitespace-pre-line" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>{t.personaRecTitle}</div>
+              <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--muted)' }}>{t.personaRecDesc}</p>
+              <ul className="space-y-2.5">
+                {t.personaRecList.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-[13px]" style={{ color: '#9B8BC0' }}>
+                    <span className="font-mono text-xs mt-0.5 flex-shrink-0" style={{ color: 'var(--accent)' }}>→</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="container text-center text-muted-foreground">
-          <p>&copy; 2025 CV Manager. All rights reserved.</p>
+      <footer className="relative z-10" style={{ borderTop: '1px solid var(--border-subtle)', padding: '40px 0' }}>
+        <div className="max-w-[1100px] mx-auto px-8 flex items-center justify-between">
+          <span className="text-[13px]" style={{ color: 'var(--muted-2)' }}>&copy; 2025 OpenCV Manager</span>
+          <LanguageSwitcher />
         </div>
       </footer>
     </div>
   );
 
   // ======================== AUTH FORMS ========================
+  const AuthWrapper = ({ children }) => (
+    <div className="min-h-screen relative">
+      <div className="fixed pointer-events-none" style={{ width: 500, height: 500, borderRadius: '50%', filter: 'blur(120px)', background: 'var(--orb-1)', top: -100, left: -100, zIndex: 0 }} />
+      <Navbar />
+      <div className="flex items-center justify-center px-4" style={{ minHeight: 'calc(100vh - 60px)' }}>
+        {children}
+      </div>
+    </div>
+  );
+
   const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="container flex items-center justify-center py-20">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{t.login}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {error && <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4" />{error}</div>}
-              <div className="space-y-2">
-                <Label>{t.email}</Label>
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t.password}</Label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} />
-              </div>
-              <Button className="w-full" onClick={() => { clearMessages(); handleLogin(email, password); }} disabled={loading}>
-                {loading ? t.loading : t.login}
-              </Button>
-              <div className="text-center text-sm space-y-2">
-                <button className="text-primary hover:underline" onClick={() => { clearMessages(); setView('reset-password'); }}>{t.forgotPassword}</button>
-                <p className="text-muted-foreground">{t.noAccount}{' '}
-                  <button className="text-primary hover:underline" onClick={() => { clearMessages(); setView('register'); }}>{t.register}</button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+      <AuthWrapper>
+        <div className="w-full max-w-md rounded-2xl p-8 relative z-10" style={{
+          background: 'var(--void-3)',
+          border: '1px solid var(--cv-border)',
+        }}>
+          <h2 className="text-2xl font-bold tracking-tight mb-6 text-center" style={{ fontFamily: 'Sora, sans-serif' }}>{t.login}</h2>
+          {error && <div className="flex items-center gap-2 p-3 rounded-lg mb-4 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.2)' }}><AlertCircle className="h-4 w-4" />{error}</div>}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: 'var(--muted)' }}>{t.email}</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com"
+                className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all focus:ring-1" style={{
+                  background: 'var(--void-2)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--cv-white)',
+                  ringColor: 'var(--primary)',
+                }} />
+            </div>
+            <div>
+              <label className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: 'var(--muted)' }}>{t.password}</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all focus:ring-1" style={{
+                  background: 'var(--void-2)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--cv-white)',
+                }} />
+            </div>
+            <button onClick={() => { clearMessages(); handleLogin(email, password); }} disabled={loading}
+              className="w-full py-3 rounded-lg text-sm font-semibold transition-all hover:-translate-y-0.5" style={{
+                background: 'var(--primary)',
+                color: '#fff',
+                fontFamily: 'Sora, sans-serif',
+              }}>
+              {loading ? t.loading : t.login}
+            </button>
+          </div>
+          <div className="text-center mt-4 space-y-2">
+            <button className="text-xs hover:underline" style={{ color: 'var(--primary-soft)' }} onClick={() => { clearMessages(); setView('reset-password'); }}>{t.forgotPassword}</button>
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>{t.noAccount}{' '}
+              <button className="hover:underline" style={{ color: 'var(--accent)' }} onClick={() => { clearMessages(); setView('register'); }}>{t.register}</button>
+            </p>
+          </div>
         </div>
-      </div>
+      </AuthWrapper>
     );
   };
 
@@ -601,37 +924,47 @@ export default function App() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="container flex items-center justify-center py-20">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{t.register}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {error && <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4" />{error}</div>}
-              <div className="space-y-2">
-                <Label>{t.name}</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t.email}</Label>
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t.password}</Label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} />
-              </div>
-              <Button className="w-full" onClick={() => { clearMessages(); handleRegister(name, email, password); }} disabled={loading}>
-                {loading ? t.loading : t.register}
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">{t.haveAccount}{' '}
-                <button className="text-primary hover:underline" onClick={() => { clearMessages(); setView('login'); }}>{t.login}</button>
-              </p>
-            </CardContent>
-          </Card>
+      <AuthWrapper>
+        <div className="w-full max-w-md rounded-2xl p-8 relative z-10" style={{
+          background: 'var(--void-3)',
+          border: '1px solid var(--cv-border)',
+        }}>
+          <h2 className="text-2xl font-bold tracking-tight mb-6 text-center" style={{ fontFamily: 'Sora, sans-serif' }}>{t.register}</h2>
+          {error && <div className="flex items-center gap-2 p-3 rounded-lg mb-4 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.2)' }}><AlertCircle className="h-4 w-4" />{error}</div>}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: 'var(--muted)' }}>{t.name}</label>
+              <input value={name} onChange={e => setName(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all" style={{
+                  background: 'var(--void-2)', border: '1px solid var(--border-subtle)', color: 'var(--cv-white)',
+                }} />
+            </div>
+            <div>
+              <label className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: 'var(--muted)' }}>{t.email}</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com"
+                className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all" style={{
+                  background: 'var(--void-2)', border: '1px solid var(--border-subtle)', color: 'var(--cv-white)',
+                }} />
+            </div>
+            <div>
+              <label className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: 'var(--muted)' }}>{t.password}</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all" style={{
+                  background: 'var(--void-2)', border: '1px solid var(--border-subtle)', color: 'var(--cv-white)',
+                }} />
+            </div>
+            <button onClick={() => { clearMessages(); handleRegister(name, email, password); }} disabled={loading}
+              className="w-full py-3 rounded-lg text-sm font-semibold transition-all hover:-translate-y-0.5" style={{
+                background: 'var(--primary)', color: '#fff', fontFamily: 'Sora, sans-serif',
+              }}>
+              {loading ? t.loading : t.register}
+            </button>
+          </div>
+          <p className="text-center mt-4 text-xs" style={{ color: 'var(--muted)' }}>{t.haveAccount}{' '}
+            <button className="hover:underline" style={{ color: 'var(--accent)' }} onClick={() => { clearMessages(); setView('login'); }}>{t.login}</button>
+          </p>
         </div>
-      </div>
+      </AuthWrapper>
     );
   };
 
@@ -639,112 +972,135 @@ export default function App() {
     const [email, setEmail] = useState('');
     const [newPwd, setNewPwd] = useState('');
     return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="container flex items-center justify-center py-20">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{t.resetPassword}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {error && <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm flex items-center gap-2"><AlertCircle className="h-4 w-4" />{error}</div>}
-              {success && <div className="p-3 bg-green-500/10 text-green-600 rounded-lg text-sm flex items-center gap-2"><CheckCircle className="h-4 w-4" />{success}</div>}
-              <div className="space-y-2">
-                <Label>{t.email}</Label>
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t.newPassword}</Label>
-                <Input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} />
-              </div>
-              <Button className="w-full" onClick={() => { clearMessages(); handleResetPassword(email, newPwd); }} disabled={loading}>
-                {loading ? t.loading : t.resetPassword}
-              </Button>
-              <p className="text-center text-sm">
-                <button className="text-primary hover:underline" onClick={() => { clearMessages(); setView('login'); }}>{t.backToLogin}</button>
-              </p>
-            </CardContent>
-          </Card>
+      <AuthWrapper>
+        <div className="w-full max-w-md rounded-2xl p-8 relative z-10" style={{
+          background: 'var(--void-3)',
+          border: '1px solid var(--cv-border)',
+        }}>
+          <h2 className="text-2xl font-bold tracking-tight mb-6 text-center" style={{ fontFamily: 'Sora, sans-serif' }}>{t.resetPassword}</h2>
+          {error && <div className="flex items-center gap-2 p-3 rounded-lg mb-4 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5' }}><AlertCircle className="h-4 w-4" />{error}</div>}
+          {success && <div className="flex items-center gap-2 p-3 rounded-lg mb-4 text-sm" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}><CheckCircle className="h-4 w-4" />{success}</div>}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: 'var(--muted)' }}>{t.email}</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com"
+                className="w-full px-4 py-3 rounded-lg text-sm outline-none" style={{
+                  background: 'var(--void-2)', border: '1px solid var(--border-subtle)', color: 'var(--cv-white)',
+                }} />
+            </div>
+            <div>
+              <label className="text-xs font-mono uppercase tracking-wider mb-2 block" style={{ color: 'var(--muted)' }}>{t.newPassword}</label>
+              <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg text-sm outline-none" style={{
+                  background: 'var(--void-2)', border: '1px solid var(--border-subtle)', color: 'var(--cv-white)',
+                }} />
+            </div>
+            <button onClick={() => { clearMessages(); handleResetPassword(email, newPwd); }} disabled={loading}
+              className="w-full py-3 rounded-lg text-sm font-semibold transition-all" style={{ background: 'var(--primary)', color: '#fff', fontFamily: 'Sora, sans-serif' }}>
+              {loading ? t.loading : t.resetPassword}
+            </button>
+          </div>
+          <p className="text-center mt-4 text-xs">
+            <button className="hover:underline" style={{ color: 'var(--primary-soft)' }} onClick={() => { clearMessages(); setView('login'); }}>{t.backToLogin}</button>
+          </p>
         </div>
-      </div>
+      </AuthWrapper>
     );
   };
 
   // ======================== DASHBOARD ========================
   const Dashboard = () => (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen relative">
+      <div className="fixed pointer-events-none" style={{ width: 500, height: 500, borderRadius: '50%', filter: 'blur(120px)', background: 'var(--orb-1)', top: -100, right: -100, zIndex: 0 }} />
       <Navbar />
-      <div className="container py-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-[1100px] mx-auto px-8 py-10 relative z-10">
+        <div className="flex items-center justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-bold">{t.dashboard}</h1>
-            <p className="text-muted-foreground">{t.myCvs} ({cvs.length})</p>
+            <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.dashboard}</h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{t.myCvs} ({cvs.length})</p>
           </div>
-          <Button onClick={() => { setEditCvId(null); setCurrentCv(null); setView('cv-creator'); }}>
-            <Plus className="h-4 w-4 mr-2" />
+          <button onClick={() => { setEditCvId(null); setCurrentCv(null); setView('cv-creator'); }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all hover:-translate-y-0.5" style={{
+              background: 'var(--primary)', color: '#fff', fontFamily: 'Sora, sans-serif',
+            }}>
+            <Plus className="h-4 w-4" />
             {t.createNew}
-          </Button>
+          </button>
         </div>
 
-        {error && <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-lg text-sm">{error}</div>}
+        {error && <div className="flex items-center gap-2 p-3 rounded-lg mb-6 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5' }}><AlertCircle className="h-4 w-4" />{error}</div>}
 
         {cvs.length === 0 ? (
-          <Card className="p-12 text-center">
-            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground text-lg">{t.noCvs}</p>
-            <Button className="mt-4" onClick={() => { setEditCvId(null); setCurrentCv(null); setView('cv-creator'); }}>
-              <Plus className="h-4 w-4 mr-2" />
+          <div className="rounded-2xl p-16 text-center" style={{ background: 'var(--void-2)', border: '1px solid var(--border-subtle)' }}>
+            <FileText className="h-16 w-16 mx-auto mb-4" style={{ color: 'var(--muted-2)' }} />
+            <p className="text-lg mb-4" style={{ color: 'var(--muted)' }}>{t.noCvs}</p>
+            <button onClick={() => { setEditCvId(null); setCurrentCv(null); setView('cv-creator'); }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold" style={{ background: 'var(--primary)', color: '#fff', fontFamily: 'Sora, sans-serif' }}>
+              <Plus className="h-4 w-4" />
               {t.createNew}
-            </Button>
-          </Card>
+            </button>
+          </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {cvs.map(cv => (
-              <Card key={cv.id} className="hover:shadow-lg transition-shadow group">
-                <CardHeader className="pb-3">
-                  {/* Mini preview */}
-                  <div className="h-40 bg-white rounded-lg border mb-3 p-3 overflow-hidden text-xs relative">
-                    <div className="font-bold text-sm text-gray-800">
-                      {cv.data?.personalInfo?.firstName} {cv.data?.personalInfo?.lastName}
-                    </div>
-                    <div className="text-gray-500 text-[10px] mt-1">{cv.data?.personalInfo?.email}</div>
-                    {cv.data?.personalInfo?.summary && (
-                      <div className="text-gray-600 text-[10px] mt-2 line-clamp-2">{cv.data.personalInfo.summary}</div>
-                    )}
-                    {cv.data?.experience?.length > 0 && (
-                      <div className="mt-2">
-                        <div className="font-semibold text-[10px] text-gray-700">{t.experience}</div>
-                        {cv.data.experience.slice(0, 2).map((exp, i) => (
-                          <div key={i} className="text-[9px] text-gray-500">{exp.position} - {exp.company}</div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent" />
+              <div key={cv.id} className="rounded-[14px] overflow-hidden transition-all hover:border-[rgba(124,58,237,0.3)] group" style={{
+                background: 'var(--void-2)',
+                border: '1px solid var(--border-subtle)',
+              }}>
+                {/* Mini Preview */}
+                <div className="p-4 mx-4 mt-4 rounded-lg overflow-hidden relative" style={{ background: 'var(--void-3)', border: '1px solid var(--border-subtle)', height: 140 }}>
+                  <div className="text-sm font-bold" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>
+                    {cv.data?.personalInfo?.firstName} {cv.data?.personalInfo?.lastName}
                   </div>
-                  <CardTitle className="text-lg">{cv.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-1">
+                  <div className="text-[10px] mt-1 font-mono" style={{ color: 'var(--primary-soft)' }}>{cv.data?.personalInfo?.email}</div>
+                  {cv.data?.personalInfo?.summary && <div className="text-[10px] mt-2 line-clamp-2" style={{ color: 'var(--muted)' }}>{cv.data.personalInfo.summary}</div>}
+                  {cv.data?.skills?.length > 0 && (
+                    <div className="flex gap-1 flex-wrap mt-2">
+                      {cv.data.skills.slice(0, 4).map((s, i) => (
+                        <span key={i} className="text-[9px] px-1.5 py-0.5 rounded font-mono" style={{
+                          background: 'var(--cv-border)',
+                          color: 'var(--primary-pale)',
+                        }}>{s}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 h-8" style={{ background: 'linear-gradient(transparent, var(--void-3))' }} />
+                </div>
+
+                <div className="p-4">
+                  <div className="font-semibold tracking-tight" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>{cv.title}</div>
+                  <div className="text-[11px] mt-1 flex items-center gap-1 font-mono" style={{ color: 'var(--muted)' }}>
                     <Calendar className="h-3 w-3" />
-                    {t.lastUpdated}: {new Date(cv.updatedAt).toLocaleDateString(lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : 'en-US')}
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => { setCurrentCv(cv); setView('cv-preview'); }}>
-                    <Eye className="h-3 w-3 mr-1" />
-                    {t.preview}
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => {
-                    setEditCvId(cv.id);
-                    setCurrentCv(cv);
-                    setView('cv-creator');
-                  }}>
-                    <Edit className="h-3 w-3 mr-1" />
-                    {t.edit}
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDeleteCv(cv.id)}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </CardFooter>
-              </Card>
+                    {new Date(cv.updatedAt).toLocaleDateString(lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : 'en-US')}
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button onClick={() => { setCurrentCv(cv); setView('cv-preview'); }}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{
+                        background: 'transparent',
+                        border: '1px solid var(--cv-border)',
+                        color: 'var(--primary-soft)',
+                      }}>
+                      <Eye className="h-3 w-3" />{t.preview}
+                    </button>
+                    <button onClick={() => { setEditCvId(cv.id); setCurrentCv(cv); setView('cv-creator'); }}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{
+                        background: 'transparent',
+                        border: '1px solid var(--cv-border)',
+                        color: 'var(--primary-soft)',
+                      }}>
+                      <Edit className="h-3 w-3" />{t.edit}
+                    </button>
+                    <button onClick={() => handleDeleteCv(cv.id)}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{
+                        background: 'rgba(239,68,68,0.1)',
+                        border: '1px solid rgba(239,68,68,0.2)',
+                        color: '#FCA5A5',
+                      }}>
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -763,321 +1119,229 @@ export default function App() {
     const updatePersonalInfo = (field, value) => {
       setFormData(prev => ({ ...prev, personalInfo: { ...prev.personalInfo, [field]: value } }));
     };
-
     const addExperience = () => {
-      setFormData(prev => ({
-        ...prev,
-        experience: [...prev.experience, { company: '', position: '', startDate: '', endDate: '', description: '' }]
-      }));
+      setFormData(prev => ({ ...prev, experience: [...prev.experience, { company: '', position: '', startDate: '', endDate: '', description: '' }] }));
     };
-
     const updateExperience = (index, field, value) => {
-      setFormData(prev => {
-        const exp = [...prev.experience];
-        exp[index] = { ...exp[index], [field]: value };
-        return { ...prev, experience: exp };
-      });
+      setFormData(prev => { const exp = [...prev.experience]; exp[index] = { ...exp[index], [field]: value }; return { ...prev, experience: exp }; });
     };
-
     const removeExperience = (index) => {
       setFormData(prev => ({ ...prev, experience: prev.experience.filter((_, i) => i !== index) }));
     };
-
     const addEducation = () => {
-      setFormData(prev => ({
-        ...prev,
-        education: [...prev.education, { school: '', degree: '', startDate: '', endDate: '' }]
-      }));
+      setFormData(prev => ({ ...prev, education: [...prev.education, { school: '', degree: '', startDate: '', endDate: '' }] }));
     };
-
     const updateEducation = (index, field, value) => {
-      setFormData(prev => {
-        const edu = [...prev.education];
-        edu[index] = { ...edu[index], [field]: value };
-        return { ...prev, education: edu };
-      });
+      setFormData(prev => { const edu = [...prev.education]; edu[index] = { ...edu[index], [field]: value }; return { ...prev, education: edu }; });
     };
-
     const removeEducation = (index) => {
       setFormData(prev => ({ ...prev, education: prev.education.filter((_, i) => i !== index) }));
     };
-
     const addSkill = () => {
-      if (newSkill.trim()) {
-        setFormData(prev => ({ ...prev, skills: [...prev.skills, newSkill.trim()] }));
-        setNewSkill('');
-      }
+      if (newSkill.trim()) { setFormData(prev => ({ ...prev, skills: [...prev.skills, newSkill.trim()] })); setNewSkill(''); }
     };
-
     const removeSkill = (index) => {
       setFormData(prev => ({ ...prev, skills: prev.skills.filter((_, i) => i !== index) }));
     };
-
     const addLanguage = () => {
-      setFormData(prev => ({
-        ...prev,
-        languages: [...prev.languages, { language: '', level: '' }]
-      }));
+      setFormData(prev => ({ ...prev, languages: [...prev.languages, { language: '', level: '' }] }));
     };
-
     const updateLanguage = (index, field, value) => {
-      setFormData(prev => {
-        const langs = [...prev.languages];
-        langs[index] = { ...langs[index], [field]: value };
-        return { ...prev, languages: langs };
-      });
+      setFormData(prev => { const langs = [...prev.languages]; langs[index] = { ...langs[index], [field]: value }; return { ...prev, languages: langs }; });
     };
-
     const removeLanguage = (index) => {
       setFormData(prev => ({ ...prev, languages: prev.languages.filter((_, i) => i !== index) }));
     };
 
     const yamlOutput = yaml.dump(formData, { lineWidth: -1, noRefs: true });
 
+    const inputStyle = { background: 'var(--void-2)', border: '1px solid var(--border-subtle)', color: 'var(--cv-white)' };
+    const labelStyle = { color: 'var(--muted)', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.05em' };
+    const sectionCard = { background: 'var(--void-3)', border: '1px solid var(--cv-border)', borderRadius: '14px' };
+
     return (
-      <div className="min-h-screen bg-muted/20">
+      <div className="min-h-screen relative">
         <Navbar />
-        <div className="container py-8">
+        <div className="max-w-[1400px] mx-auto px-8 py-10 relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" onClick={() => setView('dashboard')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t.back}
-            </Button>
-            <h1 className="text-3xl font-bold">{t.cvCreator}</h1>
+            <button onClick={() => setView('dashboard')} className="flex items-center gap-2 text-sm transition-all" style={{ color: 'var(--muted)' }}>
+              <ArrowLeft className="h-4 w-4" />{t.back}
+            </button>
+            <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.cvCreator}</h1>
           </div>
 
-          {error && <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-lg text-sm">{error}</div>}
+          {error && <div className="flex items-center gap-2 p-3 rounded-lg mb-6 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5' }}><AlertCircle className="h-4 w-4" />{error}</div>}
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Form */}
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* Title */}
-              <Card>
-                <CardContent className="pt-6">
-                  <Label className="text-base font-semibold">{t.cvTitle}</Label>
-                  <Input className="mt-2" value={title} onChange={e => setTitle(e.target.value)} placeholder="Moje CV 2025" />
-                </CardContent>
-              </Card>
+              <div className="p-5 rounded-[14px]" style={sectionCard}>
+                <label style={labelStyle}>{t.cvTitle}</label>
+                <input className="w-full px-4 py-3 rounded-lg text-sm outline-none mt-2" style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="Moje CV 2025" />
+              </div>
 
               {/* Personal Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    {t.personalInfo}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>{t.firstName}</Label>
-                      <Input value={formData.personalInfo.firstName} onChange={e => updatePersonalInfo('firstName', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t.lastName}</Label>
-                      <Input value={formData.personalInfo.lastName} onChange={e => updatePersonalInfo('lastName', e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t.email}</Label>
-                    <Input type="email" value={formData.personalInfo.email} onChange={e => updatePersonalInfo('email', e.target.value)} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>{t.phone}</Label>
-                      <Input value={formData.personalInfo.phone} onChange={e => updatePersonalInfo('phone', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t.address}</Label>
-                      <Input value={formData.personalInfo.address} onChange={e => updatePersonalInfo('address', e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t.summary}</Label>
-                    <Textarea rows={3} value={formData.personalInfo.summary} onChange={e => updatePersonalInfo('summary', e.target.value)} />
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="p-5 rounded-[14px]" style={sectionCard}>
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="h-4 w-4" style={{ color: 'var(--primary-soft)' }} />
+                  <span className="font-semibold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.personalInfo}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label style={labelStyle}>{t.firstName}</label><input className="w-full px-3 py-2.5 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={formData.personalInfo.firstName} onChange={e => updatePersonalInfo('firstName', e.target.value)} /></div>
+                  <div><label style={labelStyle}>{t.lastName}</label><input className="w-full px-3 py-2.5 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={formData.personalInfo.lastName} onChange={e => updatePersonalInfo('lastName', e.target.value)} /></div>
+                </div>
+                <div className="mt-3"><label style={labelStyle}>{t.email}</label><input type="email" className="w-full px-3 py-2.5 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={formData.personalInfo.email} onChange={e => updatePersonalInfo('email', e.target.value)} /></div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div><label style={labelStyle}>{t.phone}</label><input className="w-full px-3 py-2.5 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={formData.personalInfo.phone} onChange={e => updatePersonalInfo('phone', e.target.value)} /></div>
+                  <div><label style={labelStyle}>{t.address}</label><input className="w-full px-3 py-2.5 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={formData.personalInfo.address} onChange={e => updatePersonalInfo('address', e.target.value)} /></div>
+                </div>
+                <div className="mt-3"><label style={labelStyle}>{t.summary}</label><textarea rows={3} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none mt-1 resize-none" style={inputStyle} value={formData.personalInfo.summary} onChange={e => updatePersonalInfo('summary', e.target.value)} /></div>
+              </div>
 
               {/* Experience */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Briefcase className="h-5 w-5" />
-                    {t.experience}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {formData.experience.map((exp, index) => (
-                    <div key={index} className="p-4 border rounded-lg space-y-3 relative">
-                      <Button size="sm" variant="destructive" className="absolute top-2 right-2 h-7 w-7 p-0" onClick={() => removeExperience(index)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.company}</Label>
-                          <Input value={exp.company} onChange={e => updateExperience(index, 'company', e.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.position}</Label>
-                          <Input value={exp.position} onChange={e => updateExperience(index, 'position', e.target.value)} />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.startDate}</Label>
-                          <Input type="date" value={exp.startDate} onChange={e => updateExperience(index, 'startDate', e.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.endDate}</Label>
-                          <Input type="date" value={exp.endDate} onChange={e => updateExperience(index, 'endDate', e.target.value)} />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">{t.description}</Label>
-                        <Textarea rows={2} value={exp.description} onChange={e => updateExperience(index, 'description', e.target.value)} />
-                      </div>
+              <div className="p-5 rounded-[14px]" style={sectionCard}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Briefcase className="h-4 w-4" style={{ color: 'var(--primary-soft)' }} />
+                  <span className="font-semibold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.experience}</span>
+                </div>
+                {formData.experience.map((exp, index) => (
+                  <div key={index} className="p-4 rounded-lg mb-3 relative" style={{ background: 'var(--void-2)', border: '1px solid var(--border-subtle)' }}>
+                    <button className="absolute top-2 right-2 p-1.5 rounded" style={{ color: '#FCA5A5' }} onClick={() => removeExperience(index)}><Trash2 className="h-3 w-3" /></button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><label style={labelStyle}>{t.company}</label><input className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={exp.company} onChange={e => updateExperience(index, 'company', e.target.value)} /></div>
+                      <div><label style={labelStyle}>{t.position}</label><input className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={exp.position} onChange={e => updateExperience(index, 'position', e.target.value)} /></div>
                     </div>
-                  ))}
-                  <Button variant="outline" className="w-full" onClick={addExperience}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t.addExperience}
-                  </Button>
-                </CardContent>
-              </Card>
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div><label style={labelStyle}>{t.startDate}</label><input type="date" className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={exp.startDate} onChange={e => updateExperience(index, 'startDate', e.target.value)} /></div>
+                      <div><label style={labelStyle}>{t.endDate}</label><input type="date" className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={exp.endDate} onChange={e => updateExperience(index, 'endDate', e.target.value)} /></div>
+                    </div>
+                    <div className="mt-2"><label style={labelStyle}>{t.description}</label><textarea rows={2} className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1 resize-none" style={inputStyle} value={exp.description} onChange={e => updateExperience(index, 'description', e.target.value)} /></div>
+                  </div>
+                ))}
+                <button onClick={addExperience} className="w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all" style={{
+                  background: 'transparent', border: '1px solid var(--cv-border)', color: 'var(--primary-soft)',
+                }}>
+                  <Plus className="h-4 w-4" />{t.addExperience}
+                </button>
+              </div>
 
               {/* Education */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
-                    {t.education}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {formData.education.map((edu, index) => (
-                    <div key={index} className="p-4 border rounded-lg space-y-3 relative">
-                      <Button size="sm" variant="destructive" className="absolute top-2 right-2 h-7 w-7 p-0" onClick={() => removeEducation(index)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.school}</Label>
-                          <Input value={edu.school} onChange={e => updateEducation(index, 'school', e.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.degree}</Label>
-                          <Input value={edu.degree} onChange={e => updateEducation(index, 'degree', e.target.value)} />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.startDate}</Label>
-                          <Input type="date" value={edu.startDate} onChange={e => updateEducation(index, 'startDate', e.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">{t.endDate}</Label>
-                          <Input type="date" value={edu.endDate} onChange={e => updateEducation(index, 'endDate', e.target.value)} />
-                        </div>
-                      </div>
+              <div className="p-5 rounded-[14px]" style={sectionCard}>
+                <div className="flex items-center gap-2 mb-4">
+                  <GraduationCap className="h-4 w-4" style={{ color: 'var(--primary-soft)' }} />
+                  <span className="font-semibold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.education}</span>
+                </div>
+                {formData.education.map((edu, index) => (
+                  <div key={index} className="p-4 rounded-lg mb-3 relative" style={{ background: 'var(--void-2)', border: '1px solid var(--border-subtle)' }}>
+                    <button className="absolute top-2 right-2 p-1.5 rounded" style={{ color: '#FCA5A5' }} onClick={() => removeEducation(index)}><Trash2 className="h-3 w-3" /></button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><label style={labelStyle}>{t.school}</label><input className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={edu.school} onChange={e => updateEducation(index, 'school', e.target.value)} /></div>
+                      <div><label style={labelStyle}>{t.degree}</label><input className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={edu.degree} onChange={e => updateEducation(index, 'degree', e.target.value)} /></div>
                     </div>
-                  ))}
-                  <Button variant="outline" className="w-full" onClick={addEducation}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t.addEducation}
-                  </Button>
-                </CardContent>
-              </Card>
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div><label style={labelStyle}>{t.startDate}</label><input type="date" className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={edu.startDate} onChange={e => updateEducation(index, 'startDate', e.target.value)} /></div>
+                      <div><label style={labelStyle}>{t.endDate}</label><input type="date" className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={edu.endDate} onChange={e => updateEducation(index, 'endDate', e.target.value)} /></div>
+                    </div>
+                  </div>
+                ))}
+                <button onClick={addEducation} className="w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all" style={{
+                  background: 'transparent', border: '1px solid var(--cv-border)', color: 'var(--primary-soft)',
+                }}>
+                  <Plus className="h-4 w-4" />{t.addEducation}
+                </button>
+              </div>
 
               {/* Skills */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5" />
-                    {t.skills}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {formData.skills.map((skill, index) => (
-                      <Badge key={index} variant="secondary" className="gap-1 pr-1">
-                        {skill}
-                        <button className="ml-1 hover:text-destructive" onClick={() => removeSkill(index)}>×</button>
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input value={newSkill} onChange={e => setNewSkill(e.target.value)} placeholder={t.skillPlaceholder}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }}
-                    />
-                    <Button variant="outline" onClick={addSkill}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="p-5 rounded-[14px]" style={sectionCard}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Star className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+                  <span className="font-semibold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.skills}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {formData.skills.map((skill, index) => (
+                    <span key={index} className="text-[11px] px-2.5 py-1 rounded font-mono font-medium flex items-center gap-1" style={{
+                      background: 'var(--cv-border)', color: 'var(--primary-pale)', border: '1px solid var(--cv-border)',
+                    }}>
+                      {skill}
+                      <button className="ml-0.5 hover:opacity-70" onClick={() => removeSkill(index)}>×</button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input className="flex-1 px-3 py-2.5 rounded-lg text-sm outline-none" style={inputStyle} value={newSkill} onChange={e => setNewSkill(e.target.value)} placeholder={t.skillPlaceholder}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }} />
+                  <button onClick={addSkill} className="px-3 rounded-lg transition-all" style={{ border: '1px solid var(--cv-border)', color: 'var(--primary-soft)' }}>
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
 
               {/* Languages */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Languages className="h-5 w-5" />
-                    {t.languages}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {formData.languages.map((lng, index) => (
-                    <div key={index} className="flex gap-3 items-end">
-                      <div className="flex-1 space-y-1">
-                        <Label className="text-xs">{t.language}</Label>
-                        <Input value={lng.language} onChange={e => updateLanguage(index, 'language', e.target.value)} />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <Label className="text-xs">{t.level}</Label>
-                        <Input value={lng.level} onChange={e => updateLanguage(index, 'level', e.target.value)} placeholder="A1-C2" />
-                      </div>
-                      <Button size="sm" variant="destructive" className="h-9 w-9 p-0" onClick={() => removeLanguage(index)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button variant="outline" className="w-full" onClick={addLanguage}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t.addLanguage}
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="p-5 rounded-[14px]" style={sectionCard}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Languages className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+                  <span className="font-semibold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.languages}</span>
+                </div>
+                {formData.languages.map((lng, index) => (
+                  <div key={index} className="flex gap-3 items-end mb-3">
+                    <div className="flex-1"><label style={labelStyle}>{t.language}</label><input className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={lng.language} onChange={e => updateLanguage(index, 'language', e.target.value)} /></div>
+                    <div className="flex-1"><label style={labelStyle}>{t.level}</label><input className="w-full px-3 py-2 rounded-lg text-sm outline-none mt-1" style={inputStyle} value={lng.level} onChange={e => updateLanguage(index, 'level', e.target.value)} placeholder="A1-C2" /></div>
+                    <button className="p-2 rounded-lg mb-0.5" style={{ color: '#FCA5A5' }} onClick={() => removeLanguage(index)}><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                ))}
+                <button onClick={addLanguage} className="w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all" style={{
+                  background: 'transparent', border: '1px solid var(--cv-border)', color: 'var(--primary-soft)',
+                }}>
+                  <Plus className="h-4 w-4" />{t.addLanguage}
+                </button>
+              </div>
 
               {/* Save */}
-              <Button size="lg" className="w-full" onClick={() => handleSaveCv(title, formData)} disabled={loading || !title.trim()}>
+              <button onClick={() => handleSaveCv(title, formData)} disabled={loading || !title.trim()}
+                className="w-full py-3.5 rounded-[10px] text-sm font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-50" style={{
+                  background: 'var(--primary)', color: '#fff', fontFamily: 'Sora, sans-serif',
+                }}>
                 {loading ? t.loading : t.save}
-              </Button>
+              </button>
             </div>
 
             {/* Preview Panel */}
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="flex gap-2">
-                <Button variant={showYaml ? 'outline' : 'default'} onClick={() => setShowYaml(false)}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  {t.cvPreview}
-                </Button>
-                <Button variant={showYaml ? 'default' : 'outline'} onClick={() => setShowYaml(true)}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  {t.yamlPreview}
-                </Button>
+                <button onClick={() => setShowYaml(false)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style={{
+                  background: !showYaml ? 'var(--primary)' : 'transparent',
+                  border: !showYaml ? 'none' : '1px solid var(--cv-border)',
+                  color: !showYaml ? '#fff' : 'var(--primary-soft)',
+                }}>
+                  <Eye className="h-4 w-4" />{t.cvPreview}
+                </button>
+                <button onClick={() => setShowYaml(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style={{
+                  background: showYaml ? 'var(--primary)' : 'transparent',
+                  border: showYaml ? 'none' : '1px solid var(--cv-border)',
+                  color: showYaml ? '#fff' : 'var(--primary-soft)',
+                }}>
+                  <Code className="h-4 w-4" />{t.yamlPreview}
+                </button>
               </div>
 
-              {showYaml ? (
-                <Card>
-                  <CardContent className="pt-6">
+              <div className="sticky top-[76px]">
+                {showYaml ? (
+                  <div className="rounded-[14px] overflow-hidden" style={{ background: 'var(--void-3)', border: '1px solid var(--cv-border)' }}>
+                    <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--cv-border)', background: 'rgba(0,0,0,0.15)' }}>
+                      <span className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+                      <span className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
+                      <span className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
+                      <span className="text-xs font-mono ml-1" style={{ color: 'var(--muted)' }}>cv.yaml</span>
+                    </div>
                     <ScrollArea className="h-[700px]">
-                      <pre className="text-xs font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap">{yamlOutput}</pre>
+                      <pre className="p-5 font-mono text-[13px] leading-[1.9] whitespace-pre-wrap" style={{ color: '#C4B5FD' }}>{yamlOutput}</pre>
                     </ScrollArea>
-                  </CardContent>
-                </Card>
-              ) : (
-                <CvPreviewRender data={formData} />
-              )}
+                  </div>
+                ) : (
+                  <CvPreviewRender data={formData} />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1090,112 +1354,96 @@ export default function App() {
     if (!data) return null;
     const pi = data.personalInfo || {};
     return (
-      <Card className="shadow-xl">
-        <CardContent className="p-0">
-          <div className="bg-white text-black" style={{ fontFamily: 'Georgia, serif' }}>
-            {/* Header */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white p-8">
-              <h1 className="text-3xl font-bold">{pi.firstName} {pi.lastName}</h1>
-              <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-300">
-                {pi.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{pi.email}</span>}
-                {pi.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{pi.phone}</span>}
-                {pi.address && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{pi.address}</span>}
-              </div>
-            </div>
-
-            <div className="p-8 space-y-6">
-              {/* Summary */}
-              {pi.summary && (
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 border-b-2 border-slate-300 pb-1 mb-3">{t.summary}</h2>
-                  <p className="text-sm text-slate-600 leading-relaxed">{pi.summary}</p>
-                </div>
-              )}
-
-              {/* Experience */}
-              {data.experience?.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 border-b-2 border-slate-300 pb-1 mb-3 flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    {t.experience}
-                  </h2>
-                  <div className="space-y-4">
-                    {data.experience.map((exp, i) => (
-                      <div key={i}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold text-slate-800">{exp.position}</h3>
-                            <p className="text-sm text-primary">{exp.company}</p>
-                          </div>
-                          <span className="text-xs text-slate-500 flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {exp.startDate} - {exp.endDate || t.present}
-                          </span>
-                        </div>
-                        {exp.description && <p className="text-sm text-slate-600 mt-1">{exp.description}</p>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Education */}
-              {data.education?.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 border-b-2 border-slate-300 pb-1 mb-3 flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4" />
-                    {t.education}
-                  </h2>
-                  <div className="space-y-3">
-                    {data.education.map((edu, i) => (
-                      <div key={i} className="flex justify-between">
-                        <div>
-                          <h3 className="font-semibold text-slate-800">{edu.degree}</h3>
-                          <p className="text-sm text-primary">{edu.school}</p>
-                        </div>
-                        <span className="text-xs text-slate-500">{edu.startDate} - {edu.endDate || t.present}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Skills */}
-              {data.skills?.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 border-b-2 border-slate-300 pb-1 mb-3 flex items-center gap-2">
-                    <Star className="h-4 w-4" />
-                    {t.skills}
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {data.skills.map((skill, i) => (
-                      <span key={i} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm">{skill}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Languages */}
-              {data.languages?.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 border-b-2 border-slate-300 pb-1 mb-3 flex items-center gap-2">
-                    <Languages className="h-4 w-4" />
-                    {t.languages}
-                  </h2>
-                  <div className="space-y-2">
-                    {data.languages.map((lng, i) => (
-                      <div key={i} className="flex justify-between text-sm">
-                        <span className="text-slate-700">{lng.language}</span>
-                        <Badge variant="outline">{lng.level}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+      <div className="rounded-[14px] overflow-hidden" style={{ background: 'var(--void-3)', border: '1px solid var(--cv-border)' }}>
+        <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--cv-border)', background: 'rgba(0,0,0,0.15)' }}>
+          <span className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+          <span className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
+          <span className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
+          <span className="text-xs font-mono ml-1" style={{ color: 'var(--muted)' }}>{t.generatedCv}</span>
+          <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded" style={{
+            background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid var(--accent-border)',
+          }}>{t.livePreview}</span>
+        </div>
+        <div className="p-6">
+          {/* Name */}
+          <div className="text-[22px] font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>
+            {pi.firstName} {pi.lastName}
           </div>
-        </CardContent>
-      </Card>
+          {/* Contact */}
+          <div className="flex flex-wrap gap-3 mt-2 text-[12px]" style={{ color: 'var(--primary-soft)' }}>
+            {pi.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{pi.email}</span>}
+            {pi.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{pi.phone}</span>}
+            {pi.address && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{pi.address}</span>}
+          </div>
+
+          {/* Skills tags */}
+          {data.skills?.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap mt-4">
+              {data.skills.map((skill, i) => (
+                <span key={i} className="text-[11px] px-2.5 py-0.5 rounded font-mono font-medium" style={{
+                  background: 'var(--cv-border)', color: 'var(--primary-pale)', border: '1px solid var(--cv-border)',
+                }}>{skill}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Summary */}
+          {pi.summary && (
+            <>
+              <div className="h-px my-4" style={{ background: 'var(--border-subtle)' }} />
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>{pi.summary}</p>
+            </>
+          )}
+
+          {/* Experience */}
+          {data.experience?.length > 0 && (
+            <>
+              <div className="h-px my-4" style={{ background: 'var(--border-subtle)' }} />
+              <div className="text-[10px] font-semibold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>{t.experience}</div>
+              {data.experience.map((exp, i) => (
+                <div key={i} className="mb-3">
+                  <div className="text-[13px] font-medium" style={{ color: 'var(--cv-white)' }}>{exp.position} — {exp.company}</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>{exp.startDate} → {exp.endDate || t.present}</div>
+                  {exp.description && <div className="text-[12px] mt-1" style={{ color: 'var(--muted)' }}>{exp.description}</div>}
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Education */}
+          {data.education?.length > 0 && (
+            <>
+              <div className="h-px my-4" style={{ background: 'var(--border-subtle)' }} />
+              <div className="text-[10px] font-semibold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>{t.education}</div>
+              {data.education.map((edu, i) => (
+                <div key={i} className="mb-3">
+                  <div className="text-[13px] font-medium" style={{ color: 'var(--cv-white)' }}>{edu.degree}</div>
+                  <div className="text-[12px]" style={{ color: 'var(--primary-soft)' }}>{edu.school}</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>{edu.startDate} → {edu.endDate || t.present}</div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Languages */}
+          {data.languages?.length > 0 && (
+            <>
+              <div className="h-px my-4" style={{ background: 'var(--border-subtle)' }} />
+              <div className="text-[10px] font-semibold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>{t.languages}</div>
+              <div className="space-y-1.5">
+                {data.languages.map((lng, i) => (
+                  <div key={i} className="flex justify-between items-center text-[13px]">
+                    <span style={{ color: 'var(--cv-white)' }}>{lng.language}</span>
+                    <span className="text-[11px] px-2 py-0.5 rounded font-mono" style={{
+                      background: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid var(--accent-border)',
+                    }}>{lng.level}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     );
   };
 
@@ -1205,40 +1453,38 @@ export default function App() {
     if (!currentCv) return null;
     const yamlOutput = yaml.dump(currentCv.data, { lineWidth: -1, noRefs: true });
     return (
-      <div className="min-h-screen bg-muted/20">
+      <div className="min-h-screen relative">
         <Navbar />
-        <div className="container py-8">
+        <div className="max-w-[900px] mx-auto px-8 py-10 relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" onClick={() => setView('dashboard')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t.back}
-            </Button>
-            <h1 className="text-3xl font-bold">{currentCv.title}</h1>
+            <button onClick={() => setView('dashboard')} className="flex items-center gap-2 text-sm" style={{ color: 'var(--muted)' }}>
+              <ArrowLeft className="h-4 w-4" />{t.back}
+            </button>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{currentCv.title}</h1>
             <div className="ml-auto flex gap-2">
-              <Button variant={showYaml ? 'outline' : 'default'} size="sm" onClick={() => setShowYaml(false)}>
-                <Eye className="h-4 w-4 mr-1" />
-                {t.cvPreview}
-              </Button>
-              <Button variant={showYaml ? 'default' : 'outline'} size="sm" onClick={() => setShowYaml(true)}>
-                <FileText className="h-4 w-4 mr-1" />
-                {t.yamlPreview}
-              </Button>
+              <button onClick={() => setShowYaml(false)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium" style={{
+                background: !showYaml ? 'var(--primary)' : 'transparent', border: !showYaml ? 'none' : '1px solid var(--cv-border)', color: !showYaml ? '#fff' : 'var(--primary-soft)',
+              }}><Eye className="h-3 w-3" />{t.cvPreview}</button>
+              <button onClick={() => setShowYaml(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium" style={{
+                background: showYaml ? 'var(--primary)' : 'transparent', border: showYaml ? 'none' : '1px solid var(--cv-border)', color: showYaml ? '#fff' : 'var(--primary-soft)',
+              }}><Code className="h-3 w-3" />{t.yamlPreview}</button>
             </div>
           </div>
-
-          <div className="max-w-3xl mx-auto">
-            {showYaml ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <ScrollArea className="h-[700px]">
-                    <pre className="text-xs font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap">{yamlOutput}</pre>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            ) : (
-              <CvPreviewRender data={currentCv.data} />
-            )}
-          </div>
+          {showYaml ? (
+            <div className="rounded-[14px] overflow-hidden" style={{ background: 'var(--void-3)', border: '1px solid var(--cv-border)' }}>
+              <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--cv-border)', background: 'rgba(0,0,0,0.15)' }}>
+                <span className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+                <span className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
+                <span className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
+                <span className="text-xs font-mono ml-1" style={{ color: 'var(--muted)' }}>cv.yaml</span>
+              </div>
+              <ScrollArea className="h-[700px]">
+                <pre className="p-5 font-mono text-[13px] leading-[1.9] whitespace-pre-wrap" style={{ color: '#C4B5FD' }}>{yamlOutput}</pre>
+              </ScrollArea>
+            </div>
+          ) : (
+            <CvPreviewRender data={currentCv.data} />
+          )}
         </div>
       </div>
     );
@@ -1250,83 +1496,78 @@ export default function App() {
     const [loadingUsers, setLoadingUsers] = useState(true);
 
     useEffect(() => {
-      apiCall('admin/users').then(data => {
-        setUsers(data.users || []);
-        setLoadingUsers(false);
-      }).catch(e => {
-        setError(e.message);
-        setLoadingUsers(false);
-      });
+      apiCall('admin/users').then(data => { setUsers(data.users || []); setLoadingUsers(false); }).catch(e => { setError(e.message); setLoadingUsers(false); });
     }, []);
 
     const changeRole = async (userId, newRole) => {
       try {
         await apiCall(`admin/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role: newRole }) });
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      } catch (e) {
-        setError(e.message);
-      }
+      } catch (e) { setError(e.message); }
     };
 
     const deleteUser = async (userId) => {
       try {
         await apiCall(`admin/users/${userId}`, { method: 'DELETE' });
         setUsers(prev => prev.filter(u => u.id !== userId));
-      } catch (e) {
-        setError(e.message);
-      }
+      } catch (e) { setError(e.message); }
     };
 
-    const roleColors = {
-      ADMIN: 'bg-red-100 text-red-800',
-      MANAGER: 'bg-purple-100 text-purple-800',
-      RECRUITER: 'bg-blue-100 text-blue-800',
-      STANDARD_USER: 'bg-green-100 text-green-800',
+    const roleColor = (role) => {
+      const colors = {
+        ADMIN: { bg: 'rgba(239,68,68,0.1)', color: '#FCA5A5', border: 'rgba(239,68,68,0.2)' },
+        MANAGER: { bg: 'rgba(124,58,237,0.15)', color: 'var(--primary-soft)', border: 'rgba(124,58,237,0.25)' },
+        RECRUITER: { bg: 'var(--accent-bg)', color: 'var(--accent)', border: 'var(--accent-border)' },
+        STANDARD_USER: { bg: 'rgba(134,239,172,0.08)', color: '#86EFAC', border: 'rgba(134,239,172,0.2)' },
+      };
+      return colors[role] || colors.STANDARD_USER;
     };
 
     return (
-      <div className="min-h-screen bg-muted/20">
+      <div className="min-h-screen relative">
         <Navbar />
-        <div className="container py-8">
+        <div className="max-w-[1100px] mx-auto px-8 py-10 relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" onClick={() => setView('dashboard')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t.back}
-            </Button>
+            <button onClick={() => setView('dashboard')} className="flex items-center gap-2 text-sm" style={{ color: 'var(--muted)' }}>
+              <ArrowLeft className="h-4 w-4" />{t.back}
+            </button>
             <div>
-              <h1 className="text-3xl font-bold">{t.adminPanel}</h1>
-              <p className="text-muted-foreground">{t.userManagement}</p>
+              <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.adminPanel}</h1>
+              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{t.userManagement}</p>
             </div>
           </div>
 
-          {error && <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-lg text-sm">{error}</div>}
+          {error && <div className="flex items-center gap-2 p-3 rounded-lg mb-6 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5' }}><AlertCircle className="h-4 w-4" />{error}</div>}
 
           {loadingUsers ? (
-            <p>{t.loading}</p>
+            <p style={{ color: 'var(--muted)' }}>{t.loading}</p>
           ) : (
             <div className="space-y-3">
-              {users.map(u => (
-                <Card key={u.id}>
-                  <CardContent className="flex items-center justify-between p-4">
+              {users.map(u => {
+                const rc = roleColor(u.role);
+                return (
+                  <div key={u.id} className="rounded-[14px] p-4 flex items-center justify-between" style={{
+                    background: 'var(--void-2)', border: '1px solid var(--border-subtle)',
+                  }}>
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(124,58,237,0.15)' }}>
+                        <User className="h-5 w-5" style={{ color: 'var(--primary-soft)' }} />
                       </div>
                       <div>
-                        <div className="font-medium">{u.name}</div>
-                        <div className="text-sm text-muted-foreground">{u.email}</div>
+                        <div className="font-medium text-sm" style={{ color: 'var(--cv-white)' }}>{u.name}</div>
+                        <div className="text-xs font-mono" style={{ color: 'var(--muted)' }}>{u.email}</div>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[u.role] || ''}`}>
-                        {u.role}
-                      </span>
+                      <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded" style={{
+                        background: rc.bg, color: rc.color, border: `1px solid ${rc.border}`,
+                      }}>{u.role}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {user?.role === 'ADMIN' && u.id !== user.id && (
                         <Select value={u.role} onValueChange={(value) => changeRole(u.id, value)}>
-                          <SelectTrigger className="w-40">
+                          <SelectTrigger className="w-40 h-8 text-xs" style={{ background: 'var(--void-3)', border: '1px solid var(--cv-border)', color: 'var(--cv-white)' }}>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent style={{ background: 'var(--void-3)', border: '1px solid var(--cv-border)' }}>
                             <SelectItem value="ADMIN">ADMIN</SelectItem>
                             <SelectItem value="MANAGER">MANAGER</SelectItem>
                             <SelectItem value="RECRUITER">RECRUITER</SelectItem>
@@ -1334,18 +1575,17 @@ export default function App() {
                           </SelectContent>
                         </Select>
                       )}
-                      {u.id !== user?.id && (
-                        (user?.role === 'ADMIN' || (user?.role === 'MANAGER' && (u.role === 'RECRUITER' || u.role === 'STANDARD_USER'))) && (
-                          <Button size="sm" variant="destructive" onClick={() => deleteUser(u.id)}>
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            {t.deleteUser}
-                          </Button>
-                        )
+                      {u.id !== user?.id && (user?.role === 'ADMIN' || (user?.role === 'MANAGER' && (u.role === 'RECRUITER' || u.role === 'STANDARD_USER'))) && (
+                        <button onClick={() => deleteUser(u.id)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium" style={{
+                          background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5',
+                        }}>
+                          <Trash2 className="h-3 w-3" />{t.deleteUser}
+                        </button>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -1360,75 +1600,65 @@ export default function App() {
     const [selectedCv, setSelectedCv] = useState(null);
 
     useEffect(() => {
-      apiCall('recruiter/cvs').then(data => {
-        setAllCvs(data.cvs || []);
-        setLoadingCvs(false);
-      }).catch(e => {
-        setError(e.message);
-        setLoadingCvs(false);
-      });
+      apiCall('recruiter/cvs').then(data => { setAllCvs(data.cvs || []); setLoadingCvs(false); }).catch(e => { setError(e.message); setLoadingCvs(false); });
     }, []);
 
     if (selectedCv) {
       return (
-        <div className="min-h-screen bg-muted/20">
+        <div className="min-h-screen relative">
           <Navbar />
-          <div className="container py-8">
+          <div className="max-w-[900px] mx-auto px-8 py-10 relative z-10">
             <div className="flex items-center gap-4 mb-8">
-              <Button variant="ghost" onClick={() => setSelectedCv(null)}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t.back}
-              </Button>
+              <button onClick={() => setSelectedCv(null)} className="flex items-center gap-2 text-sm" style={{ color: 'var(--muted)' }}>
+                <ArrowLeft className="h-4 w-4" />{t.back}
+              </button>
               <div>
-                <h1 className="text-3xl font-bold">{selectedCv.title}</h1>
-                <p className="text-muted-foreground">{t.author}: {selectedCv.userName} ({selectedCv.userEmail})</p>
+                <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{selectedCv.title}</h1>
+                <p className="text-xs font-mono mt-1" style={{ color: 'var(--muted)' }}>{t.author}: {selectedCv.userName} ({selectedCv.userEmail})</p>
               </div>
             </div>
-            <div className="max-w-3xl mx-auto">
-              <CvPreviewRender data={selectedCv.data} />
-            </div>
+            <CvPreviewRender data={selectedCv.data} />
           </div>
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen bg-muted/20">
+      <div className="min-h-screen relative">
         <Navbar />
-        <div className="container py-8">
+        <div className="max-w-[1100px] mx-auto px-8 py-10 relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" onClick={() => setView('dashboard')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t.back}
-            </Button>
+            <button onClick={() => setView('dashboard')} className="flex items-center gap-2 text-sm" style={{ color: 'var(--muted)' }}>
+              <ArrowLeft className="h-4 w-4" />{t.back}
+            </button>
             <div>
-              <h1 className="text-3xl font-bold">{t.browseCvs}</h1>
-              <p className="text-muted-foreground">{t.allCvs} ({allCvs.length})</p>
+              <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>{t.browseCvs}</h1>
+              <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{t.allCvs} ({allCvs.length})</p>
             </div>
           </div>
 
-          {error && <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-lg text-sm">{error}</div>}
-
           {loadingCvs ? (
-            <p>{t.loading}</p>
+            <p style={{ color: 'var(--muted)' }}>{t.loading}</p>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {allCvs.map(cv => (
-                <Card key={cv.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedCv(cv)}>
-                  <CardHeader className="pb-3">
-                    <div className="h-32 bg-white rounded-lg border mb-3 p-3 overflow-hidden text-xs relative">
-                      <div className="font-bold text-sm text-gray-800">
-                        {cv.data?.personalInfo?.firstName} {cv.data?.personalInfo?.lastName}
-                      </div>
-                      <div className="text-gray-500 text-[10px] mt-1">{cv.data?.personalInfo?.email}</div>
-                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent" />
+                <div key={cv.id} className="rounded-[14px] overflow-hidden cursor-pointer transition-all hover:border-[rgba(124,58,237,0.3)]" style={{
+                  background: 'var(--void-2)', border: '1px solid var(--border-subtle)',
+                }} onClick={() => setSelectedCv(cv)}>
+                  <div className="p-4 mx-4 mt-4 rounded-lg overflow-hidden relative" style={{ background: 'var(--void-3)', border: '1px solid var(--border-subtle)', height: 100 }}>
+                    <div className="text-sm font-bold" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>
+                      {cv.data?.personalInfo?.firstName} {cv.data?.personalInfo?.lastName}
                     </div>
-                    <CardTitle className="text-lg">{cv.title}</CardTitle>
-                    <CardDescription>
-                      {t.author}: {cv.userName} ({cv.userEmail})
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
+                    <div className="text-[10px] mt-1 font-mono" style={{ color: 'var(--primary-soft)' }}>{cv.data?.personalInfo?.email}</div>
+                    <div className="absolute bottom-0 left-0 right-0 h-6" style={{ background: 'linear-gradient(transparent, var(--void-3))' }} />
+                  </div>
+                  <div className="p-4">
+                    <div className="font-semibold tracking-tight" style={{ fontFamily: 'Sora, sans-serif', color: 'var(--cv-white)' }}>{cv.title}</div>
+                    <div className="text-[11px] mt-1 font-mono" style={{ color: 'var(--muted)' }}>
+                      {t.author}: {cv.userName}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}
