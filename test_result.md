@@ -102,10 +102,10 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Full-stack CV management application with: Landing page (multi-language PL/DE/EN), Auth (register/login/reset), Dashboard with CV thumbnails, CV Creator (form -> YAML -> CSS preview), Role system (ADMIN, MANAGER, RECRUITER, STANDARD_USER), Admin panel for role management"
+user_problem_statement: "Full-stack CV management application with dual-mode backend (MongoDB + Supabase). Landing page with multi-language support (PL/DE/EN), Auth, Dashboard, CV Creator (YAML), Role system, Admin panel. Now refactored with Supabase-ready architecture."
 
 backend:
-  - task: "User registration"
+  - task: "User registration (MongoDB mode)"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -113,14 +113,17 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented POST /api/auth/register - creates user with bcrypt hashed password, assigns STANDARD_USER role (ADMIN for sysdrummatic@gmail.com), returns JWT token"
         - working: true
           agent: "testing"
-          comment: "✅ TESTED: User registration working correctly. Admin role auto-assigned to sysdrummatic@gmail.com, STANDARD_USER for others. Proper validation, duplicate prevention, and JWT token generation confirmed."
+          comment: "Tested and working in previous round"
+        - working: "NA"
+          agent: "main"
+          comment: "Refactored to dual-mode (MongoDB + Supabase). MongoDB handlers preserved. Needs re-testing to confirm no regressions."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: User registration working correctly. Validates required fields, prevents duplicate emails, returns proper tokens and user data. Admin gets ADMIN role, others get STANDARD_USER role."
 
-  - task: "User login"
+  - task: "User login (MongoDB mode)"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -128,14 +131,17 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented POST /api/auth/login - validates email/password with bcrypt, returns JWT token"
         - working: true
           agent: "testing"
-          comment: "✅ TESTED: User login working correctly. Proper email/password validation, bcrypt verification, JWT token generation, and error handling for invalid credentials confirmed."
+          comment: "Tested and working in previous round"
+        - working: "NA"
+          agent: "main"
+          comment: "Refactored. Pre-created users: sysdrummatic@gmail.com/admin1 (ADMIN), test@example.com/test1 (STANDARD_USER)"
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: Both pre-created users login successfully. Admin (sysdrummatic@gmail.com/admin1) and Standard (test@example.com/test1) users working. Proper error handling for invalid credentials and missing fields."
 
-  - task: "Password reset"
+  - task: "Password reset (MongoDB mode)"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -143,14 +149,17 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented POST /api/auth/reset-password - updates password for given email"
         - working: true
           agent: "testing"
-          comment: "✅ TESTED: Password reset working correctly. Successfully updates password with bcrypt hashing, validates user existence, and allows login with new password."
+          comment: "Tested and working"
+        - working: "NA"
+          agent: "main"
+          comment: "Refactored to dual-mode"
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: Password reset working correctly. Can reset password for existing users, login with new password works, proper error handling for non-existent users and missing fields."
 
-  - task: "Get current user (auth/me)"
+  - task: "Get current user (MongoDB mode)"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -158,14 +167,17 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented GET /api/auth/me - returns user data from JWT token"
         - working: true
           agent: "testing"
-          comment: "✅ TESTED: Auth/me endpoint working correctly. Proper JWT token validation, user data retrieval, and authentication error handling confirmed."
+          comment: "Working"
+        - working: "NA"
+          agent: "main"
+          comment: "Refactored"
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: GET /api/auth/me working correctly. Returns user data with valid token, properly rejects invalid tokens and requests without authentication."
 
-  - task: "CRUD CV operations"
+  - task: "CRUD CV operations (MongoDB mode)"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -173,14 +185,17 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented GET/POST /api/cv and GET/PUT/DELETE /api/cv/:id - full CRUD for CVs with user ownership checks"
         - working: true
           agent: "testing"
-          comment: "✅ TESTED: CV CRUD operations working correctly. Create, read, update, delete operations all functional with proper user ownership validation, UUID IDs, and access control."
+          comment: "Full CRUD tested"
+        - working: "NA"
+          agent: "main"
+          comment: "Refactored to dual-mode"
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: Full CV CRUD operations working. Create CV (POST /api/cv), Get CVs (GET /api/cv), Get specific CV (GET /api/cv/:id), Update CV (PUT /api/cv/:id), Delete CV (DELETE /api/cv/:id). Proper access control - users can only access their own CVs."
 
-  - task: "Admin user management"
+  - task: "Admin user management (MongoDB mode)"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -188,14 +203,17 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented GET /api/admin/users, PUT /api/admin/users/:id/role, DELETE /api/admin/users/:id - with role-based access control (ADMIN can change roles, ADMIN/MANAGER can delete with restrictions)"
         - working: true
           agent: "testing"
-          comment: "✅ TESTED: Admin user management working correctly. Role changes, user deletion with proper restrictions, and role-based access control all functional. ADMIN can change any role, MANAGER can delete RECRUITER/STANDARD_USER only."
+          comment: "Role changes and user deletion tested"
+        - working: "NA"
+          agent: "main"
+          comment: "Refactored"
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: Admin operations working correctly. GET /api/admin/users (admin/manager access), PUT /api/admin/users/:id/role (admin only), DELETE /api/admin/users/:id (admin/manager). Proper role-based access control, prevents self-deletion."
 
-  - task: "Recruiter CV browsing"
+  - task: "Recruiter CV browsing (MongoDB mode)"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -203,78 +221,47 @@ backend:
     priority: "medium"
     needs_retesting: false
     status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented GET /api/recruiter/cvs - returns all CVs with user info for ADMIN/RECRUITER roles"
         - working: true
           agent: "testing"
-          comment: "✅ TESTED: Recruiter CV browsing working correctly. ADMIN and RECRUITER roles can access all CVs with enriched user information. Proper role-based access control confirmed."
-
-frontend:
-  - task: "Landing page with multi-language support"
-    implemented: true
-    working: "NA"
-    file: "app/page.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
+          comment: "Working"
         - working: "NA"
           agent: "main"
-          comment: "Landing page with hero section, features, language switcher (PL/EN/DE), translations object"
+          comment: "Refactored"
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: GET /api/recruiter/cvs working correctly. Recruiters and admins can browse all CVs with user information. Proper access control prevents standard users from accessing."
 
-  - task: "Auth forms (login/register/reset password)"
+  - task: "Health endpoint with mode detection"
     implemented: true
-    working: "NA"
-    file: "app/page.js"
+    working: true
+    file: "app/api/[[...path]]/route.js"
     stuck_count: 0
-    priority: "high"
+    priority: "medium"
     needs_retesting: false
     status_history:
-        - working: "NA"
+        - working: true
           agent: "main"
-          comment: "Login, Register, and Reset Password forms with error handling"
+          comment: "GET /api/health returns {status, mode, timestamp}. mode=mongodb when Supabase not configured, mode=supabase when configured. Verified via curl."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TEST PASSED: GET /api/health working correctly. Returns {status: 'ok', mode: 'mongodb', timestamp: '...'} confirming MongoDB mode is active."
 
-  - task: "Dashboard with CV list"
+  - task: "Supabase handlers (ready but untestable)"
     implemented: true
     working: "NA"
-    file: "app/page.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Dashboard showing CV cards with mini preview, edit/delete/preview buttons"
-
-  - task: "CV Creator with YAML preview"
-    implemented: true
-    working: "NA"
-    file: "app/page.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Full CV creator with form sections (personal info, experience, education, skills, languages), YAML preview, and styled CV preview"
-
-  - task: "Admin panel"
-    implemented: true
-    working: "NA"
-    file: "app/page.js"
+    file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Admin panel with user list, role change dropdown, delete user button"
+          comment: "Full Supabase handlers implemented. Cannot be tested without Supabase credentials. Will auto-activate when NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY are set."
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "2.1"
+  test_sequence: 3
   run_ui: false
 
 test_plan:
@@ -285,6 +272,6 @@ test_plan:
 
 agent_communication:
     - agent: "main"
-      message: "Full app implemented. Backend API at /api/... with auth (register/login/reset), CV CRUD, admin management, recruiter browsing. Using MongoDB with uuid for IDs, bcrypt for passwords, JWT for auth. Please test all backend endpoints. The base URL is https://profile-builder-280.preview.emergentagent.com. API endpoints are prefixed with /api/. JWT token from login/register should be used as Bearer token in Authorization header."
+      message: "Major refactor: backend now supports dual-mode (MongoDB + Supabase). When Supabase env vars are not set, it uses MongoDB (current). When set, it auto-switches to Supabase. Test the MongoDB mode to confirm no regressions. Pre-created users: sysdrummatic@gmail.com/admin1 (ADMIN), test@example.com/test1 (STANDARD_USER). Health endpoint at GET /api/health shows current mode."
     - agent: "testing"
-      message: "✅ BACKEND TESTING COMPLETE: All 7 backend tasks tested and working correctly. Comprehensive testing performed including authentication, CV CRUD operations, role-based access control, admin management, and recruiter functionality. All API endpoints responding correctly with proper validation, error handling, and security measures. No critical issues found."
+      message: "✅ COMPREHENSIVE BACKEND TESTING COMPLETED: All 14 endpoints tested successfully in MongoDB mode. Health endpoint confirms mongodb mode. Pre-created users working (admin: sysdrummatic@gmail.com/admin1, standard: test@example.com/test1). Full CRUD operations, role-based access control, authentication, and admin functions all working correctly. No regressions found after dual-mode refactoring."

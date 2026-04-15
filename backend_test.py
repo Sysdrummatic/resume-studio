@@ -14,11 +14,16 @@ from datetime import datetime
 BASE_URL = "https://profile-builder-280.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
-# Test data
+# Test data - Using pre-created users from review request
 ADMIN_EMAIL = "sysdrummatic@gmail.com"
-ADMIN_PASSWORD = "AdminPass123!"
+ADMIN_PASSWORD = "admin1"
 ADMIN_NAME = "System Admin"
 
+STANDARD_EMAIL = "test@example.com"
+STANDARD_PASSWORD = "test1"
+STANDARD_NAME = "Standard User"
+
+# Additional test users for comprehensive testing
 MANAGER_EMAIL = "manager@test.com"
 MANAGER_PASSWORD = "ManagerPass123!"
 MANAGER_NAME = "Test Manager"
@@ -27,19 +32,15 @@ RECRUITER_EMAIL = "recruiter@test.com"
 RECRUITER_PASSWORD = "RecruiterPass123!"
 RECRUITER_NAME = "Test Recruiter"
 
-USER_EMAIL = "user@test.com"
-USER_PASSWORD = "UserPass123!"
-USER_NAME = "Test User"
-
 # Global variables for tokens and user IDs
 admin_token = None
 manager_token = None
 recruiter_token = None
-user_token = None
+standard_token = None
 admin_user_id = None
 manager_user_id = None
 recruiter_user_id = None
-user_user_id = None
+standard_user_id = None
 test_cv_id = None
 
 def print_test_result(test_name, success, details=""):
@@ -78,16 +79,31 @@ def make_request(method, endpoint, data=None, token=None, expected_status=None):
     except Exception as e:
         return False, f"Request failed: {str(e)}"
 
-def test_user_registration():
-    """Test user registration endpoint"""
-    global admin_token, manager_token, recruiter_token, user_token
-    global admin_user_id, manager_user_id, recruiter_user_id, user_user_id
+def test_health_endpoint():
+    """Test health endpoint with mode detection"""
+    print("=== Testing Health Endpoint ===")
     
-    print("=== Testing User Registration ===")
+    success, response = make_request("GET", "health", expected_status=200)
     
-    # Test admin registration (should get ADMIN role)
-    success, response = make_request("POST", "auth/register", {
-        "name": ADMIN_NAME,
+    if success:
+        data = response.json()
+        if "status" in data and "mode" in data and "timestamp" in data:
+            if data["status"] == "ok" and data["mode"] == "mongodb":
+                print_test_result("Health Endpoint", True, f"Health check passed - Mode: {data['mode']}, Status: {data['status']}")
+            else:
+                print_test_result("Health Endpoint", False, f"Unexpected health data: {data}")
+        else:
+            print_test_result("Health Endpoint", False, f"Missing required fields in response: {data}")
+    else:
+        print_test_result("Health Endpoint", False, response)
+
+def test_precreated_users_login():
+    """Test login with pre-created users"""
+    global admin_token, standard_token, admin_user_id, standard_user_id
+    print("=== Testing Pre-created Users Login ===")
+    
+    # Test admin login
+    success, response = make_request("POST", "auth/login", {
         "email": ADMIN_EMAIL,
         "password": ADMIN_PASSWORD
     }, expected_status=200)
@@ -97,71 +113,105 @@ def test_user_registration():
         if "token" in data and "user" in data and data["user"]["role"] == "ADMIN":
             admin_token = data["token"]
             admin_user_id = data["user"]["id"]
-            print_test_result("Admin Registration", True, f"Admin user created with role: {data['user']['role']}")
+            print_test_result("Pre-created Admin Login", True, f"Admin login successful - Role: {data['user']['role']}")
         else:
-            print_test_result("Admin Registration", False, f"Invalid response structure or role: {data}")
+            print_test_result("Pre-created Admin Login", False, f"Invalid admin login response: {data}")
     else:
-        print_test_result("Admin Registration", False, response)
+        print_test_result("Pre-created Admin Login", False, response)
     
-    # Test manager registration
-    success, response = make_request("POST", "auth/register", {
-        "name": MANAGER_NAME,
+    # Test standard user login
+    success, response = make_request("POST", "auth/login", {
+        "email": STANDARD_EMAIL,
+        "password": STANDARD_PASSWORD
+    }, expected_status=200)
+    
+    if success:
+        data = response.json()
+        if "token" in data and "user" in data and data["user"]["role"] == "STANDARD_USER":
+            standard_token = data["token"]
+            standard_user_id = data["user"]["id"]
+            print_test_result("Pre-created Standard User Login", True, f"Standard user login successful - Role: {data['user']['role']}")
+        else:
+            print_test_result("Pre-created Standard User Login", False, f"Invalid standard user login response: {data}")
+    else:
+        print_test_result("Pre-created Standard User Login", False, response)
+def test_user_registration():
+    """Test user registration endpoint"""
+    global manager_token, recruiter_token, manager_user_id, recruiter_user_id
+    
+    print("=== Testing User Registration ===")
+    
+    # Try to login with manager first (in case it already exists)
+    success, response = make_request("POST", "auth/login", {
         "email": MANAGER_EMAIL,
         "password": MANAGER_PASSWORD
-    }, expected_status=200)
+    })
     
     if success:
         data = response.json()
         if "token" in data and "user" in data:
             manager_token = data["token"]
             manager_user_id = data["user"]["id"]
-            print_test_result("Manager Registration", True, f"Manager user created with role: {data['user']['role']}")
+            print_test_result("Manager Login (Existing)", True, f"Manager login successful with role: {data['user']['role']}")
         else:
-            print_test_result("Manager Registration", False, f"Invalid response structure: {data}")
+            print_test_result("Manager Login (Existing)", False, f"Invalid response structure: {data}")
     else:
-        print_test_result("Manager Registration", False, response)
+        # Manager doesn't exist, try to register
+        success, response = make_request("POST", "auth/register", {
+            "name": MANAGER_NAME,
+            "email": MANAGER_EMAIL,
+            "password": MANAGER_PASSWORD
+        }, expected_status=200)
+        
+        if success:
+            data = response.json()
+            if "token" in data and "user" in data:
+                manager_token = data["token"]
+                manager_user_id = data["user"]["id"]
+                print_test_result("Manager Registration", True, f"Manager user created with role: {data['user']['role']}")
+            else:
+                print_test_result("Manager Registration", False, f"Invalid response structure: {data}")
+        else:
+            print_test_result("Manager Registration", False, response)
     
-    # Test recruiter registration
-    success, response = make_request("POST", "auth/register", {
-        "name": RECRUITER_NAME,
+    # Try to login with recruiter first (in case it already exists)
+    success, response = make_request("POST", "auth/login", {
         "email": RECRUITER_EMAIL,
         "password": RECRUITER_PASSWORD
-    }, expected_status=200)
+    })
     
     if success:
         data = response.json()
         if "token" in data and "user" in data:
             recruiter_token = data["token"]
             recruiter_user_id = data["user"]["id"]
-            print_test_result("Recruiter Registration", True, f"Recruiter user created with role: {data['user']['role']}")
+            print_test_result("Recruiter Login (Existing)", True, f"Recruiter login successful with role: {data['user']['role']}")
         else:
-            print_test_result("Recruiter Registration", False, f"Invalid response structure: {data}")
+            print_test_result("Recruiter Login (Existing)", False, f"Invalid response structure: {data}")
     else:
-        print_test_result("Recruiter Registration", False, response)
-    
-    # Test standard user registration
-    success, response = make_request("POST", "auth/register", {
-        "name": USER_NAME,
-        "email": USER_EMAIL,
-        "password": USER_PASSWORD
-    }, expected_status=200)
-    
-    if success:
-        data = response.json()
-        if "token" in data and "user" in data:
-            user_token = data["token"]
-            user_user_id = data["user"]["id"]
-            print_test_result("Standard User Registration", True, f"Standard user created with role: {data['user']['role']}")
+        # Recruiter doesn't exist, try to register
+        success, response = make_request("POST", "auth/register", {
+            "name": RECRUITER_NAME,
+            "email": RECRUITER_EMAIL,
+            "password": RECRUITER_PASSWORD
+        }, expected_status=200)
+        
+        if success:
+            data = response.json()
+            if "token" in data and "user" in data:
+                recruiter_token = data["token"]
+                recruiter_user_id = data["user"]["id"]
+                print_test_result("Recruiter Registration", True, f"Recruiter user created with role: {data['user']['role']}")
+            else:
+                print_test_result("Recruiter Registration", False, f"Invalid response structure: {data}")
         else:
-            print_test_result("Standard User Registration", False, f"Invalid response structure: {data}")
-    else:
-        print_test_result("Standard User Registration", False, response)
+            print_test_result("Recruiter Registration", False, response)
     
-    # Test duplicate registration
+    # Test duplicate registration with pre-created user
     success, response = make_request("POST", "auth/register", {
-        "name": USER_NAME,
-        "email": USER_EMAIL,
-        "password": USER_PASSWORD
+        "name": ADMIN_NAME,
+        "email": ADMIN_EMAIL,
+        "password": ADMIN_PASSWORD
     }, expected_status=409)
     
     print_test_result("Duplicate Registration Prevention", success, "Should prevent duplicate email registration")
@@ -177,10 +227,10 @@ def test_user_login():
     """Test user login endpoint"""
     print("=== Testing User Login ===")
     
-    # Test valid login
+    # Test valid login with standard user
     success, response = make_request("POST", "auth/login", {
-        "email": USER_EMAIL,
-        "password": USER_PASSWORD
+        "email": STANDARD_EMAIL,
+        "password": STANDARD_PASSWORD
     }, expected_status=200)
     
     if success:
@@ -194,7 +244,7 @@ def test_user_login():
     
     # Test invalid password
     success, response = make_request("POST", "auth/login", {
-        "email": USER_EMAIL,
+        "email": STANDARD_EMAIL,
         "password": "wrongpassword"
     }, expected_status=401)
     
@@ -210,7 +260,7 @@ def test_user_login():
     
     # Test missing fields
     success, response = make_request("POST", "auth/login", {
-        "email": USER_EMAIL
+        "email": STANDARD_EMAIL
     }, expected_status=400)
     
     print_test_result("Login Validation", success, "Should require all fields")
@@ -223,7 +273,7 @@ def test_password_reset():
     
     # Test valid password reset
     success, response = make_request("POST", "auth/reset-password", {
-        "email": USER_EMAIL,
+        "email": STANDARD_EMAIL,
         "newPassword": new_password
     }, expected_status=200)
     
@@ -234,13 +284,13 @@ def test_password_reset():
             
             # Test login with new password
             success, response = make_request("POST", "auth/login", {
-                "email": USER_EMAIL,
+                "email": STANDARD_EMAIL,
                 "password": new_password
             }, expected_status=200)
             
             if success:
-                global user_token
-                user_token = response.json()["token"]
+                global standard_token
+                standard_token = response.json()["token"]
                 print_test_result("Login with New Password", True, "Can login with new password")
             else:
                 print_test_result("Login with New Password", False, "Cannot login with new password")
@@ -259,7 +309,7 @@ def test_password_reset():
     
     # Test missing fields
     success, response = make_request("POST", "auth/reset-password", {
-        "email": USER_EMAIL
+        "email": STANDARD_EMAIL
     }, expected_status=400)
     
     print_test_result("Reset Validation", success, "Should require all fields")
@@ -269,11 +319,11 @@ def test_auth_me():
     print("=== Testing Auth Me ===")
     
     # Test with valid token
-    success, response = make_request("GET", "auth/me", token=user_token, expected_status=200)
+    success, response = make_request("GET", "auth/me", token=standard_token, expected_status=200)
     
     if success:
         data = response.json()
-        if "user" in data and data["user"]["email"] == USER_EMAIL:
+        if "user" in data and data["user"]["email"] == STANDARD_EMAIL:
             print_test_result("Valid Auth Me", True, f"Retrieved user: {data['user']['email']}")
         else:
             print_test_result("Valid Auth Me", False, f"Invalid user data: {data}")
@@ -332,7 +382,7 @@ def test_cv_operations():
         }
     }
     
-    success, response = make_request("POST", "cv", cv_data, token=user_token, expected_status=201)
+    success, response = make_request("POST", "cv", cv_data, token=standard_token, expected_status=201)
     
     if success:
         data = response.json()
@@ -345,7 +395,7 @@ def test_cv_operations():
         print_test_result("Create CV", False, response)
     
     # Test get user CVs
-    success, response = make_request("GET", "cv", token=user_token, expected_status=200)
+    success, response = make_request("GET", "cv", token=standard_token, expected_status=200)
     
     if success:
         data = response.json()
@@ -358,7 +408,7 @@ def test_cv_operations():
     
     # Test get specific CV
     if test_cv_id:
-        success, response = make_request("GET", f"cv/{test_cv_id}", token=user_token, expected_status=200)
+        success, response = make_request("GET", f"cv/{test_cv_id}", token=standard_token, expected_status=200)
         
         if success:
             data = response.json()
@@ -376,7 +426,7 @@ def test_cv_operations():
             "data": cv_data["data"]
         }
         
-        success, response = make_request("PUT", f"cv/{test_cv_id}", update_data, token=user_token, expected_status=200)
+        success, response = make_request("PUT", f"cv/{test_cv_id}", update_data, token=standard_token, expected_status=200)
         
         if success:
             data = response.json()
@@ -387,10 +437,13 @@ def test_cv_operations():
         else:
             print_test_result("Update CV", False, response)
     
-    # Test unauthorized access to CV
-    success, response = make_request("GET", f"cv/{test_cv_id}", token=manager_token, expected_status=403)
-    
-    print_test_result("Unauthorized CV Access", success, "Should prevent access to other user's CV")
+    # Test unauthorized access to CV - only if we have manager_token
+    if manager_token and test_cv_id:
+        success, response = make_request("GET", f"cv/{test_cv_id}", token=manager_token, expected_status=403)
+        
+        print_test_result("Unauthorized CV Access", success, "Should prevent access to other user's CV")
+    else:
+        print_test_result("Unauthorized CV Access", False, "No manager token or CV ID available")
     
     # Test CV operations without authentication
     success, response = make_request("GET", "cv", expected_status=401)
@@ -406,14 +459,14 @@ def test_admin_operations():
     
     if success:
         data = response.json()
-        if "users" in data and len(data["users"]) >= 4:  # At least 4 users we created
+        if "users" in data and len(data["users"]) >= 2:  # At least admin and standard user
             print_test_result("Admin Get Users", True, f"Retrieved {len(data['users'])} users")
         else:
             print_test_result("Admin Get Users", False, f"Insufficient users: {data}")
     else:
         print_test_result("Admin Get Users", False, response)
     
-    # Test change user role (admin only)
+    # Test change user role (admin only) - only if we have manager_user_id
     if manager_user_id:
         success, response = make_request("PUT", f"admin/users/{manager_user_id}/role", 
                                        {"role": "MANAGER"}, token=admin_token, expected_status=200)
@@ -426,23 +479,30 @@ def test_admin_operations():
                 print_test_result("Admin Change Role", False, f"Invalid response: {data}")
         else:
             print_test_result("Admin Change Role", False, response)
+    else:
+        print_test_result("Admin Change Role", False, "No manager user ID available")
     
     # Test unauthorized role change (non-admin)
     if manager_user_id:
         success, response = make_request("PUT", f"admin/users/{manager_user_id}/role", 
-                                       {"role": "ADMIN"}, token=user_token, expected_status=403)
+                                       {"role": "ADMIN"}, token=standard_token, expected_status=403)
         
         print_test_result("Unauthorized Role Change", success, "Should prevent non-admin from changing roles")
+    else:
+        print_test_result("Unauthorized Role Change", False, "No manager user ID available")
     
     # Test admin access without authentication
     success, response = make_request("GET", "admin/users", expected_status=401)
     
     print_test_result("Admin Access Without Auth", success, "Should require authentication")
     
-    # Test manager access to admin endpoints
-    success, response = make_request("GET", "admin/users", token=manager_token, expected_status=200)
-    
-    print_test_result("Manager Access to Admin", success, "Manager should have access to user list")
+    # Test manager access to admin endpoints - only if we have manager_token
+    if manager_token:
+        success, response = make_request("GET", "admin/users", token=manager_token, expected_status=200)
+        
+        print_test_result("Manager Access to Admin", success, "Manager should have access to user list")
+    else:
+        print_test_result("Manager Access to Admin", False, "No manager token available")
 
 def test_user_deletion():
     """Test user deletion with role restrictions"""
@@ -472,12 +532,14 @@ def test_user_deletion():
         else:
             print_test_result("Admin Delete User", False, response)
     
-    # Test unauthorized deletion
-    if user_user_id:
-        success, response = make_request("DELETE", f"admin/users/{user_user_id}", 
+    # Test unauthorized deletion - only if we have recruiter_token and standard_user_id
+    if recruiter_token and standard_user_id:
+        success, response = make_request("DELETE", f"admin/users/{standard_user_id}", 
                                        token=recruiter_token, expected_status=403)
         
         print_test_result("Unauthorized User Deletion", success, "Should prevent unauthorized deletion")
+    else:
+        print_test_result("Unauthorized User Deletion", False, "No recruiter token or standard user ID available")
     
     # Test self-deletion prevention
     success, response = make_request("DELETE", f"admin/users/{admin_user_id}", 
@@ -489,7 +551,7 @@ def test_recruiter_operations():
     """Test recruiter CV browsing operations"""
     print("=== Testing Recruiter Operations ===")
     
-    # First, change recruiter role to RECRUITER
+    # First, change recruiter role to RECRUITER - only if we have recruiter_user_id
     if recruiter_user_id:
         success, response = make_request("PUT", f"admin/users/{recruiter_user_id}/role", 
                                        {"role": "RECRUITER"}, token=admin_token, expected_status=200)
@@ -498,21 +560,26 @@ def test_recruiter_operations():
             print_test_result("Set Recruiter Role", True, "Recruiter role assigned")
         else:
             print_test_result("Set Recruiter Role", False, response)
-    
-    # Test recruiter can browse all CVs
-    success, response = make_request("GET", "recruiter/cvs", token=recruiter_token, expected_status=200)
-    
-    if success:
-        data = response.json()
-        if "cvs" in data:
-            print_test_result("Recruiter Browse CVs", True, f"Retrieved {len(data['cvs'])} CVs")
-        else:
-            print_test_result("Recruiter Browse CVs", False, f"Invalid response: {data}")
     else:
-        print_test_result("Recruiter Browse CVs", False, response)
+        print_test_result("Set Recruiter Role", False, "No recruiter user ID available")
+    
+    # Test recruiter can browse all CVs - only if we have recruiter_token
+    if recruiter_token:
+        success, response = make_request("GET", "recruiter/cvs", token=recruiter_token, expected_status=200)
+        
+        if success:
+            data = response.json()
+            if "cvs" in data:
+                print_test_result("Recruiter Browse CVs", True, f"Retrieved {len(data['cvs'])} CVs")
+            else:
+                print_test_result("Recruiter Browse CVs", False, f"Invalid response: {data}")
+        else:
+            print_test_result("Recruiter Browse CVs", False, response)
+    else:
+        print_test_result("Recruiter Browse CVs", False, "No recruiter token available")
     
     # Test unauthorized access to recruiter endpoints
-    success, response = make_request("GET", "recruiter/cvs", token=user_token, expected_status=403)
+    success, response = make_request("GET", "recruiter/cvs", token=standard_token, expected_status=403)
     
     print_test_result("Unauthorized Recruiter Access", success, "Should prevent non-recruiter access")
     
@@ -526,7 +593,7 @@ def test_edge_cases():
     print("=== Testing Edge Cases ===")
     
     # Test invalid CV ID
-    success, response = make_request("GET", "cv/invalid-uuid", token=user_token, expected_status=404)
+    success, response = make_request("GET", "cv/invalid-uuid", token=standard_token, expected_status=404)
     
     print_test_result("Invalid CV ID", success, "Should handle invalid CV ID")
     
@@ -537,8 +604,8 @@ def test_edge_cases():
     print_test_result("Invalid User ID", success, "Should handle invalid user ID")
     
     # Test invalid role assignment
-    if user_user_id:
-        success, response = make_request("PUT", f"admin/users/{user_user_id}/role", 
+    if standard_user_id:
+        success, response = make_request("PUT", f"admin/users/{standard_user_id}/role", 
                                        {"role": "INVALID_ROLE"}, token=admin_token, expected_status=400)
         
         print_test_result("Invalid Role Assignment", success, "Should reject invalid roles")
@@ -558,8 +625,8 @@ def cleanup_test_data():
     print("=== Cleaning Up Test Data ===")
     
     # Delete test CV
-    if test_cv_id and user_token:
-        success, response = make_request("DELETE", f"cv/{test_cv_id}", token=user_token, expected_status=200)
+    if test_cv_id and standard_token:
+        success, response = make_request("DELETE", f"cv/{test_cv_id}", token=standard_token, expected_status=200)
         print_test_result("Delete Test CV", success, "Test CV cleaned up")
 
 def run_all_tests():
@@ -571,6 +638,12 @@ def run_all_tests():
     print("=" * 60)
     
     try:
+        # Health endpoint test
+        test_health_endpoint()
+        
+        # Test pre-created users login
+        test_precreated_users_login()
+        
         # Core authentication tests
         test_user_registration()
         test_user_login()
