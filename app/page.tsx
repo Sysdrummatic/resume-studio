@@ -1,7 +1,7 @@
 export default function HomePage() {
   return (
     <section className="card">
-      <h1>ResumeStudio Rebuild</h1>
+      <h1>OpenCVHub Rebuild</h1>
       <p>
         Platform foundation and auth core are active. The app runs on Next.js with TypeScript, CI gates, and
         Supabase-based authentication with RBAC.

@@ -1,4 +1,4 @@
-﻿# ResumeStudio Rebuild Work Plan (Next.js + React)
+﻿# OpenCVHub Rebuild Work Plan (Next.js + React)
 
 This document is the execution source of truth for rebuilding the product from static pages to a production-ready SaaS in Next.js.
 
@@ -21,7 +21,7 @@ Global completion checklist:
 ## 1) Locked Product Decisions
 
 These are mandatory constraints:
-1. Full migration now (no partial static strategy).
+1. Incremental migration with parity gates (no big-bang rewrite).
 2. Frontend stack: Next.js (React + TypeScript).
 3. YAML is the primary CV format stored in database.
 4. Per-language CV files are separate documents (EN and PL at minimum).
@@ -36,6 +36,15 @@ These are mandatory constraints:
 9. Backward URL compatibility is required (`*.html` old routes must continue via redirects).
 10. Netlify remains hosting platform.
 11. Merge policy: no merge without green CI (lint/typecheck/tests/build).
+
+### What incremental migration means (non-negotiable)
+- Each PR migrates a small, explicitly scoped slice (route, feature, or workflow), and leaves everything else untouched.
+- Legacy static routes may remain temporarily, but are retired only after a feature parity gate passes.
+- Every migration slice must define:
+  - **Scope** (what is changed),
+  - **Out of scope** (what is not changed),
+  - **Parity checklist** (what must behave the same as legacy),
+  - **Rollout/rollback** strategy (feature flag, route fallback, or revert plan).
 
 ## 2) Next.js Rationale (React confirmation)
 
@@ -282,3 +291,4 @@ For every phase:
 - [x] Start Phase C implementation branch.
 - [x] Start Phase D implementation branch.
 - [ ] Start Phase E implementation branch.
+
