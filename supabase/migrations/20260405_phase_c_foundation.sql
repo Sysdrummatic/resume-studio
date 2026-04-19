@@ -1,4 +1,4 @@
--- Phase C foundation schema for ResumeStudio.
+-- Phase C foundation schema for OpenCVHub.
 -- Apply in Supabase SQL Editor or via Supabase CLI.
 
 begin;

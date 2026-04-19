@@ -3,8 +3,8 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ResumeStudio",
-  description: "ResumeStudio platform foundation on Next.js"
+  title: "OpenCVHub",
+  description: "OpenCVHub platform foundation on Next.js"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -14,7 +14,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <header className="app-header">
           <div className="app-shell app-header__inner">
             <Link className="app-brand" href="/">
-              ResumeStudio
+              OpenCVHub
             </Link>
             <nav className="app-nav" aria-label="Primary">
               <Link href="/login">Login</Link>

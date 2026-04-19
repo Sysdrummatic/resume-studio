@@ -1,11 +1,16 @@
-# React Frontend Transition Plan (Future Phase)
+﻿# React Frontend Transition Plan (Future Phase)
 
-This guide defines how `resume-studio` should evolve from the current static HTML/CSS/JS frontend into a React-based frontend in a later product phase.
+This guide defines how `OpenCVHub` should evolve from the current static HTML/CSS/JS frontend into a React-based frontend in a later product phase.
 
 ## Current Status (April 2026)
 
 - The production app is still static-first (`*.html` + `scripts/*.js` + YAML-driven rendering).
 - React is **planned**, not yet the default runtime for all user-facing pages.
+
+## Alignment note
+
+This repo uses an incremental migration strategy with explicit parity gates and rollback paths.
+If other documents suggest a "full migration now" approach, treat them as outdated and follow this guide + the main work plan.
 
 ## Transition Goals
 
@@ -43,3 +48,4 @@ This guide defines how `resume-studio` should evolve from the current static HTM
 - i18n parity (EN/PL) is verified.
 - Supabase auth/session/public-link behavior is unchanged unless explicitly intended.
 - Rollback strategy exists (feature flag or route fallback).
+
