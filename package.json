@@ -1,5 +1,5 @@
 {
-  "name": "resume-studio",
+  "name": "opencvhub",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -10,8 +10,9 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "node --test",
+    "verify": "npm run lint && npm run typecheck && npm run test",
     "phaseb:migrate": "node scripts/phase-b/legacy-data-migrator.js",
-    "ci": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "ci": "npm run verify && npm run build"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.9",

@@ -18,7 +18,7 @@ This guide is a click-by-click checklist for configuring Supabase for Phase B au
 2. Click **New project**.
 3. Choose your organization.
 4. Fill in:
-   - **Project name**: e.g. `resume-studio`.
+   - **Project name**: e.g. `OpenCVHub`.
    - **Database Password**: generate and save securely.
    - **Region**: choose nearest to your primary users.
 5. Click **Create new project**.
