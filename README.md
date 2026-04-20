@@ -1,6 +1,6 @@
 # OpenCVHub
 
-This repository contains the legacy static OpenCVHub app and the in-progress Next.js SaaS rebuild.
+This repository contains the legacy static OpenCVHub app and the in-progress Next.js SaaS rebuild...
 
 ## Structure
 
