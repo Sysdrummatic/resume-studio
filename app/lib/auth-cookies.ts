@@ -25,6 +25,11 @@ type AuthTokens = {
 };
 
 function getCookieDomain(): string | undefined {
+  const appEnvironment = process.env.NEXT_PUBLIC_APP_ENV;
+  if (appEnvironment && appEnvironment !== "production") {
+    return undefined;
+  }
+
   const configuredDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN;
   return configuredDomain ? configuredDomain : undefined;
 }

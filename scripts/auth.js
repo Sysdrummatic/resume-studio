@@ -11,7 +11,8 @@
   const supabaseAnonKey = config.supabaseAnonKey;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    setStatus('Supabase config missing. Update scripts/auth-config.js first.', true);
+    const environment = config.appEnvironment || 'unknown';
+    setStatus(`Supabase config missing for "${environment}" environment. Update scripts/auth-config.js first.`, true);
     toggleFormAvailability(true);
     return;
   }
@@ -74,6 +75,13 @@
       } = await client.auth.getUser();
 
       if (user?.id) {
+        if (!user.email_confirmed_at) {
+          await client.auth.signOut();
+          setStatus('Email verification is required before sign in.', true);
+          showResendVerification(Boolean(email));
+          return;
+        }
+
         const { data: profile, error: profileError } = await client
           .from('profiles')
           .select('is_active')
