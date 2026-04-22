@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import type { AppRole, SessionActor } from "./auth-types";
 import { clearAuthCookies, readAuthTokens, setAuthCookies } from "./auth-cookies";
-import { fetchProfileById, getAuthUser, refreshSession } from "./supabase-http";
+import { fetchProfileById, fetchProfileByIdAsService, getAuthUser, refreshSession } from "./supabase-http";
 
 type RequestAuthResult =
   | {
@@ -25,6 +25,21 @@ function normalizeDisplayName(displayName: unknown, email: string): string {
   return "User";
 }
 
+
+async function resolveProfile(userId: string, accessToken: string) {
+  const profileResult = await fetchProfileById(userId, accessToken);
+  if (profileResult.data || profileResult.status < 500) {
+    return profileResult;
+  }
+
+  const fallbackResult = await fetchProfileByIdAsService(userId);
+  if (fallbackResult.data) {
+    return fallbackResult;
+  }
+
+  return profileResult;
+}
+
 async function buildActor(accessToken: string): Promise<RequestAuthResult> {
   const userResult = await getAuthUser(accessToken);
   if (!userResult.data || userResult.error) {
@@ -36,7 +51,7 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
   }
 
   const email = typeof userResult.data.email === "string" ? userResult.data.email.toLowerCase() : "";
-  const profileResult = await fetchProfileById(userResult.data.id, accessToken);
+  const profileResult = await resolveProfile(userResult.data.id, accessToken);
   if (!profileResult.data || profileResult.error) {
     return {
       ok: false,
