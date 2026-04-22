@@ -24,9 +24,18 @@ type AuthTokens = {
   refreshToken: string | null;
 };
 
+function isProductionCookieScope(): boolean {
+  const appEnvironment = (process.env.NEXT_PUBLIC_APP_ENV || "").toLowerCase();
+  if (appEnvironment) {
+    return appEnvironment === "production";
+  }
+
+  const deployContext = (process.env.CONTEXT || process.env.VERCEL_ENV || "").toLowerCase();
+  return deployContext === "production";
+}
+
 function getCookieDomain(): string | undefined {
-  const appEnvironment = process.env.NEXT_PUBLIC_APP_ENV;
-  if (appEnvironment && appEnvironment !== "production") {
+  if (!isProductionCookieScope()) {
     return undefined;
   }
 
