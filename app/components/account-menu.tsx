@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { AppRole } from "../lib/auth-types";
 
@@ -39,6 +40,11 @@ export default function AccountMenu({ email, role }: Props) {
         </span>
       </summary>
       <div className="account-menu__dropdown" role="menu" aria-label="Account actions">
+        {role === "admin" && (
+          <Link href="/admin" className="account-menu__item" role="menuitem">
+            User management
+          </Link>
+        )}
         <button type="button" className="account-menu__item" disabled>
           Profile
         </button>

@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
 import AccountMenu from "./components/account-menu";
+import HeaderAccountMenu from "./components/header-account-menu";
 import { getCurrentActor } from "./lib/auth-server";
 import "./globals.css";
 
@@ -22,13 +23,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </Link>
             <div className="app-header__controls">
               <nav className="app-nav" aria-label="Primary">
-                <Link href="/login">Login</Link>
+                {!actor && <Link href="/login">Login</Link>}
                 <Link href="/dashboard">Dashboard</Link>
                 <Link href="/master-resume">Editor</Link>
-                <Link href="/admin">Admin</Link>
                 <Link href="/resume">Sample CV</Link>
               </nav>
-              {actor && <AccountMenu email={actor.email} role={actor.role} />}
+              <HeaderAccountMenu actor={actor ? <AccountMenu email={actor.email} role={actor.role} /> : null} />
             </div>
           </div>
         </header>
