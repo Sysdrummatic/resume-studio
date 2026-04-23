@@ -74,6 +74,40 @@ a {
   flex-wrap: wrap;
 }
 
+
+.login-menu-trigger {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem 0.35rem 0.35rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.login-menu-trigger:hover {
+  border-color: var(--accent);
+}
+
+.login-menu-trigger__avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #5d7cff, #7d65f7);
+}
+
+.login-menu-trigger__label {
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.2;
+}
+
 .app-main {
   padding: 2rem 0 3rem;
 }
