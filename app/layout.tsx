@@ -1,5 +1,7 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
+import AccountMenu from "./components/account-menu";
+import { getCurrentActor } from "./lib/auth-server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,7 +9,9 @@ export const metadata: Metadata = {
   description: "OpenCVHub platform foundation on Next.js"
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const actor = await getCurrentActor();
+
   return (
     <html lang="en">
       <body>
@@ -16,13 +20,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <Link className="app-brand" href="/">
               OpenCVHub
             </Link>
-            <nav className="app-nav" aria-label="Primary">
-              <Link href="/login">Login</Link>
-              <Link href="/dashboard">Dashboard</Link>
-              <Link href="/master-resume">Editor</Link>
-              <Link href="/admin">Admin</Link>
-              <Link href="/resume">Sample CV</Link>
-            </nav>
+            <div className="app-header__controls">
+              <nav className="app-nav" aria-label="Primary">
+                <Link href="/login">Login</Link>
+                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/master-resume">Editor</Link>
+                <Link href="/admin">Admin</Link>
+                <Link href="/resume">Sample CV</Link>
+              </nav>
+              {actor && <AccountMenu email={actor.email} role={actor.role} />}
+            </div>
           </div>
         </header>
         <main className="app-shell app-main">{children}</main>
