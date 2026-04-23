@@ -5,7 +5,23 @@ import { postJson } from "../lib/client-http";
 
 type TabId = "signin" | "signup" | "reset" | "new-password";
 
-const DEFAULT_STATUS = "";
+type Props = {
+  reason: string;
+  verified: string;
+};
+
+type StatusKind = "idle" | "ok" | "error";
+
+type AuthTab = {
+  id: Exclude<TabId, "new-password">;
+  label: string;
+};
+
+const AUTH_TABS: AuthTab[] = [
+  { id: "signin", label: "Sign in" },
+  { id: "signup", label: "Sign up" },
+  { id: "reset", label: "Reset password" },
+];
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -15,15 +31,26 @@ function parseHashParams(hash: string): URLSearchParams {
   return new URLSearchParams(hash.replace(/^#/, ""));
 }
 
-type Props = {
-  reason: string;
-  verified: string;
-};
+function getContextualMessage(reason: string, verified: string): string {
+  if (verified === "1") {
+    return "Email verification completed. You can sign in now.";
+  }
+  if (reason === "inactive") {
+    return "Your account is inactive. Contact support or an administrator.";
+  }
+  if (reason === "unverified") {
+    return "Email verification must be completed before access is granted.";
+  }
+  if (reason === "session") {
+    return "Session could not be restored. Please sign in again.";
+  }
+  return "";
+}
 
 export default function AccountAccessClient({ reason, verified }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>("signin");
-  const [status, setStatus] = useState(DEFAULT_STATUS);
-  const [error, setError] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusKind, setStatusKind] = useState<StatusKind>("idle");
   const [isBusy, setIsBusy] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
 
@@ -35,64 +62,56 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   const [newPassword, setNewPassword] = useState("");
   const [recoveryToken, setRecoveryToken] = useState("");
 
-  const contextualMessage = useMemo(() => {
-    if (verified === "1") {
-      return "Email verification completed. You can sign in now.";
-    }
-    if (reason === "inactive") {
-      return "Your account is inactive. Contact support or an administrator.";
-    }
-    if (reason === "unverified") {
-      return "Email verification must be completed before access is granted.";
-    }
-    if (reason === "session") {
-      return "Session could not be restored. Please sign in again.";
-    }
-    return "";
-  }, [reason, verified]);
+  const contextualMessage = useMemo(() => getContextualMessage(reason, verified), [reason, verified]);
+
+  function setBusyStatus(message: string) {
+    setStatusMessage(message);
+    setStatusKind("ok");
+    setIsBusy(true);
+  }
+
+  function setErrorStatus(message: string) {
+    setStatusMessage(message);
+    setStatusKind("error");
+  }
+
+  function setOkStatus(message: string) {
+    setStatusMessage(message);
+    setStatusKind("ok");
+  }
 
   useEffect(() => {
     const hashParams = parseHashParams(window.location.hash);
     if (hashParams.get("type") === "recovery" && hashParams.get("access_token")) {
       setRecoveryToken(hashParams.get("access_token")!);
       setActiveTab("new-password");
-      setStatus("Set your new password below.");
-      setError(false);
-      // Clean hash from URL without reload
+      setOkStatus("Set your new password below.");
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
   }, []);
 
   async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsBusy(true);
-    setStatus("Signing in...");
-    setError(false);
+    setBusyStatus("Signing in...");
 
     const email = normalizeEmail(signinEmail);
     let shouldRedirect = false;
 
     try {
-      const payload = await postJson("/api/auth/signin", {
-        email,
-        password: signinPassword,
-      });
+      const payload = await postJson("/api/auth/signin", { email, password: signinPassword });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        setErrorStatus(payload.error);
         setPendingVerificationEmail(email);
         return;
       }
 
       setPendingVerificationEmail("");
-      setStatus("Signed in. Redirecting...");
-      setError(false);
+      setOkStatus("Signed in. Redirecting...");
       shouldRedirect = true;
       window.location.href = "/dashboard";
     } catch {
-      setStatus("Unexpected sign-in error. Try again.");
-      setError(true);
+      setErrorStatus("Unexpected sign-in error. Try again.");
     } finally {
       if (!shouldRedirect) {
         setIsBusy(false);
@@ -102,32 +121,24 @@ export default function AccountAccessClient({ reason, verified }: Props) {
 
   async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsBusy(true);
-    setStatus("Creating account...");
-    setError(false);
+    setBusyStatus("Creating account...");
 
     const email = normalizeEmail(signupEmail);
 
     try {
-      const payload = await postJson("/api/auth/signup", {
-        email,
-        password: signupPassword,
-      });
+      const payload = await postJson("/api/auth/signup", { email, password: signupPassword });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        setErrorStatus(payload.error);
         return;
       }
 
-      setStatus(payload.message || "Account created. Verify your email before sign in.");
+      setOkStatus(payload.message || "Account created. Verify your email before sign in.");
       setPendingVerificationEmail(email);
-      setError(false);
       setActiveTab("signin");
       setSigninEmail(email);
     } catch {
-      setStatus("Unexpected sign-up error. Try again.");
-      setError(true);
+      setErrorStatus("Unexpected sign-up error. Try again.");
     } finally {
       setIsBusy(false);
     }
@@ -135,28 +146,21 @@ export default function AccountAccessClient({ reason, verified }: Props) {
 
   async function handleResetPassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsBusy(true);
-    setStatus("Sending reset link...");
-    setError(false);
+    setBusyStatus("Sending reset link...");
 
     const email = normalizeEmail(resetEmail);
 
     try {
-      const payload = await postJson("/api/auth/reset-password", {
-        email,
-      });
+      const payload = await postJson("/api/auth/reset-password", { email });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        setErrorStatus(payload.error);
         return;
       }
 
-      setStatus(payload.message || "Password reset email sent.");
-      setError(false);
+      setOkStatus(payload.message || "Password reset email sent.");
     } catch {
-      setStatus("Unexpected password reset error. Try again.");
-      setError(true);
+      setErrorStatus("Unexpected password reset error. Try again.");
     } finally {
       setIsBusy(false);
     }
@@ -165,28 +169,22 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   async function handleResendVerification() {
     const email = normalizeEmail(pendingVerificationEmail || signinEmail);
     if (!email) {
-      setStatus("Provide email in sign-in form first.");
-      setError(true);
+      setErrorStatus("Provide email in sign-in form first.");
       return;
     }
 
-    setIsBusy(true);
-    setStatus("Sending verification email...");
-    setError(false);
+    setBusyStatus("Sending verification email...");
 
     try {
       const payload = await postJson("/api/auth/resend-verification", { email });
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        setErrorStatus(payload.error);
         return;
       }
 
-      setStatus(payload.message || "Verification email sent.");
-      setError(false);
+      setOkStatus(payload.message || "Verification email sent.");
     } catch {
-      setStatus("Unexpected verification error. Try again.");
-      setError(true);
+      setErrorStatus("Unexpected verification error. Try again.");
     } finally {
       setIsBusy(false);
     }
@@ -194,9 +192,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
 
   async function handleUpdatePassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsBusy(true);
-    setStatus("Updating password...");
-    setError(false);
+    setBusyStatus("Updating password...");
 
     try {
       const payload = await postJson("/api/auth/update-password", {
@@ -205,60 +201,58 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        setErrorStatus(payload.error);
         return;
       }
 
-      setStatus(payload.message || "Password updated. You can sign in now.");
-      setError(false);
+      setOkStatus(payload.message || "Password updated. You can sign in now.");
       setRecoveryToken("");
       setNewPassword("");
       setActiveTab("signin");
     } catch {
-      setStatus("Unexpected error. Try again.");
-      setError(true);
+      setErrorStatus("Unexpected error. Try again.");
     } finally {
       setIsBusy(false);
     }
   }
+
+  const statusToRender = statusMessage || contextualMessage;
 
   return (
     <section className="card auth-card">
       <h1>Account access</h1>
       <p className="card-lead">Phase C provides sign up, sign in, password reset, email verification and RBAC.</p>
 
-      {(contextualMessage || status) && (
-        <p className={`status ${error ? "status--error" : "status--ok"}`}>{status || contextualMessage}</p>
+      {statusToRender && (
+        <p
+          className={`status ${statusKind === "error" ? "status--error" : "status--ok"}`}
+          role="status"
+          aria-live="polite"
+        >
+          {statusToRender}
+        </p>
       )}
 
       <div className="tabs" role="tablist" aria-label="Auth actions">
-        <button
-          type="button"
-          className={`tab ${activeTab === "signin" ? "is-active" : ""}`}
-          onClick={() => setActiveTab("signin")}
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          className={`tab ${activeTab === "signup" ? "is-active" : ""}`}
-          onClick={() => setActiveTab("signup")}
-        >
-          Sign up
-        </button>
-        <button
-          type="button"
-          className={`tab ${activeTab === "reset" ? "is-active" : ""}`}
-          onClick={() => setActiveTab("reset")}
-        >
-          Reset password
-        </button>
+        {AUTH_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`tab ${activeTab === tab.id ? "is-active" : ""}`}
+            onClick={() => setActiveTab(tab.id)}
+            aria-selected={activeTab === tab.id}
+            role="tab"
+          >
+            {tab.label}
+          </button>
+        ))}
         {recoveryToken && (
           <button
             type="button"
             className={`tab ${activeTab === "new-password" ? "is-active" : ""}`}
             onClick={() => setActiveTab("new-password")}
+            aria-selected={activeTab === "new-password"}
+            role="tab"
           >
             New password
           </button>
