@@ -1,4 +1,3 @@
-import SignOutButton from "../components/signout-button";
 import AdminUsersClient from "./admin-users-client";
 import { requireStaffActor } from "../lib/auth-server";
 import { fetchAllProfilesAsService, fetchAuthUsersAsService } from "../lib/supabase-http";
@@ -52,7 +51,6 @@ export default async function AdminPage() {
             Role: <strong>{actor.role}</strong>. Manage users, roles, activity and account deletion.
           </p>
         </div>
-        <SignOutButton />
       </header>
       <AdminUsersClient actorRole={actor.role} initialUsers={initialUsers} initialStats={initialStats} />
     </section>
