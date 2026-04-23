@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { AppRole } from "../lib/auth-types";
 
 type Props = {
   email: string;
   role: AppRole;
+  isActive: boolean;
+  emailConfirmed: boolean;
 };
 
 function getInitial(email: string): string {
@@ -16,8 +18,10 @@ function getInitial(email: string): string {
   return email.trim().charAt(0).toUpperCase() || "U";
 }
 
-export default function AccountMenu({ email, role }: Props) {
+export default function AccountMenu({ email, role, isActive, emailConfirmed }: Props) {
   const [isBusy, setIsBusy] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const menuRef = useRef<HTMLDetailsElement>(null);
 
   async function handleSignOut() {
     if (isBusy) {
@@ -28,8 +32,16 @@ export default function AccountMenu({ email, role }: Props) {
     window.location.href = "/";
   }
 
+  function openProfileModal() {
+    setIsProfileOpen(true);
+    if (menuRef.current) {
+      menuRef.current.open = false;
+    }
+  }
+
   return (
-    <details className="account-menu">
+    <>
+    <details className="account-menu" ref={menuRef}>
       <summary className="account-menu__trigger" aria-label="Open account menu">
         <span className="account-menu__avatar" aria-hidden>
           {getInitial(email)}
@@ -40,14 +52,14 @@ export default function AccountMenu({ email, role }: Props) {
         </span>
       </summary>
       <div className="account-menu__dropdown" role="menu" aria-label="Account actions">
+        <button type="button" className="account-menu__item" onClick={openProfileModal}>
+          Profile
+        </button>
         {role === "admin" && (
           <Link href="/admin" className="account-menu__item" role="menuitem">
             User management
           </Link>
         )}
-        <button type="button" className="account-menu__item" disabled>
-          Profile
-        </button>
         <button type="button" className="account-menu__item" disabled>
           Settings
         </button>
@@ -56,5 +68,32 @@ export default function AccountMenu({ email, role }: Props) {
         </button>
       </div>
     </details>
+      {isProfileOpen && (
+        <dialog className="profile-modal" open aria-labelledby="profile-modal-title">
+          <div className="profile-modal__content">
+            <div className="profile-modal__header">
+              <h2 id="profile-modal-title">Profile</h2>
+              <button type="button" className="button button--ghost button--small" onClick={() => setIsProfileOpen(false)}>
+                Close
+              </button>
+            </div>
+            <div className="meta-grid">
+              <p>
+                <span className="meta-label">Role</span>
+                <span className="meta-value">{role}</span>
+              </p>
+              <p>
+                <span className="meta-label">Status</span>
+                <span className="meta-value">{isActive ? "active" : "inactive"}</span>
+              </p>
+              <p>
+                <span className="meta-label">Email verification</span>
+                <span className="meta-value">{emailConfirmed ? "verified" : "pending"}</span>
+              </p>
+            </div>
+          </div>
+        </dialog>
+      )}
+    </>
   );
 }
