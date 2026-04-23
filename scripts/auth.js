@@ -39,16 +39,30 @@
   function setupTabs() {
     tabs.forEach((tab) => {
       tab.addEventListener('click', () => {
-        const target = tab.dataset.tab;
-        tabs.forEach((item) => {
-          const active = item === tab;
-          item.classList.toggle('is-active', active);
-          item.setAttribute('aria-selected', String(active));
-        });
-        panels.forEach((panel) => {
-          panel.hidden = panel.dataset.panel !== target;
-        });
-        showResendVerification(false);
+        activateTab(tab);
+      });
+
+      tab.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft' && event.key !== 'Home' && event.key !== 'End') {
+          return;
+        }
+
+        event.preventDefault();
+        const currentIndex = tabs.indexOf(tab);
+        let nextIndex = currentIndex;
+
+        if (event.key === 'ArrowRight') {
+          nextIndex = (currentIndex + 1) % tabs.length;
+        } else if (event.key === 'ArrowLeft') {
+          nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        } else if (event.key === 'Home') {
+          nextIndex = 0;
+        } else if (event.key === 'End') {
+          nextIndex = tabs.length - 1;
+        }
+
+        tabs[nextIndex].focus();
+        activateTab(tabs[nextIndex]);
       });
     });
   }
@@ -56,6 +70,7 @@
   function bindForms(client, appConfig) {
     document.getElementById('signin-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      setFormBusy(event.currentTarget, true);
       const form = new FormData(event.currentTarget);
       const email = normalizeEmail(form.get('email'));
       const password = String(form.get('password') || '');
@@ -64,96 +79,110 @@
       showResendVerification(false);
       setStatus('Signing in...');
 
-      const { error } = await client.auth.signInWithPassword({ email, password });
-      if (error) {
-        handleSignInError(error, email);
-        return;
+      try {
+        const { error } = await client.auth.signInWithPassword({ email, password });
+        if (error) {
+          handleSignInError(error, email);
+          return;
+        }
+
+        const {
+          data: { user }
+        } = await client.auth.getUser();
+
+        if (user?.id) {
+          if (!user.email_confirmed_at) {
+            await client.auth.signOut();
+            setStatus('Email verification is required before sign in.', true);
+            showResendVerification(Boolean(email));
+            return;
+          }
+
+          const { data: profile, error: profileError } = await client
+            .from('profiles')
+            .select('is_active')
+            .eq('id', user.id)
+            .single();
+
+          if (profileError) {
+            setStatus(profileError.message, true);
+            await client.auth.signOut();
+            return;
+          }
+
+          if (!profile.is_active) {
+            await client.auth.signOut();
+            setStatus('Your account is inactive. Contact support.', true);
+            return;
+          }
+        }
+
+        showResendVerification(false);
+        pendingVerificationEmail = '';
+        setStatus('Signed in. Redirecting...');
+        window.location.href = 'dashboard.html';
+      } finally {
+        setFormBusy(event.currentTarget, false);
       }
-
-      const {
-        data: { user }
-      } = await client.auth.getUser();
-
-      if (user?.id) {
-        if (!user.email_confirmed_at) {
-          await client.auth.signOut();
-          setStatus('Email verification is required before sign in.', true);
-          showResendVerification(Boolean(email));
-          return;
-        }
-
-        const { data: profile, error: profileError } = await client
-          .from('profiles')
-          .select('is_active')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) {
-          setStatus(profileError.message, true);
-          await client.auth.signOut();
-          return;
-        }
-
-        if (!profile.is_active) {
-          await client.auth.signOut();
-          setStatus('Your account is inactive. Contact support.', true);
-          return;
-        }
-      }
-
-      showResendVerification(false);
-      pendingVerificationEmail = '';
-      setStatus('Signed in. Redirecting...');
-      window.location.href = 'dashboard.html';
     });
 
     document.getElementById('signup-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      setFormBusy(event.currentTarget, true);
       const form = new FormData(event.currentTarget);
       const email = normalizeEmail(form.get('email'));
       const password = String(form.get('password') || '');
 
-      setStatus('Validating email domain...');
-      const disposable = await isDisposableEmail(email);
-      if (disposable) {
-        setStatus('Disposable email addresses are blocked. Please use a permanent address.', true);
-        return;
-      }
-
-      setStatus('Creating account...');
-      const { error } = await client.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: getEmailVerificationRedirectUrl(appConfig)
+      try {
+        setStatus('Validating email domain...');
+        const disposable = await isDisposableEmail(email);
+        if (disposable) {
+          setStatus('Disposable email addresses are blocked. Please use a permanent address.', true);
+          return;
         }
-      });
 
-      if (error) {
-        setStatus(error.message, true);
-        return;
+        setStatus('Creating account...');
+        const { error } = await client.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: getEmailVerificationRedirectUrl(appConfig)
+          }
+        });
+
+        if (error) {
+          setStatus(error.message, true);
+          return;
+        }
+
+        pendingVerificationEmail = email;
+        setStatus('Account created. Verify your email before signing in.');
+      } finally {
+        setFormBusy(event.currentTarget, false);
       }
-
-      pendingVerificationEmail = email;
-      setStatus('Account created. Verify your email before signing in.');
     });
 
     document.getElementById('reset-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      setFormBusy(event.currentTarget, true);
       const form = new FormData(event.currentTarget);
       const email = normalizeEmail(form.get('email'));
 
-      setStatus('Sending reset link...');
-      const { error } = await client.auth.resetPasswordForEmail(email, {
-        redirectTo: appConfig.passwordResetRedirectUrl || `${window.location.origin}/login.html`
-      });
+      try {
+        setStatus('Sending reset link...');
+        const { error } = await client.auth.resetPasswordForEmail(email, {
+          redirectTo: appConfig.passwordResetRedirectUrl || `${window.location.origin}/login.html`
+        });
 
-      if (error) {
-        setStatus(error.message, true);
-        return;
+        if (error) {
+          setStatus(error.message, true);
+          return;
+        }
+
+        setStatus('Password reset email sent.');
+      } finally {
+        setFormBusy(event.currentTarget, false);
       }
-
-      setStatus('Password reset email sent.');
     });
 
     resendVerificationButton?.addEventListener('click', async () => {
@@ -165,21 +194,27 @@
       }
 
       setStatus('Sending verification email...');
-      const { error } = await client.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: getEmailVerificationRedirectUrl(appConfig)
+      setButtonBusy(resendVerificationButton, true);
+
+      try {
+        const { error } = await client.auth.resend({
+          type: 'signup',
+          email,
+          options: {
+            emailRedirectTo: getEmailVerificationRedirectUrl(appConfig)
+          }
+        });
+
+        if (error) {
+          setStatus(error.message, true);
+          return;
         }
-      });
 
-      if (error) {
-        setStatus(error.message, true);
-        return;
+        setStatus('Verification email sent. Confirm it, then sign in again.');
+        showResendVerification(false);
+      } finally {
+        setButtonBusy(resendVerificationButton, false);
       }
-
-      setStatus('Verification email sent. Confirm it, then sign in again.');
-      showResendVerification(false);
     });
   }
 
@@ -228,6 +263,41 @@
 
   function normalizeEmail(value) {
     return String(value || '').trim().toLowerCase();
+  }
+
+  function activateTab(activeTab) {
+    const target = activeTab.dataset.tab;
+    tabs.forEach((tab) => {
+      const isActive = tab === activeTab;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', String(isActive));
+      tab.tabIndex = isActive ? 0 : -1;
+    });
+
+    panels.forEach((panel) => {
+      const isVisible = panel.dataset.panel === target;
+      panel.hidden = !isVisible;
+      if (isVisible) {
+        const firstField = panel.querySelector('input, textarea, select, button');
+        firstField?.focus({ preventScroll: true });
+      }
+    });
+
+    showResendVerification(false);
+  }
+
+  function setFormBusy(form, isBusy) {
+    if (!form) return;
+    form.setAttribute('aria-busy', String(isBusy));
+    form.querySelectorAll('input, button, textarea, select').forEach((element) => {
+      element.disabled = isBusy;
+    });
+  }
+
+  function setButtonBusy(button, isBusy) {
+    if (!button) return;
+    button.disabled = isBusy;
+    button.setAttribute('aria-busy', String(isBusy));
   }
 
   function setStatus(message, isError = false) {

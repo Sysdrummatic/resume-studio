@@ -45,6 +45,9 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     if (reason === "unverified") {
       return "Email verification must be completed before access is granted.";
     }
+    if (reason === "session") {
+      return "Session could not be restored. Please sign in again.";
+    }
     return "";
   }, [reason, verified]);
 
