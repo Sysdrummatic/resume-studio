@@ -27,16 +27,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 {actor && <Link href="/master-resume">Editor</Link>}
                 <Link href="/resume">Sample CV</Link>
               </nav>
-              {actor ? (
-                <HeaderAccountMenu actor={<AccountMenu email={actor.email} role={actor.role} />} />
-              ) : (
-                <Link className="login-menu-trigger" href="/login" aria-label="Go to login">
-                  <span className="login-menu-trigger__avatar" aria-hidden>
-                    L
-                  </span>
-                  <span className="login-menu-trigger__label">Login</span>
-                </Link>
-              )}
+              <HeaderAccountMenu
+                actor={
+                  actor ? (
+                    <AccountMenu
+                      email={actor.email}
+                      role={actor.role}
+                      isActive={actor.isActive}
+                      emailConfirmed={actor.emailConfirmed}
+                    />
+                  ) : null
+                }
+              />
             </div>
           </div>
         </header>
