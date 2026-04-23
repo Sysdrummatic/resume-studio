@@ -14,6 +14,10 @@ begin;
 
 create extension if not exists pgcrypto;
 
+-- Required because public.guard_profile_update() allows profile role/activity updates
+-- only for admin/manager actors, or when jwt role is service_role.
+select set_config('request.jwt.claim.role', 'service_role', true);
+
 do $$
 declare
   target record;
