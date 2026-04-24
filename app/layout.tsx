@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 {actor && <Link href="/dashboard">Dashboard</Link>}
                 {actor && <Link href="/master-resume">Editor</Link>}
                 {!actor && <Link href="/login">Login</Link>}
-                {actor && <Link href="/resume">Sample CV</Link>}
+                {!actor && <Link href="/resume">Sample CV</Link>}
               </nav>
               <HeaderAccountMenu
                 actor={

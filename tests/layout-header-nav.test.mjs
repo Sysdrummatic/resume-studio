@@ -16,13 +16,13 @@ test("header renders Login link for guests in primary nav", () => {
   assert.equal(source.includes('{!actor && <Link href="/login">Sign in</Link>}'), false);
 });
 
-test("header keeps Sample CV only for authenticated users", () => {
+test("header keeps Sample CV only for guests", () => {
   const source = readLayoutSource();
   const guestSampleCvIndex = source.indexOf('{!actor && <Link href="/resume">Sample CV</Link>}');
   const authSampleCvIndex = source.indexOf('{actor && <Link href="/resume">Sample CV</Link>}');
 
-  assert.equal(guestSampleCvIndex, -1);
-  assert.notEqual(authSampleCvIndex, -1);
+  assert.notEqual(guestSampleCvIndex, -1);
+  assert.equal(authSampleCvIndex, -1);
 });
 
 test("header disables brand link for authenticated users", () => {
