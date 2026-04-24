@@ -18,15 +18,21 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body>
         <header className="app-header">
           <div className="app-shell app-header__inner">
-            <Link className="app-brand" href="/">
-              OpenCVHub
-            </Link>
+            {actor ? (
+              <span className="app-brand" aria-disabled="true">
+                OpenCVHub
+              </span>
+            ) : (
+              <Link className="app-brand" href="/">
+                OpenCVHub
+              </Link>
+            )}
             <div className="app-header__controls">
               <nav className="app-nav" aria-label="Primary">
                 {actor && <Link href="/dashboard">Dashboard</Link>}
                 {actor && <Link href="/master-resume">Editor</Link>}
-                {!actor && <Link href="/login">Sign in</Link>}
-                <Link href="/resume">Sample CV</Link>
+                {!actor && <Link href="/login">Login</Link>}
+                {actor && <Link href="/resume">Sample CV</Link>}
               </nav>
               <HeaderAccountMenu
                 actor={

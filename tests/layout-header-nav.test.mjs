@@ -9,18 +9,26 @@ function readLayoutSource() {
   return fs.readFileSync(layoutPath, "utf8");
 }
 
-test("header renders login link for guests in primary nav", () => {
+test("header renders Login link for guests in primary nav", () => {
   const source = readLayoutSource();
 
-  assert.equal(source.includes('{!actor && <Link href="/login">Sign in</Link>}'), true);
+  assert.equal(source.includes('{!actor && <Link href="/login">Login</Link>}'), true);
+  assert.equal(source.includes('{!actor && <Link href="/login">Sign in</Link>}'), false);
 });
 
-test("header keeps login link before Sample CV in primary nav", () => {
+test("header keeps Sample CV only for authenticated users", () => {
   const source = readLayoutSource();
-  const loginIndex = source.indexOf('{!actor && <Link href="/login">Sign in</Link>}');
-  const sampleCvIndex = source.indexOf('<Link href="/resume">Sample CV</Link>');
+  const guestSampleCvIndex = source.indexOf('{!actor && <Link href="/resume">Sample CV</Link>}');
+  const authSampleCvIndex = source.indexOf('{actor && <Link href="/resume">Sample CV</Link>}');
 
-  assert.notEqual(loginIndex, -1);
-  assert.notEqual(sampleCvIndex, -1);
-  assert.equal(loginIndex < sampleCvIndex, true);
+  assert.equal(guestSampleCvIndex, -1);
+  assert.notEqual(authSampleCvIndex, -1);
+});
+
+test("header disables brand link for authenticated users", () => {
+  const source = readLayoutSource();
+
+  assert.equal(source.includes('actor ? ('), true);
+  assert.equal(source.includes('<span className="app-brand" aria-disabled="true">'), true);
+  assert.equal(source.includes('<Link className="app-brand" href="/">'), true);
 });

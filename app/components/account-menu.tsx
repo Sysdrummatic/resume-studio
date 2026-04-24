@@ -28,8 +28,11 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
       return;
     }
     setIsBusy(true);
-    await fetch("/api/auth/signout", { method: "POST" });
-    window.location.href = "/";
+    try {
+      await fetch("/api/auth/signout", { method: "POST" });
+    } finally {
+      window.location.href = "/";
+    }
   }
 
   function openProfileModal() {

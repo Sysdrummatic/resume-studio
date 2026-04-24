@@ -1,4 +1,12 @@
-export default function HomePage() {
+import { redirect } from "next/navigation";
+import { getCurrentActor } from "./lib/auth-server";
+
+export default async function HomePage() {
+  const actor = await getCurrentActor();
+  if (actor) {
+    redirect("/dashboard");
+  }
+
   return (
     <section className="card">
       <h1>OpenCVHub Rebuild</h1>
