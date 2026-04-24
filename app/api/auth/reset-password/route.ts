@@ -25,6 +25,14 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const redirectTo = `${getAppBaseUrl()}/login`;
+  console.info("[auth/reset-password] Using redirect URL", {
+    context: process.env.CONTEXT || "",
+    deployPrimeUrl: process.env.DEPLOY_PRIME_URL || "",
+    deployUrl: process.env.DEPLOY_URL || "",
+    url: process.env.URL || "",
+    redirectTo,
+  });
+
   const result = await sendPasswordResetEmail(email, redirectTo);
   if (result.error) {
     return NextResponse.json({ error: result.error }, { status: result.status >= 500 ? 503 : 400 });

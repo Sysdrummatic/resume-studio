@@ -95,6 +95,20 @@ test("getAppBaseUrl uses production URL in production context", () => {
   );
 });
 
+test("getAppBaseUrl prefers DEPLOY_PRIME_URL when context is missing", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_APP_BASE_URL: undefined,
+      CONTEXT: undefined,
+      DEPLOY_PRIME_URL: "https://deploy-preview-55--opencvhub.netlify.app",
+      URL: "https://opencvhub.netlify.app",
+    },
+    () => {
+      assert.equal(getAppBaseUrl(), "https://deploy-preview-55--opencvhub.netlify.app");
+    },
+  );
+});
+
 test("getAppBaseUrl falls back to localhost when no Netlify URL env is available", () => {
   withEnv(
     {

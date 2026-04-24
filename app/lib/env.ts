@@ -58,20 +58,22 @@ export function getAppBaseUrl(): string {
   const deployUrl = process.env.DEPLOY_URL?.trim();
   const productionUrl = process.env.URL?.trim();
 
-  if ((context === "deploy-preview" || context === "branch-deploy") && deployPrimeUrl) {
-    return deployPrimeUrl.replace(/\/+$/, "");
-  }
-
-  if (productionUrl) {
+  if (context === "production" && productionUrl) {
     return productionUrl.replace(/\/+$/, "");
   }
 
+  // Prefer DEPLOY_PRIME_URL whenever available outside production context.
+  // This protects preview flows even if CONTEXT is missing/misreported.
   if (deployPrimeUrl) {
     return deployPrimeUrl.replace(/\/+$/, "");
   }
 
   if (deployUrl) {
     return deployUrl.replace(/\/+$/, "");
+  }
+
+  if (productionUrl) {
+    return productionUrl.replace(/\/+$/, "");
   }
 
   return "http://localhost:3000";
