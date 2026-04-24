@@ -19,7 +19,8 @@ This phase implements authentication and role-aware administration in the Next.j
 - Admin panel (`/admin`) for:
   - role assignment,
   - account activation/deactivation,
-  - account deletion (with manager restrictions).
+  - account deletion (with manager restrictions),
+  - email verification status visibility.
 - Audit logging for privileged operations.
 
 ## Required migration
@@ -61,3 +62,8 @@ This migration provides RPC helpers and constraints:
 - Run `supabase/manual/20260423_seed_staff_and_role_accounts.sql` only after target staff emails already exist in `auth.users` (created via signup/admin invite with known password).
 - The script updates role/activity in `public.profiles` and intentionally fails if required auth users are missing.
 - If seeded staff login returns invalid credentials, use the app `Reset password` flow for that environment (Deploy Preview uses test Supabase project).
+
+## Verification resend behavior
+
+- `Resend verification` returns explicit feedback when the email is already verified: "Email is already verified. Use Sign in or Reset password."
+- Otherwise it returns neutral anti-enumeration feedback and attempts Supabase resend for signup confirmation.

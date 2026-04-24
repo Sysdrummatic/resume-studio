@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { callRpc } from "../../../lib/supabase-http";
+import { callRpc, fetchAuthUsersAsService } from "../../../lib/supabase-http";
 
 type UserOverview = {
   id: string;
   email: string;
+  emailConfirmed: boolean;
   displayName: string;
   role: string;
   isActive: boolean;
@@ -37,9 +38,26 @@ export async function GET(): Promise<Response> {
     return NextResponse.json({ error: overviewResult.error || "Unable to load user overview." }, { status: 500 });
   }
 
+  const authUsersResult = await fetchAuthUsersAsService();
+  const authUserById = new Map<
+    string,
+    {
+      email: string;
+      emailConfirmed: boolean;
+    }
+  >();
+
+  (authUsersResult.data?.users || []).forEach((user) => {
+    authUserById.set(user.id, {
+      email: user.email || "",
+      emailConfirmed: Boolean(user.email_confirmed_at),
+    });
+  });
+
   let users: UserOverview[] = overviewResult.data.map((row) => ({
     id: row.id,
-    email: row.email || "",
+    email: authUserById.get(row.id)?.email || row.email || "",
+    emailConfirmed: authUserById.get(row.id)?.emailConfirmed || false,
     displayName: row.display_name || "",
     role: row.role as UserOverview["role"],
     isActive: row.is_active,

@@ -6,6 +6,7 @@ import type { AppRole } from "../lib/auth-types";
 type UserOverview = {
   id: string;
   email: string;
+  emailConfirmed: boolean;
   displayName: string;
   role: AppRole;
   isActive: boolean;
@@ -19,13 +20,16 @@ export default async function AdminPage() {
   const [profilesResult, authUsersResult] = await Promise.all([fetchAllProfilesAsService(), fetchAuthUsersAsService()]);
 
   const emailById = new Map<string, string>();
+  const emailConfirmedById = new Map<string, boolean>();
   (authUsersResult.data?.users || []).forEach((user) => {
     emailById.set(user.id, user.email || "");
+    emailConfirmedById.set(user.id, Boolean(user.email_confirmed_at));
   });
 
   let initialUsers: UserOverview[] = (profilesResult.data || []).map((profile) => ({
     id: profile.id,
     email: emailById.get(profile.id) || "",
+    emailConfirmed: emailConfirmedById.get(profile.id) || false,
     displayName: profile.display_name || "",
     role: profile.role,
     isActive: profile.is_active,

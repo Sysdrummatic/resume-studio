@@ -6,6 +6,7 @@ import type { AppRole } from "../lib/auth-types";
 type UserOverview = {
   id: string;
   email: string;
+  emailConfirmed: boolean;
   displayName: string;
   role: AppRole;
   isActive: boolean;
@@ -168,6 +169,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
           <thead>
             <tr>
               <th>Email</th>
+              <th>Email verified</th>
               <th>Display name</th>
               <th>Role</th>
               <th>Status</th>
@@ -188,6 +190,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
               return (
                 <tr key={user.id}>
                   <td>{user.email || "-"}</td>
+                  <td>{user.emailConfirmed ? "Verified" : "Not verified"}</td>
                   <td>{user.displayName || "-"}</td>
                   <td>
                     <select

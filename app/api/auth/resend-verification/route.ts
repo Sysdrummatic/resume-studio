@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAppBaseUrl } from "../../../lib/env";
 import { isValidEmailAddress } from "../../../lib/disposable-email";
-import { resendVerificationEmail } from "../../../lib/supabase-http";
+import { fetchAuthUserByEmailAsService, resendVerificationEmail } from "../../../lib/supabase-http";
 
 type ResendBody = {
   email?: string;
@@ -24,6 +24,15 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Provide a valid email address." }, { status: 400 });
   }
 
+  const authUserResult = await fetchAuthUserByEmailAsService(email);
+  if (authUserResult.data?.email_confirmed_at) {
+    return NextResponse.json({
+      ok: true,
+      message: "Email is already verified. Use Sign in or Reset password.",
+      alreadyVerified: true,
+    });
+  }
+
   const emailRedirectTo = `${getAppBaseUrl()}/login?verified=1`;
   const result = await resendVerificationEmail(email, emailRedirectTo);
   if (result.error) {
@@ -32,6 +41,8 @@ export async function POST(request: Request): Promise<Response> {
 
   return NextResponse.json({
     ok: true,
-    message: "Verification email sent. Confirm email and sign in again.",
+    message:
+      "If this account exists and still requires email verification, a verification email has been sent.",
+    alreadyVerified: false,
   });
 }
