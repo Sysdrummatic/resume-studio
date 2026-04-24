@@ -16,12 +16,12 @@ test("header renders login link for guests in primary nav", () => {
   assert.equal(source.includes('{!actor && <Link href="/login">Sign in</Link>}'), false);
 });
 
-test("header keeps login link before Sample CV in primary nav", () => {
+test("header keeps login link as rightmost item after Sample CV in primary nav", () => {
   const source = readLayoutSource();
   const loginIndex = source.indexOf('{!actor && <Link href="/login">Login</Link>}');
   const sampleCvIndex = source.indexOf('<Link href="/resume">Sample CV</Link>');
 
   assert.notEqual(loginIndex, -1);
   assert.notEqual(sampleCvIndex, -1);
-  assert.equal(loginIndex < sampleCvIndex, true);
+  assert.equal(loginIndex > sampleCvIndex, true);
 });

@@ -25,8 +25,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               <nav className="app-nav" aria-label="Primary">
                 {actor && <Link href="/dashboard">Dashboard</Link>}
                 {actor && <Link href="/master-resume">Editor</Link>}
-                {!actor && <Link href="/login">Login</Link>}
                 <Link href="/resume">Sample CV</Link>
+                {!actor && <Link href="/login">Login</Link>}
               </nav>
               <HeaderAccountMenu
                 actor={
