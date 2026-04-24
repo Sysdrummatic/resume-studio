@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isValidEmailAddress } from "../../../lib/disposable-email";
 import { setAuthCookies } from "../../../lib/auth-cookies";
-import { fetchProfileById, fetchProfileByIdAsService, signInWithPassword, signOut } from "../../../lib/supabase-http";
+import { getSupabaseProjectRef } from "../../../lib/env";
+import {
+  fetchAuthUserByEmailAsService,
+  fetchProfileById,
+  fetchProfileByIdAsService,
+  signInWithPassword,
+  signOut,
+} from "../../../lib/supabase-http";
 
 type SignInBody = {
   email?: string;
@@ -15,6 +22,13 @@ function normalizeEmail(value: unknown): string {
 
 function mapUpstreamStatus(status: number): number {
   return status >= 500 ? 503 : 400;
+}
+
+function buildInvalidCredentialsMessage(projectRef: string): string {
+  return (
+    "Invalid login credentials. Verify email/password, and if this account used to work run Reset password. " +
+    `Auth project: ${projectRef}.`
+  );
 }
 
 async function resolveProfileForSignIn(userId: string, accessToken: string) {
@@ -50,13 +64,32 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
+    const projectRef = getSupabaseProjectRef();
     const authResult = await signInWithPassword(email, password);
     if (!authResult.data || authResult.error) {
       const isInvalidCredentials = /invalid login credentials/i.test(authResult.error || "");
+      if (isInvalidCredentials) {
+        const authUserResult = await fetchAuthUserByEmailAsService(email);
+        if (authUserResult.data?.email_confirmed_at == null) {
+          return NextResponse.json(
+            { error: "Email verification is required before sign in." },
+            { status: 403 },
+          );
+        }
+
+        console.warn("[signin] Invalid credentials diagnostic", {
+          email,
+          projectRef,
+          authUserExists: Boolean(authUserResult.data),
+          authUserLookupError: authUserResult.error,
+          status: authUserResult.status,
+        });
+      }
+
       return NextResponse.json(
         {
           error: isInvalidCredentials
-            ? "Invalid login credentials. Confirm email and password, then try again."
+            ? buildInvalidCredentialsMessage(projectRef)
             : authResult.error || "Sign in failed.",
         },
         { status: isInvalidCredentials ? 401 : mapUpstreamStatus(authResult.status) },

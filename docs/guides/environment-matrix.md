@@ -68,3 +68,8 @@ GitHub Actions workflow `ci.yml` runs on PR and push to `main/master`:
 Merge rule:
 
 - Do not merge when any required CI check fails.
+
+## Auth troubleshooting
+
+- `POST /api/auth/signin` invalid credential responses now include `Auth project: <project-ref>`.
+- If user exists in Supabase UI but sign-in still fails, first compare this project ref with the Supabase project you are inspecting; preview deploys must point to test Supabase variables.

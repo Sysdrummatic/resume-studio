@@ -314,6 +314,41 @@ export async function fetchAuthUsersAsService(): Promise<AuthResult<SupabaseAuth
   );
 }
 
+export async function fetchAuthUserByEmailAsService(email: string): Promise<AuthResult<SupabaseAuthUser>> {
+  const usersResult = await fetchAuthUsersAsService();
+  if (usersResult.error) {
+    return {
+      data: null,
+      error: usersResult.error,
+      status: usersResult.status,
+    };
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const matchedUser =
+    usersResult.data?.users?.find(
+      (user) => typeof user.email === "string" && user.email.trim().toLowerCase() === normalizedEmail,
+    ) || null;
+
+  if (!matchedUser) {
+    return {
+      data: null,
+      error: null,
+      status: usersResult.status,
+    };
+  }
+
+  return {
+    data: {
+      id: matchedUser.id,
+      email: matchedUser.email ?? null,
+      email_confirmed_at: matchedUser.email_confirmed_at ?? null,
+    },
+    error: null,
+    status: usersResult.status,
+  };
+}
+
 export async function deleteAuthUserAsService(userId: string): Promise<AuthResult<Record<string, unknown>>> {
   const { url, serviceRoleKey } = getSupabaseServerConfig();
   return requestSupabase<Record<string, unknown>>(

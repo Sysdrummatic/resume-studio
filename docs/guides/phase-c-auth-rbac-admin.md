@@ -55,3 +55,9 @@ This migration provides RPC helpers and constraints:
 5. Access `/admin` as admin/manager and verify user list loading.
 6. As manager, verify inability to modify or delete admin/manager.
 7. Perform role/status update and verify rows appear in `admin_audit_logs`.
+
+## Staff account seeding safety
+
+- Run `supabase/manual/20260423_seed_staff_and_role_accounts.sql` only after target staff emails already exist in `auth.users` (created via signup/admin invite with known password).
+- The script updates role/activity in `public.profiles` and intentionally fails if required auth users are missing.
+- If seeded staff login returns invalid credentials, use the app `Reset password` flow for that environment (Deploy Preview uses test Supabase project).

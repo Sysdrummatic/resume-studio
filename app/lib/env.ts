@@ -33,6 +33,20 @@ export function getSupabaseServerConfig(): SupabaseServerConfig {
   };
 }
 
+export function getSupabaseProjectRef(): string {
+  const { url } = getSupabasePublicConfig();
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const supabaseSuffix = ".supabase.co";
+    if (hostname.endsWith(supabaseSuffix)) {
+      return hostname.slice(0, -supabaseSuffix.length);
+    }
+    return hostname;
+  } catch {
+    return "unknown";
+  }
+}
+
 export function getAppBaseUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.URL;
   if (explicit) {
