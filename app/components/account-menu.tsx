@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { FocusEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
 
 type Props = {
@@ -10,6 +11,8 @@ type Props = {
   isActive: boolean;
   emailConfirmed: boolean;
 };
+
+const MENU_AUTO_CLOSE_DELAY_MS = 2500;
 
 function getInitial(email: string): string {
   if (!email) {
@@ -22,6 +25,15 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
   const [isBusy, setIsBusy] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
+  const closeTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
 
   async function handleSignOut() {
     if (isBusy) {
@@ -43,9 +55,42 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
     setIsProfileOpen(false);
   }
 
+  function cancelMenuAutoClose() {
+    if (closeTimerRef.current === null) {
+      return;
+    }
+    window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+  }
+
+  function scheduleMenuAutoClose() {
+    cancelMenuAutoClose();
+    closeTimerRef.current = window.setTimeout(() => {
+      if (menuRef.current) {
+        menuRef.current.open = false;
+      }
+      closeTimerRef.current = null;
+    }, MENU_AUTO_CLOSE_DELAY_MS);
+  }
+
+  function handleMenuBlur(event: FocusEvent<HTMLDetailsElement>) {
+    const nextFocusedElement = event.relatedTarget;
+    if (nextFocusedElement instanceof Node && event.currentTarget.contains(nextFocusedElement)) {
+      return;
+    }
+    scheduleMenuAutoClose();
+  }
+
   return (
     <>
-    <details className="account-menu" ref={menuRef}>
+    <details
+      className="account-menu"
+      ref={menuRef}
+      onMouseEnter={cancelMenuAutoClose}
+      onMouseLeave={scheduleMenuAutoClose}
+      onFocus={cancelMenuAutoClose}
+      onBlur={handleMenuBlur}
+    >
       <summary className="account-menu__trigger" aria-label="Open account menu">
         <span className="account-menu__avatar" aria-hidden>
           {getInitial(email)}
