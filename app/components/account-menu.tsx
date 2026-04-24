@@ -39,6 +39,10 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
     }
   }
 
+  function closeProfileModal() {
+    setIsProfileOpen(false);
+  }
+
   return (
     <>
     <details className="account-menu" ref={menuRef}>
@@ -69,30 +73,38 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
       </div>
     </details>
       {isProfileOpen && (
-        <dialog className="profile-modal" open aria-labelledby="profile-modal-title">
-          <div className="profile-modal__content">
-            <div className="profile-modal__header">
-              <h2 id="profile-modal-title">Profile</h2>
-              <button type="button" className="button button--ghost button--small" onClick={() => setIsProfileOpen(false)}>
-                Close
-              </button>
-            </div>
-            <div className="meta-grid">
-              <p>
-                <span className="meta-label">Role</span>
-                <span className="meta-value">{role}</span>
-              </p>
-              <p>
-                <span className="meta-label">Status</span>
-                <span className="meta-value">{isActive ? "active" : "inactive"}</span>
-              </p>
-              <p>
-                <span className="meta-label">Email verification</span>
-                <span className="meta-value">{emailConfirmed ? "verified" : "pending"}</span>
-              </p>
+        <div className="profile-modal-overlay" onClick={closeProfileModal}>
+          <div
+            className="profile-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="profile-modal__content">
+              <div className="profile-modal__header">
+                <h2 id="profile-modal-title">Profile</h2>
+                <button type="button" className="button button--ghost button--small" onClick={closeProfileModal}>
+                  Zamknij
+                </button>
+              </div>
+              <div className="meta-grid">
+                <p>
+                  <span className="meta-label">Role</span>
+                  <span className="meta-value">{role}</span>
+                </p>
+                <p>
+                  <span className="meta-label">Status</span>
+                  <span className="meta-value">{isActive ? "active" : "inactive"}</span>
+                </p>
+                <p>
+                  <span className="meta-label">Email verification</span>
+                  <span className="meta-value">{emailConfirmed ? "verified" : "pending"}</span>
+                </p>
+              </div>
             </div>
           </div>
-        </dialog>
+        </div>
       )}
     </>
   );
