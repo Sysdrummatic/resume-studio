@@ -48,9 +48,31 @@ export function getSupabaseProjectRef(): string {
 }
 
 export function getAppBaseUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.URL;
+  const explicit = process.env.NEXT_PUBLIC_APP_BASE_URL?.trim();
   if (explicit) {
-    return explicit;
+    return explicit.replace(/\/+$/, "");
   }
+
+  const context = (process.env.CONTEXT || "").toLowerCase();
+  const deployPrimeUrl = process.env.DEPLOY_PRIME_URL?.trim();
+  const deployUrl = process.env.DEPLOY_URL?.trim();
+  const productionUrl = process.env.URL?.trim();
+
+  if ((context === "deploy-preview" || context === "branch-deploy") && deployPrimeUrl) {
+    return deployPrimeUrl.replace(/\/+$/, "");
+  }
+
+  if (productionUrl) {
+    return productionUrl.replace(/\/+$/, "");
+  }
+
+  if (deployPrimeUrl) {
+    return deployPrimeUrl.replace(/\/+$/, "");
+  }
+
+  if (deployUrl) {
+    return deployUrl.replace(/\/+$/, "");
+  }
+
   return "http://localhost:3000";
 }

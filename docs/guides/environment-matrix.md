@@ -24,6 +24,10 @@ This file defines how to run and deploy the app in three environments.
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_SENTRY_DSN`
 
+Optional override:
+
+- `NEXT_PUBLIC_APP_BASE_URL` - when set, auth email redirects (`signup`, `resend verification`, `reset password`) always use this base URL.
+
 Templates:
 
 - `.env.development.example`
@@ -73,3 +77,7 @@ Merge rule:
 
 - `POST /api/auth/signin` invalid credential responses now include `Auth project: <project-ref>`.
 - If user exists in Supabase UI but sign-in still fails, first compare this project ref with the Supabase project you are inspecting; preview deploys must point to test Supabase variables.
+- Redirect URL resolution for auth emails:
+  - `deploy-preview` / `branch-deploy` -> `DEPLOY_PRIME_URL`
+  - `production` -> `URL`
+  - explicit override -> `NEXT_PUBLIC_APP_BASE_URL`

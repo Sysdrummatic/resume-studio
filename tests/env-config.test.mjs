@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { getSupabaseProjectRef } from "../app/lib/env.ts";
+import { getAppBaseUrl, getSupabaseProjectRef } from "../app/lib/env.ts";
 
 function withEnv(patch, callback) {
   const keys = Object.keys(patch);
@@ -49,6 +49,63 @@ test("getSupabaseProjectRef falls back to host when URL is not supabase.co", () 
     },
     () => {
       assert.equal(getSupabaseProjectRef(), "db.internal.example.com");
+    },
+  );
+});
+
+test("getAppBaseUrl prioritizes explicit NEXT_PUBLIC_APP_BASE_URL override", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_APP_BASE_URL: "https://custom.example.com/",
+      CONTEXT: "deploy-preview",
+      DEPLOY_PRIME_URL: "https://deploy-preview-22--opencvhub.netlify.app",
+      URL: "https://opencvhub.netlify.app",
+    },
+    () => {
+      assert.equal(getAppBaseUrl(), "https://custom.example.com");
+    },
+  );
+});
+
+test("getAppBaseUrl uses DEPLOY_PRIME_URL for deploy preview context", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_APP_BASE_URL: undefined,
+      CONTEXT: "deploy-preview",
+      DEPLOY_PRIME_URL: "https://deploy-preview-54--opencvhub.netlify.app/",
+      URL: "https://opencvhub.netlify.app",
+    },
+    () => {
+      assert.equal(getAppBaseUrl(), "https://deploy-preview-54--opencvhub.netlify.app");
+    },
+  );
+});
+
+test("getAppBaseUrl uses production URL in production context", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_APP_BASE_URL: undefined,
+      CONTEXT: "production",
+      DEPLOY_PRIME_URL: "https://deploy-preview-54--opencvhub.netlify.app",
+      URL: "https://opencvhub.netlify.app/",
+    },
+    () => {
+      assert.equal(getAppBaseUrl(), "https://opencvhub.netlify.app");
+    },
+  );
+});
+
+test("getAppBaseUrl falls back to localhost when no Netlify URL env is available", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_APP_BASE_URL: undefined,
+      CONTEXT: undefined,
+      DEPLOY_PRIME_URL: undefined,
+      DEPLOY_URL: undefined,
+      URL: undefined,
+    },
+    () => {
+      assert.equal(getAppBaseUrl(), "http://localhost:3000");
     },
   );
 });
