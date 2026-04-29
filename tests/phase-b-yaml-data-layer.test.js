@@ -9,14 +9,14 @@ const {
   validateResumeDocumentShape,
   validateResumeYamlContent,
   serializeResumeDocument,
-} = require("../scripts/phase-b/resume-yaml-contract");
+} = require("../public/scripts/phase-b/resume-yaml-contract");
 
 const {
   buildMigrationPlan,
   buildDryRunReport,
   generateSqlBackfill,
   parseCliArgs,
-} = require("../scripts/phase-b/legacy-data-migrator");
+} = require("../public/scripts/phase-b/legacy-data-migrator");
 
 test("empty resume template is schema-valid", () => {
   const template = createEmptyResumeDocument("Ariana Holt");

@@ -4,7 +4,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
-const mainScript = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'main.js'), 'utf8');
+const mainScript = fs.readFileSync(path.join(__dirname, '..', 'public', 'scripts', 'main.js'), 'utf8');
 
 const DISABLED_MESSAGE = 'Editor login disabled. Configure the ADMIN_PASSWORD environment variable.';
 const DEFAULT_ERROR_MESSAGE = 'Incorrect password. Try again.';
