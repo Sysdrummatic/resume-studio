@@ -9,7 +9,7 @@ export default async function MasterResumePage() {
 
   return (
     <>
-      <Script src="/vendor/js-yaml.min.js" strategy="beforeInteractive" />
+      <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
       <EditorCanvasClient />
     </>
   );

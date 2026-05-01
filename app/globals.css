@@ -1,4 +1,5 @@
-﻿:root {
+:root {
+  color-scheme: dark;
   --bg: #070a14;
   --surface: #10172a;
   --surface-soft: #162038;
@@ -22,7 +23,7 @@ body {
 body {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background: radial-gradient(circle at 15% -10%, #26305f, transparent 42%),
-    radial-gradient(circle at 95% 15%, #40205f, transparent 34%), var(--bg);
+    radial-gradient(circle at 95% 15%, #40205f, transparent 34%) var(--bg);
   color: var(--text);
 }
 
@@ -673,3 +674,25 @@ a {
 .profile-modal__header h2 {
   margin: 0;
 }
+
+/* LANDING PAGE STYLES */
+.hero { max-width: 760px; }
+.eyebrow { margin: 0; color: #98a8ff; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.78rem; }
+.hero h1 { margin: 0.7rem 0 1rem; line-height: 1.08; font-size: clamp(2rem, 7vw, 3.6rem); }
+.hero__lead { margin: 0; color: var(--muted); line-height: 1.6; font-size: 1.05rem; }
+.hero__cta { margin-top: 1.7rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+.features { margin-top: 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.feature-card { border: 1px solid var(--border); background: var(--surface); border-radius: 16px; padding: 1.15rem; }
+.feature-card h2 { margin: 0; font-size: 1rem; }
+.feature-card p { margin: 0.65rem 0 0; color: var(--muted); line-height: 1.5; }
+
+.timeline { margin-top: 2.75rem; border: 1px solid var(--border); border-radius: 16px; padding: 1.2rem; background: rgba(255, 255, 255, 0.03); }
+.timeline h2 { margin: 0 0 0.65rem; font-size: 1.1rem; }
+.timeline ol { margin: 0; padding-left: 1.2rem; color: var(--muted); line-height: 1.7; }
+
+/* Landing Buttons */
+.btn { border-radius: 999px; padding: 0.65rem 1.05rem; border: 1px solid var(--border); font-weight: 600; cursor: pointer; transition: transform 120ms ease, opacity 120ms ease, background 120ms ease; display: inline-block; text-align: center; }
+.btn--primary { border: none; color: #fff; background: linear-gradient(90deg, #6d8cff, #9f7bff); }
+.btn--ghost { background: rgba(255, 255, 255, 0.06); }
+.btn[disabled] { opacity: 0.58; cursor: not-allowed; }
