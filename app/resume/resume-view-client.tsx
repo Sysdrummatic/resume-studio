@@ -187,6 +187,7 @@ export default function ResumeViewClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isJsYamlLoaded, setIsJsYamlLoaded] = useState(false);
+  const [isHeroDocked, setIsHeroDocked] = useState(false);
 
   const fetchYaml = useCallback(async <T,>(path: string, validate: (value: unknown) => value is T) => {
     const response = await fetch(path);
@@ -241,6 +242,31 @@ export default function ResumeViewClient() {
     void init();
   }, [isJsYamlLoaded, fetchYaml, loadData]);
 
+  useEffect(() => {
+    if (!resumeData) return;
+
+    const updateHeroShadow = () => {
+      const hero = document.querySelector<HTMLElement>(".resume-view-page .hero");
+      if (!hero) return;
+
+      const appHeaderHeight = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--app-header-height"),
+      ) || 0;
+      const isDocked = window.scrollY > 0 && hero.getBoundingClientRect().top <= appHeaderHeight + 1;
+
+      setIsHeroDocked(isDocked);
+    };
+
+    updateHeroShadow();
+    window.addEventListener("scroll", updateHeroShadow, { passive: true });
+    window.addEventListener("resize", updateHeroShadow);
+
+    return () => {
+      window.removeEventListener("scroll", updateHeroShadow);
+      window.removeEventListener("resize", updateHeroShadow);
+    };
+  }, [resumeData]);
+
   const { name, role, summary, contact, skills, experience, education, courses, brand_initials, languages, tech_stack, interests } = resumeData || {};
 
   return (
@@ -262,7 +288,7 @@ export default function ResumeViewClient() {
 
       {resumeData && (
         <div className="resume">
-          <header className="hero">
+          <header className={`hero ${isHeroDocked ? "hero--scrolled" : ""}`}>
           <div className="hero__title">
             <div className="logo-circle">{brand_initials || "LM"}</div>
             <div className="hero__identity">
@@ -290,7 +316,7 @@ export default function ResumeViewClient() {
         <main className="layout">
           <section className="main-column">
             {summary && (
-              <article className="section">
+              <article className="section resume-section resume-section--summary">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Summary</h2>
@@ -300,7 +326,7 @@ export default function ResumeViewClient() {
             )}
 
             {experience && experience.length > 0 && (
-              <article className="section">
+              <article className="section resume-section resume-section--experience">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Experience</h2>
@@ -327,7 +353,7 @@ export default function ResumeViewClient() {
             )}
 
             {education && education.length > 0 && (
-              <article className="section">
+              <article className="section resume-section resume-section--education">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Education</h2>
@@ -347,7 +373,7 @@ export default function ResumeViewClient() {
             )}
 
             {courses && courses.length > 0 && (
-              <article className="section">
+              <article className="section resume-section resume-section--courses">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Courses</h2>
@@ -367,14 +393,19 @@ export default function ResumeViewClient() {
           </section>
 
           <aside className="sidebar">
-            <section className="card">
+            <section className="card resume-section resume-section--personal">
               <div className="section-title">
                 <span className="section-dot"></span>
                 <h2>Personal Info</h2>
               </div>
               <dl className="contact-list">
+<<<<<<< HEAD
                 {contact?.map((item, idx) => (
                   <div key={idx} style={{ display: 'contents' }}>
+=======
+                {contact?.map((item: any, idx: number) => (
+                  <div key={idx} className="contact-item">
+>>>>>>> 7e139a40892276710ae1fdc940f4ac24e6fe3718
                     <dt>{item.label}</dt>
                     <dd>
                       {item.link ? (
@@ -391,30 +422,44 @@ export default function ResumeViewClient() {
             </section>
 
             {skills && skills.length > 0 && (
-              <section className="card">
+              <section className="card resume-section resume-section--skills">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Skills</h2>
                 </div>
                 <div className="meter-list">
+<<<<<<< HEAD
                   {skills.map((item, idx) => (
                     <div key={idx} className="meter-item">
                       <div className="meter-item__label">
                         <span>{item.name}</span>
+=======
+                  {skills.map((item: any, idx: number) => {
+                    const hasLevel = item.level !== undefined || item.level_text;
+
+                    return (
+                      <div key={idx} className={`meter-item ${hasLevel ? "meter-item--plain" : ""}`}>
+                        <div className="meter-item__label">
+                          <span>{item.name}</span>
+                          {item.level_text && <span className="meter-item__note">{item.level_text}</span>}
+                        </div>
+                        {item.level !== undefined && (
+                          <div className="meter">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <span key={s} className={`meter__dot ${s <= (item.level || 0) ? "meter__dot--active" : ""}`}></span>
+                            ))}
+                          </div>
+                        )}
+>>>>>>> 7e139a40892276710ae1fdc940f4ac24e6fe3718
                       </div>
-                      <div className="meter">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <span key={s} className={`meter__dot ${s <= (item.level || 0) ? "meter__dot--active" : ""}`}></span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             )}
 
             {tech_stack && tech_stack.length > 0 && (
-              <section className="card">
+              <section className="card resume-section resume-section--tech-stack">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Tech stack</h2>
@@ -428,31 +473,45 @@ export default function ResumeViewClient() {
             )}
 
             {languages && languages.length > 0 && (
-              <section className="card">
+              <section className="card resume-section resume-section--languages">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Languages</h2>
                 </div>
                 <div className="meter-list meter-list--compact">
+<<<<<<< HEAD
                   {languages.map((item, idx) => (
                     <div key={idx} className="meter-item">
                       <div className="meter-item__label">
                         <span>{item.name}</span>
                         <span className="meter-item__note">{item.level_text}</span>
+=======
+                  {languages.map((item: any, idx: number) => {
+                    const hasLevel = item.level !== undefined || item.level_text;
+
+                    return (
+                      <div key={idx} className={`meter-item ${hasLevel ? "meter-item--plain" : ""}`}>
+                        <div className="meter-item__label">
+                          <span>{item.name}</span>
+                          {item.level_text && <span className="meter-item__note">{item.level_text}</span>}
+                        </div>
+                        {item.level !== undefined && (
+                          <div className="meter">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <span key={s} className={`meter__dot ${s <= (item.level || 0) ? "meter__dot--active" : ""}`}></span>
+                            ))}
+                          </div>
+                        )}
+>>>>>>> 7e139a40892276710ae1fdc940f4ac24e6fe3718
                       </div>
-                      <div className="meter">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <span key={s} className={`meter__dot ${s <= (item.level || 0) ? "meter__dot--active" : ""}`}></span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             )}
 
             {interests && interests.length > 0 && (
-              <section className="card">
+              <section className="card resume-section resume-section--interests">
                 <div className="section-title">
                   <span className="section-dot"></span>
                   <h2>Interests</h2>
