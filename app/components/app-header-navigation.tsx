@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import type { FocusEvent } from "react";
 
 type NavItem = {
   href: string;
@@ -13,29 +14,22 @@ type Props = {
   items: NavItem[];
 };
 
+const MENU_AUTO_CLOSE_DELAY_MS = 1000;
+const HEADER_MENU_OPEN_EVENT = "app-header-menu-open";
+const NAVIGATION_MENU_NAME = "navigation";
+
+function announceHeaderMenuOpen(menuName: string) {
+  document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
+}
+
 export default function AppHeaderNavigation({ account, items }: Props) {
-  const controlsRef = useRef<HTMLDivElement>(null);
-  const measuringNavRef = useRef<HTMLElement>(null);
-  const accountRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
 
   const updateMode = useCallback(() => {
-    const controls = controlsRef.current;
-    const measuringNav = measuringNavRef.current;
-
-    if (!controls || !measuringNav) return;
-
-    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-    if (!isDesktop) {
-      setIsCompact(true);
-      return;
-    }
-
-    const accountWidth = accountRef.current?.offsetWidth ?? 0;
-    const requiredWidth = measuringNav.scrollWidth + accountWidth + 24;
-    const availableWidth = controls.clientWidth;
-    const nextIsCompact = requiredWidth > availableWidth;
+    const nextIsCompact = !window.matchMedia("(min-width: 1024px)").matches;
 
     setIsCompact(nextIsCompact);
     if (!nextIsCompact) {
@@ -45,30 +39,80 @@ export default function AppHeaderNavigation({ account, items }: Props) {
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(updateMode);
-
-    const resizeObserver = new ResizeObserver(updateMode);
-    if (controlsRef.current) resizeObserver.observe(controlsRef.current);
-    if (accountRef.current) resizeObserver.observe(accountRef.current);
-
     window.addEventListener("resize", updateMode);
 
     return () => {
       window.cancelAnimationFrame(frameId);
-      resizeObserver.disconnect();
       window.removeEventListener("resize", updateMode);
     };
   }, [updateMode]);
 
-  return (
-    <div className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""}`} ref={controlsRef}>
-      <nav className="app-nav app-nav--measure" aria-hidden="true" ref={measuringNavRef}>
-        {items.map((item) => (
-          <Link key={item.href} href={item.href} tabIndex={-1}>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && menuRef.current?.contains(target)) {
+        return;
+      }
+      setIsOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    function handleHeaderMenuOpen(event: Event) {
+      if (event instanceof CustomEvent && event.detail !== NAVIGATION_MENU_NAME) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener(HEADER_MENU_OPEN_EVENT, handleHeaderMenuOpen);
+
+    return () => {
+      document.removeEventListener(HEADER_MENU_OPEN_EVENT, handleHeaderMenuOpen);
+    };
+  }, []);
+
+  function cancelMenuAutoClose() {
+    if (closeTimerRef.current === null) {
+      return;
+    }
+    window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+  }
+
+  function scheduleMenuAutoClose() {
+    cancelMenuAutoClose();
+    closeTimerRef.current = window.setTimeout(() => {
+      setIsOpen(false);
+      closeTimerRef.current = null;
+    }, MENU_AUTO_CLOSE_DELAY_MS);
+  }
+
+  function handleMenuBlur(event: FocusEvent<HTMLDivElement>) {
+    const nextFocusedElement = event.relatedTarget;
+    if (nextFocusedElement instanceof Node && event.currentTarget.contains(nextFocusedElement)) {
+      return;
+    }
+    scheduleMenuAutoClose();
+  }
+
+  return (
+    <div className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""}`}>
       {!isCompact && (
         <nav className="app-nav" aria-label="Primary">
           {items.map((item) => (
@@ -80,14 +124,30 @@ export default function AppHeaderNavigation({ account, items }: Props) {
       )}
 
       {isCompact && (
-        <div className="app-nav-menu">
+        <div
+          className="app-nav-menu"
+          ref={menuRef}
+          onMouseEnter={cancelMenuAutoClose}
+          onMouseLeave={scheduleMenuAutoClose}
+          onFocus={cancelMenuAutoClose}
+          onBlur={handleMenuBlur}
+        >
           <button
             className="app-nav-menu__trigger"
             type="button"
             aria-expanded={isOpen}
             aria-controls="primary-mobile-menu"
             aria-label="Open primary navigation"
-            onClick={() => setIsOpen((current) => !current)}
+            onClick={() => {
+              cancelMenuAutoClose();
+              setIsOpen((current) => {
+                const nextIsOpen = !current;
+                if (nextIsOpen) {
+                  announceHeaderMenuOpen(NAVIGATION_MENU_NAME);
+                }
+                return nextIsOpen;
+              });
+            }}
           >
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
@@ -105,7 +165,7 @@ export default function AppHeaderNavigation({ account, items }: Props) {
         </div>
       )}
 
-      <div className="app-header__account" ref={accountRef}>
+      <div className="app-header__account">
         {account}
       </div>
     </div>

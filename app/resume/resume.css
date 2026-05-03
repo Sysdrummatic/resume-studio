@@ -619,6 +619,18 @@ img {
   min-width: 0;
 }
 
+@media (min-width: 1024px) {
+  .contact-list {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+
+  .contact-item {
+    width: 100%;
+  }
+}
+
 .contact-list dt {
   font-weight: 600;
   color: var(--muted);
@@ -654,11 +666,16 @@ img {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 479px) {
   .contact-list {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: flex-start;
     gap: 10px;
+  }
+
+  .contact-item {
+    width: 100%;
   }
 }
 
@@ -706,6 +723,10 @@ img {
   padding: 0;
   border-radius: 0;
   background: transparent;
+  color: var(--text);
+}
+
+.meter-item--plain .meter-item__label > span:first-child {
   color: var(--text);
 }
 

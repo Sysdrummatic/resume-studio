@@ -92,13 +92,6 @@ a {
   color: var(--text);
 }
 
-.app-nav--measure {
-  position: absolute;
-  visibility: hidden;
-  pointer-events: none;
-  inset: auto auto 0 0;
-}
-
 .app-header__controls {
   display: flex;
   align-items: center;
@@ -690,6 +683,24 @@ a {
 .account-menu__identity {
   display: grid;
   gap: 0.1rem;
+}
+
+@media (max-width: 1023px) {
+  .account-menu__trigger {
+    padding: 0.35rem;
+  }
+
+  .account-menu__identity {
+    display: none;
+  }
+}
+
+.app-header__controls--compact .account-menu__trigger {
+  padding: 0.35rem;
+}
+
+.app-header__controls--compact .account-menu__identity {
+  display: none;
 }
 
 .account-menu__email {

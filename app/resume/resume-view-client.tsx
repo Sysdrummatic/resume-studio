@@ -25,11 +25,10 @@ type ContactItem = {
 type MeterItem = {
   name: string;
   level?: number;
-};
-
-type LanguageItem = MeterItem & {
   level_text?: string;
 };
+
+type LanguageItem = MeterItem;
 
 type ExperienceItem = {
   period: string;
@@ -106,7 +105,11 @@ function isContactItem(value: unknown): value is ContactItem {
 function isMeterItem(value: unknown): value is MeterItem {
   if (!isRecord(value)) return false;
 
-  return typeof value.name === "string" && hasOptionalNumber(value, "level");
+  return (
+    typeof value.name === "string" &&
+    hasOptionalNumber(value, "level") &&
+    hasOptionalString(value, "level_text")
+  );
 }
 
 function isLanguageItem(value: unknown): value is LanguageItem {
@@ -400,7 +403,7 @@ export default function ResumeViewClient() {
                 </div>
                 <dl className="contact-list">
                   {contact?.map((item, idx) => (
-                    <div key={idx} style={{ display: 'contents' }}>
+                    <div key={idx} className="contact-item">
                       <dt>{item.label}</dt>
                       <dd>
                         {item.link ? (
@@ -424,9 +427,10 @@ export default function ResumeViewClient() {
                   </div>
                   <div className="meter-list">
                     {skills.map((item, idx) => (
-                      <div key={idx} className="meter-item">
+                      <div key={idx} className="meter-item meter-item--plain">
                         <div className="meter-item__label">
                           <span>{item.name}</span>
+                          {item.level_text && <span className="meter-item__note">{item.level_text}</span>}
                         </div>
                         <div className="meter">
                           {[1, 2, 3, 4, 5].map((s) => (
@@ -464,10 +468,10 @@ export default function ResumeViewClient() {
                   </div>
                   <div className="meter-list meter-list--compact">
                     {languages.map((item, idx) => (
-                      <div key={idx} className="meter-item">
+                      <div key={idx} className="meter-item meter-item--plain">
                         <div className="meter-item__label">
                           <span>{item.name}</span>
-                          <span className="meter-item__note">{item.level_text}</span>
+                          {item.level_text && <span className="meter-item__note">{item.level_text}</span>}
                         </div>
                         <div className="meter">
                           {[1, 2, 3, 4, 5].map((s) => (
