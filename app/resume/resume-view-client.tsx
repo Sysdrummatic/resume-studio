@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import Script from "next/script";
 import "./resume.css";
 
@@ -87,6 +88,26 @@ type ResumeData = {
   courses?: CourseItem[];
 };
 
+type ResumeStyle = {
+  code: string;
+  label: string;
+};
+
+type ResumeThemeStyle = CSSProperties & Record<`--${string}`, string>;
+
+const DEFAULT_ACCENT_COLOR = "#009c8a";
+const ACCENT_COLOR_STORAGE_KEY = "resume-studio:sample-cv-accent-color";
+const RESUME_STYLE_STORAGE_KEY = "resume-studio:sample-cv-style";
+const HEADER_MENU_OPEN_EVENT = "app-header-menu-open";
+const STYLE_SELECTOR_MENU_NAME = "resume-style-selector";
+
+const AVAILABLE_RESUME_STYLES: ResumeStyle[] = [
+  {
+    code: "basic",
+    label: "basic",
+  },
+];
+
 const DEFAULT_LABELS: ResumeLabels = {
   language_switcher: "Language",
   summary_heading: "Summary",
@@ -106,9 +127,26 @@ const DEFAULT_LABELS: ResumeLabels = {
 };
 
 const REQUIRED_LABEL_KEYS = Object.keys(DEFAULT_LABELS) as Array<keyof ResumeLabels>;
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
+function announceHeaderMenuOpen(menuName: string) {
+  document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isKnownResumeStyle(value: string) {
+  return AVAILABLE_RESUME_STYLES.some((style) => style.code === value);
+}
+
+function createAccentThemeStyle(color: string): ResumeThemeStyle {
+  return {
+    "--accent": color,
+    "--accent-dark": `color-mix(in srgb, ${color} 78%, #000000)`,
+    "--accent-light": `color-mix(in srgb, ${color} 12%, #ffffff)`,
+  };
 }
 
 function hasOptionalString(value: Record<string, unknown>, key: string) {
@@ -252,6 +290,10 @@ export default function ResumeViewClient() {
   const [error, setError] = useState<string | null>(null);
   const [isJsYamlLoaded, setIsJsYamlLoaded] = useState(false);
   const [isHeroDocked, setIsHeroDocked] = useState(false);
+  const [isStyleSelectorOpen, setIsStyleSelectorOpen] = useState(false);
+  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT_COLOR);
+  const [selectedStyle, setSelectedStyle] = useState(AVAILABLE_RESUME_STYLES[0].code);
+  const styleSelectorRef = useRef<HTMLDivElement>(null);
 
   const fetchYaml = useCallback(async <T,>(path: string, validate: (value: unknown) => value is T) => {
     const response = await fetch(path);
@@ -292,6 +334,59 @@ export default function ResumeViewClient() {
     if (typeof window !== "undefined" && window.jsyaml) {
       setIsJsYamlLoaded(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const storedAccentColor = window.localStorage.getItem(ACCENT_COLOR_STORAGE_KEY);
+    const storedStyle = window.localStorage.getItem(RESUME_STYLE_STORAGE_KEY);
+
+    if (storedAccentColor && HEX_COLOR_PATTERN.test(storedAccentColor)) {
+      setAccentColor(storedAccentColor);
+    }
+
+    if (storedStyle && isKnownResumeStyle(storedStyle)) {
+      setSelectedStyle(storedStyle);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, accentColor);
+  }, [accentColor]);
+
+  useEffect(() => {
+    window.localStorage.setItem(RESUME_STYLE_STORAGE_KEY, selectedStyle);
+  }, [selectedStyle]);
+
+  useEffect(() => {
+    if (!isStyleSelectorOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && styleSelectorRef.current?.contains(target)) {
+        return;
+      }
+      setIsStyleSelectorOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [isStyleSelectorOpen]);
+
+  useEffect(() => {
+    function handleHeaderMenuOpen(event: Event) {
+      if (event instanceof CustomEvent && event.detail !== STYLE_SELECTOR_MENU_NAME) {
+        setIsStyleSelectorOpen(false);
+      }
+    }
+
+    document.addEventListener(HEADER_MENU_OPEN_EVENT, handleHeaderMenuOpen);
+
+    return () => {
+      document.removeEventListener(HEADER_MENU_OPEN_EVENT, handleHeaderMenuOpen);
+    };
   }, []);
 
   useEffect(() => {
@@ -341,9 +436,11 @@ export default function ResumeViewClient() {
 
   const { name, role, summary, contact, skills, experience, education, courses, brand_initials, languages, tech_stack, interests } = resumeData || {};
   const labels = viewConfig?.labels ?? DEFAULT_LABELS;
+  const selectedStyleLabel = AVAILABLE_RESUME_STYLES.find((style) => style.code === selectedStyle)?.label ?? selectedStyle;
+  const resumeThemeStyle = createAccentThemeStyle(accentColor);
 
   return (
-    <div className="resume-view-page">
+    <div className={`resume-view-page resume-style--${selectedStyle}`} style={resumeThemeStyle}>
       <Script
         src="/vendor/js-yaml.min.js"
         strategy="afterInteractive"
@@ -361,6 +458,66 @@ export default function ResumeViewClient() {
 
       {resumeData && (
         <div className="resume">
+          <div
+            className={`resume-style-selector ${isStyleSelectorOpen ? "resume-style-selector--open" : ""}`}
+            ref={styleSelectorRef}
+          >
+            <button
+              className="resume-style-selector__trigger"
+              type="button"
+              aria-expanded={isStyleSelectorOpen}
+              aria-controls="resume-style-selector-panel"
+              aria-label="Open CV style selector"
+              onClick={() => {
+                setIsStyleSelectorOpen((current) => {
+                  const nextIsOpen = !current;
+                  if (nextIsOpen) {
+                    announceHeaderMenuOpen(STYLE_SELECTOR_MENU_NAME);
+                  }
+                  return nextIsOpen;
+                });
+              }}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M14.7 4.3c1.1-1.1 2.9-1.1 4 0s1.1 2.9 0 4l-7.9 7.9-4.1.9.9-4.1 7.1-8.7Z" />
+                <path d="M5.1 17.8c-1.5.5-2.5 1.5-2.5 2.6 0 .9.8 1.6 1.8 1.6 1.8 0 3.3-1.1 3.8-2.7" />
+              </svg>
+            </button>
+
+            <div className="resume-style-selector__panel" id="resume-style-selector-panel">
+              <label
+                className="resume-style-selector__color"
+                style={{ backgroundColor: accentColor }}
+                aria-label="Change CV accent color"
+              >
+                <input
+                  type="color"
+                  value={accentColor}
+                  onChange={(event) => setAccentColor(event.target.value)}
+                />
+              </label>
+
+              <details className="resume-style-selector__style-menu">
+                <summary>{selectedStyleLabel}</summary>
+                <div className="resume-style-selector__style-options">
+                  {AVAILABLE_RESUME_STYLES.map((style) => (
+                    <button
+                      key={style.code}
+                      type="button"
+                      className={selectedStyle === style.code ? "resume-style-selector__style-option--active" : ""}
+                      onClick={(event) => {
+                        setSelectedStyle(style.code);
+                        event.currentTarget.closest("details")?.removeAttribute("open");
+                      }}
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            </div>
+          </div>
+
           <header className={`hero ${isHeroDocked ? "hero--scrolled" : ""}`}>
             <div className="hero__title">
               <div className="logo-circle">{brand_initials || "LM"}</div>
