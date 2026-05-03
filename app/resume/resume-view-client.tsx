@@ -16,27 +16,195 @@ type LocalesConfig = {
   locales: ResumeLocale[];
 };
 
+type ContactItem = {
+  label: string;
+  value: string | number;
+  link?: string;
+};
+
+type MeterItem = {
+  name: string;
+  level?: number;
+};
+
+type LanguageItem = MeterItem & {
+  level_text?: string;
+};
+
+type ExperienceItem = {
+  period: string;
+  company: string;
+  role: string;
+  highlights?: string[];
+};
+
+type EducationItem = {
+  period: string;
+  school: string;
+  detail?: string;
+};
+
+type CourseItem = {
+  year: string | number;
+  name: string;
+};
+
+type ResumeData = {
+  brand_initials?: string;
+  name?: string;
+  role?: string;
+  summary?: string;
+  contact?: ContactItem[];
+  skills?: MeterItem[];
+  tech_stack?: string[];
+  languages?: LanguageItem[];
+  interests?: string[];
+  experience?: ExperienceItem[];
+  education?: EducationItem[];
+  courses?: CourseItem[];
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function hasOptionalString(value: Record<string, unknown>, key: string) {
+  return value[key] === undefined || typeof value[key] === "string";
+}
+
+function hasOptionalStringOrNumber(value: Record<string, unknown>, key: string) {
+  return value[key] === undefined || typeof value[key] === "string" || typeof value[key] === "number";
+}
+
+function hasOptionalNumber(value: Record<string, unknown>, key: string) {
+  return value[key] === undefined || typeof value[key] === "number";
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function hasOptionalArray<T>(
+  value: Record<string, unknown>,
+  key: string,
+  validateItem: (item: unknown) => item is T,
+) {
+  const items = value[key];
+  return items === undefined || (Array.isArray(items) && items.every(validateItem));
+}
+
+function isContactItem(value: unknown): value is ContactItem {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.label === "string" &&
+    (typeof value.value === "string" || typeof value.value === "number") &&
+    hasOptionalString(value, "link")
+  );
+}
+
+function isMeterItem(value: unknown): value is MeterItem {
+  if (!isRecord(value)) return false;
+
+  return typeof value.name === "string" && hasOptionalNumber(value, "level");
+}
+
+function isLanguageItem(value: unknown): value is LanguageItem {
+  return isMeterItem(value) && hasOptionalString(value, "level_text");
+}
+
+function isExperienceItem(value: unknown): value is ExperienceItem {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.period === "string" &&
+    typeof value.company === "string" &&
+    typeof value.role === "string" &&
+    (value.highlights === undefined || isStringArray(value.highlights))
+  );
+}
+
+function isEducationItem(value: unknown): value is EducationItem {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.period === "string" &&
+    typeof value.school === "string" &&
+    hasOptionalString(value, "detail")
+  );
+}
+
+function isCourseItem(value: unknown): value is CourseItem {
+  if (!isRecord(value)) return false;
+
+  return hasOptionalStringOrNumber(value, "year") && typeof value.name === "string";
+}
+
+function isResumeLocale(value: unknown): value is ResumeLocale {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.code === "string" &&
+    typeof value.label === "string" &&
+    typeof value.resume_path === "string" &&
+    (value.config_path === undefined || typeof value.config_path === "string")
+  );
+}
+
+function isLocalesConfig(value: unknown): value is LocalesConfig {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.default_locale === "string" &&
+    Array.isArray(value.locales) &&
+    value.locales.every(isResumeLocale)
+  );
+}
+
+function isResumeData(value: unknown): value is ResumeData {
+  if (!isRecord(value)) return false;
+
+  return (
+    hasOptionalString(value, "brand_initials") &&
+    hasOptionalString(value, "name") &&
+    hasOptionalString(value, "role") &&
+    hasOptionalString(value, "summary") &&
+    hasOptionalArray(value, "contact", isContactItem) &&
+    hasOptionalArray(value, "skills", isMeterItem) &&
+    (value.tech_stack === undefined || isStringArray(value.tech_stack)) &&
+    hasOptionalArray(value, "languages", isLanguageItem) &&
+    (value.interests === undefined || isStringArray(value.interests)) &&
+    hasOptionalArray(value, "experience", isExperienceItem) &&
+    hasOptionalArray(value, "education", isEducationItem) &&
+    hasOptionalArray(value, "courses", isCourseItem)
+  );
+}
+
 export default function ResumeViewClient() {
   const [localesConfig, setLocalesConfig] = useState<LocalesConfig | null>(null);
   const [activeLocale, setActiveLocale] = useState<string>("en");
-  const [resumeData, setResumeData] = useState<any>(null);
+  const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isJsYamlLoaded, setIsJsYamlLoaded] = useState(false);
 
-  const fetchYaml = useCallback(async (path: string) => {
+  const fetchYaml = useCallback(async <T,>(path: string, validate: (value: unknown) => value is T) => {
     const response = await fetch(path);
     if (!response.ok) throw new Error(`Failed to load ${path}`);
     const text = await response.text();
-    // @ts-ignore
-    return window.jsyaml.load(text);
+    if (!window.jsyaml) throw new Error("YAML parser is not loaded");
+
+    const data = window.jsyaml.load(text);
+    if (!validate(data)) throw new Error(`Invalid YAML structure in ${path}`);
+
+    return data;
   }, []);
 
   const loadData = useCallback(async (localeCode: string, config: LocalesConfig) => {
     setIsLoading(true);
     try {
       const locale = config.locales.find((l) => l.code === localeCode) || config.locales[0];
-      const data = await fetchYaml(`/${locale.resume_path}`);
+      const data = await fetchYaml(`/${locale.resume_path}`, isResumeData);
       setResumeData(data);
       setActiveLocale(localeCode);
     } catch (err) {
@@ -48,7 +216,6 @@ export default function ResumeViewClient() {
 
   useEffect(() => {
     // Check if script is already loaded (e.g. from previous navigation)
-    // @ts-ignore
     if (typeof window !== "undefined" && window.jsyaml) {
       setIsJsYamlLoaded(true);
     }
@@ -60,7 +227,7 @@ export default function ResumeViewClient() {
     async function init() {
       console.log("[ResumeView] Initializing with js-yaml...");
       try {
-        const config = await fetchYaml("/data/public/locales.yaml");
+        const config = await fetchYaml("/data/public/locales.yaml", isLocalesConfig);
         console.log("[ResumeView] Locales config loaded:", config);
         setLocalesConfig(config);
         await loadData(config.default_locale, config);
@@ -139,7 +306,7 @@ export default function ResumeViewClient() {
                   <h2>Experience</h2>
                 </div>
                 <div className="timeline">
-                  {experience.map((item: any, idx: number) => (
+                  {experience.map((item, idx) => (
                     <div key={idx} className="timeline-item">
                       <div className="timeline-item__period">{item.period}</div>
                       <div className="timeline-item__content">
@@ -166,7 +333,7 @@ export default function ResumeViewClient() {
                   <h2>Education</h2>
                 </div>
                 <div className="timeline timeline--compact">
-                  {education.map((item: any, idx: number) => (
+                  {education.map((item, idx) => (
                     <div key={idx} className="timeline-item">
                       <div className="timeline-item__period">{item.period}</div>
                       <div className="timeline-item__content">
@@ -186,7 +353,7 @@ export default function ResumeViewClient() {
                   <h2>Courses</h2>
                 </div>
                 <div className="timeline timeline--compact timeline--courses">
-                  {courses.map((item: any, idx: number) => (
+                  {courses.map((item, idx) => (
                     <div key={idx} className="timeline-item">
                       <div className="timeline-item__period">{item.year}</div>
                       <div className="timeline-item__content">
@@ -206,7 +373,7 @@ export default function ResumeViewClient() {
                 <h2>Personal Info</h2>
               </div>
               <dl className="contact-list">
-                {contact?.map((item: any, idx: number) => (
+                {contact?.map((item, idx) => (
                   <div key={idx} style={{ display: 'contents' }}>
                     <dt>{item.label}</dt>
                     <dd>
@@ -230,7 +397,7 @@ export default function ResumeViewClient() {
                   <h2>Skills</h2>
                 </div>
                 <div className="meter-list">
-                  {skills.map((item: any, idx: number) => (
+                  {skills.map((item, idx) => (
                     <div key={idx} className="meter-item">
                       <div className="meter-item__label">
                         <span>{item.name}</span>
@@ -253,7 +420,7 @@ export default function ResumeViewClient() {
                   <h2>Tech stack</h2>
                 </div>
                 <ul className="pill-list">
-                  {tech_stack.map((item: string, idx: number) => (
+                  {tech_stack.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
                 </ul>
@@ -267,7 +434,7 @@ export default function ResumeViewClient() {
                   <h2>Languages</h2>
                 </div>
                 <div className="meter-list meter-list--compact">
-                  {languages.map((item: any, idx: number) => (
+                  {languages.map((item, idx) => (
                     <div key={idx} className="meter-item">
                       <div className="meter-item__label">
                         <span>{item.name}</span>
@@ -291,7 +458,7 @@ export default function ResumeViewClient() {
                   <h2>Interests</h2>
                 </div>
                 <ul className="pill-list">
-                  {interests.map((item: string, idx: number) => (
+                  {interests.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
                 </ul>
