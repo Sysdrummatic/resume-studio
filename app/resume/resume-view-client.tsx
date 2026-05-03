@@ -16,6 +16,30 @@ type LocalesConfig = {
   locales: ResumeLocale[];
 };
 
+type ResumeLabels = {
+  language_switcher: string;
+  summary_heading: string;
+  github_activity_heading: string;
+  experience_heading: string;
+  education_heading: string;
+  courses_heading: string;
+  personal_info_heading: string;
+  skills_heading: string;
+  tech_stack_heading: string;
+  languages_heading: string;
+  interests_heading: string;
+  public_view_badge: string;
+  private_view_badge: string;
+  edit_button_label: string;
+  save_button_label: string;
+};
+
+type ResumeViewConfig = {
+  locale: string;
+  language_name: string;
+  labels: ResumeLabels;
+};
+
 type ContactItem = {
   label: string;
   value: string | number;
@@ -62,6 +86,26 @@ type ResumeData = {
   education?: EducationItem[];
   courses?: CourseItem[];
 };
+
+const DEFAULT_LABELS: ResumeLabels = {
+  language_switcher: "Language",
+  summary_heading: "Summary",
+  github_activity_heading: "GitHub Activity",
+  experience_heading: "Experience",
+  education_heading: "Education",
+  courses_heading: "Courses",
+  personal_info_heading: "Personal Info",
+  skills_heading: "Skills",
+  tech_stack_heading: "Tech stack",
+  languages_heading: "Languages",
+  interests_heading: "Interests",
+  public_view_badge: "Public view",
+  private_view_badge: "Private view",
+  edit_button_label: "Edit",
+  save_button_label: "Save",
+};
+
+const REQUIRED_LABEL_KEYS = Object.keys(DEFAULT_LABELS) as Array<keyof ResumeLabels>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -164,6 +208,22 @@ function isLocalesConfig(value: unknown): value is LocalesConfig {
   );
 }
 
+function isResumeLabels(value: unknown): value is ResumeLabels {
+  if (!isRecord(value)) return false;
+
+  return REQUIRED_LABEL_KEYS.every((key) => typeof value[key] === "string");
+}
+
+function isResumeViewConfig(value: unknown): value is ResumeViewConfig {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.locale === "string" &&
+    typeof value.language_name === "string" &&
+    isResumeLabels(value.labels)
+  );
+}
+
 function isResumeData(value: unknown): value is ResumeData {
   if (!isRecord(value)) return false;
 
@@ -187,6 +247,7 @@ export default function ResumeViewClient() {
   const [localesConfig, setLocalesConfig] = useState<LocalesConfig | null>(null);
   const [activeLocale, setActiveLocale] = useState<string>("en");
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
+  const [viewConfig, setViewConfig] = useState<ResumeViewConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isJsYamlLoaded, setIsJsYamlLoaded] = useState(false);
@@ -204,13 +265,21 @@ export default function ResumeViewClient() {
     return data;
   }, []);
 
-  const loadData = useCallback(async (localeCode: string, config: LocalesConfig) => {
+  const handleLocaleChange = useCallback(async (localeCode: string, config: LocalesConfig) => {
     setIsLoading(true);
+    setError(null);
     try {
       const locale = config.locales.find((l) => l.code === localeCode) || config.locales[0];
-      const data = await fetchYaml(`/${locale.resume_path}`, isResumeData);
+      const [data, loadedViewConfig] = await Promise.all([
+        fetchYaml(`/${locale.resume_path}`, isResumeData),
+        locale.config_path
+          ? fetchYaml(`/${locale.config_path}`, isResumeViewConfig)
+          : Promise.resolve<ResumeViewConfig | null>(null),
+      ]);
+
       setResumeData(data);
-      setActiveLocale(localeCode);
+      setViewConfig(loadedViewConfig);
+      setActiveLocale(locale.code);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -234,7 +303,7 @@ export default function ResumeViewClient() {
         const config = await fetchYaml("/data/public/locales.yaml", isLocalesConfig);
         console.log("[ResumeView] Locales config loaded:", config);
         setLocalesConfig(config);
-        await loadData(config.default_locale, config);
+        await handleLocaleChange(config.default_locale, config);
       } catch (err) {
         console.error("[ResumeView] Initialization failed:", err);
         setError(err instanceof Error ? err.message : "Initialization failed");
@@ -243,7 +312,7 @@ export default function ResumeViewClient() {
     }
 
     void init();
-  }, [isJsYamlLoaded, fetchYaml, loadData]);
+  }, [isJsYamlLoaded, fetchYaml, handleLocaleChange]);
 
   useEffect(() => {
     if (!resumeData) return;
@@ -271,6 +340,7 @@ export default function ResumeViewClient() {
   }, [resumeData]);
 
   const { name, role, summary, contact, skills, experience, education, courses, brand_initials, languages, tech_stack, interests } = resumeData || {};
+  const labels = viewConfig?.labels ?? DEFAULT_LABELS;
 
   return (
     <div className="resume-view-page">
@@ -300,19 +370,19 @@ export default function ResumeViewClient() {
               </div>
             </div>
             <div className="hero__actions">
-              <div className="language-switcher">
+              <div className="language-switcher" aria-label={labels.language_switcher}>
                 {localesConfig?.locales.map((l) => (
                   <button
                     key={l.code}
                     className={`language-switcher__option ${activeLocale === l.code ? "language-switcher__option--active" : ""}`}
-                    onClick={() => void loadData(l.code, localesConfig)}
+                    onClick={() => void handleLocaleChange(l.code, localesConfig)}
                     disabled={isLoading}
                   >
                     {l.label}
                   </button>
                 ))}
               </div>
-              <span className="public-view-badge">Public view</span>
+              <span className="public-view-badge">{labels.public_view_badge}</span>
             </div>
           </header>
 
@@ -322,7 +392,7 @@ export default function ResumeViewClient() {
                 <article className="section resume-section resume-section--summary">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Summary</h2>
+                    <h2>{labels.summary_heading}</h2>
                   </div>
                   <p className="summary-text">{summary}</p>
                 </article>
@@ -332,7 +402,7 @@ export default function ResumeViewClient() {
                 <article className="section resume-section resume-section--experience">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Experience</h2>
+                    <h2>{labels.experience_heading}</h2>
                   </div>
                   <div className="timeline">
                     {experience.map((item, idx) => (
@@ -359,7 +429,7 @@ export default function ResumeViewClient() {
                 <article className="section resume-section resume-section--education">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Education</h2>
+                    <h2>{labels.education_heading}</h2>
                   </div>
                   <div className="timeline timeline--compact">
                     {education.map((item, idx) => (
@@ -379,7 +449,7 @@ export default function ResumeViewClient() {
                 <article className="section resume-section resume-section--courses">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Courses</h2>
+                    <h2>{labels.courses_heading}</h2>
                   </div>
                   <div className="timeline timeline--compact timeline--courses">
                     {courses.map((item, idx) => (
@@ -399,7 +469,7 @@ export default function ResumeViewClient() {
               <section className="card resume-section resume-section--personal">
                 <div className="section-title">
                   <span className="section-dot"></span>
-                  <h2>Personal Info</h2>
+                  <h2>{labels.personal_info_heading}</h2>
                 </div>
                 <dl className="contact-list">
                   {contact?.map((item, idx) => (
@@ -423,7 +493,7 @@ export default function ResumeViewClient() {
                 <section className="card resume-section resume-section--skills">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Skills</h2>
+                    <h2>{labels.skills_heading}</h2>
                   </div>
                   <div className="meter-list">
                     {skills.map((item, idx) => (
@@ -450,7 +520,7 @@ export default function ResumeViewClient() {
                 <section className="card resume-section resume-section--tech-stack">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Tech stack</h2>
+                    <h2>{labels.tech_stack_heading}</h2>
                   </div>
                   <ul className="pill-list">
                     {tech_stack.map((item, idx) => (
@@ -464,7 +534,7 @@ export default function ResumeViewClient() {
                 <section className="card resume-section resume-section--languages">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Languages</h2>
+                    <h2>{labels.languages_heading}</h2>
                   </div>
                   <div className="meter-list meter-list--compact">
                     {languages.map((item, idx) => (
@@ -491,7 +561,7 @@ export default function ResumeViewClient() {
                 <section className="card resume-section resume-section--interests">
                   <div className="section-title">
                     <span className="section-dot"></span>
-                    <h2>Interests</h2>
+                    <h2>{labels.interests_heading}</h2>
                   </div>
                   <ul className="pill-list">
                     {interests.map((item, idx) => (
