@@ -1,8 +1,10 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { ResumeLocale, ResumeRevisionItem } from "./resume-schema";
 import { normalizeLocale } from "./resume-schema";
 import { callRpc, insertTable, queryTable, updateTable } from "./supabase-http";
 
-type ResumeDocumentRow = {
+export type ResumeDocumentRow = {
   id: string;
   user_id: string;
   locale: ResumeLocale;
@@ -31,7 +33,20 @@ function yamlText(value: string): string {
   return JSON.stringify(value ?? "");
 }
 
+function readResumeTemplateYaml(): string | null {
+  try {
+    return fs.readFileSync(path.join(process.cwd(), "public", "data", "private", "resume-en-template.yaml"), "utf8");
+  } catch {
+    return null;
+  }
+}
+
 export function buildDefaultResumeYaml(name: string): string {
+  const templateYaml = readResumeTemplateYaml();
+  if (templateYaml) {
+    return templateYaml;
+  }
+
   const safeName = String(name || "New User").trim() || "New User";
   return [
     `brand_initials: ${yamlText("")}`,
@@ -87,6 +102,21 @@ async function fetchRevisions(accessToken: string, documentId: string): Promise<
     created_at: row.created_at,
     created_by: row.created_by,
   }));
+}
+
+export async function fetchResumeDocumentsForUser(userId: string): Promise<ResumeDocumentRow[]> {
+  const result = await queryTable<ResumeDocumentRow>({
+    table: "resume_documents",
+    select: "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,updated_at",
+    useServiceRole: true,
+    query: `user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc`,
+  });
+
+  if (!result.data || result.error) {
+    return [];
+  }
+
+  return result.data;
 }
 
 export async function ensureResumeDocument(
@@ -200,6 +230,66 @@ export async function publishResumeDocument(
   });
   if (revisionResult.error || !revisionResult.data) {
     return null;
+  }
+
+  const revisions = await fetchRevisions(accessToken, document.id);
+  return {
+    document,
+    revisions,
+  };
+}
+
+export async function saveResumeDraftDocument(
+  accessToken: string,
+  userId: string,
+  localeInput: string,
+  payload: {
+    yamlContent: string;
+    title: string;
+    isPublic: boolean;
+    allowIndexing: boolean;
+  },
+): Promise<ResumeDocumentPayload | null> {
+  const locale = normalizeLocale(localeInput);
+  let document = await fetchDocumentByLocale(accessToken, userId, locale);
+
+  const title = payload.title.trim() || "Master resume draft";
+  if (!document) {
+    const insertResult = await insertTable({
+      table: "resume_documents",
+      accessToken,
+      values: {
+        user_id: userId,
+        locale,
+        title,
+        yaml_content: payload.yamlContent,
+        schema_version: 1,
+        is_public: payload.isPublic,
+        allow_indexing: payload.allowIndexing,
+        created_by: userId,
+      },
+    });
+    if (!insertResult.data || insertResult.error) {
+      return null;
+    }
+    document = insertResult.data[0] as unknown as ResumeDocumentRow;
+  } else {
+    const updateResult = await updateTable({
+      table: "resume_documents",
+      accessToken,
+      query: `id=eq.${encodeURIComponent(document.id)}`,
+      values: {
+        title,
+        yaml_content: payload.yamlContent,
+        is_public: payload.isPublic,
+        allow_indexing: payload.allowIndexing,
+        updated_at: new Date().toISOString(),
+      },
+    });
+    if (!updateResult.data || updateResult.error) {
+      return null;
+    }
+    document = updateResult.data[0] as unknown as ResumeDocumentRow;
   }
 
   const revisions = await fetchRevisions(accessToken, document.id);

@@ -427,7 +427,7 @@ a {
 
 @media (min-width: 1100px) {
   .resume-editor-shell__content {
-    grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr);
+    grid-template-columns: minmax(380px, 0.95fr) minmax(380px, 1.05fr);
   }
 }
 
@@ -466,7 +466,8 @@ a {
 }
 
 .resume-editor-form input,
-.resume-editor-form textarea {
+.resume-editor-form textarea,
+.resume-editor-form select {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -474,6 +475,19 @@ a {
   color: var(--text);
   padding: 0.55rem 0.65rem;
   font: inherit;
+}
+
+.resume-editor-style-select {
+  width: min(180px, 100%);
+}
+
+.resume-editor-yaml {
+  min-height: 58vh;
+  resize: vertical;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  tab-size: 2;
 }
 
 .section-row {
@@ -516,14 +530,412 @@ a {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.02);
   max-height: none;
-  overflow: auto;
+  overflow: hidden;
   padding: 0.75rem;
+  min-height: 70vh;
 }
 
 @media (min-width: 1100px) {
   .resume-editor-preview {
     max-height: 78vh;
   }
+}
+
+.resume-editor-preview-frame {
+  width: 100%;
+  height: min(72vh, 780px);
+  display: block;
+  border: 0;
+  border-radius: 10px;
+  background: #f6f8f8;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  cursor: zoom-in;
+  text-align: left;
+}
+
+.resume-editor-preview-scale-box {
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background: #f6f8f8;
+}
+
+.resume-editor-preview-scale-content {
+  width: 920px;
+  transform-origin: top left;
+}
+
+.resume-editor-basic {
+  --accent: #009c8a;
+  --accent-dark: #007d6c;
+  --accent-light: #e6f4f2;
+  --text: #1b1b1b;
+  --muted: #6d6d6d;
+  --card-bg: #ffffff;
+  --border: #e3e6e8;
+  --bg: #f6f8f8;
+  --font-size-base: 15px;
+  --font-size-sm: 0.92rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.35rem;
+  --font-size-xl: 36px;
+  --logo-size: 80px;
+  --logo-font-size: 26px;
+  --role-font-size: 15px;
+  --space-2xs: 4px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --radius-lg: 18px;
+  --shadow-soft: 0 0 25px rgba(0, 0, 0, 0.05);
+  --timeline-axis-offset: 14px;
+  --timeline-dot-size: 14px;
+  --timeline-content-gap: 20px;
+  width: 920px;
+  min-height: auto;
+  font-family: "Space Grotesk", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  background: var(--bg);
+}
+
+.resume-editor-preview-modal .resume-editor-basic {
+  width: min(1100px, calc(100vw - 3rem));
+  min-height: auto;
+  transform: none;
+}
+
+.resume-editor-basic .resume {
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+.resume-editor-basic .hero {
+  position: static;
+  z-index: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  width: auto;
+  max-width: none;
+  margin: 0 0 var(--space-xl);
+  padding: var(--space-md) 0;
+  background: var(--bg);
+}
+
+.resume-editor-basic .hero__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.resume-editor-basic .hero__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.resume-editor-basic .logo-circle {
+  width: var(--logo-size);
+  height: var(--logo-size);
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--logo-font-size);
+  font-family: "Homemade Apple", "Space Grotesk", sans-serif;
+  font-weight: 600;
+  flex: 0 0 auto;
+}
+
+.resume-editor-basic .hero__title h1 {
+  font-size: var(--font-size-xl);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.resume-editor-basic .hero__title p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: var(--role-font-size);
+}
+
+.resume-editor-basic .layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.5fr) minmax(260px, 1fr);
+  gap: var(--space-lg);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.resume-editor-basic .main-column,
+.resume-editor-basic .sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+
+.resume-editor-basic .section,
+.resume-editor-basic .card {
+  background: var(--card-bg);
+  padding: var(--space-lg);
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  min-width: 0;
+}
+
+.resume-editor-basic .section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.resume-editor-basic .section-title h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  letter-spacing: 0.01em;
+}
+
+.resume-editor-basic .section-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.resume-editor-basic .summary-text {
+  text-align: justify;
+  margin: 0;
+  font-size: var(--font-size-md);
+  color: var(--text);
+}
+
+.resume-editor-basic .timeline {
+  position: relative;
+  margin: 0;
+  padding-left: calc(var(--timeline-axis-offset) + var(--timeline-content-gap));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.resume-editor-basic .timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--timeline-axis-offset);
+  width: 3px;
+  background: var(--border);
+}
+
+.resume-editor-basic .timeline-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.resume-editor-basic .timeline-item__period {
+  font-weight: 600;
+  color: var(--muted);
+  position: relative;
+  display: flex;
+  align-items: center;
+  line-height: 1.3;
+  white-space: nowrap;
+  min-height: 28px;
+}
+
+.resume-editor-basic .timeline-item__period::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--timeline-content-gap));
+  top: 50%;
+  width: var(--timeline-dot-size);
+  height: var(--timeline-dot-size);
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px var(--card-bg);
+}
+
+.resume-editor-basic .timeline-item__content {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 0;
+}
+
+.resume-editor-basic .timeline-item__content h3 {
+  margin: 0;
+  font-size: var(--font-size-md);
+}
+
+.resume-editor-basic .timeline-item__subheading,
+.resume-editor-basic .timeline-item__detail {
+  margin: 6px 0 8px;
+  color: var(--accent-dark);
+  font-size: var(--font-size-sm);
+}
+
+.resume-editor-basic .item-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.resume-editor-basic .contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.resume-editor-basic .contact-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.resume-editor-basic .contact-list dt {
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.resume-editor-basic .contact-list dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.resume-editor-basic .meter-list,
+.resume-editor-basic .pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resume-editor-basic .meter-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.resume-editor-basic .meter-item__label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.resume-editor-basic .meter-item__note {
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.resume-editor-basic .meter {
+  display: flex;
+  gap: 5px;
+}
+
+.resume-editor-basic .meter__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d1dad8;
+}
+
+.resume-editor-basic .meter__dot--active {
+  background: var(--accent);
+}
+
+.resume-editor-basic .pill-list li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #e8f5f3;
+  font-weight: 500;
+  color: var(--accent-dark);
+}
+
+.resume-editor-raw-preview {
+  width: 100%;
+  min-height: 70vh;
+  margin: 0;
+  overflow: auto;
+  border-radius: 10px;
+  background: #07101f;
+  color: #d6e2ff;
+  padding: 1rem;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.resume-editor-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.resume-editor-preview-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(4, 9, 20, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.resume-editor-preview-modal__body {
+  position: relative;
+  width: min(1120px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border-radius: 12px;
+  background: #f6f8f8;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+}
+
+.resume-editor-preview-modal__close {
+  position: sticky;
+  top: 0.75rem;
+  left: calc(100% - 6.5rem);
+  z-index: 2;
+  margin: 0.75rem 0 0 0.75rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1b1b1b;
 }
 
 .cv-preview {
@@ -628,6 +1040,44 @@ a {
 .revision-list p,
 .revision-list small {
   margin: 0;
+}
+
+.dashboard-resume-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.dashboard-resume-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dashboard-resume-list p {
+  margin: 0.2rem 0 0;
+}
+
+.dashboard-resume-list__badge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(90, 220, 160, 0.35);
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  color: #bdf6d7;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.dashboard-resume-list__badge--private {
+  border-color: rgba(255, 210, 105, 0.35);
+  color: #ffe1a3;
 }
 
 /* Editor shell collapses on mobile, side-by-side on large screens */

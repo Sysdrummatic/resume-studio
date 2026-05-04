@@ -1,163 +1,284 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import { PREVIEW_LABELS } from "../lib/resume-schema";
+
+export type ResumeEditorStyle = "basic" | "empty";
 
 type Props = {
   locale: ResumeLocale;
   resume: ResumeDocument;
+  styleCode: ResumeEditorStyle;
+  yamlContent: string;
+  isExpanded: boolean;
+  onExpand: () => void;
+  onClose: () => void;
 };
 
-function renderLevelDots(level: number): string {
-  const clamped = Math.max(1, Math.min(5, Number(level || 0)));
-  return "●".repeat(clamped) + "○".repeat(5 - clamped);
+const BASIC_PREVIEW_WIDTH = 920;
+
+function renderMeter(level: number) {
+  return [1, 2, 3, 4, 5].map((step) => (
+    <span key={step} className={`meter__dot ${step <= (level || 0) ? "meter__dot--active" : ""}`}></span>
+  ));
 }
 
-export default function ResumeLivePreview({ locale, resume }: Props) {
+function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; resume: ResumeDocument }) {
   const labels = PREVIEW_LABELS[locale];
 
   return (
-    <article className="cv-preview">
-      <header className="cv-preview__header">
-        <div className="cv-preview__brand">{resume.brand_initials || "CV"}</div>
-        <div>
-          <h2>{resume.name || "Your Name"}</h2>
-          <p>{resume.role || "Your Role"}</p>
-        </div>
-      </header>
+    <div className="resume-editor-basic resume-view-page resume-style--basic">
+      <div className="resume">
+        <header className="hero">
+          <div className="hero__title">
+            <div className="logo-circle">{resume.brand_initials || "CV"}</div>
+            <div className="hero__identity">
+              <h1>{resume.name || "Your Name"}</h1>
+              <p>{resume.role || "Your Role"}</p>
+            </div>
+          </div>
+        </header>
 
-      <div className="cv-preview__layout">
-        <main className="cv-preview__main">
-          <section>
-            <h3>{labels.summary}</h3>
-            <p>{resume.summary || "Your professional summary will appear here."}</p>
-          </section>
+        <main className="layout">
+          <section className="main-column">
+            <article className="section resume-section resume-section--summary">
+              <div className="section-title">
+                <span className="section-dot"></span>
+                <h2>{labels.summary}</h2>
+              </div>
+              <p className="summary-text">{resume.summary || "Your professional summary will appear here."}</p>
+            </article>
 
-          <section>
-            <h3>{labels.experience}</h3>
-            {resume.experience.length === 0 ? (
-              <p className="cv-preview__placeholder">Add experience entries in the form.</p>
-            ) : (
-              <ul className="cv-list">
-                {resume.experience.map((item, index) => (
-                  <li key={`${item.company}-${index}`}>
-                    <strong>{item.company || "Company"}</strong> - {item.role || "Role"}
-                    {item.period ? <span className="cv-period"> ({item.period})</span> : null}
-                    {item.highlights.length > 0 && (
-                      <ul>
-                        {item.highlights.map((highlight, highlightIndex) => (
-                          <li key={`${highlight}-${highlightIndex}`}>{highlight}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
+            {resume.experience.length > 0 && (
+              <article className="section resume-section resume-section--experience">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.experience}</h2>
+                </div>
+                <div className="timeline">
+                  {resume.experience.map((item, index) => (
+                    <div key={`${item.company}-${index}`} className="timeline-item">
+                      <div className="timeline-item__period">{item.period}</div>
+                      <div className="timeline-item__content">
+                        <h3>{item.company || "Company"}</h3>
+                        <p className="timeline-item__subheading">{item.role || "Role"}</p>
+                        {item.highlights.length > 0 && (
+                          <ul className="item-list">
+                            {item.highlights.map((highlight, highlightIndex) => (
+                              <li key={`${highlight}-${highlightIndex}`}>{highlight}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            )}
+
+            {resume.education.length > 0 && (
+              <article className="section resume-section resume-section--education">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.education}</h2>
+                </div>
+                <div className="timeline timeline--compact">
+                  {resume.education.map((item, index) => (
+                    <div key={`${item.school}-${index}`} className="timeline-item">
+                      <div className="timeline-item__period">{item.period}</div>
+                      <div className="timeline-item__content">
+                        <h3>{item.school || "School"}</h3>
+                        {item.detail ? <p className="timeline-item__detail">{item.detail}</p> : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            )}
+
+            {resume.courses.length > 0 && (
+              <article className="section resume-section resume-section--courses">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.courses}</h2>
+                </div>
+                <div className="timeline timeline--compact timeline--courses">
+                  {resume.courses.map((item, index) => (
+                    <div key={`${item.name}-${index}`} className="timeline-item">
+                      <div className="timeline-item__period">{item.year || ""}</div>
+                      <div className="timeline-item__content">
+                        <h3>{item.name}</h3>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
             )}
           </section>
 
-          <section>
-            <h3>{labels.education}</h3>
-            {resume.education.length === 0 ? (
-              <p className="cv-preview__placeholder">Add education entries in the form.</p>
-            ) : (
-              <ul className="cv-list">
-                {resume.education.map((item, index) => (
-                  <li key={`${item.school}-${index}`}>
-                    <strong>{item.school || "School"}</strong>
-                    {item.period ? <span className="cv-period"> ({item.period})</span> : null}
-                    {item.detail ? <p>{item.detail}</p> : null}
-                  </li>
+          <aside className="sidebar">
+            <section className="card resume-section resume-section--personal">
+              <div className="section-title">
+                <span className="section-dot"></span>
+                <h2>{labels.personalInfo}</h2>
+              </div>
+              <dl className="contact-list">
+                {resume.contact.map((item, index) => (
+                  <div key={`${item.label}-${index}`} className="contact-item">
+                    <dt>{item.label}</dt>
+                    <dd>{item.value}</dd>
+                  </div>
                 ))}
-              </ul>
-            )}
-          </section>
+              </dl>
+            </section>
 
-          <section>
-            <h3>{labels.courses}</h3>
-            {resume.courses.length === 0 ? (
-              <p className="cv-preview__placeholder">Add courses and certifications.</p>
-            ) : (
-              <ul className="cv-list">
-                {resume.courses.map((item, index) => (
-                  <li key={`${item.name}-${index}`}>
-                    {item.year > 0 ? `${item.year} - ` : ""}
-                    {item.name}
-                  </li>
-                ))}
-              </ul>
+            {resume.skills.length > 0 && (
+              <section className="card resume-section resume-section--skills">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.skills}</h2>
+                </div>
+                <div className="meter-list">
+                  {resume.skills.map((item, index) => (
+                    <div key={`${item.name}-${index}`} className="meter-item meter-item--plain">
+                      <div className="meter-item__label">
+                        <span>{item.name}</span>
+                      </div>
+                      <div className="meter">{renderMeter(item.level)}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
-          </section>
+
+            {resume.tech_stack.length > 0 && (
+              <section className="card resume-section resume-section--tech-stack">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.techStack}</h2>
+                </div>
+                <ul className="pill-list">
+                  {resume.tech_stack.map((item, index) => (
+                    <li key={`${item}-${index}`}>{item}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {resume.languages.length > 0 && (
+              <section className="card resume-section resume-section--languages">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.languages}</h2>
+                </div>
+                <div className="meter-list meter-list--compact">
+                  {resume.languages.map((item, index) => (
+                    <div key={`${item.name}-${index}`} className="meter-item meter-item--plain">
+                      <div className="meter-item__label">
+                        <span>{item.name}</span>
+                        {item.level_text ? <span className="meter-item__note">{item.level_text}</span> : null}
+                      </div>
+                      <div className="meter">{renderMeter(item.level)}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {resume.interests.length > 0 && (
+              <section className="card resume-section resume-section--interests">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.interests}</h2>
+                </div>
+                <ul className="pill-list">
+                  {resume.interests.map((item, index) => (
+                    <li key={`${item}-${index}`}>{item}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </aside>
         </main>
-
-        <aside className="cv-preview__side">
-          <section>
-            <h4>{labels.personalInfo}</h4>
-            <ul>
-              {resume.contact.length === 0 ? (
-                <li className="cv-preview__placeholder">Add contact data.</li>
-              ) : (
-                resume.contact.map((item, index) => (
-                  <li key={`${item.label}-${index}`}>
-                    <strong>{item.label}:</strong> {item.value}
-                  </li>
-                ))
-              )}
-            </ul>
-          </section>
-
-          <section>
-            <h4>{labels.skills}</h4>
-            <ul>
-              {resume.skills.length === 0 ? (
-                <li className="cv-preview__placeholder">Add skills.</li>
-              ) : (
-                resume.skills.map((item, index) => (
-                  <li key={`${item.name}-${index}`}>
-                    {item.name} <span className="cv-dots">{renderLevelDots(item.level)}</span>
-                  </li>
-                ))
-              )}
-            </ul>
-          </section>
-
-          <section>
-            <h4>{labels.techStack}</h4>
-            <ul>
-              {resume.tech_stack.length === 0 ? (
-                <li className="cv-preview__placeholder">Add technologies.</li>
-              ) : (
-                resume.tech_stack.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)
-              )}
-            </ul>
-          </section>
-
-          <section>
-            <h4>{labels.languages}</h4>
-            <ul>
-              {resume.languages.length === 0 ? (
-                <li className="cv-preview__placeholder">Add languages.</li>
-              ) : (
-                resume.languages.map((item, index) => (
-                  <li key={`${item.name}-${index}`}>
-                    {item.name}
-                    {item.level_text ? ` - ${item.level_text}` : ""}
-                  </li>
-                ))
-              )}
-            </ul>
-          </section>
-
-          <section>
-            <h4>{labels.interests}</h4>
-            <ul>
-              {resume.interests.length === 0 ? (
-                <li className="cv-preview__placeholder">Add interests.</li>
-              ) : (
-                resume.interests.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)
-              )}
-            </ul>
-          </section>
-        </aside>
       </div>
-    </article>
+    </div>
+  );
+}
+
+export default function ResumeLivePreview({ locale, resume, styleCode, yamlContent, isExpanded, onExpand, onClose }: Props) {
+  const frameRef = useRef<HTMLButtonElement>(null);
+  const documentRef = useRef<HTMLDivElement>(null);
+  const [previewMetrics, setPreviewMetrics] = useState({ scale: 1, height: 0 });
+
+  useEffect(() => {
+    if (styleCode !== "basic") {
+      return;
+    }
+
+    const currentFrame = frameRef.current;
+    const currentDocument = documentRef.current;
+    if (!currentFrame || !currentDocument) {
+      return;
+    }
+    const frame = currentFrame;
+    const documentEl = currentDocument;
+
+    function updatePreviewMetrics() {
+      const nextScale = frame.clientWidth / BASIC_PREVIEW_WIDTH;
+      const nextHeight = documentEl.scrollHeight * nextScale;
+      setPreviewMetrics({
+        scale: nextScale,
+        height: nextHeight,
+      });
+    }
+
+    updatePreviewMetrics();
+
+    const resizeObserver = new ResizeObserver(updatePreviewMetrics);
+    resizeObserver.observe(frame);
+    resizeObserver.observe(documentEl);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [locale, resume, styleCode]);
+
+  if (styleCode === "empty") {
+    return <pre className="resume-editor-raw-preview">{yamlContent}</pre>;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="resume-editor-preview-frame"
+        ref={frameRef}
+        onClick={onExpand}
+        aria-label="Open enlarged CV preview"
+      >
+        <div className="resume-editor-preview-scale-box" style={{ height: previewMetrics.height || undefined }}>
+          <div
+            className="resume-editor-preview-scale-content"
+            ref={documentRef}
+            style={{ transform: `scale(${previewMetrics.scale})` }}
+          >
+            <BasicResumeDocument locale={locale} resume={resume} />
+          </div>
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="resume-editor-preview-modal" role="dialog" aria-modal="true" aria-label="Enlarged CV preview">
+          <button type="button" className="resume-editor-preview-modal__backdrop" onClick={onClose} aria-label="Close preview"></button>
+          <div className="resume-editor-preview-modal__body">
+            <button type="button" className="button button--ghost resume-editor-preview-modal__close" onClick={onClose}>
+              Close
+            </button>
+            <BasicResumeDocument locale={locale} resume={resume} />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

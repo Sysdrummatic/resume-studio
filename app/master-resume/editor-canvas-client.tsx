@@ -2,17 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ResumeLivePreview from "./resume-live-preview";
-import type {
-  ResumeContactItem,
-  ResumeCourse,
-  ResumeDocument,
-  ResumeEducation,
-  ResumeExperience,
-  ResumeLanguage,
-  ResumeLocale,
-  ResumeRevisionItem,
-  ResumeSkill,
-} from "../lib/resume-schema";
+import type { ResumeEditorStyle } from "./resume-live-preview";
+import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "../lib/resume-schema";
 import { defaultResumeDocument, normalizeResumeDocument, validateResumeDocument } from "../lib/resume-schema";
 
 type ResumeDocumentRow = {
@@ -39,12 +30,11 @@ type ApiDocumentResponse = {
   revisions?: ResumeRevisionItem[];
 };
 
-function multilineToArray(value: string): string[] {
-  return value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
+const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
+const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
+  { code: "basic", label: "basic" },
+  { code: "empty", label: "pusty" },
+];
 
 function getDraftKey(userId: string, locale: ResumeLocale): string {
   return `resume-studio:phase-d-draft:${userId}:${locale}`;
@@ -74,12 +64,22 @@ function serializeResumeToYaml(resume: ResumeDocument): string {
   });
 }
 
+async function fetchText(path: string) {
+  const response = await fetch(path, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Failed to load ${path}`);
+  }
+  return response.text();
+}
+
 export default function EditorCanvasClient() {
   const [locale, setLocale] = useState<ResumeLocale>("en");
+  const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>("basic");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [isError, setIsError] = useState(false);
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
 
   const [actor, setActor] = useState<{ userId: string; displayName: string; role: string } | null>(null);
   const [documentRow, setDocumentRow] = useState<ResumeDocumentRow | null>(null);
@@ -92,65 +92,88 @@ export default function EditorCanvasClient() {
 
   const validation = useMemo(() => validateResumeDocument(resume), [resume]);
 
-  const loadLocaleDocument = useCallback(async (nextLocale: ResumeLocale) => {
-    setIsLoading(true);
-    setStatus("Loading resume document...");
-    setIsError(false);
-
-    const response = await fetch(`/api/resume/document?locale=${encodeURIComponent(nextLocale)}`);
-    const payload = (await response.json()) as ApiDocumentResponse;
-
-    if (!response.ok || payload.error || !payload.document) {
-      setStatus(payload.error || "Unable to load resume document.");
-      setIsError(true);
-      setIsLoading(false);
-      return;
-    }
-
-    const loadedActor = payload.actor || null;
-    if (loadedActor) {
-      setActor(loadedActor);
-    }
-
-    let nextResume = defaultResumeDocument(loadedActor?.displayName || "");
-    let nextYamlPanel = payload.document.yaml_content;
-    let nextStatus = "Resume document loaded.";
-    let nextIsError = false;
-    try {
-      nextResume = parseYamlToResumeDocument(payload.document.yaml_content, loadedActor?.displayName || "");
-    } catch (error) {
-      nextStatus = `Failed to parse YAML from database: ${error instanceof Error ? error.message : "unknown error"}`;
-      nextIsError = true;
-    }
-
-    const draftKey = loadedActor ? getDraftKey(loadedActor.userId, nextLocale) : "";
-    if (draftKey) {
-      const draftRaw = localStorage.getItem(draftKey);
-      if (draftRaw) {
-        try {
-          const draftPayload = JSON.parse(draftRaw) as { yamlContent?: string };
-          if (draftPayload.yamlContent) {
-            nextResume = parseYamlToResumeDocument(draftPayload.yamlContent, loadedActor?.displayName || "");
-            nextYamlPanel = draftPayload.yamlContent;
-            nextStatus = "Draft restored from browser storage.";
-            nextIsError = false;
-          }
-        } catch {
-          localStorage.removeItem(draftKey);
+  const applyYamlText = useCallback(
+    (yamlContent: string, options: { successStatus?: string; silent?: boolean } = {}) => {
+      setYamlPanel(yamlContent);
+      try {
+        const parsed = parseYamlToResumeDocument(yamlContent, actor?.displayName || "");
+        setResume(parsed);
+        if (!options.silent) {
+          setStatus(options.successStatus || "YAML imported to form.");
+          setIsError(false);
+        }
+      } catch (error) {
+        if (!options.silent) {
+          setStatus(`YAML import failed: ${error instanceof Error ? error.message : "unknown error"}`);
+          setIsError(true);
         }
       }
-    }
+    },
+    [actor],
+  );
 
-    setDocumentRow(payload.document);
-    setResume(nextResume);
-    setYamlPanel(nextYamlPanel);
-    setIsPublic(payload.document.is_public);
-    setAllowIndexing(payload.document.allow_indexing);
-    setRevisions(payload.revisions || []);
-    setIsLoading(false);
-    setStatus(nextStatus);
-    setIsError(nextIsError);
-  }, []);
+  const loadLocaleDocument = useCallback(
+    async (nextLocale: ResumeLocale) => {
+      setIsLoading(true);
+      setStatus("Loading YAML editor...");
+      setIsError(false);
+
+      try {
+        const response = await fetch(`/api/resume/document?locale=${encodeURIComponent(nextLocale)}`);
+        const payload = (await response.json()) as ApiDocumentResponse;
+        const loadedActor = payload.actor || null;
+
+        if (loadedActor) {
+          setActor(loadedActor);
+        }
+
+        if (payload.document) {
+          setDocumentRow(payload.document);
+          setIsPublic(payload.document.is_public);
+          setAllowIndexing(payload.document.allow_indexing);
+        }
+        setRevisions(payload.revisions || []);
+
+        let nextYamlPanel = nextLocale === "en" ? await fetchText(TEMPLATE_PATH) : payload.document?.yaml_content || "";
+        let nextStatus = nextLocale === "en" ? "Template YAML loaded." : "Resume document loaded.";
+
+        const draftKey = loadedActor ? getDraftKey(loadedActor.userId, nextLocale) : "";
+        if (draftKey) {
+          const draftRaw = localStorage.getItem(draftKey);
+          if (draftRaw) {
+            try {
+              const draftPayload = JSON.parse(draftRaw) as { yamlContent?: string };
+              if (draftPayload.yamlContent) {
+                nextYamlPanel = draftPayload.yamlContent;
+                nextStatus = "Draft restored from browser storage.";
+              }
+            } catch {
+              localStorage.removeItem(draftKey);
+            }
+          }
+        }
+
+        try {
+          const nextResume = parseYamlToResumeDocument(nextYamlPanel, loadedActor?.displayName || "");
+          setResume(nextResume);
+          setStatus(nextStatus);
+          setIsError(false);
+        } catch (error) {
+          setResume(defaultResumeDocument(loadedActor?.displayName || ""));
+          setStatus(`Failed to parse YAML: ${error instanceof Error ? error.message : "unknown error"}`);
+          setIsError(true);
+        }
+
+        setYamlPanel(nextYamlPanel);
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : "Unable to load YAML editor.");
+        setIsError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -184,177 +207,49 @@ export default function EditorCanvasClient() {
     setLocale(nextLocale);
   }
 
-  function updateResume(nextValue: ResumeDocument) {
-    setResume(nextValue);
+  function handleYamlChange(value: string) {
+    setYamlPanel(value);
     try {
-      setYamlPanel(serializeResumeToYaml(nextValue));
-    } catch {
-      setYamlPanel("");
-    }
-  }
-
-  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name" | "role" | "summary">, value: string) {
-    updateResume({
-      ...resume,
-      [field]: value,
-    });
-  }
-
-  function updateStringList(field: "tech_stack" | "interests", value: string) {
-    updateResume({
-      ...resume,
-      [field]: multilineToArray(value),
-    });
-  }
-
-  function updateContact(index: number, key: keyof ResumeContactItem, value: string) {
-    const next = [...resume.contact];
-    next[index] = { ...next[index], [key]: value };
-    updateResume({ ...resume, contact: next });
-  }
-
-  function addContact() {
-    updateResume({
-      ...resume,
-      contact: [...resume.contact, { label: "", value: "", link: "" }],
-    });
-  }
-
-  function removeContact(index: number) {
-    updateResume({
-      ...resume,
-      contact: resume.contact.filter((_, itemIndex) => itemIndex !== index),
-    });
-  }
-
-  function updateSkill(index: number, key: keyof ResumeSkill, value: string) {
-    const next = [...resume.skills];
-    if (key === "level") {
-      next[index] = { ...next[index], level: Math.max(1, Math.min(5, Number.parseInt(value, 10) || 1)) };
-    } else {
-      next[index] = { ...next[index], [key]: value };
-    }
-    updateResume({ ...resume, skills: next });
-  }
-
-  function addSkill() {
-    updateResume({
-      ...resume,
-      skills: [...resume.skills, { name: "", level: 3 }],
-    });
-  }
-
-  function removeSkill(index: number) {
-    updateResume({
-      ...resume,
-      skills: resume.skills.filter((_, itemIndex) => itemIndex !== index),
-    });
-  }
-
-  function updateLanguage(index: number, key: keyof ResumeLanguage, value: string) {
-    const next = [...resume.languages];
-    if (key === "level") {
-      next[index] = { ...next[index], level: Math.max(1, Math.min(5, Number.parseInt(value, 10) || 1)) };
-    } else {
-      next[index] = { ...next[index], [key]: value };
-    }
-    updateResume({ ...resume, languages: next });
-  }
-
-  function addLanguage() {
-    updateResume({
-      ...resume,
-      languages: [...resume.languages, { name: "", level_text: "", level: 3 }],
-    });
-  }
-
-  function removeLanguage(index: number) {
-    updateResume({
-      ...resume,
-      languages: resume.languages.filter((_, itemIndex) => itemIndex !== index),
-    });
-  }
-
-  function updateExperience(index: number, key: keyof ResumeExperience, value: string) {
-    const next = [...resume.experience];
-    if (key === "highlights") {
-      next[index] = { ...next[index], highlights: multilineToArray(value) };
-    } else {
-      next[index] = { ...next[index], [key]: value };
-    }
-    updateResume({ ...resume, experience: next });
-  }
-
-  function addExperience() {
-    updateResume({
-      ...resume,
-      experience: [...resume.experience, { period: "", company: "", role: "", highlights: [] }],
-    });
-  }
-
-  function removeExperience(index: number) {
-    updateResume({
-      ...resume,
-      experience: resume.experience.filter((_, itemIndex) => itemIndex !== index),
-    });
-  }
-
-  function updateEducation(index: number, key: keyof ResumeEducation, value: string) {
-    const next = [...resume.education];
-    next[index] = { ...next[index], [key]: value };
-    updateResume({ ...resume, education: next });
-  }
-
-  function addEducation() {
-    updateResume({
-      ...resume,
-      education: [...resume.education, { period: "", school: "", detail: "" }],
-    });
-  }
-
-  function removeEducation(index: number) {
-    updateResume({
-      ...resume,
-      education: resume.education.filter((_, itemIndex) => itemIndex !== index),
-    });
-  }
-
-  function updateCourse(index: number, key: keyof ResumeCourse, value: string) {
-    const next = [...resume.courses];
-    if (key === "year") {
-      next[index] = { ...next[index], year: Math.max(0, Number.parseInt(value, 10) || 0) };
-    } else {
-      next[index] = { ...next[index], [key]: value };
-    }
-    updateResume({ ...resume, courses: next });
-  }
-
-  function addCourse() {
-    updateResume({
-      ...resume,
-      courses: [...resume.courses, { year: 0, name: "" }],
-    });
-  }
-
-  function removeCourse(index: number) {
-    updateResume({
-      ...resume,
-      courses: resume.courses.filter((_, itemIndex) => itemIndex !== index),
-    });
-  }
-
-  function saveDraft() {
-    if (!actor) return;
-    const key = getDraftKey(actor.userId, locale);
-    try {
-      const yamlContent = serializeResumeToYaml(resume);
-      localStorage.setItem(key, JSON.stringify({ yamlContent, savedAt: new Date().toISOString() }));
-      setStatus("Draft saved in browser storage.");
+      setResume(parseYamlToResumeDocument(value, actor?.displayName || ""));
+      setStatus("Live preview updated.");
       setIsError(false);
     } catch (error) {
-      setStatus(`Draft save failed: ${error instanceof Error ? error.message : "unknown error"}`);
+      setStatus(`YAML preview paused: ${error instanceof Error ? error.message : "unknown error"}`);
       setIsError(true);
     }
+  }
+
+  async function saveDraft() {
+    if (!actor) return;
+    setIsBusy(true);
+    setStatus("Saving draft to database...");
+    setIsError(false);
+
+    const response = await fetch("/api/resume/draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        locale,
+        yamlContent: yamlPanel,
+        title: resume.name ? `${resume.name} - Master resume draft` : "Master resume draft",
+        isPublic,
+        allowIndexing,
+      }),
+    });
+    const payload = (await response.json()) as ApiDocumentResponse;
+    if (!response.ok || payload.error || !payload.document) {
+      setStatus(payload.error || "Draft save failed.");
+      setIsError(true);
+      setIsBusy(false);
+      return;
+    }
+
+    setDocumentRow(payload.document);
+    setRevisions(payload.revisions || []);
+    localStorage.setItem(getDraftKey(actor.userId, locale), JSON.stringify({ yamlContent: yamlPanel, savedAt: new Date().toISOString() }));
+    setStatus("Draft saved to database.");
+    setIsError(false);
+    setIsBusy(false);
   }
 
   function restoreDraft() {
@@ -371,11 +266,7 @@ export default function EditorCanvasClient() {
       if (!payload.yamlContent) {
         throw new Error("Invalid draft payload.");
       }
-      const parsed = parseYamlToResumeDocument(payload.yamlContent, actor.displayName);
-      setResume(parsed);
-      setYamlPanel(payload.yamlContent);
-      setStatus("Draft restored.");
-      setIsError(false);
+      applyYamlText(payload.yamlContent, { successStatus: "Draft restored." });
     } catch (error) {
       setStatus(`Draft restore failed: ${error instanceof Error ? error.message : "unknown error"}`);
       setIsError(true);
@@ -422,6 +313,16 @@ export default function EditorCanvasClient() {
     }
   }
 
+  async function resetToTemplate() {
+    try {
+      const template = await fetchText(TEMPLATE_PATH);
+      applyYamlText(template, { successStatus: "Template YAML loaded." });
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Template load failed.");
+      setIsError(true);
+    }
+  }
+
   function exportYamlFile() {
     const fileName = `resume-${locale}.yaml`;
     const blob = new Blob([yamlPanel], { type: "text/yaml;charset=utf-8" });
@@ -449,18 +350,12 @@ export default function EditorCanvasClient() {
     setStatus("Publishing resume...");
     setIsError(false);
 
-    let yamlContent = yamlPanel;
-    if (!yamlContent.trim()) {
-      yamlContent = serializeResumeToYaml(resume);
-      setYamlPanel(yamlContent);
-    }
-
     const response = await fetch("/api/resume/publish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         locale,
-        yamlContent,
+        yamlContent: yamlPanel,
         title: resume.name ? `${resume.name} - Master resume` : "Master resume",
         isPublic,
         allowIndexing,
@@ -508,27 +403,16 @@ export default function EditorCanvasClient() {
 
     setDocumentRow(payload.document);
     setRevisions(payload.revisions || []);
-    try {
-      const parsed = parseYamlToResumeDocument(payload.document.yaml_content, actor?.displayName || "");
-      setResume(parsed);
-      setYamlPanel(payload.document.yaml_content);
-    } catch {
-      setResume(defaultResumeDocument(actor?.displayName || ""));
-    }
-    setStatus(`Rollback complete. Current document now matches revision ${revisionNumber}.`);
-    setIsError(false);
+    applyYamlText(payload.document.yaml_content, { successStatus: `Rollback complete. Current document now matches revision ${revisionNumber}.` });
     setIsBusy(false);
   }
 
-  const techStackMultiline = resume.tech_stack.join("\n");
-  const interestsMultiline = resume.interests.join("\n");
-
   return (
-    <section className="card resume-editor-shell">
+    <section className="resume-editor-shell">
       <header className="resume-editor-shell__header">
         <div>
           <h1>Master Resume Editor</h1>
-          <p className="card-lead">Canvas mode: editable form on the left, live CV preview on the right.</p>
+          <p className="card-lead">YAML editor with a live basic CV preview.</p>
         </div>
         <div className="resume-editor-shell__locale-switch">
           <button
@@ -554,194 +438,48 @@ export default function EditorCanvasClient() {
 
       <div className="resume-editor-shell__content">
         <div className="resume-editor-form">
-          <section className="stack">
-            <h2>Core</h2>
-            <label>
-              Brand initials
-              <input value={resume.brand_initials} onChange={(event) => updateTextField("brand_initials", event.target.value)} />
-            </label>
-            <label>
-              Full name
-              <input value={resume.name} onChange={(event) => updateTextField("name", event.target.value)} />
-            </label>
-            <label>
-              Role / Headline
-              <input value={resume.role} onChange={(event) => updateTextField("role", event.target.value)} />
-            </label>
-            <label>
-              Summary
-              <textarea rows={5} value={resume.summary} onChange={(event) => updateTextField("summary", event.target.value)} />
-            </label>
-          </section>
-
-          <section className="stack">
+          <section className="stack resume-editor-panel">
             <div className="section-row">
-              <h2>Contact</h2>
-              <button type="button" className="button button--ghost button--small" onClick={addContact}>
-                Add row
+              <h2>YAML Editor</h2>
+              <label className="resume-editor-style-select">
+                CV style
+                <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
+                  {EDITOR_STYLES.map((style) => (
+                    <option key={style.code} value={style.code}>
+                      {style.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <textarea
+              className="resume-editor-yaml"
+              spellCheck={false}
+              value={yamlPanel}
+              onChange={(event) => handleYamlChange(event.target.value)}
+              disabled={isLoading}
+            />
+            <div className="actions-row">
+              <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading}>
+                Load template
+              </button>
+              <button type="button" className="button button--ghost" onClick={syncYamlFromForm}>
+                Sync from form
+              </button>
+              <button type="button" className="button button--ghost" onClick={applyYamlToForm}>
+                Import YAML to form
+              </button>
+              <button type="button" className="button button--ghost" onClick={exportYamlFile}>
+                Export YAML file
               </button>
             </div>
-            {resume.contact.map((item, index) => (
-              <div className="array-row" key={`contact-${index}`}>
-                <input placeholder="Label" value={item.label} onChange={(event) => updateContact(index, "label", event.target.value)} />
-                <input placeholder="Value" value={item.value} onChange={(event) => updateContact(index, "value", event.target.value)} />
-                <input
-                  placeholder="Link (optional)"
-                  value={item.link || ""}
-                  onChange={(event) => updateContact(index, "link", event.target.value)}
-                />
-                <button type="button" className="button button--danger button--small" onClick={() => removeContact(index)}>
-                  Remove
-                </button>
-              </div>
-            ))}
           </section>
 
-          <section className="stack">
-            <div className="section-row">
-              <h2>Skills</h2>
-              <button type="button" className="button button--ghost button--small" onClick={addSkill}>
-                Add skill
-              </button>
-            </div>
-            {resume.skills.map((item, index) => (
-              <div className="array-row" key={`skill-${index}`}>
-                <input placeholder="Skill" value={item.name} onChange={(event) => updateSkill(index, "name", event.target.value)} />
-                <input
-                  placeholder="Level 1-5"
-                  type="number"
-                  min={1}
-                  max={5}
-                  value={item.level}
-                  onChange={(event) => updateSkill(index, "level", event.target.value)}
-                />
-                <button type="button" className="button button--danger button--small" onClick={() => removeSkill(index)}>
-                  Remove
-                </button>
-              </div>
-            ))}
-          </section>
-
-          <section className="stack">
-            <div className="section-row">
-              <h2>Languages</h2>
-              <button type="button" className="button button--ghost button--small" onClick={addLanguage}>
-                Add language
-              </button>
-            </div>
-            {resume.languages.map((item, index) => (
-              <div className="array-row" key={`language-${index}`}>
-                <input placeholder="Language" value={item.name} onChange={(event) => updateLanguage(index, "name", event.target.value)} />
-                <input
-                  placeholder="Level text"
-                  value={item.level_text}
-                  onChange={(event) => updateLanguage(index, "level_text", event.target.value)}
-                />
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  value={item.level}
-                  onChange={(event) => updateLanguage(index, "level", event.target.value)}
-                />
-                <button type="button" className="button button--danger button--small" onClick={() => removeLanguage(index)}>
-                  Remove
-                </button>
-              </div>
-            ))}
-          </section>
-
-          <section className="stack">
-            <h2>Tech Stack</h2>
-            <textarea rows={4} value={techStackMultiline} onChange={(event) => updateStringList("tech_stack", event.target.value)} />
-          </section>
-
-          <section className="stack">
-            <h2>Interests</h2>
-            <textarea rows={4} value={interestsMultiline} onChange={(event) => updateStringList("interests", event.target.value)} />
-          </section>
-
-          <section className="stack">
-            <div className="section-row">
-              <h2>Experience</h2>
-              <button type="button" className="button button--ghost button--small" onClick={addExperience}>
-                Add experience
-              </button>
-            </div>
-            {resume.experience.map((item, index) => (
-              <div className="stack array-card" key={`experience-${index}`}>
-                <input placeholder="Period" value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
-                <input
-                  placeholder="Company"
-                  value={item.company}
-                  onChange={(event) => updateExperience(index, "company", event.target.value)}
-                />
-                <input placeholder="Role" value={item.role} onChange={(event) => updateExperience(index, "role", event.target.value)} />
-                <textarea
-                  rows={3}
-                  placeholder="Highlights (one per line)"
-                  value={item.highlights.join("\n")}
-                  onChange={(event) => updateExperience(index, "highlights", event.target.value)}
-                />
-                <button type="button" className="button button--danger button--small" onClick={() => removeExperience(index)}>
-                  Remove
-                </button>
-              </div>
-            ))}
-          </section>
-
-          <section className="stack">
-            <div className="section-row">
-              <h2>Education</h2>
-              <button type="button" className="button button--ghost button--small" onClick={addEducation}>
-                Add education
-              </button>
-            </div>
-            {resume.education.map((item, index) => (
-              <div className="stack array-card" key={`education-${index}`}>
-                <input placeholder="Period" value={item.period} onChange={(event) => updateEducation(index, "period", event.target.value)} />
-                <input placeholder="School" value={item.school} onChange={(event) => updateEducation(index, "school", event.target.value)} />
-                <textarea
-                  rows={2}
-                  placeholder="Detail"
-                  value={item.detail}
-                  onChange={(event) => updateEducation(index, "detail", event.target.value)}
-                />
-                <button type="button" className="button button--danger button--small" onClick={() => removeEducation(index)}>
-                  Remove
-                </button>
-              </div>
-            ))}
-          </section>
-
-          <section className="stack">
-            <div className="section-row">
-              <h2>Courses</h2>
-              <button type="button" className="button button--ghost button--small" onClick={addCourse}>
-                Add course
-              </button>
-            </div>
-            {resume.courses.map((item, index) => (
-              <div className="array-row" key={`course-${index}`}>
-                <input
-                  type="number"
-                  placeholder="Year"
-                  value={item.year || 0}
-                  onChange={(event) => updateCourse(index, "year", event.target.value)}
-                />
-                <input placeholder="Course name" value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
-                <button type="button" className="button button--danger button--small" onClick={() => removeCourse(index)}>
-                  Remove
-                </button>
-              </div>
-            ))}
-          </section>
-
-          <section className="stack">
+          <section className="stack resume-editor-panel">
             <h2>Draft</h2>
             <div className="actions-row">
-              <button type="button" className="button button--ghost" onClick={saveDraft}>
-                Save draft
+              <button type="button" className="button button--ghost" onClick={() => void saveDraft()} disabled={isBusy || isLoading}>
+                {isBusy ? "Saving..." : "Save draft"}
               </button>
               <button type="button" className="button button--ghost" onClick={restoreDraft}>
                 Restore draft
@@ -752,7 +490,7 @@ export default function EditorCanvasClient() {
             </div>
           </section>
 
-          <section className="stack">
+          <section className="stack resume-editor-panel">
             <h2>Publish</h2>
             <label>
               Change note
@@ -766,28 +504,12 @@ export default function EditorCanvasClient() {
               <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
               Allow indexing
             </label>
-            <button className="button button--primary" type="button" onClick={publishResume} disabled={isBusy || isLoading}>
+            <button className="button button--primary" type="button" onClick={() => void publishResume()} disabled={isBusy || isLoading}>
               {isBusy ? "Publishing..." : "Publish and create revision"}
             </button>
           </section>
 
-          <section className="stack">
-            <h2>YAML panel</h2>
-            <textarea rows={12} value={yamlPanel} onChange={(event) => setYamlPanel(event.target.value)} />
-            <div className="actions-row">
-              <button type="button" className="button button--ghost" onClick={syncYamlFromForm}>
-                Sync from form
-              </button>
-              <button type="button" className="button button--ghost" onClick={applyYamlToForm}>
-                Import YAML to form
-              </button>
-              <button type="button" className="button button--ghost" onClick={exportYamlFile}>
-                Export YAML file
-              </button>
-            </div>
-          </section>
-
-          <section className="stack">
+          <section className="stack resume-editor-panel">
             <h2>Revision history</h2>
             {revisions.length === 0 ? (
               <p className="cv-preview__placeholder">No revisions yet.</p>
@@ -816,7 +538,19 @@ export default function EditorCanvasClient() {
         </div>
 
         <div className="resume-editor-preview">
-          {isLoading ? <p>Loading preview...</p> : <ResumeLivePreview locale={locale} resume={resume} />}
+          {isLoading ? (
+            <p>Loading preview...</p>
+          ) : (
+            <ResumeLivePreview
+              locale={locale}
+              resume={resume}
+              styleCode={selectedStyle}
+              yamlContent={yamlPanel}
+              isExpanded={isPreviewExpanded}
+              onExpand={() => setIsPreviewExpanded(true)}
+              onClose={() => setIsPreviewExpanded(false)}
+            />
+          )}
         </div>
       </div>
     </section>
