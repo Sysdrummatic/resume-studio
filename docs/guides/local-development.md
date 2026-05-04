@@ -8,6 +8,17 @@ This guide covers local development for both the legacy static app and the Next.
 - npm 10+.
 - Supabase project (for auth/data flows).
 
+## Setup Checklist
+
+- [x] Node.js 22+ is the expected runtime
+- [x] npm 10+ is the expected package manager baseline
+- [x] `.env.local` should be created from `.env.development.example`
+- [x] Supabase URL, anon key, and service role key are required
+- [x] `npm run dev` is the primary local app entry point
+- [x] Legacy static files remain available under `public/`
+- [x] Required migration order is documented
+- [x] Validation commands are documented
+
 ## Setup
 
 1. Install dependencies:
@@ -43,7 +54,7 @@ npm run dev
 
 ## Static legacy routes (still present)
 
-- `index.html`, `resume.html`, `login.html`, `dashboard.html`, `master-resume.html`, `user.html`
+- `public/resume.html`, `public/login.html`, `public/dashboard.html`, `public/master-resume.html`, `public/user.html`
 
 ## Required migrations
 

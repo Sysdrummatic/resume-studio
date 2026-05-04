@@ -1,18 +1,18 @@
 # Content Update Workflow
 
-This workflow covers adding or modifying résumé sections and ensuring each locale stays synchronized.
+This workflow covers adding or modifying resume sections and ensuring each locale stays synchronized.
 
 ## 1. Plan the Changes
 
 - Capture the desired updates in an issue or task list.
-- Identify which locales require edits (`data/public/resume-*.yaml`).
-- Confirm whether private-only details need updating in `data/private/resume-private.yaml`.
+- Identify which locales require edits (`public/data/public/resume-*.yaml`).
+- Confirm whether private-only details need updating in `public/data/private/resume-private.yaml`.
 
 ## 2. Update Locale Data
 
-1. Edit the relevant YAML files under `data/public` using consistent indentation (two spaces).
+1. Edit the relevant YAML files under `public/data/public` using consistent indentation (two spaces).
 2. Keep section ordering aligned between locales so the UI displays a parallel structure.
-3. When adding new sections, also update the locale configuration in `data/public/config/*` if labels or toggles are required.
+3. When adding new sections, also update the locale configuration in `public/data/public/config/*` if labels or toggles are required.
 
 ## 3. Verify Locally
 
@@ -22,8 +22,8 @@ This workflow covers adding or modifying résumé sections and ensuring each loc
 
 ## 4. Run Automated Checks
 
-- Execute `npm test` to ensure admin panel helpers still pass regression checks.
-- If markdown or documentation was touched, run `npm run lint:md` (when available) or `npx markdownlint "**/*.md"`.
+- Execute `npm test` to ensure regression checks still pass.
+- If markdown or documentation was touched, run `npx markdownlint "**/*.md"` when available.
 
 ## 5. Submit for Review
 
@@ -31,8 +31,7 @@ This workflow covers adding or modifying résumé sections and ensuring each loc
 - Open a pull request summarizing the content updates and outline manual QA steps performed.
 - Note any follow-up tasks or pending translations so reviewers can plan additional work.
 
+## React Migration Note
 
-## Future React migration note
-
-During the React transition phase, YAML content files remain the canonical source unless a formal schema migration is announced.
+During the React transition, YAML content files remain the canonical source unless a formal schema migration is announced.
 UI migration must not silently change locale keys or data shape without synchronized updates and release notes.

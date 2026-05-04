@@ -1,22 +1,25 @@
 # OpenCVHub
 
-This repository contains the legacy static OpenCVHub app and the in-progress Next.js SaaS rebuild...
+This repository contains a hybrid OpenCVHub codebase:
+
+- a legacy static resume experience served from `public/`,
+- an in-progress Next.js SaaS rebuild under `app/`.
 
 ## Structure
 
-- `index.html`, `resume.html`, `login.html`, `dashboard.html`, `master-resume.html`, `user.html` - legacy static routes.
-- `app/` - Next.js App Router implementation (phases A-D).
-- `data/public/` - YAML locale/content files for public sample CV.
-- `scripts/` - legacy browser scripts.
-- `styles/` - legacy static styles.
+- `public/*.html` - legacy static entry pages still kept for compatibility and reference.
+- `app/` - Next.js App Router implementation. Phases A-D are implemented; Phase E is next.
+- `public/data/public/` - YAML locale/content files for the public sample CV.
+- `public/scripts/` - legacy browser scripts.
+- `public/styles/` - legacy static styles.
 - `supabase/migrations/` - SQL migrations.
 - `docs/` - guides, plans, QA checklists.
 
 ## Run (legacy static)
 
 1. Install deps: `npm install`
-2. Start static server from repo root (`npx serve .` / Live Server / `python -m http.server`)
-3. Open `index.html` and static routes
+2. Start a static server from repo root (`npx serve .` / Live Server / `python -m http.server`)
+3. Open `http://localhost:<port>/public/resume.html` or another file under `public/`
 
 ## Run (Next.js rebuild)
 
@@ -54,10 +57,11 @@ If `npm test` fails in restricted environments (`spawn EPERM`), run suites direc
 ## Documentation
 
 - [Documentation index](docs/README.md)
+- [Project roadmap](docs/guides/saas-transition-work-plan.md)
 - [Local development setup](docs/guides/local-development.md)
 - [Deployment and QA checklist](docs/guides/deployment-qa.md)
-- [SaaS transition work plan](docs/guides/saas-transition-work-plan.md)
 - [React frontend transition plan](docs/guides/react-frontend-transition-plan.md)
 - [Phase B YAML data layer guide](docs/guides/phase-b-yaml-data-layer.md)
 - [Phase C auth + RBAC guide](docs/guides/phase-c-auth-rbac-admin.md)
 - [Phase D editor canvas guide](docs/guides/phase-d-editor-canvas.md)
+- [AI demo resume generation workstream](docs/guides/ai-demo-resume-generation-plan.md)

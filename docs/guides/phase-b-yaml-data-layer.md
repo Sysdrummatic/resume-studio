@@ -12,6 +12,16 @@ Phase B introduces:
 - `admin_audit_logs` for privileged operations.
 - role-aware RLS for `admin`, `manager`, `user`, `recruiter`.
 
+## Status Checklist
+
+- [x] `resume_documents` table is part of the active model
+- [x] `resume_revisions` table is part of the active model
+- [x] `resume_public_links` table is part of the active model
+- [x] YAML validation and coercion tests exist
+- [x] Legacy JSON to YAML migration logic exists
+- [x] RLS rules for the active role model exist
+- [x] Phase B tests pass in the current repo
+
 ## 1. Apply DB Migration
 
 Run in Supabase SQL editor:
@@ -64,3 +74,11 @@ Validate these queries:
 4. Role policies behave correctly:
    - `manager` can only manage `user` and `recruiter`,
    - `admin` can manage all roles.
+
+## Verification Checklist
+
+- [x] Users can be represented by separate EN and PL resume documents
+- [x] Revisions are created and queryable
+- [x] Migration/report tooling is present in the repo
+- [x] Contract validation is automated in tests
+- [ ] Public `/r/[slug]` consumption of `resume_public_links` is complete in the Next.js app

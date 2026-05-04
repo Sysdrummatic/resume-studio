@@ -1,4 +1,12 @@
-# Supabase UI Setup (Phase B)
+# Supabase UI Setup (Legacy Static Auth Setup)
+
+This guide is primarily relevant to the older static auth flow under `public/login.html` and `public/dashboard.html`.
+
+For the active Next.js app deployment on Netlify, prefer:
+
+- `docs/guides/environment-matrix.md`
+- `docs/guides/local-development.md`
+- `docs/guides/phase-c-auth-rbac-admin.md`
 
 This guide is a click-by-click checklist for configuring Supabase for Phase B authentication.
 

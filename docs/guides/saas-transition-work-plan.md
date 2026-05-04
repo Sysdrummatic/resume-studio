@@ -18,6 +18,27 @@ Global completion checklist:
 - [ ] Phase F - User panel + admin analytics/audit
 - [ ] Phase G - Hardening, QA, launch readiness
 
+Current implementation status as of `2026-05-04`:
+
+- The Next.js shell, auth, admin flows, and resume editor are live in `app/`.
+- The sample public resume view on `/resume` is implemented from YAML data.
+- The public share route `/r/[slug]` still contains a placeholder, so the core deliverables of Phase E remain open.
+- AI-assisted demo resume generation is planned as a separate workstream and is not part of the core Phase E SEO/public-route milestone.
+
+## Current Execution Checklist
+
+- [x] Next.js shell is active in `app/`
+- [x] Netlify build and CI pipeline are configured
+- [x] YAML-first data layer is active
+- [x] Auth, RBAC, and admin flows are implemented
+- [x] Resume editor and revisioning are implemented
+- [x] Sample public resume exists at `/resume`
+- [ ] Rebuild the resume editor
+- [ ] Public share route `/r/[slug]` is fully implemented
+- [ ] SEO/AEO controls for public resume pages are complete
+- [ ] User panel and analytics surfaces are complete
+- [ ] Launch hardening tasks are complete
+
 ## 1) Locked Product Decisions
 
 These are mandatory constraints:
@@ -284,11 +305,10 @@ For every phase:
 
 ## 11) Immediate Next Actions
 
-- [ ] Approve this updated plan as the new baseline.
-- [ ] Start Phase A implementation branch.
-- [ ] Provision Netlify environment variables for preview/prod.
-- [ ] Prepare Supabase backup before Phase B migrations.
-- [x] Start Phase C implementation branch.
-- [x] Start Phase D implementation branch.
-- [ ] Start Phase E implementation branch.
+- [x] Approve this updated plan as the baseline for the active codebase.
+- [x] Complete foundation, YAML, auth/admin, and editor phases.
+- [ ] Implement the actual `/r/[slug]` public resume rendering flow.
+- [ ] Add SEO/AEO metadata and indexing controls for public resume pages.
+- [ ] Extend the dashboard/user panel with link management and analytics.
+- [ ] Start the AI demo resume generation workstream after Phase E route/rendering scope is stable.
 

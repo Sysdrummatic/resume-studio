@@ -1,51 +1,52 @@
-﻿# React Frontend Transition Plan (Future Phase)
+# React Frontend Transition Guardrails
 
-This guide defines how `OpenCVHub` should evolve from the current static HTML/CSS/JS frontend into a React-based frontend in a later product phase.
+This guide captures the migration guardrails that shaped the move from the legacy static frontend into the current Next.js App Router codebase.
 
-## Current Status (April 2026)
+## Current Status (May 2026)
 
-- The production app is still static-first (`*.html` + `scripts/*.js` + YAML-driven rendering).
-- React is **planned**, not yet the default runtime for all user-facing pages.
+- The repo is hybrid.
+- The legacy experience still exists under `public/`.
+- The Next.js app under `app/` already implements login, dashboard, admin, sample resume view, and the live editor.
+- React is no longer just planned; it is the active framework for the migrated slices.
+- The migration is incomplete because the public share route `/r/[slug]` and later panel/analytics work are still open.
 
-## Alignment note
+## Alignment Note
 
 This repo uses an incremental migration strategy with explicit parity gates and rollback paths.
-If other documents suggest a "full migration now" approach, treat them as outdated and follow this guide + the main work plan.
+If other documents suggest a full frontend restart or a separate React app, treat them as outdated and follow this guide plus the main work plan.
 
-## Transition Goals
+## Ongoing Goals
 
 - Preserve existing behavior and data contracts while modernizing frontend architecture.
-- Migrate incrementally (page-by-page or feature-by-feature), not via big-bang rewrite.
-- Keep auth, Supabase, and public link behavior stable during migration.
+- Continue migrating route-by-route inside `app/`, not via a new parallel frontend.
+- Keep auth, Supabase, YAML, and public-link behavior stable during migration.
 
 ## Guardrails
 
-1. **No implicit full rewrite**: each PR must limit migration scope.
-2. **Compatibility first**: maintain route behavior and existing critical flows.
-3. **Shared contracts**: keep locale schema and Supabase payloads backward compatible.
-4. **Feature parity gate**: retire static pages only after parity QA passes.
+1. No implicit full rewrite: each PR must limit migration scope.
+2. Compatibility first: maintain route behavior and existing critical flows.
+3. Shared contracts: keep locale schema and Supabase payloads backward compatible.
+4. Feature parity gate: retire static pages only after parity QA passes.
 
-## Suggested React Stack
+## Active Stack
 
-- Vite + React + TypeScript.
-- React Router for protected/public routes.
-- Feature-oriented folder structure (`features/`, `components/`, `services/`, `utils/`).
-- React Testing Library + existing test workflow extended for component coverage.
+- Next.js App Router
+- React + TypeScript
+- Route handlers under `app/api/`
+- Node test runner for the current automated suite
 
-## Proposed Migration Sequence
+## Remaining Migration Sequence
 
-1. Bootstrap React app shell without replacing production routes.
-2. Extract pure rendering logic/helpers from `scripts/` into reusable modules.
-3. Build `ResumeView` React component with parity snapshots against current renderer.
-4. Migrate auth screens and protected routing.
-5. Migrate editor/dashboard flows.
-6. Decommission static pages that reached parity and passed QA.
+1. Keep migrating route-by-route inside `app/`.
+2. Maintain parity with YAML contracts and Supabase flows.
+3. Complete the public share route `/r/[slug]`.
+4. Complete user panel and analytics surfaces.
+5. Retire static pages only after parity and redirect verification pass.
 
-## Definition of Done per Migration Slice
+## Definition of Done Per Migration Slice
 
-- Functional parity with static flow is demonstrated.
-- `npm test` passes and React-specific tests are added for changed scope.
-- i18n parity (EN/PL) is verified.
+- Functional parity with the touched static flow is demonstrated.
+- `npm test` passes and relevant coverage is added for the changed scope.
+- i18n parity (EN/PL) is verified when locale-aware flows are touched.
 - Supabase auth/session/public-link behavior is unchanged unless explicitly intended.
-- Rollback strategy exists (feature flag or route fallback).
-
+- Rollback strategy exists through redirect fallback, feature gating, or revertable route changes.

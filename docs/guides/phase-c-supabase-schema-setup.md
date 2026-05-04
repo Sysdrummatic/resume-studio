@@ -1,4 +1,20 @@
-# Phase C: Supabase schema setup (click-by-click)
+# Phase C: Supabase schema setup (legacy foundation guide)
+
+This guide documents the older Phase C foundation and completion migrations that introduced `profiles`, `resumes`, and `public_links`.
+
+For the active YAML-first model now used by the Next.js app, treat this guide as historical setup context and follow:
+
+- `docs/guides/phase-b-yaml-data-layer.md`
+- `docs/guides/phase-c-auth-rbac-admin.md`
+- `docs/guides/local-development.md`
+
+## Historical Checklist
+
+- [x] Legacy Phase C foundation migration exists
+- [x] Legacy Phase C completion migration exists
+- [x] Recursion fix migration exists
+- [x] This guide is retained as historical setup context
+- [ ] This guide should be used as the primary setup guide for the current YAML-first app
 
 Use this guide right after your Auth + Netlify connection is already working.
 
@@ -113,12 +129,12 @@ Then verify in **Table Editor** → `profiles` that role is `admin`.
 
 ## 8) Manual smoke test checklist
 
-- [ ] New signup creates `auth.users` row.
-- [ ] New signup creates `profiles` row automatically.
-- [ ] New signup also creates one seeded master resume + default link.
-- [ ] Admin role can be assigned and persists.
-- [ ] RLS blocks cross-user access.
-- [ ] Public links can be queried only when active.
+- [x] New signup creates `auth.users` row.
+- [x] New signup creates `profiles` row automatically.
+- [x] New signup also creates one seeded master resume + default link.
+- [x] Admin role can be assigned and persists.
+- [x] RLS blocks cross-user access.
+- [x] Public links can be queried only when active.
 - [ ] `/r/{slug}` sets robots meta to `noindex,nofollow` by default.
 - [ ] Turning `allow_indexing=true` on both `resumes` and `public_links` changes robots meta to `index,follow`.
 - [ ] Buckets exist with correct public/private mode.

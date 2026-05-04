@@ -2,6 +2,17 @@
 
 Phase D delivers the React canvas editor with live preview and revision workflows.
 
+## Status Checklist
+
+- [x] React editor route exists at `/master-resume`
+- [x] Form and live preview are rendered side by side
+- [x] EN and PL documents are handled separately
+- [x] Draft save/restore/clear is implemented
+- [x] YAML import/export/sync is implemented
+- [x] Publish creates revision snapshots
+- [x] Revision rollback is implemented
+- [x] Supporting API routes exist and are covered by tests
+
 ## Implemented capabilities
 
 - Split canvas editor on `/master-resume`:
@@ -36,3 +47,9 @@ Phase D delivers the React canvas editor with live preview and revision workflow
   - `/public/vendor/js-yaml.min.js`
 - Server-side publish validation uses:
   - `validate_resume_document_yaml` RPC.
+
+## Follow-up Checklist
+
+- [ ] Add AI demo generation actions in the editor
+- [ ] Expose public-link management from the editor or adjacent panel
+- [ ] Align editor preview badges with future public `/r/[slug]` rendering
