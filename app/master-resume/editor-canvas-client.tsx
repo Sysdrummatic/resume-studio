@@ -14,6 +14,7 @@ import type {
   ResumeQrCode,
   ResumeRevisionItem,
   ResumeSkill,
+  ResumeSummaryItem,
 } from "../lib/resume-schema";
 import { defaultResumeDocument, normalizeResumeDocument, validateResumeDocument } from "../lib/resume-schema";
 
@@ -245,11 +246,31 @@ export default function EditorCanvasClient() {
     }
   }
 
-  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name" | "role" | "summary">, value: string) {
+  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name" | "role">, value: string) {
     updateResumeFromHuman({ ...resume, [field]: value });
   }
 
+  function updateSummary(index: number, key: keyof ResumeSummaryItem, value: string | boolean) {
+    const next = [...resume.summary];
+    next[index] = {
+      ...next[index],
+      [key]: key === "default" ? Boolean(value) : value,
+    };
+    updateResumeFromHuman({ ...resume, summary: next });
+  }
+
+  function setDefaultSummary(index: number, checked: boolean) {
+    updateResumeFromHuman({
+      ...resume,
+      summary: resume.summary.map((item, itemIndex) => ({
+        ...item,
+        default: itemIndex === index ? checked : false,
+      })),
+    });
+  }
+
   function addArrayItem(field: "contact", item: ResumeContactItem): void;
+  function addArrayItem(field: "summary", item: ResumeSummaryItem): void;
   function addArrayItem(field: "qr_codes", item: ResumeQrCode): void;
   function addArrayItem(field: "skills", item: ResumeSkill): void;
   function addArrayItem(field: "tech_stack", item: string): void;
@@ -649,10 +670,62 @@ export default function EditorCanvasClient() {
                       <input value={resume.role} onChange={(event) => updateTextField("role", event.target.value)} />
                     </label>
                   </div>
-                  <label>
-                    Summary
-                    <textarea rows={4} value={resume.summary} onChange={(event) => updateTextField("summary", event.target.value)} />
-                  </label>
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Summary</h3>
+                    <button
+                      type="button"
+                      className="button button--ghost button--small"
+                      onClick={() => addArrayItem("summary", { position: "", description: "", default: resume.summary.length === 0 })}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  {resume.summary.map((item, index) => {
+                    const defaultSummaryIndexes = resume.summary
+                      .map((summaryItem, summaryIndex) => (summaryItem.default ? summaryIndex : -1))
+                      .filter((summaryIndex) => summaryIndex >= 0);
+                    const selectedDefaultIndex = defaultSummaryIndexes.length === 1 ? defaultSummaryIndexes[0] : -1;
+                    const anotherDefaultSelected = selectedDefaultIndex >= 0 && selectedDefaultIndex !== index;
+                    return (
+                      <div
+                        className={`resume-human-editor__card ${anotherDefaultSelected ? "resume-human-editor__card--muted" : ""}`}
+                        key={`summary-${index}`}
+                      >
+                        <label>
+                          Position
+                          <input
+                            placeholder="Position"
+                            value={item.position}
+                            onChange={(event) => updateSummary(index, "position", event.target.value)}
+                          />
+                        </label>
+                        <label>
+                          Description
+                          <textarea
+                            rows={4}
+                            placeholder="Summary description"
+                            value={item.description}
+                            onChange={(event) => updateSummary(index, "description", event.target.value)}
+                          />
+                        </label>
+                        <label className="checkbox-row">
+                          <input
+                            type="checkbox"
+                            checked={selectedDefaultIndex === index}
+                            disabled={!item.default && anotherDefaultSelected}
+                            onChange={(event) => setDefaultSummary(index, event.target.checked)}
+                          />
+                          Default summary
+                        </label>
+                        <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("summary", index)}>
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
                 </section>
 
                 <section className="resume-human-editor__section">

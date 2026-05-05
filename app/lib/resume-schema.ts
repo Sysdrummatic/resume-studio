@@ -4,6 +4,12 @@ export type ResumeContactItem = {
   link?: string;
 };
 
+export type ResumeSummaryItem = {
+  position: string;
+  description: string;
+  default: boolean;
+};
+
 export type ResumeQrCode = {
   label: string;
   image: string;
@@ -43,7 +49,7 @@ export type ResumeDocument = {
   brand_initials: string;
   name: string;
   role: string;
-  summary: string;
+  summary: ResumeSummaryItem[];
   contact: ResumeContactItem[];
   qr_codes: ResumeQrCode[];
   skills: ResumeSkill[];
@@ -119,7 +125,7 @@ export function defaultResumeDocument(name = ""): ResumeDocument {
     brand_initials: initialsFromName(safeName),
     name: safeName,
     role: "",
-    summary: "",
+    summary: [],
     contact: [],
     qr_codes: [],
     skills: [],
@@ -149,7 +155,7 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
     brand_initials: asText(source.brand_initials) || initialsFromName(name),
     name,
     role: asText(source.role),
-    summary: asText(source.summary),
+    summary: normalizeSummaryItems(source.summary),
     contact: asArray(source.contact)
       .map((item) => {
         const row = asObject(item);
@@ -239,6 +245,35 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
   };
 }
 
+function asBoolean(value: unknown): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.trim().toLowerCase() === "true";
+  return false;
+}
+
+function normalizeSummaryItems(value: unknown): ResumeSummaryItem[] {
+  if (typeof value === "string") {
+    const description = asText(value);
+    return description ? [{ position: "Default", description, default: true }] : [];
+  }
+
+  return asArray(value)
+    .map((item) => {
+      const row = asObject(item);
+      return {
+        position: asText(row.position),
+        description: asText(row.description),
+        default: asBoolean(row.default),
+      };
+    })
+    .filter((row) => row.position || row.description);
+}
+
+export function getDefaultSummary(summary: ResumeSummaryItem[]): ResumeSummaryItem | null {
+  const defaults = summary.filter((item) => item.default);
+  return defaults.length === 1 ? defaults[0] : null;
+}
+
 export function validateResumeDocument(value: unknown): { valid: boolean; errors: string[] } {
   const source = asObject(value);
   const errors: string[] = [];
@@ -250,6 +285,7 @@ export function validateResumeDocument(value: unknown): { valid: boolean; errors
     }
     const valueAtKey = source[key];
     const shouldBeArray =
+      key === "summary" ||
       key === "contact" ||
       key === "qr_codes" ||
       key === "skills" ||
@@ -270,6 +306,19 @@ export function validateResumeDocument(value: unknown): { valid: boolean; errors
   if (!asText(source.name)) {
     errors.push('Field "name" must not be empty.');
   }
+
+  asArray(source.summary).forEach((item, index) => {
+    const row = asObject(item);
+    if (typeof row.position !== "string") {
+      errors.push(`summary[${index}].position must be a string.`);
+    }
+    if (typeof row.description !== "string") {
+      errors.push(`summary[${index}].description must be a string.`);
+    }
+    if (typeof row.default !== "boolean" && typeof row.default !== "string") {
+      errors.push(`summary[${index}].default must be a boolean or string boolean.`);
+    }
+  });
 
   return {
     valid: errors.length === 0,

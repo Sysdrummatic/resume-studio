@@ -1,7 +1,10 @@
 brand_initials: ""
 name: ""
 role: ""
-summary: ""
+summary:
+  - position: ""
+    description: ""
+    default: true
 contact:
   - label: Location
     value: ""

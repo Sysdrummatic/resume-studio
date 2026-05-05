@@ -4,8 +4,9 @@ const jsyaml = require("../js-yaml.min.js");
 
 const SUPPORTED_LOCALES = new Set(["en", "pl"]);
 
-const REQUIRED_STRING_FIELDS = ["brand_initials", "name", "role", "summary"];
+const REQUIRED_STRING_FIELDS = ["brand_initials", "name", "role"];
 const REQUIRED_ARRAY_FIELDS = [
+  "summary",
   "contact",
   "qr_codes",
   "skills",
@@ -67,6 +68,30 @@ function normalizeStringList(value) {
   return asArray(value)
     .map((item) => normalizeText(item))
     .filter(Boolean);
+}
+
+function normalizeBoolean(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.trim().toLowerCase() === "true";
+  return false;
+}
+
+function normalizeSummaryList(value) {
+  if (typeof value === "string") {
+    const description = normalizeText(value);
+    return description ? [{ position: "Default", description, default: true }] : [];
+  }
+
+  return asArray(value)
+    .map((item) => {
+      const source = asObject(item);
+      return {
+        position: normalizeText(source.position),
+        description: normalizeText(source.description),
+        default: normalizeBoolean(source.default),
+      };
+    })
+    .filter((entry) => entry.position || entry.description);
 }
 
 function normalizeContactList(value) {
@@ -235,7 +260,7 @@ function createEmptyResumeDocument(name = "") {
     brand_initials: deriveInitials(safeName),
     name: safeName,
     role: "",
-    summary: "",
+    summary: [],
     contact: [],
     qr_codes: [],
     skills: [],
@@ -259,7 +284,7 @@ function coerceLegacyResumeData(legacyData, options = {}) {
   const normalized = createEmptyResumeDocument(resolvedName);
   normalized.brand_initials = normalizeText(source.brand_initials) || deriveInitials(resolvedName);
   normalized.role = normalizeText(source.role || personal.headline || personal.role);
-  normalized.summary = normalizeText(source.summary || personal.summary);
+  normalized.summary = normalizeSummaryList(source.summary || personal.summary);
 
   const contactSource = asArray(source.contact);
   normalized.contact =
@@ -296,6 +321,22 @@ function validateResumeDocumentShape(input) {
       errors.push(`Expected "${fieldName}" to be an array.`);
     }
   }
+
+  asArray(doc.summary).forEach((item, index) => {
+    if (!item || typeof item !== "object") {
+      errors.push(`summary[${index}] must be an object.`);
+      return;
+    }
+    if (typeof item.position !== "string") {
+      errors.push(`summary[${index}].position must be a string.`);
+    }
+    if (typeof item.description !== "string") {
+      errors.push(`summary[${index}].description must be a string.`);
+    }
+    if (typeof item.default !== "boolean" && typeof item.default !== "string") {
+      errors.push(`summary[${index}].default must be a boolean or string boolean.`);
+    }
+  });
 
   asArray(doc.contact).forEach((item, index) => {
     if (!item || typeof item !== "object") {

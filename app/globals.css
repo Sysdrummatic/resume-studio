@@ -572,6 +572,10 @@ a {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.resume-human-editor__card--muted {
+  opacity: 0.62;
+}
+
 .resume-human-editor__card .button {
   justify-self: start;
 }

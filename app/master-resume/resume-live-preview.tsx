@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
-import { PREVIEW_LABELS } from "../lib/resume-schema";
+import { getDefaultSummary, PREVIEW_LABELS } from "../lib/resume-schema";
 
 export type ResumeEditorStyle = "basic" | "empty";
 
@@ -26,6 +26,7 @@ function renderMeter(level: number) {
 
 function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; resume: ResumeDocument }) {
   const labels = PREVIEW_LABELS[locale];
+  const defaultSummary = getDefaultSummary(resume.summary);
 
   return (
     <div className="resume-editor-basic resume-view-page resume-style--basic">
@@ -42,13 +43,15 @@ function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; resume:
 
         <main className="layout">
           <section className="main-column">
-            <article className="section resume-section resume-section--summary">
-              <div className="section-title">
-                <span className="section-dot"></span>
-                <h2>{labels.summary}</h2>
-              </div>
-              <p className="summary-text">{resume.summary || "Your professional summary will appear here."}</p>
-            </article>
+            {defaultSummary && (
+              <article className="section resume-section resume-section--summary">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{labels.summary}</h2>
+                </div>
+                <p className="summary-text">{defaultSummary.description}</p>
+              </article>
+            )}
 
             {resume.experience.length > 0 && (
               <article className="section resume-section resume-section--experience">

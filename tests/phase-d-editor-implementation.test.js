@@ -44,6 +44,22 @@ test("phase D client exposes YAML and human-friendly editor tabs backed by one r
   assert.equal(source.includes("removeArrayItem"), true);
 });
 
+test("phase D client supports summary list defaults in HFE and preview", () => {
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const preview = read("app/master-resume/resume-live-preview.tsx");
+  const schema = read("app/lib/resume-schema.ts");
+  const template = read("public/data/private/resume-en-template.yaml");
+
+  assert.equal(schema.includes("export type ResumeSummaryItem"), true);
+  assert.equal(schema.includes("getDefaultSummary"), true);
+  assert.equal(template.includes("summary:"), true);
+  assert.equal(template.includes("position:"), true);
+  assert.equal(template.includes("default: true"), true);
+  assert.equal(editor.includes("updateSummary"), true);
+  assert.equal(editor.includes("setDefaultSummary"), true);
+  assert.equal(preview.includes("getDefaultSummary(resume.summary)"), true);
+});
+
 test("phase D client keeps draft-restored YAML in panel and preserves publish status", () => {
   const source = read("app/master-resume/editor-canvas-client.tsx");
 

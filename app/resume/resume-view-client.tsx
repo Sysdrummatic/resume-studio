@@ -47,6 +47,12 @@ type ContactItem = {
   link?: string;
 };
 
+type SummaryItem = {
+  position: string;
+  description: string;
+  default: boolean | string;
+};
+
 type MeterItem = {
   name: string;
   level?: number;
@@ -77,7 +83,7 @@ type ResumeData = {
   brand_initials?: string;
   name?: string;
   role?: string;
-  summary?: string;
+  summary?: string | SummaryItem[];
   contact?: ContactItem[];
   skills?: MeterItem[];
   tech_stack?: string[];
@@ -194,6 +200,31 @@ function isMeterItem(value: unknown): value is MeterItem {
   );
 }
 
+function isSummaryItem(value: unknown): value is SummaryItem {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.position === "string" &&
+    typeof value.description === "string" &&
+    (typeof value.default === "boolean" || typeof value.default === "string")
+  );
+}
+
+function isDefaultSummary(value: SummaryItem) {
+  return value.default === true || (typeof value.default === "string" && value.default.trim().toLowerCase() === "true");
+}
+
+function getVisibleSummary(summary: ResumeData["summary"]) {
+  if (typeof summary === "string") {
+    return summary.trim();
+  }
+  if (!Array.isArray(summary)) {
+    return "";
+  }
+  const defaults = summary.filter(isDefaultSummary);
+  return defaults.length === 1 ? defaults[0].description.trim() : "";
+}
+
 function isLanguageItem(value: unknown): value is LanguageItem {
   return isMeterItem(value) && hasOptionalString(value, "level_text");
 }
@@ -269,7 +300,7 @@ function isResumeData(value: unknown): value is ResumeData {
     hasOptionalString(value, "brand_initials") &&
     hasOptionalString(value, "name") &&
     hasOptionalString(value, "role") &&
-    hasOptionalString(value, "summary") &&
+    (value.summary === undefined || typeof value.summary === "string" || (Array.isArray(value.summary) && value.summary.every(isSummaryItem))) &&
     hasOptionalArray(value, "contact", isContactItem) &&
     hasOptionalArray(value, "skills", isMeterItem) &&
     (value.tech_stack === undefined || isStringArray(value.tech_stack)) &&
@@ -438,6 +469,7 @@ export default function ResumeViewClient() {
   const labels = viewConfig?.labels ?? DEFAULT_LABELS;
   const selectedStyleLabel = AVAILABLE_RESUME_STYLES.find((style) => style.code === selectedStyle)?.label ?? selectedStyle;
   const resumeThemeStyle = createAccentThemeStyle(accentColor);
+  const visibleSummary = getVisibleSummary(summary);
 
   return (
     <div className={`resume-view-page resume-style--${selectedStyle}`} style={resumeThemeStyle}>
@@ -545,13 +577,13 @@ export default function ResumeViewClient() {
 
           <main className="layout">
             <section className="main-column">
-              {summary && (
+              {visibleSummary && (
                 <article className="section resume-section resume-section--summary">
                   <div className="section-title">
                     <span className="section-dot"></span>
                     <h2>{labels.summary_heading}</h2>
                   </div>
-                  <p className="summary-text">{summary}</p>
+                  <p className="summary-text">{visibleSummary}</p>
                 </article>
               )}
 
