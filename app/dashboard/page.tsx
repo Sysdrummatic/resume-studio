@@ -1,15 +1,20 @@
 import Link from "next/link";
+import Script from "next/script";
+import DashboardClient from "./dashboard-client";
 import { requireAuthenticatedActor } from "../lib/auth-server";
-import { fetchResumeDocumentsForUser } from "../lib/resume-server";
+import { fetchResumeDocumentsForUser, fetchResumePresetsForUser } from "../lib/resume-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const actor = await requireAuthenticatedActor();
   const resumeDocuments = await fetchResumeDocumentsForUser(actor.userId);
+  const resumePresets = await fetchResumePresetsForUser(actor.userId);
+  const masterResume = resumeDocuments.find((document) => document.locale === "en") || resumeDocuments[0] || null;
 
   return (
-    <div className="stack">
+    <>
+      <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
       <section className="card stack">
         <header className="card-header">
           <div>
@@ -21,43 +26,13 @@ export default async function DashboardPage() {
         </header>
 
         <div className="actions-row">
-          <Link className="button button--primary" href="/master-resume">
-            Open master resume editor
-          </Link>
           <Link className="button button--ghost" href="/resume">
             View sample resume
           </Link>
         </div>
       </section>
 
-      <section className="card stack">
-        <div className="section-row">
-          <h2>Resume documents</h2>
-          <Link className="button button--ghost button--small" href="/master-resume">
-            Edit
-          </Link>
-        </div>
-
-        {resumeDocuments.length === 0 ? (
-          <p className="card-lead">No resume documents saved yet.</p>
-        ) : (
-          <ul className="dashboard-resume-list">
-            {resumeDocuments.map((document) => (
-              <li key={document.id}>
-                <div>
-                  <strong>{document.title}</strong>
-                  <p>
-                    {document.locale.toUpperCase()} · Updated {new Date(document.updated_at).toLocaleString()}
-                  </p>
-                </div>
-                <span className={`dashboard-resume-list__badge ${document.is_public ? "" : "dashboard-resume-list__badge--private"}`}>
-                  {document.is_public ? "Public" : "Private"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+      <DashboardClient masterResume={masterResume} initialPresets={resumePresets} />
+    </>
   );
 }

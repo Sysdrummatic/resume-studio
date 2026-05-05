@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import type { ResumeLocale, ResumeRevisionItem } from "./resume-schema";
 import { normalizeLocale } from "./resume-schema";
 import { callRpc, insertTable, queryTable, updateTable } from "./supabase-http";
@@ -28,6 +29,44 @@ export type ResumeDocumentPayload = {
   document: ResumeDocumentRow;
   revisions: ResumeRevisionItem[];
 };
+
+export type ResumePresetSelection = {
+  summary: number[];
+  experience: number[];
+  education: number[];
+  courses: number[];
+  skills: number[];
+  interests: number[];
+  languages: number[];
+  tech_stack: number[];
+};
+
+export type ResumePresetRow = {
+  id: string;
+  document_id: string;
+  user_id: string;
+  title: string;
+  selection: ResumePresetSelection;
+  is_public: boolean;
+  allow_indexing: boolean;
+  slug: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
+  summary: [],
+  experience: [],
+  education: [],
+  courses: [],
+  skills: [],
+  interests: [],
+  languages: [],
+  tech_stack: [],
+};
+
+const PRESET_SELECTION_KEYS = Object.keys(EMPTY_PRESET_SELECTION) as Array<keyof ResumePresetSelection>;
 
 function yamlText(value: string): string {
   return JSON.stringify(value ?? "");
@@ -120,6 +159,160 @@ export async function fetchResumeDocumentsForUser(userId: string): Promise<Resum
   }
 
   return result.data;
+}
+
+function normalizeIndexList(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  return Array.from(
+    new Set(
+      value
+        .map((item) => Number.parseInt(String(item), 10))
+        .filter((item) => Number.isInteger(item) && item >= 0),
+    ),
+  ).sort((left, right) => left - right);
+}
+
+export function normalizeResumePresetSelection(value: unknown): ResumePresetSelection {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+  return PRESET_SELECTION_KEYS.reduce<ResumePresetSelection>(
+    (selection, key) => ({
+      ...selection,
+      [key]: normalizeIndexList(source[key]),
+    }),
+    { ...EMPTY_PRESET_SELECTION },
+  );
+}
+
+export function validateResumePresetSelection(selection: ResumePresetSelection): string[] {
+  const errors: string[] = [];
+  if (selection.summary.length !== 1) {
+    errors.push("Preset must include exactly one summary.");
+  }
+  return errors;
+}
+
+export async function fetchResumePresetsForUser(userId: string): Promise<ResumePresetRow[]> {
+  const result = await queryTable<ResumePresetRow>({
+    table: "resume_presets",
+    select: "id,document_id,user_id,title,selection,is_public,allow_indexing,slug,published_at,created_at,updated_at",
+    useServiceRole: true,
+    query: `user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc`,
+  });
+
+  if (!result.data || result.error) {
+    return [];
+  }
+
+  return result.data.map((preset) => ({
+    ...preset,
+    selection: normalizeResumePresetSelection(preset.selection),
+  }));
+}
+
+async function fetchDocumentById(accessToken: string, documentId: string, userId: string): Promise<ResumeDocumentRow | null> {
+  const result = await queryTable<ResumeDocumentRow>({
+    table: "resume_documents",
+    select: "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,updated_at",
+    accessToken,
+    query: `id=eq.${encodeURIComponent(documentId)}&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+  });
+
+  if (!result.data || result.error) {
+    return null;
+  }
+  return result.data[0] || null;
+}
+
+export async function saveResumePreset(
+  accessToken: string,
+  userId: string,
+  payload: {
+    presetId?: string;
+    documentId: string;
+    title: string;
+    selection: ResumePresetSelection;
+    isPublic?: boolean;
+    allowIndexing?: boolean;
+  },
+): Promise<ResumePresetRow | null> {
+  const document = await fetchDocumentById(accessToken, payload.documentId, userId);
+  if (!document) {
+    return null;
+  }
+
+  const errors = validateResumePresetSelection(payload.selection);
+  if (errors.length > 0) {
+    return null;
+  }
+
+  const title = payload.title.trim() || "Untitled preset";
+  const values = {
+    document_id: document.id,
+    user_id: userId,
+    title,
+    selection: payload.selection as unknown as Record<string, unknown>,
+    is_public: Boolean(payload.isPublic),
+    allow_indexing: Boolean(payload.allowIndexing),
+  };
+
+  const result = payload.presetId
+    ? await updateTable({
+        table: "resume_presets",
+        accessToken,
+        query: `id=eq.${encodeURIComponent(payload.presetId)}&user_id=eq.${encodeURIComponent(userId)}`,
+        values: {
+          ...values,
+          updated_at: new Date().toISOString(),
+        },
+      })
+    : await insertTable({
+        table: "resume_presets",
+        accessToken,
+        values,
+      });
+
+  if (!result.data || result.error) {
+    return null;
+  }
+
+  const row = result.data[0] as unknown as ResumePresetRow;
+  return {
+    ...row,
+    selection: normalizeResumePresetSelection(row.selection),
+  };
+}
+
+export async function publishResumePreset(
+  accessToken: string,
+  userId: string,
+  presetId: string,
+  payload: {
+    allowIndexing: boolean;
+  },
+): Promise<ResumePresetRow | null> {
+  const slug = `p-${randomUUID().replace(/-/g, "").slice(0, 14)}`;
+  const result = await updateTable({
+    table: "resume_presets",
+    accessToken,
+    query: `id=eq.${encodeURIComponent(presetId)}&user_id=eq.${encodeURIComponent(userId)}`,
+    values: {
+      is_public: true,
+      allow_indexing: payload.allowIndexing,
+      slug,
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  });
+
+  if (!result.data || result.error) {
+    return null;
+  }
+
+  const row = result.data[0] as unknown as ResumePresetRow;
+  return {
+    ...row,
+    selection: normalizeResumePresetSelection(row.selection),
+  };
 }
 
 export async function ensureResumeDocument(

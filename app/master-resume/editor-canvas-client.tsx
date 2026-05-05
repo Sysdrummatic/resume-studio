@@ -78,6 +78,23 @@ function serializeResumeToYaml(resume: ResumeDocument): string {
   });
 }
 
+function normalizeYamlForEditor(yamlContent: string, fallbackName: string): { resume: ResumeDocument; yamlContent: string; migrated: boolean } {
+  if (!hasYamlRuntime()) {
+    throw new Error("YAML runtime is not loaded.");
+  }
+
+  const parsed = window.jsyaml?.load(yamlContent);
+  const source = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
+  const resume = normalizeResumeDocument(parsed, fallbackName);
+  const shouldMigrateYaml = !Array.isArray(source.summary);
+
+  return {
+    resume,
+    yamlContent: shouldMigrateYaml ? serializeResumeToYaml(resume) : yamlContent,
+    migrated: shouldMigrateYaml,
+  };
+}
+
 async function fetchText(path: string) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) {
@@ -109,10 +126,10 @@ export default function EditorCanvasClient() {
 
   const applyYamlText = useCallback(
     (yamlContent: string, options: { successStatus?: string; silent?: boolean } = {}) => {
-      setYamlPanel(yamlContent);
       try {
-        const parsed = parseYamlToResumeDocument(yamlContent, actor?.displayName || "");
-        setResume(parsed);
+        const normalized = normalizeYamlForEditor(yamlContent, actor?.displayName || "");
+        setYamlPanel(normalized.yamlContent);
+        setResume(normalized.resume);
         if (!options.silent) {
           setStatus(options.successStatus || "YAML imported to form.");
           setIsError(false);
@@ -169,10 +186,14 @@ export default function EditorCanvasClient() {
         }
 
         try {
-          const nextResume = parseYamlToResumeDocument(nextYamlPanel, loadedActor?.displayName || "");
-          setResume(nextResume);
-          setStatus(nextStatus);
+          const normalized = normalizeYamlForEditor(nextYamlPanel, loadedActor?.displayName || "");
+          nextYamlPanel = normalized.yamlContent;
+          setResume(normalized.resume);
+          setStatus(normalized.migrated ? `${nextStatus} Legacy summary migrated to list format.` : nextStatus);
           setIsError(false);
+          if (normalized.migrated && draftKey) {
+            localStorage.setItem(draftKey, JSON.stringify({ yamlContent: nextYamlPanel, savedAt: new Date().toISOString() }));
+          }
         } catch (error) {
           setResume(defaultResumeDocument(loadedActor?.displayName || ""));
           setStatus(`Failed to parse YAML: ${error instanceof Error ? error.message : "unknown error"}`);

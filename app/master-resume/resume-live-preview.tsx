@@ -24,7 +24,7 @@ function renderMeter(level: number) {
   ));
 }
 
-function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; resume: ResumeDocument }) {
+export function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; resume: ResumeDocument }) {
   const labels = PREVIEW_LABELS[locale];
   const defaultSummary = getDefaultSummary(resume.summary);
 

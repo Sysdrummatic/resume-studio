@@ -91,7 +91,7 @@ function normalizeSummaryList(value) {
         default: normalizeBoolean(source.default),
       };
     })
-    .filter((entry) => entry.position || entry.description);
+    .filter((entry) => entry.position || entry.description || entry.default);
 }
 
 function normalizeContactList(value) {

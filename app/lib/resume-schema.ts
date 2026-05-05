@@ -266,7 +266,7 @@ function normalizeSummaryItems(value: unknown): ResumeSummaryItem[] {
         default: asBoolean(row.default),
       };
     })
-    .filter((row) => row.position || row.description);
+    .filter((row) => row.position || row.description || row.default);
 }
 
 export function getDefaultSummary(summary: ResumeSummaryItem[]): ResumeSummaryItem | null {

@@ -60,6 +60,15 @@ test("phase D client supports summary list defaults in HFE and preview", () => {
   assert.equal(preview.includes("getDefaultSummary(resume.summary)"), true);
 });
 
+test("phase D client migrates legacy YAML summary while loading editor drafts", () => {
+  const source = read("app/master-resume/editor-canvas-client.tsx");
+  const schema = read("app/lib/resume-schema.ts");
+
+  assert.equal(source.includes("normalizeYamlForEditor"), true);
+  assert.equal(source.includes("localStorage.setItem(draftKey"), true);
+  assert.equal(schema.includes("row.default"), true);
+});
+
 test("phase D client keeps draft-restored YAML in panel and preserves publish status", () => {
   const source = read("app/master-resume/editor-canvas-client.tsx");
 
