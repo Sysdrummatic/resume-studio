@@ -33,6 +33,17 @@ test("phase D client includes draft, YAML import/export and revision rollback ac
   assert.equal(source.includes("rollbackToRevision"), true);
 });
 
+test("phase D client exposes YAML and human-friendly editor tabs backed by one resume state", () => {
+  const source = read("app/master-resume/editor-canvas-client.tsx");
+
+  assert.equal(source.includes('type EditorTab = "yaml" | "human";'), true);
+  assert.equal(source.includes("Human-friendly Editor"), true);
+  assert.equal(source.includes("YAML Editor"), true);
+  assert.equal(source.includes("updateResumeFromHuman"), true);
+  assert.equal(source.includes("addArrayItem"), true);
+  assert.equal(source.includes("removeArrayItem"), true);
+});
+
 test("phase D client keeps draft-restored YAML in panel and preserves publish status", () => {
   const source = read("app/master-resume/editor-canvas-client.tsx");
 

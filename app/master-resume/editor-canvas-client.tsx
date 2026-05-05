@@ -3,7 +3,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
-import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "../lib/resume-schema";
+import type {
+  ResumeContactItem,
+  ResumeCourse,
+  ResumeDocument,
+  ResumeEducation,
+  ResumeExperience,
+  ResumeLanguage,
+  ResumeLocale,
+  ResumeQrCode,
+  ResumeRevisionItem,
+  ResumeSkill,
+} from "../lib/resume-schema";
 import { defaultResumeDocument, normalizeResumeDocument, validateResumeDocument } from "../lib/resume-schema";
 
 type ResumeDocumentRow = {
@@ -29,6 +40,8 @@ type ApiDocumentResponse = {
   document?: ResumeDocumentRow;
   revisions?: ResumeRevisionItem[];
 };
+
+type EditorTab = "yaml" | "human";
 
 const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
 const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
@@ -74,6 +87,7 @@ async function fetchText(path: string) {
 
 export default function EditorCanvasClient() {
   const [locale, setLocale] = useState<ResumeLocale>("en");
+  const [editorTab, setEditorTab] = useState<EditorTab>("yaml");
   const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>("basic");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
@@ -217,6 +231,112 @@ export default function EditorCanvasClient() {
       setStatus(`YAML preview paused: ${error instanceof Error ? error.message : "unknown error"}`);
       setIsError(true);
     }
+  }
+
+  function updateResumeFromHuman(nextResume: ResumeDocument) {
+    setResume(nextResume);
+    try {
+      setYamlPanel(serializeResumeToYaml(nextResume));
+      setStatus("YAML and live preview updated.");
+      setIsError(false);
+    } catch (error) {
+      setStatus(`YAML export failed: ${error instanceof Error ? error.message : "unknown error"}`);
+      setIsError(true);
+    }
+  }
+
+  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name" | "role" | "summary">, value: string) {
+    updateResumeFromHuman({ ...resume, [field]: value });
+  }
+
+  function addArrayItem(field: "contact", item: ResumeContactItem): void;
+  function addArrayItem(field: "qr_codes", item: ResumeQrCode): void;
+  function addArrayItem(field: "skills", item: ResumeSkill): void;
+  function addArrayItem(field: "tech_stack", item: string): void;
+  function addArrayItem(field: "languages", item: ResumeLanguage): void;
+  function addArrayItem(field: "interests", item: string): void;
+  function addArrayItem(field: "experience", item: ResumeExperience): void;
+  function addArrayItem(field: "education", item: ResumeEducation): void;
+  function addArrayItem(field: "courses", item: ResumeCourse): void;
+  function addArrayItem(field: keyof ResumeDocument, item: unknown) {
+    const currentValue = resume[field];
+    if (!Array.isArray(currentValue)) return;
+    updateResumeFromHuman({
+      ...resume,
+      [field]: [...currentValue, item],
+    } as ResumeDocument);
+  }
+
+  function removeArrayItem(field: keyof ResumeDocument, index: number) {
+    const currentValue = resume[field];
+    if (!Array.isArray(currentValue)) return;
+    updateResumeFromHuman({
+      ...resume,
+      [field]: currentValue.filter((_, itemIndex) => itemIndex !== index),
+    } as ResumeDocument);
+  }
+
+  function updateContact(index: number, key: keyof ResumeContactItem, value: string) {
+    const next = [...resume.contact];
+    next[index] = { ...next[index], [key]: value };
+    updateResumeFromHuman({ ...resume, contact: next });
+  }
+
+  function updateQrCode(index: number, key: keyof ResumeQrCode, value: string) {
+    const next = [...resume.qr_codes];
+    next[index] = {
+      ...next[index],
+      [key]: key === "size" ? Math.max(1, Number.parseInt(value, 10) || 130) : value,
+    };
+    updateResumeFromHuman({ ...resume, qr_codes: next });
+  }
+
+  function updateSkill(index: number, key: keyof ResumeSkill, value: string) {
+    const next = [...resume.skills];
+    next[index] = {
+      ...next[index],
+      [key]: key === "level" ? Math.max(1, Math.min(5, Number.parseInt(value, 10) || 1)) : value,
+    };
+    updateResumeFromHuman({ ...resume, skills: next });
+  }
+
+  function updateStringList(field: "tech_stack" | "interests", index: number, value: string) {
+    const next = [...resume[field]];
+    next[index] = value;
+    updateResumeFromHuman({ ...resume, [field]: next });
+  }
+
+  function updateLanguage(index: number, key: keyof ResumeLanguage, value: string) {
+    const next = [...resume.languages];
+    next[index] = {
+      ...next[index],
+      [key]: key === "level" ? Math.max(1, Math.min(5, Number.parseInt(value, 10) || 1)) : value,
+    };
+    updateResumeFromHuman({ ...resume, languages: next });
+  }
+
+  function updateExperience(index: number, key: keyof ResumeExperience, value: string) {
+    const next = [...resume.experience];
+    next[index] = {
+      ...next[index],
+      [key]: key === "highlights" ? value.split("\n").map((item) => item.trim()).filter(Boolean) : value,
+    };
+    updateResumeFromHuman({ ...resume, experience: next });
+  }
+
+  function updateEducation(index: number, key: keyof ResumeEducation, value: string) {
+    const next = [...resume.education];
+    next[index] = { ...next[index], [key]: value };
+    updateResumeFromHuman({ ...resume, education: next });
+  }
+
+  function updateCourse(index: number, key: keyof ResumeCourse, value: string) {
+    const next = [...resume.courses];
+    next[index] = {
+      ...next[index],
+      [key]: key === "year" ? Math.max(0, Number.parseInt(value, 10) || 0) : value,
+    };
+    updateResumeFromHuman({ ...resume, courses: next });
   }
 
   async function saveDraft() {
@@ -439,40 +559,269 @@ export default function EditorCanvasClient() {
       <div className="resume-editor-shell__content">
         <div className="resume-editor-form">
           <section className="stack resume-editor-panel">
-            <div className="section-row">
-              <h2>YAML Editor</h2>
-              <label className="resume-editor-style-select">
-                CV style
-                <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
-                  {EDITOR_STYLES.map((style) => (
-                    <option key={style.code} value={style.code}>
-                      {style.label}
-                    </option>
+            <div className="resume-editor-tabs" role="tablist" aria-label="Resume editor mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={editorTab === "yaml"}
+                className={`resume-editor-tabs__tab ${editorTab === "yaml" ? "is-active" : ""}`}
+                onClick={() => setEditorTab("yaml")}
+              >
+                YAML Editor
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={editorTab === "human"}
+                className={`resume-editor-tabs__tab ${editorTab === "human" ? "is-active" : ""}`}
+                onClick={() => setEditorTab("human")}
+              >
+                Human-friendly Editor
+              </button>
+            </div>
+
+            {editorTab === "yaml" ? (
+              <div className="stack">
+                <div className="section-row">
+                  <h2>YAML Editor</h2>
+                  <label className="resume-editor-style-select">
+                    CV style
+                    <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
+                      {EDITOR_STYLES.map((style) => (
+                        <option key={style.code} value={style.code}>
+                          {style.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <textarea
+                  className="resume-editor-yaml"
+                  spellCheck={false}
+                  value={yamlPanel}
+                  onChange={(event) => handleYamlChange(event.target.value)}
+                  disabled={isLoading}
+                />
+                <div className="actions-row">
+                  <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading}>
+                    Load template
+                  </button>
+                  <button type="button" className="button button--ghost" onClick={syncYamlFromForm}>
+                    Sync from form
+                  </button>
+                  <button type="button" className="button button--ghost" onClick={applyYamlToForm}>
+                    Import YAML to form
+                  </button>
+                  <button type="button" className="button button--ghost" onClick={exportYamlFile}>
+                    Export YAML file
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="resume-human-editor">
+                <div className="section-row">
+                  <h2>Human-friendly Editor</h2>
+                  <label className="resume-editor-style-select">
+                    CV style
+                    <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
+                      {EDITOR_STYLES.map((style) => (
+                        <option key={style.code} value={style.code}>
+                          {style.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <section className="resume-human-editor__section">
+                  <h3>Core</h3>
+                  <div className="resume-human-editor__grid">
+                    <label>
+                      Brand initials
+                      <input value={resume.brand_initials} onChange={(event) => updateTextField("brand_initials", event.target.value)} />
+                    </label>
+                    <label>
+                      Name
+                      <input value={resume.name} onChange={(event) => updateTextField("name", event.target.value)} />
+                    </label>
+                    <label>
+                      Role
+                      <input value={resume.role} onChange={(event) => updateTextField("role", event.target.value)} />
+                    </label>
+                  </div>
+                  <label>
+                    Summary
+                    <textarea rows={4} value={resume.summary} onChange={(event) => updateTextField("summary", event.target.value)} />
+                  </label>
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Contact</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("contact", { label: "", value: "", link: "" })}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.contact.map((item, index) => (
+                    <div className="resume-human-editor__row" key={`contact-${index}`}>
+                      <input placeholder="Label" value={item.label} onChange={(event) => updateContact(index, "label", event.target.value)} />
+                      <input placeholder="Value" value={item.value} onChange={(event) => updateContact(index, "value", event.target.value)} />
+                      <input placeholder="Link" value={item.link || ""} onChange={(event) => updateContact(index, "link", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("contact", index)}>
+                        Remove
+                      </button>
+                    </div>
                   ))}
-                </select>
-              </label>
-            </div>
-            <textarea
-              className="resume-editor-yaml"
-              spellCheck={false}
-              value={yamlPanel}
-              onChange={(event) => handleYamlChange(event.target.value)}
-              disabled={isLoading}
-            />
-            <div className="actions-row">
-              <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading}>
-                Load template
-              </button>
-              <button type="button" className="button button--ghost" onClick={syncYamlFromForm}>
-                Sync from form
-              </button>
-              <button type="button" className="button button--ghost" onClick={applyYamlToForm}>
-                Import YAML to form
-              </button>
-              <button type="button" className="button button--ghost" onClick={exportYamlFile}>
-                Export YAML file
-              </button>
-            </div>
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>QR codes</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("qr_codes", { label: "", image: "", size: 130 })}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.qr_codes.map((item, index) => (
+                    <div className="resume-human-editor__row" key={`qr-${index}`}>
+                      <input placeholder="Label" value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
+                      <input placeholder="Image path" value={item.image} onChange={(event) => updateQrCode(index, "image", event.target.value)} />
+                      <input type="number" min={1} placeholder="Size" value={item.size} onChange={(event) => updateQrCode(index, "size", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Skills</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.skills.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--compact" key={`skill-${index}`}>
+                      <input placeholder="Skill" value={item.name} onChange={(event) => updateSkill(index, "name", event.target.value)} />
+                      <input type="number" min={1} max={5} placeholder="Level" value={item.level} onChange={(event) => updateSkill(index, "level", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("skills", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Tech stack</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("tech_stack", "")}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.tech_stack.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--single" key={`tech-${index}`}>
+                      <input placeholder="Technology" value={item} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("tech_stack", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Languages</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.languages.map((item, index) => (
+                    <div className="resume-human-editor__row" key={`language-${index}`}>
+                      <input placeholder="Language" value={item.name} onChange={(event) => updateLanguage(index, "name", event.target.value)} />
+                      <input placeholder="Level text" value={item.level_text} onChange={(event) => updateLanguage(index, "level_text", event.target.value)} />
+                      <input type="number" min={1} max={5} placeholder="Level" value={item.level} onChange={(event) => updateLanguage(index, "level", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("languages", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Interests</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("interests", "")}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.interests.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--single" key={`interest-${index}`}>
+                      <input placeholder="Interest" value={item} onChange={(event) => updateStringList("interests", index, event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("interests", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Experience</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("experience", { period: "", company: "", role: "", highlights: [] })}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.experience.map((item, index) => (
+                    <div className="resume-human-editor__card" key={`experience-${index}`}>
+                      <input placeholder="Period" value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
+                      <input placeholder="Company" value={item.company} onChange={(event) => updateExperience(index, "company", event.target.value)} />
+                      <input placeholder="Role" value={item.role} onChange={(event) => updateExperience(index, "role", event.target.value)} />
+                      <textarea rows={3} placeholder="Highlights, one per line" value={item.highlights.join("\n")} onChange={(event) => updateExperience(index, "highlights", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("experience", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Education</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("education", { period: "", school: "", detail: "" })}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.education.map((item, index) => (
+                    <div className="resume-human-editor__card" key={`education-${index}`}>
+                      <input placeholder="Period" value={item.period} onChange={(event) => updateEducation(index, "period", event.target.value)} />
+                      <input placeholder="School" value={item.school} onChange={(event) => updateEducation(index, "school", event.target.value)} />
+                      <textarea rows={2} placeholder="Detail" value={item.detail} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("education", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+
+                <section className="resume-human-editor__section">
+                  <div className="section-row">
+                    <h3>Courses</h3>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
+                      + Add
+                    </button>
+                  </div>
+                  {resume.courses.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
+                      <input type="number" min={0} placeholder="Year" value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
+                      <input placeholder="Course name" value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </section>
+              </div>
+            )}
           </section>
 
           <section className="stack resume-editor-panel">
