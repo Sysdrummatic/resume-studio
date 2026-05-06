@@ -110,6 +110,67 @@ a {
   flex-shrink: 0;
 }
 
+.app-header__language {
+  flex-shrink: 0;
+}
+
+.app-language-menu {
+  position: relative;
+}
+
+.app-language-menu summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-language-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.app-language-menu summary:hover,
+.app-language-menu summary:focus-visible {
+  border-color: var(--accent);
+}
+
+.app-language-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  min-width: 130px;
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+  z-index: 1100;
+}
+
+.app-language-menu__option {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+}
+
+.app-language-menu__option--active {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .app-nav-menu {
   position: relative;
   flex-shrink: 0;

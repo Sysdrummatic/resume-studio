@@ -190,10 +190,11 @@ function PresetModal({
   preset: ResumePresetRow | null;
   options: PresetOption[];
   onClose: () => void;
-  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean }) => Promise<void>;
+  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
 }) {
   const [title, setTitle] = useState(preset?.title || "");
   const [allowIndexing, setAllowIndexing] = useState(preset?.allow_indexing || false);
+  const [aiGenerated, setAiGenerated] = useState(preset?.ai_generated || false);
   const [selection, setSelection] = useState<ResumePresetSelection>(
     normalizeSummarySelection(preset?.selection || createSelectionFromOptions(options, masterResume.yaml_content), options),
   );
@@ -230,7 +231,7 @@ function PresetModal({
     }
     setError("");
     setIsSaving(true);
-    await onSave({ presetId: preset?.id, title, selection: nextSelection, allowIndexing });
+    await onSave({ presetId: preset?.id, title, selection: nextSelection, allowIndexing, aiGenerated });
     setIsSaving(false);
   }
 
@@ -253,6 +254,11 @@ function PresetModal({
         <label className="checkbox-row">
           <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
           Allow indexing after publish
+        </label>
+
+        <label className="checkbox-row">
+          <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
+          Mark as AI generated
         </label>
 
         <div className="dashboard-preset-options">
@@ -321,7 +327,7 @@ function PresetPreviewModal({
         </div>
         {previewResume ? (
           <div className="dashboard-preset-preview">
-            <BasicResumeDocument locale={locale} resume={previewResume} />
+            <BasicResumeDocument locale={locale} resume={previewResume} status={preset.is_public ? "public" : "draft"} aiGenerated={preset.ai_generated} />
           </div>
         ) : (
           <p className="status status--error">CV preview could not be rendered from the master resume.</p>
@@ -357,7 +363,7 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
   const hasMasterResume = Boolean(masterResume);
   const latestMasterUpdate = masterResume ? new Date(masterResume.updated_at).toLocaleString() : "Not saved yet";
 
-  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean }) {
+  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!masterResume) return;
     const response = await fetch(payload.presetId ? `/api/resume/presets/${encodeURIComponent(payload.presetId)}` : "/api/resume/presets", {
       method: payload.presetId ? "PATCH" : "POST",
@@ -367,6 +373,8 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
         title: payload.title,
         selection: payload.selection,
         allowIndexing: payload.allowIndexing,
+        aiGenerated: payload.aiGenerated,
+        defaultLocale: masterResume.locale,
         isPublic: false,
       }),
     });
@@ -385,7 +393,11 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
     const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ allowIndexing: preset.allow_indexing }),
+      body: JSON.stringify({
+        allowIndexing: preset.allow_indexing,
+        aiGenerated: preset.ai_generated,
+        defaultLocale: preset.default_locale || masterResume?.locale || "en",
+      }),
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {

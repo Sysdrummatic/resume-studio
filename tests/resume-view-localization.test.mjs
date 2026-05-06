@@ -27,7 +27,8 @@ test("resume view renders section headings from locale labels", () => {
   assert.equal(source.includes("{labels.personal_info_heading}"), true);
   assert.equal(source.includes("{labels.skills_heading}"), true);
   assert.equal(source.includes("{labels.languages_heading}"), true);
-  assert.equal(source.includes("{labels.public_view_badge}"), true);
+  assert.equal(source.includes("public: labels.public_view_badge"), true);
+  assert.equal(source.includes("aiGenerated: labels.ai_generated_badge"), true);
 });
 
 test("public locales define config paths", () => {

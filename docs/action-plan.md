@@ -35,6 +35,10 @@ Each item includes the source guide it comes from, so the detailed rationale and
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add canonical URLs and OpenGraph/Twitter metadata for public resume pages
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
+- [ ] Add multilingual public CV SEO support with `hreflang`, canonical language handling, `?lang=<locale>` support, and a future route shape such as `/r/{slug}/{locale}` without changing the data model
+  Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
+- [ ] Build `Language Versions` UI for adding, duplicating, previewing, publishing, and setting the default language of a CV
+  Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add structured data (JSON-LD) for public resume pages where applicable
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add sitemap and robots configuration
@@ -60,6 +64,8 @@ Each item includes the source guide it comes from, so the detailed rationale and
   Source: [Phase D Resume Editor Canvas](guides/phase-d-editor-canvas.md)
 - [ ] Align editor preview badges with future public `/r/[slug]` rendering
   Source: [Phase D Resume Editor Canvas](guides/phase-d-editor-canvas.md)
+- [/] Add shared CV language switcher and public/draft/AI-generated badges to sample, preview, and public renderers
+  Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 
 ## AI Demo Resume Workstream
 

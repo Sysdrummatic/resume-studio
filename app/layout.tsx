@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import AppHeaderNavigation from "./components/app-header-navigation";
+import AppLanguageMenu from "./components/app-language-menu";
 import AccountMenu from "./components/account-menu";
 import { getCurrentActor } from "./lib/auth-server";
 import "./globals.css";
@@ -33,6 +34,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </Link>
             <AppHeaderNavigation
               items={navItems}
+              language={<AppLanguageMenu />}
               account={
                 actor ? (
                   <AccountMenu

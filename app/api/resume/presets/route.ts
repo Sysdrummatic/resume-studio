@@ -8,6 +8,8 @@ type PresetBody = {
   selection?: unknown;
   isPublic?: boolean;
   allowIndexing?: boolean;
+  aiGenerated?: boolean;
+  defaultLocale?: string;
 };
 
 export async function GET(): Promise<Response> {
@@ -50,6 +52,8 @@ export async function POST(request: Request): Promise<Response> {
     selection,
     isPublic: typeof body.isPublic === "boolean" ? body.isPublic : false,
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
+    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
+    defaultLocale: body.defaultLocale === "pl" ? "pl" : "en",
   });
 
   if (!preset) {

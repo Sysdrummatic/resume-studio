@@ -8,6 +8,8 @@ type PresetBody = {
   selection?: unknown;
   isPublic?: boolean;
   allowIndexing?: boolean;
+  aiGenerated?: boolean;
+  defaultLocale?: string;
 };
 
 type PresetRouteContext = {
@@ -49,6 +51,8 @@ export async function PATCH(request: Request, context: PresetRouteContext): Prom
     selection,
     isPublic: typeof body.isPublic === "boolean" ? body.isPublic : false,
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
+    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
+    defaultLocale: body.defaultLocale === "pl" ? "pl" : "en",
   });
 
   if (!preset) {

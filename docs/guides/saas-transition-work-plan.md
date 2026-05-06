@@ -23,6 +23,7 @@ Current implementation status as of `2026-05-06`:
 - The Next.js shell, auth, admin flows, and resume editor are live in `app/`.
 - The sample public resume view on `/resume` is implemented from YAML data.
 - The public share route `/r/[slug]` renders published presets from the current `resume_presets` model with baseline robots metadata.
+- Shared CV language switcher and status badges are active for sample, preview, and public CV rendering. Supabase has metadata foundations for enabled languages, default locale, preset variants, and AI-generated marking.
 - The former static HTML/CSS/JS frontend has been retired from `public/`; historical `.html` URLs remain as Netlify redirects.
 - AI-assisted demo resume generation is planned as a separate workstream and is not part of the core Phase E SEO/public-route milestone.
 
@@ -37,6 +38,7 @@ Current implementation status as of `2026-05-06`:
 - [x] Resume editor is rebuilt in React
 - [/] Public share route `/r/[slug]` is implemented with baseline rendering
 - [/] SEO/AEO controls for public resume pages are partially complete
+- [/] Multilingual CV foundations are active; dedicated language-version management UI is still pending
 - [ ] User panel and analytics surfaces are complete
 - [ ] Launch hardening tasks are complete
 
@@ -76,6 +78,7 @@ Why Next.js for this project:
 - SEO/AEO priority: SSR/ISR for public resume pages (`/r/[slug]`).
 - Better routing and layout control for auth/admin/public areas.
 - Easier metadata generation for robots/canonical/structured data.
+- Multilingual public CV URLs can start with one canonical slug plus `?lang=<locale>` overrides, then evolve to locale paths such as `/r/ariana/pl` with `hreflang` and canonical metadata without rebuilding the data model.
 - Server-side logic for YAML validation, permission checks, and secure admin operations.
 
 ## 3) Target Architecture
@@ -243,6 +246,8 @@ Checklist:
 - [x] Implement public route `/r/[slug]`.
 - [x] Apply baseline indexing controls to robots metadata.
 - [ ] Add canonical URLs and OpenGraph/Twitter metadata.
+- [ ] Add multilingual SEO metadata: `hreflang`, canonical language handling, and future-ready locale route support such as `/r/{slug}/{locale}` without data-model changes.
+- [ ] Build candidate-facing language version management UI for adding, duplicating, previewing, publishing, and setting the default CV language.
 - [ ] Add structured data (JSON-LD) for resume pages where applicable.
 - [ ] Add sitemap and robots configuration.
 - [ ] Verify compatibility redirects from old static routes.
@@ -311,5 +316,6 @@ For every phase:
 - [x] Implement the actual `/r/[slug]` public resume rendering flow.
 - [/] Add SEO/AEO metadata and indexing controls for public resume pages.
 - [ ] Extend the dashboard/user panel with link management and analytics.
+- [ ] Add a dedicated `Language Versions` interface for user-managed CV locales.
 - [ ] Start the AI demo resume generation workstream after Phase E route/rendering scope is stable.
 

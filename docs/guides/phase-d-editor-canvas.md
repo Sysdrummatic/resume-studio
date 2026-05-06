@@ -11,6 +11,7 @@ Phase D delivers the React canvas editor with live preview and revision workflow
 - [x] YAML import/export/sync is implemented
 - [x] Publish creates revision snapshots
 - [x] Revision rollback is implemented
+- [x] Editor preview renders public/draft and AI-generated badges
 - [x] Supporting API routes exist and are covered by tests
 
 ## Implemented capabilities
@@ -30,6 +31,7 @@ Phase D delivers the React canvas editor with live preview and revision workflow
   - YAML export to file.
 - Publish flow:
   - saves YAML to `resume_documents`,
+  - stores `ai_generated` metadata for future AI-assisted generation,
   - creates revision snapshot in `resume_revisions`.
 - Revision history:
   - list revisions,
@@ -52,4 +54,5 @@ Phase D delivers the React canvas editor with live preview and revision workflow
 
 - [ ] Add AI demo generation actions in the editor
 - [ ] Expose public-link management from the editor or adjacent panel
-- [ ] Align editor preview badges with future public `/r/[slug]` rendering
+- [x] Align editor preview badges with future public `/r/[slug]` rendering
+- [ ] Add dedicated language-version management for creating additional CV locales

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Script from "next/script";
 import { StatusToast, useStatusToast } from "../components/status-toast";
+import ResumeBadges from "../components/resume-badges";
+import ResumeLanguageSwitcher from "../components/resume-language-switcher";
 import "./resume.css";
 
 type ResumeLocale = {
@@ -32,6 +34,8 @@ type ResumeLabels = {
   interests_heading: string;
   public_view_badge: string;
   private_view_badge: string;
+  draft_view_badge: string;
+  ai_generated_badge: string;
   edit_button_label: string;
   save_button_label: string;
 };
@@ -129,6 +133,8 @@ const DEFAULT_LABELS: ResumeLabels = {
   interests_heading: "Interests",
   public_view_badge: "Public view",
   private_view_badge: "Private view",
+  draft_view_badge: "Draft",
+  ai_generated_badge: "AI generated",
   edit_button_label: "Edit",
   save_button_label: "Save",
 };
@@ -565,19 +571,21 @@ export default function ResumeViewClient() {
               </div>
             </div>
             <div className="hero__actions">
-              <div className="language-switcher" aria-label={labels.language_switcher}>
-                {localesConfig?.locales.map((l) => (
-                  <button
-                    key={l.code}
-                    className={`language-switcher__option ${activeLocale === l.code ? "language-switcher__option--active" : ""}`}
-                    onClick={() => void handleLocaleChange(l.code, localesConfig)}
-                    disabled={isLoading}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-              <span className="public-view-badge">{labels.public_view_badge}</span>
+              <ResumeLanguageSwitcher
+                languages={localesConfig?.locales.map((locale) => ({ code: locale.code, label: locale.label })) || []}
+                activeLocale={activeLocale}
+                ariaLabel={labels.language_switcher}
+                isBusy={isLoading}
+                onSelect={(localeCode) => localesConfig && void handleLocaleChange(localeCode, localesConfig)}
+              />
+              <ResumeBadges
+                status="public"
+                labels={{
+                  public: labels.public_view_badge,
+                  draft: labels.draft_view_badge,
+                  aiGenerated: labels.ai_generated_badge,
+                }}
+              />
             </div>
           </header>
 

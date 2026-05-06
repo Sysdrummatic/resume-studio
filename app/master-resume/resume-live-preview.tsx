@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import { getDefaultSummary, PREVIEW_LABELS } from "../lib/resume-schema";
+import ResumeBadges from "../components/resume-badges";
+import ResumeLanguageSwitcher from "../components/resume-language-switcher";
+import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 
 export type ResumeEditorStyle = "basic" | "empty";
 
@@ -12,11 +15,17 @@ type Props = {
   styleCode: ResumeEditorStyle;
   yamlContent: string;
   isExpanded: boolean;
+  aiGenerated?: boolean;
   onExpand: () => void;
   onClose: () => void;
 };
 
 const BASIC_PREVIEW_WIDTH = 920;
+
+const LANGUAGE_LABELS: Record<ResumeLocale, string> = {
+  en: "English",
+  pl: "Polski",
+};
 
 function renderMeter(level: number) {
   return [1, 2, 3, 4, 5].map((step) => (
@@ -24,9 +33,22 @@ function renderMeter(level: number) {
   ));
 }
 
-export function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; resume: ResumeDocument }) {
+export function BasicResumeDocument({
+  locale,
+  resume,
+  languages,
+  status = "draft",
+  aiGenerated = false,
+}: {
+  locale: ResumeLocale;
+  resume: ResumeDocument;
+  languages?: ResumeLanguageOption[];
+  status?: "public" | "draft";
+  aiGenerated?: boolean;
+}) {
   const labels = PREVIEW_LABELS[locale];
   const defaultSummary = getDefaultSummary(resume.summary);
+  const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] }];
 
   return (
     <div className="resume-editor-basic resume-view-page resume-style--basic">
@@ -38,6 +60,10 @@ export function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; 
               <h1>{resume.name || "Your Name"}</h1>
               <p>{resume.role || "Your Role"}</p>
             </div>
+          </div>
+          <div className="hero__actions">
+            <ResumeLanguageSwitcher languages={languageOptions} activeLocale={locale} ariaLabel="CV language" />
+            <ResumeBadges status={status} aiGenerated={aiGenerated} />
           </div>
         </header>
 
@@ -209,7 +235,7 @@ export function BasicResumeDocument({ locale, resume }: { locale: ResumeLocale; 
   );
 }
 
-export default function ResumeLivePreview({ locale, resume, styleCode, yamlContent, isExpanded, onExpand, onClose }: Props) {
+export default function ResumeLivePreview({ locale, resume, styleCode, yamlContent, isExpanded, aiGenerated = false, onExpand, onClose }: Props) {
   const frameRef = useRef<HTMLButtonElement>(null);
   const documentRef = useRef<HTMLDivElement>(null);
   const [previewMetrics, setPreviewMetrics] = useState({ scale: 1, height: 0 });
@@ -266,7 +292,7 @@ export default function ResumeLivePreview({ locale, resume, styleCode, yamlConte
             ref={documentRef}
             style={{ transform: `scale(${previewMetrics.scale})` }}
           >
-            <BasicResumeDocument locale={locale} resume={resume} />
+            <BasicResumeDocument locale={locale} resume={resume} status="draft" aiGenerated={aiGenerated} />
           </div>
         </div>
       </button>
@@ -278,7 +304,7 @@ export default function ResumeLivePreview({ locale, resume, styleCode, yamlConte
             <button type="button" className="button button--ghost resume-editor-preview-modal__close" onClick={onClose}>
               Close
             </button>
-            <BasicResumeDocument locale={locale} resume={resume} />
+            <BasicResumeDocument locale={locale} resume={resume} status="draft" aiGenerated={aiGenerated} />
           </div>
         </div>
       )}

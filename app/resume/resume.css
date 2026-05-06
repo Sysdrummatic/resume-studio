@@ -220,6 +220,14 @@ img {
   flex-shrink: 0;
 }
 
+.resume-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex-wrap: wrap;
+}
+
+.resume-badge,
 .public-view-badge {
   display: inline-flex;
   align-items: center;
@@ -230,6 +238,16 @@ img {
   font-weight: 600;
   font-size: var(--chip-font-size);
   letter-spacing: 0.01em;
+}
+
+.resume-badge--draft {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.resume-badge--ai {
+  background: #eef2ff;
+  color: #3730a3;
 }
 
 .hero__login-button {
@@ -292,6 +310,7 @@ img {
   color: var(--muted);
   cursor: pointer;
   transition: background 0.15s ease-out, color 0.15s ease-out;
+  text-decoration: none;
 }
 
 .language-switcher__option--active {
@@ -1332,6 +1351,7 @@ img {
   .hero__actions,
   .hero__login-button,
   .hero__logout-button,
+  .resume-badges,
   .public-view-badge,
   .language-switcher,
   .download-section,

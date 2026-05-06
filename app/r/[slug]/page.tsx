@@ -7,13 +7,17 @@ type PublicResumePageProps = {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?: Promise<{
+    lang?: string;
+  }>;
 };
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: PublicResumePageProps) {
+export async function generateMetadata({ params, searchParams }: PublicResumePageProps) {
   const { slug } = await params;
-  const published = await fetchPublishedResumePresetBySlug(slug);
+  const query = searchParams ? await searchParams : {};
+  const published = await fetchPublishedResumePresetBySlug(slug, query.lang);
 
   if (!published) {
     return {
@@ -44,9 +48,10 @@ export async function generateMetadata({ params }: PublicResumePageProps) {
   };
 }
 
-export default async function PublicResumeBySlugPage({ params }: PublicResumePageProps) {
+export default async function PublicResumeBySlugPage({ params, searchParams }: PublicResumePageProps) {
   const { slug } = await params;
-  const published = await fetchPublishedResumePresetBySlug(slug);
+  const query = searchParams ? await searchParams : {};
+  const published = await fetchPublishedResumePresetBySlug(slug, query.lang);
 
   if (!published) {
     notFound();
@@ -54,7 +59,13 @@ export default async function PublicResumeBySlugPage({ params }: PublicResumePag
 
   return (
     <main className="container py-8 public-resume-route">
-      <BasicResumeDocument locale={published.document.locale} resume={published.resume} />
+      <BasicResumeDocument
+        locale={published.document.locale}
+        resume={published.resume}
+        languages={published.languages}
+        status="public"
+        aiGenerated={published.preset.ai_generated || published.document.ai_generated}
+      />
     </main>
   );
 }

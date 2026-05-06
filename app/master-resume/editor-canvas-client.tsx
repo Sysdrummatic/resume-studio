@@ -27,6 +27,7 @@ type ResumeDocumentRow = {
   schema_version: number;
   is_public: boolean;
   allow_indexing: boolean;
+  ai_generated: boolean;
   updated_at: string;
 };
 
@@ -120,6 +121,7 @@ export default function EditorCanvasClient() {
   const [changeNote, setChangeNote] = useState("Publish update");
   const [isPublic, setIsPublic] = useState(true);
   const [allowIndexing, setAllowIndexing] = useState(false);
+  const [aiGenerated, setAiGenerated] = useState(false);
   const [revisions, setRevisions] = useState<ResumeRevisionItem[]>([]);
 
   const validation = useMemo(() => validateResumeDocument(resume), [resume]);
@@ -160,6 +162,7 @@ export default function EditorCanvasClient() {
           setDocumentRow(payload.document);
           setIsPublic(payload.document.is_public);
           setAllowIndexing(payload.document.allow_indexing);
+          setAiGenerated(payload.document.ai_generated);
         }
         setRevisions(payload.revisions || []);
 
@@ -384,6 +387,7 @@ export default function EditorCanvasClient() {
         title: resume.name ? `${resume.name} - Master resume draft` : "Master resume draft",
         isPublic,
         allowIndexing,
+        aiGenerated,
       }),
     });
     const payload = (await response.json()) as ApiDocumentResponse;
@@ -495,6 +499,7 @@ export default function EditorCanvasClient() {
         title: resume.name ? `${resume.name} - Master resume` : "Master resume",
         isPublic,
         allowIndexing,
+        aiGenerated,
         changeNote,
       }),
     });
@@ -917,6 +922,10 @@ export default function EditorCanvasClient() {
               <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
               Allow indexing
             </label>
+            <label className="checkbox-row">
+              <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
+              Mark as AI generated
+            </label>
             <button className="button button--primary" type="button" onClick={() => void publishResume()} disabled={isBusy || isLoading}>
               {isBusy ? "Publishing..." : "Publish and create revision"}
             </button>
@@ -960,6 +969,7 @@ export default function EditorCanvasClient() {
               styleCode={selectedStyle}
               yamlContent={yamlPanel}
               isExpanded={isPreviewExpanded}
+              aiGenerated={aiGenerated}
               onExpand={() => setIsPreviewExpanded(true)}
               onClose={() => setIsPreviewExpanded(false)}
             />

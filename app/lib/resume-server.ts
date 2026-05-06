@@ -15,6 +15,7 @@ export type ResumeDocumentRow = {
   schema_version: number;
   is_public: boolean;
   allow_indexing: boolean;
+  ai_generated: boolean;
   updated_at: string;
 };
 
@@ -50,6 +51,8 @@ export type ResumePresetRow = {
   selection: ResumePresetSelection;
   is_public: boolean;
   allow_indexing: boolean;
+  ai_generated: boolean;
+  default_locale: ResumeLocale;
   slug: string | null;
   published_at: string | null;
   created_at: string;
@@ -60,7 +63,22 @@ export type PublishedResumePreset = {
   preset: ResumePresetRow;
   document: ResumeDocumentRow;
   resume: ResumeDocument;
+  languages: Array<{
+    code: ResumeLocale;
+    label: string;
+    shortLabel: string;
+    href: string;
+  }>;
 };
+
+const LANGUAGE_LABELS: Record<ResumeLocale, { label: string; shortLabel: string }> = {
+  en: { label: "English", shortLabel: "EN" },
+  pl: { label: "Polski", shortLabel: "PL" },
+};
+
+const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,ai_generated,updated_at";
+const RESUME_PRESET_SELECT =
+  "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at";
 
 const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
   summary: [],
@@ -121,7 +139,7 @@ async function fetchDocumentByLocale(
 ): Promise<ResumeDocumentRow | null> {
   const result = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
-    select: "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,updated_at",
+    select: RESUME_DOCUMENT_SELECT,
     accessToken,
     query: `user_id=eq.${encodeURIComponent(userId)}&locale=eq.${encodeURIComponent(locale)}&limit=1`,
   });
@@ -156,7 +174,7 @@ async function fetchRevisions(accessToken: string, documentId: string): Promise<
 export async function fetchResumeDocumentsForUser(userId: string): Promise<ResumeDocumentRow[]> {
   const result = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
-    select: "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,updated_at",
+    select: RESUME_DOCUMENT_SELECT,
     useServiceRole: true,
     query: `user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc`,
   });
@@ -229,7 +247,7 @@ export function validateResumePresetSelection(selection: ResumePresetSelection):
 export async function fetchResumePresetsForUser(userId: string): Promise<ResumePresetRow[]> {
   const result = await queryTable<ResumePresetRow>({
     table: "resume_presets",
-    select: "id,document_id,user_id,title,selection,is_public,allow_indexing,slug,published_at,created_at,updated_at",
+    select: RESUME_PRESET_SELECT,
     useServiceRole: true,
     query: `user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc`,
   });
@@ -244,7 +262,11 @@ export async function fetchResumePresetsForUser(userId: string): Promise<ResumeP
   }));
 }
 
-export async function fetchPublishedResumePresetBySlug(slug: string): Promise<PublishedResumePreset | null> {
+function buildPublicLanguageHref(slug: string, locale: ResumeLocale, defaultLocale: ResumeLocale): string {
+  return locale === defaultLocale ? `/r/${encodeURIComponent(slug)}` : `/r/${encodeURIComponent(slug)}?lang=${encodeURIComponent(locale)}`;
+}
+
+export async function fetchPublishedResumePresetBySlug(slug: string, localeInput?: string): Promise<PublishedResumePreset | null> {
   const normalizedSlug = slug.trim();
   if (!normalizedSlug) {
     return null;
@@ -252,7 +274,7 @@ export async function fetchPublishedResumePresetBySlug(slug: string): Promise<Pu
 
   const presetResult = await queryTable<ResumePresetRow>({
     table: "resume_presets",
-    select: "id,document_id,user_id,title,selection,is_public,allow_indexing,slug,published_at,created_at,updated_at",
+    select: RESUME_PRESET_SELECT,
     useServiceRole: true,
     query: `slug=eq.${encodeURIComponent(normalizedSlug)}&is_public=eq.true&limit=1`,
   });
@@ -264,7 +286,7 @@ export async function fetchPublishedResumePresetBySlug(slug: string): Promise<Pu
 
   const documentResult = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
-    select: "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,updated_at",
+    select: RESUME_DOCUMENT_SELECT,
     useServiceRole: true,
     query: `id=eq.${encodeURIComponent(preset.document_id)}&limit=1`,
   });
@@ -274,26 +296,47 @@ export async function fetchPublishedResumePresetBySlug(slug: string): Promise<Pu
     return null;
   }
 
-  const normalizedPreset = {
+  const defaultLocale = normalizeLocale(preset.default_locale || document.locale);
+  const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
+  const documentsResult = await queryTable<ResumeDocumentRow>({
+    table: "resume_documents",
+    select: RESUME_DOCUMENT_SELECT,
+    useServiceRole: true,
+    query: `user_id=eq.${encodeURIComponent(preset.user_id)}&is_public=eq.true&order=locale.asc`,
+  });
+  const languageDocuments = documentsResult.data?.length ? documentsResult.data : [document];
+  const activeDocument =
+    languageDocuments.find((item) => item.locale === requestedLocale) ||
+    languageDocuments.find((item) => item.locale === defaultLocale) ||
+    document;
+
+  const normalizedPreset: ResumePresetRow = {
     ...preset,
+    default_locale: defaultLocale,
     selection: normalizeResumePresetSelection(preset.selection),
   };
-  const resume = buildResumeDocumentFromPreset(document.yaml_content, normalizedPreset.selection);
+  const resume = buildResumeDocumentFromPreset(activeDocument.yaml_content, normalizedPreset.selection);
   if (!resume) {
     return null;
   }
 
   return {
     preset: normalizedPreset,
-    document,
+    document: activeDocument,
     resume,
+    languages: languageDocuments.map((item) => ({
+      code: item.locale,
+      label: LANGUAGE_LABELS[item.locale].label,
+      shortLabel: LANGUAGE_LABELS[item.locale].shortLabel,
+      href: buildPublicLanguageHref(normalizedSlug, item.locale, defaultLocale),
+    })),
   };
 }
 
 async function fetchDocumentById(accessToken: string, documentId: string, userId: string): Promise<ResumeDocumentRow | null> {
   const result = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
-    select: "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,updated_at",
+    select: RESUME_DOCUMENT_SELECT,
     accessToken,
     query: `id=eq.${encodeURIComponent(documentId)}&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
@@ -314,6 +357,8 @@ export async function saveResumePreset(
     selection: ResumePresetSelection;
     isPublic?: boolean;
     allowIndexing?: boolean;
+    aiGenerated?: boolean;
+    defaultLocale?: ResumeLocale;
   },
 ): Promise<ResumePresetRow | null> {
   const document = await fetchDocumentById(accessToken, payload.documentId, userId);
@@ -334,6 +379,8 @@ export async function saveResumePreset(
     selection: payload.selection as unknown as Record<string, unknown>,
     is_public: Boolean(payload.isPublic),
     allow_indexing: Boolean(payload.allowIndexing),
+    ai_generated: Boolean(payload.aiGenerated),
+    default_locale: normalizeLocale(payload.defaultLocale || document.locale),
   };
 
   const result = payload.presetId
@@ -369,6 +416,8 @@ export async function publishResumePreset(
   presetId: string,
   payload: {
     allowIndexing: boolean;
+    aiGenerated?: boolean;
+    defaultLocale?: ResumeLocale;
   },
 ): Promise<ResumePresetRow | null> {
   const slug = `p-${randomUUID().replace(/-/g, "").slice(0, 14)}`;
@@ -379,6 +428,8 @@ export async function publishResumePreset(
     values: {
       is_public: true,
       allow_indexing: payload.allowIndexing,
+      ai_generated: Boolean(payload.aiGenerated),
+      default_locale: normalizeLocale(payload.defaultLocale || "en"),
       slug,
       published_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -427,6 +478,7 @@ export async function ensureResumeDocument(
         schema_version: 1,
         is_public: true,
         allow_indexing: false,
+        ai_generated: false,
         created_by: userId,
       },
     });
@@ -462,6 +514,7 @@ export async function publishResumeDocument(
     title: string;
     isPublic: boolean;
     allowIndexing: boolean;
+    aiGenerated?: boolean;
     changeNote: string;
   },
 ): Promise<ResumeDocumentPayload | null> {
@@ -535,6 +588,7 @@ export async function saveResumeDraftDocument(
     title: string;
     isPublic: boolean;
     allowIndexing: boolean;
+    aiGenerated?: boolean;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
@@ -553,6 +607,7 @@ export async function saveResumeDraftDocument(
         schema_version: 1,
         is_public: payload.isPublic,
         allow_indexing: payload.allowIndexing,
+        ai_generated: Boolean(payload.aiGenerated),
         created_by: userId,
       },
     });
@@ -570,6 +625,7 @@ export async function saveResumeDraftDocument(
         yaml_content: payload.yamlContent,
         is_public: payload.isPublic,
         allow_indexing: payload.allowIndexing,
+        ai_generated: Boolean(payload.aiGenerated),
         updated_at: new Date().toISOString(),
       },
     });

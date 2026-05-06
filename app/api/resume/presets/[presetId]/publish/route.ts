@@ -4,6 +4,8 @@ import { publishResumePreset } from "../../../../../lib/resume-server";
 
 type PublishBody = {
   allowIndexing?: boolean;
+  aiGenerated?: boolean;
+  defaultLocale?: string;
 };
 
 type PublishRouteContext = {
@@ -28,6 +30,8 @@ export async function POST(request: Request, context: PublishRouteContext): Prom
   const params = await context.params;
   const preset = await publishResumePreset(actorResult.accessToken, actorResult.actor.userId, params.presetId, {
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
+    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
+    defaultLocale: body.defaultLocale === "pl" ? "pl" : "en",
   });
 
   if (!preset) {
