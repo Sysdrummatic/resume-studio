@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../../lib/auth-request";
-import { normalizeResumePresetSelection, saveResumePreset, validateResumePresetSelection } from "../../../../lib/resume-server";
+import { deleteResumePreset, normalizeResumePresetSelection, saveResumePreset, validateResumePresetSelection } from "../../../../lib/resume-server";
 
 type PresetBody = {
   documentId?: string;
@@ -56,4 +56,24 @@ export async function PATCH(request: Request, context: PresetRouteContext): Prom
   }
 
   return NextResponse.json({ ok: true, preset });
+}
+
+export async function DELETE(_request: Request, context: PresetRouteContext): Promise<Response> {
+  const actorResult = await requireRequestActor(["admin", "manager", "user", "recruiter"]);
+  if (!actorResult.ok) {
+    return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
+  }
+
+  const params = await context.params;
+  const presetId = String(params.presetId || "").trim();
+  if (!presetId) {
+    return NextResponse.json({ error: "Preset id is required." }, { status: 400 });
+  }
+
+  const deleted = await deleteResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId);
+  if (!deleted) {
+    return NextResponse.json({ error: "Preset delete failed." }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

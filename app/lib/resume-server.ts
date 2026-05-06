@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { ResumeLocale, ResumeRevisionItem } from "./resume-schema";
 import { normalizeLocale } from "./resume-schema";
-import { callRpc, insertTable, queryTable, updateTable } from "./supabase-http";
+import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 
 export type ResumeDocumentRow = {
   id: string;
@@ -313,6 +313,16 @@ export async function publishResumePreset(
     ...row,
     selection: normalizeResumePresetSelection(row.selection),
   };
+}
+
+export async function deleteResumePreset(accessToken: string, userId: string, presetId: string): Promise<boolean> {
+  const result = await deleteTable({
+    table: "resume_presets",
+    accessToken,
+    query: `id=eq.${encodeURIComponent(presetId)}&user_id=eq.${encodeURIComponent(userId)}`,
+  });
+
+  return Boolean(result.data?.length) && !result.error;
 }
 
 export async function ensureResumeDocument(

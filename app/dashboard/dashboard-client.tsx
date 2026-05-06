@@ -166,6 +166,18 @@ function mergePreset(current: ResumePresetRow[], nextPreset: ResumePresetRow) {
   return current.map((preset) => (preset.id === nextPreset.id ? nextPreset : preset));
 }
 
+function TrashIcon() {
+  return (
+    <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v5" />
+      <path d="M14 11v5" />
+    </svg>
+  );
+}
+
 function PresetModal({
   masterResume,
   preset,
@@ -326,6 +338,7 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [status, setStatus] = useState("");
   const [isError, setIsError] = useState(false);
+  const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!masterResume) return;
@@ -387,6 +400,27 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
     setIsError(false);
   }
 
+  async function deletePreset(preset: ResumePresetRow) {
+    setDeletingPresetId(preset.id);
+    const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}`, {
+      method: "DELETE",
+    });
+    const result = (await response.json()) as PresetApiResponse;
+    setDeletingPresetId(null);
+
+    if (!response.ok || result.error) {
+      setStatus(result.error || "Preset delete failed.");
+      setIsError(true);
+      return;
+    }
+
+    setPresets((current) => current.filter((item) => item.id !== preset.id));
+    setPreviewPreset((current) => (current?.id === preset.id ? null : current));
+    setActivePreset((current) => (current?.id === preset.id ? null : current));
+    setStatus("Preset deleted.");
+    setIsError(false);
+  }
+
   const modalOptions = useMemo(() => options, [options]);
 
   return (
@@ -433,26 +467,40 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
                     {preset.slug ? ` · /p/${preset.slug}` : ""}
                   </p>
                 </div>
-                <div className="actions-row">
-                  <span className={`dashboard-resume-list__badge ${preset.is_public ? "" : "dashboard-resume-list__badge--private"}`}>
-                    {preset.is_public ? "Published" : "Draft"}
-                  </span>
-                  <button type="button" className="button button--ghost button--small" onClick={() => setPreviewPreset(preset)}>
-                    Open CV
-                  </button>
-                  <button
-                    type="button"
-                    className="button button--ghost button--small"
-                    onClick={() => {
-                      setActivePreset(preset);
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button type="button" className="button button--ghost button--small" onClick={() => void publishPreset(preset)}>
-                    Publish
-                  </button>
+                <div className="dashboard-resume-list__actions">
+                  <div className="actions-row">
+                    <span className={`dashboard-resume-list__badge ${preset.is_public ? "" : "dashboard-resume-list__badge--private"}`}>
+                      {preset.is_public ? "Published" : "Draft"}
+                    </span>
+                    <button type="button" className="button button--ghost button--small" onClick={() => setPreviewPreset(preset)}>
+                      Open CV
+                    </button>
+                    <button
+                      type="button"
+                      className="button button--ghost button--small"
+                      onClick={() => {
+                        setActivePreset(preset);
+                        setIsModalOpen(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button type="button" className="button button--ghost button--small" onClick={() => void publishPreset(preset)}>
+                      Publish
+                    </button>
+                  </div>
+                  <div className="dashboard-resume-list__delete-separator">
+                    <button
+                      type="button"
+                      className="button button--ghost button--small button--icon button--danger"
+                      aria-label={`Delete preset ${preset.title}`}
+                      title="Delete preset"
+                      onClick={() => void deletePreset(preset)}
+                      disabled={deletingPresetId === preset.id}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}

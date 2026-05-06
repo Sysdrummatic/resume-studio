@@ -228,6 +228,35 @@ export async function updateTable({
   );
 }
 
+type DeleteTableOptions = {
+  table: string;
+  query: string;
+  accessToken?: string;
+  useServiceRole?: boolean;
+};
+
+export async function deleteTable({
+  table,
+  query,
+  accessToken,
+  useServiceRole,
+}: DeleteTableOptions): Promise<AuthResult<Record<string, unknown>[]>> {
+  const { url } = getSupabasePublicConfig();
+  return requestSupabase<Record<string, unknown>[]>(
+    () =>
+      fetch(`${url}/rest/v1/${table}?${query}`, {
+        method: "DELETE",
+        headers: buildHeaders({
+          accessToken,
+          useServiceRole,
+          prefer: "return=representation",
+        }),
+        cache: "no-store",
+      }),
+    "Unable to delete data.",
+  );
+}
+
 type InsertTableOptions = {
   table: string;
   values: Record<string, unknown> | Record<string, unknown>[];

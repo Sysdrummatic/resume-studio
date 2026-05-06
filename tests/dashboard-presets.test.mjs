@@ -31,13 +31,15 @@ test("resume presets are stored as lightweight selection config", () => {
   assert.equal(migration.includes("document_id uuid not null references public.resume_documents"), true);
 });
 
-test("preset APIs expose create, update and publish operations", () => {
+test("preset APIs expose create, update, publish and delete operations", () => {
   const listRoute = read("app/api/resume/presets/route.ts");
   const itemRoute = read("app/api/resume/presets/[presetId]/route.ts");
   const publishRoute = read("app/api/resume/presets/[presetId]/publish/route.ts");
 
   assert.equal(listRoute.includes("saveResumePreset"), true);
   assert.equal(itemRoute.includes("saveResumePreset"), true);
+  assert.equal(itemRoute.includes("deleteResumePreset"), true);
+  assert.equal(itemRoute.includes("export async function DELETE"), true);
   assert.equal(publishRoute.includes("publishResumePreset"), true);
 });
 
@@ -58,4 +60,15 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   assert.equal(client.includes("buildPresetResumeDocument"), true);
   assert.equal(client.includes("BasicResumeDocument"), true);
   assert.equal(preview.includes("export function BasicResumeDocument"), true);
+});
+
+test("preset list renders a right-aligned separated icon delete action", () => {
+  const client = read("app/dashboard/dashboard-client.tsx");
+  const styles = read("app/globals.css");
+
+  assert.equal(client.includes("TrashIcon"), true);
+  assert.equal(client.includes("aria-label={`Delete preset ${preset.title}`}"), true);
+  assert.equal(client.includes("dashboard-resume-list__delete-separator"), true);
+  assert.equal(styles.includes(".dashboard-resume-list__delete-separator"), true);
+  assert.equal(styles.includes("border-left: 1px solid var(--border);"), true);
 });
