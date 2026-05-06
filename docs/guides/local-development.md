@@ -1,6 +1,6 @@
 # Local Development Setup
 
-This guide covers local development for both the legacy static app and the Next.js rebuild.
+This guide covers local development for the active Next.js App Router app.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ This guide covers local development for both the legacy static app and the Next.
 - [x] `.env.local` should be created from `.env.development.example`
 - [x] Supabase URL, anon key, and service role key are required
 - [x] `npm run dev` is the primary local app entry point
-- [x] Legacy static files remain available under `public/`
+- [x] Legacy static HTML/CSS/JS files are retired from `public/`
 - [x] Required migration order is documented
 - [x] Validation commands are documented
 
@@ -51,10 +51,12 @@ npm run dev
 - `/dashboard` - protected user panel
 - `/admin` - protected admin/manager panel
 - `/master-resume` - canvas editor (Phase D)
+- `/resume` - public sample CV
+- `/r/{slug}` - published preset CV
 
-## Static legacy routes (still present)
+## Compatibility Redirects
 
-- `public/resume.html`, `public/login.html`, `public/dashboard.html`, `public/master-resume.html`, `public/user.html`
+Netlify keeps permanent redirects from historical `.html` URLs such as `/login.html` and `/resume.html` to their React routes. The old static files themselves are no longer present in `public/`.
 
 ## Required migrations
 
@@ -63,7 +65,7 @@ Apply SQL migrations in order:
 1. `supabase/migrations/20260405_phase_c_foundation.sql`
 2. `supabase/migrations/20260405_phase_c_completion.sql`
 3. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql` (if required)
-4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql` (legacy static Phase D iteration)
+4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql`
 5. `supabase/migrations/20260410_phase_b_yaml_data_layer.sql`
 6. `supabase/migrations/20260410_phase_c_auth_rbac_admin.sql`
 

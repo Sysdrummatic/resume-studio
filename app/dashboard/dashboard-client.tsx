@@ -458,7 +458,7 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
                   <strong>{preset.title}</strong>
                   <p>
                     Updated {new Date(preset.updated_at).toLocaleString()}
-                    {preset.slug ? ` · /p/${preset.slug}` : ""}
+                    {preset.slug ? ` · /r/${preset.slug}` : ""}
                   </p>
                 </div>
                 <div className="dashboard-resume-list__actions">

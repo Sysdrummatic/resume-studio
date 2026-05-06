@@ -63,35 +63,7 @@ test("destructive and warning statuses are routed to the expected toast variants
   assert.equal(login.includes('const contextualVariant = contextualMessage ? "warning" : "success";'), true);
 });
 
-test("legacy public pages load the shared static toast helper", () => {
-  const pages = [
-    "public/login.html",
-    "public/dashboard.html",
-    "public/master-resume.html",
-    "public/r/index.html",
-    "public/resume.html",
-    "public/user.html",
-  ].map(read);
-
-  for (const page of pages) {
-    assert.equal(page.includes("styles/status-toast.css"), true);
-    assert.equal(page.includes("scripts/status-toast.js"), true);
-  }
-});
-
-test("legacy public scripts route user-facing statuses through static toast helper", () => {
-  const scripts = [
-    "public/scripts/auth.js",
-    "public/scripts/protected.js",
-    "public/scripts/master-resume-editor.js",
-    "public/scripts/public-resume.js",
-    "public/scripts/main.js",
-  ].map(read);
-
-  for (const source of scripts) {
-    assert.equal(source.includes("ResumeStatusToast"), true);
-  }
-
-  const publicResume = read("public/r/index.html");
-  assert.equal(publicResume.includes('id="public-status" class="auth-status" role="status" aria-live="polite"></p>'), true);
+test("legacy static toast helper has been removed from public assets", () => {
+  assert.equal(fs.existsSync(path.join(process.cwd(), "public", "styles", "status-toast.css")), false);
+  assert.equal(fs.existsSync(path.join(process.cwd(), "public", "scripts", "status-toast.js")), false);
 });

@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import type { ResumeLocale, ResumeRevisionItem } from "./resume-schema";
-import { normalizeLocale } from "./resume-schema";
+import yaml from "js-yaml";
+import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
+import { normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 
 export type ResumeDocumentRow = {
@@ -53,6 +54,12 @@ export type ResumePresetRow = {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type PublishedResumePreset = {
+  preset: ResumePresetRow;
+  document: ResumeDocumentRow;
+  resume: ResumeDocument;
 };
 
 const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
@@ -172,6 +179,34 @@ function normalizeIndexList(value: unknown): number[] {
   ).sort((left, right) => left - right);
 }
 
+function selectByIndex<T>(items: T[], indexes: number[]): T[] {
+  return indexes.map((index) => items[index]).filter((item): item is T => item !== undefined);
+}
+
+export function buildResumeDocumentFromPreset(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
+  try {
+    const masterDocument = normalizeResumeDocument(yaml.load(yamlContent), "");
+    const selectedSummary = selectByIndex(masterDocument.summary, selection.summary).map((summary, index) => ({
+      ...summary,
+      default: index === 0,
+    }));
+
+    return {
+      ...masterDocument,
+      summary: selectedSummary,
+      experience: selectByIndex(masterDocument.experience, selection.experience),
+      education: selectByIndex(masterDocument.education, selection.education),
+      courses: selectByIndex(masterDocument.courses, selection.courses),
+      skills: selectByIndex(masterDocument.skills, selection.skills),
+      interests: selectByIndex(masterDocument.interests, selection.interests),
+      languages: selectByIndex(masterDocument.languages, selection.languages),
+      tech_stack: selectByIndex(masterDocument.tech_stack, selection.tech_stack),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function normalizeResumePresetSelection(value: unknown): ResumePresetSelection {
   const source = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
   return PRESET_SELECTION_KEYS.reduce<ResumePresetSelection>(
@@ -207,6 +242,52 @@ export async function fetchResumePresetsForUser(userId: string): Promise<ResumeP
     ...preset,
     selection: normalizeResumePresetSelection(preset.selection),
   }));
+}
+
+export async function fetchPublishedResumePresetBySlug(slug: string): Promise<PublishedResumePreset | null> {
+  const normalizedSlug = slug.trim();
+  if (!normalizedSlug) {
+    return null;
+  }
+
+  const presetResult = await queryTable<ResumePresetRow>({
+    table: "resume_presets",
+    select: "id,document_id,user_id,title,selection,is_public,allow_indexing,slug,published_at,created_at,updated_at",
+    useServiceRole: true,
+    query: `slug=eq.${encodeURIComponent(normalizedSlug)}&is_public=eq.true&limit=1`,
+  });
+
+  const preset = presetResult.data?.[0];
+  if (!preset || presetResult.error) {
+    return null;
+  }
+
+  const documentResult = await queryTable<ResumeDocumentRow>({
+    table: "resume_documents",
+    select: "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,updated_at",
+    useServiceRole: true,
+    query: `id=eq.${encodeURIComponent(preset.document_id)}&limit=1`,
+  });
+
+  const document = documentResult.data?.[0];
+  if (!document || documentResult.error) {
+    return null;
+  }
+
+  const normalizedPreset = {
+    ...preset,
+    selection: normalizeResumePresetSelection(preset.selection),
+  };
+  const resume = buildResumeDocumentFromPreset(document.yaml_content, normalizedPreset.selection);
+  if (!resume) {
+    return null;
+  }
+
+  return {
+    preset: normalizedPreset,
+    document,
+    resume,
+  };
 }
 
 async function fetchDocumentById(accessToken: string, documentId: string, userId: string): Promise<ResumeDocumentRow | null> {

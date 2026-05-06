@@ -18,11 +18,12 @@ Global completion checklist:
 - [ ] Phase F - User panel + admin analytics/audit
 - [ ] Phase G - Hardening, QA, launch readiness
 
-Current implementation status as of `2026-05-04`:
+Current implementation status as of `2026-05-06`:
 
 - The Next.js shell, auth, admin flows, and resume editor are live in `app/`.
 - The sample public resume view on `/resume` is implemented from YAML data.
-- The public share route `/r/[slug]` still contains a placeholder, so the core deliverables of Phase E remain open.
+- The public share route `/r/[slug]` renders published presets from the current `resume_presets` model with baseline robots metadata.
+- The former static HTML/CSS/JS frontend has been retired from `public/`; historical `.html` URLs remain as Netlify redirects.
 - AI-assisted demo resume generation is planned as a separate workstream and is not part of the core Phase E SEO/public-route milestone.
 
 ## Current Execution Checklist
@@ -33,9 +34,9 @@ Current implementation status as of `2026-05-04`:
 - [x] Auth, RBAC, and admin flows are implemented
 - [x] Resume editor and revisioning are implemented
 - [x] Sample public resume exists at `/resume`
-- [ ] Rebuild the resume editor
-- [ ] Public share route `/r/[slug]` is fully implemented
-- [ ] SEO/AEO controls for public resume pages are complete
+- [x] Resume editor is rebuilt in React
+- [/] Public share route `/r/[slug]` is implemented with baseline rendering
+- [/] SEO/AEO controls for public resume pages are partially complete
 - [ ] User panel and analytics surfaces are complete
 - [ ] Launch hardening tasks are complete
 
@@ -60,7 +61,7 @@ These are mandatory constraints:
 
 ### What incremental migration means (non-negotiable)
 - Each PR migrates a small, explicitly scoped slice (route, feature, or workflow), and leaves everything else untouched.
-- Legacy static routes may remain temporarily, but are retired only after a feature parity gate passes.
+- Legacy static files are retired; compatibility is preserved through redirects from historical `.html` URLs.
 - Every migration slice must define:
   - **Scope** (what is changed),
   - **Out of scope** (what is not changed),
@@ -239,8 +240,8 @@ Definition of done:
 Branch: `feat/phase-e-public-seo-aeo`
 
 Checklist:
-- [ ] Implement SSR/ISR public route `/r/[slug]`.
-- [ ] Apply indexing controls to robots and headers.
+- [x] Implement public route `/r/[slug]`.
+- [x] Apply baseline indexing controls to robots metadata.
 - [ ] Add canonical URLs and OpenGraph/Twitter metadata.
 - [ ] Add structured data (JSON-LD) for resume pages where applicable.
 - [ ] Add sitemap and robots configuration.
@@ -307,8 +308,8 @@ For every phase:
 
 - [x] Approve this updated plan as the baseline for the active codebase.
 - [x] Complete foundation, YAML, auth/admin, and editor phases.
-- [ ] Implement the actual `/r/[slug]` public resume rendering flow.
-- [ ] Add SEO/AEO metadata and indexing controls for public resume pages.
+- [x] Implement the actual `/r/[slug]` public resume rendering flow.
+- [/] Add SEO/AEO metadata and indexing controls for public resume pages.
 - [ ] Extend the dashboard/user panel with link management and analytics.
 - [ ] Start the AI demo resume generation workstream after Phase E route/rendering scope is stable.
 

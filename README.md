@@ -1,27 +1,18 @@
 # OpenCVHub
 
-This repository contains a hybrid OpenCVHub codebase:
-
-- a legacy static resume experience served from `public/`,
-- an in-progress Next.js SaaS rebuild under `app/`.
+This repository contains the React/Next.js OpenCVHub codebase. The former static HTML/CSS/JS frontend has been retired; `public/` now holds data files, images, vendor runtime assets, and migration helpers only.
 
 ## Structure
 
-- `public/*.html` - legacy static entry pages still kept for compatibility and reference.
-- `app/` - Next.js App Router implementation. Phases A-D are implemented; Phase E is next.
+- `app/` - Next.js App Router implementation.
 - `public/data/public/` - YAML locale/content files for the public sample CV.
-- `public/scripts/` - legacy browser scripts.
-- `public/styles/` - legacy static styles.
+- `public/data/private/` - private/template YAML files consumed by the editor and server data layer.
+- `public/scripts/phase-b/` - historical YAML data migration helpers.
+- `public/vendor/` - browser-only vendor assets still loaded by client React screens.
 - `supabase/migrations/` - SQL migrations.
 - `docs/` - guides, plans, QA checklists.
 
-## Run (legacy static)
-
-1. Install deps: `npm install`
-2. Start a static server from repo root (`npx serve .` / Live Server / `python -m http.server`)
-3. Open `http://localhost:<port>/public/resume.html` or another file under `public/`
-
-## Run (Next.js rebuild)
+## Run
 
 1. Install deps: `npm install`
 2. Create `.env.local` from `.env.development.example`
@@ -30,6 +21,7 @@ This repository contains a hybrid OpenCVHub codebase:
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
 4. Start: `npm run dev`
+5. Open the React routes, for example `/`, `/resume`, `/login`, `/dashboard`, `/master-resume`, or `/r/{slug}`.
 
 ## Database migrations
 
@@ -38,7 +30,7 @@ Apply in order:
 1. `supabase/migrations/20260405_phase_c_foundation.sql`
 2. `supabase/migrations/20260405_phase_c_completion.sql`
 3. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql` (if needed)
-4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql` (legacy static Phase D iteration)
+4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql`
 5. `supabase/migrations/20260410_phase_b_yaml_data_layer.sql`
 6. `supabase/migrations/20260410_phase_c_auth_rbac_admin.sql`
 

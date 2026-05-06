@@ -48,7 +48,7 @@ If any statement fails, stop and fix the failing line before re-running.
 If your dashboard shows `infinite recursion detected in policy for relation "profiles"`, run:
 
 1. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql`
-2. Reload `dashboard.html` and test sign-in again.
+2. Reload `/dashboard` and test sign-in again.
 
 ---
 
@@ -109,9 +109,9 @@ Then verify in **Table Editor** → `profiles` that role is `admin`.
    - `set_user_active`
    - `get_public_resume_by_slug`
    - `increment_public_link_view`
-3. In the app, sign in as an admin and open `dashboard.html`.
+3. In the app, sign in as an admin and open `/dashboard`.
 4. Confirm stats and user list are visible.
-5. Deactivate a test user and verify that user cannot access `dashboard.html` after sign in.
+5. Deactivate a test user and verify that user cannot access `/dashboard` after sign in.
 
 ---
 
