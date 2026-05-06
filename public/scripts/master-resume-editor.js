@@ -186,7 +186,7 @@
   document.getElementById('clear-form-button').addEventListener('click', () => {
     fillForm(EMPTY_RESUME, value('locale') || 'en');
     syncPreview();
-    setStatus('Form cleared.');
+    setStatus('Form cleared.', 'error');
   });
 
   document.getElementById('publish-button').addEventListener('click', async () => {
@@ -536,8 +536,11 @@
     return typeof value === 'string' ? value.trim() : '';
   }
 
-  function setStatus(message, isError = false) {
-    statusEl.textContent = message;
-    statusEl.classList.toggle('is-error', isError);
+  function setStatus(message, variant = 'success') {
+    const normalizedVariant = variant === true ? 'error' : variant;
+    window.ResumeStatusToast?.show(message, normalizedVariant);
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    statusEl.classList.remove('is-error');
   }
 })();

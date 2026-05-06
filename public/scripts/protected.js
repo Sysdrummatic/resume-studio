@@ -30,15 +30,13 @@
     .single();
 
   if (profileError) {
-    statusElement.textContent = `Unable to load profile: ${profileError.message}`;
-    statusElement.classList.add('is-error');
+    setStatus(`Unable to load profile: ${profileError.message}`, 'error');
   } else if (!profile?.is_active) {
     await client.auth.signOut();
     window.location.href = 'login.html?reason=inactive';
     return;
   } else {
-    statusElement.textContent = 'Profile status: active.';
-    statusElement.classList.remove('is-error');
+    setStatus('Profile status: active.');
   }
 
   if (profile?.role === 'admin') {
@@ -54,7 +52,8 @@
   async function loadAdminData() {
     const { data: statsRows, error: statsError } = await client.rpc('get_admin_platform_stats');
     if (statsError) {
-      adminStatsElement.textContent = `Unable to load platform stats: ${statsError.message}`;
+      adminStatsElement.textContent = '';
+      setStatus(`Unable to load platform stats: ${statsError.message}`, 'error');
     } else {
       const stats = statsRows?.[0];
       if (stats) {
@@ -70,7 +69,8 @@
 
     const { data: users, error: usersError } = await client.rpc('get_admin_user_overview');
     if (usersError) {
-      adminUserListElement.innerHTML = `<li class="admin-user-row admin-user-row--error">${usersError.message}</li>`;
+      adminUserListElement.innerHTML = '';
+      setStatus(usersError.message, 'error');
       return;
     }
 
@@ -107,12 +107,10 @@
             target_is_active: !currentlyActive
           });
           if (error) {
-            statusElement.textContent = error.message;
-            statusElement.classList.add('is-error');
+            setStatus(error.message, 'error');
             return;
           }
-          statusElement.textContent = 'User status updated.';
-          statusElement.classList.remove('is-error');
+          setStatus('User status updated.');
           await loadAdminData();
           return;
         }
@@ -123,15 +121,20 @@
             redirectTo: config.passwordResetRedirectUrl || `${window.location.origin}/login.html`
           });
           if (error) {
-            statusElement.textContent = error.message;
-            statusElement.classList.add('is-error');
+            setStatus(error.message, 'error');
             return;
           }
-          statusElement.textContent = `Reset link sent to ${email}.`;
-          statusElement.classList.remove('is-error');
+          setStatus(`Reset link sent to ${email}.`);
         }
       });
     });
+  }
+
+  function setStatus(message, variant = 'success') {
+    window.ResumeStatusToast?.show(message, variant);
+    if (!statusElement) return;
+    statusElement.textContent = '';
+    statusElement.classList.remove('is-error');
   }
 
   function escapeHtml(value) {

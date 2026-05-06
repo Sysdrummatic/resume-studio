@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Script from "next/script";
+import { StatusToast, useStatusToast } from "../components/status-toast";
 import "./resume.css";
 
 type ResumeLocale = {
@@ -319,6 +320,7 @@ export default function ResumeViewClient() {
   const [viewConfig, setViewConfig] = useState<ResumeViewConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast, showToast, closeToast } = useStatusToast();
   const [isJsYamlLoaded, setIsJsYamlLoaded] = useState(false);
   const [isHeroDocked, setIsHeroDocked] = useState(false);
   const [isStyleSelectorOpen, setIsStyleSelectorOpen] = useState(false);
@@ -354,11 +356,13 @@ export default function ResumeViewClient() {
       setViewConfig(loadedViewConfig);
       setActiveLocale(locale.code);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setIsLoading(false);
     }
-  }, [fetchYaml]);
+  }, [fetchYaml, showToast]);
 
   useEffect(() => {
     // Check if script is already loaded (e.g. from previous navigation)
@@ -432,13 +436,15 @@ export default function ResumeViewClient() {
         await handleLocaleChange(config.default_locale, config);
       } catch (err) {
         console.error("[ResumeView] Initialization failed:", err);
-        setError(err instanceof Error ? err.message : "Initialization failed");
+        const message = err instanceof Error ? err.message : "Initialization failed";
+        setError(message);
+        showToast(message, "error");
         setIsLoading(false);
       }
     }
 
     void init();
-  }, [isJsYamlLoaded, fetchYaml, handleLocaleChange]);
+  }, [isJsYamlLoaded, fetchYaml, handleLocaleChange, showToast]);
 
   useEffect(() => {
     if (!resumeData) return;
@@ -482,7 +488,7 @@ export default function ResumeViewClient() {
         }}
       />
 
-      {error && <div className="status status--error">{error}</div>}
+      <StatusToast toast={toast} onClose={closeToast} />
 
       {(isLoading || !resumeData) && !error && (
         <div className="loading-indicator">Loading sample resume...</div>

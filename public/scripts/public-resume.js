@@ -84,8 +84,9 @@
   }
 
   function setError(message) {
-    statusEl.textContent = message;
-    statusEl.classList.add('is-error');
+    window.ResumeStatusToast?.show(message, 'error');
+    statusEl.textContent = '';
+    statusEl.classList.remove('is-error');
   }
 
   function escapeHtml(value) {

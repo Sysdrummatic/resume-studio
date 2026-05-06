@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { StatusToast, useStatusToast } from "../components/status-toast";
 import { postJson } from "../lib/client-http";
 
 type TabId = "signin" | "signup" | "reset" | "new-password";
-
-const DEFAULT_STATUS = "";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -22,10 +21,10 @@ type Props = {
 
 export default function AccountAccessClient({ reason, verified }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>("signin");
-  const [status, setStatus] = useState(DEFAULT_STATUS);
-  const [error, setError] = useState(false);
+  const { toast, showToast, closeToast } = useStatusToast();
   const [isBusy, setIsBusy] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
+  const [isContextualMessageHidden, setIsContextualMessageHidden] = useState(false);
 
   const [signinEmail, setSigninEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
@@ -50,24 +49,36 @@ export default function AccountAccessClient({ reason, verified }: Props) {
     }
     return "";
   }, [reason, verified]);
+  const contextualVariant = contextualMessage ? "warning" : "success";
+  const contextualToast =
+    contextualMessage && !isContextualMessageHidden
+      ? { id: 0, message: contextualMessage, variant: contextualVariant as "warning" | "success" }
+      : null;
+  const activeToast = toast || contextualToast;
 
   useEffect(() => {
     const hashParams = parseHashParams(window.location.hash);
     if (hashParams.get("type") === "recovery" && hashParams.get("access_token")) {
       setRecoveryToken(hashParams.get("access_token")!);
       setActiveTab("new-password");
-      setStatus("Set your new password below.");
-      setError(false);
+      showToast("Set your new password below.", "warning");
       // Clean hash from URL without reload
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
-  }, []);
+  }, [showToast]);
+
+  const closeActiveToast = useCallback(() => {
+    if (toast) {
+      closeToast();
+      return;
+    }
+    setIsContextualMessageHidden(true);
+  }, [closeToast, toast]);
 
   async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
-    setStatus("Signing in...");
-    setError(false);
+    showToast("Signing in...");
 
     const email = normalizeEmail(signinEmail);
     let shouldRedirect = false;
@@ -79,20 +90,17 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        showToast(payload.error, "error");
         setPendingVerificationEmail(email);
         return;
       }
 
       setPendingVerificationEmail("");
-      setStatus("Signed in. Redirecting...");
-      setError(false);
+      showToast("Signed in. Redirecting...");
       shouldRedirect = true;
       window.location.href = "/dashboard";
     } catch {
-      setStatus("Unexpected sign-in error. Try again.");
-      setError(true);
+      showToast("Unexpected sign-in error. Try again.", "error");
     } finally {
       if (!shouldRedirect) {
         setIsBusy(false);
@@ -103,8 +111,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
-    setStatus("Creating account...");
-    setError(false);
+    showToast("Creating account...");
 
     const email = normalizeEmail(signupEmail);
 
@@ -115,19 +122,16 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        showToast(payload.error, "error");
         return;
       }
 
-      setStatus(payload.message || "Account created. Verify your email before sign in.");
+      showToast(payload.message || "Account created. Verify your email before sign in.");
       setPendingVerificationEmail(email);
-      setError(false);
       setActiveTab("signin");
       setSigninEmail(email);
     } catch {
-      setStatus("Unexpected sign-up error. Try again.");
-      setError(true);
+      showToast("Unexpected sign-up error. Try again.", "error");
     } finally {
       setIsBusy(false);
     }
@@ -136,8 +140,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   async function handleResetPassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
-    setStatus("Sending reset link...");
-    setError(false);
+    showToast("Sending reset link...");
 
     const email = normalizeEmail(resetEmail);
 
@@ -147,16 +150,13 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        showToast(payload.error, "error");
         return;
       }
 
-      setStatus(payload.message || "Password reset email sent.");
-      setError(false);
+      showToast(payload.message || "Password reset email sent.");
     } catch {
-      setStatus("Unexpected password reset error. Try again.");
-      setError(true);
+      showToast("Unexpected password reset error. Try again.", "error");
     } finally {
       setIsBusy(false);
     }
@@ -165,28 +165,23 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   async function handleResendVerification() {
     const email = normalizeEmail(pendingVerificationEmail || signinEmail);
     if (!email) {
-      setStatus("Provide email in sign-in form first.");
-      setError(true);
+      showToast("Provide email in sign-in form first.", "warning");
       return;
     }
 
     setIsBusy(true);
-    setStatus("Sending verification email...");
-    setError(false);
+    showToast("Sending verification email...");
 
     try {
       const payload = await postJson("/api/auth/resend-verification", { email });
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        showToast(payload.error, "error");
         return;
       }
 
-      setStatus(payload.message || "Verification email sent.");
-      setError(false);
+      showToast(payload.message || "Verification email sent.");
     } catch {
-      setStatus("Unexpected verification error. Try again.");
-      setError(true);
+      showToast("Unexpected verification error. Try again.", "error");
     } finally {
       setIsBusy(false);
     }
@@ -195,8 +190,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   async function handleUpdatePassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
-    setStatus("Updating password...");
-    setError(false);
+    showToast("Updating password...");
 
     try {
       const payload = await postJson("/api/auth/update-password", {
@@ -205,19 +199,16 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       });
 
       if (payload.error) {
-        setStatus(payload.error);
-        setError(true);
+        showToast(payload.error, "error");
         return;
       }
 
-      setStatus(payload.message || "Password updated. You can sign in now.");
-      setError(false);
+      showToast(payload.message || "Password updated. You can sign in now.");
       setRecoveryToken("");
       setNewPassword("");
       setActiveTab("signin");
     } catch {
-      setStatus("Unexpected error. Try again.");
-      setError(true);
+      showToast("Unexpected error. Try again.", "error");
     } finally {
       setIsBusy(false);
     }
@@ -228,9 +219,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       <h1>Account access</h1>
       <p className="card-lead">Phase C provides sign up, sign in, password reset, email verification and RBAC.</p>
 
-      {(contextualMessage || status) && (
-        <p className={`status ${error ? "status--error" : "status--ok"}`}>{status || contextualMessage}</p>
-      )}
+      <StatusToast toast={activeToast} onClose={closeActiveToast} />
 
       <div className="tabs" role="tablist" aria-label="Auth actions">
         <button

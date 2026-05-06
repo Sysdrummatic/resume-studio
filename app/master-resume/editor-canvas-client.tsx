@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { StatusToast, useStatusToast } from "../components/status-toast";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
 import type {
@@ -109,8 +110,7 @@ export default function EditorCanvasClient() {
   const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>("basic");
   const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
-  const [status, setStatus] = useState("");
-  const [isError, setIsError] = useState(false);
+  const { toast, showToast, closeToast } = useStatusToast();
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
 
   const [actor, setActor] = useState<{ userId: string; displayName: string; role: string } | null>(null);
@@ -131,24 +131,21 @@ export default function EditorCanvasClient() {
         setYamlPanel(normalized.yamlContent);
         setResume(normalized.resume);
         if (!options.silent) {
-          setStatus(options.successStatus || "YAML imported to form.");
-          setIsError(false);
+          showToast(options.successStatus || "YAML imported to form.");
         }
       } catch (error) {
         if (!options.silent) {
-          setStatus(`YAML import failed: ${error instanceof Error ? error.message : "unknown error"}`);
-          setIsError(true);
+          showToast(`YAML import failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
         }
       }
     },
-    [actor],
+    [actor, showToast],
   );
 
   const loadLocaleDocument = useCallback(
     async (nextLocale: ResumeLocale) => {
       setIsLoading(true);
-      setStatus("Loading YAML editor...");
-      setIsError(false);
+      showToast("Loading YAML editor...");
 
       try {
         const response = await fetch(`/api/resume/document?locale=${encodeURIComponent(nextLocale)}`);
@@ -189,26 +186,23 @@ export default function EditorCanvasClient() {
           const normalized = normalizeYamlForEditor(nextYamlPanel, loadedActor?.displayName || "");
           nextYamlPanel = normalized.yamlContent;
           setResume(normalized.resume);
-          setStatus(normalized.migrated ? `${nextStatus} Legacy summary migrated to list format.` : nextStatus);
-          setIsError(false);
+          showToast(normalized.migrated ? `${nextStatus} Legacy summary migrated to list format.` : nextStatus);
           if (normalized.migrated && draftKey) {
             localStorage.setItem(draftKey, JSON.stringify({ yamlContent: nextYamlPanel, savedAt: new Date().toISOString() }));
           }
         } catch (error) {
           setResume(defaultResumeDocument(loadedActor?.displayName || ""));
-          setStatus(`Failed to parse YAML: ${error instanceof Error ? error.message : "unknown error"}`);
-          setIsError(true);
+          showToast(`Failed to parse YAML: ${error instanceof Error ? error.message : "unknown error"}`, "error");
         }
 
         setYamlPanel(nextYamlPanel);
       } catch (error) {
-        setStatus(error instanceof Error ? error.message : "Unable to load YAML editor.");
-        setIsError(true);
+        showToast(error instanceof Error ? error.message : "Unable to load YAML editor.", "error");
       } finally {
         setIsLoading(false);
       }
     },
-    [],
+    [showToast],
   );
 
   useEffect(() => {
@@ -222,8 +216,7 @@ export default function EditorCanvasClient() {
       }
       if (!mounted) return;
       if (!hasYamlRuntime()) {
-        setStatus("YAML parser is unavailable. Reload the page.");
-        setIsError(true);
+        showToast("YAML parser is unavailable. Reload the page.", "error");
         setIsLoading(false);
         return;
       }
@@ -234,7 +227,7 @@ export default function EditorCanvasClient() {
     return () => {
       mounted = false;
     };
-  }, [loadLocaleDocument, locale]);
+  }, [loadLocaleDocument, locale, showToast]);
 
   function handleLocaleSwitch(nextLocale: ResumeLocale) {
     if (nextLocale === locale || isBusy) {
@@ -247,11 +240,9 @@ export default function EditorCanvasClient() {
     setYamlPanel(value);
     try {
       setResume(parseYamlToResumeDocument(value, actor?.displayName || ""));
-      setStatus("Live preview updated.");
-      setIsError(false);
+      showToast("Live preview updated.");
     } catch (error) {
-      setStatus(`YAML preview paused: ${error instanceof Error ? error.message : "unknown error"}`);
-      setIsError(true);
+      showToast(`YAML preview paused: ${error instanceof Error ? error.message : "unknown error"}`, "warning");
     }
   }
 
@@ -259,11 +250,9 @@ export default function EditorCanvasClient() {
     setResume(nextResume);
     try {
       setYamlPanel(serializeResumeToYaml(nextResume));
-      setStatus("YAML and live preview updated.");
-      setIsError(false);
+      showToast("YAML and live preview updated.");
     } catch (error) {
-      setStatus(`YAML export failed: ${error instanceof Error ? error.message : "unknown error"}`);
-      setIsError(true);
+      showToast(`YAML export failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
     }
   }
 
@@ -384,8 +373,7 @@ export default function EditorCanvasClient() {
   async function saveDraft() {
     if (!actor) return;
     setIsBusy(true);
-    setStatus("Saving draft to database...");
-    setIsError(false);
+    showToast("Saving draft to database...");
 
     const response = await fetch("/api/resume/draft", {
       method: "POST",
@@ -400,8 +388,7 @@ export default function EditorCanvasClient() {
     });
     const payload = (await response.json()) as ApiDocumentResponse;
     if (!response.ok || payload.error || !payload.document) {
-      setStatus(payload.error || "Draft save failed.");
-      setIsError(true);
+      showToast(payload.error || "Draft save failed.", "error");
       setIsBusy(false);
       return;
     }
@@ -409,8 +396,7 @@ export default function EditorCanvasClient() {
     setDocumentRow(payload.document);
     setRevisions(payload.revisions || []);
     localStorage.setItem(getDraftKey(actor.userId, locale), JSON.stringify({ yamlContent: yamlPanel, savedAt: new Date().toISOString() }));
-    setStatus("Draft saved to database.");
-    setIsError(false);
+    showToast("Draft saved to database.");
     setIsBusy(false);
   }
 
@@ -419,8 +405,7 @@ export default function EditorCanvasClient() {
     const key = getDraftKey(actor.userId, locale);
     const raw = localStorage.getItem(key);
     if (!raw) {
-      setStatus("No draft found for current locale.");
-      setIsError(true);
+      showToast("No draft found for current locale.", "warning");
       return;
     }
     try {
@@ -430,8 +415,7 @@ export default function EditorCanvasClient() {
       }
       applyYamlText(payload.yamlContent, { successStatus: "Draft restored." });
     } catch (error) {
-      setStatus(`Draft restore failed: ${error instanceof Error ? error.message : "unknown error"}`);
-      setIsError(true);
+      showToast(`Draft restore failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
     }
   }
 
@@ -441,19 +425,16 @@ export default function EditorCanvasClient() {
     if (options.skipStatusUpdate) {
       return;
     }
-    setStatus("Draft cleared.");
-    setIsError(false);
+    showToast("Draft cleared.", "error");
   }
 
   function syncYamlFromForm() {
     try {
       const yaml = serializeResumeToYaml(resume);
       setYamlPanel(yaml);
-      setStatus("YAML panel synchronized from form.");
-      setIsError(false);
+      showToast("YAML panel synchronized from form.");
     } catch (error) {
-      setStatus(`YAML export failed: ${error instanceof Error ? error.message : "unknown error"}`);
-      setIsError(true);
+      showToast(`YAML export failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
     }
   }
 
@@ -462,16 +443,13 @@ export default function EditorCanvasClient() {
       const parsed = parseYamlToResumeDocument(yamlPanel, actor?.displayName || "");
       const localValidation = validateResumeDocument(parsed);
       if (!localValidation.valid) {
-        setStatus(localValidation.errors.join(" "));
-        setIsError(true);
+        showToast(localValidation.errors.join(" "), "warning");
         return;
       }
       setResume(parsed);
-      setStatus("YAML imported to form.");
-      setIsError(false);
+      showToast("YAML imported to form.");
     } catch (error) {
-      setStatus(`YAML import failed: ${error instanceof Error ? error.message : "unknown error"}`);
-      setIsError(true);
+      showToast(`YAML import failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
     }
   }
 
@@ -480,8 +458,7 @@ export default function EditorCanvasClient() {
       const template = await fetchText(TEMPLATE_PATH);
       applyYamlText(template, { successStatus: "Template YAML loaded." });
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Template load failed.");
-      setIsError(true);
+      showToast(error instanceof Error ? error.message : "Template load failed.", "error");
     }
   }
 
@@ -498,19 +475,16 @@ export default function EditorCanvasClient() {
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 0);
-    setStatus(`Exported ${fileName}.`);
-    setIsError(false);
+    showToast(`Exported ${fileName}.`);
   }
 
   async function publishResume() {
     if (!validation.valid) {
-      setStatus(validation.errors.join(" "));
-      setIsError(true);
+      showToast(validation.errors.join(" "), "warning");
       return;
     }
     setIsBusy(true);
-    setStatus("Publishing resume...");
-    setIsError(false);
+    showToast("Publishing resume...");
 
     const response = await fetch("/api/resume/publish", {
       method: "POST",
@@ -526,16 +500,14 @@ export default function EditorCanvasClient() {
     });
     const payload = (await response.json()) as ApiDocumentResponse;
     if (!response.ok || payload.error || !payload.document) {
-      setStatus(payload.error || "Publish failed.");
-      setIsError(true);
+      showToast(payload.error || "Publish failed.", "error");
       setIsBusy(false);
       return;
     }
 
     setDocumentRow(payload.document);
     setRevisions(payload.revisions || []);
-    setStatus("Resume published. New revision created.");
-    setIsError(false);
+    showToast("Resume published. New revision created.");
     setIsBusy(false);
     clearDraft({ skipStatusUpdate: true });
   }
@@ -543,8 +515,7 @@ export default function EditorCanvasClient() {
   async function rollbackToRevision(revisionNumber: number) {
     if (!documentRow) return;
     setIsBusy(true);
-    setStatus(`Rolling back to revision ${revisionNumber}...`);
-    setIsError(false);
+    showToast(`Rolling back to revision ${revisionNumber}...`);
 
     const response = await fetch("/api/resume/rollback", {
       method: "POST",
@@ -557,8 +528,7 @@ export default function EditorCanvasClient() {
     });
     const payload = (await response.json()) as ApiDocumentResponse;
     if (!response.ok || payload.error || !payload.document) {
-      setStatus(payload.error || "Rollback failed.");
-      setIsError(true);
+      showToast(payload.error || "Rollback failed.", "error");
       setIsBusy(false);
       return;
     }
@@ -596,7 +566,7 @@ export default function EditorCanvasClient() {
         </div>
       </header>
 
-      {status && <p className={`status ${isError ? "status--error" : "status--ok"}`}>{status}</p>}
+      <StatusToast toast={toast} onClose={closeToast} />
 
       <div className="resume-editor-shell__content">
         <div className="resume-editor-form">
@@ -999,3 +969,4 @@ export default function EditorCanvasClient() {
     </section>
   );
 }
+

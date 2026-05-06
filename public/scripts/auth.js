@@ -301,8 +301,10 @@
   }
 
   function setStatus(message, isError = false) {
-    statusEl.textContent = message;
-    statusEl.classList.toggle('is-error', isError);
+    window.ResumeStatusToast?.show(message, isError ? 'error' : 'success');
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    statusEl.classList.remove('is-error');
   }
 
   function showResendVerification(visible) {

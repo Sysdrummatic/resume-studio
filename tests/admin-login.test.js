@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 
 const mainScript = fs.readFileSync(path.join(__dirname, '..', 'public', 'scripts', 'main.js'), 'utf8');
+const statusToastScript = fs.readFileSync(path.join(__dirname, '..', 'public', 'scripts', 'status-toast.js'), 'utf8');
 
 const DISABLED_MESSAGE = 'Editor login disabled. Configure the ADMIN_PASSWORD environment variable.';
 const DEFAULT_ERROR_MESSAGE = 'Incorrect password. Try again.';
@@ -49,6 +50,7 @@ function createDom(markup = '') {
   global.Event = window.Event;
   global.fetch = window.fetch;
 
+  window.eval(statusToastScript);
   window.eval(mainScript);
 
   function cleanup() {
@@ -118,8 +120,9 @@ test('refreshAdminLoginState disables controls when no password is configured', 
 
   assert.equal(passwordInput.disabled, true);
   assert.equal(submitButton.disabled, true);
-  assert.equal(errorElement.hidden, false);
+  assert.equal(errorElement.hidden, true);
   assert.equal(errorElement.textContent, DISABLED_MESSAGE);
+  assert.equal(document.querySelector('.resume-status-toast p').textContent, DISABLED_MESSAGE);
 });
 
 test('refreshAdminLoginState enables controls and focuses the input when password exists', (t) => {
@@ -166,8 +169,9 @@ test('failed login attempts show the default error and refocus the password fiel
   const submitEvent = new window.Event('submit', { bubbles: true, cancelable: true });
   loginForm.dispatchEvent(submitEvent);
 
-  assert.equal(errorElement.hidden, false);
+  assert.equal(errorElement.hidden, true);
   assert.equal(errorElement.textContent, DEFAULT_ERROR_MESSAGE);
+  assert.equal(document.querySelector('.resume-status-toast p').textContent, DEFAULT_ERROR_MESSAGE);
   assert.equal(document.activeElement, passwordInput);
 });
 
@@ -188,7 +192,8 @@ test('typing after an error hides the feedback message', (t) => {
 
   passwordInput.value = 'wrong';
   loginForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-  assert.equal(errorElement.hidden, false);
+  assert.equal(errorElement.hidden, true);
+  assert.equal(document.querySelector('.resume-status-toast p').textContent, DEFAULT_ERROR_MESSAGE);
 
   passwordInput.value = 'new-value';
   passwordInput.dispatchEvent(new window.Event('input', { bubbles: true }));
@@ -283,8 +288,9 @@ test('submitting login while admin password is not configured keeps panel locked
   passwordInput.value = 'anything';
   loginForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
 
-  assert.equal(errorElement.hidden, false);
+  assert.equal(errorElement.hidden, true);
   assert.equal(errorElement.textContent, DISABLED_MESSAGE);
+  assert.equal(document.querySelector('.resume-status-toast p').textContent, DISABLED_MESSAGE);
   assert.equal(accessSection.hidden, false);
   assert.equal(panel.hidden, true);
   assert.equal(window.localStorage.getItem('resume-studio:admin-unlocked'), null);

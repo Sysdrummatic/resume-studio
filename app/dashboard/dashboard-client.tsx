@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
+import { StatusToast, useStatusToast } from "../components/status-toast";
 import { BasicResumeDocument } from "../master-resume/resume-live-preview";
 
 type Props = {
@@ -336,8 +337,7 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
   const [previewPreset, setPreviewPreset] = useState<ResumePresetRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [status, setStatus] = useState("");
-  const [isError, setIsError] = useState(false);
+  const { toast, showToast, closeToast } = useStatusToast();
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -372,13 +372,11 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      setStatus(result.error || "Preset save failed.");
-      setIsError(true);
+      showToast(result.error || "Preset save failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
-    setStatus("Preset saved.");
-    setIsError(false);
+    showToast("Preset saved.");
     setIsModalOpen(false);
     setActivePreset(null);
   }
@@ -391,13 +389,11 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      setStatus(result.error || "Preset publish failed.");
-      setIsError(true);
+      showToast(result.error || "Preset publish failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
-    setStatus("Preset published.");
-    setIsError(false);
+    showToast("Preset published.");
   }
 
   async function deletePreset(preset: ResumePresetRow) {
@@ -409,23 +405,21 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
     setDeletingPresetId(null);
 
     if (!response.ok || result.error) {
-      setStatus(result.error || "Preset delete failed.");
-      setIsError(true);
+      showToast(result.error || "Preset delete failed.", "error");
       return;
     }
 
     setPresets((current) => current.filter((item) => item.id !== preset.id));
     setPreviewPreset((current) => (current?.id === preset.id ? null : current));
     setActivePreset((current) => (current?.id === preset.id ? null : current));
-    setStatus("Preset deleted.");
-    setIsError(false);
+    showToast("Preset deleted.", "error");
   }
 
   const modalOptions = useMemo(() => options, [options]);
 
   return (
     <div className="stack">
-      {status ? <p className={`status ${isError ? "status--error" : "status--ok"}`}>{status}</p> : null}
+      <StatusToast toast={toast} onClose={closeToast} />
 
       <section className="card stack">
         <div className="section-row">

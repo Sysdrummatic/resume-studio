@@ -818,15 +818,12 @@ function renderGithubActivity(activity) {
 
 function showError(error) {
   console.error(error);
-  const resume = document.querySelector('.resume');
-  if (!resume) return;
-  const errorBanner = document.querySelector('.error-banner') || document.createElement('div');
-  errorBanner.className = 'error-banner';
   const detail = error instanceof ValidationError ? error.message : error?.message || 'Unexpected error occurred.';
-  errorBanner.textContent = `Something went wrong while loading the resume. ${detail}`;
-  if (!errorBanner.isConnected) {
-    resume.appendChild(errorBanner);
-  }
+  showStatusToast(`Something went wrong while loading the resume. ${detail}`, 'error');
+}
+
+function showStatusToast(message, variant = 'success') {
+  window.ResumeStatusToast?.show(message, variant);
 }
 
 function initNavbarBehaviour() {
@@ -1003,8 +1000,7 @@ function refreshAdminLoginState() {
       submitButton.disabled = true;
     }
     if (errorElement) {
-      errorElement.textContent = disabledMessage;
-      errorElement.hidden = false;
+      showAdminLoginMessage(errorElement, disabledMessage);
     }
     return;
   }
@@ -1104,8 +1100,7 @@ function initAdminPanel() {
     event.preventDefault();
     if (!ADMIN_CONFIG.password) {
       if (errorElement) {
-        errorElement.textContent = disabledMessage;
-        errorElement.hidden = false;
+        showAdminLoginMessage(errorElement, disabledMessage);
       }
       loginForm.reset();
       return;
@@ -1124,12 +1119,17 @@ function initAdminPanel() {
         errorElement.hidden = true;
       }
     } else if (errorElement) {
-      errorElement.textContent = defaultErrorMessage;
-      errorElement.hidden = false;
+      showAdminLoginMessage(errorElement, defaultErrorMessage);
       focusElement(passwordInput);
     }
     loginForm.reset();
   });
+}
+
+function showAdminLoginMessage(errorElement, message) {
+  showStatusToast(message, 'error');
+  errorElement.textContent = message;
+  errorElement.hidden = true;
 }
 
 function unlockAdminPanel() {
