@@ -247,7 +247,7 @@ Checklist:
 - [x] Apply baseline indexing controls to robots metadata.
 - [ ] Add canonical URLs and OpenGraph/Twitter metadata.
 - [ ] Add multilingual SEO metadata: `hreflang`, canonical language handling, and future-ready locale route support such as `/r/{slug}/{locale}` without data-model changes.
-- [ ] Build candidate-facing language version management UI for adding, duplicating, previewing, publishing, and setting the default CV language.
+- [/] Build candidate-facing language version management UI. Current implementation adds draft language documents, stores language metadata in Supabase, and can set the default published CV language; duplication, per-version publishing controls, and richer previews remain follow-up work.
 - [ ] Add structured data (JSON-LD) for resume pages where applicable.
 - [ ] Add sitemap and robots configuration.
 - [ ] Verify compatibility redirects from old static routes.

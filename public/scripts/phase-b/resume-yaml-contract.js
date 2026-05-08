@@ -33,7 +33,7 @@ function normalizeText(value) {
 function normalizeLocale(locale) {
   const normalized = String(locale ?? "en").trim().toLowerCase().replace("_", "-");
   const primary = normalized.split("-")[0] || "en";
-  return SUPPORTED_LOCALES.has(primary) ? primary : "en";
+  return /^[a-z]{2}$/.test(primary) ? primary : "en";
 }
 
 function toInteger(value, fallback = 0) {

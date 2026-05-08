@@ -54,11 +54,16 @@ test("preset modal auto-selects the only summary and enables choice only for mul
 test("preset cards can open a rendered CV preview based on master resume selection", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
   const preview = read("app/master-resume/resume-live-preview.tsx");
+  const page = read("app/dashboard/page.tsx");
 
   assert.equal(client.includes("Open CV"), true);
   assert.equal(client.includes("PresetPreviewModal"), true);
   assert.equal(client.includes("buildPresetResumeDocument"), true);
   assert.equal(client.includes("BasicResumeDocument"), true);
+  assert.equal(page.includes("fetchResumeLanguages"), true);
+  assert.equal(page.includes("initialDocuments={resumeDocuments}"), true);
+  assert.equal(client.includes("buildLanguageOptions"), true);
+  assert.equal(client.includes("onLanguageSelect={setActiveLocale}"), true);
   assert.equal(preview.includes("export function BasicResumeDocument"), true);
 });
 

@@ -19,7 +19,13 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const actor = await getCurrentActor();
   const navItems = [
-    ...(actor ? [{ href: "/dashboard", label: "Dashboard" }, { href: "/master-resume", label: "Editor" }] : []),
+    ...(actor
+      ? [
+          { href: "/dashboard", label: "Dashboard" },
+          { href: "/master-resume", label: "Editor" },
+          { href: "/language-versions", label: "Language Versions" },
+        ]
+      : []),
     { href: "/resume", label: "Sample CV" },
     ...(!actor ? [{ href: "/login", label: "Login" }] : []),
   ];

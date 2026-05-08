@@ -69,7 +69,7 @@ export type ResumeRevisionItem = {
   created_by: string | null;
 };
 
-export type ResumeLocale = "en" | "pl";
+export type ResumeLocale = string;
 
 export const RESUME_REQUIRED_KEYS: Array<keyof ResumeDocument> = [
   "brand_initials",
@@ -143,7 +143,7 @@ export function normalizeLocale(value: unknown): ResumeLocale {
     .trim()
     .toLowerCase()
     .split("-")[0];
-  return normalized === "pl" ? "pl" : "en";
+  return /^[a-z]{2}$/.test(normalized) ? normalized : "en";
 }
 
 export function normalizeResumeDocument(value: unknown, fallbackName = ""): ResumeDocument {
@@ -326,20 +326,19 @@ export function validateResumeDocument(value: unknown): { valid: boolean; errors
   };
 }
 
-export const PREVIEW_LABELS: Record<
-  ResumeLocale,
-  {
-    summary: string;
-    experience: string;
-    education: string;
-    courses: string;
-    personalInfo: string;
-    skills: string;
-    techStack: string;
-    languages: string;
-    interests: string;
-  }
-> = {
+export type ResumePreviewLabels = {
+  summary: string;
+  experience: string;
+  education: string;
+  courses: string;
+  personalInfo: string;
+  skills: string;
+  techStack: string;
+  languages: string;
+  interests: string;
+};
+
+export const PREVIEW_LABELS: Record<string, ResumePreviewLabels> = {
   en: {
     summary: "Summary",
     experience: "Experience",
@@ -363,3 +362,7 @@ export const PREVIEW_LABELS: Record<
     interests: "Zainteresowania",
   },
 };
+
+export function getPreviewLabels(locale: ResumeLocale): ResumePreviewLabels {
+  return PREVIEW_LABELS[normalizeLocale(locale)] || PREVIEW_LABELS.en;
+}

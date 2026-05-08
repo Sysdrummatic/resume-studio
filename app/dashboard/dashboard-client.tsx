@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
+import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { BasicResumeDocument } from "../master-resume/resume-live-preview";
+import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 
 type Props = {
   masterResume: ResumeDocumentRow | null;
+  initialDocuments: ResumeDocumentRow[];
+  languageOptions: ResumeLanguageRow[];
   initialPresets: ResumePresetRow[];
 };
 
@@ -161,6 +164,28 @@ function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetS
   };
 }
 
+function getFallbackLanguageLabel(locale: string): { label: string; shortLabel: string } {
+  if (locale === "en") return { label: "English", shortLabel: "EN" };
+  if (locale === "pl") return { label: "Polski", shortLabel: "PL" };
+  if (locale === "de") return { label: "Deutsch", shortLabel: "DE" };
+  return { label: locale.toUpperCase(), shortLabel: locale.slice(0, 2).toUpperCase() };
+}
+
+function buildLanguageOptions(documents: ResumeDocumentRow[], languages: ResumeLanguageRow[]): ResumeLanguageOption[] {
+  const metadata = new Map(languages.map((language) => [language.code, language]));
+  return documents
+    .map((document) => {
+      const fallback = getFallbackLanguageLabel(document.locale);
+      const language = metadata.get(document.locale);
+      return {
+        code: document.locale,
+        label: language?.label || fallback.label,
+        shortLabel: language?.short_label || fallback.shortLabel,
+      };
+    })
+    .sort((left, right) => left.code.localeCompare(right.code));
+}
+
 function mergePreset(current: ResumePresetRow[], nextPreset: ResumePresetRow) {
   const exists = current.some((preset) => preset.id === nextPreset.id);
   if (!exists) return [nextPreset, ...current];
@@ -305,15 +330,28 @@ function PresetModal({
 
 function PresetPreviewModal({
   masterResume,
+  documents,
+  languages,
   preset,
   onClose,
 }: {
   masterResume: ResumeDocumentRow;
+  documents: ResumeDocumentRow[];
+  languages: ResumeLanguageRow[];
   preset: ResumePresetRow;
   onClose: () => void;
 }) {
-  const previewResume = buildPresetResumeDocument(masterResume.yaml_content, preset.selection);
-  const locale = (masterResume.locale === "pl" ? "pl" : "en") as ResumeLocale;
+  const availableDocuments = documents.length ? documents : [masterResume];
+  const initialLocale = availableDocuments.some((document) => document.locale === preset.default_locale)
+    ? preset.default_locale
+    : masterResume.locale;
+  const [activeLocale, setActiveLocale] = useState<ResumeLocale>(initialLocale);
+  const activeDocument =
+    availableDocuments.find((document) => document.locale === activeLocale) ||
+    availableDocuments.find((document) => document.locale === masterResume.locale) ||
+    masterResume;
+  const previewResume = buildPresetResumeDocument(activeDocument.yaml_content, preset.selection);
+  const cvLanguages = buildLanguageOptions(availableDocuments, languages);
 
   return (
     <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Preset CV preview">
@@ -327,7 +365,14 @@ function PresetPreviewModal({
         </div>
         {previewResume ? (
           <div className="dashboard-preset-preview">
-            <BasicResumeDocument locale={locale} resume={previewResume} status={preset.is_public ? "public" : "draft"} aiGenerated={preset.ai_generated} />
+            <BasicResumeDocument
+              locale={activeDocument.locale}
+              resume={previewResume}
+              languages={cvLanguages}
+              onLanguageSelect={setActiveLocale}
+              status={preset.is_public ? "public" : "draft"}
+              aiGenerated={preset.ai_generated}
+            />
           </div>
         ) : (
           <p className="status status--error">CV preview could not be rendered from the master resume.</p>
@@ -337,7 +382,7 @@ function PresetPreviewModal({
   );
 }
 
-export default function DashboardClient({ masterResume, initialPresets }: Props) {
+export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
@@ -530,6 +575,8 @@ export default function DashboardClient({ masterResume, initialPresets }: Props)
       {previewPreset && masterResume ? (
         <PresetPreviewModal
           masterResume={masterResume}
+          documents={initialDocuments}
+          languages={languageOptions}
           preset={previewPreset}
           onClose={() => {
             setPreviewPreset(null);

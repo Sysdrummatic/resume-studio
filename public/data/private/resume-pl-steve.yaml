@@ -1,0 +1,118 @@
+brand_initials: "ST"
+name: "Steeve Tantums"
+role: "Architekt AI"
+summary:
+  - position: "Architekt AI"
+    description: "Architekt AI z doświadczeniem komercyjnym w sprzedaży B2B, komunikacji technicznej i stosowanej inżynierii informacji. Steeve projektuje praktyczne rozwiązania AI, które łączą cele biznesowe z niezawodnymi przepływami danych, nadzorem nad modelami i adopcją przez użytkowników. Ukończył specjalistyczne szkolenia z AI, zrealizował kilka prototypów kontraktowych i obecnie koncentruje się na projektowaniu skalowalnych systemów AI dla produktów klienckich i wewnętrznych."
+    default: true
+  - position: "Technical Writer"
+    description: "Technical Writer z doświadczeniem w przekładaniu złożonych zagadnień z obszaru oprogramowania, danych i AI na czytelną dokumentację dla użytkowników biznesowych, zespołów wdrożeniowych i klientów. Steeve tworzy przewodniki produktowe, notatki API, materiały onboardingowe i opisy rozwiązań, które pomagają interesariuszom technicznym i nietechnicznym zrozumieć działanie systemów oraz korzystać z nich odpowiedzialnie."
+    default: false
+  - position: "Specjalista ds. sprzedaży"
+    description: "Specjalista ds. sprzedaży z doświadczeniem w konsultacyjnej sprzedaży B2B, rozpoznawaniu potrzeb klientów, przygotowywaniu ofert i rozwijaniu relacji z klientami. Steeve łączy wykształcenie marketingowe z techniczną ciekawością, dzięki czemu skutecznie przekłada potrzeby klientów na język rozwiązań i wspiera długie cykle sprzedażowe usług software'owych i technologicznych."
+    default: false
+contact:
+  - label: Lokalizacja
+    value: "Kraków, Polska"
+  - label: Telefon
+    value: "+48 501 284 739"
+    link: "tel:+48501284739"
+  - label: E-mail
+    value: "steeve.tantums@example.com"
+    link: "mailto:steeve.tantums@example.com"
+  - label: LinkedIn
+    value: "linkedin.com/in/steevetantums"
+    link: "https://www.linkedin.com/in/steevetantums"
+  - label: Portfolio
+    value: "steevetantums.ai"
+    link: "https://steevetantums.ai"
+qr_codes:
+  - label: Portfolio
+    image: "images/qrs/qr.png"
+    size: 130
+skills:
+  - name: Architektura rozwiązań AI
+    level: 4
+  - name: Prompt engineering
+    level: 4
+  - name: Dokumentacja techniczna
+    level: 5
+  - name: Analiza potrzeb w sprzedaży B2B
+    level: 4
+  - name: Komunikacja z interesariuszami
+    level: 5
+  - name: Mapowanie procesów danych
+    level: 4
+tech_stack:
+  - Python
+  - OpenAI API
+  - Azure AI Foundry
+  - LangChain
+  - PostgreSQL
+  - Power BI
+  - Confluence
+  - Jira
+  - HubSpot CRM
+  - Notion
+languages:
+  - name: Angielski
+    level_text: "Biegły"
+    level: 5
+  - name: Polski
+    level_text: "Profesjonalny"
+    level: 4
+  - name: Niemiecki
+    level_text: "Podstawowy"
+    level: 2
+interests:
+  - Praktyczne produkty AI
+  - Badania rynku
+  - Zarządzanie wiedzą
+  - Psychologia biznesu
+experience:
+  - period: "2025-01 - obecnie"
+    company: "Kontrakty freelance z architektury AI"
+    role: "Architekt AI i konsultant"
+    highlights:
+      - Zaprojektował prototyp asystenta RAG dla firmy konsultingowej, obejmujący ingest treści, strukturę promptów, checklistę ewaluacyjną i dokumentację przekazania
+      - Zbudował proof of concept AI wspierający sprzedaż, który podsumowywał rozmowy discovery, generował szkice follow-upów i mapował obiekcje klientów na pola CRM
+      - Przygotował notatki architektoniczne dotyczące bezpiecznej adopcji AI, obejmujące granice danych, kroki weryfikacji przez człowieka i mierzalne kryteria sukcesu
+  - period: "2022-08 - 2024-12"
+    company: "BrightLayer Software"
+    role: "Technical Writer"
+    highlights:
+      - Tworzył dokumentację produktową, release notes i przewodniki onboardingowe dla platformy analitycznej SaaS używanej przez zespoły sprzedaży i operacji
+      - Prowadził rozmowy z inżynierami i product managerami, aby przekładać zachowanie techniczne systemu na zrozumiałe instrukcje dla użytkowników i notatki wdrożeniowe
+      - Stworzył wielokrotnego użytku szablony dokumentacji, które skróciły czas publikacji i poprawiły spójność w sześciu modułach produktu
+  - period: "2018-04 - 2022-07"
+    company: "Nordbridge Digital Solutions"
+    role: "Specjalista ds. sprzedaży B2B"
+    highlights:
+      - Prowadził rozmowy discovery, przygotowywał oferty i obsługiwał odnowienia kontraktów dla usług CRM, automatyzacji marketingu i raportowania danych
+      - Współpracował z konsultantami technicznymi przy przygotowywaniu zakresów rozwiązań dla klientów z handlu detalicznego, logistyki i usług profesjonalnych
+      - Zwiększył konwersję kwalifikowanych szans sprzedażowych dzięki usprawnieniu skryptów sprzedażowych, segmentacji klientów i sekwencji follow-up
+  - period: "2016-07 - 2018-03"
+    company: "MarketPoint Agency"
+    role: "Młodszy koordynator marketingu i sprzedaży"
+    highlights:
+      - Wspierał kampanie lead generation, badania klientów i przygotowywanie prezentacji sprzedażowych dla klientów technologicznych
+      - Utrzymywał dane w CRM i przygotowywał cotygodniowe raporty pipeline dla zespołu account managementu
+      - Koordynował aktualizacje treści na landing page'ach kampanii i w newsletterach klienckich
+education:
+  - period: "2024-10 - obecnie"
+    school: "Politechnika Warszawska, magister inżynierii informacji"
+    detail: "Aktualne studia skoncentrowane na systemach danych, architekturze informacji, podstawach uczenia maszynowego i integracji przedsiębiorstw."
+  - period: "2013-10 - 2016-06"
+    school: "Uniwersytet Ekonomiczny w Krakowie, licencjat z marketingu"
+    detail: "Specjalizacja w marketingu cyfrowym, zachowaniach konsumenckich, analizie rynku i komunikacji biznesowej."
+courses:
+  - year: 2025
+    name: "Profesjonalna architektura rozwiązań AI - CloudMind Academy"
+  - year: 2024
+    name: "Praktyczna generatywna AI z Pythonem i API - DataForge Institute"
+  - year: 2024
+    name: "Odpowiedzialna AI, ewaluacja i governance - Applied AI School"
+  - year: 2023
+    name: "Zaawansowany technical writing dla produktów software'owych - WriteTech Labs"
+  - year: 2021
+    name: "Konsultacyjna sprzedaż B2B i strategia obsługi klienta - SalesCraft Academy"

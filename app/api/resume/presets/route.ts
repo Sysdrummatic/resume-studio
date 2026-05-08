@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { fetchResumePresetsForUser, normalizeResumePresetSelection, saveResumePreset, validateResumePresetSelection } from "../../../lib/resume-server";
+import { normalizeLocale } from "../../../lib/resume-schema";
 
 type PresetBody = {
   documentId?: string;
@@ -53,7 +54,7 @@ export async function POST(request: Request): Promise<Response> {
     isPublic: typeof body.isPublic === "boolean" ? body.isPublic : false,
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
     aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
-    defaultLocale: body.defaultLocale === "pl" ? "pl" : "en",
+    defaultLocale: normalizeLocale(body.defaultLocale),
   });
 
   if (!preset) {

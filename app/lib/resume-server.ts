@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
-import { normalizeLocale, normalizeResumeDocument } from "./resume-schema";
+import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 
 export type ResumeDocumentRow = {
@@ -30,6 +30,25 @@ type ResumeRevisionRow = {
 export type ResumeDocumentPayload = {
   document: ResumeDocumentRow;
   revisions: ResumeRevisionItem[];
+};
+
+export type ResumeLanguageRow = {
+  code: ResumeLocale;
+  label: string;
+  short_label: string;
+  labels: Record<string, string>;
+  is_enabled: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ResumeLanguageInput = {
+  code: string;
+  label: string;
+  shortLabel?: string;
+  labels?: Record<string, string>;
+  isEnabled?: boolean;
 };
 
 export type ResumePresetSelection = {
@@ -59,6 +78,18 @@ export type ResumePresetRow = {
   updated_at: string;
 };
 
+export type ResumePresetVariantRow = {
+  id: string;
+  preset_id: string;
+  document_id: string;
+  user_id: string;
+  locale: ResumeLocale;
+  selection: ResumePresetSelection;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type PublishedResumePreset = {
   preset: ResumePresetRow;
   document: ResumeDocumentRow;
@@ -71,14 +102,16 @@ export type PublishedResumePreset = {
   }>;
 };
 
-const LANGUAGE_LABELS: Record<ResumeLocale, { label: string; shortLabel: string }> = {
+const FALLBACK_LANGUAGE_LABELS: Record<string, { label: string; shortLabel: string }> = {
   en: { label: "English", shortLabel: "EN" },
   pl: { label: "Polski", shortLabel: "PL" },
 };
 
+const RESUME_LANGUAGE_SELECT = "code,label,short_label,labels,is_enabled,sort_order,created_at,updated_at";
 const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,ai_generated,updated_at";
 const RESUME_PRESET_SELECT =
   "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at";
+const RESUME_PRESET_VARIANT_SELECT = "id,preset_id,document_id,user_id,locale,selection,is_default,created_at,updated_at";
 
 const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
   summary: [],
@@ -103,6 +136,124 @@ function readResumeTemplateYaml(): string | null {
   } catch {
     return null;
   }
+}
+
+function normalizeLabelMap(value: unknown): Record<string, string> {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+  return Object.fromEntries(
+    Object.entries(source)
+      .map(([key, label]) => [key.trim(), typeof label === "string" ? label.trim() : ""])
+      .filter(([key, label]) => key && label),
+  );
+}
+
+function getFallbackLanguageLabel(code: ResumeLocale) {
+  return FALLBACK_LANGUAGE_LABELS[code] || {
+    label: code.toUpperCase(),
+    shortLabel: code.slice(0, 2).toUpperCase(),
+  };
+}
+
+export function normalizeResumeLanguageInput(input: ResumeLanguageInput): ResumeLanguageInput {
+  const code = normalizeLocale(input.code);
+  const label = String(input.label || "").trim();
+  const shortLabel = String(input.shortLabel || code.toUpperCase())
+    .trim()
+    .toUpperCase()
+    .slice(0, 2);
+  const labels = normalizeLabelMap(input.labels);
+  return {
+    code,
+    label,
+    shortLabel,
+    labels: {
+      ...PREVIEW_LABELS.en,
+      ...labels,
+      language_switcher: labels.language_switcher || "Language",
+      public_view_badge: labels.public_view_badge || "Public view",
+      private_view_badge: labels.private_view_badge || "Private view",
+      draft_view_badge: labels.draft_view_badge || "Draft",
+      ai_generated_badge: labels.ai_generated_badge || "AI generated",
+    },
+    isEnabled: input.isEnabled !== false,
+  };
+}
+
+export function validateResumeLanguageInput(input: ResumeLanguageInput): string[] {
+  const normalized = normalizeResumeLanguageInput(input);
+  const errors: string[] = [];
+  if (!/^[a-z]{2}$/.test(normalized.code)) {
+    errors.push("Language code must be a two-letter ISO code.");
+  }
+  if (!normalized.label) {
+    errors.push("Language name is required.");
+  }
+  if (!/^[A-Z]{2}$/.test(normalized.shortLabel || "")) {
+    errors.push("Short label must contain two uppercase letters.");
+  }
+  return errors;
+}
+
+export async function fetchResumeLanguages(options: { enabledOnly?: boolean } = {}): Promise<ResumeLanguageRow[]> {
+  const enabledQuery = options.enabledOnly ? "&is_enabled=eq.true" : "";
+  const result = await queryTable<ResumeLanguageRow>({
+    table: "resume_languages",
+    select: RESUME_LANGUAGE_SELECT,
+    useServiceRole: true,
+    query: `order=sort_order.asc,code.asc${enabledQuery}`,
+  });
+
+  if (!result.data || result.error) {
+    return [];
+  }
+
+  return result.data.map((language) => ({
+    ...language,
+    code: normalizeLocale(language.code),
+    labels: normalizeLabelMap(language.labels),
+    is_enabled: Boolean(language.is_enabled),
+    sort_order: Number(language.sort_order) || 100,
+  }));
+}
+
+export async function upsertResumeLanguage(input: ResumeLanguageInput): Promise<ResumeLanguageRow | null> {
+  const normalized = normalizeResumeLanguageInput(input);
+  if (validateResumeLanguageInput(normalized).length > 0) {
+    return null;
+  }
+
+  const existingLanguages = await fetchResumeLanguages();
+  const existing = existingLanguages.find((language) => language.code === normalized.code);
+  if (existing) {
+    return existing;
+  }
+
+  const values = {
+    code: normalized.code,
+    label: normalized.label,
+    short_label: normalized.shortLabel,
+    labels: normalized.labels as Record<string, unknown>,
+    is_enabled: normalized.isEnabled,
+    sort_order: (existingLanguages.length + 1) * 10,
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = await insertTable({
+    table: "resume_languages",
+    useServiceRole: true,
+    values,
+  });
+
+  if (!result.data || result.error) {
+    return null;
+  }
+
+  const row = result.data[0] as unknown as ResumeLanguageRow;
+  return {
+    ...row,
+    code: normalizeLocale(row.code),
+    labels: normalizeLabelMap(row.labels),
+  };
 }
 
 export function buildDefaultResumeYaml(name: string): string {
@@ -186,6 +337,20 @@ export async function fetchResumeDocumentsForUser(userId: string): Promise<Resum
   return result.data;
 }
 
+export async function fetchResumeLanguageVersionsForUser(userId: string): Promise<
+  Array<
+    ResumeLanguageRow & {
+      document: ResumeDocumentRow | null;
+    }
+  >
+> {
+  const [languages, documents] = await Promise.all([fetchResumeLanguages(), fetchResumeDocumentsForUser(userId)]);
+  return languages.map((language) => ({
+    ...language,
+    document: documents.find((document) => document.locale === language.code) || null,
+  }));
+}
+
 function normalizeIndexList(value: unknown): number[] {
   if (!Array.isArray(value)) return [];
   return Array.from(
@@ -262,6 +427,89 @@ export async function fetchResumePresetsForUser(userId: string): Promise<ResumeP
   }));
 }
 
+async function fetchResumePresetVariants(presetId: string): Promise<ResumePresetVariantRow[]> {
+  const result = await queryTable<ResumePresetVariantRow>({
+    table: "resume_preset_variants",
+    select: RESUME_PRESET_VARIANT_SELECT,
+    useServiceRole: true,
+    query: `preset_id=eq.${encodeURIComponent(presetId)}&order=locale.asc`,
+  });
+
+  if (!result.data || result.error) {
+    return [];
+  }
+
+  return result.data.map((variant) => ({
+    ...variant,
+    locale: normalizeLocale(variant.locale),
+    selection: normalizeResumePresetSelection(variant.selection),
+    is_default: Boolean(variant.is_default),
+  }));
+}
+
+function buildImplicitPresetVariants(
+  preset: ResumePresetRow,
+  documents: ResumeDocumentRow[],
+  storedVariants: ResumePresetVariantRow[],
+): ResumePresetVariantRow[] {
+  const storedLocales = new Set(storedVariants.map((variant) => variant.locale));
+  const now = new Date().toISOString();
+  const implicitVariants = documents
+    .filter((document) => !storedLocales.has(document.locale))
+    .map<ResumePresetVariantRow>((document) => ({
+      id: `implicit-${preset.id}-${document.locale}`,
+      preset_id: preset.id,
+      document_id: document.id,
+      user_id: preset.user_id,
+      locale: normalizeLocale(document.locale),
+      selection: normalizeResumePresetSelection(preset.selection),
+      is_default: normalizeLocale(document.locale) === normalizeLocale(preset.default_locale),
+      created_at: now,
+      updated_at: now,
+    }));
+
+  return [...storedVariants, ...implicitVariants].sort((left, right) => left.locale.localeCompare(right.locale));
+}
+
+async function upsertResumePresetVariant(
+  accessToken: string,
+  userId: string,
+  preset: ResumePresetRow,
+  document: ResumeDocumentRow,
+  selection: ResumePresetSelection,
+): Promise<void> {
+  const locale = normalizeLocale(document.locale);
+  const variants = await fetchResumePresetVariants(preset.id);
+  const existing = variants.find((variant) => variant.locale === locale);
+  const values = {
+    preset_id: preset.id,
+    document_id: document.id,
+    user_id: userId,
+    locale,
+    selection: selection as unknown as Record<string, unknown>,
+    is_default: locale === normalizeLocale(preset.default_locale),
+  };
+
+  if (existing) {
+    await updateTable({
+      table: "resume_preset_variants",
+      accessToken,
+      query: `id=eq.${encodeURIComponent(existing.id)}&user_id=eq.${encodeURIComponent(userId)}`,
+      values: {
+        ...values,
+        updated_at: new Date().toISOString(),
+      },
+    });
+    return;
+  }
+
+  await insertTable({
+    table: "resume_preset_variants",
+    accessToken,
+    values,
+  });
+}
+
 function buildPublicLanguageHref(slug: string, locale: ResumeLocale, defaultLocale: ResumeLocale): string {
   return locale === defaultLocale ? `/r/${encodeURIComponent(slug)}` : `/r/${encodeURIComponent(slug)}?lang=${encodeURIComponent(locale)}`;
 }
@@ -298,27 +546,46 @@ export async function fetchPublishedResumePresetBySlug(slug: string, localeInput
 
   const defaultLocale = normalizeLocale(preset.default_locale || document.locale);
   const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
+  const normalizedPreset: ResumePresetRow = {
+    ...preset,
+    default_locale: defaultLocale,
+    selection: normalizeResumePresetSelection(preset.selection),
+  };
   const documentsResult = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
     select: RESUME_DOCUMENT_SELECT,
     useServiceRole: true,
     query: `user_id=eq.${encodeURIComponent(preset.user_id)}&is_public=eq.true&order=locale.asc`,
   });
-  const languageDocuments = documentsResult.data?.length ? documentsResult.data : [document];
+  const publicDocuments = documentsResult.data?.length ? documentsResult.data : [document].filter((item) => item.is_public);
+  const publicDocumentById = new Map(publicDocuments.map((item) => [item.id, item]));
+  const storedVariants = await fetchResumePresetVariants(preset.id);
+  const variants = buildImplicitPresetVariants(normalizedPreset, publicDocuments, storedVariants);
+  const publicVariants = variants.filter((variant) => publicDocumentById.has(variant.document_id));
+  const activeVariant =
+    publicVariants.find((variant) => variant.locale === requestedLocale) ||
+    publicVariants.find((variant) => variant.locale === defaultLocale) ||
+    publicVariants.find((variant) => variant.is_default);
+  const languageDocuments = publicVariants.length
+    ? publicVariants.map((variant) => publicDocumentById.get(variant.document_id)).filter((item): item is ResumeDocumentRow => Boolean(item))
+    : publicDocuments;
+  if (languageDocuments.length === 0) {
+    return null;
+  }
   const activeDocument =
+    (activeVariant ? publicDocumentById.get(activeVariant.document_id) : null) ||
     languageDocuments.find((item) => item.locale === requestedLocale) ||
     languageDocuments.find((item) => item.locale === defaultLocale) ||
     document;
+  const activeSelection = activeVariant ? activeVariant.selection : normalizeResumePresetSelection(preset.selection);
 
-  const normalizedPreset: ResumePresetRow = {
-    ...preset,
-    default_locale: defaultLocale,
-    selection: normalizeResumePresetSelection(preset.selection),
-  };
-  const resume = buildResumeDocumentFromPreset(activeDocument.yaml_content, normalizedPreset.selection);
+  const resume = buildResumeDocumentFromPreset(activeDocument.yaml_content, activeSelection);
   if (!resume) {
     return null;
   }
+
+  const languageMetadata = await fetchResumeLanguages({ enabledOnly: true });
+  const languageLabels = new Map(languageMetadata.map((language) => [language.code, language]));
 
   return {
     preset: normalizedPreset,
@@ -326,11 +593,46 @@ export async function fetchPublishedResumePresetBySlug(slug: string, localeInput
     resume,
     languages: languageDocuments.map((item) => ({
       code: item.locale,
-      label: LANGUAGE_LABELS[item.locale].label,
-      shortLabel: LANGUAGE_LABELS[item.locale].shortLabel,
+      label: languageLabels.get(item.locale)?.label || getFallbackLanguageLabel(item.locale).label,
+      shortLabel: languageLabels.get(item.locale)?.short_label || getFallbackLanguageLabel(item.locale).shortLabel,
       href: buildPublicLanguageHref(normalizedSlug, item.locale, defaultLocale),
     })),
   };
+}
+
+export async function setDefaultResumeLocaleForUser(accessToken: string, userId: string, localeInput: string): Promise<boolean> {
+  const locale = normalizeLocale(localeInput);
+  const documents = await fetchResumeDocumentsForUser(userId);
+  if (!documents.some((document) => document.locale === locale)) {
+    return false;
+  }
+
+  const presetsResult = await updateTable({
+    table: "resume_presets",
+    accessToken,
+    query: `user_id=eq.${encodeURIComponent(userId)}`,
+    values: {
+      default_locale: locale,
+      updated_at: new Date().toISOString(),
+    },
+  });
+
+  const variants = await Promise.all((await fetchResumePresetsForUser(userId)).map((preset) => fetchResumePresetVariants(preset.id)));
+  await Promise.all(
+    variants.flat().map((variant) =>
+      updateTable({
+        table: "resume_preset_variants",
+        accessToken,
+        query: `id=eq.${encodeURIComponent(variant.id)}&user_id=eq.${encodeURIComponent(userId)}`,
+        values: {
+          is_default: variant.locale === locale,
+          updated_at: new Date().toISOString(),
+        },
+      }),
+    ),
+  );
+
+  return !presetsResult.error;
 }
 
 async function fetchDocumentById(accessToken: string, documentId: string, userId: string): Promise<ResumeDocumentRow | null> {
@@ -404,10 +706,12 @@ export async function saveResumePreset(
   }
 
   const row = result.data[0] as unknown as ResumePresetRow;
-  return {
+  const preset = {
     ...row,
     selection: normalizeResumePresetSelection(row.selection),
   };
+  await upsertResumePresetVariant(accessToken, userId, preset, document, payload.selection);
+  return preset;
 }
 
 export async function publishResumePreset(
@@ -441,10 +745,25 @@ export async function publishResumePreset(
   }
 
   const row = result.data[0] as unknown as ResumePresetRow;
-  return {
+  const preset = {
     ...row,
     selection: normalizeResumePresetSelection(row.selection),
   };
+  const variants = await fetchResumePresetVariants(preset.id);
+  await Promise.all(
+    variants.map((variant) =>
+      updateTable({
+        table: "resume_preset_variants",
+        accessToken,
+        query: `id=eq.${encodeURIComponent(variant.id)}&user_id=eq.${encodeURIComponent(userId)}`,
+        values: {
+          is_default: variant.locale === preset.default_locale,
+          updated_at: new Date().toISOString(),
+        },
+      }),
+    ),
+  );
+  return preset;
 }
 
 export async function deleteResumePreset(accessToken: string, userId: string, presetId: string): Promise<boolean> {
@@ -476,7 +795,7 @@ export async function ensureResumeDocument(
         title: "Master resume",
         yaml_content: buildDefaultResumeYaml(fallbackName),
         schema_version: 1,
-        is_public: true,
+        is_public: false,
         allow_indexing: false,
         ai_generated: false,
         created_by: userId,
@@ -534,6 +853,7 @@ export async function publishResumeDocument(
         schema_version: 1,
         is_public: payload.isPublic,
         allow_indexing: payload.allowIndexing,
+        ai_generated: Boolean(payload.aiGenerated),
         created_by: userId,
       },
     });
@@ -551,6 +871,7 @@ export async function publishResumeDocument(
         yaml_content: payload.yamlContent,
         is_public: payload.isPublic,
         allow_indexing: payload.allowIndexing,
+        ai_generated: Boolean(payload.aiGenerated),
         updated_at: new Date().toISOString(),
       },
     });

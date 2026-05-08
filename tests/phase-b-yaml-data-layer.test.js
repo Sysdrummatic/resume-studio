@@ -144,7 +144,7 @@ test("migration plan creates EN/PL documents, revisions, and links", () => {
 test("normalizeLocale handles BCP47-like values and unsupported locales", () => {
   assert.equal(normalizeLocale("PL_pl"), "pl");
   assert.equal(normalizeLocale("en-US"), "en");
-  assert.equal(normalizeLocale("de-DE"), "en");
+  assert.equal(normalizeLocale("de-DE"), "de");
   assert.equal(normalizeLocale(null), "en");
 });
 

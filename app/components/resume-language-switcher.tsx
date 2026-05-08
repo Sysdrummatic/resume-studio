@@ -33,11 +33,16 @@ export default function ResumeLanguageSwitcher({ languages, activeLocale, ariaLa
   }
 
   return (
-    <div className={`language-switcher ${isBusy ? "language-switcher--busy" : ""}`} aria-label={ariaLabel}>
+    <div
+      className={`resume-language-switcher language-switcher ${isBusy ? "resume-language-switcher--busy language-switcher--busy" : ""}`}
+      aria-label={ariaLabel}
+    >
       {languages.map((language) => {
         const isActive = normalizeLocaleCode(language.code) === normalizeLocaleCode(activeLocale);
         const label = getLanguageDisplayLabel(language, activeLocale, languages.length);
-        const className = `language-switcher__option ${isActive ? "language-switcher__option--active" : ""}`;
+        const className = `resume-language-switcher__option language-switcher__option ${
+          isActive ? "resume-language-switcher__option--active language-switcher__option--active" : ""
+        }`;
 
         if (language.href) {
           return (
@@ -54,7 +59,10 @@ export default function ResumeLanguageSwitcher({ languages, activeLocale, ariaLa
             className={className}
             aria-current={isActive ? "true" : undefined}
             disabled={isBusy}
-            onClick={() => onSelect?.(language.code)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelect?.(language.code);
+            }}
           >
             {label}
           </button>

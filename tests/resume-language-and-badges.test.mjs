@@ -9,16 +9,21 @@ function read(relativePath) {
 
 test("resume language switcher implements full-name and compact locale display rules", () => {
   const source = read("app/components/resume-language-switcher.tsx");
+  const styles = read("app/globals.css");
 
   assert.equal(source.includes("export function getLanguageDisplayLabel"), true);
   assert.equal(source.includes("totalLanguages <= 2"), true);
   assert.equal(source.includes("option.shortLabel || option.code.slice(0, 2).toUpperCase()"), true);
+  assert.equal(source.includes("resume-language-switcher"), true);
   assert.equal(source.includes("aria-current={isActive ? \"true\" : undefined}"), true);
+  assert.equal(styles.includes(".resume-language-switcher,"), true);
+  assert.equal(styles.includes(".resume-language-switcher__option,"), true);
+  assert.equal(styles.includes("min-height: calc(var(--chip-font-size) + (2 * var(--chip-padding-y)))"), true);
 });
 
 test("resume badges support public draft and ai generated states", () => {
   const source = read("app/components/resume-badges.tsx");
-  const styles = read("app/resume/resume.css");
+  const styles = read("app/globals.css");
 
   assert.equal(source.includes('status: "public" | "draft"'), true);
   assert.equal(source.includes("aiGenerated"), true);
@@ -39,6 +44,32 @@ test("resume renderers use shared language switcher and badges", () => {
   assert.equal(preview.includes("ResumeBadges"), true);
   assert.equal(publicRoute.includes("searchParams"), true);
   assert.equal(publicRoute.includes("lang"), true);
+});
+
+test("master resume preview receives all editor language options for in-CV language badges", () => {
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const preview = read("app/master-resume/resume-live-preview.tsx");
+  const switcher = read("app/components/resume-language-switcher.tsx");
+
+  assert.equal(preview.includes("languages?: ResumeLanguageOption[]"), true);
+  assert.equal(preview.includes("onLanguageSelect?: (locale: string) => void"), true);
+  assert.equal(editor.includes("languages={languageOptions.map"), true);
+  assert.equal(editor.includes("onLanguageSelect={handleLocaleSwitch}"), true);
+  assert.equal(preview.includes("languages={languages}"), true);
+  assert.equal(switcher.includes("event.stopPropagation()"), true);
+});
+
+test("resume visual shell keeps full-width hero, capsule badges, and centered timeline dots", () => {
+  const resumeStyles = read("app/resume/resume.css");
+  const sharedStyles = read("app/globals.css");
+
+  assert.equal(resumeStyles.includes("inline-size: calc(100% + (2 * var(--space-lg)))"), true);
+  assert.equal(resumeStyles.includes("left: calc(var(--axis-position) - 1.5px)"), true);
+  assert.equal(sharedStyles.includes(".resume-language-switcher,"), true);
+  assert.equal(sharedStyles.includes(".resume-badge,"), true);
+  assert.equal(sharedStyles.includes("font-size: var(--chip-font-size);"), true);
+  assert.equal(sharedStyles.includes("box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04)"), true);
+  assert.equal(sharedStyles.includes("left: calc(var(--timeline-axis-offset) - 1.5px)"), true);
 });
 
 test("Supabase migration prepares multilingual CV metadata", () => {

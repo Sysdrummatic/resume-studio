@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
-import { getDefaultSummary, PREVIEW_LABELS } from "../lib/resume-schema";
+import { getDefaultSummary, getPreviewLabels } from "../lib/resume-schema";
 import ResumeBadges from "../components/resume-badges";
 import ResumeLanguageSwitcher from "../components/resume-language-switcher";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
@@ -12,6 +12,8 @@ export type ResumeEditorStyle = "basic" | "empty";
 type Props = {
   locale: ResumeLocale;
   resume: ResumeDocument;
+  languages?: ResumeLanguageOption[];
+  onLanguageSelect?: (locale: string) => void;
   styleCode: ResumeEditorStyle;
   yamlContent: string;
   isExpanded: boolean;
@@ -22,7 +24,7 @@ type Props = {
 
 const BASIC_PREVIEW_WIDTH = 920;
 
-const LANGUAGE_LABELS: Record<ResumeLocale, string> = {
+const LANGUAGE_LABELS: Record<string, string> = {
   en: "English",
   pl: "Polski",
 };
@@ -37,18 +39,20 @@ export function BasicResumeDocument({
   locale,
   resume,
   languages,
+  onLanguageSelect,
   status = "draft",
   aiGenerated = false,
 }: {
   locale: ResumeLocale;
   resume: ResumeDocument;
   languages?: ResumeLanguageOption[];
+  onLanguageSelect?: (locale: string) => void;
   status?: "public" | "draft";
   aiGenerated?: boolean;
 }) {
-  const labels = PREVIEW_LABELS[locale];
+  const labels = getPreviewLabels(locale);
   const defaultSummary = getDefaultSummary(resume.summary);
-  const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] }];
+  const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] || locale.toUpperCase() }];
 
   return (
     <div className="resume-editor-basic resume-view-page resume-style--basic">
@@ -62,7 +66,7 @@ export function BasicResumeDocument({
             </div>
           </div>
           <div className="hero__actions">
-            <ResumeLanguageSwitcher languages={languageOptions} activeLocale={locale} ariaLabel="CV language" />
+            <ResumeLanguageSwitcher languages={languageOptions} activeLocale={locale} ariaLabel="CV language" onSelect={onLanguageSelect} />
             <ResumeBadges status={status} aiGenerated={aiGenerated} />
           </div>
         </header>
@@ -235,10 +239,29 @@ export function BasicResumeDocument({
   );
 }
 
-export default function ResumeLivePreview({ locale, resume, styleCode, yamlContent, isExpanded, aiGenerated = false, onExpand, onClose }: Props) {
-  const frameRef = useRef<HTMLButtonElement>(null);
+export default function ResumeLivePreview({
+  locale,
+  resume,
+  languages,
+  onLanguageSelect,
+  styleCode,
+  yamlContent,
+  isExpanded,
+  aiGenerated = false,
+  onExpand,
+  onClose,
+}: Props) {
+  const frameRef = useRef<HTMLDivElement>(null);
   const documentRef = useRef<HTMLDivElement>(null);
   const [previewMetrics, setPreviewMetrics] = useState({ scale: 1, height: 0 });
+
+  function handleFrameKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+    event.preventDefault();
+    onExpand();
+  }
 
   useEffect(() => {
     if (styleCode !== "basic") {
@@ -279,11 +302,13 @@ export default function ResumeLivePreview({ locale, resume, styleCode, yamlConte
 
   return (
     <>
-      <button
-        type="button"
+      <div
         className="resume-editor-preview-frame"
         ref={frameRef}
+        role="button"
+        tabIndex={0}
         onClick={onExpand}
+        onKeyDown={handleFrameKeyDown}
         aria-label="Open enlarged CV preview"
       >
         <div className="resume-editor-preview-scale-box" style={{ height: previewMetrics.height || undefined }}>
@@ -292,10 +317,17 @@ export default function ResumeLivePreview({ locale, resume, styleCode, yamlConte
             ref={documentRef}
             style={{ transform: `scale(${previewMetrics.scale})` }}
           >
-            <BasicResumeDocument locale={locale} resume={resume} status="draft" aiGenerated={aiGenerated} />
+            <BasicResumeDocument
+              locale={locale}
+              resume={resume}
+              languages={languages}
+              onLanguageSelect={onLanguageSelect}
+              status="draft"
+              aiGenerated={aiGenerated}
+            />
           </div>
         </div>
-      </button>
+      </div>
 
       {isExpanded && (
         <div className="resume-editor-preview-modal" role="dialog" aria-modal="true" aria-label="Enlarged CV preview">
@@ -304,7 +336,14 @@ export default function ResumeLivePreview({ locale, resume, styleCode, yamlConte
             <button type="button" className="button button--ghost resume-editor-preview-modal__close" onClick={onClose}>
               Close
             </button>
-            <BasicResumeDocument locale={locale} resume={resume} status="draft" aiGenerated={aiGenerated} />
+            <BasicResumeDocument
+              locale={locale}
+              resume={resume}
+              languages={languages}
+              onLanguageSelect={onLanguageSelect}
+              status="draft"
+              aiGenerated={aiGenerated}
+            />
           </div>
         </div>
       )}

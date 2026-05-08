@@ -151,7 +151,22 @@ create policy "resume_preset_variants_update_own_or_staff"
 on public.resume_preset_variants
 for update
 using (public.can_access_target_user(user_id))
-with check (public.can_manage_target_user(user_id));
+with check (
+  public.can_manage_target_user(user_id)
+  and exists (
+    select 1
+    from public.resume_presets p
+    where p.id = resume_preset_variants.preset_id
+      and p.user_id = resume_preset_variants.user_id
+  )
+  and exists (
+    select 1
+    from public.resume_documents d
+    where d.id = resume_preset_variants.document_id
+      and d.user_id = resume_preset_variants.user_id
+      and d.locale = resume_preset_variants.locale
+  )
+);
 
 create policy "resume_preset_variants_delete_own_or_staff"
 on public.resume_preset_variants

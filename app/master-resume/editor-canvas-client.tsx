@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
@@ -42,6 +43,18 @@ type ApiDocumentResponse = {
   locale?: ResumeLocale;
   document?: ResumeDocumentRow;
   revisions?: ResumeRevisionItem[];
+};
+
+type ResumeLanguageMetadata = {
+  code: ResumeLocale;
+  label: string;
+  short_label: string;
+};
+
+type ApiLanguagesResponse = {
+  ok?: boolean;
+  error?: string;
+  languages?: ResumeLanguageMetadata[];
 };
 
 type EditorTab = "yaml" | "human";
@@ -106,7 +119,12 @@ async function fetchText(path: string) {
 }
 
 export default function EditorCanvasClient() {
-  const [locale, setLocale] = useState<ResumeLocale>("en");
+  const searchParams = useSearchParams();
+  const [locale, setLocale] = useState<ResumeLocale>(searchParams.get("locale") || "en");
+  const [languageOptions, setLanguageOptions] = useState<ResumeLanguageMetadata[]>([
+    { code: "en", label: "English", short_label: "EN" },
+    { code: "pl", label: "Polski", short_label: "PL" },
+  ]);
   const [editorTab, setEditorTab] = useState<EditorTab>("yaml");
   const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>("basic");
   const [isLoading, setIsLoading] = useState(true);
@@ -166,8 +184,11 @@ export default function EditorCanvasClient() {
         }
         setRevisions(payload.revisions || []);
 
-        let nextYamlPanel = nextLocale === "en" ? await fetchText(TEMPLATE_PATH) : payload.document?.yaml_content || "";
-        let nextStatus = nextLocale === "en" ? "Template YAML loaded." : "Resume document loaded.";
+        let nextYamlPanel = payload.document?.yaml_content || "";
+        let nextStatus = payload.document ? "Resume document loaded." : "Template YAML loaded.";
+        if (!nextYamlPanel) {
+          nextYamlPanel = await fetchText(TEMPLATE_PATH);
+        }
 
         const draftKey = loadedActor ? getDraftKey(loadedActor.userId, nextLocale) : "";
         if (draftKey) {
@@ -231,6 +252,29 @@ export default function EditorCanvasClient() {
       mounted = false;
     };
   }, [loadLocaleDocument, locale, showToast]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadLanguages() {
+      try {
+        const response = await fetch("/api/resume/languages");
+        const payload = (await response.json()) as ApiLanguagesResponse;
+        if (mounted && payload.languages?.length) {
+          setLanguageOptions(payload.languages);
+        }
+      } catch {
+        if (mounted) {
+          showToast("Language list could not be refreshed.", "warning");
+        }
+      }
+    }
+
+    void loadLanguages();
+    return () => {
+      mounted = false;
+    };
+  }, [showToast]);
 
   function handleLocaleSwitch(nextLocale: ResumeLocale) {
     if (nextLocale === locale || isBusy) {
@@ -552,22 +596,17 @@ export default function EditorCanvasClient() {
           <p className="card-lead">YAML editor with a live basic CV preview.</p>
         </div>
         <div className="resume-editor-shell__locale-switch">
-          <button
-            type="button"
-            className={`button button--ghost ${locale === "en" ? "is-active" : ""}`}
-            onClick={() => void handleLocaleSwitch("en")}
-            disabled={isBusy || isLoading}
-          >
-            EN
-          </button>
-          <button
-            type="button"
-            className={`button button--ghost ${locale === "pl" ? "is-active" : ""}`}
-            onClick={() => void handleLocaleSwitch("pl")}
-            disabled={isBusy || isLoading}
-          >
-            PL
-          </button>
+          {languageOptions.map((language) => (
+            <button
+              key={language.code}
+              type="button"
+              className={`button button--ghost ${locale === language.code ? "is-active" : ""}`}
+              onClick={() => void handleLocaleSwitch(language.code)}
+              disabled={isBusy || isLoading}
+            >
+              {language.short_label}
+            </button>
+          ))}
         </div>
       </header>
 
@@ -966,6 +1005,12 @@ export default function EditorCanvasClient() {
             <ResumeLivePreview
               locale={locale}
               resume={resume}
+              languages={languageOptions.map((language) => ({
+                code: language.code,
+                label: language.label,
+                shortLabel: language.short_label,
+              }))}
+              onLanguageSelect={handleLocaleSwitch}
               styleCode={selectedStyle}
               yamlContent={yamlPanel}
               isExpanded={isPreviewExpanded}

@@ -20,7 +20,8 @@ Phase D delivers the React canvas editor with live preview and revision workflow
   - editable CV form on the left,
   - live CV preview on the right.
 - Locale-specific documents:
-  - EN and PL handled as separate `resume_documents` rows.
+  - each two-letter locale is handled as a separate `resume_documents` row,
+  - newly prepared language versions start as draft/private documents until published.
 - Draft flow (browser local storage):
   - save draft,
   - restore draft,
@@ -39,9 +40,10 @@ Phase D delivers the React canvas editor with live preview and revision workflow
 
 ## API routes used by editor
 
-- `GET /api/resume/document?locale=en|pl`
+- `GET /api/resume/document?locale=<locale>`
 - `POST /api/resume/publish`
 - `POST /api/resume/rollback`
+- `GET|POST|PATCH /api/resume/languages`
 
 ## Notes
 
@@ -55,4 +57,5 @@ Phase D delivers the React canvas editor with live preview and revision workflow
 - [ ] Add AI demo generation actions in the editor
 - [ ] Expose public-link management from the editor or adjacent panel
 - [x] Align editor preview badges with future public `/r/[slug]` rendering
-- [ ] Add dedicated language-version management for creating additional CV locales
+- [x] Add dedicated language-version management for creating additional CV locales
+- [ ] Add duplicate-from-language and per-version publish controls to `Language Versions`

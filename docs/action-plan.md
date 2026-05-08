@@ -37,7 +37,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add multilingual public CV SEO support with `hreflang`, canonical language handling, `?lang=<locale>` support, and a future route shape such as `/r/{slug}/{locale}` without changing the data model
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
-- [ ] Build `Language Versions` UI for adding, duplicating, previewing, publishing, and setting the default language of a CV
+- [/] Build `Language Versions` UI for adding draft language documents and setting the default published CV language; duplication and per-version publish controls remain follow-up work
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add structured data (JSON-LD) for public resume pages where applicable
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)

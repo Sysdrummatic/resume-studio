@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../../../lib/auth-request";
 import { publishResumePreset } from "../../../../../lib/resume-server";
+import { normalizeLocale } from "../../../../../lib/resume-schema";
 
 type PublishBody = {
   allowIndexing?: boolean;
@@ -31,7 +32,7 @@ export async function POST(request: Request, context: PublishRouteContext): Prom
   const preset = await publishResumePreset(actorResult.accessToken, actorResult.actor.userId, params.presetId, {
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
     aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
-    defaultLocale: body.defaultLocale === "pl" ? "pl" : "en",
+    defaultLocale: normalizeLocale(body.defaultLocale),
   });
 
   if (!preset) {

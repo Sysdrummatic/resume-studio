@@ -2,14 +2,17 @@ import Link from "next/link";
 import Script from "next/script";
 import DashboardClient from "./dashboard-client";
 import { requireAuthenticatedActor } from "../lib/auth-server";
-import { fetchResumeDocumentsForUser, fetchResumePresetsForUser } from "../lib/resume-server";
+import { fetchResumeDocumentsForUser, fetchResumeLanguages, fetchResumePresetsForUser } from "../lib/resume-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const actor = await requireAuthenticatedActor();
   const resumeDocuments = await fetchResumeDocumentsForUser(actor.userId);
-  const resumePresets = await fetchResumePresetsForUser(actor.userId);
+  const [resumePresets, resumeLanguages] = await Promise.all([
+    fetchResumePresetsForUser(actor.userId),
+    fetchResumeLanguages({ enabledOnly: true }),
+  ]);
   const masterResume = resumeDocuments.find((document) => document.locale === "en") || resumeDocuments[0] || null;
 
   return (
@@ -32,7 +35,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <DashboardClient masterResume={masterResume} initialPresets={resumePresets} />
+      <DashboardClient masterResume={masterResume} initialDocuments={resumeDocuments} languageOptions={resumeLanguages} initialPresets={resumePresets} />
     </>
   );
 }
