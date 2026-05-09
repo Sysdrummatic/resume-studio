@@ -748,6 +748,25 @@ export async function fetchCanonicalPublicPathBySlug(slug: string, localeInput?:
   return requestedLocale === defaultLocale ? basePath : `${basePath}?lang=${encodeURIComponent(requestedLocale)}`;
 }
 
+export function trackLegacyPublicRouteEvent(input: {
+  slug: string;
+  requestedLocale?: string;
+  outcome: "redirected" | "resolved_legacy" | "not_found";
+}): void {
+  const slug = String(input.slug || "").trim();
+  if (!slug) {
+    return;
+  }
+  const payload = {
+    route: "/r/[slug]",
+    slug,
+    requestedLocale: input.requestedLocale || null,
+    outcome: input.outcome,
+    timestamp: new Date().toISOString(),
+  };
+  console.info("[public-route-compat]", JSON.stringify(payload));
+}
+
 async function fetchActivePublicLinkByPersonAndPublicId(
   personSlug: string,
   publicId: string,

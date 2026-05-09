@@ -13,5 +13,10 @@ test("legacy /r/[slug] route behaves as compatibility path and redirects to cano
 
   assert.equal(route.includes("permanentRedirect"), true);
   assert.equal(route.includes("fetchCanonicalPublicPathBySlug"), true);
+  assert.equal(route.includes("trackLegacyPublicRouteEvent"), true);
+  assert.equal(route.includes("outcome: \"redirected\""), true);
+  assert.equal(route.includes("outcome: \"resolved_legacy\""), true);
+  assert.equal(route.includes("outcome: \"not_found\""), true);
   assert.equal(server.includes("fetchCanonicalPublicPathBySlug"), true);
+  assert.equal(server.includes("[public-route-compat]"), true);
 });

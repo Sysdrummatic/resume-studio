@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { BasicResumeDocument } from "../../master-resume/resume-live-preview";
-import { fetchCanonicalPublicPathBySlug, fetchPublishedResumePresetBySlug } from "../../lib/resume-server";
+import { fetchCanonicalPublicPathBySlug, fetchPublishedResumePresetBySlug, trackLegacyPublicRouteEvent } from "../../lib/resume-server";
 import "../../resume/resume.css";
 
 type PublicResumePageProps = {
@@ -59,13 +59,29 @@ export default async function PublicResumeBySlugPage({ params, searchParams }: P
   const query = searchParams ? await searchParams : {};
   const canonicalPath = await fetchCanonicalPublicPathBySlug(slug, query.lang);
   if (canonicalPath) {
+    trackLegacyPublicRouteEvent({
+      slug,
+      requestedLocale: query.lang,
+      outcome: "redirected",
+    });
     permanentRedirect(canonicalPath);
   }
   const published = await fetchPublishedResumePresetBySlug(slug, query.lang);
 
   if (!published) {
+    trackLegacyPublicRouteEvent({
+      slug,
+      requestedLocale: query.lang,
+      outcome: "not_found",
+    });
     notFound();
   }
+
+  trackLegacyPublicRouteEvent({
+    slug,
+    requestedLocale: query.lang,
+    outcome: "resolved_legacy",
+  });
 
   return (
     <main className="container py-8 public-resume-route">
