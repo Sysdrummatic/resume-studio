@@ -26,8 +26,8 @@ The product direction is privacy-first: admins should manage users and operation
 
 ## Implementation Checklist
 
-- [ ] Define metadata-only admin query surface.
-- [ ] Audit and tighten RLS for CV content tables.
-- [ ] Ensure admin dashboards do not expose YAML/content fields.
-- [ ] Define recruiter access as separate scoped model.
-- [ ] Add authorization regression tests for staff/admin boundaries.
+- [x] Define metadata-only admin query surface.
+- [x] Audit and tighten RLS for CV content tables.
+- [x] Ensure admin dashboards do not expose YAML/content fields.
+- [x] Define recruiter access as separate scoped model.
+- [x] Add authorization regression tests for staff/admin boundaries.
