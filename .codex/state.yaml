@@ -1,0 +1,9 @@
+last_audit: null
+plan: null
+ui_critique: null
+val_results: null
+agent_audit: null
+manifest:
+  active_agent: null
+  next_trigger: null
+  history: []

@@ -63,34 +63,45 @@ npm.cmd run ci
 
 Report commands run, failures, and any manual QA that remains.
 
-## Useful Prompts
+## Communication (SMI Manifest)
 
-Ask for parallel exploration:
+Agents use a strict **YAML Manifest** for peer-to-peer requests to minimize tokens. 
+**No social niceties (hi, thanks, etc.) allowed in REQ/CMD flows.**
 
-```text
-Uzyj subagentow. Niech backend_engineer sprawdzi ryzyka API/Supabase, frontend_engineer sprawdzi UI i klienta, test_engineer sprawdzi pokrycie testami. Poczekaj na wszystkich i podsumuj rekomendacje.
+### SMI Format (Thin Pipe)
+```yaml
+REQ: <AgentName>
+CMD: <Action>
+CTX: 
+  ref: <KeyInStateYaml or FilePath>
+  scope: [file1.ts, file2.tsx]
+LMT: [Constraint1, Constraint2]
 ```
 
-Ask for coordinated implementation:
+### Shared Context Pool (Fat Data)
+- **Primary State**: `.codex/state.yaml` (Machine-readable task progress, metadata, and findings).
+- **Secondary State**: `docs/action-plan.md` (Human-readable logic).
+- Agents MUST update `state.yaml` before passing the "trigger" to the next agent.
 
+## Implementation Flow
+1. **Antigravity** (Interface Agent) translates User Request -> SMI Manifest.
+2. **Subagents** execute, update `state.yaml`, and return YAML Status.
+3. **Antigravity** synthesizes technical logs into a concise human report.
+
+## Useful Prompts (SMI YAML)
+
+Parallel Exploration:
 ```text
-Uzyj subagentow do tej zmiany. Najpierw software_architect niech zaproponuje podzial pracy i ryzyka. Potem backend_engineer i frontend_engineer maja pracowac na rozlacznych plikach, a test_engineer ma dopisac/regresyjnie uruchomic testy. Na koncu scal wyniki i podaj walidacje.
+Uzyj subagentow. 
+REQ: [backend_engineer, frontend_engineer]
+CMD: audit_v2
+CTX: { ref: instructions.md }
 ```
 
-Ask for UI/UX review before frontend work:
-
+Coordinated Implementation:
 ```text
-Uzyj ui_ux_designer i frontend_engineer. Najpierw ui_ux_designer niech oceni obecny stan UI, wskaże problemy z hierarchia, responsywnoscia, dostepnoscia i stylem. Potem frontend_engineer ma wdrozyc tylko najwazniejsze, wasko opisane poprawki.
-```
-
-Ask for project planning:
-
-```text
-Uzyj project_manager i software_architect, zeby rozbic ten epik na male PR-y z DoD, ryzykami, rollbackiem i wlascicielami agentow.
-```
-
-Ask for agent-system improvement:
-
-```text
-Uzyj agent_optimizer. Przeanalizuj aktualny stan projektu, .codex/agents/** i AGENTS.md. Zaproponuj usprawnienia subagentow, a jesli sa bezpieczne, zaktualizuj ich instrukcje i podaj przyklady lepszych promptow.
+Uzyj subagentow. 
+- REQ: software_architect | CMD: propose_manifest | OUT: state.yaml#plan
+- REQ: backend_engineer | CMD: impl_api | CTX: { ref: state.yaml#plan }
+- REQ: test_engineer | CMD: verify | CTX: { ref: state.yaml#plan }
 ```
