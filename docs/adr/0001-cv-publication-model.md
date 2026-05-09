@@ -189,3 +189,23 @@ Negative:
 ## Related Test Contracts
 
 See [CV Publication Test Contracts](../guides/cv-publication-test-contracts.md).
+
+## Implementation Checklist
+
+- [x] PR1: Additive schema foundation migration for ADR 0001 (`profiles.person_slug`, `resume_published_cvs`, `resume_published_cv_locales`, `resume_public_links` extension, indexes, constraints, RLS).
+- [x] PR1: Migration contract tests for schema/RLS/compatibility added and passing.
+- [x] PR2: Publish flow creates immutable snapshot rows and links `resume_public_links.active_published_cv_id`.
+- [x] PR2: Unpublish flow revokes active Public Link without deleting Saved Version.
+- [x] PR2: Backend hardening for publish/unpublish failure handling and default locale behavior.
+- [x] PR2: Runtime contract tests for publish/unpublish behavior and legacy compatibility added and passing.
+- [x] PR3 (partial): Canonical public route `/{person-slug}/{public-id}` added in Next.js.
+- [x] PR3 (partial): Canonical public route metadata includes robots + canonical + language alternates.
+- [x] PR3: Dashboard should show canonical `/{person-slug}/{public-id}` as the primary share link after publish.
+- [x] PR3: Keep `/r/[slug]` visible only as compatibility link in UI and docs.
+- [x] PR3: Add UI/API tests confirming canonical link is preferred in dashboard flows.
+- [x] PR3: Add compatibility behavior for legacy `/r/[slug]` route (redirect or strict compatibility contract per rollout decision).
+- [x] PR3: Final SEO/AEO verification for canonical/hreflang/indexing behavior on public pages.
+- [x] PR4: Introduce transactional publish/unpublish RPC flow to ensure atomicity across snapshot + link state changes.
+- [x] PR4: Enforce explicit selected language set for Published CV snapshots (avoid accidental draft-language exposure).
+- [x] PR4: Finalize republish semantics so new `public-id` is issued only after unpublish.
+- [x] PR4: Documentation alignment across guides/README/action plan after runtime transition is complete.

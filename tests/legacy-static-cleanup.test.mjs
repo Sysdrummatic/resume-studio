@@ -58,10 +58,13 @@ test("public resume slugs are handled by the React route", () => {
   const server = read("app/lib/resume-server.ts");
   const dashboard = read("app/dashboard/dashboard-client.tsx");
 
+  assert.equal(route.includes("fetchCanonicalPublicPathBySlug"), true);
+  assert.equal(route.includes("permanentRedirect"), true);
   assert.equal(route.includes("fetchPublishedResumePresetBySlug"), true);
   assert.equal(route.includes("BasicResumeDocument"), true);
   assert.equal(route.includes("robots"), true);
+  assert.equal(server.includes("fetchCanonicalPublicPathBySlug"), true);
   assert.equal(server.includes("buildResumeDocumentFromPreset"), true);
-  assert.equal(server.includes('table: "resume_presets"'), true);
-  assert.equal(dashboard.includes("/r/${preset.slug}"), true);
+  assert.equal(server.includes('table: "resume_public_links"'), true);
+  assert.equal(dashboard.includes("compatibility_public_path"), true);
 });

@@ -31,11 +31,11 @@ Each item includes the source guide it comes from, so the detailed rationale and
 
 - [ ] Implement SSR or ISR public route `/r/[slug]`
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
-- [ ] Apply indexing controls to robots and headers for public resume pages
+- [x] Apply indexing controls to robots and headers for public resume pages
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
-- [ ] Add canonical URLs and OpenGraph/Twitter metadata for public resume pages
+- [x] Add canonical URLs and OpenGraph/Twitter metadata for public resume pages
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
-- [ ] Add multilingual public CV SEO support with `hreflang`, canonical language handling, `?lang=<locale>` support, and a future route shape such as `/r/{slug}/{locale}` without changing the data model
+- [x] Add multilingual public CV SEO support with `hreflang`, canonical language handling, `?lang=<locale>` support, and a future route shape such as `/r/{slug}/{locale}` without changing the data model
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [/] Build `Language Versions` UI for adding draft language documents and setting the default published CV language; duplication and per-version publish controls remain follow-up work
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
@@ -96,7 +96,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
   Source: [Phase B YAML Data Layer](guides/phase-b-yaml-data-layer.md)
 - [x] Migration and validation tooling exists in the repo
   Source: [Phase B YAML Data Layer](guides/phase-b-yaml-data-layer.md)
-- [ ] Complete Next.js consumption of `resume_public_links` via `/r/[slug]`
+- [x] Complete Next.js consumption of `resume_public_links` via `/r/[slug]`
   Source: [Phase B YAML Data Layer](guides/phase-b-yaml-data-layer.md)
 
 ## Auth And Admin Verification

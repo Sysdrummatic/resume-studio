@@ -1,9 +1,82 @@
-last_audit: null
+last_audit:
+  agent: backend_engineer
+  role: BE
+  task: "PR2 review and hardening for ADR 0001 publication runtime"
+  status: pass
+  scope:
+    owned:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/**"
+    changed:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/publish/route.ts"
+      - "app/api/resume/presets/[presetId]/unpublish/route.ts"
+    not_touched:
+      - "app/dashboard/dashboard-client.tsx"
+  findings:
+    critical: []
+    high:
+      - "Public /r/[slug] resolver preferred live resume_presets/resume_documents data and could expose draft edits after publish instead of rendering the immutable Published CV snapshot."
+      - "Publish did not verify Public Link insert/update success before marking the compatibility preset public."
+      - "Unpublish ignored Public Link revoke errors, which could leave an active snapshot-backed link visible while the preset was marked private."
+    medium:
+      - "Publish route normalized a missing defaultLocale to en, which could override the Saved Version/default document locale and create incorrect snapshot locale metadata."
+      - "Publish could include a default locale that had no source document/variant, producing snapshot metadata without a matching locale row."
+    low:
+      - "Publish/unpublish routes returned generic publish failures for empty preset ids instead of deterministic 400 responses."
+  fixes:
+    - "Resolved active resume_public_links with active_published_cv_id first, validated active/revoked/user/snapshot/locale state, and rendered from resume_published_cv_locales YAML plus stored selection."
+    - "Kept legacy resume_presets.slug fallback only when no snapshot-backed active Public Link exists, preserving rollout compatibility."
+    - "Made publish fail closed when Public Link lookup or activation fails before updating resume_presets.is_public."
+    - "Made unpublish fail closed on Public Link revoke errors."
+    - "Selected publishable locales only from variants/documents with source documents and chose a valid default locale."
+    - "Stopped the publish route from forcing en when defaultLocale is omitted and added empty preset id validation to publish/unpublish routes."
 plan: null
 ui_critique: null
-val_results: null
+val_results:
+  agent: backend_engineer
+  role: BE
+  task: "PR2 review and hardening for ADR 0001 publication runtime"
+  status: pass
+  scope:
+    owned:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/**"
+    changed:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/publish/route.ts"
+      - "app/api/resume/presets/[presetId]/unpublish/route.ts"
+    observed_dirty_runtime:
+      - "app/dashboard/dashboard-client.tsx"
+  validation:
+    - cmd: "npm.cmd run lint"
+      status: pass
+      assertions:
+        - "ESLint app/Next config completed with zero warnings."
+    - cmd: "npm.cmd run typecheck"
+      status: pass
+      assertions:
+        - "TypeScript noEmit completed successfully."
+    - cmd: "npm.cmd test"
+      status: pass
+      assertions:
+        - "Full node:test suite passed: 98 tests."
+  notes:
+    - "No frontend, tests, docs, or migrations were edited."
+    - "Existing unrelated dashboard-client.tsx change was left untouched."
 agent_audit: null
 manifest:
   active_agent: null
-  next_trigger: null
-  history: []
+  next_trigger:
+    REQ: test_engineer
+    CMD: optional_add_behavior_tests
+    CTX:
+      ref: ".codex/state.yaml#last_audit"
+      scope:
+        - "tests/**"
+    LMT:
+      - "Only if runtime behavior tests beyond existing AST contracts are required."
+  history:
+    - agent: backend_engineer
+      task: "PR2 ADR 0001 publication runtime hardening"
+      status: pass

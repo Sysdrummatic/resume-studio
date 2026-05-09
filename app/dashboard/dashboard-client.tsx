@@ -435,6 +435,12 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   }
 
   async function publishPreset(preset: ResumePresetRow) {
+    const sourceDocuments = initialDocuments.length ? initialDocuments : masterResume ? [masterResume] : [];
+    const selectedLocales = Array.from(new Set(sourceDocuments.map((doc) => doc.locale)));
+    if (selectedLocales.length === 0) {
+      showToast("No language versions available for publish.", "error");
+      return;
+    }
     const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -442,6 +448,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
         allowIndexing: preset.allow_indexing,
         aiGenerated: preset.ai_generated,
         defaultLocale: preset.default_locale || masterResume?.locale || "en",
+        selectedLocales,
       }),
     });
     const result = (await response.json()) as PresetApiResponse;
@@ -451,6 +458,19 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     }
     setPresets((current) => mergePreset(current, result.preset!));
     showToast("Preset published.");
+  }
+
+  async function unpublishPreset(preset: ResumePresetRow) {
+    const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/unpublish`, {
+      method: "POST",
+    });
+    const result = (await response.json()) as PresetApiResponse;
+    if (!response.ok || result.error || !result.preset) {
+      showToast(result.error || "Preset unpublish failed.", "error");
+      return;
+    }
+    setPresets((current) => mergePreset(current, result.preset!));
+    showToast("Preset unpublished.");
   }
 
   async function deletePreset(preset: ResumePresetRow) {
@@ -515,7 +535,8 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                   <strong>{preset.title}</strong>
                   <p>
                     Updated {new Date(preset.updated_at).toLocaleString()}
-                    {preset.slug ? ` · /r/${preset.slug}` : ""}
+                    {preset.canonical_public_path ? ` · ${preset.canonical_public_path}` : ""}
+                    {preset.compatibility_public_path ? ` · compatibility ${preset.compatibility_public_path}` : ""}
                   </p>
                 </div>
                 <div className="dashboard-resume-list__actions">
@@ -536,9 +557,15 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                     >
                       Edit
                     </button>
-                    <button type="button" className="button button--ghost button--small" onClick={() => void publishPreset(preset)}>
-                      Publish
-                    </button>
+                    {preset.is_public ? (
+                      <button type="button" className="button button--ghost button--small" onClick={() => void unpublishPreset(preset)}>
+                        Unpublish
+                      </button>
+                    ) : (
+                      <button type="button" className="button button--ghost button--small" onClick={() => void publishPreset(preset)}>
+                        Publish
+                      </button>
+                    )}
                   </div>
                   <div className="dashboard-resume-list__delete-separator">
                     <button

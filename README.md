@@ -21,7 +21,7 @@ This repository contains the React/Next.js OpenCVHub codebase. The former static
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
 4. Start: `npm run dev`
-5. Open the React routes, for example `/`, `/resume`, `/login`, `/dashboard`, `/master-resume`, or `/r/{slug}`.
+5. Open the React routes, for example `/`, `/resume`, `/login`, `/dashboard`, `/master-resume`, canonical public `/{person-slug}/{public-id}`, or compatibility `/r/{slug}`.
 
 ## Database migrations
 
@@ -33,6 +33,8 @@ Apply in order:
 4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql`
 5. `supabase/migrations/20260410_phase_b_yaml_data_layer.sql`
 6. `supabase/migrations/20260410_phase_c_auth_rbac_admin.sql`
+7. `supabase/migrations/20260508_cv_publication_foundation.sql`
+8. `supabase/migrations/20260509_cv_publication_rpc_atomic.sql`
 
 ## Tests
 

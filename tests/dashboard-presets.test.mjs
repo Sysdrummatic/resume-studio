@@ -77,3 +77,13 @@ test("preset list renders a right-aligned separated icon delete action", () => {
   assert.equal(styles.includes(".dashboard-resume-list__delete-separator"), true);
   assert.equal(styles.includes("border-left: 1px solid var(--border);"), true);
 });
+
+test("dashboard prefers canonical public links and keeps legacy compatibility links", () => {
+  const client = read("app/dashboard/dashboard-client.tsx");
+  const server = read("app/lib/resume-server.ts");
+
+  assert.equal(client.includes("preset.canonical_public_path"), true);
+  assert.equal(client.includes("compatibility"), true);
+  assert.equal(server.includes("canonical_public_path"), true);
+  assert.equal(server.includes("compatibility_public_path"), true);
+});

@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { BasicResumeDocument } from "../../master-resume/resume-live-preview";
-import { fetchPublishedResumePresetBySlug } from "../../lib/resume-server";
+import { fetchCanonicalPublicPathBySlug, fetchPublishedResumePresetBySlug } from "../../lib/resume-server";
 import "../../resume/resume.css";
 
 type PublicResumePageProps = {
@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params, searchParams }: PublicResumePageProps) {
   const { slug } = await params;
   const query = searchParams ? await searchParams : {};
+  const canonicalPath = await fetchCanonicalPublicPathBySlug(slug, query.lang);
   const published = await fetchPublishedResumePresetBySlug(slug, query.lang);
 
   if (!published) {
@@ -36,6 +37,11 @@ export async function generateMetadata({ params, searchParams }: PublicResumePag
   return {
     title,
     description,
+    alternates: canonicalPath
+      ? {
+          canonical: canonicalPath,
+        }
+      : undefined,
     robots: {
       index: allowIndexing,
       follow: allowIndexing,
@@ -51,6 +57,10 @@ export async function generateMetadata({ params, searchParams }: PublicResumePag
 export default async function PublicResumeBySlugPage({ params, searchParams }: PublicResumePageProps) {
   const { slug } = await params;
   const query = searchParams ? await searchParams : {};
+  const canonicalPath = await fetchCanonicalPublicPathBySlug(slug, query.lang);
+  if (canonicalPath) {
+    permanentRedirect(canonicalPath);
+  }
   const published = await fetchPublishedResumePresetBySlug(slug, query.lang);
 
   if (!published) {
