@@ -178,6 +178,19 @@ export type PublishedResumePublicRoute = {
   legacySlug: string | null;
 };
 
+export type PublishedResumeExport = {
+  personSlug: string;
+  publicId: string;
+  locale: ResumeLocale;
+  defaultLocale: ResumeLocale;
+  availableLocales: ResumeLocale[];
+  allowIndexing: boolean;
+  schemaVersion: number;
+  openCvYamlContractVersion: string;
+  yamlContent: string;
+  canonicalPath: string;
+};
+
 const FALLBACK_LANGUAGE_LABELS: Record<string, { label: string; shortLabel: string }> = {
   en: { label: "English", shortLabel: "EN" },
   pl: { label: "Polski", shortLabel: "PL" },
@@ -1078,6 +1091,93 @@ export async function fetchPublishedResumePresetByPublicLink(
     defaultLocale: normalizeLocale(link.default_locale || published.document.locale),
     availableLocales: normalizeLocales(link.available_locales || [], normalizeLocale(link.default_locale || published.document.locale)),
     legacySlug: link.legacy_slug || link.slug || null,
+  };
+}
+
+export async function fetchPublishedResumeExportByPublicLink(
+  personSlugInput: string,
+  publicIdInput: string,
+  localeInput?: string,
+): Promise<PublishedResumeExport | null> {
+  const personSlug = personSlugInput.trim().toLowerCase();
+  const publicId = publicIdInput.trim().toLowerCase();
+  if (!personSlug || !publicId) {
+    return null;
+  }
+
+  const link = await fetchActivePublicLinkByPersonAndPublicId(personSlug, publicId);
+  if (!link || !link.person_slug || !link.public_id || !link.active_published_cv_id || !link.user_id || link.revoked_at) {
+    return null;
+  }
+
+  const snapshotResult = await queryTable<ResumePublishedCvRow>({
+    table: "resume_published_cvs",
+    select: RESUME_PUBLISHED_CV_SELECT,
+    useServiceRole: true,
+    query:
+      `id=eq.${encodeURIComponent(link.active_published_cv_id)}` +
+      `&user_id=eq.${encodeURIComponent(link.user_id)}` +
+      "&limit=1",
+  });
+  const snapshot = snapshotResult.data?.[0];
+  if (!snapshot || snapshotResult.error) {
+    return null;
+  }
+  if (!isSupportedOpenCvContractVersion(snapshot.open_cv_yaml_contract_version)) {
+    return null;
+  }
+  if (Number(snapshot.schema_version) < OPEN_CV_MIN_SCHEMA_VERSION) {
+    return null;
+  }
+
+  const defaultLocale = normalizeLocale(link.default_locale || snapshot.default_locale);
+  const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
+  const linkLocales = normalizeLocales(link.available_locales || [], defaultLocale);
+  const snapshotLocales = normalizeLocales(snapshot.available_locales || [], defaultLocale);
+  const allowedLocales = new Set(linkLocales.filter((locale) => snapshotLocales.includes(locale)));
+  if (allowedLocales.size === 0) {
+    return null;
+  }
+
+  const localesResult = await queryTable<ResumePublishedCvLocaleRow>({
+    table: "resume_published_cv_locales",
+    select: RESUME_PUBLISHED_CV_LOCALE_SELECT,
+    useServiceRole: true,
+    query:
+      `published_cv_id=eq.${encodeURIComponent(snapshot.id)}` +
+      `&user_id=eq.${encodeURIComponent(snapshot.user_id)}` +
+      "&order=locale.asc",
+  });
+  if (!localesResult.data || localesResult.error) {
+    return null;
+  }
+
+  const localeRows = localesResult.data
+    .map((row) => ({
+      ...row,
+      locale: normalizeLocale(row.locale),
+    }))
+    .filter((row) => allowedLocales.has(row.locale));
+  if (localeRows.length === 0) {
+    return null;
+  }
+
+  const activeLocaleRow =
+    localeRows.find((row) => row.locale === requestedLocale) ||
+    localeRows.find((row) => row.locale === defaultLocale) ||
+    localeRows[0];
+
+  return {
+    personSlug: link.person_slug,
+    publicId: link.public_id,
+    locale: activeLocaleRow.locale,
+    defaultLocale,
+    availableLocales: Array.from(allowedLocales),
+    allowIndexing: Boolean(link.allow_indexing),
+    schemaVersion: Number(activeLocaleRow.schema_version) || Number(snapshot.schema_version) || 1,
+    openCvYamlContractVersion: snapshot.open_cv_yaml_contract_version,
+    yamlContent: activeLocaleRow.yaml_content,
+    canonicalPath: `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`,
   };
 }
 
