@@ -13,9 +13,9 @@ test("dashboard separates master resume from preset configurations", () => {
 
   assert.equal(page.includes("fetchResumePresetsForUser"), true);
   assert.equal(page.includes("DashboardClient"), true);
-  assert.equal(client.includes("Master resume"), true);
-  assert.equal(client.includes("Targeted CV presets"), true);
-  assert.equal(client.includes("Create preset"), true);
+  assert.equal(client.includes("Master Resume"), true);
+  assert.equal(client.includes("Saved Versions"), true);
+  assert.equal(client.includes("Create Saved Version"), true);
   assert.equal(client.includes("PresetModal"), true);
 });
 
@@ -72,7 +72,7 @@ test("preset list renders a right-aligned separated icon delete action", () => {
   const styles = read("app/globals.css");
 
   assert.equal(client.includes("TrashIcon"), true);
-  assert.equal(client.includes("aria-label={`Delete preset ${preset.title}`}"), true);
+  assert.equal(client.includes("aria-label={`Delete Saved Version ${preset.title}`}"), true);
   assert.equal(client.includes("dashboard-resume-list__delete-separator"), true);
   assert.equal(styles.includes(".dashboard-resume-list__delete-separator"), true);
   assert.equal(styles.includes("border-left: 1px solid var(--border);"), true);
@@ -84,6 +84,7 @@ test("dashboard prefers canonical public links and keeps legacy compatibility li
 
   assert.equal(client.includes("preset.canonical_public_path"), true);
   assert.equal(client.includes("compatibility"), true);
+  assert.equal(client.includes("canonical"), true);
   assert.equal(server.includes("canonical_public_path"), true);
   assert.equal(server.includes("compatibility_public_path"), true);
 });

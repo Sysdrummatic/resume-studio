@@ -57,7 +57,7 @@ export async function PATCH(request: Request, context: PresetRouteContext): Prom
   });
 
   if (!preset) {
-    return NextResponse.json({ error: "Preset update failed." }, { status: 500 });
+    return NextResponse.json({ error: "Saved Version update failed." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, preset });
@@ -77,7 +77,7 @@ export async function DELETE(_request: Request, context: PresetRouteContext): Pr
 
   const deleted = await deleteResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId);
   if (!deleted) {
-    return NextResponse.json({ error: "Preset delete failed." }, { status: 500 });
+    return NextResponse.json({ error: "Saved Version delete failed." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

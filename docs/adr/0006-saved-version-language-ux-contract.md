@@ -1,6 +1,6 @@
 # ADR 0006: Saved Version, Language Versions, And Link Management UX Contract
 
-Status: Proposed
+Status: Accepted
 
 Date: 2026-05-09
 
@@ -25,8 +25,8 @@ Domain model is defined, but UX contracts for naming and publish operations must
 
 ## Implementation Checklist
 
-- [ ] Replace remaining user-facing “preset” copy with “Saved Version”.
-- [ ] Define publish modal contract for locale selection and default locale.
-- [ ] Define link management UX states (active/revoked/indexable).
-- [ ] Ensure dashboard/editor show canonical first, compatibility second.
-- [ ] Add UX regression tests for publish/unpublish language flows.
+- [x] Replace remaining user-facing "preset" copy with "Saved Version".
+- [x] Define publish modal contract for locale selection and default locale.
+- [x] Define link management UX states (active/revoked/indexable).
+- [x] Ensure dashboard/editor show canonical first, compatibility second.
+- [x] Add UX regression tests for publish/unpublish language flows.

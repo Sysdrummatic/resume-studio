@@ -30,6 +30,13 @@ type PresetApiResponse = {
   preset?: ResumePresetRow;
 };
 
+type PublishDraft = {
+  preset: ResumePresetRow;
+  selectedLocales: ResumeLocale[];
+  defaultLocale: ResumeLocale;
+  allowIndexing: boolean;
+};
+
 const EMPTY_SELECTION: ResumePresetSelection = {
   summary: [],
   experience: [],
@@ -247,7 +254,7 @@ function PresetModal({
   async function handleSave() {
     const nextSelection = normalizeSummarySelection(selection, options);
     if (!title.trim()) {
-      setError("Preset title is required.");
+      setError("Saved Version title is required.");
       return;
     }
     if (nextSelection.summary.length !== 1) {
@@ -261,18 +268,18 @@ function PresetModal({
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Preset editor">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close preset editor"></button>
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Saved Version editor">
+      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close Saved Version editor"></button>
       <div className="dashboard-modal__body">
         <div className="section-row">
-          <h2>{preset ? "Edit preset" : "Create preset"}</h2>
+          <h2>{preset ? "Edit Saved Version" : "Create Saved Version"}</h2>
           <button type="button" className="button button--ghost button--small" onClick={onClose}>
             Close
           </button>
         </div>
 
         <label>
-          Preset title
+          Saved Version title
           <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Frontend Engineer - Acme" />
         </label>
 
@@ -317,7 +324,7 @@ function PresetModal({
 
         <div className="actions-row">
           <button type="button" className="button button--primary" onClick={() => void handleSave()} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save preset"}
+            {isSaving ? "Saving..." : "Save Saved Version"}
           </button>
           <button type="button" className="button button--ghost" onClick={onClose}>
             Cancel
@@ -354,7 +361,7 @@ function PresetPreviewModal({
   const cvLanguages = buildLanguageOptions(availableDocuments, languages);
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Preset CV preview">
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Saved Version CV preview">
       <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close CV preview"></button>
       <div className="dashboard-modal__body dashboard-modal__body--preview">
         <div className="section-row">
@@ -382,6 +389,120 @@ function PresetPreviewModal({
   );
 }
 
+function PublishSavedVersionModal({
+  draft,
+  locales,
+  languageOptions,
+  onClose,
+  onPublish,
+}: {
+  draft: PublishDraft;
+  locales: ResumeLocale[];
+  languageOptions: ResumeLanguageRow[];
+  onClose: () => void;
+  onPublish: (payload: { preset: ResumePresetRow; selectedLocales: ResumeLocale[]; defaultLocale: ResumeLocale; allowIndexing: boolean }) => Promise<void>;
+}) {
+  const [selectedLocales, setSelectedLocales] = useState<ResumeLocale[]>(draft.selectedLocales);
+  const [defaultLocale, setDefaultLocale] = useState<ResumeLocale>(draft.defaultLocale);
+  const [allowIndexing, setAllowIndexing] = useState(draft.allowIndexing);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const languageLabel = useMemo(() => {
+    const map = new Map(languageOptions.map((item) => [item.code, item.label]));
+    return (locale: ResumeLocale) => map.get(locale) || getFallbackLanguageLabel(locale).label;
+  }, [languageOptions]);
+
+  function toggleLocale(locale: ResumeLocale) {
+    setSelectedLocales((current) => {
+      const set = new Set(current);
+      if (set.has(locale)) {
+        set.delete(locale);
+      } else {
+        set.add(locale);
+      }
+      const next = Array.from(set).sort();
+      if (!next.includes(defaultLocale) && next.length > 0) {
+        setDefaultLocale(next[0]);
+      }
+      return next;
+    });
+  }
+
+  async function submit() {
+    if (selectedLocales.length === 0) {
+      setError("Select at least one language version.");
+      return;
+    }
+    if (!selectedLocales.includes(defaultLocale)) {
+      setError("Default language must be included in selected languages.");
+      return;
+    }
+    setError("");
+    setIsSubmitting(true);
+    await onPublish({ preset: draft.preset, selectedLocales, defaultLocale, allowIndexing });
+    setIsSubmitting(false);
+  }
+
+  return (
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Publish Saved Version">
+      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close publish modal"></button>
+      <div className="dashboard-modal__body">
+        <div className="section-row">
+          <h2>Publish Saved Version</h2>
+          <button type="button" className="button button--ghost button--small" onClick={onClose}>
+            Close
+          </button>
+        </div>
+
+        <p className="card-lead">{draft.preset.title}</p>
+
+        <section className="stack">
+          <h3>Language Versions</h3>
+          {locales.map((locale) => (
+            <label key={locale} className="checkbox-row">
+              <input type="checkbox" checked={selectedLocales.includes(locale)} onChange={() => toggleLocale(locale)} />
+              {languageLabel(locale)}
+            </label>
+          ))}
+        </section>
+
+        <label>
+          Default language
+          <select value={defaultLocale} onChange={(event) => setDefaultLocale(event.target.value as ResumeLocale)}>
+            {selectedLocales.map((locale) => (
+              <option key={locale} value={locale}>
+                {languageLabel(locale)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="checkbox-row">
+          <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
+          Allow indexing for this Published CV
+        </label>
+
+        <div className="card stack">
+          <strong>Link state after publish</strong>
+          <p className="card-lead">Canonical URL is primary. Legacy /r/[slug] remains compatibility-only.</p>
+        </div>
+
+        {error ? <p className="status status--error">{error}</p> : null}
+
+        <div className="actions-row">
+          <button type="button" className="button button--primary" onClick={() => void submit()} disabled={isSubmitting}>
+            {isSubmitting ? "Publishing..." : "Publish Saved Version"}
+          </button>
+          <button type="button" className="button button--ghost" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
@@ -390,6 +511,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
+  const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
 
   useEffect(() => {
     if (!masterResume) return;
@@ -407,6 +529,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
 
   const hasMasterResume = Boolean(masterResume);
   const latestMasterUpdate = masterResume ? new Date(masterResume.updated_at).toLocaleString() : "Not saved yet";
+  const publishableLocales = (initialDocuments.length ? initialDocuments : masterResume ? [masterResume] : []).map((doc) => doc.locale);
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!masterResume) return;
@@ -425,39 +548,40 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "Preset save failed.", "error");
+      showToast(result.error || "Saved Version save failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
-    showToast("Preset saved.");
+    showToast("Saved Version saved.");
     setIsModalOpen(false);
     setActivePreset(null);
   }
 
-  async function publishPreset(preset: ResumePresetRow) {
-    const sourceDocuments = initialDocuments.length ? initialDocuments : masterResume ? [masterResume] : [];
-    const selectedLocales = Array.from(new Set(sourceDocuments.map((doc) => doc.locale)));
-    if (selectedLocales.length === 0) {
-      showToast("No language versions available for publish.", "error");
-      return;
-    }
+  async function publishPreset(payload: {
+    preset: ResumePresetRow;
+    selectedLocales: ResumeLocale[];
+    defaultLocale: ResumeLocale;
+    allowIndexing: boolean;
+  }) {
+    const { preset, selectedLocales, defaultLocale, allowIndexing } = payload;
     const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        allowIndexing: preset.allow_indexing,
+        allowIndexing,
         aiGenerated: preset.ai_generated,
-        defaultLocale: preset.default_locale || masterResume?.locale || "en",
+        defaultLocale,
         selectedLocales,
       }),
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "Preset publish failed.", "error");
+      showToast(result.error || "Saved Version publish failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
-    showToast("Preset published.");
+    setPublishDraft(null);
+    showToast("Saved Version published.");
   }
 
   async function unpublishPreset(preset: ResumePresetRow) {
@@ -466,11 +590,11 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "Preset unpublish failed.", "error");
+      showToast(result.error || "Saved Version unpublish failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
-    showToast("Preset unpublished.");
+    showToast("Saved Version unpublished.");
   }
 
   async function deletePreset(preset: ResumePresetRow) {
@@ -482,14 +606,29 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     setDeletingPresetId(null);
 
     if (!response.ok || result.error) {
-      showToast(result.error || "Preset delete failed.", "error");
+      showToast(result.error || "Saved Version delete failed.", "error");
       return;
     }
 
     setPresets((current) => current.filter((item) => item.id !== preset.id));
     setPreviewPreset((current) => (current?.id === preset.id ? null : current));
     setActivePreset((current) => (current?.id === preset.id ? null : current));
-    showToast("Preset deleted.", "error");
+    showToast("Saved Version deleted.", "error");
+  }
+
+  function openPublishSavedVersion(preset: ResumePresetRow) {
+    const selectedLocales = Array.from(new Set(publishableLocales));
+    if (selectedLocales.length === 0) {
+      showToast("No language versions available for publish.", "error");
+      return;
+    }
+    const defaultLocale = selectedLocales.includes(preset.default_locale) ? preset.default_locale : selectedLocales[0];
+    setPublishDraft({
+      preset,
+      selectedLocales,
+      defaultLocale,
+      allowIndexing: preset.allow_indexing,
+    });
   }
 
   const modalOptions = useMemo(() => options, [options]);
@@ -501,7 +640,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
       <section className="card stack">
         <div className="section-row">
           <div>
-            <h2>Master resume</h2>
+            <h2>Master Resume</h2>
             <p className="card-lead">English master CV · Updated {latestMasterUpdate}</p>
           </div>
           <div className="actions-row">
@@ -517,16 +656,16 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
               }}
               disabled={!hasMasterResume}
             >
-              Create preset
+              Create Saved Version
             </button>
           </div>
         </div>
       </section>
 
       <section className="card stack">
-        <h2>Targeted CV presets</h2>
+        <h2>Saved Versions</h2>
         {presets.length === 0 ? (
-          <p className="card-lead">No presets saved yet.</p>
+          <p className="card-lead">No Saved Versions yet.</p>
         ) : (
           <ul className="dashboard-resume-list">
             {presets.map((preset) => (
@@ -535,14 +674,17 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                   <strong>{preset.title}</strong>
                   <p>
                     Updated {new Date(preset.updated_at).toLocaleString()}
-                    {preset.canonical_public_path ? ` · ${preset.canonical_public_path}` : ""}
+                    {preset.canonical_public_path ? ` · canonical ${preset.canonical_public_path}` : ""}
                     {preset.compatibility_public_path ? ` · compatibility ${preset.compatibility_public_path}` : ""}
                   </p>
                 </div>
                 <div className="dashboard-resume-list__actions">
                   <div className="actions-row">
                     <span className={`dashboard-resume-list__badge ${preset.is_public ? "" : "dashboard-resume-list__badge--private"}`}>
-                      {preset.is_public ? "Published" : "Draft"}
+                      {preset.is_public ? "Published" : "Private"}
+                    </span>
+                    <span className={`dashboard-resume-list__badge ${preset.allow_indexing ? "" : "dashboard-resume-list__badge--private"}`}>
+                      {preset.allow_indexing ? "Indexable" : "Noindex"}
                     </span>
                     <button type="button" className="button button--ghost button--small" onClick={() => setPreviewPreset(preset)}>
                       Open CV
@@ -562,7 +704,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                         Unpublish
                       </button>
                     ) : (
-                      <button type="button" className="button button--ghost button--small" onClick={() => void publishPreset(preset)}>
+                      <button type="button" className="button button--ghost button--small" onClick={() => openPublishSavedVersion(preset)}>
                         Publish
                       </button>
                     )}
@@ -571,8 +713,8 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                     <button
                       type="button"
                       className="button button--ghost button--small button--icon button--danger"
-                      aria-label={`Delete preset ${preset.title}`}
-                      title="Delete preset"
+                      aria-label={`Delete Saved Version ${preset.title}`}
+                      title="Delete Saved Version"
                       onClick={() => void deletePreset(preset)}
                       disabled={deletingPresetId === preset.id}
                     >
@@ -608,6 +750,16 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           onClose={() => {
             setPreviewPreset(null);
           }}
+        />
+      ) : null}
+
+      {publishDraft ? (
+        <PublishSavedVersionModal
+          draft={publishDraft}
+          locales={Array.from(new Set(publishableLocales))}
+          languageOptions={languageOptions}
+          onClose={() => setPublishDraft(null)}
+          onPublish={publishPreset}
         />
       ) : null}
     </div>

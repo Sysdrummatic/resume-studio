@@ -17,12 +17,12 @@ export async function POST(_request: Request, context: UnpublishRouteContext): P
   const params = await context.params;
   const presetId = String(params.presetId || "").trim();
   if (!presetId) {
-    return NextResponse.json({ error: "Preset id is required." }, { status: 400 });
+    return NextResponse.json({ error: "Saved Version id is required." }, { status: 400 });
   }
 
   const preset = await unpublishResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId);
   if (!preset) {
-    return NextResponse.json({ error: "Preset unpublish failed." }, { status: 500 });
+    return NextResponse.json({ error: "Saved Version unpublish failed." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, preset });
