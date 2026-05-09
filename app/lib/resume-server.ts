@@ -186,6 +186,8 @@ const RESUME_PUBLISHED_CV_LOCALE_SELECT =
   "id,published_cv_id,user_id,locale,source_document_id,source_revision_id,source_variant_id,title,yaml_content,schema_version,selection,labels,render_data,ai_generated,created_at";
 const RESUME_PUBLIC_LINK_SELECT =
   "id,document_id,user_id,preset_id,slug,person_slug,public_id,active_published_cv_id,default_locale,available_locales,is_active,status,allow_indexing,published_at,revoked_at,legacy_slug,updated_at";
+const OPEN_CV_PUBLIC_CONTRACT_MAJOR = "1";
+const OPEN_CV_MIN_SCHEMA_VERSION = 1;
 
 const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
   summary: [],
@@ -219,6 +221,11 @@ function normalizeLabelMap(value: unknown): Record<string, string> {
       .map(([key, label]) => [key.trim(), typeof label === "string" ? label.trim() : ""])
       .filter(([key, label]) => key && label),
   );
+}
+
+function isSupportedOpenCvContractVersion(version: unknown): boolean {
+  const normalized = String(version || "").trim();
+  return normalized === OPEN_CV_PUBLIC_CONTRACT_MAJOR || normalized.startsWith(`${OPEN_CV_PUBLIC_CONTRACT_MAJOR}.`);
 }
 
 function getFallbackLanguageLabel(code: ResumeLocale) {
@@ -825,6 +832,12 @@ async function fetchSnapshotPublishedResumePresetBySlug(
   if (!snapshot || snapshotResult.error) {
     return { foundSnapshotLink: true, published: null };
   }
+  if (!isSupportedOpenCvContractVersion(snapshot.open_cv_yaml_contract_version)) {
+    return { foundSnapshotLink: true, published: null };
+  }
+  if (Number(snapshot.schema_version) < OPEN_CV_MIN_SCHEMA_VERSION) {
+    return { foundSnapshotLink: true, published: null };
+  }
 
   const defaultLocale = normalizeLocale(link.default_locale || snapshot.default_locale);
   const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
@@ -911,6 +924,12 @@ async function fetchPublishedResumeBySnapshotLink(
   });
   const snapshot = snapshotResult.data?.[0];
   if (!snapshot || snapshotResult.error) {
+    return null;
+  }
+  if (!isSupportedOpenCvContractVersion(snapshot.open_cv_yaml_contract_version)) {
+    return null;
+  }
+  if (Number(snapshot.schema_version) < OPEN_CV_MIN_SCHEMA_VERSION) {
     return null;
   }
 

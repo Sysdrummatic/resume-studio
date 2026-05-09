@@ -24,6 +24,14 @@ test("PR4 publish RPC enforces explicit selected locales and default locale memb
   assert.equal(sql.includes("default locale must be included in selected locales"), true);
   assert.equal(sql.includes("resume_preset_variants"), true);
   assert.equal(sql.includes("resume_published_cv_locales"), true);
+  assert.equal(sql.includes("validate_resume_document_yaml"), true);
+});
+
+test("ADR 0002 publish RPC stamps OpenCV contract version explicitly", () => {
+  const sql = read("supabase/migrations/20260509_cv_publication_rpc_atomic.sql").toLowerCase();
+
+  assert.equal(sql.includes("open_cv_contract_version constant text := '1'"), true);
+  assert.equal(sql.includes("open_cv_yaml_contract_version"), true);
 });
 
 test("PR4 republish semantics keep active public-id and issue a new id only after unpublish", () => {

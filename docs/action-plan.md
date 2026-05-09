@@ -29,6 +29,8 @@ Each item includes the source guide it comes from, so the detailed rationale and
 
 ## Core Product Work
 
+- [ ] Decide and write post-PR4 ADR backlog in priority order: OpenCV YAML contract, privacy-first admin, public route compatibility/deprecation, SEO/AEO policy, Saved Version/link-management UX, analytics/audit retention, and future OpenCV export/API surface
+  Source: [ADR 0001 CV Publication Model](adr/0001-cv-publication-model.md), `.codex/state.yaml#adr_backlog`
 - [ ] Implement SSR or ISR public route `/r/[slug]`
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [x] Apply indexing controls to robots and headers for public resume pages

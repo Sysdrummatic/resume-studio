@@ -32,6 +32,98 @@ last_audit:
     - "Selected publishable locales only from variants/documents with source documents and chose a valid default locale."
     - "Stopped the publish route from forcing en when defaultLocale is omitted and added empty preset id validation to publish/unpublish routes."
 plan: null
+adr_backlog:
+  agent: software_architect
+  task: "Post-PR4 ADR recommendations"
+  status: proposed
+  source:
+    - "docs/adr/0001-cv-publication-model.md"
+    - "docs/action-plan.md"
+    - "docs/guides/saas-transition-work-plan.md"
+    - ".codex/site-map-and-dependencies.md"
+  current_rollout:
+    - "ADR 0001 is accepted and implemented through PR4."
+    - "Canonical public route is /{person-slug}/{public-id}."
+    - "/r/[slug] is compatibility-only and redirects/resolves during migration."
+    - "Publish/unpublish use transactional RPC and snapshot-backed Public Links."
+  recommended_order:
+    - id: "ADR 0002"
+      title: "OpenCV YAML Public Contract And Schema Evolution"
+      priority: 1
+      decision_scope:
+        - "Versioned YAML contract emitted by publish."
+        - "Snapshot immutability and explicit historical schema migrations."
+        - "Validation boundary between drafts, Saved Versions, and Published CV snapshots."
+      risk: high
+      contracts:
+        - "Published CV snapshots must record schema and OpenCV contract versions."
+        - "Public rendering must not infer missing public fields from private drafts."
+    - id: "ADR 0003"
+      title: "Privacy-First Admin And Staff Data Access"
+      priority: 2
+      decision_scope:
+        - "Admin/manager metadata-only defaults."
+        - "Audit/event visibility versus CV content visibility."
+        - "Future recruiter access as explicit consent-scoped access."
+      risk: high
+      contracts:
+        - "Staff roles must not gain ambient read access to CV YAML/content."
+        - "Privileged reads and writes must remain audit logged."
+    - id: "ADR 0004"
+      title: "Public Route Compatibility And Deprecation Policy"
+      priority: 3
+      decision_scope:
+        - "Compatibility behavior for /r/[slug]."
+        - "Canonical redirect timing, deprecation gates, and rollback."
+        - "Legacy URL observability before removal."
+      risk: medium
+      contracts:
+        - "/r/[slug] remains non-canonical while migration evidence is collected."
+        - "Canonical route remains /{person-slug}/{public-id}."
+    - id: "ADR 0005"
+      title: "SEO/AEO, Structured Data, Sitemap, And Robots Policy"
+      priority: 4
+      decision_scope:
+        - "JSON-LD eligibility and content source."
+        - "Sitemap inclusion rules."
+        - "Robots, canonical, hreflang, OpenGraph, and language fallback policy."
+      risk: medium
+      contracts:
+        - "Indexing is explicit user opt-in per active Public Link."
+        - "Revoked, inactive, missing, or private links are excluded and noindex."
+    - id: "ADR 0006"
+      title: "Saved Version, Language Versions, And User Link Management UX"
+      priority: 5
+      decision_scope:
+        - "Product naming from preset to Saved Version."
+        - "Language Version selection and default-locale ownership."
+        - "User panel link lifecycle actions and copy."
+      risk: medium
+      contracts:
+        - "UI terms must not imply drafts are public."
+        - "Publish uses explicit selected language set only."
+    - id: "ADR 0007"
+      title: "Publication Analytics, View Counting, And Audit Retention"
+      priority: 6
+      decision_scope:
+        - "View count semantics."
+        - "Privacy-preserving analytics for users and admins."
+        - "Retention, aggregation, and bot filtering."
+      risk: medium
+      contracts:
+        - "Analytics must not expose private CV content."
+        - "User-facing metrics and admin metrics must have separate access rules."
+    - id: "ADR 0008"
+      title: "OpenCV Public API And Export Surface"
+      priority: 7
+      decision_scope:
+        - "Future machine-readable OpenCV YAML endpoint or download."
+        - "Caching, rate limiting, and content negotiation."
+        - "Compatibility with public rendered CV pages."
+      risk: low
+      contracts:
+        - "Exports must read Published CV snapshots only."
+        - "Public API exposure follows Public Link active/indexing/privacy state."
 ui_critique: null
 val_results:
   agent: backend_engineer
@@ -68,15 +160,64 @@ agent_audit: null
 manifest:
   active_agent: null
   next_trigger:
-    REQ: test_engineer
-    CMD: optional_add_behavior_tests
+    REQ: software_architect
+    CMD: review_next_adr_scope
     CTX:
-      ref: ".codex/state.yaml#last_audit"
+      ref: ".codex/state.yaml#adr_backlog"
       scope:
-        - "tests/**"
+        - "docs/adr/**"
+        - "docs/guides/saas-transition-work-plan.md"
+        - "docs/action-plan.md"
     LMT:
-      - "Only if runtime behavior tests beyond existing AST contracts are required."
+      - "No prod code."
+      - "Confirm ADR candidates before implementation."
   history:
     - agent: backend_engineer
       task: "PR2 ADR 0001 publication runtime hardening"
       status: pass
+post_pr4_plan:
+  agent: project_manager
+  role: PM
+  task: "Next implementation plan and ADR recommendation after PR4"
+  status: ready
+  source_refs:
+    - "docs/adr/0001-cv-publication-model.md"
+    - "docs/guides/saas-transition-work-plan.md"
+    - "docs/action-plan.md"
+    - "docs/guides/ai-demo-resume-generation-plan.md"
+    - "docs/guides/deployment-qa.md"
+  current_state:
+    completed:
+      - "ADR 0001 PR1-PR4 publication model completed."
+      - "Canonical public route resolves snapshot-backed Published CVs."
+      - "Transactional publish/unpublish RPC flow is implemented."
+      - "Phase A-E are complete per saas-transition-work-plan."
+    discrepancies:
+      - "docs/action-plan.md still marks parts of Phase E incomplete while newer roadmap and ADR mark Phase E/public route complete."
+  priorities:
+    p0:
+      - "Align docs/action-plan.md with PR4 state."
+      - "Finish release QA evidence for publication/auth/editor/admin smoke flows."
+      - "Build user/link management surface needed for operational MVP."
+    p1:
+      - "Add language-version management follow-ups."
+      - "Add admin analytics and audit explorer."
+      - "Add E2E/accessibility/performance hardening."
+    p2:
+      - "Start AI demo generation after ADR decision."
+      - "Plan recruiter and legal/privacy follow-ups."
+  adr_recommendations:
+    create_now:
+      - id: "ADR 0002"
+        topic: "OpenCV YAML Public Contract And Schema Evolution"
+      - id: "ADR 0003"
+        topic: "Privacy-First Admin And Staff Data Access"
+    defer:
+      - topic: "Public Route Compatibility And Deprecation Policy"
+      - topic: "SEO/AEO, Structured Data, Sitemap, And Robots Policy"
+      - topic: "Saved Version, Language Versions, And User Link Management UX"
+      - topic: "Publication Analytics, View Counting, And Audit Retention"
+      - topic: "OpenCV Public API And Export Surface"
+  validation:
+    run: []
+    skipped_reason: "Planning/docs synthesis only; no production code changed."

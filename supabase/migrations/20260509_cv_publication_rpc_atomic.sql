@@ -24,6 +24,7 @@ declare
   normalized_selected_locales text[];
   legacy_slug_value text;
   inserted_locales_count integer;
+  open_cv_contract_version constant text := '1';
 begin
   if actor_id is null then
     raise exception 'Authentication required.';
@@ -82,6 +83,19 @@ begin
     raise exception 'Each selected locale must map to an owned preset variant and document.';
   end if;
 
+  if exists (
+    select 1
+    from public.resume_preset_variants rpv
+    inner join public.resume_documents d on d.id = rpv.document_id
+    where rpv.preset_id = preset_row.id
+      and rpv.user_id = actor_id
+      and d.user_id = actor_id
+      and lower(rpv.locale) = any(normalized_selected_locales)
+      and not public.validate_resume_document_yaml(d.yaml_content)
+  ) then
+    raise exception 'Publish failed: one or more selected YAML documents are invalid.';
+  end if;
+
   insert into public.resume_published_cvs (
     user_id,
     preset_id,
@@ -104,7 +118,7 @@ begin
     preset_row.document_id,
     preset_row.title,
     1,
-    '1',
+    open_cv_contract_version,
     normalized_default_locale,
     normalized_selected_locales,
     normalized_selected_locales,
