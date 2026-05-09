@@ -73,10 +73,38 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
     notFound();
   }
 
-  const { published } = publishedRoute;
+  const { published, allowIndexing, personSlug: canonicalPersonSlug, publicId: canonicalPublicId } = publishedRoute;
+  const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
+  const canonicalUrl = absoluteUrl(canonicalPath);
+  const profileJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    name: published.resume.name || published.preset.title,
+    url: canonicalUrl,
+    inLanguage: published.document.locale,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "OpenCVHub",
+      url: getAppBaseUrl(),
+    },
+    mainEntity: {
+      "@type": "Person",
+      name: published.resume.name || published.preset.title,
+      jobTitle: published.resume.role || undefined,
+      description: published.preset.title,
+    },
+  };
 
   return (
     <main className="container py-8 public-resume-route">
+      {allowIndexing ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(profileJsonLd),
+          }}
+        />
+      ) : null}
       <BasicResumeDocument
         locale={published.document.locale}
         resume={published.resume}

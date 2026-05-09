@@ -19,6 +19,8 @@ test("canonical public route emits SEO/AEO metadata contract", () => {
   assert.equal(route.includes("follow: false"), true);
   assert.equal(route.includes("index: allowIndexing"), true);
   assert.equal(route.includes("follow: allowIndexing"), true);
+  assert.equal(route.includes("application/ld+json"), true);
+  assert.equal(route.includes("\"@type\": \"ProfilePage\""), true);
 });
 
 test("legacy slug route keeps SEO-safe compatibility behavior", () => {

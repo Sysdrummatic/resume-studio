@@ -148,6 +148,14 @@ type ResumePublicLinkRow = {
   updated_at: string;
 };
 
+export type PublicSitemapLink = {
+  personSlug: string;
+  publicId: string;
+  defaultLocale: ResumeLocale;
+  availableLocales: ResumeLocale[];
+  updatedAt: string;
+};
+
 export type PublishedResumePreset = {
   preset: ResumePresetRow;
   document: ResumeDocumentRow;
@@ -1071,6 +1079,32 @@ export async function fetchPublishedResumePresetByPublicLink(
     availableLocales: normalizeLocales(link.available_locales || [], normalizeLocale(link.default_locale || published.document.locale)),
     legacySlug: link.legacy_slug || link.slug || null,
   };
+}
+
+export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitemapLink[]> {
+  const result = await queryTable<ResumePublicLinkRow>({
+    table: "resume_public_links",
+    select: RESUME_PUBLIC_LINK_SELECT,
+    useServiceRole: true,
+    query: "is_active=eq.true&status=eq.active&allow_indexing=eq.true&order=updated_at.desc",
+  });
+
+  if (!result.data || result.error) {
+    return [];
+  }
+
+  return result.data
+    .filter((link) => Boolean(link.person_slug && link.public_id))
+    .map((link) => {
+      const defaultLocale = normalizeLocale(link.default_locale || "en");
+      return {
+        personSlug: String(link.person_slug || "").trim(),
+        publicId: String(link.public_id || "").trim(),
+        defaultLocale,
+        availableLocales: normalizeLocales(link.available_locales || [], defaultLocale),
+        updatedAt: link.updated_at,
+      };
+    });
 }
 
 export async function setDefaultResumeLocaleForUser(accessToken: string, userId: string, localeInput: string): Promise<boolean> {
