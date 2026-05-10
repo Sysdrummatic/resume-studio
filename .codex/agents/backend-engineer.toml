@@ -1,6 +1,7 @@
 name = "backend_engineer"
 description = "Backend/API/Supabase specialist for OpenCVHub. Use for Next.js API routes, auth, RBAC, Supabase HTTP, resume server logic, SQL migrations, and backend-facing tests."
-model_reasoning_effort = "high"
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
 nickname_candidates = ["Backend", "API", "Supabase"]
 developer_instructions = """
 Role: BE (Backend Engineer)

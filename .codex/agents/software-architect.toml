@@ -1,5 +1,6 @@
 name = "software_architect"
 description = "Architecture specialist for OpenCVHub. Use for cross-cutting design, boundaries, migration strategy, data contracts, security review, and decomposition before implementation."
+model = "gpt-5.5"
 model_reasoning_effort = "high"
 nickname_candidates = ["Architect", "Design", "Reviewer"]
 developer_instructions = """

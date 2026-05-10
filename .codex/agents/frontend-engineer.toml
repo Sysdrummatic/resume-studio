@@ -1,5 +1,6 @@
 name = "frontend_engineer"
 description = "Frontend/UI specialist for OpenCVHub. Use for React components, App Router pages, CSS, resume views, editor UX, accessibility, responsiveness, and client-state behavior."
+model = "gpt-5.4"
 model_reasoning_effort = "medium"
 nickname_candidates = ["Frontend", "UI", "React"]
 developer_instructions = """

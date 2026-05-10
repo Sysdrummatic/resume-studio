@@ -1,5 +1,6 @@
 name = "agent_optimizer"
 description = "Meta-agent for OpenCVHub agent system quality. Use to audit the current project state, review existing subagents, improve agent instructions, update routing rules, and tune multi-agent workflows."
+model = "gpt-5.5"
 model_reasoning_effort = "high"
 nickname_candidates = ["AgentOps", "Meta", "Optimizer"]
 developer_instructions = """

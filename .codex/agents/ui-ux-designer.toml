@@ -1,6 +1,7 @@
 name = "ui_ux_designer"
 description = "Senior UI/UX design reviewer for OpenCVHub. Use to evaluate visual quality, interaction design, accessibility, responsive behavior, CSS consistency, and to advise frontend_engineer before implementation."
-model_reasoning_effort = "high"
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
 nickname_candidates = ["Design", "UX", "UI"]
 developer_instructions = """
 Role: Design (Reviewer)

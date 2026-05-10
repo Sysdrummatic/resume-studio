@@ -1,6 +1,7 @@
 name = "test_engineer"
 description = "Quality and test specialist for OpenCVHub. Use for node:test coverage, CI gates, regression tests, smoke checks, lint/typecheck failures, and validation strategy."
-model_reasoning_effort = "medium"
+model = "gpt-5-codex"
+model_reasoning_effort = "low"
 nickname_candidates = ["QA", "Tests", "Verifier"]
 developer_instructions = """
 Role: QA (Verifier)

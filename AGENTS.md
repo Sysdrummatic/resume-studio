@@ -12,6 +12,14 @@ Use `.codex/instructions.md` as the project source of truth. Also consult `.code
 
 Keep changes small, safe, reversible, and aligned with the Next.js App Router, YAML-first resume model, and Supabase auth/data layer.
 
+## Economic Model Hierarchy
+
+Agents are tiered based on their reasoning complexity and economic efficiency:
+
+- **Tier 1: Planning & Architecture** (`reasoning_effort: high`) - **GPT-5.5**. Used for high-level strategy, complex migrations, and project orchestration.
+- **Tier 2: Real Implementation** (`reasoning_effort: medium`) - **GPT-5.4**. Used for feature development, UI/UX implementation, and logic building.
+- **Tier 3: Operational Tasking** (`reasoning_effort: low`) - **GPT-5 Codex**. Used for running tests, validation, linting, and repetitive operational work.
+
 ## Available Custom Agents
 
 - `backend_engineer`: API routes, auth, RBAC, Supabase HTTP, resume server logic, SQL migrations, backend tests.
