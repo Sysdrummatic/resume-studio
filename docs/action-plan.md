@@ -41,6 +41,8 @@ Each item includes the source guide it comes from, so the detailed rationale and
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [/] Build `Language Versions` UI for adding draft language documents and setting the default published CV language; duplication and per-version publish controls remain follow-up work
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
+- [ ] Merge Language Versions UX into the Master Resume dashboard modal with EN as the default first badge, right-side add-language control, and left-to-right badge ordering
+  Source: `.codex/state.yaml#language_modal_merge_plan`
 - [ ] Add structured data (JSON-LD) for public resume pages where applicable
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add sitemap and robots configuration
@@ -51,6 +53,39 @@ Each item includes the source guide it comes from, so the detailed rationale and
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add role-aware admin dashboard views for analytics and audit visibility
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
+- [ ] Implement role inheritance capability model: `user` base, `manager` and `recruiter` inherit `user`, `admin` inherits both, with API guards/UI gates/SQL helpers kept least-privilege and privacy-first
+  Source: `.codex/state.yaml#role_inheritance_rollout_package`, `.codex/state.yaml#role_inheritance_model`, [Phase C Auth + RBAC + Admin](guides/phase-c-auth-rbac-admin.md), [Privacy-First Admin Access Policy](guides/privacy-first-admin-access-policy.md)
+
+### Role Inheritance Rollout Package
+
+Source of truth: `.codex/state.yaml#role_inheritance_rollout_package`.
+
+Guardrails:
+- Preserve flat persisted profile roles: `admin`, `manager`, `user`, `recruiter`.
+- Preserve inheritance semantics: `manager -> user`, `recruiter -> user`, `admin -> manager + recruiter -> user`.
+- Preserve privacy boundary: private resume YAML, revisions, draft selections, and owner documents stay owner-only.
+- Keep recruiter inheritance as own-account/user parity only; it is not staff/admin visibility.
+
+Execution sequence:
+1. Backend PR1: add capability helpers and tests in `app/lib/rbac.ts`, `app/lib/auth-types.ts`, `app/lib/auth-request.ts`, `app/lib/auth-server.ts`, and `tests/**`; keep `acceptedRoles` compatibility and avoid route behavior migration.
+2. Backend PR2: migrate admin user APIs in `app/api/admin/users/**` to `admin.*` capabilities plus target-aware helpers; keep manager limited to self plus `user`/`recruiter` and keep responses metadata-only.
+3. Backend PR3: migrate owner resume APIs in `app/api/resume/**` to `resume.*_own` capabilities; align recruiter with user for own resume/language management unless an explicit product exception is documented.
+4. Frontend PR4: update `app/components/account-menu.tsx`, `app/admin/page.tsx`, and `app/admin/admin-users-client.tsx` to use shared capability/target helpers; manager sees User management, user/recruiter do not.
+5. Backend PR5: decide SQL alignment; add a forward-only helper migration only if needed, otherwise document why existing SQL/RPC helpers are sufficient. Do not modify historical migrations or broaden owner-only RLS.
+6. Test PR6: update brittle literal-role tests, run full validation, and attach manual QA evidence for all roles.
+
+Definition of done:
+- `npm.cmd run lint`, `npm.cmd run typecheck`, and `npm.cmd test` pass.
+- Capability tests prove admin inherits manager/recruiter/user, manager inherits user only, recruiter inherits user only, and no role has `resume.content.read_other`.
+- Admin and manager can access `/admin`; user and recruiter cannot.
+- Manager can manage only `user`/`recruiter` targets and cannot modify own privileges.
+- All private resume routes use actor-owned access only and do not accept staff target-user overrides.
+- Admin APIs remain metadata-only and do not expose `yaml_content`, private revisions, or draft selections.
+
+Rollback:
+- Roll back PRs in reverse order. PR1 helpers are backward-compatible and can remain inert if PR2-PR5 are reverted.
+- If SQL helpers are added, rollback is a new forward migration that drops only new helper functions/policies; no data rollback is expected.
+- Existing `/language-versions` and dashboard worktree changes are unrelated and must not be reverted by role-inheritance work.
 - [ ] Add analytics widgets for counts, active links, and views
   Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 - [ ] Add audit log explorer and filtering

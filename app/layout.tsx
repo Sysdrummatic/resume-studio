@@ -22,8 +22,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     ...(actor
       ? [
           { href: "/dashboard", label: "Dashboard" },
-          { href: "/master-resume", label: "Editor" },
-          { href: "/language-versions", label: "Language Versions" },
         ]
       : []),
     { href: "/resume", label: "Sample CV" },

@@ -327,7 +327,29 @@ export async function upsertResumeLanguage(input: ResumeLanguageInput): Promise<
   const existingLanguages = await fetchResumeLanguages();
   const existing = existingLanguages.find((language) => language.code === normalized.code);
   if (existing) {
-    return existing;
+    const updated = await updateTable({
+      table: "resume_languages",
+      useServiceRole: true,
+      query: `code=eq.${encodeURIComponent(normalized.code)}`,
+      values: {
+        label: normalized.label,
+        short_label: normalized.shortLabel,
+        labels: normalized.labels as Record<string, unknown>,
+        is_enabled: normalized.isEnabled,
+        updated_at: new Date().toISOString(),
+      },
+    });
+    if (!updated.data || updated.error || !updated.data[0]) {
+      return null;
+    }
+    const row = updated.data[0] as unknown as ResumeLanguageRow;
+    return {
+      ...row,
+      code: normalizeLocale(row.code),
+      labels: normalizeLabelMap(row.labels),
+      is_enabled: Boolean(row.is_enabled),
+      sort_order: Number(row.sort_order) || existing.sort_order,
+    };
   }
 
   const values = {
@@ -356,6 +378,20 @@ export async function upsertResumeLanguage(input: ResumeLanguageInput): Promise<
     code: normalizeLocale(row.code),
     labels: normalizeLabelMap(row.labels),
   };
+}
+
+export async function disableResumeLanguage(codeInput: string): Promise<boolean> {
+  const code = normalizeLocale(codeInput);
+  const updated = await updateTable({
+    table: "resume_languages",
+    useServiceRole: true,
+    query: `code=eq.${encodeURIComponent(code)}`,
+    values: {
+      is_enabled: false,
+      updated_at: new Date().toISOString(),
+    },
+  });
+  return Boolean(updated.data && !updated.error && updated.data.length > 0);
 }
 
 export function buildDefaultResumeYaml(name: string): string {

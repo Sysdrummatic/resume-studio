@@ -199,18 +199,6 @@ function mergePreset(current: ResumePresetRow[], nextPreset: ResumePresetRow) {
   return current.map((preset) => (preset.id === nextPreset.id ? nextPreset : preset));
 }
 
-function TrashIcon() {
-  return (
-    <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v5" />
-      <path d="M14 11v5" />
-    </svg>
-  );
-}
-
 function PresetModal({
   masterResume,
   preset,
@@ -718,7 +706,13 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                       onClick={() => void deletePreset(preset)}
                       disabled={deletingPresetId === preset.id}
                     >
-                      <TrashIcon />
+                      <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v5" />
+                        <path d="M14 11v5" />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -762,6 +756,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           onPublish={publishPreset}
         />
       ) : null}
+
     </div>
   );
 }

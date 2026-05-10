@@ -49,12 +49,18 @@ type ResumeLanguageMetadata = {
   code: ResumeLocale;
   label: string;
   short_label: string;
+  sort_order?: number;
 };
 
 type ApiLanguagesResponse = {
   ok?: boolean;
   error?: string;
   languages?: ResumeLanguageMetadata[];
+};
+type ApiLanguagePostResponse = {
+  ok?: boolean;
+  error?: string;
+  language?: ResumeLanguageMetadata;
 };
 
 type EditorTab = "yaml" | "human";
@@ -64,6 +70,18 @@ const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
   { code: "basic", label: "basic" },
   { code: "empty", label: "pusty" },
 ];
+
+function TrashIcon() {
+  return (
+    <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v5" />
+      <path d="M14 11v5" />
+    </svg>
+  );
+}
 
 
 function hasYamlRuntime(): boolean {
@@ -128,6 +146,13 @@ export default function EditorCanvasClient() {
   const [isBusy, setIsBusy] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const [newLanguageCode, setNewLanguageCode] = useState("");
+  const [newLanguageLabel, setNewLanguageLabel] = useState("");
+  const [newLanguageShortLabel, setNewLanguageShortLabel] = useState("");
+  const [isSavingLanguage, setIsSavingLanguage] = useState(false);
+  const [editingLanguageCode, setEditingLanguageCode] = useState<ResumeLocale | null>(null);
+  const [defaultLocale, setDefaultLocale] = useState<ResumeLocale>("en");
 
   const [actor, setActor] = useState<{ userId: string; displayName: string; role: string } | null>(null);
   const [documentRow, setDocumentRow] = useState<ResumeDocumentRow | null>(null);
@@ -139,6 +164,11 @@ export default function EditorCanvasClient() {
   const [revisions, setRevisions] = useState<ResumeRevisionItem[]>([]);
 
   const validation = useMemo(() => validateResumeDocument(resume), [resume]);
+  const normalizedNewLanguageCode = useMemo(() => newLanguageCode.trim().toLowerCase().split("-")[0].slice(0, 2), [newLanguageCode]);
+  const normalizedNewLanguageShortLabel = useMemo(
+    () => (newLanguageShortLabel.trim() || normalizedNewLanguageCode).toUpperCase().slice(0, 2),
+    [newLanguageShortLabel, normalizedNewLanguageCode],
+  );
 
 
   const loadLocaleDocument = useCallback(
@@ -163,7 +193,7 @@ export default function EditorCanvasClient() {
         setRevisions(payload.revisions || []);
 
         let nextYamlPanel = payload.document?.yaml_content || "";
-        let nextStatus = payload.document ? "Resume document loaded." : "Template YAML loaded.";
+        const nextStatus = payload.document ? "Resume document loaded." : "Template YAML loaded.";
         if (!nextYamlPanel) {
           nextYamlPanel = await fetchText(TEMPLATE_PATH);
         }
@@ -217,10 +247,10 @@ export default function EditorCanvasClient() {
 
     async function loadLanguages() {
       try {
-        const response = await fetch("/api/resume/languages");
+        const response = await fetch("/api/resume/languages?withDocuments=true");
         const payload = (await response.json()) as ApiLanguagesResponse;
         if (mounted && payload.languages?.length) {
-          setLanguageOptions(payload.languages);
+          setLanguageOptions(payload.languages.sort((left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code)));
         }
       } catch {
         if (mounted) {
@@ -234,6 +264,88 @@ export default function EditorCanvasClient() {
       mounted = false;
     };
   }, [showToast]);
+
+  useEffect(() => {
+    setDefaultLocale((current) => current || locale);
+  }, [locale]);
+
+  async function saveLanguageVersion() {
+    if (!/^[a-z]{2}$/.test(normalizedNewLanguageCode)) {
+      showToast("Use a two-letter language code.", "error");
+      return;
+    }
+    if (!newLanguageLabel.trim()) {
+      showToast("Language name is required.", "error");
+      return;
+    }
+    if (!/^[A-Z]{2}$/.test(normalizedNewLanguageShortLabel)) {
+      showToast("Short label must contain two letters.", "error");
+      return;
+    }
+    if (!editingLanguageCode && languageOptions.some((language) => language.code === normalizedNewLanguageCode)) {
+      showToast("This language already exists.", "error");
+      return;
+    }
+
+    setIsSavingLanguage(true);
+    const response = await fetch("/api/resume/languages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: normalizedNewLanguageCode,
+        label: newLanguageLabel.trim(),
+        shortLabel: normalizedNewLanguageShortLabel,
+        createDocument: true,
+      }),
+    });
+    const payload = (await response.json()) as ApiLanguagePostResponse;
+    setIsSavingLanguage(false);
+    if (!response.ok || payload.error) {
+      showToast(payload.error || "Language version save failed.", "error");
+      return;
+    }
+    setIsLanguageModalOpen(false);
+    setEditingLanguageCode(null);
+    setNewLanguageCode("");
+    setNewLanguageLabel("");
+    setNewLanguageShortLabel("");
+    setLocale(normalizedNewLanguageCode as ResumeLocale);
+    showToast("Language version created.");
+  }
+
+  async function setDefaultLanguage(code: ResumeLocale) {
+    const response = await fetch("/api/resume/languages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, setDefault: true }),
+    });
+    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale };
+    if (!response.ok || payload.error) {
+      showToast(payload.error || "Default language update failed.", "error");
+      return;
+    }
+    setDefaultLocale(payload.defaultLocale || code);
+    showToast("Default language updated.");
+  }
+
+  async function deleteLanguageVersion(code: ResumeLocale) {
+    const response = await fetch("/api/resume/languages", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok || payload.error) {
+      showToast(payload.error || "Language version delete failed.", "error");
+      return;
+    }
+    setLanguageOptions((current) => current.filter((language) => language.code !== code));
+    if (locale === code) {
+      const fallback = languageOptions.find((language) => language.code !== code)?.code || "en";
+      setLocale(fallback as ResumeLocale);
+    }
+    showToast("Language version deleted.");
+  }
 
   function handleLocaleSwitch(nextLocale: ResumeLocale) {
     if (nextLocale === locale || isBusy) {
@@ -250,7 +362,7 @@ export default function EditorCanvasClient() {
       if (localValidation.valid) {
         setResume(parsed);
       }
-    } catch (error) {
+    } catch {
       // User is typing, skip auto-sync to form
     }
   }
@@ -259,7 +371,7 @@ export default function EditorCanvasClient() {
     setResume(nextResume);
     try {
       setYamlPanel(serializeResumeToYaml(nextResume));
-    } catch (error) {
+    } catch {
       // Silent catch for auto-sync to YAML
     }
   }
@@ -469,7 +581,7 @@ export default function EditorCanvasClient() {
     try {
       const parsed = parseYamlToResumeDocument(payload.document.yaml_content, actor?.displayName || "");
       setResume(parsed);
-    } catch (e) {
+    } catch {
       // Should not happen for a saved revision
     }
     setIsBusy(false);
@@ -495,10 +607,124 @@ export default function EditorCanvasClient() {
               {language.short_label}
             </button>
           ))}
+          <button type="button" className="button button--ghost" onClick={() => setIsLanguageModalOpen(true)} disabled={isBusy || isLoading} aria-label="Add language version">
+            +
+          </button>
         </div>
       </header>
 
       <StatusToast toast={toast} onClose={closeToast} />
+      {isLanguageModalOpen ? (
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Add language version">
+          <button type="button" className="dashboard-modal__backdrop" onClick={() => setIsLanguageModalOpen(false)} aria-label="Close add language version"></button>
+          <div className="dashboard-modal__body">
+            <div className="section-row">
+              <h2>{editingLanguageCode ? "Edit language version" : "Add language version"}</h2>
+              <button type="button" className="button button--ghost button--small" onClick={() => setIsLanguageModalOpen(false)}>
+                Close
+              </button>
+            </div>
+            <p className="card-lead">
+              Selected now:{" "}
+              <strong>{languageOptions.find((language) => language.code === locale)?.short_label || locale.toUpperCase()}</strong>
+            </p>
+            <label>
+              Code
+              <input value={newLanguageCode} onChange={(event) => setNewLanguageCode(event.target.value)} placeholder="de" maxLength={8} />
+            </label>
+            <label>
+              Language name
+              <input value={newLanguageLabel} onChange={(event) => setNewLanguageLabel(event.target.value)} placeholder="Deutsch" />
+            </label>
+            <label>
+              Short label
+              <input
+                value={newLanguageShortLabel}
+                onChange={(event) => setNewLanguageShortLabel(event.target.value)}
+                placeholder={normalizedNewLanguageShortLabel || "DE"}
+                maxLength={4}
+              />
+            </label>
+            <section className="stack">
+              <h3>Versions</h3>
+              <p className="card-lead">{languageOptions.length} configured languages</p>
+              <ul className="language-versions__list">
+                {languageOptions.map((language) => (
+                  <li key={language.code}>
+                    <div className="language-versions__identity">
+                      <span>{language.short_label}</span>
+                      <div>
+                        <strong>{language.label}</strong>
+                        <p>{language.code}</p>
+                      </div>
+                    </div>
+                    <div className="language-versions__meta">
+                      {language.code === locale && language.code !== defaultLocale ? (
+                        <span className="dashboard-resume-list__badge">Selected</span>
+                      ) : null}
+                      {language.code === defaultLocale ? <span className="dashboard-resume-list__badge">Default</span> : null}
+                    </div>
+                    <div className="dashboard-resume-list__actions">
+                      <div className="actions-row">
+                        <button
+                          type="button"
+                          className="button button--ghost button--small"
+                          onClick={() => void setDefaultLanguage(language.code)}
+                          disabled={language.code === defaultLocale}
+                        >
+                          Set default
+                        </button>
+                        <button
+                          type="button"
+                          className="button button--ghost button--small"
+                          onClick={() => {
+                            setEditingLanguageCode(language.code);
+                            setNewLanguageCode(language.code);
+                            setNewLanguageLabel(language.label);
+                            setNewLanguageShortLabel(language.short_label);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      <div className="dashboard-resume-list__delete-separator">
+                        <button
+                          type="button"
+                          className="button button--ghost button--small button--icon button--danger"
+                          aria-label={`Delete language version ${language.label}`}
+                          title="Delete language version"
+                          onClick={() => void deleteLanguageVersion(language.code)}
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <div className="actions-row">
+              <button type="button" className="button button--primary" onClick={() => void saveLanguageVersion()} disabled={isSavingLanguage}>
+                {isSavingLanguage ? "Saving..." : editingLanguageCode ? "Save changes" : "Create version"}
+              </button>
+              {editingLanguageCode ? (
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => {
+                    setEditingLanguageCode(null);
+                    setNewLanguageCode("");
+                    setNewLanguageLabel("");
+                    setNewLanguageShortLabel("");
+                  }}
+                >
+                  Cancel edit
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="resume-editor-shell__content">
         <div className="resume-editor-form">

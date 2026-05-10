@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
-import type { AppRole, SessionActor } from "./auth-types";
+import type { AppRole, RequestActorAuthorizationOptions, SessionActor } from "./auth-types";
 import { clearAuthCookies, readAuthTokens, setAuthCookies } from "./auth-cookies";
 import { fetchProfileById, fetchProfileByIdAsService, getAuthUser, refreshSession } from "./supabase-http";
+import { isRoleAuthorized } from "./rbac";
 
 type RequestAuthResult =
   | {
@@ -72,11 +73,9 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
   return { ok: true, actor, accessToken };
 }
 
-function authorizeRole(actorRole: AppRole, acceptedRoles: readonly AppRole[]): boolean {
-  return acceptedRoles.includes(actorRole);
-}
-
-export async function requireRequestActor(acceptedRoles?: readonly AppRole[]): Promise<RequestAuthResult> {
+export async function requireRequestActor(
+  acceptedRolesOrOptions?: readonly AppRole[] | RequestActorAuthorizationOptions,
+): Promise<RequestAuthResult> {
   const cookieStore = await cookies();
   const { accessToken, refreshToken } = readAuthTokens(cookieStore);
 
@@ -122,7 +121,11 @@ export async function requireRequestActor(acceptedRoles?: readonly AppRole[]): P
     return { ok: false, status: 403, message: "Account is inactive." };
   }
 
-  if (acceptedRoles && !authorizeRole(result.actor.role, acceptedRoles)) {
+  const authorizationOptions: RequestActorAuthorizationOptions | undefined = Array.isArray(acceptedRolesOrOptions)
+    ? { acceptedRoles: acceptedRolesOrOptions }
+    : (acceptedRolesOrOptions as RequestActorAuthorizationOptions | undefined);
+
+  if (!isRoleAuthorized(result.actor.role, authorizationOptions)) {
     return { ok: false, status: 403, message: "Insufficient permissions." };
   }
 

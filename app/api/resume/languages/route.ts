@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import {
   ensureResumeDocument,
+  disableResumeLanguage,
   fetchResumeLanguageVersionsForUser,
   fetchResumeLanguages,
   setDefaultResumeLocaleForUser,
@@ -105,4 +106,30 @@ export async function PATCH(request: Request): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true, defaultLocale: normalizeLocale(body.code) });
+}
+
+export async function DELETE(request: Request): Promise<Response> {
+  const actorResult = await requireRequestActor(["admin", "manager", "user"]);
+  if (!actorResult.ok) {
+    return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
+  }
+
+  let body: Pick<LanguageBody, "code">;
+  try {
+    body = (await request.json()) as Pick<LanguageBody, "code">;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
+
+  const code = String(body.code || "");
+  if (!code) {
+    return NextResponse.json({ error: "Language code is required." }, { status: 400 });
+  }
+
+  const deleted = await disableResumeLanguage(code);
+  if (!deleted) {
+    return NextResponse.json({ error: "Language version could not be removed." }, { status: 400 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

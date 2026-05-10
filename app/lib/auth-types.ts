@@ -1,6 +1,29 @@
 export const APP_ROLES = ["admin", "manager", "user", "recruiter"] as const;
+export const APP_CAPABILITIES = [
+  "admin.area.access",
+  "admin.users.read",
+  "admin.users.role_write",
+  "admin.users.status_write",
+  "admin.users.delete",
+  "resume.document.read_own",
+  "resume.document.write_own",
+  "resume.language.read_own",
+  "resume.language.write_own",
+  "resume.preset.read_own",
+  "resume.preset.write_own",
+  "resume.preset.publish_own",
+  "resume.preset.unpublish_own",
+  "resume.revision.rollback_own",
+  "resume.content.read_other",
+] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
+export type AppCapability = (typeof APP_CAPABILITIES)[number];
+export type RequestActorAuthorizationOptions = {
+  acceptedRoles?: readonly AppRole[];
+  anyCapability?: AppCapability;
+  allCapabilities?: readonly AppCapability[];
+};
 
 export type SupabaseAuthUser = {
   id: string;

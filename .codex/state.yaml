@@ -31,7 +31,198 @@ last_audit:
     - "Made unpublish fail closed on Public Link revoke errors."
     - "Selected publishable locales only from variants/documents with source documents and chose a valid default locale."
     - "Stopped the publish route from forcing en when defaultLocale is omitted and added empty preset id validation to publish/unpublish routes."
-plan: null
+plan:
+  agent: software_architect
+  role: Architect
+  task: "Language Versions modal merge into Master Resume Editor"
+  status: proposed
+  source_refs:
+    - "app/master-resume/editor-canvas-client.tsx"
+    - "app/language-versions/language-versions-client.tsx"
+    - "app/api/resume/languages/route.ts"
+    - "app/lib/resume-server.ts"
+    - "docs/action-plan.md"
+  sequence:
+    - step: "Extract reusable language version UI/state from the standalone Language Versions client."
+      owner: frontend_engineer
+      status: pending
+    - step: "Render language badges plus add-language modal in Master Resume Editor header."
+      owner: frontend_engineer
+      status: pending
+    - step: "Keep existing /api/resume/languages contract unless duplicate-from-language is explicitly added."
+      owner: backend_engineer
+      status: pending
+    - step: "Add regression tests for modal workflow, EN default first document, and badge ordering."
+      owner: test_engineer
+      status: pending
+language_modal_merge_architecture:
+  agent: software_architect
+  role: Architect
+  task: "analyze_and_plan_language_modal_merge"
+  status: ready_for_implementation
+  requested_behavior:
+    - "Language Version features move from the separate page workflow into Master Resume Editor modal workflow."
+    - "First created CV defaults to English."
+    - "After first master resume creation, editor shows EN language badge and a plus control to its right."
+    - "Clicking plus opens add-language options."
+    - "After successful add, a new language badge appears."
+    - "Language badges render left-to-right in stable order."
+  current_architecture:
+    editor:
+      file: "app/master-resume/editor-canvas-client.tsx"
+      notes:
+        - "Reads locale from ?locale and defaults to en."
+        - "GET /api/resume/document?locale=<locale> ensures a resume_documents row and seeds from resume-en-template.yaml when absent."
+        - "Header already has locale buttons from /api/resume/languages metadata."
+    language_versions:
+      files:
+        - "app/language-versions/page.tsx"
+        - "app/language-versions/language-versions-client.tsx"
+      notes:
+        - "Standalone authenticated page creates language metadata and document via POST /api/resume/languages."
+        - "Client validates two-letter code, label, short label, duplicate code."
+    api:
+      file: "app/api/resume/languages/route.ts"
+      notes:
+        - "GET returns enabled language metadata or language/document pairs with withDocuments=true."
+        - "POST upserts resume_languages and ensures a draft resume document by default."
+        - "PATCH sets default locale across presets/variants."
+    persistence:
+      tables:
+        - "resume_languages: global enabled language metadata, service-role upsert."
+        - "resume_documents: owner locale documents, unique user_id+locale."
+        - "resume_presets/resume_preset_variants: saved CV selections and publish default locale."
+  proposed_design:
+    component_boundaries:
+      - component: "LanguageBadgeRail"
+        owner: frontend_engineer
+        location: "app/components or app/master-resume"
+        responsibility: "Render existing document-backed language badges ordered by sort_order/code, show active state, and render plus icon immediately after the last badge."
+      - component: "AddLanguageVersionModal"
+        owner: frontend_engineer
+        location: "app/components or app/master-resume"
+        responsibility: "Own code/label/shortLabel form state, validation, POST /api/resume/languages, errors, saving state, and close behavior."
+      - component: "useResumeLanguageVersions or local editor state reducer"
+        owner: frontend_engineer
+        location: "app/master-resume/editor-canvas-client.tsx or adjacent hook"
+        responsibility: "Fetch /api/resume/languages?withDocuments=true, merge newly created language+document, keep active locale synchronized."
+      - component: "EditorCanvasClient"
+        owner: frontend_engineer
+        location: "app/master-resume/editor-canvas-client.tsx"
+        responsibility: "Keep YAML editing/publish/rollback behavior; delegate language management UI to extracted components."
+    state_model:
+      server_initial:
+        - "No change required for the page server component initially; client can load language versions after hydration."
+        - "Optional improvement: MasterResumePage may fetch initial language versions server-side later to avoid badge loading flicker."
+      client_state:
+        activeLocale: "ResumeLocale, initialized from searchParams locale or en."
+        languageVersions: "Array<ResumeLanguageRow & { document: ResumeDocumentRow | null }>, fetched with withDocuments=true."
+        isLanguageModalOpen: "boolean."
+        addLanguageForm: "{ code, label, shortLabel, isSaving, error } held inside modal."
+      ordering:
+        - "Badge list should include document-backed languages only."
+        - "Sort by resume_languages.sort_order asc, then code asc."
+        - "Ensure en appears first by seeded sort_order=10; do not hardcode EN except as fallback if metadata is temporarily absent."
+      navigation:
+        - "Click existing badge switches active locale in-place via current loadLocaleDocument path."
+        - "After adding a language, append/merge returned language+document, close modal, and optionally switch to the new locale only if product confirms; default recommended behavior is stay on current locale and show the new badge."
+  data_contract_implications:
+    yaml:
+      - "No YAML shape change required."
+      - "New language documents currently seed from public/data/private/resume-en-template.yaml; this satisfies first-CV-English but creates untranslated starter content for non-EN until edited."
+      - "If future duplicate-from-source is added, it should be explicit and still pass validate_resume_document_yaml."
+    persistence:
+      - "No migration required for the modal merge."
+      - "Existing unique resume_documents(user_id, locale) prevents duplicate documents."
+      - "Existing resume_languages.sort_order controls left-to-right badge order."
+      - "Default first CV is already enforced by editor default locale en and /api/resume/document ensure behavior."
+    api:
+      - "Reuse GET/POST /api/resume/languages."
+      - "Prefer withDocuments=true for the editor badge rail so badges represent actual user documents, not every globally enabled language."
+      - "No service-role expansion; POST still validates input and creates owner-scoped document through access-token writes."
+    migration_risk:
+      level: low
+      notes:
+        - "Schema is already present."
+        - "Main risk is product confusion between global language metadata and per-user language versions."
+        - "Avoid deleting standalone /language-versions route in the same implementation unless PM confirms route deprecation."
+  security_risk_analysis:
+    high_risk_boundaries:
+      - "Auth/session: editor and language APIs remain authenticated."
+      - "Service-role: upsertResumeLanguage uses service-role for global metadata; implementation should not expand payload fields or expose disabled languages for mutation."
+      - "PublicShare: modal must not publish or expose a new language; publish remains explicit Saved Version workflow."
+    mitigations:
+      - "Keep API authorization unchanged."
+      - "Do not add public link changes in FE merge."
+      - "Do not auto-set newly added language as published/default unless user explicitly chooses that existing action."
+  edge_cases:
+    - "No document exists: /master-resume should still default to en and GET /api/resume/document?locale=en should create the first master resume."
+    - "Language metadata exists but document missing: badge rail should hide it or show only after ensure document succeeds; modal POST returns document."
+    - "Duplicate language code: client blocks and server returns existing metadata; UI should surface duplicate as non-destructive."
+    - "Invalid locale such as en-US or 123: normalize/validate to two-letter lowercase, show deterministic error."
+    - "API creates metadata but document ensure fails: show error and do not add badge unless document is present."
+    - "Current editor has unsaved YAML changes and user clicks another badge: implementation should warn or disable switching while busy; current code only gates busy/loading."
+    - "New language badge order after add: re-sort by sort_order/code before render."
+    - "Published CVs: adding a draft language must not appear in public language switcher until selected and published."
+    - "Recruiter role can currently access document/language POST; confirm this remains intentional before changing auth scopes."
+  acceptance_criteria:
+    - "Opening /master-resume with no locale query loads/creates EN document."
+    - "After EN document exists, header shows EN badge followed immediately by plus icon."
+    - "Plus opens accessible modal with code, language name, and short label inputs."
+    - "Valid add-language submission calls POST /api/resume/languages with createDocument true."
+    - "Successful add closes modal or shows success, and the new badge appears without full page reload."
+    - "Badges render left-to-right by sort_order then code, with EN first for seeded data."
+    - "Clicking a badge loads that locale in the existing editor without changing YAML contract."
+    - "Draft added languages are not publicly visible until explicit publish flow selects them."
+    - "Existing dashboard Saved Version publish language selection still works."
+    - "Lint, typecheck, and targeted node tests pass."
+  implementation_plan:
+    frontend_engineer:
+      owns:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/components/** or new app/master-resume/* language components"
+        - "app/globals.css"
+        - "app/layout.tsx if nav de-emphasis/removal is approved"
+      tasks:
+        - "Extract DEFAULT_LABELS/normalizeCode/normalizeShortLabel/form validation from LanguageVersionsClient into reusable module or component."
+        - "Change editor language fetch to /api/resume/languages?withDocuments=true and store document-aware language versions."
+        - "Render document-backed badges and plus icon in editor header; preserve existing button visual language."
+        - "Implement modal using existing dashboard-modal/button/status styles or a shared modal component."
+        - "On successful add, merge returned language+document and re-sort badges."
+        - "Do not remove standalone /language-versions route unless PM explicitly scopes it."
+    backend_engineer:
+      owns:
+        - "app/api/resume/languages/route.ts"
+        - "app/lib/resume-server.ts"
+      tasks:
+        - "Review whether POST should return 409 for duplicate per-user language versions instead of silently returning existing global metadata."
+        - "Ensure POST failure semantics distinguish metadata save failure from document ensure failure if FE needs precise modal errors."
+        - "Confirm recruiter role access is intentional for language document creation."
+      default_recommendation: "No backend change for first implementation unless tests expose ambiguous duplicate/failure behavior."
+    test_engineer:
+      owns:
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/master-resume-editor-language-modal.test.mjs"
+        - "tests/dashboard-presets.test.mjs if copy changes affect existing assertions"
+      tasks:
+        - "Update tests from standalone page expectation to modal-in-editor expectation, while keeping API contract coverage."
+        - "Assert editor contains plus/add-language modal trigger and POST /api/resume/languages."
+        - "Assert editor defaults locale state to en and requests /api/resume/document?locale=<locale>."
+        - "Assert badge sorting uses sort_order/code or an explicit sort helper."
+        - "Run npm.cmd run lint, npm.cmd run typecheck, npm.cmd test."
+  next_trigger:
+    REQ: frontend_engineer
+    CMD: "implement_language_modal_shell"
+    CTX:
+      ref: ".codex/state.yaml#language_modal_merge_architecture"
+      scope:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/components/**"
+        - "app/globals.css"
+    LMT:
+      - "security-first"
+      - "small-safe-reversible"
+      - "preserve-existing-design-system"
 adr_backlog:
   agent: software_architect
   task: "Post-PR4 ADR recommendations"
@@ -158,23 +349,34 @@ val_results:
     - "Existing unrelated dashboard-client.tsx change was left untouched."
 agent_audit: null
 manifest:
-  active_agent: null
+  active_agent: project_manager
   next_trigger:
-    REQ: software_architect
-    CMD: review_next_adr_scope
+    REQ: backend_engineer
+    CMD: impl_role_capability_helpers_pr1
     CTX:
-      ref: ".codex/state.yaml#adr_backlog"
+      ref: ".codex/state.yaml#role_inheritance_rollout_package"
       scope:
-        - "docs/adr/**"
-        - "docs/guides/saas-transition-work-plan.md"
-        - "docs/action-plan.md"
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-request.ts"
+        - "app/lib/auth-server.ts"
+        - "app/lib/auth-types.ts"
+        - "tests/**"
     LMT:
-      - "No prod code."
-      - "Confirm ADR candidates before implementation."
+      - "security-first"
+      - "least-privilege"
+      - "backward-compatible acceptedRoles support"
+      - "no API guard migration beyond helper tests in PR1"
+      - "no private resume content access expansion"
   history:
     - agent: backend_engineer
       task: "PR2 ADR 0001 publication runtime hardening"
       status: pass
+    - agent: project_manager
+      task: "Language version modal merge execution plan"
+      status: ready
+    - agent: project_manager
+      task: "Role inheritance rollout execution package"
+      status: ready
 post_pr4_plan:
   agent: project_manager
   role: PM
@@ -221,3 +423,854 @@ post_pr4_plan:
   validation:
     run: []
     skipped_reason: "Planning/docs synthesis only; no production code changed."
+language_modal_merge_plan:
+  agent: project_manager
+  role: PM
+  task: "Prepare execution plan for Language Version UX inside Master Resume dashboard modal"
+  status: ready
+  source_refs:
+    - ".codex/instructions.md"
+    - ".codex/site-map-and-dependencies.md"
+    - ".codex/checklists.md"
+    - ".codex/task-checklists.md"
+    - "docs/adr/0006-saved-version-language-ux-contract.md"
+    - "docs/action-plan.md"
+    - "app/dashboard/dashboard-client.tsx"
+    - "app/language-versions/language-versions-client.tsx"
+    - "app/api/resume/languages/route.ts"
+    - "tests/language-versions-interface.test.mjs"
+  scope:
+    in:
+      - "Master Resume card/modal UX on dashboard."
+      - "Reuse existing /api/resume/languages POST/PATCH where possible."
+      - "Show EN as first/default visible language badge."
+      - "Show add-language plus control on the right."
+      - "Create new language document and append/display badge left-to-right."
+      - "Regression tests and docs/status updates."
+    out:
+      - "Public rendering contract changes."
+      - "Supabase schema or RLS changes unless architect flags a required gap."
+      - "Per-language publish redesign beyond existing publish modal contract."
+      - "Legacy static app changes."
+  architect_dependency:
+    required_before_impl: true
+    expected_output:
+      - "Confirm frontend can call existing language API without backend change."
+      - "Confirm owner/auth behavior for document creation remains valid."
+      - "Confirm default locale semantics: EN seeded first, existing user default preserved if already set."
+  sequence:
+    - order: 1
+      owner: software_architect
+      cmd: review_language_modal_merge_boundaries
+      scope:
+        - "app/api/resume/languages/route.ts"
+        - "app/lib/resume-server.ts"
+        - "app/dashboard/dashboard-client.tsx"
+      deliverable: "Boundary note in state.yaml: API reuse, security/data-contract risks, and any blockers."
+    - order: 2
+      owner: frontend_engineer
+      cmd: impl_language_modal_merge
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/components/**"
+        - "app/globals.css"
+      deliverable: "Dashboard Master Resume modal renders ordered language badges, EN first/default, plus-button add flow, loading/error/success states."
+    - order: 3
+      owner: test_engineer
+      cmd: add_regression_and_verify
+      scope:
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/dashboard-presets.test.mjs"
+        - "tests/**"
+      deliverable: "Targeted regression assertions for modal language badges, plus add flow, API call contract, and badge ordering."
+    - order: 4
+      owner: project_manager
+      cmd: integrate_status_and_docs
+      scope:
+        - ".codex/state.yaml"
+        - "docs/action-plan.md"
+      deliverable: "State/docs updated with completed scope, validation evidence, residual risks, and rollback notes."
+  implementation_notes:
+    - "Prefer extracting a small dashboard-local LanguageBadgeRail/AddLanguageModal component only if dashboard-client becomes hard to scan."
+    - "Use existing button, badge, modal, toast, and language-version styles before adding new CSS."
+    - "Keep EN visible even when only one document exists; sort EN first, then existing/user-added languages by creation/display order if available, otherwise stable by sort_order/code."
+    - "The plus control should be icon-first with accessible label and should open add-language options, not navigate away."
+    - "On successful add, merge returned language/document into local state and show its badge without full page reload."
+  risks:
+    - id: "R1"
+      severity: medium
+      note: "Existing DashboardClient receives initialDocuments/languageOptions as immutable props; local state will be needed to show new badges immediately."
+      mitigation: "Frontend owns local language/document state initialized from props; do not mutate props."
+    - id: "R2"
+      severity: medium
+      note: "Default language source currently derives from presets in the separate Language Versions page, not a dedicated user setting."
+      mitigation: "Architect confirms semantics. For this UX, seed/display EN first and avoid changing persisted default unless user action/API explicitly does so."
+    - id: "R3"
+      severity: low
+      note: "Plus add flow may duplicate separate /language-versions page behavior."
+      mitigation: "Reuse the same API payload and validation copy; keep separate page as fallback during rollout."
+    - id: "R4"
+      severity: medium
+      note: "Language creation touches authenticated data and resume document creation."
+      mitigation: "No API broadening without architect review; test unauthenticated/invalid payload behavior remains covered by existing API contract tests."
+  definition_of_done:
+    - "Master Resume dashboard modal/card shows EN badge by default for a first CV."
+    - "Plus icon is on the right of the badge rail and opens add-language options inside a modal/popover."
+    - "Adding a language calls existing language creation flow, creates/prepares the language document, closes or confirms the add flow, and renders a new badge."
+    - "Badge order is deterministic left-to-right: EN first, then added/existing languages by agreed ordering."
+    - "Existing publish modal selected/default language behavior is not regressed."
+    - "Keyboard and screen-reader basics are covered: focusable plus, labelled dialog, error text, disabled saving state."
+    - "Regression tests cover UI contract through source/unit tests appropriate for current test style."
+    - "Validation commands are run or explicitly reported if blocked."
+  verification_matrix:
+    automated:
+      - cmd: "npm.cmd run lint"
+        owner: test_engineer
+        required: true
+      - cmd: "npm.cmd run typecheck"
+        owner: test_engineer
+        required: true
+      - cmd: "npm.cmd test"
+        owner: test_engineer
+        required: true
+      - cmd: "npm.cmd run ci"
+        owner: test_engineer
+        required: false
+        when: "Before release candidate or if shared API/server code changes."
+    targeted_tests:
+      - "tests/language-versions-interface.test.mjs: dashboard/modal add-language contract and API payload reuse."
+      - "tests/dashboard-presets.test.mjs or new focused test: Master Resume badge rail EN-first plus-control contract."
+      - "Existing ADR 0006 publish modal test remains green."
+    manual_qa:
+      - "Fresh user with no extra languages sees EN badge and right-side plus."
+      - "Click plus, add PL or DE, confirm new badge appears immediately to the right of EN."
+      - "Open the new badge/editor path and confirm the created language document loads."
+      - "Publish an existing Saved Version and confirm selected/default language controls still work."
+      - "Check mobile width: badge rail wraps or scrolls without overlapping controls."
+      - "Keyboard: tab to plus, open/close modal, submit invalid and valid language."
+  rollback:
+    - "Revert frontend dashboard/modal changes and regression tests."
+    - "Keep existing /language-versions page available as fallback; do not remove route during rollout."
+    - "If backend changes are introduced despite current plan, revert those in a separate commit and verify /api/resume/languages contract tests."
+    - "No migration rollback expected if architect confirms existing API/schema are reused."
+  next:
+    REQ: software_architect
+    CMD: review_language_modal_merge_boundaries
+    CTX:
+      ref: ".codex/state.yaml#language_modal_merge_plan"
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/language-versions/**"
+        - "app/api/resume/languages/route.ts"
+        - "app/lib/resume-server.ts"
+        - "tests/**"
+    LMT:
+      - "No prod code."
+      - "Confirm API reuse and data boundary before frontend implementation."
+      - "Return YAML status with risks/blockers only."
+
+role_inheritance_model:
+  agent: software_architect
+  role: Architect
+  task: "analyze_role_inheritance_model"
+  status: ready_for_pm_handoff
+  requested_contract:
+    base_role: "user"
+    inherited_roles:
+      manager:
+        inherits: ["user"]
+      recruiter:
+        inherits: ["user"]
+      admin:
+        inherits: ["manager", "recruiter"]
+  current_state:
+    storage:
+      profiles_role: "Flat text enum: admin, manager, user, recruiter."
+      recommendation: "Keep flat persisted role values; model inheritance in capability helpers and SQL predicates."
+    typescript:
+      role_type_file: "app/lib/auth-types.ts"
+      rbac_file: "app/lib/rbac.ts"
+      current_issue: "Route guards use acceptedRoles arrays with direct includes, so inheritance is expressed manually and inconsistently."
+    api:
+      admin:
+        files:
+          - "app/api/admin/users/route.ts"
+          - "app/api/admin/users/[userId]/route.ts"
+        current_guard: "requireRequestActor([\"admin\", \"manager\"])"
+        target_guard: "requireCapability(\"admin.users.read\") and mutation-specific capabilities."
+      resume:
+        files:
+          - "app/api/resume/document/route.ts"
+          - "app/api/resume/draft/route.ts"
+          - "app/api/resume/publish/route.ts"
+          - "app/api/resume/rollback/route.ts"
+          - "app/api/resume/presets/**"
+          - "app/api/resume/languages/route.ts"
+        current_guard: "Most owner resume routes accept all roles; language GET/PATCH/DELETE exclude recruiter while POST includes recruiter."
+        target_guard: "Use explicit owner resume capabilities; decide whether recruiter should have language management parity through inheritance."
+    ui:
+      files:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+      current_issue:
+        - "Account menu shows User management only for admin, while /admin allows manager."
+        - "Admin page/client duplicate role checks instead of using shared permissions."
+    database:
+      files:
+        - "supabase/migrations/20260410_phase_b_yaml_data_layer.sql"
+        - "supabase/migrations/20260410_phase_c_auth_rbac_admin.sql"
+        - "supabase/migrations/20260509_privacy_first_admin_access.sql"
+      current_issue:
+        - "SQL helpers are flat-role predicates: is_admin_user, is_manager_user, is_staff_user."
+        - "Privacy hardening keeps resume content owner-only; inheritance must not reintroduce staff content access."
+  capability_matrix:
+    user:
+      inherits: []
+      capabilities:
+        - "auth.session.read"
+        - "dashboard.read_own"
+        - "profile.read_own"
+        - "resume.document.read_own"
+        - "resume.document.write_own"
+        - "resume.revision.rollback_own"
+        - "resume.preset.read_own"
+        - "resume.preset.write_own"
+        - "resume.preset.publish_own"
+        - "resume.preset.unpublish_own"
+        - "resume.language.read_enabled"
+        - "resume.language.create_own_document"
+        - "resume.language.set_default_own"
+        - "resume.language.disable_global"
+      denied:
+        - "admin.users.read"
+        - "admin.users.role_write"
+        - "admin.users.status_write"
+        - "admin.users.delete"
+        - "admin.audit.read"
+        - "admin.analytics.read"
+        - "resume.content.read_other"
+    recruiter:
+      inherits: ["user"]
+      capabilities:
+        - "recruiter.workflow.own"
+      denied:
+        - "admin.users.read"
+        - "admin.users.role_write"
+        - "admin.users.status_write"
+        - "admin.users.delete"
+        - "admin.audit.read"
+        - "admin.analytics.read"
+        - "resume.content.read_other"
+      note: "Current product/docs say recruiter has user parity for MVP; no ambient staff/admin visibility."
+    manager:
+      inherits: ["user"]
+      capabilities:
+        - "admin.area.access"
+        - "admin.users.read_manageable"
+        - "admin.users.role_write_manageable_user_recruiter"
+        - "admin.users.status_write_manageable_user_recruiter"
+        - "admin.users.delete_manageable_user_recruiter"
+        - "admin.audit.read_metadata"
+        - "admin.analytics.read_metadata"
+      denied:
+        - "admin.users.manage_manager"
+        - "admin.users.manage_admin"
+        - "admin.users.self_privilege_write"
+        - "resume.content.read_other"
+      note: "Manager is operational staff, not a resume-content override."
+    admin:
+      inherits: ["manager", "recruiter"]
+      capabilities:
+        - "admin.area.access"
+        - "admin.users.read_all"
+        - "admin.users.role_write_all"
+        - "admin.users.status_write_all"
+        - "admin.users.delete_all"
+        - "admin.audit.read_metadata"
+        - "admin.analytics.read_metadata"
+        - "recruiter.workflow.own"
+      denied:
+        - "resume.content.read_other"
+      note: "Admin inherits manager/recruiter capabilities but privacy ADR still blocks ambient private CV content."
+  implementation_approach:
+    typescript:
+      - "Add AppCapability union and ROLE_INHERITS/ROLE_CAPABILITIES constants in app/lib/rbac.ts or adjacent app/lib/capabilities.ts."
+      - "Add getEffectiveRoles(role), hasRole(actorRole, requiredRole), hasCapability(actorRole, capability), requireCapabilityResult(actor, capability)."
+      - "Change requireRequestActor to accept either legacy acceptedRoles or new { anyCapability: [...] } option; preserve acceptedRoles during migration."
+      - "Replace raw role array checks route-by-route only after tests exist."
+      - "Keep canAssignRole/canDeleteTarget as target-aware policy helpers; implement them on top of capabilities and target role classes."
+    api_guards:
+      - "Admin list: require admin.users.read; filter manager results to self + user/recruiter."
+      - "Admin role/status/delete: require mutation capability and target-aware helper."
+      - "Owner resume routes: require resume.*_own capabilities plus owner userId from actor; do not allow staff target overrides."
+      - "Language routes: align recruiter with user if inheritance is accepted, or document deliberate exception as product policy."
+      - "Public export routes stay anonymous and snapshot-only; no staff/recruiter capability applies."
+    ui_gates:
+      - "Expose /admin link via canAccessAdminArea/hasCapability so manager sees the same access the server allows."
+      - "Use shared canManageTargetUser/canAssignTargetRole helper in admin client for disabled controls and role option lists."
+      - "Never rely on UI gates as enforcement; server and SQL remain authoritative."
+    database:
+      - "Add a compatibility migration that creates has_role(required_role text) and has_capability(required_capability text), or updates is_staff_user/current helper docs."
+      - "Do not change profiles.role storage or enum values."
+      - "Do not broaden owner-only resume RLS from ADR 0003."
+      - "If SQL capabilities are added, keep helper allowlist explicit and tested; avoid dynamic table-driven permissions for MVP."
+  migration_strategy:
+    phase_0_design:
+      - "Document capability matrix and acceptance criteria."
+      - "Inventory every direct role comparison in app/api, app pages, app components, tests, and migrations."
+    phase_1_compat_helpers:
+      - "Add TS capability helpers without changing behavior."
+      - "Add unit/contract tests proving admin expands to manager+recruiter+user, manager expands to user only, recruiter expands to user only."
+    phase_2_guard_migration:
+      - "Migrate API guards from acceptedRoles arrays to capabilities one endpoint group at a time."
+      - "Keep acceptedRoles overload until all routes and tests are migrated."
+    phase_3_sql_alignment:
+      - "Add forward-only migration for SQL helper predicates if API/RLS/RPC need them."
+      - "Preserve profiles.role data; no backfill required unless invalid legacy values are found."
+    phase_4_docs_cleanup:
+      - "Update phase C, privacy-first admin, SaaS transition, deployment QA, and tests to describe inherited roles."
+  risks:
+    high:
+      - id: "R1"
+        note: "Admin inheriting recruiter can conflict with ADR 0003 wording that recruiter is separate from staff/admin roles."
+        mitigation: "Define inheritance as capability composition only; recruiter.workflow.own is inherited, but recruiter content-access scopes remain future consent-based and excluded."
+      - id: "R2"
+        note: "Capability expansion could accidentally grant manager/admin private resume content access."
+        mitigation: "Resume content capabilities are owner-only and RLS remains owner-only."
+      - id: "R3"
+        note: "SQL and TS authorization drift can create bypasses through RPC or direct Supabase calls."
+        mitigation: "Keep SQL target-aware functions aligned with TS helpers and add contract tests scanning both."
+    medium:
+      - id: "R4"
+        note: "Existing language routes treat recruiter inconsistently: POST allowed, GET/PATCH/DELETE denied."
+        mitigation: "PM/product must decide if recruiter gets full user language management parity; recommended yes for base-user inheritance."
+      - id: "R5"
+        note: "UI currently hides /admin from manager despite server access."
+        mitigation: "Frontend gate should use admin.area.access capability."
+      - id: "R6"
+        note: "Tests assert literal acceptedRoles arrays and will need staged updates."
+        mitigation: "Add capability tests first, then update brittle source-string assertions."
+  pm_handoff_tasks:
+    - owner: project_manager
+      cmd: "sequence_role_inheritance_rollout"
+      scope:
+        - ".codex/state.yaml#role_inheritance_model"
+        - "docs/action-plan.md"
+      deliverable: "Small PR sequence with owners and rollback gates."
+    - owner: backend_engineer
+      cmd: "impl_capability_helpers_and_api_guards"
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-request.ts"
+        - "app/lib/auth-server.ts"
+        - "app/api/admin/**"
+        - "app/api/resume/**"
+      deliverable: "Capability-based authorization helpers and migrated guards with backward-compatible acceptedRoles support."
+    - owner: backend_engineer
+      cmd: "impl_sql_capability_alignment"
+      scope:
+        - "supabase/migrations/**"
+        - "docs/guides/phase-c-auth-rbac-admin.md"
+        - "docs/guides/privacy-first-admin-access-policy.md"
+      deliverable: "Forward-only migration or explicit decision that current SQL target helpers are sufficient."
+    - owner: frontend_engineer
+      cmd: "impl_role_capability_ui_gates"
+      scope:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+      deliverable: "UI gates and disabled states use shared capability/target policy."
+    - owner: test_engineer
+      cmd: "add_role_inheritance_regression"
+      scope:
+        - "tests/**"
+      deliverable: "Unit/contract tests for capability expansion, API guard literals removed or updated, SQL helper/RLS privacy assertions preserved."
+  acceptance_criteria:
+    - "profiles.role remains one of admin, manager, user, recruiter; no existing profile rows require migration."
+    - "hasRole(admin, manager), hasRole(admin, recruiter), hasRole(admin, user), hasRole(manager, user), and hasRole(recruiter, user) are true."
+    - "manager does not inherit recruiter; recruiter does not inherit manager."
+    - "Admin and manager can access /admin; recruiter and user cannot."
+    - "Manager can manage only user/recruiter target accounts and cannot modify own privileges."
+    - "Admin can manage all profile roles/status/deletes."
+    - "All roles can manage only their own resume content unless a future explicit consent model is approved."
+    - "Recruiter parity with user is either implemented across owner resume/language endpoints or explicitly documented as an exception."
+    - "Public routes and OpenCV export remain snapshot-only and unauthenticated."
+  test_strategy:
+    targeted:
+      - "Add app/lib/rbac tests for inheritance expansion, capability checks, target-aware role assignment, and delete decisions."
+      - "Add/adjust API contract tests for admin users routes to use capability helpers while still excluding recruiter from admin access."
+      - "Add resume/language guard tests confirming user-equivalent owner behavior for recruiter if parity is adopted."
+      - "Add migration/source contract tests ensuring owner-only resume RLS remains in 20260509_privacy_first_admin_access.sql."
+      - "Add UI source/behavior test confirming account menu exposes User management to admin and manager only."
+    default_validation:
+      - "npm.cmd run lint"
+      - "npm.cmd run typecheck"
+      - "npm.cmd test"
+  next_trigger:
+    REQ: project_manager
+    CMD: "sequence_role_inheritance_rollout"
+    CTX:
+      ref: ".codex/state.yaml#role_inheritance_model"
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-request.ts"
+        - "app/api/**"
+        - "app/components/account-menu.tsx"
+        - "app/admin/**"
+        - "docs/**"
+        - "supabase/**"
+        - "tests/**"
+    LMT:
+      - "security-first"
+      - "least-privilege"
+      - "backward-compatible-migration"
+
+role_inheritance_rollout_package:
+  agent: project_manager
+  role: PM
+  task: "sequence_role_inheritance_rollout"
+  status: ready_for_backend_pr1
+  source_refs:
+    - ".codex/state.yaml#role_inheritance_model"
+    - ".codex/instructions.md"
+    - ".codex/site-map-and-dependencies.md"
+    - ".codex/checklists.md"
+    - ".codex/task-checklists.md"
+    - "docs/guides/phase-c-auth-rbac-admin.md"
+    - "docs/guides/privacy-first-admin-access-policy.md"
+    - "docs/action-plan.md"
+  preserved_contracts:
+    - "profiles.role remains flat: admin, manager, user, recruiter."
+    - "user is the base capability set."
+    - "manager inherits user only."
+    - "recruiter inherits user only."
+    - "admin inherits manager and recruiter, therefore also user."
+    - "Admin inheritance of recruiter is capability composition only; it does not create recruiter preview/content access."
+    - "Private resume content remains owner-only; no staff, manager, admin, or recruiter ambient read of other users' yaml_content/revisions/draft selections."
+  scope:
+    in:
+      - "TypeScript role/capability helpers."
+      - "Backward-compatible auth guard option for capabilities."
+      - "Admin API guard migration from direct role arrays to capabilities."
+      - "Owner resume API guard migration to owner-only capabilities."
+      - "Recruiter parity with user for own resume/language routes."
+      - "Admin/account UI gates aligned to shared helpers."
+      - "Focused regression tests and docs updates."
+    out:
+      - "Changing persisted role values or profile rows."
+      - "Broadening Supabase RLS over private resume content."
+      - "Adding recruiter consent/preview model."
+      - "Changing public resume snapshot behavior."
+      - "Refactoring unrelated auth/session or dashboard code."
+  sequence:
+    - order: 1
+      id: "PR1"
+      owner: backend_engineer
+      cmd: "impl_role_capability_helpers_pr1"
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-request.ts"
+        - "app/lib/auth-server.ts"
+        - "app/lib/auth-types.ts"
+        - "tests/**"
+      deliverable: "Capability constants/helpers, inherited-role tests, and requireRequestActor capability overload while preserving acceptedRoles behavior."
+      gates:
+        - "No route behavior changes except internal helper compatibility."
+        - "Tests prove inheritance matrix and denied content capability."
+      rollback: "Revert helper/test commit; existing direct acceptedRoles guards remain active."
+    - order: 2
+      id: "PR2"
+      owner: backend_engineer
+      cmd: "migrate_admin_api_guards_pr2"
+      scope:
+        - "app/api/admin/users/route.ts"
+        - "app/api/admin/users/[userId]/route.ts"
+        - "app/lib/rbac.ts"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+        - "tests/adr-0007-publication-analytics-audit-policy.test.mjs"
+      deliverable: "Admin list/update/delete use admin.* capabilities plus target-aware helpers; manager remains limited to self plus user/recruiter."
+      gates:
+        - "Recruiter is still denied admin area/API."
+        - "Admin APIs remain metadata-only and do not import resume-server or select yaml_content."
+      rollback: "Restore acceptedRoles admin guards and previous target checks."
+    - order: 3
+      id: "PR3"
+      owner: backend_engineer
+      cmd: "migrate_owner_resume_guards_pr3"
+      scope:
+        - "app/api/resume/document/route.ts"
+        - "app/api/resume/draft/route.ts"
+        - "app/api/resume/publish/route.ts"
+        - "app/api/resume/rollback/route.ts"
+        - "app/api/resume/presets/**"
+        - "app/api/resume/languages/route.ts"
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/**"
+      deliverable: "Resume and language APIs use own-resource capabilities; recruiter receives user-equivalent own resume/language behavior."
+      gates:
+        - "Actor userId remains the only owner key passed to resume server functions."
+        - "No route accepts target user id for private resume content."
+        - "Public routes remain snapshot-only and unauthenticated."
+      rollback: "Revert resume route guard changes; PR1 helper remains inert."
+    - order: 4
+      id: "PR4"
+      owner: frontend_engineer
+      cmd: "impl_role_capability_ui_gates_pr4"
+      scope:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+        - "tests/account-menu-profile-modal.test.mjs"
+        - "tests/header-account-menu.test.mjs"
+        - "tests/**"
+      deliverable: "Account menu and admin disabled states use shared capability/target policy; manager sees User management link."
+      gates:
+        - "UI gates mirror server rules but are not the enforcement boundary."
+        - "Manager cannot select manager/admin targets or role options."
+      rollback: "Revert UI/tests only; server authorization remains authoritative."
+    - order: 5
+      id: "PR5"
+      owner: backend_engineer
+      cmd: "sql_alignment_decision_pr5"
+      scope:
+        - "supabase/migrations/**"
+        - "docs/guides/phase-c-auth-rbac-admin.md"
+        - "docs/guides/privacy-first-admin-access-policy.md"
+        - "tests/phase-c-sql-migration.test.js"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+      deliverable: "Either forward-only has_role/has_capability SQL helper migration or documented no-op decision that existing target-aware SQL helpers are sufficient."
+      gates:
+        - "No destructive migration."
+        - "Owner-only resume RLS from 20260509_privacy_first_admin_access.sql remains unchanged."
+      rollback: "If migration is added, revert with a forward rollback migration that drops only new helper functions; no data rollback."
+    - order: 6
+      id: "PR6"
+      owner: test_engineer
+      cmd: "role_inheritance_full_verification_pr6"
+      scope:
+        - "tests/**"
+        - "docs/**"
+        - ".codex/state.yaml"
+      deliverable: "Consolidated regression pass, brittle literal-role tests updated, docs synced, validation evidence recorded."
+      gates:
+        - "Default validation passes."
+        - "Manual QA checklist is attached for admin, manager, recruiter, and user."
+      rollback: "Docs/tests-only revert if no production code changes remain pending."
+  backlog_by_risk:
+    high:
+      - file: "app/lib/rbac.ts"
+        owner: backend_engineer
+        changes:
+          - "Add AppCapability union and ROLE_INHERITS/ROLE_CAPABILITIES maps."
+          - "Add getEffectiveRoles, hasRole, hasCapability, canAccessAdminArea via capability, and target-aware canAssignRole/canDeleteTarget wrappers."
+          - "Explicitly deny resume.content.read_other for every current role."
+      - file: "app/lib/auth-request.ts"
+        owner: backend_engineer
+        changes:
+          - "Add backward-compatible guard options: acceptedRoles legacy plus anyCapability/allCapabilities."
+          - "Keep email verification and inactive-account checks before capability checks."
+      - file: "app/api/admin/users/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Replace requireRequestActor([admin, manager]) with admin.users.read capability."
+          - "Keep manager response filter to self plus user/recruiter."
+          - "Keep metadata-only response."
+      - file: "app/api/admin/users/[userId]/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use mutation-specific admin.users.role_write/status_write/delete capabilities plus target-aware helpers."
+          - "Preserve manager self-privilege and manager/admin target restrictions."
+          - "Preserve RPC and audit behavior."
+      - file: "supabase/migrations/**"
+        owner: backend_engineer
+        changes:
+          - "Add forward-only helper migration only if required after API migration."
+          - "Never modify already-applied migrations for production-like environments."
+          - "Do not broaden owner-only resume content RLS."
+    medium:
+      - file: "app/api/resume/languages/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Align recruiter with user for GET/PATCH/DELETE own language management unless product documents an exception."
+          - "Ensure POST createDocument remains owner-scoped."
+      - file: "app/api/resume/document/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.document.read_own/write_own capability and actor.userId only."
+      - file: "app/api/resume/draft/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.document.write_own capability."
+      - file: "app/api/resume/publish/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.preset.publish_own capability."
+      - file: "app/api/resume/rollback/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.revision.rollback_own capability."
+      - file: "app/api/resume/presets/**"
+        owner: backend_engineer
+        changes:
+          - "Use resume.preset read/write/publish/unpublish own capabilities."
+      - file: "app/lib/auth-server.ts"
+        owner: backend_engineer
+        changes:
+          - "Route requireStaffActor through canAccessAdminArea/hasCapability."
+      - file: "app/admin/page.tsx"
+        owner: frontend_engineer
+        changes:
+          - "Use shared target filtering/policy helpers where server-rendered initial manager list is filtered."
+      - file: "app/admin/admin-users-client.tsx"
+        owner: frontend_engineer
+        changes:
+          - "Use shared role option and target manageability helpers for disabled controls."
+      - file: "app/components/account-menu.tsx"
+        owner: frontend_engineer
+        changes:
+          - "Show User management for admin and manager via shared canAccessAdminArea helper."
+    low:
+      - file: "docs/action-plan.md"
+        owner: project_manager
+        changes:
+          - "Track rollout sequence, DoD, rollback, and triggers."
+      - file: "docs/guides/phase-c-auth-rbac-admin.md"
+        owner: backend_engineer
+        changes:
+          - "Document inherited capabilities after implementation."
+      - file: "docs/guides/privacy-first-admin-access-policy.md"
+        owner: backend_engineer
+        changes:
+          - "Clarify recruiter inheritance is own-account only and not staff visibility."
+      - file: "tests/**"
+        owner: test_engineer
+        changes:
+          - "Replace brittle literal acceptedRoles assertions with capability/behavior assertions."
+  definition_of_done:
+    automated:
+      - "npm.cmd run lint passes."
+      - "npm.cmd run typecheck passes."
+      - "npm.cmd test passes."
+    behavioral:
+      - "hasRole(admin, manager/recruiter/user), hasRole(manager, user), and hasRole(recruiter, user) are true."
+      - "hasRole(manager, recruiter) and hasRole(recruiter, manager) are false."
+      - "Admin and manager can access /admin; user and recruiter cannot."
+      - "Manager can manage only user/recruiter targets and cannot modify own privileges."
+      - "Admin can manage all current roles."
+      - "User, recruiter, manager, and admin can only read/write their own private resume content through resume APIs."
+      - "Admin/user management APIs expose metadata only."
+      - "Public CV routes continue to render active snapshot-backed Public Links only."
+    documentation:
+      - "docs/action-plan.md and role guides reflect the inherited capability model."
+      - "Any SQL no-op/migration decision is recorded with rollback notes."
+  verification_matrix:
+    commands:
+      - cmd: "npm.cmd run lint"
+        owner: test_engineer
+        expected_evidence:
+          - "ESLint/Next lint completes with zero errors."
+      - cmd: "npm.cmd run typecheck"
+        owner: test_engineer
+        expected_evidence:
+          - "TypeScript noEmit completes successfully."
+      - cmd: "npm.cmd test"
+        owner: test_engineer
+        expected_evidence:
+          - "node:test suite passes."
+          - "Role inheritance, admin metadata-only, recruiter owner parity, and owner-only RLS contract tests are green."
+      - cmd: "npm.cmd run ci"
+        owner: test_engineer
+        required: false
+        when: "Before release candidate or after SQL migration is added."
+        expected_evidence:
+          - "CI-style aggregate check is green."
+    targeted_tests:
+      - file: "tests/role-inheritance-rbac.test.mjs"
+        expected_evidence:
+          - "Effective role expansion and capabilities match the matrix."
+          - "resume.content.read_other remains false for all roles."
+      - file: "tests/privacy-first-admin-access-contract.test.mjs"
+        expected_evidence:
+          - "Admin APIs do not import resume-server, resume_documents, or yaml_content."
+          - "Recruiter is not accepted for admin APIs."
+      - file: "tests/language-versions-interface.test.mjs"
+        expected_evidence:
+          - "Recruiter parity with user for own language management is implemented or documented exception is asserted."
+      - file: "tests/phase-c-sql-migration.test.js"
+        expected_evidence:
+          - "SQL helpers/RPC remain aligned with admin/manager target rules."
+      - file: "tests/account-menu-profile-modal.test.mjs"
+        expected_evidence:
+          - "User management menu item is visible for admin and manager only."
+    manual_qa:
+      - actor: "admin"
+        checks:
+          - "Can open /admin."
+          - "Can list users and change roles/status/delete per current admin rules."
+          - "Cannot read another user's private resume YAML through owner resume APIs."
+      - actor: "manager"
+        checks:
+          - "Can open /admin and sees User management in account menu."
+          - "Sees self plus user/recruiter targets only."
+          - "Cannot manage manager/admin or own privileges."
+      - actor: "recruiter"
+        checks:
+          - "Cannot open /admin."
+          - "Can use own dashboard/resume/language flows matching user parity."
+          - "Cannot read another user's private resume content."
+      - actor: "user"
+        checks:
+          - "Cannot open /admin."
+          - "Own resume document/preset/publish/rollback flows still work."
+  risks:
+    - id: "R1"
+      severity: high
+      note: "Capability expansion accidentally grants staff access to private resume content."
+      mitigation: "Keep resume capabilities owner-only, test no route accepts target user id for content, and keep RLS owner-only."
+    - id: "R2"
+      severity: high
+      note: "TS helpers and SQL/RPC predicates drift."
+      mitigation: "Migrate one route group at a time and keep SQL helper decision explicit in PR5."
+    - id: "R3"
+      severity: medium
+      note: "Recruiter language route parity changes GET/PATCH/DELETE behavior."
+      mitigation: "Adopt parity because recruiter inherits user; if rejected, document as product exception and keep tests explicit."
+    - id: "R4"
+      severity: medium
+      note: "Existing tests assert literal acceptedRoles arrays."
+      mitigation: "Add capability tests first, then update source-string tests to assert behavior/security invariants."
+    - id: "R5"
+      severity: medium
+      note: "Concurrent language-version worktree changes touch some scoped files."
+      mitigation: "Keep PRs small, rebase/merge carefully, and avoid editing unrelated language modal code in role-inheritance PR1."
+  rollback_plan:
+    strategy: "Small PR rollback in reverse order; PR1 helpers are backward-compatible and can remain inert if later PRs are reverted."
+    steps:
+      - "If UI regression: revert PR4 only; server enforcement remains active."
+      - "If resume guard regression: revert PR3; acceptedRoles fallback from PR1 can continue serving existing routes."
+      - "If admin API regression: revert PR2; SQL/RPC target rules remain unchanged."
+      - "If helper regression: revert PR1 and any dependent PRs together."
+      - "If SQL helper migration is added and must be rolled back: apply a forward rollback migration that drops only newly introduced helper functions/policies; do not mutate historical migrations or data."
+  immediate_tickets:
+    - id: "RI-1"
+      owner: backend_engineer
+      title: "Add inherited role and capability helpers"
+      ready: true
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-types.ts"
+        - "tests/role-inheritance-rbac.test.mjs"
+      acceptance:
+        - "Effective roles match admin > manager+recruiter > user model."
+        - "Capability checks include user parity for manager/recruiter/admin."
+        - "resume.content.read_other is denied for all roles."
+    - id: "RI-2"
+      owner: backend_engineer
+      title: "Add backward-compatible capability guard support"
+      ready: true
+      scope:
+        - "app/lib/auth-request.ts"
+        - "app/lib/auth-server.ts"
+        - "tests/role-inheritance-rbac.test.mjs"
+      acceptance:
+        - "acceptedRoles callers still work."
+        - "anyCapability/allCapabilities options return 403 on insufficient permissions after auth/active/email checks."
+        - "requireStaffActor uses admin.area.access semantics."
+    - id: "RI-3"
+      owner: backend_engineer
+      title: "Migrate admin user APIs to capabilities"
+      ready: false
+      blocked_by: ["RI-1", "RI-2"]
+      scope:
+        - "app/api/admin/users/route.ts"
+        - "app/api/admin/users/[userId]/route.ts"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+      acceptance:
+        - "Admin and manager pass admin capability checks."
+        - "Recruiter and user are denied admin APIs."
+        - "Manager target limitations remain unchanged."
+    - id: "RI-4"
+      owner: backend_engineer
+      title: "Migrate owner resume and language APIs"
+      ready: false
+      blocked_by: ["RI-1", "RI-2"]
+      scope:
+        - "app/api/resume/**"
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/**"
+      acceptance:
+        - "All private resume operations are actor-userId scoped."
+        - "Recruiter has user-equivalent own resume/language access."
+        - "No private resume route exposes other-user content to staff."
+    - id: "RI-5"
+      owner: frontend_engineer
+      title: "Align admin/account UI gates with shared RBAC helpers"
+      ready: false
+      blocked_by: ["RI-1", "RI-3"]
+      scope:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+        - "tests/**"
+      acceptance:
+        - "Manager sees User management link."
+        - "User/recruiter do not see User management link."
+        - "Admin client disabled states match target-aware helpers."
+    - id: "RI-6"
+      owner: backend_engineer
+      title: "Decide and document SQL capability alignment"
+      ready: false
+      blocked_by: ["RI-3", "RI-4"]
+      scope:
+        - "supabase/migrations/**"
+        - "docs/guides/phase-c-auth-rbac-admin.md"
+        - "docs/guides/privacy-first-admin-access-policy.md"
+        - "tests/phase-c-sql-migration.test.js"
+      acceptance:
+        - "Forward-only helper migration exists or no-op decision is documented."
+        - "Owner-only content RLS remains intact."
+    - id: "RI-7"
+      owner: test_engineer
+      title: "Run full role inheritance verification"
+      ready: false
+      blocked_by: ["RI-1", "RI-2", "RI-3", "RI-4", "RI-5", "RI-6"]
+      scope:
+        - "tests/**"
+        - "docs/**"
+      acceptance:
+        - "lint/typecheck/test pass."
+        - "Manual QA evidence covers admin, manager, recruiter, user."
+        - "Docs and state.yaml are updated with residual risks."
+  validation:
+    run:
+      - cmd: "node --test tests/role-inheritance-rbac.test.mjs"
+        status: pass
+        assertions:
+          - "Role inheritance matrix matches user <- manager/recruiter <- admin."
+          - "acceptedRoles remains exact-match while capability checks use inheritance."
+          - "resume.content.read_other remains denied for user, manager, recruiter, and admin."
+      - cmd: "npm.cmd run lint"
+        status: pass
+        assertions:
+          - "ESLint completed with zero errors for the current worktree."
+      - cmd: "npm.cmd run typecheck"
+        status: blocked_unrelated
+        assertions:
+          - ".next/types/validator.ts references deleted app/language-versions/page.js from concurrent frontend work."
+          - "app/lib/resume-server.ts has a pre-existing string.message type error outside PR1 scope."
+    skipped_reason: null
+  next:
+    REQ: backend_engineer
+    CMD: migrate_admin_api_guards_pr2
+    CTX:
+      ref: ".codex/state.yaml#role_inheritance_rollout_package"
+      scope:
+        - "app/api/admin/users/route.ts"
+        - "app/api/admin/users/[userId]/route.ts"
+        - "app/lib/rbac.ts"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+    LMT:
+      - "security-first"
+      - "least-privilege"
+      - "no private resume content access expansion"

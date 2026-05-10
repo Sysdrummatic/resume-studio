@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Script from "next/script";
 import DashboardClient from "./dashboard-client";
 import { requireAuthenticatedActor } from "../lib/auth-server";
@@ -27,12 +26,6 @@ export default async function DashboardPage() {
             </p>
           </div>
         </header>
-
-        <div className="actions-row">
-          <Link className="button button--ghost" href="/resume">
-            View sample resume
-          </Link>
-        </div>
       </section>
 
       <DashboardClient masterResume={masterResume} initialDocuments={resumeDocuments} languageOptions={resumeLanguages} initialPresets={resumePresets} />
