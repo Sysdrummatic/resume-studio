@@ -56,10 +56,10 @@ test("destructive and warning statuses are routed to the expected toast variants
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const login = read("app/login/account-access-client.tsx");
 
-  assert.equal(dashboard.includes('showToast("Saved Version deleted.", "error")'), true);
+  assert.equal(dashboard.includes('showToast("CV Version deleted.", "error")'), true);
   assert.equal(admin.includes('showToast("User deleted.", "error")'), true);
-  assert.equal(editor.includes('showToast("Draft cleared.", "error")'), true);
-  assert.equal(editor.includes('showToast("No draft found for current locale.", "warning")'), true);
+  assert.equal(editor.includes('showToast("Language list could not be refreshed.", "warning")'), true);
+  assert.equal(editor.includes('showToast("Language version deleted.")'), true);
   assert.equal(login.includes('const contextualVariant = contextualMessage ? "warning" : "success";'), true);
 });
 

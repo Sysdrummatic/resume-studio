@@ -14,8 +14,8 @@ test("dashboard separates master resume from preset configurations", () => {
   assert.equal(page.includes("fetchResumePresetsForUser"), true);
   assert.equal(page.includes("DashboardClient"), true);
   assert.equal(client.includes("Master Resume"), true);
-  assert.equal(client.includes("Saved Versions"), true);
-  assert.equal(client.includes("Create Saved Version"), true);
+  assert.equal(client.includes("Your CVs"), true);
+  assert.equal(client.includes("Create CV"), true);
   assert.equal(client.includes("PresetModal"), true);
 });
 
@@ -71,8 +71,8 @@ test("preset list renders a right-aligned separated icon delete action", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
   const styles = read("app/globals.css");
 
-  assert.equal(client.includes("TrashIcon"), true);
-  assert.equal(client.includes("aria-label={`Delete Saved Version ${preset.title}`}"), true);
+  assert.equal(client.includes("button__icon"), true);
+  assert.equal(client.includes("aria-label={`Delete CV Version ${preset.title}`}"), true);
   assert.equal(client.includes("dashboard-resume-list__delete-separator"), true);
   assert.equal(styles.includes(".dashboard-resume-list__delete-separator"), true);
   assert.equal(styles.includes("border-left: 1px solid var(--border);"), true);

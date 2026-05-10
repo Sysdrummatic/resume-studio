@@ -7,16 +7,17 @@ function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
-test("language versions page is a separate authenticated interface", () => {
-  const page = read("app/language-versions/page.tsx");
-  const client = read("app/language-versions/language-versions-client.tsx");
+test("language versions are managed inside the master resume editor modal", () => {
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
   const layout = read("app/layout.tsx");
 
-  assert.equal(page.includes("Language Versions"), true);
-  assert.equal(page.includes("requireAuthenticatedActor"), true);
-  assert.equal(client.includes("Create version"), true);
-  assert.equal(client.includes("/api/resume/languages"), true);
-  assert.equal(layout.includes("/language-versions"), true);
+  assert.equal(editor.includes("Add language version"), true);
+  assert.equal(editor.includes("Create version"), true);
+  assert.equal(editor.includes("/api/resume/languages"), true);
+  assert.equal(editor.includes("/api/resume/languages?withDocuments=true"), true);
+  assert.equal(editor.includes("setDefaultLanguage"), true);
+  assert.equal(editor.includes("deleteLanguageVersion"), true);
+  assert.equal(layout.includes("/language-versions"), false);
 });
 
 test("language version API creates metadata and prepares a resume document", () => {
@@ -26,12 +27,14 @@ test("language version API creates metadata and prepares a resume document", () 
   assert.equal(route.includes("export async function GET"), true);
   assert.equal(route.includes("export async function POST"), true);
   assert.equal(route.includes("export async function PATCH"), true);
+  assert.equal(route.includes("export async function DELETE"), true);
   assert.equal(route.includes("ensureResumeDocument"), true);
   assert.equal(route.includes('requireRequestActor(["admin", "manager", "user"])'), true);
   assert.equal(server.includes("fetchResumeLanguageVersionsForUser"), true);
   assert.equal(server.includes("upsertResumeLanguage"), true);
+  assert.equal(server.includes("disableResumeLanguage"), true);
   assert.equal(server.includes("validateResumeLanguageInput"), true);
-  assert.equal(server.includes("if (existing) {\r\n    return existing;") || server.includes("if (existing) {\n    return existing;"), true);
+  assert.equal(server.includes("const updated = await updateTable"), true);
   assert.equal(server.includes("is_public: false"), true);
 });
 
@@ -43,7 +46,7 @@ test("resume locale handling supports newly added two-letter languages", () => {
   assert.equal(schema.includes("export type ResumeLocale = string"), true);
   assert.equal(schema.includes("/^[a-z]{2}$/.test(normalized) ? normalized : \"en\""), true);
   assert.equal(editor.includes("searchParams.get(\"locale\")"), true);
-  assert.equal(editor.includes("setLanguageOptions(payload.languages)"), true);
+  assert.equal(editor.includes("setLanguageOptions(payload.languages.sort"), true);
   assert.equal(preview.includes("getPreviewLabels(locale)"), true);
 });
 

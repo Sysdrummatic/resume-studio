@@ -23,13 +23,12 @@ test("phase D API endpoints exist for document load, publish and rollback", () =
   assert.equal(rollbackRoute.includes("rollbackResumeDocument"), true);
 });
 
-test("phase D client includes draft, YAML import/export and revision rollback actions", () => {
+test("phase D client includes YAML export, publish and revision rollback actions", () => {
   const source = read("app/master-resume/editor-canvas-client.tsx");
 
-  assert.equal(source.includes("saveDraft"), true);
-  assert.equal(source.includes("restoreDraft"), true);
-  assert.equal(source.includes("Import YAML to form"), true);
-  assert.equal(source.includes("Export YAML file"), true);
+  assert.equal(source.includes("exportYamlFile"), true);
+  assert.equal(source.includes("Download YAML"), true);
+  assert.equal(source.includes("publishResume"), true);
   assert.equal(source.includes("rollbackToRevision"), true);
 });
 
@@ -65,16 +64,17 @@ test("phase D client migrates legacy YAML summary while loading editor drafts", 
   const schema = read("app/lib/resume-schema.ts");
 
   assert.equal(source.includes("normalizeYamlForEditor"), true);
-  assert.equal(source.includes("localStorage.setItem(draftKey"), true);
+  assert.equal(source.includes("Legacy summary migrated to list format."), true);
   assert.equal(schema.includes("row.default"), true);
 });
 
-test("phase D client keeps draft-restored YAML in panel and preserves publish status", () => {
+test("phase D client keeps loaded YAML in panel and preserves publish status", () => {
   const source = read("app/master-resume/editor-canvas-client.tsx");
 
-  assert.equal(source.includes("nextYamlPanel = draftPayload.yamlContent"), true);
+  assert.equal(source.includes("let nextYamlPanel = payload.document?.yaml_content ||"), true);
   assert.equal(source.includes("setYamlPanel(nextYamlPanel)"), true);
-  assert.equal(source.includes("clearDraft({ skipStatusUpdate: true })"), true);
+  assert.equal(source.includes("setAllowIndexing(payload.document.allow_indexing)"), true);
+  assert.equal(source.includes("setAiGenerated(payload.document.ai_generated)"), true);
 });
 
 test("phase D server rejects publish/rollback success when RPC calls fail", () => {
