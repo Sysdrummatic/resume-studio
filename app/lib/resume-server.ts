@@ -1378,7 +1378,11 @@ export async function publishResumePreset(
     },
     accessToken,
   });
-  if (rpcResult.error || !rpcResult.data) return null;
+  if (rpcResult.error) {
+    throw new Error(rpcResult.error.message || "Saved Version publish failed.");
+  }
+  if (!rpcResult.data) return null;
+
 
   return fetchResumePresetById(accessToken, userId, presetId);
 }

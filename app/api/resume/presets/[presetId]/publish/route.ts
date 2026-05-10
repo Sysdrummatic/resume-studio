@@ -43,16 +43,21 @@ export async function POST(request: Request, context: PublishRouteContext): Prom
   if (selectedLocales.length === 0) {
     return NextResponse.json({ error: "At least one selected locale is required for publish." }, { status: 400 });
   }
-  const preset = await publishResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId, {
-    allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
-    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
-    defaultLocale,
-    selectedLocales,
-  });
+  try {
+    const preset = await publishResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId, {
+      allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
+      aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
+      defaultLocale,
+      selectedLocales,
+    });
 
-  if (!preset) {
-    return NextResponse.json({ error: "Saved Version publish failed." }, { status: 500 });
+    if (!preset) {
+      return NextResponse.json({ error: "Saved Version publish failed." }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, preset });
+  } catch (error: any) {
+    console.error("[publish-route-error]", error);
+    return NextResponse.json({ error: error.message || "Saved Version publish failed." }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true, preset });
 }
