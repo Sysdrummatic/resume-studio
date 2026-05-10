@@ -32,7 +32,7 @@ export async function POST(request: Request, context: PublishRouteContext): Prom
   const params = await context.params;
   const presetId = String(params.presetId || "").trim();
   if (!presetId) {
-    return NextResponse.json({ error: "Saved Version id is required." }, { status: 400 });
+    return NextResponse.json({ error: "CV Version id is required." }, { status: 400 });
   }
 
   const defaultLocale =
@@ -52,12 +52,13 @@ export async function POST(request: Request, context: PublishRouteContext): Prom
     });
 
     if (!preset) {
-      return NextResponse.json({ error: "Saved Version publish failed." }, { status: 500 });
+      return NextResponse.json({ error: "CV Version publish failed." }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, preset });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "CV Version publish failed.";
     console.error("[publish-route-error]", error);
-    return NextResponse.json({ error: error.message || "Saved Version publish failed." }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

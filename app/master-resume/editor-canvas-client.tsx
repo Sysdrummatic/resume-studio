@@ -65,9 +65,6 @@ const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
   { code: "empty", label: "pusty" },
 ];
 
-function getDraftKey(userId: string, locale: ResumeLocale): string {
-  return `resume-studio:phase-d-draft:${userId}:${locale}`;
-}
 
 function hasYamlRuntime(): boolean {
   return typeof window !== "undefined" && typeof window.jsyaml?.load === "function" && typeof window.jsyaml?.dump === "function";
@@ -137,30 +134,12 @@ export default function EditorCanvasClient() {
   const [resume, setResume] = useState<ResumeDocument>(defaultResumeDocument(""));
   const [yamlPanel, setYamlPanel] = useState("");
   const [changeNote, setChangeNote] = useState("Publish update");
-  const [isPublic, setIsPublic] = useState(true);
   const [allowIndexing, setAllowIndexing] = useState(false);
   const [aiGenerated, setAiGenerated] = useState(false);
   const [revisions, setRevisions] = useState<ResumeRevisionItem[]>([]);
 
   const validation = useMemo(() => validateResumeDocument(resume), [resume]);
 
-  const applyYamlText = useCallback(
-    (yamlContent: string, options: { successStatus?: string; silent?: boolean } = {}) => {
-      try {
-        const normalized = normalizeYamlForEditor(yamlContent, actor?.displayName || "");
-        setYamlPanel(normalized.yamlContent);
-        setResume(normalized.resume);
-        if (!options.silent) {
-          showToast(options.successStatus || "YAML imported to form.");
-        }
-      } catch (error) {
-        if (!options.silent) {
-          showToast(`YAML import failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
-        }
-      }
-    },
-    [actor, showToast],
-  );
 
   const loadLocaleDocument = useCallback(
     async (nextLocale: ResumeLocale) => {
@@ -178,7 +157,6 @@ export default function EditorCanvasClient() {
 
         if (payload.document) {
           setDocumentRow(payload.document);
-          setIsPublic(payload.document.is_public);
           setAllowIndexing(payload.document.allow_indexing);
           setAiGenerated(payload.document.ai_generated);
         }
@@ -190,30 +168,11 @@ export default function EditorCanvasClient() {
           nextYamlPanel = await fetchText(TEMPLATE_PATH);
         }
 
-        const draftKey = loadedActor ? getDraftKey(loadedActor.userId, nextLocale) : "";
-        if (draftKey) {
-          const draftRaw = localStorage.getItem(draftKey);
-          if (draftRaw) {
-            try {
-              const draftPayload = JSON.parse(draftRaw) as { yamlContent?: string };
-              if (draftPayload.yamlContent) {
-                nextYamlPanel = draftPayload.yamlContent;
-                nextStatus = "Draft restored from browser storage.";
-              }
-            } catch {
-              localStorage.removeItem(draftKey);
-            }
-          }
-        }
-
         try {
           const normalized = normalizeYamlForEditor(nextYamlPanel, loadedActor?.displayName || "");
           nextYamlPanel = normalized.yamlContent;
           setResume(normalized.resume);
           showToast(normalized.migrated ? `${nextStatus} Legacy summary migrated to list format.` : nextStatus);
-          if (normalized.migrated && draftKey) {
-            localStorage.setItem(draftKey, JSON.stringify({ yamlContent: nextYamlPanel, savedAt: new Date().toISOString() }));
-          }
         } catch (error) {
           setResume(defaultResumeDocument(loadedActor?.displayName || ""));
           showToast(`Failed to parse YAML: ${error instanceof Error ? error.message : "unknown error"}`, "error");
@@ -286,10 +245,13 @@ export default function EditorCanvasClient() {
   function handleYamlChange(value: string) {
     setYamlPanel(value);
     try {
-      setResume(parseYamlToResumeDocument(value, actor?.displayName || ""));
-      showToast("Live preview updated.");
+      const parsed = parseYamlToResumeDocument(value, actor?.displayName || "");
+      const localValidation = validateResumeDocument(parsed);
+      if (localValidation.valid) {
+        setResume(parsed);
+      }
     } catch (error) {
-      showToast(`YAML preview paused: ${error instanceof Error ? error.message : "unknown error"}`, "warning");
+      // User is typing, skip auto-sync to form
     }
   }
 
@@ -297,13 +259,12 @@ export default function EditorCanvasClient() {
     setResume(nextResume);
     try {
       setYamlPanel(serializeResumeToYaml(nextResume));
-      showToast("YAML and live preview updated.");
     } catch (error) {
-      showToast(`YAML export failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
+      // Silent catch for auto-sync to YAML
     }
   }
 
-  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name" | "role">, value: string) {
+  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name">, value: string) {
     updateResumeFromHuman({ ...resume, [field]: value });
   }
 
@@ -417,94 +378,15 @@ export default function EditorCanvasClient() {
     updateResumeFromHuman({ ...resume, courses: next });
   }
 
-  async function saveDraft() {
-    if (!actor) return;
-    setIsBusy(true);
-    showToast("Saving draft to database...");
 
-    const response = await fetch("/api/resume/draft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        locale,
-        yamlContent: yamlPanel,
-        title: resume.name ? `${resume.name} - Master resume draft` : "Master resume draft",
-        isPublic,
-        allowIndexing,
-        aiGenerated,
-      }),
-    });
-    const payload = (await response.json()) as ApiDocumentResponse;
-    if (!response.ok || payload.error || !payload.document) {
-      showToast(payload.error || "Draft save failed.", "error");
-      setIsBusy(false);
-      return;
-    }
-
-    setDocumentRow(payload.document);
-    setRevisions(payload.revisions || []);
-    localStorage.setItem(getDraftKey(actor.userId, locale), JSON.stringify({ yamlContent: yamlPanel, savedAt: new Date().toISOString() }));
-    showToast("Draft saved to database.");
-    setIsBusy(false);
-  }
-
-  function restoreDraft() {
-    if (!actor) return;
-    const key = getDraftKey(actor.userId, locale);
-    const raw = localStorage.getItem(key);
-    if (!raw) {
-      showToast("No draft found for current locale.", "warning");
-      return;
-    }
-    try {
-      const payload = JSON.parse(raw) as { yamlContent?: string };
-      if (!payload.yamlContent) {
-        throw new Error("Invalid draft payload.");
-      }
-      applyYamlText(payload.yamlContent, { successStatus: "Draft restored." });
-    } catch (error) {
-      showToast(`Draft restore failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
-    }
-  }
-
-  function clearDraft(options: { skipStatusUpdate?: boolean } = {}) {
-    if (!actor) return;
-    localStorage.removeItem(getDraftKey(actor.userId, locale));
-    if (options.skipStatusUpdate) {
-      return;
-    }
-    showToast("Draft cleared.", "error");
-  }
-
-  function syncYamlFromForm() {
-    try {
-      const yaml = serializeResumeToYaml(resume);
-      setYamlPanel(yaml);
-      showToast("YAML panel synchronized from form.");
-    } catch (error) {
-      showToast(`YAML export failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
-    }
-  }
-
-  function applyYamlToForm() {
-    try {
-      const parsed = parseYamlToResumeDocument(yamlPanel, actor?.displayName || "");
-      const localValidation = validateResumeDocument(parsed);
-      if (!localValidation.valid) {
-        showToast(localValidation.errors.join(" "), "warning");
-        return;
-      }
-      setResume(parsed);
-      showToast("YAML imported to form.");
-    } catch (error) {
-      showToast(`YAML import failed: ${error instanceof Error ? error.message : "unknown error"}`, "error");
-    }
-  }
 
   async function resetToTemplate() {
     try {
       const template = await fetchText(TEMPLATE_PATH);
-      applyYamlText(template, { successStatus: "Template YAML loaded." });
+      setYamlPanel(template);
+      const parsed = parseYamlToResumeDocument(template, actor?.displayName || "");
+      setResume(parsed);
+      showToast("Template YAML loaded.");
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Template load failed.", "error");
     }
@@ -523,16 +405,16 @@ export default function EditorCanvasClient() {
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 0);
-    showToast(`Exported ${fileName}.`);
+    showToast(`Downloaded ${fileName}.`);
   }
 
-  async function publishResume() {
+  async function publishResume(targetIsPublic: boolean) {
     if (!validation.valid) {
       showToast(validation.errors.join(" "), "warning");
       return;
     }
     setIsBusy(true);
-    showToast("Publishing resume...");
+    showToast(targetIsPublic ? "Publishing resume..." : "Saving unpublished version...");
 
     const response = await fetch("/api/resume/publish", {
       method: "POST",
@@ -541,24 +423,23 @@ export default function EditorCanvasClient() {
         locale,
         yamlContent: yamlPanel,
         title: resume.name ? `${resume.name} - Master resume` : "Master resume",
-        isPublic,
+        isPublic: targetIsPublic,
         allowIndexing,
         aiGenerated,
-        changeNote,
+        changeNote: targetIsPublic ? (changeNote || "Published update") : (changeNote || "Unpublished save"),
       }),
     });
     const payload = (await response.json()) as ApiDocumentResponse;
     if (!response.ok || payload.error || !payload.document) {
-      showToast(payload.error || "Publish failed.", "error");
+      showToast(payload.error || "Operation failed.", "error");
       setIsBusy(false);
       return;
     }
 
     setDocumentRow(payload.document);
     setRevisions(payload.revisions || []);
-    showToast("Resume published. New revision created.");
+    showToast(targetIsPublic ? "Resume published. New revision created." : "Unpublished version saved.");
     setIsBusy(false);
-    clearDraft({ skipStatusUpdate: true });
   }
 
   async function rollbackToRevision(revisionNumber: number) {
@@ -584,8 +465,15 @@ export default function EditorCanvasClient() {
 
     setDocumentRow(payload.document);
     setRevisions(payload.revisions || []);
-    applyYamlText(payload.document.yaml_content, { successStatus: `Rollback complete. Current document now matches revision ${revisionNumber}.` });
+    setYamlPanel(payload.document.yaml_content);
+    try {
+      const parsed = parseYamlToResumeDocument(payload.document.yaml_content, actor?.displayName || "");
+      setResume(parsed);
+    } catch (e) {
+      // Should not happen for a saved revision
+    }
     setIsBusy(false);
+    showToast(`Rollback complete. Current document now matches revision ${revisionNumber}.`);
   }
 
   return (
@@ -660,16 +548,10 @@ export default function EditorCanvasClient() {
                 />
                 <div className="actions-row">
                   <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading}>
-                    Load template
-                  </button>
-                  <button type="button" className="button button--ghost" onClick={syncYamlFromForm}>
-                    Sync from form
-                  </button>
-                  <button type="button" className="button button--ghost" onClick={applyYamlToForm}>
-                    Import YAML to form
+                    Clear template
                   </button>
                   <button type="button" className="button button--ghost" onClick={exportYamlFile}>
-                    Export YAML file
+                    Download YAML
                   </button>
                 </div>
               </div>
@@ -699,10 +581,6 @@ export default function EditorCanvasClient() {
                     <label>
                       Name
                       <input value={resume.name} onChange={(event) => updateTextField("name", event.target.value)} />
-                    </label>
-                    <label>
-                      Role
-                      <input value={resume.role} onChange={(event) => updateTextField("role", event.target.value)} />
                     </label>
                   </div>
                 </section>
@@ -933,29 +811,10 @@ export default function EditorCanvasClient() {
           </section>
 
           <section className="stack resume-editor-panel">
-            <h2>Draft</h2>
-            <div className="actions-row">
-              <button type="button" className="button button--ghost" onClick={() => void saveDraft()} disabled={isBusy || isLoading}>
-                {isBusy ? "Saving..." : "Save draft"}
-              </button>
-              <button type="button" className="button button--ghost" onClick={restoreDraft}>
-                Restore draft
-              </button>
-              <button type="button" className="button button--danger" onClick={() => clearDraft()}>
-                Clear draft
-              </button>
-            </div>
-          </section>
-
-          <section className="stack resume-editor-panel">
             <h2>Publish</h2>
             <label>
               Change note
               <input value={changeNote} onChange={(event) => setChangeNote(event.target.value)} />
-            </label>
-            <label className="checkbox-row">
-              <input type="checkbox" checked={isPublic} onChange={(event) => setIsPublic(event.target.checked)} />
-              Resume is public
             </label>
             <label className="checkbox-row">
               <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
@@ -965,9 +824,14 @@ export default function EditorCanvasClient() {
               <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
               Mark as AI generated
             </label>
-            <button className="button button--primary" type="button" onClick={() => void publishResume()} disabled={isBusy || isLoading}>
-              {isBusy ? "Publishing..." : "Publish and create revision"}
-            </button>
+            <div className="actions-row">
+              <button className="button button--ghost" type="button" onClick={() => void publishResume(false)} disabled={isBusy || isLoading}>
+                {isBusy ? "Saving..." : "Save unpublished"}
+              </button>
+              <button className="button button--primary" type="button" onClick={() => void publishResume(true)} disabled={isBusy || isLoading}>
+                {isBusy ? "Publishing..." : "Publish and create revision"}
+              </button>
+            </div>
           </section>
 
           <section className="stack resume-editor-panel">

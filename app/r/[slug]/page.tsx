@@ -31,7 +31,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumePag
   }
 
   const title = `${published.resume.name || published.preset.title} | OpenCVHub`;
-  const description = published.resume.role || published.preset.title;
+  const description = published.resume.summary.find((s) => s.default)?.position || published.preset.title;
   const allowIndexing = published.preset.allow_indexing;
 
   return {

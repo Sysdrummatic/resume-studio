@@ -1379,7 +1379,7 @@ export async function publishResumePreset(
     accessToken,
   });
   if (rpcResult.error) {
-    throw new Error(rpcResult.error.message || "Saved Version publish failed.");
+    throw new Error(rpcResult.error.message || "CV Version publish failed.");
   }
   if (!rpcResult.data) return null;
 

@@ -62,7 +62,7 @@ export function BasicResumeDocument({
             <div className="logo-circle">{resume.brand_initials || "CV"}</div>
             <div className="hero__identity">
               <h1>{resume.name || "Your Name"}</h1>
-              <p>{resume.role || "Your Role"}</p>
+              <p>{defaultSummary?.position || "Your Role"}</p>
             </div>
           </div>
           <div className="hero__actions">

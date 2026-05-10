@@ -254,7 +254,7 @@ function PresetModal({
   async function handleSave() {
     const nextSelection = normalizeSummarySelection(selection, options);
     if (!title.trim()) {
-      setError("Saved Version title is required.");
+      setError("CV Version title is required.");
       return;
     }
     if (nextSelection.summary.length !== 1) {
@@ -268,18 +268,18 @@ function PresetModal({
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Saved Version editor">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close Saved Version editor"></button>
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="CV Version editor">
+      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close CV Version editor"></button>
       <div className="dashboard-modal__body">
         <div className="section-row">
-          <h2>{preset ? "Edit Saved Version" : "Create Saved Version"}</h2>
+          <h2>{preset ? "Edit CV Version" : "Create CV Version"}</h2>
           <button type="button" className="button button--ghost button--small" onClick={onClose}>
             Close
           </button>
         </div>
 
         <label>
-          Saved Version title
+          CV Version title
           <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Frontend Engineer - Acme" />
         </label>
 
@@ -324,7 +324,7 @@ function PresetModal({
 
         <div className="actions-row">
           <button type="button" className="button button--primary" onClick={() => void handleSave()} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save Saved Version"}
+            {isSaving ? "Saving..." : "Save CV Version"}
           </button>
           <button type="button" className="button button--ghost" onClick={onClose}>
             Cancel
@@ -361,7 +361,7 @@ function PresetPreviewModal({
   const cvLanguages = buildLanguageOptions(availableDocuments, languages);
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Saved Version CV preview">
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="CV Version CV preview">
       <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close CV preview"></button>
       <div className="dashboard-modal__body dashboard-modal__body--preview">
         <div className="section-row">
@@ -445,11 +445,11 @@ function PublishSavedVersionModal({
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Publish Saved Version">
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Publish CV Version">
       <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close publish modal"></button>
       <div className="dashboard-modal__body">
         <div className="section-row">
-          <h2>Publish Saved Version</h2>
+          <h2>Publish CV Version</h2>
           <button type="button" className="button button--ghost button--small" onClick={onClose}>
             Close
           </button>
@@ -492,7 +492,7 @@ function PublishSavedVersionModal({
 
         <div className="actions-row">
           <button type="button" className="button button--primary" onClick={() => void submit()} disabled={isSubmitting}>
-            {isSubmitting ? "Publishing..." : "Publish Saved Version"}
+            {isSubmitting ? "Publishing..." : "Publish CV Version"}
           </button>
           <button type="button" className="button button--ghost" onClick={onClose}>
             Cancel
@@ -548,11 +548,11 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "Saved Version save failed.", "error");
+      showToast(result.error || "CV Version save failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
-    showToast("Saved Version saved.");
+    showToast("CV Version saved.");
     setIsModalOpen(false);
     setActivePreset(null);
   }
@@ -576,12 +576,12 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "Saved Version publish failed.", "error");
+      showToast(result.error || "CV Version publish failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
     setPublishDraft(null);
-    showToast("Saved Version published.");
+    showToast("CV Version published.");
   }
 
   async function unpublishPreset(preset: ResumePresetRow) {
@@ -590,11 +590,11 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "Saved Version unpublish failed.", "error");
+      showToast(result.error || "CV Version unpublish failed.", "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
-    showToast("Saved Version unpublished.");
+    showToast("CV Version unpublished.");
   }
 
   async function deletePreset(preset: ResumePresetRow) {
@@ -606,14 +606,14 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     setDeletingPresetId(null);
 
     if (!response.ok || result.error) {
-      showToast(result.error || "Saved Version delete failed.", "error");
+      showToast(result.error || "CV Version delete failed.", "error");
       return;
     }
 
     setPresets((current) => current.filter((item) => item.id !== preset.id));
     setPreviewPreset((current) => (current?.id === preset.id ? null : current));
     setActivePreset((current) => (current?.id === preset.id ? null : current));
-    showToast("Saved Version deleted.", "error");
+    showToast("CV Version deleted.", "error");
   }
 
   function openPublishSavedVersion(preset: ResumePresetRow) {
@@ -656,16 +656,16 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
               }}
               disabled={!hasMasterResume}
             >
-              Create Saved Version
+              Create CV
             </button>
           </div>
         </div>
       </section>
 
       <section className="card stack">
-        <h2>Saved Versions</h2>
+        <h2>Your CVs</h2>
         {presets.length === 0 ? (
-          <p className="card-lead">No Saved Versions yet.</p>
+          <p className="card-lead">No CV Versions yet.</p>
         ) : (
           <ul className="dashboard-resume-list">
             {presets.map((preset) => (
@@ -713,8 +713,8 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                     <button
                       type="button"
                       className="button button--ghost button--small button--icon button--danger"
-                      aria-label={`Delete Saved Version ${preset.title}`}
-                      title="Delete Saved Version"
+                      aria-label={`Delete CV Version ${preset.title}`}
+                      title="Delete CV Version"
                       onClick={() => void deletePreset(preset)}
                       disabled={deletingPresetId === preset.id}
                     >

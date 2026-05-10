@@ -48,7 +48,6 @@ export type ResumeCourse = {
 export type ResumeDocument = {
   brand_initials: string;
   name: string;
-  role: string;
   summary: ResumeSummaryItem[];
   contact: ResumeContactItem[];
   qr_codes: ResumeQrCode[];
@@ -74,7 +73,7 @@ export type ResumeLocale = string;
 export const RESUME_REQUIRED_KEYS: Array<keyof ResumeDocument> = [
   "brand_initials",
   "name",
-  "role",
+
   "summary",
   "contact",
   "qr_codes",
@@ -124,7 +123,6 @@ export function defaultResumeDocument(name = ""): ResumeDocument {
   return {
     brand_initials: initialsFromName(safeName),
     name: safeName,
-    role: "",
     summary: [],
     contact: [],
     qr_codes: [],
@@ -154,7 +152,6 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
   return {
     brand_initials: asText(source.brand_initials) || initialsFromName(name),
     name,
-    role: asText(source.role),
     summary: normalizeSummaryItems(source.summary),
     contact: asArray(source.contact)
       .map((item) => {

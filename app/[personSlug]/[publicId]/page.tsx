@@ -38,7 +38,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
 
   const { published, allowIndexing, personSlug: canonicalPersonSlug, publicId: canonicalPublicId } = publishedRoute;
   const title = `${published.resume.name || published.preset.title} | OpenCVHub`;
-  const description = published.resume.role || published.preset.title;
+  const description = published.resume.summary.find((s) => s.default)?.position || published.preset.title;
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const languageMap = Object.fromEntries(
     published.languages.map((language) => [language.code, absoluteUrl(language.href)]),
@@ -90,7 +90,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
     mainEntity: {
       "@type": "Person",
       name: published.resume.name || published.preset.title,
-      jobTitle: published.resume.role || undefined,
+      jobTitle: published.resume.summary.find((s) => s.default)?.position || undefined,
       description: published.preset.title,
     },
   };
