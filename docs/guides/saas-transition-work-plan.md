@@ -234,6 +234,7 @@ Checklist:
 - [x] Add publish action creating revision snapshots.
 - [x] Add revision history list and rollback action in UI.
 - [x] Add YAML import/export in editor panel.
+- [/] Expose public-link management from the editor or an adjacent authenticated panel.
 
 Definition of done:
 - User can create and edit CV in live canvas.
@@ -317,6 +318,7 @@ For every phase:
 - [x] Implement the actual `/r/[slug]` public resume rendering flow.
 - [x] Add SEO/AEO metadata and indexing controls for public resume pages.
 - [ ] Extend the dashboard/user panel with link management and analytics.
+- [ ] Execute the editor-adjacent Public Link management ticket routing in `docs/action-plan.md`.
 - [ ] Add a dedicated `Language Versions` interface for user-managed CV locales.
 - [ ] Start the AI demo resume generation workstream after Phase E route/rendering scope is stable.
 

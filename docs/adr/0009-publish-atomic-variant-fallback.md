@@ -17,3 +17,9 @@ The root cause was identified in the `publish_resume_saved_version` RPC function
 - **Robustness**: Publishing works even for partially configured presets.
 - **Improved UX**: Users see clear error messages if validation fails (e.g., invalid YAML).
 - **Reduced State Bloat**: We no longer need to ensure variant records exist for every possible language-preset combination before publishing.
+
+## Implementation Checklist
+
+- [x] Relax validation in `publish_resume_saved_version` RPC to allow missing variants.
+- [x] Implement fallback logic to base selection in `resume_published_cv_locales` snapshot.
+- [x] Propagate descriptive PostgreSQL exceptions through `publishResumePreset` and the API route.

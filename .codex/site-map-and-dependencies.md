@@ -144,9 +144,13 @@ This document explains **what happens in the project**, how the individual pages
 ### Resume (Next)
 - API endpoints:
   - `app/api/resume/document/route.ts`
-  - `app/api/resume/publish/route.ts`
-  - `app/api/resume/rollback/route.ts`
+  - `app/api/resume/presets/[presetId]/publish/route.ts`
+  - `app/api/resume/presets/[presetId]/unpublish/route.ts`
 - Server-side domain logic: `app/lib/resume-server.ts` + `app/lib/resume-schema.ts`.
+- Publish RPC integration:
+  - `publishResumePreset` in `app/lib/resume-server.ts` calls `publish_resume_saved_version`.
+  - Route-level validation errors return `400` for malformed request payloads.
+  - RPC/runtime errors are currently forwarded as descriptive messages with `500`.
 
 ---
 
@@ -165,6 +169,14 @@ Source: `README.md` + files in `supabase/migrations/`.
     - `log_admin_action`, `set_user_role`, `set_user_active`, `get_staff_user_overview`, `can_delete_user_account`.
 - `20260409_phase_d_yaml_template_iteration.sql`
   - editor iteration built around YAML templates.
+- `20260508_cv_publication_foundation.sql`
+  - publication schema foundation (`resume_published_cvs`, `resume_published_cv_locales`, public-link coupling, RLS for published snapshots).
+- `20260509_cv_publication_rpc_atomic.sql`
+  - atomic publish/unpublish RPCs for saved versions and public link activation.
+- `20260510_fix_publish_rpc_variant_fallback.sql`
+  - ADR 0009 fix: publish no longer requires explicit variant rows for every locale.
+  - locale snapshots use variant selection when available, otherwise fallback to base preset selection.
+  - preserves descriptive SQL exceptions for publish diagnostics.
 
 ### Key logical dependencies
 - Next auth works correctly only if:
@@ -173,8 +185,13 @@ Source: `README.md` + files in `supabase/migrations/`.
   - the frontend reads the profile after login (`/api/auth/session`, `signin`).
 - The resume layer (YAML-first) assumes:
   - document/revision/public link tables exist,
-  - publish/rollback constraints and helpers exist,
+  - publish/unpublish RPC constraints and helpers exist,
+  - publication snapshot tables and locale-level snapshot rows exist,
   - YAML contract is kept consistent (tests in `tests/`).
+- Multi-locale publish (ADR 0009) additionally assumes:
+  - each selected locale has an owned `resume_documents` row,
+  - `resume_preset_variants` may be partial (missing locale rows are allowed by fallback),
+  - fallback snapshot selection is `coalesce(variant.selection, preset.selection)`.
 
 ---
 
