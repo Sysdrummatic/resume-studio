@@ -17,5 +17,7 @@ labels:
   continuation_template: "{heading} {current}/{total}"
   public_view_badge: Public view
   private_view_badge: Private view
+  draft_view_badge: Draft
+  ai_generated_badge: AI generated
   edit_button_label: Edit
   save_button_label: Save

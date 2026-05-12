@@ -1,0 +1,2370 @@
+last_audit:
+  agent: backend_engineer
+  role: BE
+  task: "PR2 review and hardening for ADR 0001 publication runtime"
+  status: pass
+  scope:
+    owned:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/**"
+    changed:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/publish/route.ts"
+      - "app/api/resume/presets/[presetId]/unpublish/route.ts"
+    not_touched:
+      - "app/dashboard/dashboard-client.tsx"
+  findings:
+    critical: []
+    high:
+      - "Public /r/[slug] resolver preferred live resume_presets/resume_documents data and could expose draft edits after publish instead of rendering the immutable Published CV snapshot."
+      - "Publish did not verify Public Link insert/update success before marking the compatibility preset public."
+      - "Unpublish ignored Public Link revoke errors, which could leave an active snapshot-backed link visible while the preset was marked private."
+    medium:
+      - "Publish route normalized a missing defaultLocale to en, which could override the Saved Version/default document locale and create incorrect snapshot locale metadata."
+      - "Publish could include a default locale that had no source document/variant, producing snapshot metadata without a matching locale row."
+    low:
+      - "Publish/unpublish routes returned generic publish failures for empty preset ids instead of deterministic 400 responses."
+  fixes:
+    - "Resolved active resume_public_links with active_published_cv_id first, validated active/revoked/user/snapshot/locale state, and rendered from resume_published_cv_locales YAML plus stored selection."
+    - "Kept legacy resume_presets.slug fallback only when no snapshot-backed active Public Link exists, preserving rollout compatibility."
+    - "Made publish fail closed when Public Link lookup or activation fails before updating resume_presets.is_public."
+    - "Made unpublish fail closed on Public Link revoke errors."
+    - "Selected publishable locales only from variants/documents with source documents and chose a valid default locale."
+    - "Stopped the publish route from forcing en when defaultLocale is omitted and added empty preset id validation to publish/unpublish routes."
+plan:
+  agent: software_architect
+  role: Architect
+  task: "Language Versions modal merge into Master Resume Editor"
+  status: proposed
+  source_refs:
+    - "app/master-resume/editor-canvas-client.tsx"
+    - "app/language-versions/language-versions-client.tsx"
+    - "app/api/resume/languages/route.ts"
+    - "app/lib/resume-server.ts"
+    - "docs/action-plan.md"
+  sequence:
+    - step: "Extract reusable language version UI/state from the standalone Language Versions client."
+      owner: frontend_engineer
+      status: pending
+    - step: "Render language badges plus add-language modal in Master Resume Editor header."
+      owner: frontend_engineer
+      status: pending
+    - step: "Keep existing /api/resume/languages contract unless duplicate-from-language is explicitly added."
+      owner: backend_engineer
+      status: pending
+    - step: "Add regression tests for modal workflow, EN default first document, and badge ordering."
+      owner: test_engineer
+      status: pending
+language_modal_merge_architecture:
+  agent: software_architect
+  role: Architect
+  task: "analyze_and_plan_language_modal_merge"
+  status: ready_for_implementation
+  requested_behavior:
+    - "Language Version features move from the separate page workflow into Master Resume Editor modal workflow."
+    - "First created CV defaults to English."
+    - "After first master resume creation, editor shows EN language badge and a plus control to its right."
+    - "Clicking plus opens add-language options."
+    - "After successful add, a new language badge appears."
+    - "Language badges render left-to-right in stable order."
+  current_architecture:
+    editor:
+      file: "app/master-resume/editor-canvas-client.tsx"
+      notes:
+        - "Reads locale from ?locale and defaults to en."
+        - "GET /api/resume/document?locale=<locale> ensures a resume_documents row and seeds from resume-en-template.yaml when absent."
+        - "Header already has locale buttons from /api/resume/languages metadata."
+    language_versions:
+      files:
+        - "app/language-versions/page.tsx"
+        - "app/language-versions/language-versions-client.tsx"
+      notes:
+        - "Standalone authenticated page creates language metadata and document via POST /api/resume/languages."
+        - "Client validates two-letter code, label, short label, duplicate code."
+    api:
+      file: "app/api/resume/languages/route.ts"
+      notes:
+        - "GET returns enabled language metadata or language/document pairs with withDocuments=true."
+        - "POST upserts resume_languages and ensures a draft resume document by default."
+        - "PATCH sets default locale across presets/variants."
+    persistence:
+      tables:
+        - "resume_languages: global enabled language metadata, service-role upsert."
+        - "resume_documents: owner locale documents, unique user_id+locale."
+        - "resume_presets/resume_preset_variants: saved CV selections and publish default locale."
+  proposed_design:
+    component_boundaries:
+      - component: "LanguageBadgeRail"
+        owner: frontend_engineer
+        location: "app/components or app/master-resume"
+        responsibility: "Render existing document-backed language badges ordered by sort_order/code, show active state, and render plus icon immediately after the last badge."
+      - component: "AddLanguageVersionModal"
+        owner: frontend_engineer
+        location: "app/components or app/master-resume"
+        responsibility: "Own code/label/shortLabel form state, validation, POST /api/resume/languages, errors, saving state, and close behavior."
+      - component: "useResumeLanguageVersions or local editor state reducer"
+        owner: frontend_engineer
+        location: "app/master-resume/editor-canvas-client.tsx or adjacent hook"
+        responsibility: "Fetch /api/resume/languages?withDocuments=true, merge newly created language+document, keep active locale synchronized."
+      - component: "EditorCanvasClient"
+        owner: frontend_engineer
+        location: "app/master-resume/editor-canvas-client.tsx"
+        responsibility: "Keep YAML editing/publish/rollback behavior; delegate language management UI to extracted components."
+    state_model:
+      server_initial:
+        - "No change required for the page server component initially; client can load language versions after hydration."
+        - "Optional improvement: MasterResumePage may fetch initial language versions server-side later to avoid badge loading flicker."
+      client_state:
+        activeLocale: "ResumeLocale, initialized from searchParams locale or en."
+        languageVersions: "Array<ResumeLanguageRow & { document: ResumeDocumentRow | null }>, fetched with withDocuments=true."
+        isLanguageModalOpen: "boolean."
+        addLanguageForm: "{ code, label, shortLabel, isSaving, error } held inside modal."
+      ordering:
+        - "Badge list should include document-backed languages only."
+        - "Sort by resume_languages.sort_order asc, then code asc."
+        - "Ensure en appears first by seeded sort_order=10; do not hardcode EN except as fallback if metadata is temporarily absent."
+      navigation:
+        - "Click existing badge switches active locale in-place via current loadLocaleDocument path."
+        - "After adding a language, append/merge returned language+document, close modal, and optionally switch to the new locale only if product confirms; default recommended behavior is stay on current locale and show the new badge."
+  data_contract_implications:
+    yaml:
+      - "No YAML shape change required."
+      - "New language documents currently seed from public/data/private/resume-en-template.yaml; this satisfies first-CV-English but creates untranslated starter content for non-EN until edited."
+      - "If future duplicate-from-source is added, it should be explicit and still pass validate_resume_document_yaml."
+    persistence:
+      - "No migration required for the modal merge."
+      - "Existing unique resume_documents(user_id, locale) prevents duplicate documents."
+      - "Existing resume_languages.sort_order controls left-to-right badge order."
+      - "Default first CV is already enforced by editor default locale en and /api/resume/document ensure behavior."
+    api:
+      - "Reuse GET/POST /api/resume/languages."
+      - "Prefer withDocuments=true for the editor badge rail so badges represent actual user documents, not every globally enabled language."
+      - "No service-role expansion; POST still validates input and creates owner-scoped document through access-token writes."
+    migration_risk:
+      level: low
+      notes:
+        - "Schema is already present."
+        - "Main risk is product confusion between global language metadata and per-user language versions."
+        - "Avoid deleting standalone /language-versions route in the same implementation unless PM confirms route deprecation."
+  security_risk_analysis:
+    high_risk_boundaries:
+      - "Auth/session: editor and language APIs remain authenticated."
+      - "Service-role: upsertResumeLanguage uses service-role for global metadata; implementation should not expand payload fields or expose disabled languages for mutation."
+      - "PublicShare: modal must not publish or expose a new language; publish remains explicit Saved Version workflow."
+    mitigations:
+      - "Keep API authorization unchanged."
+      - "Do not add public link changes in FE merge."
+      - "Do not auto-set newly added language as published/default unless user explicitly chooses that existing action."
+  edge_cases:
+    - "No document exists: /master-resume should still default to en and GET /api/resume/document?locale=en should create the first master resume."
+    - "Language metadata exists but document missing: badge rail should hide it or show only after ensure document succeeds; modal POST returns document."
+    - "Duplicate language code: client blocks and server returns existing metadata; UI should surface duplicate as non-destructive."
+    - "Invalid locale such as en-US or 123: normalize/validate to two-letter lowercase, show deterministic error."
+    - "API creates metadata but document ensure fails: show error and do not add badge unless document is present."
+    - "Current editor has unsaved YAML changes and user clicks another badge: implementation should warn or disable switching while busy; current code only gates busy/loading."
+    - "New language badge order after add: re-sort by sort_order/code before render."
+    - "Published CVs: adding a draft language must not appear in public language switcher until selected and published."
+    - "Recruiter role can currently access document/language POST; confirm this remains intentional before changing auth scopes."
+  acceptance_criteria:
+    - "Opening /master-resume with no locale query loads/creates EN document."
+    - "After EN document exists, header shows EN badge followed immediately by plus icon."
+    - "Plus opens accessible modal with code, language name, and short label inputs."
+    - "Valid add-language submission calls POST /api/resume/languages with createDocument true."
+    - "Successful add closes modal or shows success, and the new badge appears without full page reload."
+    - "Badges render left-to-right by sort_order then code, with EN first for seeded data."
+    - "Clicking a badge loads that locale in the existing editor without changing YAML contract."
+    - "Draft added languages are not publicly visible until explicit publish flow selects them."
+    - "Existing dashboard Saved Version publish language selection still works."
+    - "Lint, typecheck, and targeted node tests pass."
+  implementation_plan:
+    frontend_engineer:
+      owns:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/components/** or new app/master-resume/* language components"
+        - "app/globals.css"
+        - "app/layout.tsx if nav de-emphasis/removal is approved"
+      tasks:
+        - "Extract DEFAULT_LABELS/normalizeCode/normalizeShortLabel/form validation from LanguageVersionsClient into reusable module or component."
+        - "Change editor language fetch to /api/resume/languages?withDocuments=true and store document-aware language versions."
+        - "Render document-backed badges and plus icon in editor header; preserve existing button visual language."
+        - "Implement modal using existing dashboard-modal/button/status styles or a shared modal component."
+        - "On successful add, merge returned language+document and re-sort badges."
+        - "Do not remove standalone /language-versions route unless PM explicitly scopes it."
+    backend_engineer:
+      owns:
+        - "app/api/resume/languages/route.ts"
+        - "app/lib/resume-server.ts"
+      tasks:
+        - "Review whether POST should return 409 for duplicate per-user language versions instead of silently returning existing global metadata."
+        - "Ensure POST failure semantics distinguish metadata save failure from document ensure failure if FE needs precise modal errors."
+        - "Confirm recruiter role access is intentional for language document creation."
+      default_recommendation: "No backend change for first implementation unless tests expose ambiguous duplicate/failure behavior."
+    test_engineer:
+      owns:
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/master-resume-editor-language-modal.test.mjs"
+        - "tests/dashboard-presets.test.mjs if copy changes affect existing assertions"
+      tasks:
+        - "Update tests from standalone page expectation to modal-in-editor expectation, while keeping API contract coverage."
+        - "Assert editor contains plus/add-language modal trigger and POST /api/resume/languages."
+        - "Assert editor defaults locale state to en and requests /api/resume/document?locale=<locale>."
+        - "Assert badge sorting uses sort_order/code or an explicit sort helper."
+        - "Run npm.cmd run lint, npm.cmd run typecheck, npm.cmd test."
+  next_trigger:
+    REQ: frontend_engineer
+    CMD: "implement_language_modal_shell"
+    CTX:
+      ref: ".codex/state.yaml#language_modal_merge_architecture"
+      scope:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/components/**"
+        - "app/globals.css"
+    LMT:
+      - "security-first"
+      - "small-safe-reversible"
+      - "preserve-existing-design-system"
+adr_backlog:
+  agent: software_architect
+  task: "Post-PR4 ADR recommendations"
+  status: accepted
+  source:
+    - "docs/adr/0001-cv-publication-model.md"
+    - "docs/action-plan.md"
+    - "docs/guides/saas-transition-work-plan.md"
+    - ".codex/site-map-and-dependencies.md"
+  current_rollout:
+    - "ADR 0001 is accepted and implemented through PR4."
+    - "Canonical public route is /{person-slug}/{public-id}."
+    - "/r/[slug] is compatibility-only and redirects/resolves during migration."
+    - "Publish/unpublish use transactional RPC and snapshot-backed Public Links."
+  recommended_order:
+    - id: "ADR 0002"
+      title: "OpenCV YAML Public Contract And Schema Evolution"
+      priority: 1
+      decision_scope:
+        - "Versioned YAML contract emitted by publish."
+        - "Snapshot immutability and explicit historical schema migrations."
+        - "Validation boundary between drafts, Saved Versions, and Published CV snapshots."
+      risk: high
+      contracts:
+        - "Published CV snapshots must record schema and OpenCV contract versions."
+        - "Public rendering must not infer missing public fields from private drafts."
+    - id: "ADR 0003"
+      title: "Privacy-First Admin And Staff Data Access"
+      priority: 2
+      decision_scope:
+        - "Admin/manager metadata-only defaults."
+        - "Audit/event visibility versus CV content visibility."
+        - "Future recruiter access as explicit consent-scoped access."
+      risk: high
+      contracts:
+        - "Staff roles must not gain ambient read access to CV YAML/content."
+        - "Privileged reads and writes must remain audit logged."
+    - id: "ADR 0004"
+      title: "Public Route Compatibility And Deprecation Policy"
+      priority: 3
+      decision_scope:
+        - "Compatibility behavior for /r/[slug]."
+        - "Canonical redirect timing, deprecation gates, and rollback."
+        - "Legacy URL observability before removal."
+      risk: medium
+      contracts:
+        - "/r/[slug] remains non-canonical while migration evidence is collected."
+        - "Canonical route remains /{person-slug}/{public-id}."
+    - id: "ADR 0005"
+      title: "SEO/AEO, Structured Data, Sitemap, And Robots Policy"
+      priority: 4
+      decision_scope:
+        - "JSON-LD eligibility and content source."
+        - "Sitemap inclusion rules."
+        - "Robots, canonical, hreflang, OpenGraph, and language fallback policy."
+      risk: medium
+      contracts:
+        - "Indexing is explicit user opt-in per active Public Link."
+        - "Revoked, inactive, missing, or private links are excluded and noindex."
+    - id: "ADR 0006"
+      title: "Saved Version, Language Versions, And User Link Management UX"
+      priority: 5
+      decision_scope:
+        - "Product naming from preset to Saved Version."
+        - "Language Version selection and default-locale ownership."
+        - "User panel link lifecycle actions and copy."
+      risk: medium
+      contracts:
+        - "UI terms must not imply drafts are public."
+        - "Publish uses explicit selected language set only."
+    - id: "ADR 0007"
+      title: "Publication Analytics, View Counting, And Audit Retention"
+      priority: 6
+      decision_scope:
+        - "View count semantics."
+        - "Privacy-preserving analytics for users and admins."
+        - "Retention, aggregation, and bot filtering."
+      risk: medium
+      contracts:
+        - "Analytics must not expose private CV content."
+        - "User-facing metrics and admin metrics must have separate access rules."
+    - id: "ADR 0008"
+      title: "OpenCV Public API And Export Surface"
+      priority: 7
+      decision_scope:
+        - "Future machine-readable OpenCV YAML endpoint or download."
+        - "Caching, rate limiting, and content negotiation."
+        - "Compatibility with public rendered CV pages."
+      risk: low
+      contracts:
+        - "Exports must read Published CV snapshots only."
+        - "Public API exposure follows Public Link active/indexing/privacy state."
+ui_critique:
+  agent: frontend_engineer
+  role: FE
+  task: "complete_T1_read_only_public_link_panel"
+  status: pass
+  findings:
+    - "Editor Saved Version panel now tracks deterministic loading, empty, and error states from the owner-scoped preset fetch."
+    - "Canonical public URL is rendered before compatibility URL in the read-only panel."
+    - "Open and Copy actions are gated behind published presets that expose a canonical_public_path."
+    - "Private or non-canonical presets keep status badges only and expose no public-link actions."
+  validation:
+    - cmd: "npm.cmd test -- tests/adr-0006-saved-version-ux-contract.test.mjs tests/dashboard-presets.test.mjs"
+      status: pass
+    - cmd: "npm.cmd run typecheck"
+      status: pass
+val_results:
+  agent: backend_engineer
+  role: BE
+  task: "PR2 review and hardening for ADR 0001 publication runtime"
+  status: pass
+  scope:
+    owned:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/**"
+    changed:
+      - "app/lib/resume-server.ts"
+      - "app/api/resume/presets/[presetId]/publish/route.ts"
+      - "app/api/resume/presets/[presetId]/unpublish/route.ts"
+    observed_dirty_runtime:
+      - "app/dashboard/dashboard-client.tsx"
+  validation:
+    - cmd: "npm.cmd run lint"
+      status: pass
+      assertions:
+        - "ESLint app/Next config completed with zero warnings."
+    - cmd: "npm.cmd run typecheck"
+      status: pass
+      assertions:
+        - "TypeScript noEmit completed successfully."
+    - cmd: "npm.cmd test"
+      status: pass
+      assertions:
+        - "Full node:test suite passed: 98 tests."
+  notes:
+    - "No frontend, tests, docs, or migrations were edited."
+    - "Existing unrelated dashboard-client.tsx change was left untouched."
+agent_audit: null
+manifest:
+  active_agent: project_manager
+  next_trigger:
+    REQ: frontend_engineer
+    CMD: implement_editor_public_link_panel_pr1
+    CTX:
+      ref: ".codex/state.yaml#public_link_management_execution_routing.tickets[T1]"
+      scope:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/master-resume/**"
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/components/**"
+        - "tests/dashboard-presets.test.mjs"
+        - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+    LMT:
+      - "security-first"
+      - "owner-only"
+      - "small reversible PR1 read-only panel"
+      - "no RLS changes"
+      - "no public resolver changes"
+      - "canonical URL primary"
+  history:
+    - agent: backend_engineer
+      task: "PR2 ADR 0001 publication runtime hardening"
+      status: pass
+    - agent: project_manager
+      task: "Language version modal merge execution plan"
+      status: ready
+    - agent: project_manager
+      task: "Role inheritance rollout execution package"
+      status: ready
+    - agent: project_manager
+      task: "Public-link management editor rollout execution package"
+      status: ready
+    - agent: software_architect
+      task: "Editor public-link management implementation plan"
+      status: proposed
+    - agent: project_manager
+      task: "Finalize editor public-link implementation routing"
+      status: ready_for_frontend_t1
+post_pr4_plan:
+  agent: project_manager
+  role: PM
+  task: "Next implementation plan and ADR recommendation after PR4"
+  status: ready
+  source_refs:
+    - "docs/adr/0001-cv-publication-model.md"
+    - "docs/guides/saas-transition-work-plan.md"
+    - "docs/action-plan.md"
+    - "docs/guides/ai-demo-resume-generation-plan.md"
+    - "docs/guides/deployment-qa.md"
+  current_state:
+    completed:
+      - "ADR 0001 PR1-PR4 publication model completed."
+      - "Canonical public route resolves snapshot-backed Published CVs."
+      - "Transactional publish/unpublish RPC flow is implemented."
+      - "Phase A-E are complete per saas-transition-work-plan."
+    discrepancies:
+      - "docs/action-plan.md still marks parts of Phase E incomplete while newer roadmap and ADR mark Phase E/public route complete."
+  priorities:
+    p0:
+      - "Align docs/action-plan.md with PR4 state."
+      - "Finish release QA evidence for publication/auth/editor/admin smoke flows."
+      - "Build user/link management surface needed for operational MVP."
+    p1:
+      - "Add language-version management follow-ups."
+      - "Add admin analytics and audit explorer."
+      - "Add E2E/accessibility/performance hardening."
+    p2:
+      - "Start AI demo generation after ADR decision."
+      - "Plan recruiter and legal/privacy follow-ups."
+  adr_recommendations:
+    create_now:
+      - id: "ADR 0002"
+        topic: "OpenCV YAML Public Contract And Schema Evolution"
+      - id: "ADR 0003"
+        topic: "Privacy-First Admin And Staff Data Access"
+    defer:
+      - topic: "Public Route Compatibility And Deprecation Policy"
+      - topic: "SEO/AEO, Structured Data, Sitemap, And Robots Policy"
+      - topic: "Saved Version, Language Versions, And User Link Management UX"
+      - topic: "Publication Analytics, View Counting, And Audit Retention"
+      - topic: "OpenCV Public API And Export Surface"
+  validation:
+    run: []
+    skipped_reason: "Planning/docs synthesis only; no production code changed."
+language_modal_merge_plan:
+  agent: project_manager
+  role: PM
+  task: "Prepare execution plan for Language Version UX inside Master Resume dashboard modal"
+  status: ready
+  source_refs:
+    - ".codex/instructions.md"
+    - ".codex/site-map-and-dependencies.md"
+    - ".codex/checklists.md"
+    - ".codex/task-checklists.md"
+    - "docs/adr/0006-saved-version-language-ux-contract.md"
+    - "docs/action-plan.md"
+    - "app/dashboard/dashboard-client.tsx"
+    - "app/language-versions/language-versions-client.tsx"
+    - "app/api/resume/languages/route.ts"
+    - "tests/language-versions-interface.test.mjs"
+  scope:
+    in:
+      - "Master Resume card/modal UX on dashboard."
+      - "Reuse existing /api/resume/languages POST/PATCH where possible."
+      - "Show EN as first/default visible language badge."
+      - "Show add-language plus control on the right."
+      - "Create new language document and append/display badge left-to-right."
+      - "Regression tests and docs/status updates."
+    out:
+      - "Public rendering contract changes."
+      - "Supabase schema or RLS changes unless architect flags a required gap."
+      - "Per-language publish redesign beyond existing publish modal contract."
+      - "Legacy static app changes."
+  architect_dependency:
+    required_before_impl: true
+    expected_output:
+      - "Confirm frontend can call existing language API without backend change."
+      - "Confirm owner/auth behavior for document creation remains valid."
+      - "Confirm default locale semantics: EN seeded first, existing user default preserved if already set."
+  sequence:
+    - order: 1
+      owner: software_architect
+      cmd: review_language_modal_merge_boundaries
+      scope:
+        - "app/api/resume/languages/route.ts"
+        - "app/lib/resume-server.ts"
+        - "app/dashboard/dashboard-client.tsx"
+      deliverable: "Boundary note in state.yaml: API reuse, security/data-contract risks, and any blockers."
+    - order: 2
+      owner: frontend_engineer
+      cmd: impl_language_modal_merge
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/components/**"
+        - "app/globals.css"
+      deliverable: "Dashboard Master Resume modal renders ordered language badges, EN first/default, plus-button add flow, loading/error/success states."
+    - order: 3
+      owner: test_engineer
+      cmd: add_regression_and_verify
+      scope:
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/dashboard-presets.test.mjs"
+        - "tests/**"
+      deliverable: "Targeted regression assertions for modal language badges, plus add flow, API call contract, and badge ordering."
+    - order: 4
+      owner: project_manager
+      cmd: integrate_status_and_docs
+      scope:
+        - ".codex/state.yaml"
+        - "docs/action-plan.md"
+      deliverable: "State/docs updated with completed scope, validation evidence, residual risks, and rollback notes."
+  implementation_notes:
+    - "Prefer extracting a small dashboard-local LanguageBadgeRail/AddLanguageModal component only if dashboard-client becomes hard to scan."
+    - "Use existing button, badge, modal, toast, and language-version styles before adding new CSS."
+    - "Keep EN visible even when only one document exists; sort EN first, then existing/user-added languages by creation/display order if available, otherwise stable by sort_order/code."
+    - "The plus control should be icon-first with accessible label and should open add-language options, not navigate away."
+    - "On successful add, merge returned language/document into local state and show its badge without full page reload."
+  risks:
+    - id: "R1"
+      severity: medium
+      note: "Existing DashboardClient receives initialDocuments/languageOptions as immutable props; local state will be needed to show new badges immediately."
+      mitigation: "Frontend owns local language/document state initialized from props; do not mutate props."
+    - id: "R2"
+      severity: medium
+      note: "Default language source currently derives from presets in the separate Language Versions page, not a dedicated user setting."
+      mitigation: "Architect confirms semantics. For this UX, seed/display EN first and avoid changing persisted default unless user action/API explicitly does so."
+    - id: "R3"
+      severity: low
+      note: "Plus add flow may duplicate separate /language-versions page behavior."
+      mitigation: "Reuse the same API payload and validation copy; keep separate page as fallback during rollout."
+    - id: "R4"
+      severity: medium
+      note: "Language creation touches authenticated data and resume document creation."
+      mitigation: "No API broadening without architect review; test unauthenticated/invalid payload behavior remains covered by existing API contract tests."
+  definition_of_done:
+    - "Master Resume dashboard modal/card shows EN badge by default for a first CV."
+    - "Plus icon is on the right of the badge rail and opens add-language options inside a modal/popover."
+    - "Adding a language calls existing language creation flow, creates/prepares the language document, closes or confirms the add flow, and renders a new badge."
+    - "Badge order is deterministic left-to-right: EN first, then added/existing languages by agreed ordering."
+    - "Existing publish modal selected/default language behavior is not regressed."
+    - "Keyboard and screen-reader basics are covered: focusable plus, labelled dialog, error text, disabled saving state."
+    - "Regression tests cover UI contract through source/unit tests appropriate for current test style."
+    - "Validation commands are run or explicitly reported if blocked."
+  verification_matrix:
+    automated:
+      - cmd: "npm.cmd run lint"
+        owner: test_engineer
+        required: true
+      - cmd: "npm.cmd run typecheck"
+        owner: test_engineer
+        required: true
+      - cmd: "npm.cmd test"
+        owner: test_engineer
+        required: true
+      - cmd: "npm.cmd run ci"
+        owner: test_engineer
+        required: false
+        when: "Before release candidate or if shared API/server code changes."
+    targeted_tests:
+      - "tests/language-versions-interface.test.mjs: dashboard/modal add-language contract and API payload reuse."
+      - "tests/dashboard-presets.test.mjs or new focused test: Master Resume badge rail EN-first plus-control contract."
+      - "Existing ADR 0006 publish modal test remains green."
+    manual_qa:
+      - "Fresh user with no extra languages sees EN badge and right-side plus."
+      - "Click plus, add PL or DE, confirm new badge appears immediately to the right of EN."
+      - "Open the new badge/editor path and confirm the created language document loads."
+      - "Publish an existing Saved Version and confirm selected/default language controls still work."
+      - "Check mobile width: badge rail wraps or scrolls without overlapping controls."
+      - "Keyboard: tab to plus, open/close modal, submit invalid and valid language."
+  rollback:
+    - "Revert frontend dashboard/modal changes and regression tests."
+    - "Keep existing /language-versions page available as fallback; do not remove route during rollout."
+    - "If backend changes are introduced despite current plan, revert those in a separate commit and verify /api/resume/languages contract tests."
+    - "No migration rollback expected if architect confirms existing API/schema are reused."
+  next:
+    REQ: software_architect
+    CMD: review_language_modal_merge_boundaries
+    CTX:
+      ref: ".codex/state.yaml#language_modal_merge_plan"
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/language-versions/**"
+        - "app/api/resume/languages/route.ts"
+        - "app/lib/resume-server.ts"
+        - "tests/**"
+    LMT:
+      - "No prod code."
+      - "Confirm API reuse and data boundary before frontend implementation."
+      - "Return YAML status with risks/blockers only."
+
+role_inheritance_model:
+  agent: software_architect
+  role: Architect
+  task: "analyze_role_inheritance_model"
+  status: ready_for_pm_handoff
+  requested_contract:
+    base_role: "user"
+    inherited_roles:
+      manager:
+        inherits: ["user"]
+      recruiter:
+        inherits: ["user"]
+      admin:
+        inherits: ["manager", "recruiter"]
+  current_state:
+    storage:
+      profiles_role: "Flat text enum: admin, manager, user, recruiter."
+      recommendation: "Keep flat persisted role values; model inheritance in capability helpers and SQL predicates."
+    typescript:
+      role_type_file: "app/lib/auth-types.ts"
+      rbac_file: "app/lib/rbac.ts"
+      current_issue: "Route guards use acceptedRoles arrays with direct includes, so inheritance is expressed manually and inconsistently."
+    api:
+      admin:
+        files:
+          - "app/api/admin/users/route.ts"
+          - "app/api/admin/users/[userId]/route.ts"
+        current_guard: "requireRequestActor([\"admin\", \"manager\"])"
+        target_guard: "requireCapability(\"admin.users.read\") and mutation-specific capabilities."
+      resume:
+        files:
+          - "app/api/resume/document/route.ts"
+          - "app/api/resume/draft/route.ts"
+          - "app/api/resume/publish/route.ts"
+          - "app/api/resume/rollback/route.ts"
+          - "app/api/resume/presets/**"
+          - "app/api/resume/languages/route.ts"
+        current_guard: "Most owner resume routes accept all roles; language GET/PATCH/DELETE exclude recruiter while POST includes recruiter."
+        target_guard: "Use explicit owner resume capabilities; decide whether recruiter should have language management parity through inheritance."
+    ui:
+      files:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+      current_issue:
+        - "Account menu shows User management only for admin, while /admin allows manager."
+        - "Admin page/client duplicate role checks instead of using shared permissions."
+    database:
+      files:
+        - "supabase/migrations/20260410_phase_b_yaml_data_layer.sql"
+        - "supabase/migrations/20260410_phase_c_auth_rbac_admin.sql"
+        - "supabase/migrations/20260509_privacy_first_admin_access.sql"
+      current_issue:
+        - "SQL helpers are flat-role predicates: is_admin_user, is_manager_user, is_staff_user."
+        - "Privacy hardening keeps resume content owner-only; inheritance must not reintroduce staff content access."
+  capability_matrix:
+    user:
+      inherits: []
+      capabilities:
+        - "auth.session.read"
+        - "dashboard.read_own"
+        - "profile.read_own"
+        - "resume.document.read_own"
+        - "resume.document.write_own"
+        - "resume.revision.rollback_own"
+        - "resume.preset.read_own"
+        - "resume.preset.write_own"
+        - "resume.preset.publish_own"
+        - "resume.preset.unpublish_own"
+        - "resume.language.read_enabled"
+        - "resume.language.create_own_document"
+        - "resume.language.set_default_own"
+        - "resume.language.disable_global"
+      denied:
+        - "admin.users.read"
+        - "admin.users.role_write"
+        - "admin.users.status_write"
+        - "admin.users.delete"
+        - "admin.audit.read"
+        - "admin.analytics.read"
+        - "resume.content.read_other"
+    recruiter:
+      inherits: ["user"]
+      capabilities:
+        - "recruiter.workflow.own"
+      denied:
+        - "admin.users.read"
+        - "admin.users.role_write"
+        - "admin.users.status_write"
+        - "admin.users.delete"
+        - "admin.audit.read"
+        - "admin.analytics.read"
+        - "resume.content.read_other"
+      note: "Current product/docs say recruiter has user parity for MVP; no ambient staff/admin visibility."
+    manager:
+      inherits: ["user"]
+      capabilities:
+        - "admin.area.access"
+        - "admin.users.read_manageable"
+        - "admin.users.role_write_manageable_user_recruiter"
+        - "admin.users.status_write_manageable_user_recruiter"
+        - "admin.users.delete_manageable_user_recruiter"
+        - "admin.audit.read_metadata"
+        - "admin.analytics.read_metadata"
+      denied:
+        - "admin.users.manage_manager"
+        - "admin.users.manage_admin"
+        - "admin.users.self_privilege_write"
+        - "resume.content.read_other"
+      note: "Manager is operational staff, not a resume-content override."
+    admin:
+      inherits: ["manager", "recruiter"]
+      capabilities:
+        - "admin.area.access"
+        - "admin.users.read_all"
+        - "admin.users.role_write_all"
+        - "admin.users.status_write_all"
+        - "admin.users.delete_all"
+        - "admin.audit.read_metadata"
+        - "admin.analytics.read_metadata"
+        - "recruiter.workflow.own"
+      denied:
+        - "resume.content.read_other"
+      note: "Admin inherits manager/recruiter capabilities but privacy ADR still blocks ambient private CV content."
+  implementation_approach:
+    typescript:
+      - "Add AppCapability union and ROLE_INHERITS/ROLE_CAPABILITIES constants in app/lib/rbac.ts or adjacent app/lib/capabilities.ts."
+      - "Add getEffectiveRoles(role), hasRole(actorRole, requiredRole), hasCapability(actorRole, capability), requireCapabilityResult(actor, capability)."
+      - "Change requireRequestActor to accept either legacy acceptedRoles or new { anyCapability: [...] } option; preserve acceptedRoles during migration."
+      - "Replace raw role array checks route-by-route only after tests exist."
+      - "Keep canAssignRole/canDeleteTarget as target-aware policy helpers; implement them on top of capabilities and target role classes."
+    api_guards:
+      - "Admin list: require admin.users.read; filter manager results to self + user/recruiter."
+      - "Admin role/status/delete: require mutation capability and target-aware helper."
+      - "Owner resume routes: require resume.*_own capabilities plus owner userId from actor; do not allow staff target overrides."
+      - "Language routes: align recruiter with user if inheritance is accepted, or document deliberate exception as product policy."
+      - "Public export routes stay anonymous and snapshot-only; no staff/recruiter capability applies."
+    ui_gates:
+      - "Expose /admin link via canAccessAdminArea/hasCapability so manager sees the same access the server allows."
+      - "Use shared canManageTargetUser/canAssignTargetRole helper in admin client for disabled controls and role option lists."
+      - "Never rely on UI gates as enforcement; server and SQL remain authoritative."
+    database:
+      - "Add a compatibility migration that creates has_role(required_role text) and has_capability(required_capability text), or updates is_staff_user/current helper docs."
+      - "Do not change profiles.role storage or enum values."
+      - "Do not broaden owner-only resume RLS from ADR 0003."
+      - "If SQL capabilities are added, keep helper allowlist explicit and tested; avoid dynamic table-driven permissions for MVP."
+  migration_strategy:
+    phase_0_design:
+      - "Document capability matrix and acceptance criteria."
+      - "Inventory every direct role comparison in app/api, app pages, app components, tests, and migrations."
+    phase_1_compat_helpers:
+      - "Add TS capability helpers without changing behavior."
+      - "Add unit/contract tests proving admin expands to manager+recruiter+user, manager expands to user only, recruiter expands to user only."
+    phase_2_guard_migration:
+      - "Migrate API guards from acceptedRoles arrays to capabilities one endpoint group at a time."
+      - "Keep acceptedRoles overload until all routes and tests are migrated."
+    phase_3_sql_alignment:
+      - "Add forward-only migration for SQL helper predicates if API/RLS/RPC need them."
+      - "Preserve profiles.role data; no backfill required unless invalid legacy values are found."
+    phase_4_docs_cleanup:
+      - "Update phase C, privacy-first admin, SaaS transition, deployment QA, and tests to describe inherited roles."
+  risks:
+    high:
+      - id: "R1"
+        note: "Admin inheriting recruiter can conflict with ADR 0003 wording that recruiter is separate from staff/admin roles."
+        mitigation: "Define inheritance as capability composition only; recruiter.workflow.own is inherited, but recruiter content-access scopes remain future consent-based and excluded."
+      - id: "R2"
+        note: "Capability expansion could accidentally grant manager/admin private resume content access."
+        mitigation: "Resume content capabilities are owner-only and RLS remains owner-only."
+      - id: "R3"
+        note: "SQL and TS authorization drift can create bypasses through RPC or direct Supabase calls."
+        mitigation: "Keep SQL target-aware functions aligned with TS helpers and add contract tests scanning both."
+    medium:
+      - id: "R4"
+        note: "Existing language routes treat recruiter inconsistently: POST allowed, GET/PATCH/DELETE denied."
+        mitigation: "PM/product must decide if recruiter gets full user language management parity; recommended yes for base-user inheritance."
+      - id: "R5"
+        note: "UI currently hides /admin from manager despite server access."
+        mitigation: "Frontend gate should use admin.area.access capability."
+      - id: "R6"
+        note: "Tests assert literal acceptedRoles arrays and will need staged updates."
+        mitigation: "Add capability tests first, then update brittle source-string assertions."
+  pm_handoff_tasks:
+    - owner: project_manager
+      cmd: "sequence_role_inheritance_rollout"
+      scope:
+        - ".codex/state.yaml#role_inheritance_model"
+        - "docs/action-plan.md"
+      deliverable: "Small PR sequence with owners and rollback gates."
+    - owner: backend_engineer
+      cmd: "impl_capability_helpers_and_api_guards"
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-request.ts"
+        - "app/lib/auth-server.ts"
+        - "app/api/admin/**"
+        - "app/api/resume/**"
+      deliverable: "Capability-based authorization helpers and migrated guards with backward-compatible acceptedRoles support."
+    - owner: backend_engineer
+      cmd: "impl_sql_capability_alignment"
+      scope:
+        - "supabase/migrations/**"
+        - "docs/guides/phase-c-auth-rbac-admin.md"
+        - "docs/guides/privacy-first-admin-access-policy.md"
+      deliverable: "Forward-only migration or explicit decision that current SQL target helpers are sufficient."
+    - owner: frontend_engineer
+      cmd: "impl_role_capability_ui_gates"
+      scope:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+      deliverable: "UI gates and disabled states use shared capability/target policy."
+    - owner: test_engineer
+      cmd: "add_role_inheritance_regression"
+      scope:
+        - "tests/**"
+      deliverable: "Unit/contract tests for capability expansion, API guard literals removed or updated, SQL helper/RLS privacy assertions preserved."
+  acceptance_criteria:
+    - "profiles.role remains one of admin, manager, user, recruiter; no existing profile rows require migration."
+    - "hasRole(admin, manager), hasRole(admin, recruiter), hasRole(admin, user), hasRole(manager, user), and hasRole(recruiter, user) are true."
+    - "manager does not inherit recruiter; recruiter does not inherit manager."
+    - "Admin and manager can access /admin; recruiter and user cannot."
+    - "Manager can manage only user/recruiter target accounts and cannot modify own privileges."
+    - "Admin can manage all profile roles/status/deletes."
+    - "All roles can manage only their own resume content unless a future explicit consent model is approved."
+    - "Recruiter parity with user is either implemented across owner resume/language endpoints or explicitly documented as an exception."
+    - "Public routes and OpenCV export remain snapshot-only and unauthenticated."
+  test_strategy:
+    targeted:
+      - "Add app/lib/rbac tests for inheritance expansion, capability checks, target-aware role assignment, and delete decisions."
+      - "Add/adjust API contract tests for admin users routes to use capability helpers while still excluding recruiter from admin access."
+      - "Add resume/language guard tests confirming user-equivalent owner behavior for recruiter if parity is adopted."
+      - "Add migration/source contract tests ensuring owner-only resume RLS remains in 20260509_privacy_first_admin_access.sql."
+      - "Add UI source/behavior test confirming account menu exposes User management to admin and manager only."
+    default_validation:
+      - "npm.cmd run lint"
+      - "npm.cmd run typecheck"
+      - "npm.cmd test"
+  next_trigger:
+    REQ: project_manager
+    CMD: "sequence_role_inheritance_rollout"
+    CTX:
+      ref: ".codex/state.yaml#role_inheritance_model"
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-request.ts"
+        - "app/api/**"
+        - "app/components/account-menu.tsx"
+        - "app/admin/**"
+        - "docs/**"
+        - "supabase/**"
+        - "tests/**"
+    LMT:
+      - "security-first"
+      - "least-privilege"
+      - "backward-compatible-migration"
+
+public_link_management_rollout_package:
+  agent: project_manager
+  role: PM
+  task: "Expose public-link management from the editor or an adjacent panel"
+  status: completed
+  prepared_at: "2026-05-12"
+  source_refs:
+    - "docs/action-plan.md"
+    - "docs/guides/deployment-qa.md"
+    - "docs/guides/saas-transition-work-plan.md"
+    - ".codex/site-map-and-dependencies.md"
+    - "docs/adr/0001-cv-publication-model.md"
+  objective: "Give authenticated users a clear, owner-scoped surface near the editor for viewing and managing Public Link lifecycle state for CV Versions without changing snapshot publication semantics."
+  non_goals:
+    - "No public route redesign."
+    - "No schema migration unless architect finds a blocking missing field."
+    - "No broad user panel or analytics implementation in this slice."
+    - "No public URL for private/unpublished CV Versions."
+    - "No mutation of historical Published CV snapshots."
+  current_contract:
+    frontend:
+      - "Dashboard already lists CV Versions and can publish/unpublish through app/api/resume/presets/[presetId]/publish and /unpublish."
+      - "Dashboard receives canonical_public_path and compatibility_public_path on ResumePresetRow."
+      - "Master Resume Editor owns draft YAML/revisions/language management but does not currently expose Saved Version/Public Link lifecycle."
+    backend:
+      - "Publish route requires selectedLocales and optional defaultLocale/allowIndexing/aiGenerated."
+      - "Unpublish route revokes through unpublishResumePreset."
+      - "resume-server maps active resume_public_links to canonical_public_path and compatibility_public_path."
+      - "Public rendering resolves snapshot-backed resume_published_cvs/locales and keeps /r/[slug] compatibility."
+    tests:
+      - "tests/dashboard-presets.test.mjs covers canonical/compatibility path presence."
+      - "tests/cv-publication-runtime-contract.test.mjs covers transactional publish/unpublish and snapshot preference."
+      - "tests/cv-public-publicid-route.test.mjs and tests/cv-public-compatibility-route.test.mjs cover public routing behavior."
+  execution_backlog:
+    - id: "PLM-1"
+      title: "Architect boundary review for editor-adjacent Public Link management"
+      owner: software_architect
+      estimate: "S"
+      ready: true
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/api/resume/presets/[presetId]/publish/route.ts"
+        - "app/api/resume/presets/[presetId]/unpublish/route.ts"
+        - "app/lib/resume-server.ts"
+      dor:
+        - "PM rollout package exists in state.yaml."
+        - "Existing publication model and route contracts are identified."
+      dod:
+        - "Confirm whether frontend can reuse existing preset list/publish/unpublish contracts."
+        - "Confirm whether a read-only editor-adjacent list can be server-fed or client-fetched without new data access."
+        - "Confirm no schema or public route changes are needed for first increment."
+        - "Record any required backend contract changes before frontend implementation starts."
+      rollback: "Docs/state-only; revert package if superseded by architecture decision."
+    - id: "PLM-2"
+      title: "Backend contract hardening only if needed"
+      owner: backend_engineer
+      estimate: "S-M"
+      ready: false
+      blocked_by:
+        - "PLM-1"
+      scope:
+        - "app/api/resume/presets/route.ts"
+        - "app/api/resume/presets/[presetId]/publish/route.ts"
+        - "app/api/resume/presets/[presetId]/unpublish/route.ts"
+        - "app/lib/resume-server.ts"
+        - "tests/cv-publication-runtime-contract.test.mjs"
+        - "tests/dashboard-presets.test.mjs"
+      dor:
+        - "Architect identifies a missing response field, status ambiguity, or auth boundary not solvable in frontend."
+      dod:
+        - "Responses remain actor-userId scoped."
+        - "Published rows expose canonical_public_path, compatibility_public_path, allow_indexing, is_public, default_locale, and published locale metadata needed by UI."
+        - "Unpublish failures fail closed and do not leave UI believing the link is revoked."
+        - "No private draft YAML/content is added to link-management responses."
+        - "Focused backend/contract tests pass."
+      rollback: "Revert backend/test commit; existing dashboard publish/unpublish flow remains fallback."
+    - id: "PLM-3"
+      title: "Build editor-adjacent Public Link panel"
+      owner: frontend_engineer
+      estimate: "M"
+      ready: false
+      blocked_by:
+        - "PLM-1"
+        - "PLM-2 if required"
+      scope:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/dashboard/dashboard-client.tsx if shared helper extraction is approved"
+        - "app/components/** if a reusable link panel component is introduced"
+        - "app/globals.css"
+        - "tests/dashboard-presets.test.mjs"
+      dor:
+        - "Backend contract is confirmed stable."
+        - "UI location is editor-adjacent: inside /master-resume side panel or a nearby authenticated route linked from editor."
+      dod:
+        - "User can see own CV Version link states from the editor-adjacent surface."
+        - "Published CV Versions show canonical URL first and compatibility URL as secondary."
+        - "Private CV Versions show no copyable public URL."
+        - "Copy canonical link action has visible success/error feedback."
+        - "Open link action targets canonical URL."
+        - "Publish/unpublish actions reuse existing API semantics or route users to the existing publish modal; no duplicate publication rules."
+        - "Loading, empty, and error states are deterministic and accessible."
+      rollback: "Revert frontend commit; dashboard remains the public-link management fallback."
+    - id: "PLM-4"
+      title: "Dashboard parity and navigation polish"
+      owner: frontend_engineer
+      estimate: "S"
+      ready: false
+      blocked_by:
+        - "PLM-3"
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/globals.css"
+        - "tests/dashboard-presets.test.mjs"
+      dor:
+        - "Editor-adjacent panel is implemented."
+      dod:
+        - "Dashboard and editor-adjacent panel use consistent terminology: CV Version, Published, Private, Indexable/Noindex, Canonical, Compatibility."
+        - "Navigation between editor and CV Version management is clear without introducing a marketing/landing screen."
+        - "No UI presents /r/[slug] as canonical."
+      rollback: "Revert UI polish commit only."
+    - id: "PLM-5"
+      title: "Regression coverage and QA execution"
+      owner: test_engineer
+      estimate: "M"
+      ready: false
+      blocked_by:
+        - "PLM-2 if required"
+        - "PLM-3"
+        - "PLM-4"
+      scope:
+        - "tests/dashboard-presets.test.mjs"
+        - "tests/cv-publication-runtime-contract.test.mjs"
+        - "tests/cv-public-publicid-route.test.mjs"
+        - "tests/cv-public-compatibility-route.test.mjs"
+        - "docs/guides/deployment-qa.md"
+      dor:
+        - "Implementation PRs are complete and locally runnable."
+      dod:
+        - "Tests assert canonical URL preference, private no-link state, publish/unpublish UI hooks, and copy/open affordances."
+        - "Snapshot-backed public route tests remain green."
+        - "Validation evidence records npm.cmd run lint, npm.cmd run typecheck, and npm.cmd test."
+        - "Manual QA checklist includes publish, copy, open, unpublish, republish, draft-edit-after-publish, and revoked-link behavior."
+      rollback: "Tests/docs-only rollback if assertions need to be re-scoped; production rollback follows PLM-2/PLM-3."
+    - id: "PLM-6"
+      title: "Release docs and status closeout"
+      owner: project_manager
+      estimate: "S"
+      ready: false
+      blocked_by:
+        - "PLM-5"
+      scope:
+        - "docs/action-plan.md"
+        - "docs/guides/deployment-qa.md"
+        - "docs/guides/saas-transition-work-plan.md"
+        - ".codex/state.yaml"
+      dor:
+        - "Automated and manual validation evidence is available."
+      dod:
+        - "Action plan marks public-link management complete or records residual follow-up."
+        - "Deployment QA guide reflects actual implemented smoke steps."
+        - "SaaS transition work plan status matches shipped behavior."
+        - "state.yaml records final validation, risks, and next trigger."
+      rollback: "Docs/state-only rollback."
+  parallelization:
+    safe_parallel:
+      - owners:
+          - software_architect
+          - test_engineer
+        when: "After PM package is available."
+        scopes:
+          software_architect:
+            - "Architecture review only; no file edits unless recording state."
+          test_engineer:
+            - "Prepare QA matrix and inspect existing tests; no implementation assertions requiring unbuilt UI."
+      - owners:
+          - backend_engineer
+          - frontend_engineer
+        when: "After PLM-1 if backend change is required and exact API fields are agreed."
+        scopes:
+          backend_engineer:
+            - "app/api/resume/presets/**"
+            - "app/lib/resume-server.ts"
+            - "backend/contract tests only"
+          frontend_engineer:
+            - "app/master-resume/**"
+            - "app/dashboard/**"
+            - "app/components/**"
+            - "app/globals.css"
+    must_be_sequential:
+      - "PLM-1 before production code changes."
+      - "PLM-2 before PLM-3 if API shape must change."
+      - "PLM-5 after implementation, because tests must lock actual UI/API behavior."
+      - "PLM-6 after validation evidence."
+    disjoint_ownership_rules:
+      - "Frontend does not edit app/lib/resume-server.ts or API routes except with explicit backend handoff."
+      - "Backend does not edit React/CSS files."
+      - "Test engineer can edit tests/docs only after implementation scope is known."
+      - "Project manager owns docs/action-plan.md, state.yaml manifest/status, and rollout closeout."
+  release_plan:
+    strategy: "Small PR sequence with dashboard fallback preserved throughout."
+    checkpoints:
+      - id: "G1"
+        name: "Architecture go"
+        go: "No new schema, no public route semantics change, no private-content exposure."
+        no_go:
+          - "UI requires data not currently owner-scoped."
+          - "Canonical/compatibility semantics are ambiguous."
+      - id: "G2"
+        name: "Backend contract go"
+        go: "Existing or hardened endpoints return needed link metadata and fail closed."
+        no_go:
+          - "Publish/unpublish can leave active link state inconsistent."
+          - "Tests show live drafts can affect public route."
+      - id: "G3"
+        name: "Frontend go"
+        go: "Manual QA verifies private/published/revoked states, canonical copy/open, and no full reload needed for state transition."
+        no_go:
+          - "Private CV Version exposes copyable URL."
+          - "Compatibility route is presented as canonical."
+      - id: "G4"
+        name: "Release candidate go"
+        go: "npm.cmd run lint, npm.cmd run typecheck, npm.cmd test pass; deployment QA checklist is updated."
+        no_go:
+          - "Any auth, snapshot rendering, or public route regression."
+    rollout_steps:
+      - "Ship backend hardening first only if needed."
+      - "Ship editor-adjacent panel behind existing authenticated route access; no feature flag required if dashboard fallback remains."
+      - "Run preview smoke against publish/copy/open/unpublish/republish and public route snapshot behavior."
+      - "Deploy after default validation and manual smoke are green."
+  rollback_plan:
+    strategy: "Rollback by newest small PR first; dashboard publish/unpublish remains operational fallback."
+    steps:
+      - "If frontend regression: revert PLM-3/PLM-4; keep backend contract if backward-compatible."
+      - "If backend regression: revert PLM-2 and dependent frontend calls; dashboard fallback remains on prior contract."
+      - "If public route regression: block release, revert backend changes, rerun snapshot route tests."
+      - "If docs/status mismatch only: revert PLM-6 docs/state update."
+    data_rollback: "None expected; publish/unpublish uses existing transactional RPC behavior. Do not mutate historical migrations or Published CV snapshots."
+  acceptance_criteria:
+    - "Public-link management is reachable from /master-resume or an adjacent authenticated panel without replacing the existing dashboard Saved Version workflow."
+    - "The surface lists only the signed-in actor's own CV Versions and Public Links."
+    - "Private/unpublished CV Versions show no public URL and cannot be copied as public links."
+    - "Published CV Versions show canonical /{person-slug}/{public-id} first and legacy /r/[slug] only as compatibility information."
+    - "Copy-link action copies the canonical public URL and has a non-blocking success/error state."
+    - "Open-link action targets the canonical public URL for published links."
+    - "Unpublish revokes the active Public Link, updates UI state without a full reload, and does not delete the Saved Version."
+    - "Republish after unpublish follows existing public-id semantics and does not mutate historical Published CV snapshots."
+    - "Indexing state is visible and controlled only through the existing publish flow unless a backend-reviewed update endpoint is explicitly added."
+    - "Published/default language metadata is visible and remains aligned with the publish modal selected-locale contract."
+    - "Draft edits in Master Resume do not change an already published public page until explicit publish."
+    - "Missing, revoked, or failed Public Link lookups fail closed with clear UI state."
+    - "Existing public routes continue to render snapshot-backed data only."
+    - "Automated validation passes: npm.cmd run lint, npm.cmd run typecheck, npm.cmd test."
+  estimates:
+    total_band: "M-L"
+    critical_path:
+      - "PLM-1"
+      - "PLM-2 only if required"
+      - "PLM-3"
+      - "PLM-5"
+      - "PLM-6"
+    by_ticket:
+      PLM-1: "S"
+      PLM-2: "S-M"
+      PLM-3: "M"
+      PLM-4: "S"
+      PLM-5: "M"
+      PLM-6: "S"
+    note: "Critical path is frontend-heavy if backend contract is already sufficient; becomes backend-gated only if architect requires API shape changes."
+  risks:
+    - id: "PLM-R1"
+      severity: "high"
+      note: "UI could expose or copy a revoked/private link."
+      mitigation: "Render copy/open actions only when is_public and canonical_public_path are present; test private/revoked state."
+    - id: "PLM-R2"
+      severity: "high"
+      note: "Draft edits could be implied as public changes."
+      mitigation: "Copy and state text must distinguish Master Resume drafts from Published CV snapshots."
+    - id: "PLM-R3"
+      severity: "medium"
+      note: "Duplicate lifecycle controls in dashboard and editor drift."
+      mitigation: "Extract shared display helpers or centralize copy/status mapping; keep one publish contract."
+    - id: "PLM-R4"
+      severity: "medium"
+      note: "Compatibility route may be over-promoted."
+      mitigation: "Canonical URL is primary; /r/[slug] is labelled compatibility only."
+    - id: "PLM-R5"
+      severity: "medium"
+      note: "Concurrent role-inheritance work may touch resume API guards."
+      mitigation: "Sequence backend changes carefully; avoid combining capability migration with link-management UI."
+  doc_updates_needed_after_implementation:
+    - file: "docs/action-plan.md"
+      update: "Mark PLM tickets complete or record follow-up; update Phase D public-link item."
+    - file: "docs/guides/deployment-qa.md"
+      update: "Replace planned public-link QA with exact shipped manual steps and evidence requirements."
+    - file: "docs/guides/saas-transition-work-plan.md"
+      update: "Set Phase D/editor-adjacent public-link management status to complete if shipped."
+    - file: ".codex/site-map-and-dependencies.md"
+      update: "Document new editor-adjacent panel/component and any API route dependencies."
+    - file: "docs/adr/0006-saved-version-language-versions-user-link-management-ux.md"
+      update: "If ADR 0006 exists/lands, record final UX semantics for canonical/compatibility links."
+  validation:
+    planned:
+      - "npm.cmd run lint"
+      - "npm.cmd run typecheck"
+      - "npm.cmd test"
+    run:
+      - cmd: "node -e \"const fs=require('fs'); const yaml=require('js-yaml'); yaml.load(fs.readFileSync('.codex/state.yaml','utf8')); console.log('state yaml ok')\""
+        status: pass
+        assertions:
+          - "state.yaml parses successfully as YAML."
+      - cmd: "npm.cmd run lint"
+        status: pass
+        assertions:
+          - "ESLint completed with zero errors."
+      - cmd: "npm.cmd run typecheck"
+        status: pass
+        assertions:
+          - "TypeScript noEmit completed successfully."
+      - cmd: "npm.cmd test"
+        status: pass
+        assertions:
+          - "node:test suite passed: 136 tests."
+    skipped_reason: null
+  next:
+    REQ: software_architect
+    CMD: review_public_link_management_boundaries
+    CTX:
+      ref: ".codex/state.yaml#public_link_management_rollout_package"
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/api/resume/presets/[presetId]/publish/route.ts"
+        - "app/api/resume/presets/[presetId]/unpublish/route.ts"
+        - "app/lib/resume-server.ts"
+        - "tests/dashboard-presets.test.mjs"
+    LMT:
+      - "security-first"
+      - "small-safe-reversible"
+      - "preserve snapshot-backed public rendering"
+      - "canonical public URL preferred over compatibility route"
+      - "no private draft exposure"
+role_inheritance_rollout_package:
+  agent: project_manager
+  role: PM
+  task: "sequence_role_inheritance_rollout"
+  status: ready_for_backend_pr1
+  source_refs:
+    - ".codex/state.yaml#role_inheritance_model"
+    - ".codex/instructions.md"
+    - ".codex/site-map-and-dependencies.md"
+    - ".codex/checklists.md"
+    - ".codex/task-checklists.md"
+    - "docs/guides/phase-c-auth-rbac-admin.md"
+    - "docs/guides/privacy-first-admin-access-policy.md"
+    - "docs/action-plan.md"
+  preserved_contracts:
+    - "profiles.role remains flat: admin, manager, user, recruiter."
+    - "user is the base capability set."
+    - "manager inherits user only."
+    - "recruiter inherits user only."
+    - "admin inherits manager and recruiter, therefore also user."
+    - "Admin inheritance of recruiter is capability composition only; it does not create recruiter preview/content access."
+    - "Private resume content remains owner-only; no staff, manager, admin, or recruiter ambient read of other users' yaml_content/revisions/draft selections."
+  scope:
+    in:
+      - "TypeScript role/capability helpers."
+      - "Backward-compatible auth guard option for capabilities."
+      - "Admin API guard migration from direct role arrays to capabilities."
+      - "Owner resume API guard migration to owner-only capabilities."
+      - "Recruiter parity with user for own resume/language routes."
+      - "Admin/account UI gates aligned to shared helpers."
+      - "Focused regression tests and docs updates."
+    out:
+      - "Changing persisted role values or profile rows."
+      - "Broadening Supabase RLS over private resume content."
+      - "Adding recruiter consent/preview model."
+      - "Changing public resume snapshot behavior."
+      - "Refactoring unrelated auth/session or dashboard code."
+  sequence:
+    - order: 1
+      id: "PR1"
+      owner: backend_engineer
+      cmd: "impl_role_capability_helpers_pr1"
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-request.ts"
+        - "app/lib/auth-server.ts"
+        - "app/lib/auth-types.ts"
+        - "tests/**"
+      deliverable: "Capability constants/helpers, inherited-role tests, and requireRequestActor capability overload while preserving acceptedRoles behavior."
+      gates:
+        - "No route behavior changes except internal helper compatibility."
+        - "Tests prove inheritance matrix and denied content capability."
+      rollback: "Revert helper/test commit; existing direct acceptedRoles guards remain active."
+    - order: 2
+      id: "PR2"
+      owner: backend_engineer
+      cmd: "migrate_admin_api_guards_pr2"
+      scope:
+        - "app/api/admin/users/route.ts"
+        - "app/api/admin/users/[userId]/route.ts"
+        - "app/lib/rbac.ts"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+        - "tests/adr-0007-publication-analytics-audit-policy.test.mjs"
+      deliverable: "Admin list/update/delete use admin.* capabilities plus target-aware helpers; manager remains limited to self plus user/recruiter."
+      gates:
+        - "Recruiter is still denied admin area/API."
+        - "Admin APIs remain metadata-only and do not import resume-server or select yaml_content."
+      rollback: "Restore acceptedRoles admin guards and previous target checks."
+    - order: 3
+      id: "PR3"
+      owner: backend_engineer
+      cmd: "migrate_owner_resume_guards_pr3"
+      scope:
+        - "app/api/resume/document/route.ts"
+        - "app/api/resume/draft/route.ts"
+        - "app/api/resume/publish/route.ts"
+        - "app/api/resume/rollback/route.ts"
+        - "app/api/resume/presets/**"
+        - "app/api/resume/languages/route.ts"
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/**"
+      deliverable: "Resume and language APIs use own-resource capabilities; recruiter receives user-equivalent own resume/language behavior."
+      gates:
+        - "Actor userId remains the only owner key passed to resume server functions."
+        - "No route accepts target user id for private resume content."
+        - "Public routes remain snapshot-only and unauthenticated."
+      rollback: "Revert resume route guard changes; PR1 helper remains inert."
+    - order: 4
+      id: "PR4"
+      owner: frontend_engineer
+      cmd: "impl_role_capability_ui_gates_pr4"
+      scope:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+        - "tests/account-menu-profile-modal.test.mjs"
+        - "tests/header-account-menu.test.mjs"
+        - "tests/**"
+      deliverable: "Account menu and admin disabled states use shared capability/target policy; manager sees User management link."
+      gates:
+        - "UI gates mirror server rules but are not the enforcement boundary."
+        - "Manager cannot select manager/admin targets or role options."
+      rollback: "Revert UI/tests only; server authorization remains authoritative."
+    - order: 5
+      id: "PR5"
+      owner: backend_engineer
+      cmd: "sql_alignment_decision_pr5"
+      scope:
+        - "supabase/migrations/**"
+        - "docs/guides/phase-c-auth-rbac-admin.md"
+        - "docs/guides/privacy-first-admin-access-policy.md"
+        - "tests/phase-c-sql-migration.test.js"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+      deliverable: "Either forward-only has_role/has_capability SQL helper migration or documented no-op decision that existing target-aware SQL helpers are sufficient."
+      gates:
+        - "No destructive migration."
+        - "Owner-only resume RLS from 20260509_privacy_first_admin_access.sql remains unchanged."
+      rollback: "If migration is added, revert with a forward rollback migration that drops only new helper functions; no data rollback."
+    - order: 6
+      id: "PR6"
+      owner: test_engineer
+      cmd: "role_inheritance_full_verification_pr6"
+      scope:
+        - "tests/**"
+        - "docs/**"
+        - ".codex/state.yaml"
+      deliverable: "Consolidated regression pass, brittle literal-role tests updated, docs synced, validation evidence recorded."
+      gates:
+        - "Default validation passes."
+        - "Manual QA checklist is attached for admin, manager, recruiter, and user."
+      rollback: "Docs/tests-only revert if no production code changes remain pending."
+  backlog_by_risk:
+    high:
+      - file: "app/lib/rbac.ts"
+        owner: backend_engineer
+        changes:
+          - "Add AppCapability union and ROLE_INHERITS/ROLE_CAPABILITIES maps."
+          - "Add getEffectiveRoles, hasRole, hasCapability, canAccessAdminArea via capability, and target-aware canAssignRole/canDeleteTarget wrappers."
+          - "Explicitly deny resume.content.read_other for every current role."
+      - file: "app/lib/auth-request.ts"
+        owner: backend_engineer
+        changes:
+          - "Add backward-compatible guard options: acceptedRoles legacy plus anyCapability/allCapabilities."
+          - "Keep email verification and inactive-account checks before capability checks."
+      - file: "app/api/admin/users/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Replace requireRequestActor([admin, manager]) with admin.users.read capability."
+          - "Keep manager response filter to self plus user/recruiter."
+          - "Keep metadata-only response."
+      - file: "app/api/admin/users/[userId]/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use mutation-specific admin.users.role_write/status_write/delete capabilities plus target-aware helpers."
+          - "Preserve manager self-privilege and manager/admin target restrictions."
+          - "Preserve RPC and audit behavior."
+      - file: "supabase/migrations/**"
+        owner: backend_engineer
+        changes:
+          - "Add forward-only helper migration only if required after API migration."
+          - "Never modify already-applied migrations for production-like environments."
+          - "Do not broaden owner-only resume content RLS."
+    medium:
+      - file: "app/api/resume/languages/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Align recruiter with user for GET/PATCH/DELETE own language management unless product documents an exception."
+          - "Ensure POST createDocument remains owner-scoped."
+      - file: "app/api/resume/document/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.document.read_own/write_own capability and actor.userId only."
+      - file: "app/api/resume/draft/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.document.write_own capability."
+      - file: "app/api/resume/publish/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.preset.publish_own capability."
+      - file: "app/api/resume/rollback/route.ts"
+        owner: backend_engineer
+        changes:
+          - "Use resume.revision.rollback_own capability."
+      - file: "app/api/resume/presets/**"
+        owner: backend_engineer
+        changes:
+          - "Use resume.preset read/write/publish/unpublish own capabilities."
+      - file: "app/lib/auth-server.ts"
+        owner: backend_engineer
+        changes:
+          - "Route requireStaffActor through canAccessAdminArea/hasCapability."
+      - file: "app/admin/page.tsx"
+        owner: frontend_engineer
+        changes:
+          - "Use shared target filtering/policy helpers where server-rendered initial manager list is filtered."
+      - file: "app/admin/admin-users-client.tsx"
+        owner: frontend_engineer
+        changes:
+          - "Use shared role option and target manageability helpers for disabled controls."
+      - file: "app/components/account-menu.tsx"
+        owner: frontend_engineer
+        changes:
+          - "Show User management for admin and manager via shared canAccessAdminArea helper."
+    low:
+      - file: "docs/action-plan.md"
+        owner: project_manager
+        changes:
+          - "Track rollout sequence, DoD, rollback, and triggers."
+      - file: "docs/guides/phase-c-auth-rbac-admin.md"
+        owner: backend_engineer
+        changes:
+          - "Document inherited capabilities after implementation."
+      - file: "docs/guides/privacy-first-admin-access-policy.md"
+        owner: backend_engineer
+        changes:
+          - "Clarify recruiter inheritance is own-account only and not staff visibility."
+      - file: "tests/**"
+        owner: test_engineer
+        changes:
+          - "Replace brittle literal acceptedRoles assertions with capability/behavior assertions."
+  definition_of_done:
+    automated:
+      - "npm.cmd run lint passes."
+      - "npm.cmd run typecheck passes."
+      - "npm.cmd test passes."
+    behavioral:
+      - "hasRole(admin, manager/recruiter/user), hasRole(manager, user), and hasRole(recruiter, user) are true."
+      - "hasRole(manager, recruiter) and hasRole(recruiter, manager) are false."
+      - "Admin and manager can access /admin; user and recruiter cannot."
+      - "Manager can manage only user/recruiter targets and cannot modify own privileges."
+      - "Admin can manage all current roles."
+      - "User, recruiter, manager, and admin can only read/write their own private resume content through resume APIs."
+      - "Admin/user management APIs expose metadata only."
+      - "Public CV routes continue to render active snapshot-backed Public Links only."
+    documentation:
+      - "docs/action-plan.md and role guides reflect the inherited capability model."
+      - "Any SQL no-op/migration decision is recorded with rollback notes."
+  verification_matrix:
+    commands:
+      - cmd: "npm.cmd run lint"
+        owner: test_engineer
+        expected_evidence:
+          - "ESLint/Next lint completes with zero errors."
+      - cmd: "npm.cmd run typecheck"
+        owner: test_engineer
+        expected_evidence:
+          - "TypeScript noEmit completes successfully."
+      - cmd: "npm.cmd test"
+        owner: test_engineer
+        expected_evidence:
+          - "node:test suite passes."
+          - "Role inheritance, admin metadata-only, recruiter owner parity, and owner-only RLS contract tests are green."
+      - cmd: "npm.cmd run ci"
+        owner: test_engineer
+        required: false
+        when: "Before release candidate or after SQL migration is added."
+        expected_evidence:
+          - "CI-style aggregate check is green."
+    targeted_tests:
+      - file: "tests/role-inheritance-rbac.test.mjs"
+        expected_evidence:
+          - "Effective role expansion and capabilities match the matrix."
+          - "resume.content.read_other remains false for all roles."
+      - file: "tests/privacy-first-admin-access-contract.test.mjs"
+        expected_evidence:
+          - "Admin APIs do not import resume-server, resume_documents, or yaml_content."
+          - "Recruiter is not accepted for admin APIs."
+      - file: "tests/language-versions-interface.test.mjs"
+        expected_evidence:
+          - "Recruiter parity with user for own language management is implemented or documented exception is asserted."
+      - file: "tests/phase-c-sql-migration.test.js"
+        expected_evidence:
+          - "SQL helpers/RPC remain aligned with admin/manager target rules."
+      - file: "tests/account-menu-profile-modal.test.mjs"
+        expected_evidence:
+          - "User management menu item is visible for admin and manager only."
+    manual_qa:
+      - actor: "admin"
+        checks:
+          - "Can open /admin."
+          - "Can list users and change roles/status/delete per current admin rules."
+          - "Cannot read another user's private resume YAML through owner resume APIs."
+      - actor: "manager"
+        checks:
+          - "Can open /admin and sees User management in account menu."
+          - "Sees self plus user/recruiter targets only."
+          - "Cannot manage manager/admin or own privileges."
+      - actor: "recruiter"
+        checks:
+          - "Cannot open /admin."
+          - "Can use own dashboard/resume/language flows matching user parity."
+          - "Cannot read another user's private resume content."
+      - actor: "user"
+        checks:
+          - "Cannot open /admin."
+          - "Own resume document/preset/publish/rollback flows still work."
+  risks:
+    - id: "R1"
+      severity: high
+      note: "Capability expansion accidentally grants staff access to private resume content."
+      mitigation: "Keep resume capabilities owner-only, test no route accepts target user id for content, and keep RLS owner-only."
+    - id: "R2"
+      severity: high
+      note: "TS helpers and SQL/RPC predicates drift."
+      mitigation: "Migrate one route group at a time and keep SQL helper decision explicit in PR5."
+    - id: "R3"
+      severity: medium
+      note: "Recruiter language route parity changes GET/PATCH/DELETE behavior."
+      mitigation: "Adopt parity because recruiter inherits user; if rejected, document as product exception and keep tests explicit."
+    - id: "R4"
+      severity: medium
+      note: "Existing tests assert literal acceptedRoles arrays."
+      mitigation: "Add capability tests first, then update source-string tests to assert behavior/security invariants."
+    - id: "R5"
+      severity: medium
+      note: "Concurrent language-version worktree changes touch some scoped files."
+      mitigation: "Keep PRs small, rebase/merge carefully, and avoid editing unrelated language modal code in role-inheritance PR1."
+  rollback_plan:
+    strategy: "Small PR rollback in reverse order; PR1 helpers are backward-compatible and can remain inert if later PRs are reverted."
+    steps:
+      - "If UI regression: revert PR4 only; server enforcement remains active."
+      - "If resume guard regression: revert PR3; acceptedRoles fallback from PR1 can continue serving existing routes."
+      - "If admin API regression: revert PR2; SQL/RPC target rules remain unchanged."
+      - "If helper regression: revert PR1 and any dependent PRs together."
+      - "If SQL helper migration is added and must be rolled back: apply a forward rollback migration that drops only newly introduced helper functions/policies; do not mutate historical migrations or data."
+  immediate_tickets:
+    - id: "RI-1"
+      owner: backend_engineer
+      title: "Add inherited role and capability helpers"
+      ready: true
+      scope:
+        - "app/lib/rbac.ts"
+        - "app/lib/auth-types.ts"
+        - "tests/role-inheritance-rbac.test.mjs"
+      acceptance:
+        - "Effective roles match admin > manager+recruiter > user model."
+        - "Capability checks include user parity for manager/recruiter/admin."
+        - "resume.content.read_other is denied for all roles."
+    - id: "RI-2"
+      owner: backend_engineer
+      title: "Add backward-compatible capability guard support"
+      ready: true
+      scope:
+        - "app/lib/auth-request.ts"
+        - "app/lib/auth-server.ts"
+        - "tests/role-inheritance-rbac.test.mjs"
+      acceptance:
+        - "acceptedRoles callers still work."
+        - "anyCapability/allCapabilities options return 403 on insufficient permissions after auth/active/email checks."
+        - "requireStaffActor uses admin.area.access semantics."
+    - id: "RI-3"
+      owner: backend_engineer
+      title: "Migrate admin user APIs to capabilities"
+      ready: false
+      blocked_by: ["RI-1", "RI-2"]
+      scope:
+        - "app/api/admin/users/route.ts"
+        - "app/api/admin/users/[userId]/route.ts"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+      acceptance:
+        - "Admin and manager pass admin capability checks."
+        - "Recruiter and user are denied admin APIs."
+        - "Manager target limitations remain unchanged."
+    - id: "RI-4"
+      owner: backend_engineer
+      title: "Migrate owner resume and language APIs"
+      ready: false
+      blocked_by: ["RI-1", "RI-2"]
+      scope:
+        - "app/api/resume/**"
+        - "tests/language-versions-interface.test.mjs"
+        - "tests/**"
+      acceptance:
+        - "All private resume operations are actor-userId scoped."
+        - "Recruiter has user-equivalent own resume/language access."
+        - "No private resume route exposes other-user content to staff."
+    - id: "RI-5"
+      owner: frontend_engineer
+      title: "Align admin/account UI gates with shared RBAC helpers"
+      ready: false
+      blocked_by: ["RI-1", "RI-3"]
+      scope:
+        - "app/components/account-menu.tsx"
+        - "app/admin/page.tsx"
+        - "app/admin/admin-users-client.tsx"
+        - "tests/**"
+      acceptance:
+        - "Manager sees User management link."
+        - "User/recruiter do not see User management link."
+        - "Admin client disabled states match target-aware helpers."
+    - id: "RI-6"
+      owner: backend_engineer
+      title: "Decide and document SQL capability alignment"
+      ready: false
+      blocked_by: ["RI-3", "RI-4"]
+      scope:
+        - "supabase/migrations/**"
+        - "docs/guides/phase-c-auth-rbac-admin.md"
+        - "docs/guides/privacy-first-admin-access-policy.md"
+        - "tests/phase-c-sql-migration.test.js"
+      acceptance:
+        - "Forward-only helper migration exists or no-op decision is documented."
+        - "Owner-only content RLS remains intact."
+    - id: "RI-7"
+      owner: test_engineer
+      title: "Run full role inheritance verification"
+      ready: false
+      blocked_by: ["RI-1", "RI-2", "RI-3", "RI-4", "RI-5", "RI-6"]
+      scope:
+        - "tests/**"
+        - "docs/**"
+      acceptance:
+        - "lint/typecheck/test pass."
+        - "Manual QA evidence covers admin, manager, recruiter, user."
+        - "Docs and state.yaml are updated with residual risks."
+  validation:
+    run:
+      - cmd: "node --test tests/role-inheritance-rbac.test.mjs"
+        status: pass
+        assertions:
+          - "Role inheritance matrix matches user <- manager/recruiter <- admin."
+          - "acceptedRoles remains exact-match while capability checks use inheritance."
+          - "resume.content.read_other remains denied for user, manager, recruiter, and admin."
+      - cmd: "npm.cmd run lint"
+        status: pass
+        assertions:
+          - "ESLint completed with zero errors for the current worktree."
+      - cmd: "npm.cmd run typecheck"
+        status: blocked_unrelated
+        assertions:
+          - ".next/types/validator.ts references deleted app/language-versions/page.js from concurrent frontend work."
+          - "app/lib/resume-server.ts has a pre-existing string.message type error outside PR1 scope."
+    skipped_reason: null
+  next:
+    REQ: backend_engineer
+    CMD: migrate_admin_api_guards_pr2
+    CTX:
+      ref: ".codex/state.yaml#role_inheritance_rollout_package"
+      scope:
+        - "app/api/admin/users/route.ts"
+        - "app/api/admin/users/[userId]/route.ts"
+        - "app/lib/rbac.ts"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+    LMT:
+      - "security-first"
+      - "least-privilege"
+      - "no private resume content access expansion"
+public_link_management_editor_plan:
+  agent: software_architect
+  role: Architect
+  task: "Expose public-link management from the editor or adjacent panel"
+  status: proposed
+  date: "2026-05-12"
+  finalized_at: "2026-05-12"
+  source_refs:
+    - "docs/action-plan.md"
+    - "docs/adr/0001-cv-publication-model.md"
+    - "docs/adr/0006-saved-version-language-ux-contract.md"
+    - "docs/guides/phase-d-editor-canvas.md"
+    - "docs/guides/cv-publication-test-contracts.md"
+    - "docs/guides/privacy-first-admin-access-policy.md"
+    - "docs/guides/public-route-compatibility-rollout.md"
+    - "app/master-resume/editor-canvas-client.tsx"
+    - "app/dashboard/dashboard-client.tsx"
+    - "app/api/resume/presets/**"
+    - "app/lib/resume-server.ts"
+    - "tests/dashboard-presets.test.mjs"
+    - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+  scope:
+    in:
+      - "Expose existing Saved Version/Public Link lifecycle near the Master Resume editor."
+      - "Reuse current owner-scoped preset publish/unpublish APIs and snapshot-backed Public Link semantics."
+      - "Show canonical public URL first and compatibility /r/[slug] second."
+      - "Keep publish language/default-locale/indexing confirmation explicit."
+    out:
+      - "No new Supabase tables or RLS changes."
+      - "No service-role expansion."
+      - "No anonymous access path changes."
+      - "No rewrite of dashboard Saved Version management."
+      - "No change to immutable Published CV snapshot semantics."
+  current_state_map:
+    public_link_management_exists:
+      - file: "app/dashboard/page.tsx"
+        notes:
+          - "Authenticated dashboard fetches owner documents, enabled language metadata, and fetchResumePresetsForUser."
+          - "DashboardClient receives initialPresets with canonical_public_path and compatibility_public_path."
+      - file: "app/dashboard/dashboard-client.tsx"
+        notes:
+          - "Saved Version cards show Published/Private and Indexable/Noindex badges."
+          - "PublishSavedVersionModal collects selectedLocales, defaultLocale, and allowIndexing before POST /api/resume/presets/[presetId]/publish."
+          - "Unpublish calls POST /api/resume/presets/[presetId]/unpublish."
+          - "Published cards display canonical path and compatibility path in inline copy."
+      - file: "app/api/resume/presets/**"
+        notes:
+          - "GET/POST/PATCH/DELETE and publish/unpublish routes are authenticated via requireRequestActor."
+          - "Publish requires a non-empty selectedLocales set and rejects default locale outside the selected set."
+          - "Publish/unpublish delegates to resume-server RPC-backed functions."
+      - file: "app/lib/resume-server.ts"
+        notes:
+          - "fetchResumePresetsForUser enriches owner Saved Versions with active resume_public_links canonical and compatibility paths."
+          - "publishResumePreset calls publish_resume_saved_version RPC and refreshes the owner preset row."
+          - "unpublishResumePreset calls unpublish_resume_saved_version RPC."
+          - "Public route resolution reads active Public Link and immutable Published CV snapshot before falling back to legacy preset slug compatibility."
+    editor_gap:
+      - file: "app/master-resume/editor-canvas-client.tsx"
+        notes:
+          - "Editor currently manages Master Resume documents, language versions, preview, document revision history, and document-level /api/resume/publish."
+          - "Editor does not list Saved Versions or Public Link state."
+          - "Editor publish panel can confuse users because document-level publish/revision wording is adjacent to the product-level Published CV/Public Link model."
+          - "No editor path exposes canonical link copy/open/unpublish or direct handoff to Saved Version publish management."
+    contract_gap:
+      - "The product task should not make resume_documents.is_public the public-link control surface."
+      - "Public link management must remain attached to Saved Versions/Public Links, not mutable Master Resume drafts."
+  target_options:
+    - id: "A"
+      name: "Adjacent Saved Version Link Panel In Master Resume"
+      summary: "Add a right/secondary panel to /master-resume that lists the owner Saved Versions with publish state, canonical/compatibility links, and Publish/Unpublish/Open controls using the existing preset APIs."
+      pros:
+        - "Smallest reversible architecture."
+        - "Reuses existing snapshot-backed APIs and dashboard domain behavior."
+        - "No schema/RLS/service-role changes."
+        - "Keeps Master Resume editing and Published CV lifecycle visibly separate."
+      cons:
+        - "Duplicates some dashboard UI logic unless a shared component is extracted."
+        - "Does not move Saved Version creation into the editor in the first slice."
+      risk: "low"
+    - id: "B"
+      name: "Dashboard Deep Link From Editor"
+      summary: "Add a minimal editor panel that summarizes public-link state and links to /dashboard for full Saved Version management."
+      pros:
+        - "Lowest implementation cost."
+        - "Almost no new API/UI state."
+      cons:
+        - "Only partially satisfies expose/manage from editor."
+        - "Still forces context switching for publish/unpublish/copy."
+      risk: "low"
+    - id: "C"
+      name: "Editor-Integrated Saved Version Manager"
+      summary: "Move create/edit/preview/publish/unpublish Saved Version workflows into /master-resume and make dashboard a summary."
+      pros:
+        - "Most cohesive editor workflow."
+        - "Could reduce future dashboard/editor duplication."
+      cons:
+        - "Largest frontend blast radius."
+        - "Higher UX confusion risk because Master CV draft saving, document revisioning, and Published CV management coexist."
+        - "Likely needs component extraction and broader tests before safe rollout."
+      risk: "medium"
+  recommendation:
+    option: "A"
+    rationale:
+      - "Meets the task directly while preserving owner-only/private boundaries and immutable snapshot semantics."
+      - "Uses existing dashboard-proven contracts instead of inventing a new Public Link API."
+      - "Can be reverted by removing editor-only UI and tests."
+      - "Leaves deeper UX consolidation for a later ADR-driven PR."
+  target_contracts:
+    api:
+      - endpoint: "GET /api/resume/presets"
+        owner: backend_engineer
+        contract: "Returns only actor-owned Saved Versions enriched with active canonical_public_path and compatibility_public_path."
+      - endpoint: "POST /api/resume/presets/[presetId]/publish"
+        owner: backend_engineer
+        contract: "Requires selectedLocales, validates defaultLocale, creates/updates Published CV snapshot and active Public Link through RPC."
+      - endpoint: "POST /api/resume/presets/[presetId]/unpublish"
+        owner: backend_engineer
+        contract: "Revokes active Public Link through RPC and keeps Saved Version private/editable."
+    ui:
+      - component: "SavedVersionLinkPanel"
+        owner: frontend_engineer
+        location: "app/master-resume/** or app/components/**"
+        contract: "Display owner Saved Versions, Published/Private, Indexable/Noindex, canonical link first, compatibility link second, Open/Copy/Publish/Unpublish actions."
+      - component: "PublishSavedVersionModal"
+        owner: frontend_engineer
+        location: "shared from app/dashboard/dashboard-client.tsx or duplicated in first narrow slice"
+        contract: "Require explicit selected locales, default locale, and indexing opt-in before calling publish."
+      - component: "EditorCanvasClient"
+        owner: frontend_engineer
+        contract: "Continue to own Master Resume document editing; panel must not change current draft publish/revision behavior in the same PR except copy clarification."
+    data:
+      - "Public link state remains resume_public_links + active_published_cv_id."
+      - "Public rendering remains snapshot-only through resume_published_cvs/resume_published_cv_locales."
+      - "No RLS weakening and no new cross-user target parameter."
+  implementation_slices:
+    - id: "PR1"
+      owner: frontend_engineer
+      title: "Extract read-only Saved Version link summary for editor"
+      scope:
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/components/**"
+        - "tests/dashboard-presets.test.mjs"
+        - "tests/**"
+      work:
+        - "Create a shared presentational Saved Version/Public Link list or small helper for status/link rendering."
+        - "In editor, fetch GET /api/resume/presets after auth/document load and render a read-only adjacent panel."
+        - "Show canonical path as primary; show compatibility path only when present."
+        - "Add Open and Copy controls guarded by available paths."
+      gates:
+        - "No publish/unpublish mutation from editor yet."
+        - "No backend or RLS changes."
+        - "Tests assert editor includes public-link panel, canonical-first copy, and no direct resume_public_links client access."
+      rollback: "Remove editor panel/component/tests; dashboard remains unchanged."
+    - id: "PR2"
+      owner: frontend_engineer
+      title: "Add editor-side publish/unpublish controls using existing APIs"
+      scope:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/components/**"
+        - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+        - "tests/dashboard-presets.test.mjs"
+      work:
+        - "Reuse or extract PublishSavedVersionModal so editor publish requires selectedLocales/defaultLocale/allowIndexing."
+        - "Call existing preset publish/unpublish routes and refresh the local Saved Version list after success."
+        - "Keep document-level Save unpublished/Publish revision copy distinct from Published CV/Public Link management."
+      gates:
+        - "Publish still uses selectedLocales and defaultLocale validation."
+        - "Unpublish never deletes Saved Version."
+        - "Editor panel never accepts arbitrary userId or public-link id."
+      rollback: "Revert editor mutation controls; PR1 read-only panel may remain."
+    - id: "PR3"
+      owner: backend_engineer
+      title: "Capability guard alignment for preset APIs"
+      blocked_by:
+        - ".codex/state.yaml#role_inheritance_rollout_package PR1"
+      scope:
+        - "app/api/resume/presets/**"
+        - "app/lib/auth-request.ts"
+        - "app/lib/rbac.ts"
+        - "tests/role-inheritance-rbac.test.mjs"
+        - "tests/privacy-first-admin-access-contract.test.mjs"
+      work:
+        - "When role-inheritance PR3 is active, migrate preset API guards from literal acceptedRoles to resume.preset.*_own capabilities."
+        - "Preserve actor.userId-only owner scoping."
+      gates:
+        - "No private resume content read_other capability."
+        - "No RLS weakening."
+      rollback: "Restore acceptedRoles guards while keeping owner-scoped route behavior."
+    - id: "PR4"
+      owner: test_engineer
+      title: "Full verification and docs sync"
+      scope:
+        - "tests/**"
+        - "docs/action-plan.md"
+        - "docs/guides/phase-d-editor-canvas.md"
+        - "docs/guides/cv-publication-test-contracts.md"
+      work:
+        - "Add/adjust source-level contract tests for editor panel, publish/unpublish flow, and dashboard parity."
+        - "Run default validation and targeted manual QA."
+        - "Update Phase D follow-up status only after PR2 behavior is live."
+      gates:
+        - "npm.cmd run lint passes."
+        - "npm.cmd run typecheck passes."
+        - "npm.cmd test passes."
+      rollback: "Docs/tests-only revert if implementation PRs are rolled back."
+  final_implementation_sequence:
+    - order: 0
+      id: "PLM-ARCH-FINAL"
+      status: complete
+      agent: software_architect
+      action: "Finalize boundaries, sequencing, and owner-only contracts."
+      file_ownership:
+        - ".codex/state.yaml"
+        - "docs/action-plan.md"
+      output:
+        - "Recommended path is Option A: editor-adjacent Saved Version/Public Link panel."
+        - "No RLS, schema, service-role, or public resolver changes."
+        - "Immediate implementation starts with read-only editor panel."
+    - order: 1
+      id: "PLM-UX-1"
+      status: ready_parallel_advisory
+      agent: ui_ux_designer
+      action: "Review panel placement, terminology, empty states, and action hierarchy before frontend final polish."
+      file_ownership:
+        advisory_only:
+          - "app/master-resume/**"
+          - "app/dashboard/**"
+          - "app/globals.css"
+      constraints:
+        - "Advisor only unless explicitly asked to edit."
+        - "Preserve canonical-first, compatibility-second language."
+        - "Do not blur Master Resume draft saving with Published CV/Public Link management."
+      parallel_with:
+        - "PLM-FE-1"
+    - order: 2
+      id: "PLM-FE-1"
+      status: ready_immediate
+      agent: frontend_engineer
+      action: "Implement read-only editor-adjacent Saved Version/Public Link panel."
+      file_ownership:
+        primary:
+          - "app/master-resume/editor-canvas-client.tsx"
+          - "app/master-resume/**"
+          - "app/components/**"
+        shared_read_or_extract:
+          - "app/dashboard/dashboard-client.tsx"
+        tests:
+          - "tests/dashboard-presets.test.mjs"
+          - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+      implementation_notes:
+        - "Fetch GET /api/resume/presets from the editor client after authenticated document load."
+        - "Render only owner-scoped API results; do not add userId/publicLinkId query params."
+        - "Show Published/Private and Indexable/Noindex states."
+        - "Show canonical_public_path first; show compatibility_public_path only as compatibility."
+        - "Add Open and Copy controls only when canonical_public_path exists."
+        - "Private Saved Versions must not expose copy/open public URL actions."
+      constraints:
+        - "No publish/unpublish mutation in this step."
+        - "No backend, RLS, migration, or public resolver changes."
+        - "Keep change reversible by isolating the panel/component."
+      depends_on:
+        - "PLM-ARCH-FINAL"
+      can_start_now: true
+    - order: 3
+      id: "PLM-TEST-1"
+      status: ready_after_fe_1
+      agent: test_engineer
+      action: "Add focused regression coverage for read-only editor panel and dashboard parity."
+      file_ownership:
+        primary:
+          - "tests/dashboard-presets.test.mjs"
+          - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+        optional:
+          - "tests/cv-publication-runtime-contract.test.mjs"
+      expected_coverage:
+        - "Editor includes Saved Version/Public Link panel."
+        - "Panel prefers canonical link over compatibility link."
+        - "Private state has no public copy/open action."
+        - "Client does not directly query resume_public_links."
+      depends_on:
+        - "PLM-FE-1"
+    - order: 4
+      id: "PLM-FE-2"
+      status: ready_after_read_only_panel
+      agent: frontend_engineer
+      action: "Add editor-side publish/unpublish controls through existing preset APIs."
+      file_ownership:
+        primary:
+          - "app/master-resume/editor-canvas-client.tsx"
+          - "app/components/**"
+        shared_extract_if_needed:
+          - "app/dashboard/dashboard-client.tsx"
+        tests:
+          - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+          - "tests/dashboard-presets.test.mjs"
+      implementation_notes:
+        - "Reuse or extract PublishSavedVersionModal behavior."
+        - "Publish must require selectedLocales, defaultLocale, and allowIndexing."
+        - "Call POST /api/resume/presets/[presetId]/publish and /unpublish only."
+        - "Refresh local Saved Version list after mutation."
+        - "Keep document-level revision save/publish wording distinct from Published CV/Public Link controls."
+      constraints:
+        - "No direct writes to resume_public_links from the client."
+        - "No arbitrary owner/user target parameter."
+        - "No public route behavior changes."
+      depends_on:
+        - "PLM-FE-1"
+        - "PLM-TEST-1 targeted coverage merged or updated"
+    - order: 5
+      id: "PLM-BE-1"
+      status: optional_deferred
+      agent: backend_engineer
+      action: "Backend hardening only if frontend finds a missing owner-scoped field or after role-inheritance resume API guard rollout."
+      file_ownership:
+        optional:
+          - "app/api/resume/presets/**"
+          - "app/lib/resume-server.ts"
+          - "app/lib/auth-request.ts"
+          - "app/lib/rbac.ts"
+          - "tests/privacy-first-admin-access-contract.test.mjs"
+          - "tests/role-inheritance-rbac.test.mjs"
+      allowed_changes:
+        - "Return already-derived owner-scoped link metadata if a UI gap is proven."
+        - "Migrate literal acceptedRoles to resume.preset.*_own capabilities after role-inheritance rollout reaches resume APIs."
+      forbidden_changes:
+        - "No RLS policy changes."
+        - "No service-role expansion."
+        - "No public resolver changes."
+        - "No private content read_other capability."
+      depends_on:
+        - "Only if PLM-FE-1/PLM-FE-2 exposes a backend contract gap, or role_inheritance_rollout_package reaches resume API guard migration."
+    - order: 6
+      id: "PLM-TEST-2"
+      status: ready_after_fe_2
+      agent: test_engineer
+      action: "Run targeted and full validation; record residual risk."
+      file_ownership:
+        primary:
+          - "tests/**"
+        docs_evidence:
+          - "docs/action-plan.md"
+          - "docs/guides/phase-d-editor-canvas.md"
+      commands:
+        - "node --test tests/dashboard-presets.test.mjs tests/adr-0006-saved-version-ux-contract.test.mjs"
+        - "node --test tests/cv-publication-runtime-contract.test.mjs tests/cv-publication-rpc-contract.test.mjs tests/cv-public-publicid-route.test.mjs tests/cv-public-compatibility-route.test.mjs"
+        - "npm.cmd run lint"
+        - "npm.cmd run typecheck"
+        - "npm.cmd test"
+      depends_on:
+        - "PLM-FE-2 or explicit decision to stop at read-only PLM-FE-1"
+    - order: 7
+      id: "PLM-PM-1"
+      status: ready_after_validation
+      agent: project_manager
+      action: "Close rollout evidence and update status/checklists."
+      file_ownership:
+        primary:
+          - "docs/action-plan.md"
+          - "docs/guides/phase-d-editor-canvas.md"
+          - ".codex/state.yaml"
+      depends_on:
+        - "PLM-TEST-2"
+  dependency_model:
+    hard_dependencies:
+      - "PLM-FE-1 depends on PLM-ARCH-FINAL."
+      - "PLM-TEST-1 depends on PLM-FE-1 source shape."
+      - "PLM-FE-2 depends on PLM-FE-1 and either existing or updated focused tests."
+      - "PLM-TEST-2 depends on PLM-FE-2, unless scope intentionally stops after the read-only panel."
+      - "PLM-PM-1 depends on completed validation evidence."
+    parallelizable:
+      - "PLM-UX-1 can run in parallel with PLM-FE-1 as advisory review."
+      - "PLM-BE-1 is not on the critical path unless a backend contract gap is discovered."
+      - "Role-inheritance API guard alignment can progress separately and should not block the read-only panel."
+    blocked_or_deferred:
+      - "Preset API capability guard migration is deferred until role-inheritance rollout reaches resume APIs."
+      - "Public resolver, RLS, SQL migration, analytics, and user-panel work are out of this implementation sequence."
+  immediate_start_trigger:
+    REQ: frontend_engineer
+    CMD: implement_editor_public_link_panel_pr1
+    CTX:
+      ref: ".codex/state.yaml#public_link_management_editor_plan.final_implementation_sequence[PLM-FE-1]"
+      scope:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/master-resume/**"
+        - "app/components/**"
+        - "app/dashboard/dashboard-client.tsx"
+        - "tests/dashboard-presets.test.mjs"
+        - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+    LMT:
+      - "owner-only"
+      - "read-only first PR"
+      - "no RLS changes"
+      - "no public resolver changes"
+      - "no backend changes unless blocked"
+      - "canonical URL primary"
+      - "compatibility URL secondary"
+  risk_register:
+    - id: "PLM-R1"
+      severity: high
+      category: "auth_rbac"
+      risk: "Editor-side panel accidentally exposes another user's Saved Versions or links."
+      mitigation: "Use only GET /api/resume/presets with actor userId server scoping; do not add userId query params; migrate to resume.preset.*_own capabilities during role-inheritance rollout."
+    - id: "PLM-R2"
+      severity: high
+      category: "data_integrity"
+      risk: "New UI implies Master Resume document publish is the same as Public Link publish."
+      mitigation: "Keep Public Link panel labeled around Saved Versions/Published CVs; keep selected locale/default/indexing confirmation; do not wire resume_documents.is_public to public link state."
+    - id: "PLM-R3"
+      severity: high
+      category: "publication"
+      risk: "Public route starts reading mutable draft data after editor integration."
+      mitigation: "No public resolver changes; tests continue asserting active_published_cv_id and snapshot rows drive public rendering."
+    - id: "PLM-R4"
+      severity: medium
+      category: "ux"
+      risk: "Users confuse create/edit Saved Version with edit Master Resume."
+      mitigation: "PR1 read-only first; PR2 action wording: Manage Published CV, Publish Saved Version, Unpublish Public Link; consider dashboard handoff for create/edit in first release."
+    - id: "PLM-R5"
+      severity: medium
+      category: "consistency"
+      risk: "Dashboard and editor render divergent link state after publish/unpublish."
+      mitigation: "Extract shared status/link renderer or shared data normalization; refresh presets after mutations; cover both surfaces in tests."
+    - id: "PLM-R6"
+      severity: medium
+      category: "role_inheritance"
+      risk: "Literal acceptedRoles guards drift from capability rollout."
+      mitigation: "Keep PR1/PR2 compatible with current guards; schedule API guard alignment after role-inheritance helper rollout reaches resume APIs."
+  verification_matrix:
+    automated:
+      - cmd: "node --test tests/dashboard-presets.test.mjs tests/adr-0006-saved-version-ux-contract.test.mjs"
+        owner: test_engineer
+        purpose: "Fast contract coverage for dashboard/editor link management copy and publish modal contract."
+      - cmd: "node --test tests/cv-publication-runtime-contract.test.mjs tests/cv-publication-rpc-contract.test.mjs tests/cv-public-publicid-route.test.mjs tests/cv-public-compatibility-route.test.mjs"
+        owner: test_engineer
+        purpose: "Ensure snapshot-backed public routes and publish/unpublish semantics remain intact."
+      - cmd: "npm.cmd run lint"
+        owner: test_engineer
+        purpose: "Frontend/API style gate."
+      - cmd: "npm.cmd run typecheck"
+        owner: test_engineer
+        purpose: "TS contract gate."
+      - cmd: "npm.cmd test"
+        owner: test_engineer
+        purpose: "Full regression gate."
+      - cmd: "npm.cmd run build"
+        owner: test_engineer
+        required: false
+        when: "Before merge if public route metadata or Next route boundaries are touched."
+    manual_qa:
+      - actor: "owner user"
+        checks:
+          - "Open /master-resume and confirm Public Link/Saved Version panel shows only owned Saved Versions."
+          - "Private Saved Version shows no copy/open public URL controls."
+          - "Published Saved Version shows canonical URL first and compatibility URL second."
+          - "Publish from editor requires language selection, default locale, and indexing choice."
+          - "After publish, /{person-slug}/{public-id} renders the selected Published CV snapshot."
+          - "After editing Master Resume without republishing, public URL still renders previous snapshot."
+          - "Unpublish from editor revokes public URL and leaves Saved Version visible/private."
+      - actor: "manager/admin/recruiter/user role matrix"
+        checks:
+          - "Each role can manage only its own resume presets through owner APIs unless a documented capability grants otherwise."
+          - "No role can pass another user id to access private resume content."
+      - actor: "anonymous"
+        checks:
+          - "Active canonical public URL resolves."
+          - "Revoked/missing URL returns not-found/non-indexable behavior."
+  rollback_strategy:
+    - "PR1 rollback removes the editor read-only panel and shared renderer; no data rollback."
+    - "PR2 rollback removes editor mutation controls; dashboard publish/unpublish remains the authoritative management path."
+    - "PR3 rollback restores literal acceptedRoles guards while retaining owner scoping."
+    - "No SQL rollback is expected because the recommended path adds no migrations."
+    - "If link-state confusion reaches users, hide the editor panel behind a small UI feature flag or route-local conditional and direct users back to /dashboard."
+  dependencies:
+    role_inheritance_rollout:
+      state_ref: ".codex/state.yaml#role_inheritance_rollout_package"
+      note: "PR1/PR2 can ship before route guard migration because existing preset APIs are owner-scoped; PR3 should align guards with resume.*_own capabilities after the role helper rollout reaches resume APIs."
+    publication_adrs:
+      - ref: "docs/adr/0001-cv-publication-model.md"
+        dependency: "Public Link management must preserve Saved Version -> Published CV snapshot -> Public Link boundaries."
+      - ref: "docs/adr/0004-public-route-compatibility-policy.md"
+        dependency: "Canonical URL remains primary; /r/[slug] stays compatibility-only."
+      - ref: "docs/adr/0006-saved-version-language-ux-contract.md"
+        dependency: "Publish UI must expose selected languages, default locale, indexing, and link state."
+      - ref: "docs/adr/0009-publish-atomic-variant-fallback.md"
+        dependency: "Publish/unpublish stays atomic through RPC; variant fallback semantics must remain unchanged."
+  next:
+    REQ: frontend_engineer
+    CMD: implement_editor_public_link_panel_pr1
+    CTX:
+      ref: ".codex/state.yaml#public_link_management_editor_plan.final_implementation_sequence[PLM-FE-1]"
+      scope:
+        - "app/master-resume/editor-canvas-client.tsx"
+        - "app/dashboard/dashboard-client.tsx"
+        - "app/components/**"
+        - "tests/dashboard-presets.test.mjs"
+        - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+    LMT:
+      - "owner-only"
+      - "no RLS changes"
+      - "no public resolver changes"
+      - "canonical URL primary"
+      - "small reversible PR1 read-only panel"
+public_link_management_execution_routing:
+  agent: project_manager
+  role: PM
+  task: "Finalize execution routing for editor-adjacent Public Link management"
+  status: ready_for_frontend_t1
+  prepared_at: "2026-05-12"
+  source_refs:
+    - ".codex/state.yaml#public_link_management_rollout_package"
+    - ".codex/state.yaml#public_link_management_editor_plan"
+    - "docs/action-plan.md"
+    - "docs/guides/deployment-qa.md"
+    - "docs/guides/saas-transition-work-plan.md"
+  recommended_path: "Architect Option A: editor-adjacent Saved Version/Public Link panel; read-only first, then publish/unpublish through existing preset APIs."
+  tickets:
+    - id: "T1"
+      title: "Frontend read-only Public Link panel"
+      agent: frontend_engineer
+      why: "Owns React editor/dashboard surfaces, shared UI extraction, copy/open controls, responsive states, and CSS."
+      status: completed
+      dor:
+        - "Architect Option A accepted."
+        - "GET /api/resume/presets returns owner Saved Versions with canonical_public_path and compatibility_public_path."
+        - "No backend field gap is known."
+      dod:
+        - "/master-resume shows owner CV Versions in an adjacent Public Link/Saved Version panel."
+        - "Published/Private and Indexable/Noindex states are visible."
+        - "canonical_public_path is primary; compatibility_public_path is secondary and labelled compatibility."
+        - "Open and Copy actions render only when a published canonical link exists."
+        - "Private/unpublished rows expose no copyable public URL."
+        - "Empty, loading, and error states are deterministic and accessible."
+        - "No backend, RLS, migration, public resolver, or resume_public_links direct client access is added."
+      validation:
+        targeted:
+          - "node --test tests/dashboard-presets.test.mjs tests/adr-0006-saved-version-ux-contract.test.mjs"
+        required:
+          - "npm.cmd run lint"
+          - "npm.cmd run typecheck"
+      next_on_pass: "T2"
+      rollback: "Revert editor panel/component/tests; dashboard remains authoritative."
+    - id: "T2"
+      title: "Test lock for read-only panel"
+      agent: test_engineer
+      why: "Owns regression assertions and can keep tests behavior-focused instead of tying frontend to brittle implementation details."
+      status: completed
+      dor:
+        - "T1 implementation shape is available."
+        - "Panel labels and copy/open affordances are final enough to assert."
+      dod:
+        - "Tests assert editor panel exists."
+        - "Tests assert canonical-first display/copy behavior and compatibility secondary behavior."
+        - "Tests assert private no-link state."
+        - "Tests assert frontend does not query resume_public_links directly."
+        - "Snapshot-backed public-route contract tests remain green."
+      validation:
+        targeted:
+          - "node --test tests/dashboard-presets.test.mjs tests/adr-0006-saved-version-ux-contract.test.mjs"
+          - "node --test tests/cv-publication-runtime-contract.test.mjs tests/cv-public-publicid-route.test.mjs tests/cv-public-compatibility-route.test.mjs"
+        required:
+          - "npm.cmd test"
+      next_on_pass: "T3"
+      rollback: "Revert or narrow tests if T1 is reverted."
+    - id: "T3"
+      title: "Frontend publish/unpublish controls from editor panel"
+      agent: frontend_engineer
+      why: "Owns client workflow, modal extraction/reuse, state refresh, and dashboard/editor terminology parity."
+      status: completed
+      dor:
+        - "T1 and T2 are green."
+        - "Dashboard publish modal contract remains stable."
+        - "Selected languages/default locale/indexing data needed for publish is available from existing frontend state or owner APIs."
+      dod:
+        - "Editor panel can publish through POST /api/resume/presets/[presetId]/publish only."
+        - "Publish requires selectedLocales, defaultLocale, and allowIndexing confirmation."
+        - "Editor panel can unpublish through POST /api/resume/presets/[presetId]/unpublish only."
+        - "Unpublish never deletes the Saved Version."
+        - "Local Saved Version/Public Link state refreshes after publish/unpublish."
+        - "Master Resume document save/revision wording remains distinct from Published CV/Public Link lifecycle wording."
+        - "No arbitrary userId/publicLinkId client parameter is introduced."
+      validation:
+        targeted:
+          - "node --test tests/dashboard-presets.test.mjs tests/adr-0006-saved-version-ux-contract.test.mjs"
+          - "node --test tests/cv-publication-runtime-contract.test.mjs tests/cv-publication-rpc-contract.test.mjs"
+        required:
+          - "npm.cmd run lint"
+          - "npm.cmd run typecheck"
+      next_on_pass: "T5 unless T4 is triggered"
+      rollback: "Revert editor mutation controls; T1 read-only panel may remain."
+    - id: "T4"
+      title: "Conditional backend contract/capability alignment"
+      agent: backend_engineer
+      why: "Owns API routes, auth guards, resume-server contracts, and owner-scoped publication invariants."
+      status: skipped_not_needed
+      dor:
+        - "T1/T3 finds a real missing owner-scoped field or status ambiguity, or role-inheritance rollout reaches resume API guard migration."
+        - "Exact backend scope is documented before edits start."
+      dod:
+        - "Preset API responses remain actor.userId scoped."
+        - "Only necessary link metadata is exposed."
+        - "No private YAML/content is exposed."
+        - "No RLS weakening, service-role expansion, migration, or public resolver change."
+        - "If guard migration is in scope, preset APIs use resume.preset.*_own capabilities while preserving current behavior."
+      validation:
+        targeted:
+          - "node --test tests/cv-publication-runtime-contract.test.mjs tests/privacy-first-admin-access-contract.test.mjs tests/role-inheritance-rbac.test.mjs"
+        required:
+          - "npm.cmd run typecheck"
+      next_on_pass: "T5"
+      rollback: "Revert backend/test commit; dashboard and T1 frontend fallback remain."
+    - id: "T5"
+      title: "Full verification and deployment QA update"
+      agent: test_engineer
+      why: "Owns final automated gates, manual QA matrix, and regression evidence across frontend/backend surfaces."
+      status: completed
+      dor:
+        - "T3 is complete."
+        - "T4 is complete or explicitly skipped as not needed."
+      dod:
+        - "Full validation evidence is recorded."
+        - "Manual QA covers private, published, copy/open, publish, unpublish, republish, draft-edit-after-publish, canonical route, and compatibility route."
+        - "Deployment QA checklist reflects the shipped behavior."
+      validation:
+        required:
+          - "npm.cmd run lint"
+          - "npm.cmd run typecheck"
+          - "npm.cmd test"
+        conditional:
+          - "npm.cmd run build if Next route boundaries or metadata are touched."
+      next_on_pass: "T6"
+      rollback: "Docs/tests-only rollback if implementation PRs are reverted."
+    - id: "T6"
+      title: "PM closeout"
+      agent: project_manager
+      why: "Owns release status, sequencing state, checklist closure, residual-risk recording, and next-agent trigger."
+      status: completed
+      dor:
+        - "T5 automated and manual evidence is available."
+      dod:
+        - "docs/action-plan.md marks the item complete or records scoped follow-up."
+        - "docs/guides/deployment-qa.md and docs/guides/saas-transition-work-plan.md match shipped behavior."
+        - ".codex/state.yaml records validation, residual risks, rollback, and next trigger."
+      validation:
+        required:
+          - "state.yaml YAML parse"
+          - "docs diff review"
+          - "default validation evidence linked from state.yaml"
+      next_on_pass: "release_or_next_PM_prioritized_work"
+      rollback: "Docs/state-only rollback."
+  parallelization:
+    can_run_parallel:
+      - "T1 with advisory ui_ux_designer review of panel placement/copy; advisor should not edit unless explicitly asked."
+      - "T2 test-plan drafting can overlap with late T1, but final assertions should wait for stable implementation."
+      - "T4 can overlap with T3 only when a precise backend contract/capability task is confirmed and file ownership remains disjoint."
+    sequential:
+      - "T1 before T2 final tests."
+      - "T2 before T3 mutation controls."
+      - "T5 after T3 and optional T4."
+      - "T6 after T5."
+    critical_path:
+      - "T1"
+      - "T2"
+      - "T3"
+      - "T5"
+      - "T6"
+    non_critical_or_conditional:
+      - "T4 unless a backend contract/auth gap is found."
+  sprint_kickoff_sequence:
+    - "Kick off frontend_engineer on T1 immediately."
+    - "Optionally run ui_ux_designer as advisory in parallel with T1 for layout/copy hierarchy."
+    - "After T1, hand to test_engineer for T2 targeted tests."
+    - "Then return to frontend_engineer for T3 mutation controls."
+    - "Trigger backend_engineer T4 only if FE/test finds an API gap or role-inheritance guard migration is ready."
+    - "Finish with test_engineer T5 and project_manager T6."
+  validation:
+    run:
+      - cmd: "node -e \"const fs=require('fs'); const yaml=require('js-yaml'); yaml.load(fs.readFileSync('.codex/state.yaml','utf8')); console.log('state yaml ok')\""
+        status: pass
+        assertions:
+          - "state.yaml parses after routing update."
+      - cmd: "npm.cmd run lint"
+        status: pass
+        assertions:
+          - "ESLint completed with zero errors."
+      - cmd: "npm.cmd run typecheck"
+        status: pass
+        assertions:
+          - "TypeScript noEmit completed successfully."
+      - cmd: "npm.cmd test"
+        status: pass
+        assertions:
+          - "node:test suite passed: 140 tests."
+      - cmd: "npm.cmd run build"
+        status: pass
+        assertions:
+          - "Next.js production build completed successfully."
+    skipped_reason: "T4 backend contract/capability alignment was skipped because T1/T3 used existing owner-scoped preset APIs and no backend/API/RLS/public resolver gap was found."
+  closeout:
+    completed_at: "2026-05-12"
+    shipped_scope:
+      - "Editor-adjacent Saved Version/Public Link panel in /master-resume."
+      - "Canonical URL shown before compatibility URL."
+      - "Open and Copy actions for published canonical links only."
+      - "Publish with selected locales, default locale, and indexing through existing owner-scoped preset API."
+      - "Unpublish through existing owner-scoped preset API without deleting the Saved Version."
+      - "Local Saved Version/Public Link state refreshes after publish/unpublish."
+    skipped:
+      - "T4 backend contract/capability alignment was not needed."
+      - "No RLS, schema, service-role, public resolver, or migration changes were made."
+    residual_risks:
+      - "Preview/prod manual QA still needs real Supabase data for copy/open, publish, unpublish, republish, draft-edit-after-publish, canonical route, and compatibility route checks."
+    rollback:
+      - "Revert editor public-link panel and tests; dashboard remains authoritative for Saved Version publish/unpublish."
+      - "No database rollback is required."
+  next:
+    REQ: project_manager
+    CMD: select_next_phase_priority
+    CTX:
+      ref: "docs/action-plan.md"
+      scope:
+        - "Phase E public resume rendering and SEO/AEO"
+        - "Phase F user panel and analytics"
+    LMT:
+      - "public-link management editor task is complete"
+      - "use validation evidence from public_link_management_execution_routing.closeout"

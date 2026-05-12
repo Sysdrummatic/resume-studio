@@ -48,6 +48,7 @@ test("legacy JSON payload is coerced into canonical YAML schema", () => {
   const canonical = coerceLegacyResumeData(legacy, { fallbackName: "Fallback Name" });
   assert.equal(canonical.name, "Ariana Holt");
   assert.equal(canonical.role, "Lead Product Scientist");
+  assert.deepEqual(canonical.summary, [{ position: "Default", description: "Building humane AI products.", default: true }]);
   assert.equal(Array.isArray(canonical.contact), true);
   assert.equal(canonical.skills.length, 2);
   assert.equal(canonical.experience.length, 1);
@@ -143,7 +144,7 @@ test("migration plan creates EN/PL documents, revisions, and links", () => {
 test("normalizeLocale handles BCP47-like values and unsupported locales", () => {
   assert.equal(normalizeLocale("PL_pl"), "pl");
   assert.equal(normalizeLocale("en-US"), "en");
-  assert.equal(normalizeLocale("de-DE"), "en");
+  assert.equal(normalizeLocale("de-DE"), "de");
   assert.equal(normalizeLocale(null), "en");
 });
 

@@ -12,14 +12,14 @@ function readLayoutSource() {
 test("header renders login link for guests in primary nav", () => {
   const source = readLayoutSource();
 
-  assert.equal(source.includes('{!actor && <Link href="/login">Login</Link>}'), true);
-  assert.equal(source.includes('{!actor && <Link href="/login">Sign in</Link>}'), false);
+  assert.equal(source.includes('{ href: "/login", label: "Login" }'), true);
+  assert.equal(source.includes('{ href: "/login", label: "Sign in" }'), false);
 });
 
 test("header keeps login link as rightmost item after Sample CV in primary nav", () => {
   const source = readLayoutSource();
-  const loginIndex = source.indexOf('{!actor && <Link href="/login">Login</Link>}');
-  const sampleCvIndex = source.indexOf('<Link href="/resume">Sample CV</Link>');
+  const loginIndex = source.indexOf('{ href: "/login", label: "Login" }');
+  const sampleCvIndex = source.indexOf('{ href: "/resume", label: "Sample CV" }');
 
   assert.notEqual(loginIndex, -1);
   assert.notEqual(sampleCvIndex, -1);

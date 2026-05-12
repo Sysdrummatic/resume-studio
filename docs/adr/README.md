@@ -1,0 +1,13 @@
+# Architecture Decision Records
+
+This directory stores architectural decisions that define product and technical contracts for OpenCVHub.
+
+- [ADR 0001: CV Publication Model](0001-cv-publication-model.md)
+- [ADR 0002: OpenCV YAML Public Contract And Schema Evolution](0002-opencv-yaml-public-contract.md)
+- [ADR 0003: Privacy-First Admin And Staff Data Access](0003-privacy-first-admin-access.md)
+- [ADR 0004: Public Route Compatibility And Deprecation Policy](0004-public-route-compatibility-policy.md)
+- [ADR 0005: SEO/AEO, Structured Data, Sitemap, And Robots Policy](0005-seo-aeo-structured-data-policy.md)
+- [ADR 0006: Saved Version, Language Versions, And Link Management UX Contract](0006-saved-version-language-ux-contract.md)
+- [ADR 0007: Publication Analytics, View Counting, And Audit Retention](0007-publication-analytics-and-audit-retention.md)
+- [ADR 0008: OpenCV Public API And Export Surface](0008-opencv-public-api-and-export-surface.md)
+- [ADR 0009: Publish Atomic Variant Fallback](0009-publish-atomic-variant-fallback.md)

@@ -1,11 +1,10 @@
 brand_initials: "AH"
 name: "Ariana Holt"
-role: "Lead Product Scientist"
 summary: |
-  Jestem innowacyjną Product Scientistką, która łączy badania UX i data science, aby tworzyć humanitarne narzędzia AI.
-  W ciągu ostatnich siedmiu lat prowadziłam zespoły interdyscyplinarne rozwijające platformy deweloperskie, budując ramy,
-  które równoważą eksperymentowanie z nadzorem. Klarownie komunikuję się z interesariuszami, szybko tworzę prototypy
-  i nieustannie się uczę.
+  Jestem pomysłową Product Scientist, która łączy badania UX z analizą danych, aby tworzyć odpowiedzialne narzędzia AI.
+  Przez ostatnie siedem lat prowadziłam interdyscyplinarne zespoły pracujące nad platformami deweloperskimi,
+  budując procesy, które równoważą eksperymentowanie z nadzorem i odpowiedzialnością. Jasno komunikuję się
+  z interesariuszami, szybko prototypuję i stale się uczę.
 contact:
   - label: Lokalizacja
     value: "Portland, OR"
@@ -22,13 +21,13 @@ contact:
     value: arianaholt.dev
     link: https://arianaholt.dev
 qr_codes:
-  - label: Strona prywatna
+  - label: Strona osobista
     image: images/qrs/qr.png
     size: 130
 skills:
-  - name: Odkrywanie produktu
+  - name: Odkrywanie potrzeb produktowych
     level: 4
-  - name: Narracja danych
+  - name: Opowiadanie historii danymi
     level: 4
   - name: Projektowanie eksperymentów
     level: 5
@@ -43,10 +42,10 @@ tech_stack:
   - Notion
 languages:
   - name: Angielski
-    level_text: Ojczysty
+    level_text: Język ojczysty
     level: 5
   - name: Hiszpański
-    level_text: Profesjonalny
+    level_text: Poziom zawodowy
     level: 3
 interests:
   - Miejskie wędrówki
@@ -54,37 +53,37 @@ interests:
   - Literatura science fiction
   - Wolontariat
 experience:
-  - period: "2022-03 – teraz"
+  - period: "2022-03 – obecnie"
     company: Nova Labs
     role: Lead Product Scientist
     highlights:
       - Wdrożyłam platformę eksperymentów przyjętą w całej firmie, skracając czas walidacji o 40%
-      - Mentorowałam 6 badaczy i analityków w zakresie narracji danych oraz facylitacji interesariuszy
-      - Współtworzyłam ramy etycznej AI zastosowane w 5 kluczowych produktach
+      - Mentoringowałam 6 badaczy i analityków w zakresie opowiadania historii danymi oraz pracy z interesariuszami
+      - Współtworzyłam ramy etycznego wykorzystania AI zastosowane w 5 kluczowych produktach
   - period: "2019-07 – 2022-02"
     company: Interlink Systems
     role: Senior UX Researcher
     highlights:
-      - Prowadziłam badania odkrywcze dla pakietu narzędzi deweloperskich używanego przez ponad 1500 inżynierów
-      - Wprowadziłam stałą praktykę wywiadów oraz pulpity łączące metody jakościowe i ilościowe
-      - Współpracowałam z product managerami przy budowie modelu priorytetyzacji roadmapy, który uzyskał 93% zgodności interesariuszy
+      - Prowadziłam discovery dla pakietu narzędzi deweloperskich używanego przez ponad 1500 inżynierów
+      - Wprowadziłam stałą praktykę wywiadów oraz dashboardy łączące metody jakościowe i ilościowe
+      - Współpracowałam z product managerami nad modelem priorytetyzacji roadmapy, osiągając 93% zgodności interesariuszy
   - period: "2016-01 – 2019-06"
     company: Harbor Robotics
     role: Research Engineer
     highlights:
-      - Zaprojektowałam telemetryczne instrumenty bezpieczeństwa dla robotów magazynowych
+      - Zaprojektowałam instrumentację telemetryczną bezpieczeństwa dla robotów magazynowych
       - Stworzyłam podręcznik eksperymentowania przyjęty w 4 jednostkach biznesowych
       - Prezentowałam kwartalne wnioski bezpośrednio kadrze zarządzającej i inwestorom
 education:
   - period: "2014-09 – 2015-12"
-    school: New York Institute of Technology, Master of Human-Computer Interaction
+    school: New York Institute of Technology, magister Human-Computer Interaction
     detail: "Praca magisterska: Interpretowalne analizy dla systemów autonomicznych"
   - period: "2010-09 – 2014-06"
-    school: Oregon State University, Bachelor of Computer Science
-    detail: "Specjalizacja dodatkowa: Nauki kognitywne"
+    school: Oregon State University, licencjat z informatyki
+    detail: "Specjalizacja dodatkowa: nauki kognitywne"
 courses:
   - year: 2025
-    name: Responsible AI Systems Certification – Gradient School
+    name: Certyfikacja Responsible AI Systems – Gradient School
   - year: 2024
     name: Product Strategy Sprint – Reforge
   - year: 2023

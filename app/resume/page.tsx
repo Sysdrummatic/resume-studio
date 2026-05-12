@@ -1,8 +1,14 @@
-﻿export default function SampleResumePage() {
+import ResumeViewClient from "./resume-view-client";
+
+export const metadata = {
+  title: "Sample Resume | OpenCVHub",
+  description: "View a sample resume powered by YAML and Next.js.",
+};
+
+export default function SampleResumePage() {
   return (
-    <section className="card">
-      <h1>Sample Resume</h1>
-      <p>This route will host the public Ariana Holt sample in the Next.js renderer.</p>
-    </section>
+    <main className="container py-8">
+      <ResumeViewClient />
+    </main>
   );
 }

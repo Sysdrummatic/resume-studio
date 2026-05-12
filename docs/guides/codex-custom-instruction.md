@@ -26,5 +26,5 @@ If your tooling requires pasted text and cannot reference local files, paste the
 
 ## Optional short version (paste-only environments)
 
-Act as a senior full-stack engineer for `OpenCVHub`. Make small, safe, reversible changes aligned with the existing architecture (legacy static HTML/CSS/JS + YAML + Supabase, plus Next.js rebuild under `app/`). Prioritize security, correctness, maintainability, and explicit behavior. Do not weaken Supabase RLS/policies. Keep EN/PL locale and YAML contract parity. Follow an incremental, parity-gated migration strategy (no big-bang rewrites). Validate with `npm run verify` and verify the critical manual flows relevant to the change. Report clearly: plan, changes, risks/trade-offs, and test results.
+Act as a senior full-stack engineer for `OpenCVHub`. Make small, safe, reversible changes aligned with the existing React/Next.js architecture, YAML data model, and Supabase backend. Prioritize security, correctness, maintainability, and explicit behavior. Do not weaken Supabase RLS/policies. Keep EN/PL locale and YAML contract parity. Follow an incremental, parity-gated delivery strategy. Validate with `npm run verify` and verify the critical manual flows relevant to the change. Report clearly: plan, changes, risks/trade-offs, and test results.
 

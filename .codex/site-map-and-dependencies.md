@@ -1,7 +1,7 @@
 ﻿# Site Map and Dependency Guide (OpenCVHub, formerly resume-studio)
 
 This document explains **what happens in the project**, how the individual pages work, and what the dependencies are between:
-- the legacy static pages (`*.html` + `scripts/` + `styles/` + `data/public/*.yaml`),
+- the legacy static pages (`public/*.html` + `public/scripts/` + `public/styles/` + `public/data/public/*.yaml`),
 - the Next.js rebuild (`app/`),
 - the Supabase auth/data layer (`supabase/migrations/`).
 
@@ -12,13 +12,13 @@ This document explains **what happens in the project**, how the individual pages
 ## 1) Quick overview
 
 ### Legacy (static HTML)
-- Each root-level page (`index.html`, `resume.html`, `login.html`, `dashboard.html`, `master-resume.html`, `user.html`) is a separate entry point.
-- Behavior is driven by browser scripts in `scripts/` (no bundler) and styles in `styles/`.
-- Public/demo data lives in YAML (`data/public/*.yaml`) and is parsed in the browser via `scripts/js-yaml.min.js`.
+- Each page under `public/` (`resume.html`, `login.html`, `dashboard.html`, `master-resume.html`, `user.html`) is a separate entry point.
+- Behavior is driven by browser scripts in `public/scripts/` (no bundler) and styles in `public/styles/`.
+- Public/demo data lives in YAML (`public/data/public/*.yaml`) and is parsed in the browser via `public/scripts/js-yaml.min.js`.
 
 ### Next.js (App Router)
 - `app/` is the target direction: React + TypeScript + API routes.
-- `next.config.ts` provides compatibility redirects for legacy URLs (`/resume.html` -> `/resume`, etc.).
+- Netlify currently provides the full compatibility redirect matrix for legacy URLs. `next.config.ts` only keeps the minimal in-app redirect.
 - Auth and roles (RBAC) are based on Supabase and cookies (API routes under `app/api/auth/*`).
 
 ### Supabase
@@ -29,14 +29,14 @@ This document explains **what happens in the project**, how the individual pages
 
 ## 2) Site map
 
-### Legacy: static entry pages (repo root)
-- `index.html` - landing / entry (public).
-- `resume.html` - public resume view (public, YAML + locale switch).
-- `login.html` - legacy login (if used in this path).
-- `dashboard.html` - panel (depends on legacy auth or per-page logic).
-- `master-resume.html` - editor / master resume (legacy configuration/editing).
-- `user.html` - “user/editor mode” view (HTML contains `data-view-mode="user"`).
-- `editor-preview.html` - editor preview/canvas.
+### Legacy: static entry pages (`public/`)
+- `public/resume.html` - public resume view (public, YAML + locale switch).
+- `public/login.html` - legacy login.
+- `public/dashboard.html` - legacy dashboard.
+- `public/master-resume.html` - legacy configuration/editing.
+- `public/user.html` - legacy “user/editor mode” view.
+- `public/editor-preview.html` - editor preview/canvas.
+- `public/r/index.html` - legacy public share entry.
 
 ### Next.js: App Router (`app/`)
 - `app/page.tsx` - home (“OpenCVHub Rebuild”).
@@ -49,7 +49,7 @@ This document explains **what happens in the project**, how the individual pages
 - `app/r/[slug]/page.tsx` - public link / short resume URL (slug).
 
 ### Legacy -> Next redirects
-+Source: `next.config.ts`
++Source: `netlify.toml` (authoritative) and `next.config.ts` (minimal in-app fallback)
 - `/index.html` -> `/`
 - `/login.html` -> `/login`
 - `/dashboard.html` -> `/dashboard`
@@ -63,43 +63,43 @@ This document explains **what happens in the project**, how the individual pages
 ## 3) Legacy: modules and dependencies
 
 ### Key scripts
-- `scripts/main.js`
+- `public/scripts/main.js`
   - the legacy “hub”: YAML loading, i18n, section rendering, language switching, resource caching, admin unlock/presets.
-  - depends on `scripts/js-yaml.min.js` (global `jsyaml`).
-  - reads `data/public/locales.yaml`, then uses `resume_path` and `config_path` for the active locale.
-- `scripts/public-resume.js`
+  - depends on `public/scripts/js-yaml.min.js` (global `jsyaml`).
+  - reads `public/data/public/locales.yaml`, then uses `resume_path` and `config_path` for the active locale.
+- `public/scripts/public-resume.js`
   - resume section renderer (DOM rendering: summary, contact, skills, experience, QR, etc.).
   - invoked by `scripts/main.js` after the profile is loaded.
-- `scripts/admin-config.js`
+- `public/scripts/admin-config.js`
   - configuration panel UI for section visibility and presets (localStorage).
   - coordinates with `scripts/main.js` (storage keys, preset query param `version`).
-- `scripts/master-resume-editor.js`
+- `public/scripts/master-resume-editor.js`
   - legacy master resume editor logic.
-- `scripts/editor-preview-renderer.js`
+- `public/scripts/editor-preview-renderer.js`
   - renderer for preview/canvas in `editor-preview.html`.
-- `scripts/auth.js`, `scripts/protected.js`
+- `public/scripts/auth.js`, `public/scripts/protected.js`
   - legacy auth/gating (separate from Next auth).
 
 ### Data contracts (legacy YAML)
-- `data/public/locales.yaml`
+- `public/data/public/locales.yaml`
   - `default_locale`
   - `locales[]`:
     - `code`, `label`
     - `resume_path` (e.g. `data/public/resume-en.yaml`)
     - `config_path` (e.g. `data/public/config/en.yaml`)
-- `data/public/resume-en.yaml`, `data/public/resume-pl.yaml`
+- `public/data/public/resume-en.yaml`, `public/data/public/resume-pl.yaml`
   - profile data + section arrays (e.g. `name`, `role`, `summary`, `experience[]`, ...).
   - may include `labels` (at the resume level) that are merged with config labels.
-- `data/public/config/<locale>.yaml` (as referenced by `locales.yaml`)
+- `public/data/public/config/<locale>.yaml` (as referenced by `locales.yaml`)
   - typically: `labels`, `locale`, `language_name`.
 
 ### i18n and fallback
-- `scripts/main.js` defines `FALLBACK_LABELS` and builds `activeLabels` as:
+- `public/scripts/main.js` defines `FALLBACK_LABELS` and builds `activeLabels` as:
   - fallback -> `resumeData.labels` -> `configData.labels`.
 - The active language is stored in `localStorage` (`resume-studio:locale`).
 
 ### Resource cache
-- `scripts/main.js` implements a cache with TTL (~10 min): prefix `resume-studio:cache:`.
+- `public/scripts/main.js` implements a cache with TTL (~10 min): prefix `resume-studio:cache:`.
 - Used for fetching YAML/config so locale switching is responsive.
 
 ### Admin unlock/presets (legacy)
@@ -144,9 +144,13 @@ This document explains **what happens in the project**, how the individual pages
 ### Resume (Next)
 - API endpoints:
   - `app/api/resume/document/route.ts`
-  - `app/api/resume/publish/route.ts`
-  - `app/api/resume/rollback/route.ts`
+  - `app/api/resume/presets/[presetId]/publish/route.ts`
+  - `app/api/resume/presets/[presetId]/unpublish/route.ts`
 - Server-side domain logic: `app/lib/resume-server.ts` + `app/lib/resume-schema.ts`.
+- Publish RPC integration:
+  - `publishResumePreset` in `app/lib/resume-server.ts` calls `publish_resume_saved_version`.
+  - Route-level validation errors return `400` for malformed request payloads.
+  - RPC/runtime errors are currently forwarded as descriptive messages with `500`.
 
 ---
 
@@ -165,6 +169,14 @@ Source: `README.md` + files in `supabase/migrations/`.
     - `log_admin_action`, `set_user_role`, `set_user_active`, `get_staff_user_overview`, `can_delete_user_account`.
 - `20260409_phase_d_yaml_template_iteration.sql`
   - editor iteration built around YAML templates.
+- `20260508_cv_publication_foundation.sql`
+  - publication schema foundation (`resume_published_cvs`, `resume_published_cv_locales`, public-link coupling, RLS for published snapshots).
+- `20260509_cv_publication_rpc_atomic.sql`
+  - atomic publish/unpublish RPCs for saved versions and public link activation.
+- `20260510_fix_publish_rpc_variant_fallback.sql`
+  - ADR 0009 fix: publish no longer requires explicit variant rows for every locale.
+  - locale snapshots use variant selection when available, otherwise fallback to base preset selection.
+  - preserves descriptive SQL exceptions for publish diagnostics.
 
 ### Key logical dependencies
 - Next auth works correctly only if:
@@ -173,17 +185,22 @@ Source: `README.md` + files in `supabase/migrations/`.
   - the frontend reads the profile after login (`/api/auth/session`, `signin`).
 - The resume layer (YAML-first) assumes:
   - document/revision/public link tables exist,
-  - publish/rollback constraints and helpers exist,
+  - publish/unpublish RPC constraints and helpers exist,
+  - publication snapshot tables and locale-level snapshot rows exist,
   - YAML contract is kept consistent (tests in `tests/`).
+- Multi-locale publish (ADR 0009) additionally assumes:
+  - each selected locale has an owned `resume_documents` row,
+  - `resume_preset_variants` may be partial (missing locale rows are allowed by fallback),
+  - fallback snapshot selection is `coalesce(variant.selection, preset.selection)`.
 
 ---
 
 ## 6) Dependency flow (how things connect)
 
 ### Legacy render (public resume)
-1. `resume.html` loads `scripts/js-yaml.min.js` + `scripts/main.js` (+ renderers).
-2. `scripts/main.js`:
-   - fetches `data/public/locales.yaml`,
+1. `public/resume.html` loads `public/scripts/js-yaml.min.js` + `public/scripts/main.js` (+ renderers).
+2. `public/scripts/main.js`:
+   - fetches `public/data/public/locales.yaml`,
    - selects a locale (default or from `localStorage`),
    - fetches `resume_path` and `config_path`,
    - parses YAML (`jsyaml.load`) and validates basic shapes,
@@ -208,18 +225,18 @@ Source: `README.md` + files in `supabase/migrations/`.
 ## 7) Where to change what (practical guide)
 
 ### You want to change resume content (public/demo)
-- `data/public/resume-en.yaml` and `data/public/resume-pl.yaml`.
+- `public/data/public/resume-en.yaml` and `public/data/public/resume-pl.yaml`.
 - If you add new label keys/fields: keep EN/PL in sync.
 
 ### You want to change legacy UI headings/labels
-- `data/public/config/en.yaml`, `data/public/config/pl.yaml` (labels), or `labels` inside the resume YAML.
-- Fallbacks live in `scripts/main.js` (`FALLBACK_LABELS`).
+- `public/data/public/config/en.yaml`, `public/data/public/config/pl.yaml` (labels), or `labels` inside the resume YAML.
+- Fallbacks live in `public/scripts/main.js` (`FALLBACK_LABELS`).
 
 ### You want to change locale switching or fetch/caching behavior
-- `scripts/main.js`.
+- `public/scripts/main.js`.
 
 ### You want to change section rendering (DOM)
-- `scripts/public-resume.js`.
+- `public/scripts/public-resume.js`.
 
 ### You want to change auth / RBAC / admin in Next
 - API: `app/api/auth/*`, `app/api/admin/*`.
@@ -230,7 +247,7 @@ Source: `README.md` + files in `supabase/migrations/`.
 
 ## 8) Risks and checkpoints
 
-- YAML contracts: key changes must be synchronized between `en` and `pl` and stay aligned with validation/tests (`tests/`, `scripts/phase-b/resume-yaml-contract.js`).
+- YAML contracts: key changes must be synchronized between `en` and `pl` and stay aligned with validation/tests (`tests/`, `public/scripts/phase-b/resume-yaml-contract.js`).
 - Security: do not weaken RLS or `security definer` functions without fully reviewing the implications.
 - Legacy vs Next: redirects suggest URL convergence, but logic is still duplicated — avoid implicitly mixing auth states.
 
@@ -239,7 +256,7 @@ Source: `README.md` + files in `supabase/migrations/`.
 ## 9) Recommended tests / verifications
 
 - Legacy smoke:
-  - run a static server (`npx serve .`) and verify `resume.html` + locale switching.
+  - run a static server (`npx serve .`) and verify `public/resume.html` + locale switching.
 - Next.js:
   - `npm run lint`, `npm run typecheck`, `npm test`, `npm run dev`.
 - Auth flows (Next): signup -> verify email -> signin -> `/dashboard` -> `/admin` (for staff).

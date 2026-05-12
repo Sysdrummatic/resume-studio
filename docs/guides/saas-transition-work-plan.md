@@ -14,9 +14,34 @@ Global completion checklist:
 - [x] Phase B - Data model refactor (YAML-first)
 - [x] Phase C - Auth + RBAC + Admin
 - [x] Phase D - Resume editor canvas + versioning
-- [ ] Phase E - Public CV + SEO/AEO + URL compatibility
+- [x] Phase E - Public CV + SEO/AEO + URL compatibility
 - [ ] Phase F - User panel + admin analytics/audit
 - [ ] Phase G - Hardening, QA, launch readiness
+
+Current implementation status as of `2026-05-09`:
+
+- The Next.js shell, auth, admin flows, and resume editor are live in `app/`.
+- The sample public resume view on `/resume` is implemented from YAML data.
+- Canonical public route `/{person-slug}/{public-id}` resolves from `resume_public_links` with snapshot-backed rendering and SEO metadata.
+- `/r/[slug]` is a compatibility route and redirects to canonical public URLs when available.
+- Shared CV language switcher and status badges are active for sample, preview, and public CV rendering. Supabase has metadata foundations for enabled languages, default locale, preset variants, and AI-generated marking.
+- The former static HTML/CSS/JS frontend has been retired from `public/`; historical `.html` URLs remain as Netlify redirects.
+- AI-assisted demo resume generation is planned as a separate workstream and is not part of the core Phase E SEO/public-route milestone.
+
+## Current Execution Checklist
+
+- [x] Next.js shell is active in `app/`
+- [x] Netlify build and CI pipeline are configured
+- [x] YAML-first data layer is active
+- [x] Auth, RBAC, and admin flows are implemented
+- [x] Resume editor and revisioning are implemented
+- [x] Sample public resume exists at `/resume`
+- [x] Resume editor is rebuilt in React
+- [x] Public share route `/r/[slug]` is implemented as compatibility redirect/resolver
+- [x] SEO/AEO controls for public resume pages are implemented for canonical routes
+- [/] Multilingual CV foundations are active; dedicated language-version management UI is still pending
+- [ ] User panel and analytics surfaces are complete
+- [ ] Launch hardening tasks are complete
 
 ## 1) Locked Product Decisions
 
@@ -39,7 +64,7 @@ These are mandatory constraints:
 
 ### What incremental migration means (non-negotiable)
 - Each PR migrates a small, explicitly scoped slice (route, feature, or workflow), and leaves everything else untouched.
-- Legacy static routes may remain temporarily, but are retired only after a feature parity gate passes.
+- Legacy static files are retired; compatibility is preserved through redirects from historical `.html` URLs.
 - Every migration slice must define:
   - **Scope** (what is changed),
   - **Out of scope** (what is not changed),
@@ -54,6 +79,7 @@ Why Next.js for this project:
 - SEO/AEO priority: SSR/ISR for public resume pages (`/r/[slug]`).
 - Better routing and layout control for auth/admin/public areas.
 - Easier metadata generation for robots/canonical/structured data.
+- Multilingual public CV URLs can start with one canonical slug plus `?lang=<locale>` overrides, then evolve to locale paths such as `/r/ariana/pl` with `hreflang` and canonical metadata without rebuilding the data model.
 - Server-side logic for YAML validation, permission checks, and secure admin operations.
 
 ## 3) Target Architecture
@@ -208,22 +234,26 @@ Checklist:
 - [x] Add publish action creating revision snapshots.
 - [x] Add revision history list and rollback action in UI.
 - [x] Add YAML import/export in editor panel.
+- [x] Expose public-link management from the editor or an adjacent authenticated panel.
 
 Definition of done:
 - User can create and edit CV in live canvas.
 - Publish, revision history, and rollback work end-to-end.
+- Editor-adjacent Saved Version/Public Link management can show canonical/compatibility link state and publish/unpublish through owner-scoped preset APIs.
 
 ### Phase E - Public Resume Experience + SEO/AEO
 
 Branch: `feat/phase-e-public-seo-aeo`
 
 Checklist:
-- [ ] Implement SSR/ISR public route `/r/[slug]`.
-- [ ] Apply indexing controls to robots and headers.
-- [ ] Add canonical URLs and OpenGraph/Twitter metadata.
+- [x] Implement public route `/r/[slug]`.
+- [x] Apply baseline indexing controls to robots metadata.
+- [x] Add canonical URLs and OpenGraph/Twitter metadata.
+- [x] Add multilingual SEO metadata: `hreflang`, canonical language handling, and future-ready locale route support such as `/r/{slug}/{locale}` without data-model changes.
+- [/] Build candidate-facing language version management UI. Current implementation adds draft language documents, stores language metadata in Supabase, and can set the default published CV language; duplication, per-version publishing controls, and richer previews remain follow-up work.
 - [ ] Add structured data (JSON-LD) for resume pages where applicable.
-- [ ] Add sitemap and robots configuration.
-- [ ] Verify compatibility redirects from old static routes.
+- [x] Add sitemap and robots configuration.
+- [x] Verify compatibility redirects from old static routes.
 
 Definition of done:
 - Public resume pages are SEO/AEO-ready and index controls are correct.
@@ -284,11 +314,12 @@ For every phase:
 
 ## 11) Immediate Next Actions
 
-- [ ] Approve this updated plan as the new baseline.
-- [ ] Start Phase A implementation branch.
-- [ ] Provision Netlify environment variables for preview/prod.
-- [ ] Prepare Supabase backup before Phase B migrations.
-- [x] Start Phase C implementation branch.
-- [x] Start Phase D implementation branch.
-- [ ] Start Phase E implementation branch.
+- [x] Approve this updated plan as the baseline for the active codebase.
+- [x] Complete foundation, YAML, auth/admin, and editor phases.
+- [x] Implement the actual `/r/[slug]` public resume rendering flow.
+- [x] Add SEO/AEO metadata and indexing controls for public resume pages.
+- [ ] Extend the dashboard/user panel with link management and analytics.
+- [ ] Execute the editor-adjacent Public Link management ticket routing in `docs/action-plan.md`.
+- [ ] Add a dedicated `Language Versions` interface for user-managed CV locales.
+- [ ] Start the AI demo resume generation workstream after Phase E route/rendering scope is stable.
 

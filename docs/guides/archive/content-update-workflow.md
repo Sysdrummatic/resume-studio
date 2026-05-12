@@ -1,0 +1,37 @@
+# Content Update Workflow
+
+This workflow covers adding or modifying resume sections and ensuring each locale stays synchronized.
+
+## 1. Plan the Changes
+
+- Capture the desired updates in an issue or task list.
+- Identify which locales require edits (`public/data/public/resume-*.yaml`).
+- Confirm whether private-only details need updating in `public/data/private/resume-private.yaml`.
+
+## 2. Update Locale Data
+
+1. Edit the relevant YAML files under `public/data/public` using consistent indentation (two spaces).
+2. Keep section ordering aligned between locales so the UI displays a parallel structure.
+3. When adding new sections, also update the locale configuration in `public/data/public/config/*` if labels or toggles are required.
+
+## 3. Verify Locally
+
+- Restart or refresh the static site server to pull in the changed YAML.
+- Switch between languages from the header to confirm parity.
+- Validate hyperlinks, bullet lists, and timeline entries render correctly.
+
+## 4. Run Automated Checks
+
+- Execute `npm test` to ensure regression checks still pass.
+- If markdown or documentation was touched, run `npx markdownlint "**/*.md"` when available.
+
+## 5. Submit for Review
+
+- Commit changes with descriptive messages, referencing issues when possible.
+- Open a pull request summarizing the content updates and outline manual QA steps performed.
+- Note any follow-up tasks or pending translations so reviewers can plan additional work.
+
+## React Migration Note
+
+During the React transition, YAML content files remain the canonical source unless a formal schema migration is announced.
+UI migration must not silently change locale keys or data shape without synchronized updates and release notes.

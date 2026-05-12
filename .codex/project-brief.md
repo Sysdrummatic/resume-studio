@@ -2,18 +2,18 @@
 
 ## What this repo is
 `OpenCVHub` is a hybrid project:
-- Legacy static resume app (multiple HTML entry pages + browser scripts + YAML content).
+- Legacy static resume app (served from `public/` as HTML entry pages + browser scripts + YAML content).
 - In-progress Next.js SaaS rebuild (App Router).
 
 ## Key contracts
-- Public locale content: `data/public/locales.yaml`, `data/public/resume-en.yaml`, `data/public/resume-pl.yaml`.
-- Legacy UI behavior is driven by `scripts/` + `styles/` and should remain stable.
+- Public locale content: `public/data/public/locales.yaml`, `public/data/public/resume-en.yaml`, `public/data/public/resume-pl.yaml`.
+- Legacy UI behavior is driven by `public/scripts/` + `public/styles/` and should remain stable.
 - Next.js app (`app/`) introduces auth + RBAC + admin workflows backed by Supabase.
 
 ## Where things live
-- Static pages: repo root `*.html`
-- Legacy JS: `scripts/`
-- Legacy CSS: `styles/`
+- Static pages: `public/*.html`
+- Legacy JS: `public/scripts/`
+- Legacy CSS: `public/styles/`
 - Next.js: `app/`, config in `next.config.ts`, `tsconfig.json`
 - Supabase SQL: `supabase/migrations/`
 - Guides/checklists: `docs/`

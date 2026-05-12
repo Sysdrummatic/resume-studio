@@ -41,6 +41,8 @@ This file tracks post-MVP ideas mentioned during product planning.
 - Export to third-party formats.
 ## AI-assisted resume intelligence
 
+- AI demo resume generation from fictional data in the editor.
+- Job-description-tailored fictional CV generation as a later follow-up.
 - AI enrichment for ambiguous section detection after deterministic parsing baseline.
 - Confidence scoring for parsed entities (experience, education, skills).
 - Smart normalization of job titles, dates, and technology names.

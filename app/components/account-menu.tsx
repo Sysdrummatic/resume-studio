@@ -12,7 +12,13 @@ type Props = {
   emailConfirmed: boolean;
 };
 
-const MENU_AUTO_CLOSE_DELAY_MS = 2500;
+const MENU_AUTO_CLOSE_DELAY_MS = 1000;
+const HEADER_MENU_OPEN_EVENT = "app-header-menu-open";
+const ACCOUNT_MENU_NAME = "account";
+
+function announceHeaderMenuOpen(menuName: string) {
+  document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
+}
 
 function getInitial(email: string): string {
   if (!email) {
@@ -28,10 +34,31 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
   const closeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && menuRef.current?.contains(target)) {
+        return;
+      }
+      if (menuRef.current) {
+        menuRef.current.open = false;
+      }
+    }
+
+    function handleHeaderMenuOpen(event: Event) {
+      if (event instanceof CustomEvent && event.detail !== ACCOUNT_MENU_NAME && menuRef.current) {
+        menuRef.current.open = false;
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener(HEADER_MENU_OPEN_EVENT, handleHeaderMenuOpen);
+
     return () => {
       if (closeTimerRef.current !== null) {
         window.clearTimeout(closeTimerRef.current);
       }
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener(HEADER_MENU_OPEN_EVENT, handleHeaderMenuOpen);
     };
   }, []);
 
@@ -90,6 +117,11 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
       onMouseLeave={scheduleMenuAutoClose}
       onFocus={cancelMenuAutoClose}
       onBlur={handleMenuBlur}
+      onToggle={(event) => {
+        if (event.currentTarget.open) {
+          announceHeaderMenuOpen(ACCOUNT_MENU_NAME);
+        }
+      }}
     >
       <summary className="account-menu__trigger" aria-label="Open account menu">
         <span className="account-menu__avatar" aria-hidden>

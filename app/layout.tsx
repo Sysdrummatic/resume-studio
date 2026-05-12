@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import AppHeaderNavigation from "./components/app-header-navigation";
+import AppLanguageMenu from "./components/app-language-menu";
 import AccountMenu from "./components/account-menu";
-import HeaderAccountMenu from "./components/header-account-menu";
 import { getCurrentActor } from "./lib/auth-server";
 import "./globals.css";
 
@@ -10,8 +11,22 @@ export const metadata: Metadata = {
   description: "OpenCVHub platform foundation on Next.js"
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const actor = await getCurrentActor();
+  const navItems = [
+    ...(actor
+      ? [
+          { href: "/dashboard", label: "Dashboard" },
+        ]
+      : []),
+    { href: "/resume", label: "Sample CV" },
+    ...(!actor ? [{ href: "/login", label: "Login" }] : []),
+  ];
 
   return (
     <html lang="en">
@@ -21,26 +36,20 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <Link className="app-brand" href="/">
               OpenCVHub
             </Link>
-            <div className="app-header__controls">
-              <nav className="app-nav" aria-label="Primary">
-                {actor && <Link href="/dashboard">Dashboard</Link>}
-                {actor && <Link href="/master-resume">Editor</Link>}
-                <Link href="/resume">Sample CV</Link>
-                {!actor && <Link href="/login">Login</Link>}
-              </nav>
-              <HeaderAccountMenu
-                actor={
-                  actor ? (
-                    <AccountMenu
-                      email={actor.email}
-                      role={actor.role}
-                      isActive={actor.isActive}
-                      emailConfirmed={actor.emailConfirmed}
-                    />
-                  ) : null
-                }
-              />
-            </div>
+            <AppHeaderNavigation
+              items={navItems}
+              language={<AppLanguageMenu />}
+              account={
+                actor ? (
+                  <AccountMenu
+                    email={actor.email}
+                    role={actor.role}
+                    isActive={actor.isActive}
+                    emailConfirmed={actor.emailConfirmed}
+                  />
+                ) : null
+              }
+            />
           </div>
         </header>
         <main className="app-shell app-main">{children}</main>

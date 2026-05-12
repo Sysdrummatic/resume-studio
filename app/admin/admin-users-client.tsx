@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { StatusToast, useStatusToast } from "../components/status-toast";
 import type { AppRole } from "../lib/auth-types";
 
 type UserOverview = {
@@ -44,8 +45,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     actorRole,
     stats: initialStats,
   });
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState(false);
+  const { toast, showToast, closeToast } = useStatusToast();
   const [busyUserId, setBusyUserId] = useState("");
 
   async function loadUsers() {
@@ -58,8 +58,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     };
 
     if (!response.ok || payload.error) {
-      setStatus(payload.error || "Failed to load users.");
-      setError(true);
+      showToast(payload.error || "Failed to load users.", "error");
       return;
     }
 
@@ -68,8 +67,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
       actorRole: payload.actor?.role || actorRole,
       stats: payload.stats || null,
     });
-    setStatus("");
-    setError(false);
+    closeToast();
   }
 
   const roleOptions = useMemo(() => {
@@ -88,14 +86,12 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok || payload.error) {
-      setStatus(payload.error || "Role update failed.");
-      setError(true);
+      showToast(payload.error || "Role update failed.", "error");
       setBusyUserId("");
       return;
     }
     await loadUsers();
-    setStatus("Role updated.");
-    setError(false);
+    showToast("Role updated.");
     setBusyUserId("");
   }
 
@@ -108,14 +104,12 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok || payload.error) {
-      setStatus(payload.error || "Status update failed.");
-      setError(true);
+      showToast(payload.error || "Status update failed.", "error");
       setBusyUserId("");
       return;
     }
     await loadUsers();
-    setStatus("Account status updated.");
-    setError(false);
+    showToast("Account status updated.");
     setBusyUserId("");
   }
 
@@ -131,20 +125,18 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok || payload.error) {
-      setStatus(payload.error || "Delete failed.");
-      setError(true);
+      showToast(payload.error || "Delete failed.", "error");
       setBusyUserId("");
       return;
     }
     await loadUsers();
-    setStatus("User deleted.");
-    setError(false);
+    showToast("User deleted.", "error");
     setBusyUserId("");
   }
 
   return (
     <section className="stack">
-      {status && <p className={`status ${error ? "status--error" : "status--ok"}`}>{status}</p>}
+      <StatusToast toast={toast} onClose={closeToast} />
 
       {state.stats && (
         <div className="meta-grid">

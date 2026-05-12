@@ -7,7 +7,7 @@ This file defines how to run and deploy the app in three environments.
 - `dev`:
   - Runs on your machine with `npm run dev`.
   - Fastest feedback loop for coding and debugging.
-  - Uses local `.env.development` (not committed).
+  - Uses local `.env.local` based on `.env.development.example`.
 - `preview`:
   - Netlify Deploy Preview per pull request.
   - Safe place to review features before merge.
@@ -30,30 +30,21 @@ Templates:
 - `.env.preview.example`
 - `.env.production.example`
 
-## Supabase project split (production vs preview/local)
+## Supabase Project Split
 
 Use separate Supabase projects:
 
-- **Production deploy** (`main` on Netlify) → production Supabase project.
-- **Deploy Preview** (PR builds on Netlify) → test Supabase project.
-- **Local development** (`npm run dev`) → test Supabase project.
+- Production deploy (`main` on Netlify): production Supabase project.
+- Deploy Preview (PR builds on Netlify): test Supabase project.
+- Local development (`npm run dev`): test Supabase project.
 
 For the Next.js app (`/login`, `/dashboard`, API routes), this split is handled by Netlify environment scoping:
 
 - Production scope values should point to production Supabase.
 - Deploy Previews scope values should point to test Supabase.
-- Local `.env.local` (based on `.env.development.example`) should point to test Supabase.
+- Local `.env.local` should point to test Supabase.
 
-For legacy static auth pages (`login.html`, `dashboard.html`) configure `window.RESUME_STUDIO_AUTH_ENV` (see `scripts/auth-config.example.js`) and set:
-
-- `production.supabaseUrl` / `production.supabaseAnonKey` → production.
-- `preview.*` and `development.*` → test.
-
-Runtime host detection in `scripts/auth-config.js` maps:
-
-- `localhost` / `127.0.0.1` → `development`
-- `*.netlify.app` preview-like hosts (for example `deploy-preview-*` or branch aliases) → `preview`
-- all other hosts → `production`
+The retired static auth pages no longer require browser-side environment files. Historical `.html` URLs are handled by Netlify redirects to the active React routes.
 
 ## CI Policy
 
