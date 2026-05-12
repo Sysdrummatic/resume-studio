@@ -20,3 +20,13 @@ test("legacy /r/[slug] route behaves as compatibility path and redirects to cano
   assert.equal(server.includes("fetchCanonicalPublicPathBySlug"), true);
   assert.equal(server.includes("[public-route-compat]"), true);
 });
+
+test("legacy /r/[slug] compatibility route is server-rendered and snapshot-backed", () => {
+  const route = read("app/r/[slug]/page.tsx");
+
+  assert.equal(route.includes('export const dynamic = "force-dynamic";'), true);
+  assert.equal(route.includes("export async function generateMetadata"), true);
+  assert.equal(route.includes("fetchPublishedResumePresetBySlug"), true);
+  assert.equal(route.includes("BasicResumeDocument"), true);
+  assert.equal(route.includes("status=\"public\""), true);
+});

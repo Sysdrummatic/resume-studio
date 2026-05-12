@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { BasicResumeDocument } from "../../master-resume/resume-live-preview";
 import { getAppBaseUrl } from "../../lib/env";
 import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
+import type { PublishedResumePreset } from "../../lib/resume-server";
 import "../../resume/resume.css";
 
 type PublicResumeByPublicIdPageProps = {
@@ -19,6 +20,35 @@ export const dynamic = "force-dynamic";
 function absoluteUrl(path: string): string {
   const base = getAppBaseUrl().replace(/\/+$/, "");
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function compactJsonLd<T extends Record<string, unknown>>(value: T): T {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined && entry !== "")) as T;
+}
+
+function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl: string) {
+  const defaultSummary = published.resume.summary.find((summary) => summary.default);
+  const displayName = published.resume.name || published.preset.title;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    name: displayName,
+    url: canonicalUrl,
+    inLanguage: published.document.locale,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "OpenCVHub",
+      url: getAppBaseUrl(),
+    },
+    mainEntity: compactJsonLd({
+      "@type": "Person",
+      name: displayName,
+      jobTitle: defaultSummary?.position,
+      url: canonicalUrl,
+      mainEntityOfPage: canonicalUrl,
+    }),
+  };
 }
 
 export async function generateMetadata({ params, searchParams }: PublicResumeByPublicIdPageProps) {
@@ -76,24 +106,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
   const { published, allowIndexing, personSlug: canonicalPersonSlug, publicId: canonicalPublicId } = publishedRoute;
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const canonicalUrl = absoluteUrl(canonicalPath);
-  const profileJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ProfilePage",
-    name: published.resume.name || published.preset.title,
-    url: canonicalUrl,
-    inLanguage: published.document.locale,
-    isPartOf: {
-      "@type": "WebSite",
-      name: "OpenCVHub",
-      url: getAppBaseUrl(),
-    },
-    mainEntity: {
-      "@type": "Person",
-      name: published.resume.name || published.preset.title,
-      jobTitle: published.resume.summary.find((s) => s.default)?.position || undefined,
-      description: published.preset.title,
-    },
-  };
+  const publicResumeJsonLd = buildPublicResumeJsonLd(published, canonicalUrl);
 
   return (
     <main className="container py-8 public-resume-route">
@@ -101,7 +114,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(profileJsonLd),
+            __html: JSON.stringify(publicResumeJsonLd),
           }}
         />
       ) : null}

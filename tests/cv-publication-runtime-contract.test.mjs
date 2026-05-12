@@ -33,3 +33,12 @@ test("ADR 0001 publication runtime keeps legacy slug compatibility resolver duri
   assert.equal(server.includes("table: \"resume_presets\""), true);
   assert.equal(server.includes("fetchSnapshotPublishedResumePresetBySlug"), true);
 });
+
+test("editor public-link controls stay on owner-scoped preset APIs and do not touch public resolvers directly", () => {
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+
+  assert.equal(editor.includes("/api/resume/presets/${encodeURIComponent(preset.id)}/publish"), true);
+  assert.equal(editor.includes("/api/resume/presets/${encodeURIComponent(preset.id)}/unpublish"), true);
+  assert.equal(editor.includes("resume_public_links"), false);
+  assert.equal(editor.includes("fetchPublishedResumePresetBySlug"), false);
+});

@@ -36,6 +36,7 @@ Use this checklist for preview and production validation.
    - published CV Versions show canonical `/{person-slug}/{public-id}` before compatibility `/r/[slug]`,
    - private CV Versions do not expose copyable public URLs,
    - copy/open actions target the canonical public URL,
+   - editor Public Link panel can publish a Saved Version with selected languages, default locale, and indexing,
    - unpublish revokes the active Public Link and removes active link actions without deleting the CV Version,
    - public route still renders the immutable Published CV snapshot after private draft edits.
    - editor Public Link panel and dashboard Saved Version list show consistent state after publish/unpublish.

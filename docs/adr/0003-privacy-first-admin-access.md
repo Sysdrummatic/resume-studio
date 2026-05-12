@@ -1,6 +1,6 @@
 # ADR 0003: Privacy-First Admin And Staff Data Access
 
-Status: Proposed
+Status: Accepted
 
 Date: 2026-05-09
 

@@ -48,9 +48,26 @@ test("legacy static HTML entry points and browser scripts are removed", () => {
 
 test("HTML compatibility is preserved through Next redirects", () => {
   const netlifyConfig = read("netlify.toml");
-  for (const route of ["/login", "/dashboard", "/master-resume", "/resume", "/user"]) {
-    assert.equal(netlifyConfig.includes(`to = "${route}"`), true, `${route} redirect is missing`);
+  const nextConfig = read("next.config.ts");
+  const redirects = [
+    ["/index.html", "/"],
+    ["/login.html", "/login"],
+    ["/dashboard.html", "/dashboard"],
+    ["/master-resume.html", "/master-resume"],
+    ["/resume.html", "/resume"],
+    ["/user.html", "/user"],
+    ["/r/index.html", "/resume"],
+  ];
+
+  for (const [from, to] of redirects) {
+    assert.equal(netlifyConfig.includes(`from = "${from}"`), true, `${from} redirect source is missing`);
+    assert.equal(netlifyConfig.includes(`to = "${to}"`), true, `${from} redirect target is missing`);
   }
+  assert.equal((netlifyConfig.match(/status = 301/g) || []).length >= redirects.length, true);
+  assert.equal((netlifyConfig.match(/force = true/g) || []).length >= redirects.length, true);
+  assert.equal(nextConfig.includes('source: "/index.html"'), true);
+  assert.equal(nextConfig.includes('destination: "/"'), true);
+  assert.equal(nextConfig.includes("permanent: true"), true);
 });
 
 test("public resume slugs are handled by the React route", () => {

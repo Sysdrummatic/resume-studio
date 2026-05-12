@@ -1527,6 +1527,33 @@ a {
   margin: 0.2rem 0 0;
 }
 
+.dashboard-resume-list__content {
+  min-width: 0;
+}
+
+.dashboard-resume-list__links {
+  margin: 0.45rem 0 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.2rem 0.55rem;
+  color: var(--muted);
+}
+
+.dashboard-resume-list__links dt,
+.dashboard-resume-list__links dd {
+  margin: 0;
+}
+
+.dashboard-resume-list__links dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dashboard-resume-list__links dd {
+  overflow-wrap: anywhere;
+}
+
 .dashboard-resume-list__badge {
   flex: 0 0 auto;
   border: 1px solid rgba(90, 220, 160, 0.35);
@@ -1669,6 +1696,11 @@ a {
   .dashboard-resume-list li {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .dashboard-resume-list__links {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
   }
 
   .dashboard-resume-list__actions {

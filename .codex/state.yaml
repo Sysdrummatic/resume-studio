@@ -226,7 +226,7 @@ language_modal_merge_architecture:
 adr_backlog:
   agent: software_architect
   task: "Post-PR4 ADR recommendations"
-  status: proposed
+  status: accepted
   source:
     - "docs/adr/0001-cv-publication-model.md"
     - "docs/action-plan.md"
@@ -315,7 +315,21 @@ adr_backlog:
       contracts:
         - "Exports must read Published CV snapshots only."
         - "Public API exposure follows Public Link active/indexing/privacy state."
-ui_critique: null
+ui_critique:
+  agent: frontend_engineer
+  role: FE
+  task: "complete_T1_read_only_public_link_panel"
+  status: pass
+  findings:
+    - "Editor Saved Version panel now tracks deterministic loading, empty, and error states from the owner-scoped preset fetch."
+    - "Canonical public URL is rendered before compatibility URL in the read-only panel."
+    - "Open and Copy actions are gated behind published presets that expose a canonical_public_path."
+    - "Private or non-canonical presets keep status badges only and expose no public-link actions."
+  validation:
+    - cmd: "npm.cmd test -- tests/adr-0006-saved-version-ux-contract.test.mjs tests/dashboard-presets.test.mjs"
+      status: pass
+    - cmd: "npm.cmd run typecheck"
+      status: pass
 val_results:
   agent: backend_engineer
   role: BE
@@ -841,7 +855,7 @@ public_link_management_rollout_package:
   agent: project_manager
   role: PM
   task: "Expose public-link management from the editor or an adjacent panel"
-  status: ready_for_frontend_t1
+  status: completed
   prepared_at: "2026-05-12"
   source_refs:
     - "docs/action-plan.md"
@@ -2149,7 +2163,7 @@ public_link_management_execution_routing:
       title: "Frontend read-only Public Link panel"
       agent: frontend_engineer
       why: "Owns React editor/dashboard surfaces, shared UI extraction, copy/open controls, responsive states, and CSS."
-      status: ready_now
+      status: completed
       dor:
         - "Architect Option A accepted."
         - "GET /api/resume/presets returns owner Saved Versions with canonical_public_path and compatibility_public_path."
@@ -2174,7 +2188,7 @@ public_link_management_execution_routing:
       title: "Test lock for read-only panel"
       agent: test_engineer
       why: "Owns regression assertions and can keep tests behavior-focused instead of tying frontend to brittle implementation details."
-      status: ready_after_t1
+      status: completed
       dor:
         - "T1 implementation shape is available."
         - "Panel labels and copy/open affordances are final enough to assert."
@@ -2196,7 +2210,7 @@ public_link_management_execution_routing:
       title: "Frontend publish/unpublish controls from editor panel"
       agent: frontend_engineer
       why: "Owns client workflow, modal extraction/reuse, state refresh, and dashboard/editor terminology parity."
-      status: ready_after_t2
+      status: completed
       dor:
         - "T1 and T2 are green."
         - "Dashboard publish modal contract remains stable."
@@ -2222,7 +2236,7 @@ public_link_management_execution_routing:
       title: "Conditional backend contract/capability alignment"
       agent: backend_engineer
       why: "Owns API routes, auth guards, resume-server contracts, and owner-scoped publication invariants."
-      status: conditional_deferred
+      status: skipped_not_needed
       dor:
         - "T1/T3 finds a real missing owner-scoped field or status ambiguity, or role-inheritance rollout reaches resume API guard migration."
         - "Exact backend scope is documented before edits start."
@@ -2243,7 +2257,7 @@ public_link_management_execution_routing:
       title: "Full verification and deployment QA update"
       agent: test_engineer
       why: "Owns final automated gates, manual QA matrix, and regression evidence across frontend/backend surfaces."
-      status: ready_after_t3_and_optional_t4
+      status: completed
       dor:
         - "T3 is complete."
         - "T4 is complete or explicitly skipped as not needed."
@@ -2264,7 +2278,7 @@ public_link_management_execution_routing:
       title: "PM closeout"
       agent: project_manager
       why: "Owns release status, sequencing state, checklist closure, residual-risk recording, and next-agent trigger."
-      status: ready_after_t5
+      status: completed
       dor:
         - "T5 automated and manual evidence is available."
       dod:
@@ -2320,24 +2334,37 @@ public_link_management_execution_routing:
       - cmd: "npm.cmd test"
         status: pass
         assertions:
-          - "node:test suite passed: 136 tests."
-    skipped_reason: null
+          - "node:test suite passed: 140 tests."
+      - cmd: "npm.cmd run build"
+        status: pass
+        assertions:
+          - "Next.js production build completed successfully."
+    skipped_reason: "T4 backend contract/capability alignment was skipped because T1/T3 used existing owner-scoped preset APIs and no backend/API/RLS/public resolver gap was found."
+  closeout:
+    completed_at: "2026-05-12"
+    shipped_scope:
+      - "Editor-adjacent Saved Version/Public Link panel in /master-resume."
+      - "Canonical URL shown before compatibility URL."
+      - "Open and Copy actions for published canonical links only."
+      - "Publish with selected locales, default locale, and indexing through existing owner-scoped preset API."
+      - "Unpublish through existing owner-scoped preset API without deleting the Saved Version."
+      - "Local Saved Version/Public Link state refreshes after publish/unpublish."
+    skipped:
+      - "T4 backend contract/capability alignment was not needed."
+      - "No RLS, schema, service-role, public resolver, or migration changes were made."
+    residual_risks:
+      - "Preview/prod manual QA still needs real Supabase data for copy/open, publish, unpublish, republish, draft-edit-after-publish, canonical route, and compatibility route checks."
+    rollback:
+      - "Revert editor public-link panel and tests; dashboard remains authoritative for Saved Version publish/unpublish."
+      - "No database rollback is required."
   next:
-    REQ: frontend_engineer
-    CMD: implement_editor_public_link_panel_pr1
+    REQ: project_manager
+    CMD: select_next_phase_priority
     CTX:
-      ref: ".codex/state.yaml#public_link_management_execution_routing.tickets[T1]"
+      ref: "docs/action-plan.md"
       scope:
-        - "app/master-resume/editor-canvas-client.tsx"
-        - "app/master-resume/**"
-        - "app/dashboard/dashboard-client.tsx"
-        - "app/components/**"
-        - "tests/dashboard-presets.test.mjs"
-        - "tests/adr-0006-saved-version-ux-contract.test.mjs"
+        - "Phase E public resume rendering and SEO/AEO"
+        - "Phase F user panel and analytics"
     LMT:
-      - "owner-only"
-      - "read-only first PR"
-      - "no backend changes unless blocked"
-      - "no RLS changes"
-      - "no public resolver changes"
-      - "canonical URL primary"
+      - "public-link management editor task is complete"
+      - "use validation evidence from public_link_management_execution_routing.closeout"

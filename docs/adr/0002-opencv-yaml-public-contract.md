@@ -1,6 +1,6 @@
 # ADR 0002: OpenCV YAML Public Contract And Schema Evolution
 
-Status: Proposed
+Status: Accepted
 
 Date: 2026-05-09
 

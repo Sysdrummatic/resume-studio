@@ -23,9 +23,17 @@ test("SEO/AEO runtime exports robots and sitemap routes", () => {
   const server = read("app/lib/resume-server.ts");
   assert.equal(robots.includes("MetadataRoute.Robots"), true);
   assert.equal(robots.includes("sitemap"), true);
+  assert.equal(robots.includes('/sitemap.xml'), true);
   assert.equal(sitemap.includes("MetadataRoute.Sitemap"), true);
   assert.equal(sitemap.includes("fetchIndexablePublicLinksForSitemap"), true);
+  assert.equal(sitemap.includes("buildPublicUrl(base, link.personSlug, link.publicId)"), true);
+  assert.equal(sitemap.includes("link.availableLocales.map"), true);
+  assert.equal(sitemap.includes("link.defaultLocale"), true);
+  assert.equal(sitemap.includes("?lang="), true);
+  assert.equal(sitemap.includes("/r/"), false);
   assert.equal(server.includes("allow_indexing=eq.true"), true);
+  assert.equal(server.includes("is_active=eq.true"), true);
+  assert.equal(server.includes("status=eq.active"), true);
 });
 
 test("SEO/AEO QA checklist exists", () => {

@@ -37,7 +37,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Core editor canvas and revisioning delivered.
    - [x] Build language-version management inside Master Resume Editor for adding, editing, deleting, selecting, and setting default resume language versions.
    - [x] Merge Language Versions UX into the Master Resume Editor modal with EN as the default first badge, right-side add-language control, and left-to-right badge ordering.
-   - [ ] Expose public-link management from the editor or an adjacent panel.
+   - [x] Expose public-link management from the editor or an adjacent panel.
    - [x] Align editor preview badges with future public `/r/[slug]` rendering.
    - [x] Add shared CV language switcher and public/draft badges to sample, preview, and public renderers.
      Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md), [Phase D Resume Editor Canvas](guides/phase-d-editor-canvas.md), `.codex/state.yaml#language_modal_merge_plan`
@@ -46,15 +46,20 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Apply indexing controls to robots and headers for public resume pages.
    - [x] Add canonical URLs and OpenGraph/Twitter metadata for public resume pages.
    - [x] Add multilingual public CV SEO support with `hreflang`, canonical language handling, and `?lang=<locale>` support.
-   - [ ] Implement SSR or ISR public route `/r/[slug]`.
-   - [ ] Add structured data (JSON-LD) for public resume pages where applicable.
-   - [ ] Add sitemap and robots configuration.
-   - [ ] Verify compatibility redirects from legacy static routes.
-   - [ ] Decide and write post-PR4 ADR backlog in priority order: OpenCV YAML contract, privacy-first admin, public route compatibility/deprecation, SEO/AEO policy, Saved Version/link-management UX, analytics/audit retention, and future OpenCV export/API surface.
+   - [x] Implement SSR public route `/r/[slug]`.
+   - [x] Add structured data (JSON-LD) for public resume pages where applicable.
+   - [x] Add sitemap and robots configuration.
+   - [x] Verify compatibility redirects from legacy static routes.
+   - [x] Decide and write post-PR4 ADR backlog in priority order: OpenCV YAML contract, privacy-first admin, public route compatibility/deprecation, SEO/AEO policy, Saved Version/link-management UX, analytics/audit retention, and future OpenCV export/API surface.
      Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md), [ADR 0001 CV Publication Model](adr/0001-cv-publication-model.md), `.codex/state.yaml#adr_backlog`
 
 6. [ ] Phase F - User panel and analytics
    - [ ] Build user panel for CV and link management.
+   - [ ] Add downloadable Published CV PDF export.
+   - [ ] Add plain text ATS-ready export for Published CV snapshots.
+   - [ ] Add owner-facing export controls in the editor/user panel.
+   - [ ] Ensure PDF and plain text exports read Published CV snapshots, not private drafts.
+   - [ ] Add tests for PDF/plain text export privacy, locale selection, and snapshot isolation.
    - [ ] Add role-aware admin dashboard views for analytics and audit visibility.
    - [ ] Add analytics widgets for counts, active links, and views.
    - [ ] Add audit log explorer and filtering.
@@ -168,35 +173,44 @@ Recommended kickoff is the architect Option A path: add an adjacent Saved Versio
    - Agent: `software_architect`.
    - DoR: public-link management plan exists in state.
    - DoD: final agent sequence, file ownership, dependency model, and immediate trigger are recorded in `.codex/state.yaml#public_link_management_editor_plan.final_implementation_sequence`.
-1. [ ] `T1` Frontend read-only Public Link panel.
+1. [x] `T1` Frontend read-only Public Link panel.
    - Agent: `frontend_engineer`.
    - DoR: architect Option A is accepted; `GET /api/resume/presets` returns owner Saved Versions with `canonical_public_path` and `compatibility_public_path`.
    - DoD: `/master-resume` shows owner CV Versions with Published/Private, Indexable/Noindex, canonical URL first, compatibility URL second, Open and Copy actions only for published canonical links, and deterministic empty/loading/error states.
+   - Completed: read-only panel, canonical-first/compatibility display, Open/Copy actions for published canonical links, and deterministic loading/empty/error states are implemented.
    - Gates: `node --test tests/dashboard-presets.test.mjs tests/adr-0006-saved-version-ux-contract.test.mjs`, `npm.cmd run lint`, `npm.cmd run typecheck`.
-2. [ ] `T2` Test lock for read-only panel.
+2. [x] `T2` Test lock for read-only panel.
    - Agent: `test_engineer`.
    - DoR: `T1` implementation is available.
    - DoD: tests assert editor panel presence, canonical-first display/copy affordance, private no-link state, and no direct client access to `resume_public_links`.
+   - Completed: tests lock editor panel presence, canonical-first order, published-canonical Open/Copy gating, private/no-canonical no-action state, and no direct editor client reference to `resume_public_links`.
+   - Validation: targeted dashboard/ADR/public-route tests passed; `npm.cmd test` passed 137/137.
    - Gates: targeted `node --test` for dashboard/ADR/public-route contract tests, then `npm.cmd test`.
-3. [ ] `T3` Frontend publish/unpublish controls from editor panel.
+3. [x] `T3` Frontend publish/unpublish controls from editor panel.
    - Agent: `frontend_engineer`.
    - DoR: `T1` and `T2` are green; dashboard publish modal contract remains stable.
    - DoD: editor panel can publish with explicit selected languages/default locale/indexing, unpublish without deleting the CV Version, refresh local link state after success, and keep Master Resume document publish/revision wording separate from Public Link lifecycle wording.
+   - Completed: editor panel publishes through owner-scoped preset publish route with selected languages/default locale/indexing, unpublishes through the preset unpublish route, refreshes local link state, and keeps Master Resume revision publishing separate from Public Link lifecycle controls.
+   - Validation: targeted ADR/dashboard/publication runtime tests passed 16/16; `npm.cmd run lint` passed; `npm.cmd run typecheck` passed.
    - Gates: targeted publish/public-route tests, `npm.cmd run lint`, `npm.cmd run typecheck`.
-4. [ ] `T4` Conditional backend contract or capability alignment.
+4. [x] `T4` Conditional backend contract or capability alignment.
    - Agent: `backend_engineer`.
    - DoR: frontend implementation exposes a real API gap, or role-inheritance resume API guard migration is ready.
    - DoD: preset APIs remain actor-userId scoped, expose only needed link metadata, use `resume.preset.*_own` capabilities when guard migration is in scope, and do not expose private YAML or accept arbitrary target user IDs.
+   - Skipped: no backend/API gap was found; editor publish/unpublish uses the existing owner-scoped preset routes and no RLS/schema/public resolver changes were needed.
    - Gates: `node --test tests/cv-publication-runtime-contract.test.mjs tests/privacy-first-admin-access-contract.test.mjs tests/role-inheritance-rbac.test.mjs`, `npm.cmd run typecheck`.
-5. [ ] `T5` Full verification and deployment QA update.
+5. [x] `T5` Full verification and deployment QA update.
    - Agent: `test_engineer`.
    - DoR: `T3` is complete and `T4` is complete or explicitly skipped as not needed.
    - DoD: full automated validation is green and manual QA covers private, published, copy/open, unpublish, republish, draft-edit-after-publish, canonical route, and compatibility route behavior.
+   - Completed: full automated validation is green; deployment QA checklist covers private/published link states, copy/open, unpublish, snapshot isolation, canonical route, and compatibility route behavior.
+   - Validation: `npm.cmd run lint`, `npm.cmd run typecheck`, `npm.cmd test` (140/140), and `npm.cmd run build` passed.
    - Gates: `npm.cmd run lint`, `npm.cmd run typecheck`, `npm.cmd test`; run `npm.cmd run build` if Next route boundaries or metadata are touched.
-6. [ ] `T6` PM closeout.
+6. [x] `T6` PM closeout.
    - Agent: `project_manager`.
    - DoR: `T5` evidence is recorded.
    - DoD: action plan, deployment QA guide, SaaS work plan, and `state.yaml` reflect shipped scope, residual risks, rollback, and next trigger.
+   - Completed: action plan, deployment QA guide, SaaS work plan, and `state.yaml` reflect shipped scope and validation evidence.
    - Gates: state YAML parse, docs diff review, and default validation evidence linked from `state.yaml`.
 
 ### Parallelization

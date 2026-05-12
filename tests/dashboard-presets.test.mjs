@@ -80,11 +80,34 @@ test("preset list renders a right-aligned separated icon delete action", () => {
 
 test("dashboard prefers canonical public links and keeps legacy compatibility links", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const styles = read("app/globals.css");
   const server = read("app/lib/resume-server.ts");
+  const canonicalIndex = editor.indexOf("Canonical URL");
+  const compatibilityIndex = editor.indexOf("Compatibility URL");
 
   assert.equal(client.includes("preset.canonical_public_path"), true);
   assert.equal(client.includes("compatibility"), true);
   assert.equal(client.includes("canonical"), true);
+  assert.equal(editor.includes("Canonical URL"), true);
+  assert.equal(editor.includes("Compatibility URL"), true);
+  assert.equal(editor.includes("Open public CV"), true);
+  assert.equal(editor.includes("Copy public URL"), true);
+  assert.equal(editor.includes("hasPublishedCanonicalLink"), true);
+  assert.equal(editor.includes("const hasPublishedCanonicalLink = preset.is_public && Boolean(preset.canonical_public_path);"), true);
+  assert.equal(canonicalIndex >= 0 && compatibilityIndex > canonicalIndex, true);
+  assert.equal(editor.includes("resume_public_links"), false);
+  assert.equal(styles.includes(".dashboard-resume-list__links"), true);
+  assert.equal(styles.includes("grid-template-columns: auto minmax(0, 1fr);"), true);
   assert.equal(server.includes("canonical_public_path"), true);
   assert.equal(server.includes("compatibility_public_path"), true);
+});
+
+test("editor Saved Version panel uses owner-scoped publish and unpublish routes", () => {
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+
+  assert.equal(editor.includes("/api/resume/presets/${encodeURIComponent(preset.id)}/publish"), true);
+  assert.equal(editor.includes("/api/resume/presets/${encodeURIComponent(preset.id)}/unpublish"), true);
+  assert.equal(editor.includes("await loadPresets();"), true);
+  assert.equal(editor.includes("setPublishDraft(null);"), true);
 });
