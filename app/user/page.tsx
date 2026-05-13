@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAuthenticatedActor } from "../lib/auth-server";
 import { fetchResumePresetsForUser } from "../lib/resume-server";
-import { parseCanonicalPublicPath } from "../lib/resume-export";
+import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import "./user.css";
 
 export const dynamic = "force-dynamic";
@@ -76,13 +76,7 @@ export default async function UserPage() {
                 <tbody>
                   {publishedPresets.length > 0 ? (
                     publishedPresets.map((preset) => {
-                      const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
-                      const textHref = exportPath
-                        ? `/api/resume/export/text?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`
-                        : null;
-                      const pdfHref = exportPath
-                        ? `/api/resume/export/pdf?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`
-                        : null;
+                      const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
 
                       return (
                         <tr key={preset.id}>
@@ -99,16 +93,16 @@ export default async function UserPage() {
                           <td>{preset.canonical_public_path}</td>
                           <td style={{ textAlign: "right" }}>
                             <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                              <a href={preset.canonical_public_path || "#"} target="_blank" rel="noopener noreferrer" className="button button--ghost button--small">
+                              <a href={exportUrls?.publicUrl || "#"} target="_blank" rel="noopener noreferrer" className="button button--ghost button--small">
                                 Open
                               </a>
-                              {textHref ? (
-                                <a href={textHref} className="button button--ghost button--small">
+                              {exportUrls ? (
+                                <a href={exportUrls.textUrl} className="button button--ghost button--small">
                                   ATS (TXT)
                                 </a>
                               ) : null}
-                              {pdfHref ? (
-                                <a href={pdfHref} className="button button--ghost button--small">
+                              {exportUrls ? (
+                                <a href={exportUrls.pdfUrl} className="button button--ghost button--small">
                                   PDF
                                 </a>
                               ) : null}

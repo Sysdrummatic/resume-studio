@@ -53,10 +53,10 @@ export default function AuditLogsClient({ initialLogs }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
 
-  async function applyFilters() {
+  async function loadLogs(query = "") {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/audit${buildQuery(filters)}`, { method: "GET" });
+      const response = await fetch(`/api/admin/audit${query}`, { method: "GET" });
       const payload = (await response.json()) as { error?: string; logs?: AuditLog[] };
       if (!response.ok || payload.error) {
         showToast(payload.error || "Failed to load audit logs.", "error");
@@ -73,28 +73,17 @@ export default function AuditLogsClient({ initialLogs }: Props) {
     }
   }
 
+  async function applyFilters() {
+    await loadLogs(buildQuery(filters));
+  }
+
   function updateFilter<Key extends keyof AuditFilterState>(key: Key, value: AuditFilterState[Key]) {
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
   function clearFilters() {
     setFilters(EMPTY_FILTERS);
-    void (async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch("/api/admin/audit", { method: "GET" });
-        const payload = (await response.json()) as { error?: string; logs?: AuditLog[] };
-        if (!response.ok || payload.error) {
-          showToast(payload.error || "Failed to load audit logs.", "error");
-          return;
-        }
-        setLogs(payload.logs || []);
-        setExpandedId(null);
-        closeToast();
-      } finally {
-        setIsLoading(false);
-      }
-    })();
+    void loadLogs();
   }
 
   return (

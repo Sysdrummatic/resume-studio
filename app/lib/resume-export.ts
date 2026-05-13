@@ -5,6 +5,12 @@ type PublicExportPath = {
   publicId: string;
 };
 
+type PublishedResumeExportUrls = {
+  publicUrl: string;
+  textUrl: string;
+  pdfUrl: string;
+};
+
 function wrapText(text: string, maxLength = 88): string[] {
   const words = text.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) {
@@ -45,6 +51,26 @@ export function parseCanonicalPublicPath(path: string | null | undefined): Publi
   return {
     personSlug: decodeURIComponent(match[1]),
     publicId: decodeURIComponent(match[2]),
+  };
+}
+
+export function buildPublishedResumeExportUrls(
+  canonicalPublicPath: string | null | undefined,
+  locale: string,
+): PublishedResumeExportUrls | null {
+  const exportPath = parseCanonicalPublicPath(canonicalPublicPath);
+  if (!exportPath || !canonicalPublicPath) {
+    return null;
+  }
+
+  const encodedPersonSlug = encodeURIComponent(exportPath.personSlug);
+  const encodedPublicId = encodeURIComponent(exportPath.publicId);
+  const encodedLocale = encodeURIComponent(locale);
+
+  return {
+    publicUrl: canonicalPublicPath,
+    textUrl: `/api/resume/export/text?personSlug=${encodedPersonSlug}&publicId=${encodedPublicId}&lang=${encodedLocale}`,
+    pdfUrl: `/api/resume/export/pdf?personSlug=${encodedPersonSlug}&publicId=${encodedPublicId}&lang=${encodedLocale}`,
   };
 }
 

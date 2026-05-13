@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
-import { parseCanonicalPublicPath } from "../lib/resume-export";
+import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { BasicResumeDocument } from "../master-resume/resume-live-preview";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
@@ -606,26 +606,24 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   }
 
   function exportText(preset: ResumePresetRow) {
-    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
-    if (!exportPath) {
+    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
+    if (!exportUrls) {
       showToast("Publish this CV Version before exporting a snapshot.", "warning");
       return;
     }
 
-    const url = `/api/resume/export/text?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
-    window.open(url, "_blank");
+    window.open(exportUrls.textUrl, "_blank");
     showToast("Preparing published text export...");
   }
 
   function exportPdf(preset: ResumePresetRow) {
-    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
-    if (!exportPath) {
+    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
+    if (!exportUrls) {
       showToast("Publish this CV Version before exporting a snapshot PDF.", "warning");
       return;
     }
 
-    const url = `/api/resume/export/pdf?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
-    window.open(url, "_blank");
+    window.open(exportUrls.pdfUrl, "_blank");
     showToast("Preparing published PDF export...");
   }
 

@@ -44,6 +44,8 @@ test("analytics and audit contracts stay metadata-only on admin surfaces", () =>
   assert.equal(auditClient.includes("Actor Role"), true);
   assert.equal(auditClient.includes("Date From"), true);
   assert.equal(auditClient.includes("Date To"), true);
+  assert.equal(auditClient.includes("async function loadLogs"), true);
+  assert.equal(auditClient.includes("await loadLogs(buildQuery(filters));"), true);
   assert.equal(adminUsers.includes("yaml_content"), false);
   assert.equal(auditWriter.includes("table: \"admin_audit_logs\""), true);
   assert.equal(auditWriter.includes("metadata: payload.metadata ?? {}"), true);

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
-import { parseCanonicalPublicPath } from "../lib/resume-export";
+import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
 import type {
@@ -733,26 +733,24 @@ export default function EditorCanvasClient() {
   }
 
   function exportText(preset: ResumePresetRow) {
-    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
-    if (!exportPath) {
+    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
+    if (!exportUrls) {
       showToast("Publish this Saved Version before exporting a snapshot.", "warning");
       return;
     }
 
-    const url = `/api/resume/export/text?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
-    window.open(url, "_blank");
+    window.open(exportUrls.textUrl, "_blank");
     showToast("Preparing published text export...");
   }
 
   function exportPdf(preset: ResumePresetRow) {
-    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
-    if (!exportPath) {
+    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
+    if (!exportUrls) {
       showToast("Publish this Saved Version before exporting a snapshot PDF.", "warning");
       return;
     }
 
-    const url = `/api/resume/export/pdf?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
-    window.open(url, "_blank");
+    window.open(exportUrls.pdfUrl, "_blank");
     showToast("Preparing published PDF export...");
   }
 

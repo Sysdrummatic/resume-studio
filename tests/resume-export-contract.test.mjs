@@ -32,6 +32,7 @@ test("public export helper keeps canonical person slug and public id parsing loc
   const exportLib = read("app/lib/resume-export.ts");
 
   assert.equal(exportLib.includes("export function parseCanonicalPublicPath"), true);
+  assert.equal(exportLib.includes("export function buildPublishedResumeExportUrls"), true);
   assert.equal(exportLib.includes("publicId"), true);
   assert.equal(exportLib.includes("personSlug"), true);
 });
