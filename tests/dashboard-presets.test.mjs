@@ -111,3 +111,20 @@ test("editor Saved Version panel uses owner-scoped publish and unpublish routes"
   assert.equal(editor.includes("await loadPresets();"), true);
   assert.equal(editor.includes("setPublishDraft(null);"), true);
 });
+
+test("snapshot exports use canonical public paths only for dashboard and editor flows", () => {
+  const dashboard = read("app/dashboard/dashboard-client.tsx");
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const userPage = read("app/user/page.tsx");
+  const exportLib = read("app/lib/resume-export.ts");
+
+  assert.equal(exportLib.includes("parseCanonicalPublicPath"), true);
+  assert.equal(dashboard.includes("/api/resume/export/text?personSlug=${encodeURIComponent(exportPath.personSlug)}"), true);
+  assert.equal(dashboard.includes("/api/resume/export/pdf?personSlug=${encodeURIComponent(exportPath.personSlug)}"), true);
+  assert.equal(dashboard.includes("presetId="), false);
+  assert.equal(editor.includes("/api/resume/export/text?personSlug=${encodeURIComponent(exportPath.personSlug)}"), true);
+  assert.equal(editor.includes("/api/resume/export/pdf?personSlug=${encodeURIComponent(exportPath.personSlug)}"), true);
+  assert.equal(editor.includes("presetId="), false);
+  assert.equal(userPage.includes("Published CV Snapshots"), true);
+  assert.equal(userPage.includes("/api/resume/export/pdf?personSlug="), true);
+});

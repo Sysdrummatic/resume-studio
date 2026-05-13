@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { FocusEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
+import { canAccessAdminArea } from "../lib/rbac";
 
 type Props = {
   email: string;
@@ -136,7 +137,7 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
         <button type="button" className="account-menu__item" onClick={openProfileModal}>
           Profile
         </button>
-        {role === "admin" && (
+        {canAccessAdminArea(role) && (
           <Link href="/admin" className="account-menu__item" role="menuitem">
             User management
           </Link>

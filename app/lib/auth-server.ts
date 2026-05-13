@@ -54,6 +54,7 @@ async function readActorFromAccessToken(accessToken: string): Promise<SessionAct
     displayName: normalizeDisplayName(profileResult.data.display_name, email),
     role: profileResult.data.role,
     isActive: profileResult.data.is_active,
+    accessToken,
   };
 }
 
@@ -77,7 +78,8 @@ export async function getCurrentActor(): Promise<SessionActor | null> {
     return null;
   }
 
-  return readActorFromAccessToken(refreshResult.data.access_token);
+  const actor = await readActorFromAccessToken(refreshResult.data.access_token);
+  return actor;
 }
 
 export async function requireAuthenticatedActor(): Promise<SessionActor> {

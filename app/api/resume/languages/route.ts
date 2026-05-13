@@ -22,7 +22,7 @@ type LanguageBody = {
 };
 
 export async function GET(request: Request): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.language.read_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
@@ -37,7 +37,7 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user", "recruiter"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.language.write_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
@@ -84,7 +84,7 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 export async function PATCH(request: Request): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.language.write_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
@@ -109,7 +109,7 @@ export async function PATCH(request: Request): Promise<Response> {
 }
 
 export async function DELETE(request: Request): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.language.write_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }

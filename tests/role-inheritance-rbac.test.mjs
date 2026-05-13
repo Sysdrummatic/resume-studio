@@ -17,6 +17,8 @@ test("manager inherits user only", () => {
   assert.equal(hasRole("manager", "recruiter"), false);
   assert.equal(hasCapability("manager", "resume.document.read_own"), true);
   assert.equal(hasCapability("manager", "admin.area.access"), true);
+  assert.equal(hasCapability("manager", "admin.analytics.read"), true);
+  assert.equal(hasCapability("manager", "admin.audit.read"), true);
   assert.equal(hasCapability("manager", "admin.users.delete"), false);
 });
 
@@ -34,6 +36,8 @@ test("admin inherits manager recruiter and user capabilities", () => {
   assert.equal(hasRole("admin", "recruiter"), true);
   assert.equal(hasRole("admin", "user"), true);
   assert.equal(hasCapability("admin", "admin.users.delete"), true);
+  assert.equal(hasCapability("admin", "admin.analytics.read"), true);
+  assert.equal(hasCapability("admin", "admin.audit.read"), true);
   assert.equal(hasCapability("admin", "resume.document.read_own"), true);
   assert.equal(canAccessAdminArea("admin"), true);
   assert.equal(canAccessAdminArea("manager"), true);

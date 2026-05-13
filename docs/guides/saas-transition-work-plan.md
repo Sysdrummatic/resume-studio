@@ -15,7 +15,7 @@ Global completion checklist:
 - [x] Phase C - Auth + RBAC + Admin
 - [x] Phase D - Resume editor canvas + versioning
 - [x] Phase E - Public CV + SEO/AEO + URL compatibility
-- [ ] Phase F - User panel + admin analytics/audit
+- [x] Phase F - User panel + admin analytics/audit
 - [ ] Phase G - Hardening, QA, launch readiness
 
 Current implementation status as of `2026-05-09`:
@@ -40,7 +40,7 @@ Current implementation status as of `2026-05-09`:
 - [x] Public share route `/r/[slug]` is implemented as compatibility redirect/resolver
 - [x] SEO/AEO controls for public resume pages are implemented for canonical routes
 - [/] Multilingual CV foundations are active; dedicated language-version management UI is still pending
-- [ ] User panel and analytics surfaces are complete
+- [x] User panel and analytics surfaces are complete
 - [ ] Launch hardening tasks are complete
 
 ## 1) Locked Product Decisions
@@ -264,12 +264,12 @@ Definition of done:
 Branch: `feat/phase-f-panel-analytics-audit`
 
 Checklist:
-- [ ] Build user panel for CV/link management.
-- [ ] Add role-aware admin dashboard views.
-- [ ] Add analytics widgets (user counts, active links, views).
-- [ ] Add audit log explorer/filter for admin/manager actions.
-- [ ] Add support for recruiter role baseline (same permissions as user).
-- [ ] Add smoke tests for all role-specific workflows.
+- [x] Build user panel for CV/link management.
+- [x] Add role-aware admin dashboard views.
+- [x] Add analytics widgets (user counts, active links, views).
+- [x] Add audit log explorer/filter for admin/manager actions.
+- [x] Add support for recruiter role baseline (same permissions as user).
+- [x] Add smoke tests for all role-specific workflows.
 
 Definition of done:
 - User and admin operational workflows are complete in React app.
@@ -318,7 +318,7 @@ For every phase:
 - [x] Complete foundation, YAML, auth/admin, and editor phases.
 - [x] Implement the actual `/r/[slug]` public resume rendering flow.
 - [x] Add SEO/AEO metadata and indexing controls for public resume pages.
-- [ ] Extend the dashboard/user panel with link management and analytics.
+- [x] Extend the dashboard/user panel with link management and analytics.
 - [ ] Execute the editor-adjacent Public Link management ticket routing in `docs/action-plan.md`.
 - [ ] Add a dedicated `Language Versions` interface for user-managed CV locales.
 - [ ] Start the AI demo resume generation workstream after Phase E route/rendering scope is stable.

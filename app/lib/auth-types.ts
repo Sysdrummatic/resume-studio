@@ -1,6 +1,8 @@
 export const APP_ROLES = ["admin", "manager", "user", "recruiter"] as const;
 export const APP_CAPABILITIES = [
   "admin.area.access",
+  "admin.analytics.read",
+  "admin.audit.read",
   "admin.users.read",
   "admin.users.role_write",
   "admin.users.status_write",
@@ -56,6 +58,7 @@ export type SessionActor = {
   displayName: string;
   role: AppRole;
   isActive: boolean;
+  accessToken: string;
 };
 
 export function isAppRole(value: unknown): value is AppRole {

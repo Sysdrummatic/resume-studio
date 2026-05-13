@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
+import { parseCanonicalPublicPath } from "../lib/resume-export";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
 import type {
@@ -729,6 +730,30 @@ export default function EditorCanvasClient() {
     } catch {
       showToast("Canonical public URL could not be copied.", "error");
     }
+  }
+
+  function exportText(preset: ResumePresetRow) {
+    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
+    if (!exportPath) {
+      showToast("Publish this Saved Version before exporting a snapshot.", "warning");
+      return;
+    }
+
+    const url = `/api/resume/export/text?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
+    window.open(url, "_blank");
+    showToast("Preparing published text export...");
+  }
+
+  function exportPdf(preset: ResumePresetRow) {
+    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
+    if (!exportPath) {
+      showToast("Publish this Saved Version before exporting a snapshot PDF.", "warning");
+      return;
+    }
+
+    const url = `/api/resume/export/pdf?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
+    window.open(url, "_blank");
+    showToast("Preparing published PDF export...");
   }
 
   function openPublishSavedVersion(preset: ResumePresetRow) {
@@ -1462,6 +1487,12 @@ export default function EditorCanvasClient() {
                               Publish
                             </button>
                           )}
+                          <button type="button" className="button button--ghost button--small" onClick={() => exportText(preset)}>
+                            ATS (TXT)
+                          </button>
+                          <button type="button" className="button button--ghost button--small" onClick={() => exportPdf(preset)}>
+                            PDF
+                          </button>
                         </div>
                       </div>
                     </li>

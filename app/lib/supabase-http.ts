@@ -327,6 +327,27 @@ export async function fetchAllProfilesAsService(): Promise<AuthResult<ProfileRec
   });
 }
 
+export type PlatformStats = {
+  total_users: number;
+  active_users: number;
+  total_resumes: number;
+  total_public_links: number;
+  total_public_views: number;
+};
+
+export async function fetchPlatformStatsAsService(): Promise<AuthResult<PlatformStats>> {
+  const result = await callRpc<PlatformStats[]>({
+    functionName: "get_admin_platform_stats",
+    useServiceRole: true,
+  });
+
+  return {
+    data: result.data?.[0] ?? null,
+    error: result.error,
+    status: result.status,
+  };
+}
+
 export async function fetchAuthUsersAsService(): Promise<AuthResult<SupabaseAuthUsersResponse>> {
   const { url, serviceRoleKey } = getSupabaseServerConfig();
   return requestSupabase<SupabaseAuthUsersResponse>(

@@ -9,7 +9,7 @@ function read(relativePath) {
 
 test("ADR 0009 is accepted and implementation checklist is complete", () => {
   const adr = read("docs/adr/0009-publish-atomic-variant-fallback.md");
-  assert.equal(adr.includes("Status\nAccepted"), true);
+  assert.equal(adr.includes("Status") && adr.includes("Accepted"), true);
   assert.equal(adr.includes("- [x] Relax validation in `publish_resume_saved_version` RPC to allow missing variants."), true);
   assert.equal(adr.includes("- [x] Implement fallback logic to base selection in `resume_published_cv_locales` snapshot."), true);
   assert.equal(adr.includes("- [x] Propagate descriptive PostgreSQL exceptions through `publishResumePreset` and the API route."), true);

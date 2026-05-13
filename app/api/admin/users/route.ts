@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { callRpc } from "../../../lib/supabase-http";
+import { hasCapability } from "../../../lib/rbac";
 
 type UserOverview = {
   id: string;
@@ -13,7 +14,7 @@ type UserOverview = {
 };
 
 export async function GET(): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager"]);
+  const actorResult = await requireRequestActor({ anyCapability: "admin.users.read" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
@@ -47,14 +48,38 @@ export async function GET(): Promise<Response> {
     updatedAt: row.updated_at || null,
   }));
 
-  if (actorResult.actor.role === "manager") {
+  if (!hasCapability(actorResult.actor.role, "admin.users.role_write")) {
     users = users.filter((user) => user.id === actorResult.actor.userId || user.role === "user" || user.role === "recruiter");
   }
 
+  const statsResult = await callRpc<
+    Array<{
+      total_users: number;
+      active_users: number;
+      total_resumes: number;
+      total_public_links: number;
+      total_public_views: number;
+    }>
+  >({
+    functionName: "get_admin_platform_stats",
+    accessToken: actorResult.accessToken,
+  });
+
+  const platformStats = statsResult.data?.[0] || {
+    total_users: users.length,
+    active_users: users.filter((u) => u.isActive).length,
+    total_resumes: 0,
+    total_public_links: 0,
+    total_public_views: 0,
+  };
+
   const stats = {
-    totalUsers: users.length,
-    activeUsers: users.filter((user) => user.isActive).length,
-    inactiveUsers: users.filter((user) => !user.isActive).length,
+    totalUsers: platformStats.total_users,
+    activeUsers: platformStats.active_users,
+    inactiveUsers: platformStats.total_users - platformStats.active_users,
+    totalResumes: platformStats.total_resumes,
+    totalPublicLinks: platformStats.total_public_links,
+    totalPublicViews: platformStats.total_public_views,
   };
 
   return NextResponse.json({

@@ -15,7 +15,7 @@ type PublishBody = {
 };
 
 export async function POST(request: Request): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user", "recruiter"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.document.write_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }

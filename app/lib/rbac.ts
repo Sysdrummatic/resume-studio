@@ -16,8 +16,16 @@ const ROLE_INHERITS: Readonly<Record<AppRole, readonly AppRole[]>> = {
 };
 
 const ROLE_CAPABILITIES: Readonly<Record<AppRole, readonly AppCapability[]>> = {
-  admin: ["admin.area.access", "admin.users.read", "admin.users.role_write", "admin.users.status_write", "admin.users.delete"],
-  manager: ["admin.area.access", "admin.users.read"],
+  admin: [
+    "admin.area.access",
+    "admin.analytics.read",
+    "admin.audit.read",
+    "admin.users.read",
+    "admin.users.role_write",
+    "admin.users.status_write",
+    "admin.users.delete",
+  ],
+  manager: ["admin.area.access", "admin.analytics.read", "admin.audit.read", "admin.users.read"],
   recruiter: NO_CAPABILITIES,
   user: [
     "resume.document.read_own",

@@ -1217,6 +1217,38 @@ export async function fetchPublishedResumeExportByPublicLink(
   };
 }
 
+export async function fetchResumeExportByPresetId(
+  accessToken: string,
+  userId: string,
+  presetId: string,
+): Promise<PublishedResumeExport | null> {
+  const preset = await fetchResumePresetById(accessToken, userId, presetId);
+  if (!preset) return null;
+
+  const document = await fetchDocumentById(accessToken, preset.document_id, userId);
+  if (!document) return null;
+
+  const selection = normalizeResumePresetSelection(preset.selection);
+  const doc = buildResumeDocumentFromPreset(document.yaml_content, selection);
+  if (!doc) return null;
+
+  // We serialize it back to YAML for the export route to handle it consistently
+  const yamlContent = yaml.dump(doc);
+
+  return {
+    personSlug: "user",
+    publicId: preset.id,
+    locale: preset.default_locale,
+    defaultLocale: preset.default_locale,
+    availableLocales: [preset.default_locale],
+    allowIndexing: false,
+    schemaVersion: document.schema_version,
+    openCvYamlContractVersion: OPEN_CV_PUBLIC_CONTRACT_MAJOR,
+    yamlContent,
+    canonicalPath: preset.canonical_public_path || `/dashboard?preset=${preset.id}`,
+  };
+}
+
 export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitemapLink[]> {
   const result = await queryTable<ResumePublicLinkRow>({
     table: "resume_public_links",

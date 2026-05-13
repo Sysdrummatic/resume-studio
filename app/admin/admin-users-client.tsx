@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import type { AppRole } from "../lib/auth-types";
+import { hasCapability } from "../lib/rbac";
 
 type UserOverview = {
   id: string;
@@ -20,6 +21,9 @@ type ApiState = {
     totalUsers: number;
     activeUsers: number;
     inactiveUsers: number;
+    totalResumes: number;
+    totalPublicLinks: number;
+    totalPublicViews: number;
   } | null;
 };
 
@@ -30,6 +34,9 @@ type Props = {
     totalUsers: number;
     activeUsers: number;
     inactiveUsers: number;
+    totalResumes: number;
+    totalPublicLinks: number;
+    totalPublicViews: number;
   };
 };
 
@@ -71,7 +78,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
   }
 
   const roleOptions = useMemo(() => {
-    if (state.actorRole === "admin") {
+    if (hasCapability(state.actorRole, "admin.users.role_write")) {
       return ROLE_OPTIONS;
     }
     return ROLE_OPTIONS.filter((role) => canRoleBeAssignedByManager(role));
@@ -141,16 +148,20 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
       {state.stats && (
         <div className="meta-grid">
           <p>
-            <span className="meta-label">Users total</span>
-            <span className="meta-value">{state.stats.totalUsers}</span>
+            <span className="meta-label">Users</span>
+            <span className="meta-value">{state.stats.totalUsers} total ({state.stats.activeUsers} active)</span>
           </p>
           <p>
-            <span className="meta-label">Active</span>
-            <span className="meta-value">{state.stats.activeUsers}</span>
+            <span className="meta-label">Resumes</span>
+            <span className="meta-value">{state.stats.totalResumes}</span>
           </p>
           <p>
-            <span className="meta-label">Inactive</span>
-            <span className="meta-value">{state.stats.inactiveUsers}</span>
+            <span className="meta-label">Public Links</span>
+            <span className="meta-value">{state.stats.totalPublicLinks}</span>
+          </p>
+          <p>
+            <span className="meta-label">Public Views</span>
+            <span className="meta-value">{state.stats.totalPublicViews}</span>
           </p>
         </div>
       )}
@@ -171,10 +182,10 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
             {state.users.map((user) => {
               const disableRoleInput =
                 busyUserId === user.id ||
-                (state.actorRole === "manager" && (user.role === "admin" || user.role === "manager"));
+                (!hasCapability(state.actorRole, "admin.users.role_write") && (user.role === "admin" || user.role === "manager"));
               const disableDelete =
                 busyUserId === user.id ||
-                (state.actorRole === "manager" && (user.role === "admin" || user.role === "manager"));
+                (!hasCapability(state.actorRole, "admin.users.role_write") && (user.role === "admin" || user.role === "manager"));
               const availableRoles = roleOptions.includes(user.role) ? roleOptions : [user.role, ...roleOptions];
 
               return (

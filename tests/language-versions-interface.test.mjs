@@ -29,7 +29,7 @@ test("language version API creates metadata and prepares a resume document", () 
   assert.equal(route.includes("export async function PATCH"), true);
   assert.equal(route.includes("export async function DELETE"), true);
   assert.equal(route.includes("ensureResumeDocument"), true);
-  assert.equal(route.includes('requireRequestActor(["admin", "manager", "user"])'), true);
+  assert.equal(route.includes("requireRequestActor({ anyCapability: \"resume.language.read_own\" })"), true);
   assert.equal(server.includes("fetchResumeLanguageVersionsForUser"), true);
   assert.equal(server.includes("upsertResumeLanguage"), true);
   assert.equal(server.includes("disableResumeLanguage"), true);

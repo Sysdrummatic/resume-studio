@@ -4,7 +4,7 @@ import { ensureResumeDocument } from "../../../lib/resume-server";
 import { normalizeLocale } from "../../../lib/resume-schema";
 
 export async function GET(request: Request): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user", "recruiter"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.document.read_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }

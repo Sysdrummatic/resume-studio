@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { BasicResumeDocument } from "../../master-resume/resume-live-preview";
+import PrintTrigger from "../../components/print-trigger";
 import { getAppBaseUrl } from "../../lib/env";
 import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
 import type { PublishedResumePreset } from "../../lib/resume-server";
@@ -118,6 +119,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
           }}
         />
       ) : null}
+      <PrintTrigger />
       <BasicResumeDocument
         locale={published.document.locale}
         resume={published.resume}

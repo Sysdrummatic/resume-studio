@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
+import { parseCanonicalPublicPath } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { BasicResumeDocument } from "../master-resume/resume-live-preview";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
@@ -604,6 +605,30 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     showToast("CV Version deleted.", "error");
   }
 
+  function exportText(preset: ResumePresetRow) {
+    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
+    if (!exportPath) {
+      showToast("Publish this CV Version before exporting a snapshot.", "warning");
+      return;
+    }
+
+    const url = `/api/resume/export/text?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
+    window.open(url, "_blank");
+    showToast("Preparing published text export...");
+  }
+
+  function exportPdf(preset: ResumePresetRow) {
+    const exportPath = parseCanonicalPublicPath(preset.canonical_public_path);
+    if (!exportPath) {
+      showToast("Publish this CV Version before exporting a snapshot PDF.", "warning");
+      return;
+    }
+
+    const url = `/api/resume/export/pdf?personSlug=${encodeURIComponent(exportPath.personSlug)}&publicId=${encodeURIComponent(exportPath.publicId)}&lang=${preset.default_locale}`;
+    window.open(url, "_blank");
+    showToast("Preparing published PDF export...");
+  }
+
   function openPublishSavedVersion(preset: ResumePresetRow) {
     const selectedLocales = Array.from(new Set(publishableLocales));
     if (selectedLocales.length === 0) {
@@ -696,6 +721,12 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                         Publish
                       </button>
                     )}
+                    <button type="button" className="button button--ghost button--small" onClick={() => exportText(preset)}>
+                      ATS (TXT)
+                    </button>
+                    <button type="button" className="button button--ghost button--small" onClick={() => exportPdf(preset)}>
+                      PDF
+                    </button>
                   </div>
                   <div className="dashboard-resume-list__delete-separator">
                     <button

@@ -43,6 +43,6 @@ test("account menu shows identity only on desktop width", () => {
   assert.equal(styles.includes("@media (max-width: 1023px)"), true);
   assert.equal(styles.includes(".app-header__controls--compact .account-menu__identity"), true);
   assert.equal(styles.includes(".app-header__controls--compact .account-menu__trigger"), true);
-  assert.equal(styles.includes(".account-menu__identity {\n    display: none;"), true);
-  assert.equal(styles.includes(".account-menu__trigger {\n    padding: 0.35rem;"), true);
+  assert.equal(/\.account-menu__identity \{\s+display: none;/.test(styles), true);
+  assert.equal(/\.account-menu__trigger \{\s+padding: 0\.35rem;/.test(styles), true);
 });

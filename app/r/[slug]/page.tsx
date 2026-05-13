@@ -1,5 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { BasicResumeDocument } from "../../master-resume/resume-live-preview";
+import PrintTrigger from "../../components/print-trigger";
 import { fetchCanonicalPublicPathBySlug, fetchPublishedResumePresetBySlug, trackLegacyPublicRouteEvent } from "../../lib/resume-server";
 import "../../resume/resume.css";
 
@@ -85,6 +86,7 @@ export default async function PublicResumeBySlugPage({ params, searchParams }: P
 
   return (
     <main className="container py-8 public-resume-route">
+      <PrintTrigger />
       <BasicResumeDocument
         locale={published.document.locale}
         resume={published.resume}

@@ -68,6 +68,7 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
     displayName: normalizeDisplayName(profileResult.data.display_name, email),
     role: profileResult.data.role,
     isActive: profileResult.data.is_active,
+    accessToken,
   };
 
   return { ok: true, actor, accessToken };

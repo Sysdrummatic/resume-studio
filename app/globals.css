@@ -1874,3 +1874,47 @@ a {
 .btn--primary { border: none; color: #fff; background: linear-gradient(90deg, #6d8cff, #9f7bff); }
 .btn--ghost { background: rgba(255, 255, 255, 0.06); }
 .btn[disabled] { opacity: 0.58; cursor: not-allowed; }
+
+/* Dashboard Dropdown */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  display: none;
+  min-width: 140px;
+  padding: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  margin-top: 0.25rem;
+}
+
+.dropdown-container:hover .dropdown-menu,
+.dropdown-container:focus-within .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu button {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.dropdown-menu button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent);
+}

@@ -14,7 +14,7 @@ type PresetBody = {
 };
 
 export async function GET(): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user", "recruiter"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.preset.read_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
@@ -24,7 +24,7 @@ export async function GET(): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user", "recruiter"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.preset.write_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
