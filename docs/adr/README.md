@@ -11,3 +11,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0007: Publication Analytics, View Counting, And Audit Retention](0007-publication-analytics-and-audit-retention.md)
 - [ADR 0008: OpenCV Public API And Export Surface](0008-opencv-public-api-and-export-surface.md)
 - [ADR 0009: Publish Atomic Variant Fallback](0009-publish-atomic-variant-fallback.md)
+- [ADR 0010: API Hardening and Resource Protection](0010-api-hardening-and-resource-protection.md)

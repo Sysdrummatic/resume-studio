@@ -52,7 +52,9 @@ async function readActorFromAccessToken(accessToken: string): Promise<SessionAct
     email,
     emailConfirmed: Boolean(user.email_confirmed_at),
     displayName: normalizeDisplayName(profileResult.data.display_name, email),
+    avatarUrl: profileResult.data.avatar_url,
     role: profileResult.data.role,
+    bio: profileResult.data.bio,
     isActive: profileResult.data.is_active,
     accessToken,
   };

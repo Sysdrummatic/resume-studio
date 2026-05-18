@@ -7,6 +7,10 @@ import ResumeBadges from "../components/resume-badges";
 import ResumeLanguageSwitcher from "../components/resume-language-switcher";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 
+import { Download, FileText } from "lucide-react";
+import { Button } from "../components/design-system/atoms/Button";
+import { Typography } from "../components/design-system/atoms/Typography";
+
 export type ResumeEditorStyle = "basic" | "empty";
 
 type Props = {
@@ -42,6 +46,9 @@ export function BasicResumeDocument({
   onLanguageSelect,
   status = "draft",
   aiGenerated = false,
+  personSlug,
+  publicId,
+  showChrome = true,
 }: {
   locale: ResumeLocale;
   resume: ResumeDocument;
@@ -49,26 +56,83 @@ export function BasicResumeDocument({
   onLanguageSelect?: (locale: string) => void;
   status?: "public" | "draft";
   aiGenerated?: boolean;
+  personSlug?: string;
+  publicId?: string;
+  showChrome?: boolean;
 }) {
   const labels = getPreviewLabels(locale);
   const defaultSummary = getDefaultSummary(resume.summary);
   const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] || locale.toUpperCase() }];
+  
+  // Construct the PDF download URL if we have the necessary params
+  const pdfDownloadUrl = personSlug && publicId 
+    ? `/api/resume/export/pdf?personSlug=${personSlug}&publicId=${publicId}&lang=${locale}`
+    : "#";
 
   return (
-    <div className="resume-editor-basic resume-view-page resume-style--basic">
+    <div className={`resume-editor-basic resume-view-page resume-style--basic${showChrome ? "" : " resume-editor-basic--plain"}`}>
       <div className="resume">
         <header className="hero">
           <div className="hero__title">
             <div className="logo-circle">{resume.brand_initials || "CV"}</div>
             <div className="hero__identity">
-              <h1>{resume.name || "Your Name"}</h1>
-              <p>{defaultSummary?.position || "Your Role"}</p>
+              <Typography variant="h1" theme="light">{resume.name || "Your Name"}</Typography>
+              <Typography variant="body" theme="light" muted>{defaultSummary?.position || "Your Role"}</Typography>
             </div>
           </div>
-          <div className="hero__actions">
-            <ResumeLanguageSwitcher languages={languageOptions} activeLocale={locale} ariaLabel="CV language" onSelect={onLanguageSelect} />
-            <ResumeBadges status={status} aiGenerated={aiGenerated} />
-          </div>
+          {showChrome ? (
+            <div className="hero__actions">
+              <ResumeLanguageSwitcher languages={languageOptions} activeLocale={locale} ariaLabel="CV language" onSelect={onLanguageSelect} />
+              <ResumeBadges status={status} aiGenerated={aiGenerated} />
+              <div className="hero__export-actions" style={{ display: "flex", gap: "8px", marginLeft: "16px" }}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  icon={<Download size={14} />}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    
+                    if (personSlug && publicId) {
+                      window.location.href = pdfDownloadUrl;
+                      return;
+                    }
+
+                    try {
+                      const res = await fetch("/api/resume/export/pdf/preview", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ resume }),
+                      });
+                      if (!res.ok) throw new Error("Failed to generate PDF");
+                      
+                      const blob = await res.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `preview-${resume.brand_initials || "CV"}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      window.URL.revokeObjectURL(url);
+                    } catch (err) {
+                      alert("Error generating preview PDF.");
+                      console.error(err);
+                    }
+                  }}
+                >
+                  PDF
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  icon={<FileText size={14} />}
+                  disabled 
+                >
+                  ATS Ready
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </header>
 
         <main className="layout">
@@ -324,6 +388,7 @@ export default function ResumeLivePreview({
               onLanguageSelect={onLanguageSelect}
               status="draft"
               aiGenerated={aiGenerated}
+              showChrome
             />
           </div>
         </div>
@@ -343,6 +408,7 @@ export default function ResumeLivePreview({
               onLanguageSelect={onLanguageSelect}
               status="draft"
               aiGenerated={aiGenerated}
+              showChrome
             />
           </div>
         </div>

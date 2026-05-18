@@ -6,6 +6,9 @@ import Script from "next/script";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import ResumeBadges from "../components/resume-badges";
 import ResumeLanguageSwitcher from "../components/resume-language-switcher";
+import { Download, FileText } from "lucide-react";
+import { Button } from "../components/design-system/atoms/Button";
+import { Typography } from "../components/design-system/atoms/Typography";
 import "./resume.css";
 
 type ResumeLocale = {
@@ -562,12 +565,12 @@ export default function ResumeViewClient() {
             </div>
           </div>
 
-          <header className={`hero ${isHeroDocked ? "hero--scrolled" : ""}`}>
+        <header className={`hero ${isHeroDocked ? "hero--scrolled" : ""}`}>
             <div className="hero__title">
               <div className="logo-circle">{brand_initials || "LM"}</div>
               <div className="hero__identity">
-                <h1>{name}</h1>
-                <p>{role}</p>
+                <Typography variant="h1" theme="light">{name}</Typography>
+                <Typography variant="body" theme="light" muted>{role}</Typography>
               </div>
             </div>
             <div className="hero__actions">
@@ -586,6 +589,49 @@ export default function ResumeViewClient() {
                   aiGenerated: labels.ai_generated_badge,
                 }}
               />
+              <div className="hero__export-actions" style={{ display: "flex", gap: "8px", marginLeft: "16px" }}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  icon={<Download size={14} />}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    if (!resumeData) return;
+
+                    try {
+                      const res = await fetch("/api/resume/export/pdf/preview", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ resume: resumeData }),
+                      });
+                      if (!res.ok) throw new Error("Failed to generate PDF");
+                      
+                      const blob = await res.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `preview-${resumeData.brand_initials || "CV"}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      window.URL.revokeObjectURL(url);
+                    } catch (err) {
+                      alert("Error generating preview PDF.");
+                      console.error(err);
+                    }
+                  }}
+                >
+                  PDF
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  icon={<FileText size={14} />}
+                  disabled 
+                >
+                  ATS Ready
+                </Button>
+              </div>
             </div>
           </header>
 

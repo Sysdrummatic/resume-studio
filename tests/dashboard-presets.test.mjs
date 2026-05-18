@@ -116,6 +116,7 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   const dashboard = read("app/dashboard/dashboard-client.tsx");
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const userPage = read("app/user/page.tsx");
+  const userClient = read("app/user/user-client.tsx");
   const exportLib = read("app/lib/resume-export.ts");
 
   assert.equal(exportLib.includes("buildPublishedResumeExportUrls"), true);
@@ -125,6 +126,8 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   assert.equal(dashboard.includes("presetId="), false);
   assert.equal(editor.includes("buildPublishedResumeExportUrls"), true);
   assert.equal(editor.includes("presetId="), false);
-  assert.equal(userPage.includes("Published CV Snapshots"), true);
-  assert.equal(userPage.includes("buildPublishedResumeExportUrls"), true);
+  assert.equal(userPage.includes("UserClient"), true);
+  assert.equal(userClient.includes("Primary Resume"), false);
+  assert.equal(userClient.includes('aria-label="Resume preview"'), true);
+  assert.equal(userClient.includes("buildPublishedResumeExportUrls"), true);
 });

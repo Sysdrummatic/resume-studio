@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
+import AppBrand from "./components/app-brand";
 import AppHeaderNavigation from "./components/app-header-navigation";
 import AppLanguageMenu from "./components/app-language-menu";
 import AccountMenu from "./components/account-menu";
@@ -21,6 +21,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const navItems = [
     ...(actor
       ? [
+          { href: "/user", label: "Personal Hub" },
           { href: "/dashboard", label: "Dashboard" },
         ]
       : []),
@@ -33,16 +34,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body>
         <header className="app-header">
           <div className="app-shell app-header__inner">
-            <Link className="app-brand" href="/">
-              OpenCVHub
-            </Link>
+            <div className="app-header__branding">
+              <AppBrand />
+              <AppLanguageMenu />
+            </div>
             <AppHeaderNavigation
               items={navItems}
-              language={<AppLanguageMenu />}
               account={
                 actor ? (
                   <AccountMenu
                     email={actor.email}
+                    displayName={actor.displayName}
+                    avatarUrl={actor.avatarUrl}
                     role={actor.role}
                     isActive={actor.isActive}
                     emailConfirmed={actor.emailConfirmed}

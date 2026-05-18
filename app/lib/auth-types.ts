@@ -45,7 +45,9 @@ export type SupabaseSessionResponse = {
 export type ProfileRecord = {
   id: string;
   display_name: string | null;
+  avatar_url: string | null;
   role: AppRole;
+  bio: string | null;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
@@ -56,7 +58,9 @@ export type SessionActor = {
   email: string;
   emailConfirmed: boolean;
   displayName: string;
+  avatarUrl: string | null;
   role: AppRole;
+  bio: string | null;
   isActive: boolean;
   accessToken: string;
 };

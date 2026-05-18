@@ -1,13 +1,771 @@
+.personal-hub__profile-panel,
+.personal-hub__resume-panel {
+  display: flex;
+}
+
+.personal-hub__profile-summary,
+.personal-hub__resume-preview,
+.personal-hub__profile-actions {
+  width: 100%;
+}
+
+.personal-hub__profile-summary {
+  align-items: stretch;
+  gap: 0;
+}
+
+.personal-hub__avatar-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.personal-hub__avatar-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -0.85rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(109, 140, 255, 0.24), rgba(109, 140, 255, 0));
+  filter: blur(10px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.personal-hub__avatar {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.personal-hub__resume-panel {
+  gap: 0;
+}
+
+.personal-hub {
+  --personal-hub-surface-border: rgba(255, 255, 255, 0.1);
+  --personal-hub-surface-border-strong: rgba(162, 178, 255, 0.2);
+  --personal-hub-drawer-width: min(22rem, calc(100vw - 3.5rem));
+  --personal-hub-surface-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.018)),
+    rgba(13, 19, 35, 0.74);
+  --personal-hub-panel-glow: radial-gradient(circle at top left, rgba(109, 140, 255, 0.16), transparent 34%);
+  --personal-hub-surface-glow: rgba(124, 149, 255, 0.12);
+  --personal-hub-cyan-glow: rgba(95, 208, 216, 0.1);
+  position: relative;
+  isolation: isolate;
+}
+
+.personal-hub::before,
+.personal-hub::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(28px);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.personal-hub::before {
+  top: 1rem;
+  left: -3rem;
+  width: 14rem;
+  height: 14rem;
+  background: radial-gradient(circle, rgba(122, 141, 255, 0.24), rgba(122, 141, 255, 0));
+}
+
+.personal-hub::after {
+  right: -2rem;
+  bottom: 4rem;
+  width: 12rem;
+  height: 12rem;
+  background: radial-gradient(circle, rgba(77, 207, 214, 0.16), rgba(77, 207, 214, 0));
+}
+
+.personal-hub__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.personal-hub__drawer-handle,
+.personal-hub__drawer-overlay {
+  display: none;
+}
+
+.personal-hub__sidebar-column {
+  min-width: 0;
+  order: 2;
+}
+
+.personal-hub__content {
+  min-width: 0;
+  order: 1;
+}
+
+.personal-hub__sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.personal-hub__drawer-toolbar {
+  display: none;
+}
+
+.personal-hub__profile-panel,
+.personal-hub__resume-panel,
+.personal-hub__insights-panel {
+  position: relative;
+  box-shadow: var(--shadow-glass);
+  background: var(--personal-hub-panel-glow), var(--personal-hub-surface-fill) !important;
+  overflow: clip;
+  backdrop-filter: blur(14px);
+}
+
+.personal-hub__resume-panel {
+  box-shadow: none;
+  background: transparent !important;
+  border: 0 !important;
+  backdrop-filter: none;
+}
+
+.personal-hub__profile-panel::before,
+.personal-hub__resume-panel::before,
+.personal-hub__insights-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.personal-hub__resume-panel::before,
+.personal-hub__resume-panel::after {
+  display: none;
+}
+
+.personal-hub__profile-panel::after,
+.personal-hub__resume-panel::after,
+.personal-hub__insights-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 0%, var(--personal-hub-surface-glow), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.personal-hub__profile-panel {
+  align-items: stretch;
+  border-color: var(--personal-hub-surface-border-strong);
+  background:
+    radial-gradient(circle at top left, rgba(109, 140, 255, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(9, 16, 31, 0.7) !important;
+}
+
+.personal-hub__eyebrow {
+  display: inline-flex;
+  margin-bottom: var(--space-sm);
+  color: #b7c5ff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.personal-hub__profile-panel h2,
+.personal-hub__resume-panel h2 {
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.personal-hub__profile-intro,
+.personal-hub__bio-shell,
+.personal-hub__bio-block,
+.personal-hub__insights-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.personal-hub__bio-shell {
+  width: min(100%, 22rem);
+  margin-inline: auto;
+  margin-bottom: 1.1rem;
+}
+
+.personal-hub__profile-intro {
+  width: 100%;
+  margin-bottom: 1.4rem !important;
+  text-align: left;
+}
+
+.personal-hub__profile-name,
+.personal-hub__profile-role {
+  text-align: left;
+}
+
+.personal-hub__bio-shell,
+.personal-hub__profile-actions {
+  width: min(100%, 22rem);
+  margin-inline: auto;
+}
+
+.personal-hub__bio-block {
+  position: relative;
+  min-height: 10rem;
+  padding: var(--space-md);
+  padding-bottom: 2.4rem;
+  border: 1px solid rgba(139, 154, 209, 0.14);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)), rgba(8, 14, 28, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  text-align: left;
+}
+
+.personal-hub__bio-copy {
+  text-align: left;
+}
+
+.personal-hub__add-badge {
+  position: absolute;
+  left: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  transform: translateX(-50%);
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.personal-hub__add-badge:hover,
+.personal-hub__add-badge:focus-visible {
+  background: #f8fafc;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
+  transform: translateX(-50%) translateY(-1px);
+}
+
+.personal-hub__add-badge:focus-visible {
+  outline: 2px solid rgba(109, 140, 255, 0.55);
+  outline-offset: 2px;
+}
+
+.personal-hub__add-badge:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+.personal-hub__add-badge--avatar {
+  bottom: -0.55rem;
+}
+
+.personal-hub__add-badge--bio {
+  bottom: -1.05rem;
+}
+
+.personal-hub__profile-actions {
+  margin-top: 0;
+}
+
+.personal-hub__bio-actions button,
+.personal-hub__icon-action,
+.personal-hub__text-action,
+.personal-hub__primary-action,
+.personal-hub__secondary-action,
+.personal-hub__export-action {
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.personal-hub__icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+}
+
+.personal-hub__text-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border-radius: 0.75rem;
+}
+
+.personal-hub__primary-action,
+.personal-hub__secondary-action,
+.personal-hub__export-action {
+  position: relative;
+  border-color: rgba(145, 160, 214, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.personal-hub__secondary-action,
+.personal-hub__export-action {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.personal-hub__bio-actions button:hover,
+.personal-hub__bio-actions button:focus-visible,
+.personal-hub__secondary-action:hover,
+.personal-hub__secondary-action:focus-visible,
+.personal-hub__export-action:hover,
+.personal-hub__export-action:focus-visible {
+  border-color: rgba(169, 185, 255, 0.28);
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateY(-1px);
+}
+
+.personal-hub__insights-panel {
+  border-color: rgba(122, 139, 199, 0.2);
+  background:
+    radial-gradient(circle at top left, rgba(109, 140, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(10, 18, 35, 0.68) !important;
+}
+
+.personal-hub__insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.personal-hub__insight-card {
+  min-height: 8.75rem;
+  justify-content: center;
+  gap: var(--space-xs);
+  border-color: rgba(139, 154, 209, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)), rgba(8, 14, 28, 0.72) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.personal-hub__resume-preview {
+  position: relative;
+  min-height: clamp(22rem, 68dvh, 46rem);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.personal-hub__preview-fallback {
+  display: grid;
+  gap: var(--space-sm);
+  max-width: 24rem;
+  padding: 1.25rem;
+  text-align: center;
+  border: 1px solid rgba(139, 154, 209, 0.16);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)), rgba(8, 14, 28, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 699px) {
+  .personal-hub {
+    --space-lg: 20px;
+  }
+
+  .personal-hub__layout {
+    gap: 1.25rem;
+  }
+
+  .personal-hub__profile-panel,
+  .personal-hub__resume-panel,
+  .personal-hub__insights-panel {
+    border-radius: var(--radius-bento);
+  }
+
+  .personal-hub__profile-panel {
+    padding: 1.1rem !important;
+  }
+
+  .personal-hub__insights-panel {
+    padding: 1rem !important;
+  }
+
+  .personal-hub__resume-panel {
+    padding: 0 !important;
+  }
+
+  .personal-hub__profile-intro {
+    margin-bottom: 1.25rem !important;
+  }
+
+  .personal-hub__profile-panel h2,
+  .personal-hub__resume-panel h2 {
+    font-size: 1.8rem !important;
+  }
+
+  .personal-hub__bio-block {
+    padding: 0.85rem;
+  }
+
+  .personal-hub__bio-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .personal-hub__insights-grid {
+    gap: 0.75rem !important;
+  }
+
+  .personal-hub__insight-card {
+    min-height: 6.25rem;
+  }
+
+  .personal-hub__bio-shell,
+  .personal-hub__profile-actions {
+    width: 100%;
+  }
+
+  .personal-hub__resume-preview {
+    min-height: min(26rem, 62dvh) !important;
+    padding: 0 !important;
+  }
+
+  .personal-hub__resume-preview > div {
+    max-width: 100% !important;
+  }
+}
+
+@media (min-width: 700px) {
+  .personal-hub__layout {
+    gap: 1.75rem;
+  }
+
+  .personal-hub__resume-panel {
+    padding: 0 !important;
+  }
+
+  .personal-hub__resume-preview {
+    min-height: min(34rem, 70dvh);
+  }
+}
+
+@media (max-width: 979px) {
+  .personal-hub__drawer-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.25rem;
+  }
+
+  .personal-hub__drawer-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(139, 154, 209, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .personal-hub__drawer-close:hover,
+  .personal-hub__drawer-close:focus-visible {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(169, 185, 255, 0.28);
+  }
+
+  .personal-hub__drawer-close:focus-visible {
+    outline: 2px solid rgba(109, 140, 255, 0.55);
+    outline-offset: 2px;
+  }
+
+  .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready {
+    position: fixed;
+    left: max(env(safe-area-inset-left), 0px);
+    top: 50%;
+    z-index: 1200;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 3rem;
+    height: 5.5rem;
+    padding-right: 0.55rem;
+    border: 1px solid rgba(139, 154, 209, 0.18);
+    border-left: 0;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(180deg, rgba(16, 23, 42, 0.94), rgba(12, 18, 35, 0.9));
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+    color: #dfe6ff;
+    transform: translateY(-50%);
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+  }
+
+  .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready:hover,
+  .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready:focus-visible {
+    background: linear-gradient(180deg, rgba(26, 37, 67, 0.98), rgba(16, 24, 47, 0.94));
+    color: #ffffff;
+  }
+
+  .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready:focus-visible {
+    outline: 2px solid rgba(109, 140, 255, 0.55);
+    outline-offset: 2px;
+  }
+
+  .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready.is-open {
+    transform: translateY(-50%) translateX(calc(var(--personal-hub-drawer-width) - 0.25rem));
+  }
+
+  .personal-hub__drawer-handle-icon {
+    display: inline-flex;
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: transform 180ms ease;
+  }
+
+  .personal-hub__drawer-handle.is-open .personal-hub__drawer-handle-icon {
+    transform: rotate(180deg);
+  }
+
+  .personal-hub__drawer-handle-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .personal-hub.is-hydrated .personal-hub__drawer-overlay.is-ready {
+    position: fixed;
+    inset: 0;
+    z-index: 1180;
+    display: block;
+    border: 0;
+    background: rgba(7, 10, 20, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .personal-hub.is-hydrated .personal-hub__drawer-overlay.is-ready.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .personal-hub__sidebar-column.is-hydrated {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1190;
+    width: var(--personal-hub-drawer-width);
+    padding: calc(var(--app-header-height) + env(safe-area-inset-top) + 0.9rem) 0.85rem calc(env(safe-area-inset-bottom) + 1rem);
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(7, 10, 20, 0.96), rgba(10, 16, 31, 0.94));
+    border-right: 1px solid rgba(139, 154, 209, 0.14);
+    box-shadow: 24px 0 60px rgba(0, 0, 0, 0.38);
+    transform: translateX(calc(-100% - 1rem));
+    transition: transform 220ms ease;
+  }
+
+  .personal-hub__sidebar-column.is-hydrated.is-open {
+    transform: translateX(0);
+  }
+
+  .personal-hub__sidebar {
+    gap: 1rem;
+  }
+
+}
+
+@media (max-width: 979px) and (max-height: 540px) {
+  .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready {
+    height: 4.35rem;
+    width: 2.65rem;
+  }
+
+  .personal-hub__resume-preview {
+    min-height: min(18rem, 58dvh) !important;
+  }
+}
+
+@media (min-width: 980px) {
+  .personal-hub__drawer-handle,
+  .personal-hub__drawer-overlay {
+    display: none !important;
+  }
+
+  .personal-hub__sidebar-column {
+    order: 1;
+    position: static;
+    width: auto;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    border-right: 0;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .personal-hub__content {
+    order: 2;
+  }
+
+  .personal-hub__layout {
+    grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .personal-hub__layout {
+    grid-template-columns: minmax(280px, 0.74fr) minmax(0, 1.86fr);
+    gap: 2.25rem;
+  }
+
+  .personal-hub__sidebar-column {
+    position: sticky;
+    top: calc(var(--app-header-height) + 1.5rem);
+  }
+
+  .personal-hub__resume-panel {
+    min-height: calc(100vh - var(--app-header-height) - 5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .personal-hub__drawer-handle,
+  .personal-hub__drawer-overlay,
+  .personal-hub__sidebar-column,
+  .personal-hub__drawer-handle-icon,
+  .personal-hub__bio-actions button,
+  .personal-hub__icon-action,
+  .personal-hub__text-action,
+  .personal-hub__primary-action,
+  .personal-hub__secondary-action,
+  .personal-hub__export-action {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .personal-hub__secondary-action:hover,
+  .personal-hub__secondary-action:focus-visible,
+  .personal-hub__export-action:hover,
+  .personal-hub__export-action:focus-visible,
+  .personal-hub__bio-actions button:hover,
+  .personal-hub__bio-actions button:focus-visible {
+    transform: none;
+  }
+}
+
+.user-page__header {
+  margin-bottom: 2rem;
+}
+
+.user-page__title {
+  margin: 0;
+  font-size: 2rem;
+}
+
 .user-panel-layout {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
 }
 
+.user-panel-layout__main {
+  gap: 2rem;
+}
+
+.user-panel-layout__sidebar {
+  gap: 1rem;
+}
+
+.user-card__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.user-card__heading {
+  margin: 0;
+}
+
+.user-card__compact-stack {
+  gap: 0.5rem;
+}
+
+.user-card__full-width-button {
+  text-align: center;
+}
+
+.user-role-badge {
+  text-transform: uppercase;
+}
+
+.user-email-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-email-status__dot {
+  color: #4ade80;
+}
+
+.user-snapshot__meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.user-snapshot__actions-cell {
+  text-align: right;
+}
+
+.user-snapshot__actions {
+  justify-content: flex-end;
+}
+
+.user-snapshot__empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted);
+}
+
 @media (min-width: 900px) {
   .user-panel-layout {
     grid-template-columns: 2fr 1fr;
   }
+}
+
+.user-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-status__label {
+  font-size: 0.9rem;
+}
+
+.user-status__description {
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 .account-status-dot {

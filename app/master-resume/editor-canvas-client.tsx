@@ -6,6 +6,7 @@ import { StatusToast, useStatusToast } from "../components/status-toast";
 import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
+import { Button } from "../components/design-system/atoms/Button";
 import type {
   ResumeContactItem,
   ResumeCourse,
@@ -222,9 +223,9 @@ function PublishSavedVersionModal({
       <div className="dashboard-modal__body">
         <div className="section-row">
           <h2>Publish CV Version</h2>
-          <button type="button" className="button button--ghost button--small" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             Close
-          </button>
+          </Button>
         </div>
 
         <p className="card-lead">{draft.preset.title}</p>
@@ -263,12 +264,12 @@ function PublishSavedVersionModal({
         {error ? <p className="status status--error">{error}</p> : null}
 
         <div className="actions-row">
-          <button type="button" className="button button--primary" onClick={() => void submit()} disabled={isSubmitting}>
+          <Button variant="primary" onClick={() => void submit()} disabled={isSubmitting}>
             {isSubmitting ? "Publishing..." : "Publish CV Version"}
-          </button>
-          <button type="button" className="button button--ghost" onClick={onClose}>
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

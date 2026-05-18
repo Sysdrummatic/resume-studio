@@ -2,8 +2,9 @@ import React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
-import { ResumePdfDocument } from "../../../../lib/resume-pdf";
+import { CvPdfTemplate } from "../../../../lib/CvPdfTemplate";
 import { normalizeResumeDocument } from "../../../../lib/resume-schema";
+import { rateLimit } from "../../../../lib/rate-limit";
 import yaml from "js-yaml";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "personSlug and publicId are required." }, { status: 400 });
   }
 
+  // Rate limit by IP or personSlug (to prevent scraping)
+  const ip = req.headers.get("x-forwarded-for") || "anonymous";
+  const rl = rateLimit(`pdf-export:${ip}`, { interval: 60000, limit: 5 });
+  if (!rl.success) {
+    return NextResponse.json({ error: "Rate limit exceeded." }, { status: 429 });
+  }
+
   const exportData = await fetchPublishedResumeExportByPublicLink(personSlug, publicId, lang);
   if (!exportData) {
     return NextResponse.json({ error: "Published CV snapshot not found." }, { status: 404 });
@@ -26,8 +34,7 @@ export async function GET(req: NextRequest) {
   try {
     const doc = normalizeResumeDocument(yaml.load(exportData.yamlContent), "");
     const pdfBytes = await renderToBuffer(
-      React.createElement(ResumePdfDocument, {
-        locale: exportData.locale,
+      React.createElement(CvPdfTemplate, {
         resume: doc,
         title: exportData.personSlug,
       }),

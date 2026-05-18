@@ -13,7 +13,8 @@ function read(filePath) {
 test("app header uses hamburger navigation below desktop width", () => {
   const source = read(navigationPath);
 
-  assert.equal(source.includes('window.matchMedia("(min-width: 1024px)")'), true);
+  assert.equal(source.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
+  assert.equal(source.includes("window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY)"), true);
   assert.equal(source.includes('className="app-nav-menu__trigger"'), true);
   assert.equal(source.includes('className="app-nav"'), true);
 });
@@ -40,7 +41,7 @@ test("hamburger menu closes when another header menu opens", () => {
 test("account menu shows identity only on desktop width", () => {
   const styles = read(stylesPath);
 
-  assert.equal(styles.includes("@media (max-width: 1023px)"), true);
+  assert.equal(styles.includes("@media (max-width: 979px)"), true);
   assert.equal(styles.includes(".app-header__controls--compact .account-menu__identity"), true);
   assert.equal(styles.includes(".app-header__controls--compact .account-menu__trigger"), true);
   assert.equal(/\.account-menu__identity \{\s+display: none;/.test(styles), true);

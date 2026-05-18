@@ -18,5 +18,6 @@ Authoritative guides and workflows for maintaining the resume project.
 - [Phase B YAML Data Layer](guides/phase-b-yaml-data-layer.md)
 - [Phase C Auth + RBAC + Admin](guides/phase-c-auth-rbac-admin.md)
 - [Phase D Resume Editor Canvas](guides/phase-d-editor-canvas.md)
+- [Responsive UI and Drawer Patterns](guides/responsive-ui-and-drawer-patterns.md)
 - [CV Publication Test Contracts](guides/cv-publication-test-contracts.md)
 - [AI Demo Resume Generation Workstream](guides/ai-demo-resume-generation-plan.md)

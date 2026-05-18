@@ -291,7 +291,7 @@ export async function insertTable({
 export async function fetchProfileById(userId: string, accessToken: string): Promise<AuthResult<ProfileRecord>> {
   const result = await queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,role,is_active,created_at,updated_at",
+    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
     accessToken,
     query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
@@ -306,7 +306,7 @@ export async function fetchProfileById(userId: string, accessToken: string): Pro
 export async function fetchProfileByIdAsService(userId: string): Promise<AuthResult<ProfileRecord>> {
   const result = await queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,role,is_active,created_at,updated_at",
+    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
     useServiceRole: true,
     query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
@@ -321,7 +321,7 @@ export async function fetchProfileByIdAsService(userId: string): Promise<AuthRes
 export async function fetchAllProfilesAsService(): Promise<AuthResult<ProfileRecord[]>> {
   return queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,role,is_active,created_at,updated_at",
+    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
     useServiceRole: true,
     query: "order=created_at.desc",
   });

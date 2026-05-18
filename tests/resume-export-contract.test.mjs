@@ -18,14 +18,14 @@ test("text export route is snapshot-only and rejects preset fallback", () => {
 
 test("pdf export route is snapshot-only and returns application/pdf", () => {
   const route = read("app/api/resume/export/pdf/route.ts");
-  const pdfDocument = read("app/lib/resume-pdf.tsx");
+  const pdfDocument = read("app/lib/CvPdfTemplate.tsx");
 
   assert.equal(route.includes("fetchPublishedResumeExportByPublicLink"), true);
   assert.equal(route.includes("\"Content-Type\": \"application/pdf\""), true);
   assert.equal(route.includes("personSlug and publicId are required"), true);
   assert.equal(route.includes("renderToBuffer"), true);
   assert.equal(pdfDocument.includes("from \"@react-pdf/renderer\""), true);
-  assert.equal(pdfDocument.includes("export function ResumePdfDocument"), true);
+  assert.equal(pdfDocument.includes("export const CvPdfTemplate"), true);
 });
 
 test("public export helper keeps canonical person slug and public id parsing local to the snapshot path", () => {

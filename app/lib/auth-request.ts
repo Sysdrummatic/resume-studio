@@ -66,7 +66,9 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
     email,
     emailConfirmed: Boolean(userResult.data.email_confirmed_at),
     displayName: normalizeDisplayName(profileResult.data.display_name, email),
+    avatarUrl: profileResult.data.avatar_url,
     role: profileResult.data.role,
+    bio: profileResult.data.bio,
     isActive: profileResult.data.is_active,
     accessToken,
   };

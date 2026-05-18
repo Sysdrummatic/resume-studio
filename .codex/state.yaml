@@ -320,6 +320,35 @@ ui_critique:
   role: FE
   task: "complete_T1_read_only_public_link_panel"
   status: pass
+  design_reviews:
+    - agent: ui_ux_designer
+      role: Design
+      task: "review-and-style-guidance"
+      ref: "header-and-personal-hub-layout"
+      status: advisory_with_small_ui_edits
+      acceptance_criteria:
+        - "Language switch should sit in the same visual cluster as the brand and read as a related control, not a detached utility."
+        - "Brand container should be ready for a future logo plus wordmark without changing header spacing semantics."
+        - "Personal Hub profile card and Primary Resume panel should read as separate manipulable surfaces with distinct hierarchy."
+      findings:
+        - "Header language control already moved next to the brand structurally, but its visual treatment was too generic to feel authored."
+        - "AppBrand already existed as a reusable seam; adding a stable logo slot is safer than reworking header markup."
+        - "Personal Hub profile and resume panels needed local sub-surfaces and header rails more than a full redesign."
+      viewport_review:
+        mobile_360:
+          - "Brand, language, nav trigger, and account affordances fit as two compact clusters when the language control collapses to EN-only text."
+          - "Language menu panel should anchor left under the brand cluster to avoid right-edge clipping."
+        tablet_768:
+          - "Profile and resume surfaces separate cleanly once the bio block and resume header rail are introduced."
+        desktop_1440:
+          - "The resume stage reads as the dominant working area while the profile card remains clearly editable rather than purely decorative."
+      accessibility:
+        - "Added focus-visible treatment for header menus and explicit aria-label for the bio edit icon."
+        - "Profile and resume surfaces now expose stable headings through aria-labelledby."
+      recommendations_applied:
+        - "Keep language in the brand cluster as a compact pill with explicit active-language labeling."
+        - "Use a persistent logo slot in the brand so future iconography extends the current unit instead of replacing it."
+        - "Differentiate Personal Hub surfaces through internal framing and hierarchy, not through a palette change."
   findings:
     - "Editor Saved Version panel now tracks deterministic loading, empty, and error states from the owner-scoped preset fetch."
     - "Canonical public URL is rendered before compatibility URL in the read-only panel."
@@ -2368,3 +2397,39 @@ public_link_management_execution_routing:
     LMT:
       - "public-link management editor task is complete"
       - "use validation evidence from public_link_management_execution_routing.closeout"
+header_and_personal_hub_layout:
+  agent: frontend_engineer
+  role: FE
+  task: "implement header-and-personal-hub-layout"
+  status: implemented_pending_validation
+  scope:
+    changed:
+      - "app/layout.tsx"
+      - "app/components/app-brand.tsx"
+      - "app/components/app-header-navigation.tsx"
+      - "app/globals.css"
+      - "app/user/page.tsx"
+      - "app/user/user-client.tsx"
+      - "app/user/user.css"
+  findings:
+    - "The app language menu previously lived inside the navigation controls, so its position shifted with compact navigation state instead of remaining attached to the project name."
+    - "The Personal Hub profile summary and Primary Resume preview each existed as single broad sections without dedicated wrapper hooks for independent styling."
+  implementation:
+    - "Extracted a reusable AppBrand component with explicit logo and name slots for future branding expansion."
+    - "Moved the language menu into a header branding cluster immediately to the right of OpenCVHub for authenticated and unauthenticated states."
+    - "Added personal-hub wrapper classes around the profile summary/actions and resume summary/preview areas with minimal CSS hooks."
+  next:
+    REQ: test_engineer
+    CMD: validate_header_and_personal_hub_layout
+    CTX:
+      ref: ".codex/state.yaml#header_and_personal_hub_layout"
+      scope:
+        - "app/layout.tsx"
+        - "app/components/app-brand.tsx"
+        - "app/components/app-header-navigation.tsx"
+        - "app/globals.css"
+        - "app/user/**"
+    LMT:
+      - "frontend-only"
+      - "preserve existing behavior"
+      - "a11y regression check"
