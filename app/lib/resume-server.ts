@@ -821,7 +821,9 @@ export function trackLegacyPublicRouteEvent(input: {
     outcome: input.outcome,
     timestamp: new Date().toISOString(),
   };
-  console.info("[public-route-compat]", JSON.stringify(payload));
+  if (process.env.COMPAT_ROUTE_DEBUG === "true") {
+    console.info("[public-route-compat]", JSON.stringify(payload));
+  }
 }
 
 async function fetchActivePublicLinkByPersonAndPublicId(

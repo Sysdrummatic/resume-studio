@@ -12,7 +12,7 @@ import {
   type AppTheme,
 } from "../lib/app-theme";
 
-const APP_THEME_TRANSITION_MS = 500;
+const APP_THEME_TRANSITION_MS = 1500;
 
 type DocumentWithViewTransition = Document & {
   startViewTransition?: (update: () => void) => {

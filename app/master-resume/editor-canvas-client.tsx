@@ -401,25 +401,32 @@ export default function EditorCanvasClient() {
 
   useEffect(() => {
     let mounted = true;
+    let retries = 0;
 
-    async function init() {
-      let retries = 0;
-      while (!hasYamlRuntime() && retries < 40) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        retries += 1;
-      }
-      if (!mounted) return;
-      if (!hasYamlRuntime()) {
-        showToast("YAML parser is unavailable. Reload the page.", "error");
-        setIsLoading(false);
-        return;
-      }
-      await loadLocaleDocument(locale);
+    if (hasYamlRuntime()) {
+      void loadLocaleDocument(locale);
+      return () => {
+        mounted = false;
+      };
     }
 
-    void init();
+    const timer = window.setInterval(() => {
+      retries += 1;
+      if (hasYamlRuntime() || retries >= 40) {
+        window.clearInterval(timer);
+        if (!mounted) return;
+        if (!hasYamlRuntime()) {
+          showToast("YAML parser is unavailable. Reload the page.", "error");
+          setIsLoading(false);
+          return;
+        }
+        void loadLocaleDocument(locale);
+      }
+    }, 100);
+
     return () => {
       mounted = false;
+      window.clearInterval(timer);
     };
   }, [loadLocaleDocument, locale, showToast]);
 

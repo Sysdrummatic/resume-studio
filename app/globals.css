@@ -2,7 +2,7 @@
   color-scheme: dark;
   --app-theme: dark;
   --app-header-height: 56px;
-  --app-theme-transition-duration: 500ms;
+  --app-theme-transition-duration: 1500ms;
   --app-theme-transition-easing: cubic-bezier(0.22, 1, 0.36, 1);
   --space-2xs: 4px;
   --space-xs: 8px;

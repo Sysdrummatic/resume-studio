@@ -1,24 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { clearAuthCookies, readAuthTokens, setAuthCookies } from "../../../lib/auth-cookies";
-import { fetchProfileById, fetchProfileByIdAsService, getAuthUser, refreshSession } from "../../../lib/supabase-http";
+import { getAuthUser, refreshSession } from "../../../lib/supabase-http";
+import { resolveProfile } from "../../../lib/auth-profile";
 
 function buildUnauthorizedResponse(message = "Authentication required."): Response {
   return NextResponse.json({ error: message }, { status: 401 });
-}
-
-async function resolveProfile(userId: string, accessToken: string) {
-  const profileResult = await fetchProfileById(userId, accessToken);
-  if (profileResult.data || profileResult.status < 500) {
-    return profileResult;
-  }
-
-  const fallbackResult = await fetchProfileByIdAsService(userId);
-  if (fallbackResult.data) {
-    return fallbackResult;
-  }
-
-  return profileResult;
 }
 
 export async function GET(): Promise<Response> {

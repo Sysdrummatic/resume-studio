@@ -1,6 +1,6 @@
 "use strict";
 
-const jsyaml = require("../js-yaml.min.js");
+const jsyaml = require("../../vendor/js-yaml.min.js");
 
 const SUPPORTED_LOCALES = new Set(["en", "pl"]);
 
