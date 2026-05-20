@@ -4,7 +4,6 @@ import PrintTrigger from "../../components/print-trigger";
 import { getAppBaseUrl } from "../../lib/env";
 import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
 import type { PublishedResumePreset } from "../../lib/resume-server";
-import "../../resume/resume.css";
 
 type PublicResumeByPublicIdPageProps = {
   params: Promise<{
@@ -126,6 +125,9 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         languages={published.languages}
         status="public"
         aiGenerated={published.preset.ai_generated || published.document.ai_generated}
+        personSlug={canonicalPersonSlug}
+        publicId={canonicalPublicId}
+        mode="public"
       />
     </main>
   );

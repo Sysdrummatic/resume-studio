@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
-import { buildPublishedResumeExportUrls } from "../lib/resume-export";
+import { buildPublishedResumeExportUrls, parseCanonicalPublicPath } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { BasicResumeDocument } from "../master-resume/resume-live-preview";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
@@ -15,6 +15,7 @@ type Props = {
   initialDocuments: ResumeDocumentRow[];
   languageOptions: ResumeLanguageRow[];
   initialPresets: ResumePresetRow[];
+  actorRole: string;
 };
 
 type PresetOptionKey = keyof ResumePresetSelection;
@@ -329,12 +330,14 @@ function PresetPreviewModal({
   documents,
   languages,
   preset,
+  allowDraftPdf,
   onClose,
 }: {
   masterResume: ResumeDocumentRow;
   documents: ResumeDocumentRow[];
   languages: ResumeLanguageRow[];
   preset: ResumePresetRow;
+  allowDraftPdf: boolean;
   onClose: () => void;
 }) {
   const availableDocuments = documents.length ? documents : [masterResume];
@@ -346,6 +349,7 @@ function PresetPreviewModal({
     availableDocuments.find((document) => document.locale === activeLocale) ||
     availableDocuments.find((document) => document.locale === masterResume.locale) ||
     masterResume;
+  const publicLink = parseCanonicalPublicPath(preset.canonical_public_path);
   const previewResume = buildPresetResumeDocument(activeDocument.yaml_content, preset.selection);
   const cvLanguages = buildLanguageOptions(availableDocuments, languages);
 
@@ -368,6 +372,10 @@ function PresetPreviewModal({
               onLanguageSelect={setActiveLocale}
               status={preset.is_public ? "public" : "draft"}
               aiGenerated={preset.ai_generated}
+              mode="preview"
+              personSlug={publicLink?.personSlug}
+              publicId={publicLink?.publicId}
+              allowDraftPdf={allowDraftPdf}
             />
           </div>
         ) : (
@@ -492,7 +500,7 @@ function PublishSavedVersionModal({
   );
 }
 
-export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets }: Props) {
+export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets, actorRole }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
@@ -770,6 +778,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           documents={initialDocuments}
           languages={languageOptions}
           preset={previewPreset}
+          allowDraftPdf={actorRole === "admin"}
           onClose={() => {
             setPreviewPreset(null);
           }}

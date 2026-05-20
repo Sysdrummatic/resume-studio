@@ -9,9 +9,9 @@ As part of the design system modernization, new PDF export endpoints were introd
 ## Decisions
 
 1. **Mandatory Authentication for Previews**
-   - The `app/api/resume/export/pdf/preview` endpoint now requires a valid user session.
-   - We use `requireRequestActor()` to verify the JWT and ensure the user is active.
-   - This prevents the server from being used as a free, unauthenticated PDF rendering service.
+   - The `app/api/resume/export/pdf/preview` endpoint now requires an authenticated `admin` session.
+   - We use `requireRequestActor(["admin"])` to verify the JWT, ensure the user is active, and keep draft PDF export as an admin-only testing capability.
+   - This prevents the server from being used as a free, unauthenticated PDF rendering service and keeps unpublished PDF snapshots out of standard user flows.
 
 2. **Server-Side Rate Limiting**
    - Implemented a `rateLimit` utility in `app/lib/rate-limit.ts`.

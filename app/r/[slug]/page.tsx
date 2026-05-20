@@ -2,7 +2,6 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { BasicResumeDocument } from "../../master-resume/resume-live-preview";
 import PrintTrigger from "../../components/print-trigger";
 import { fetchCanonicalPublicPathBySlug, fetchPublishedResumePresetBySlug, trackLegacyPublicRouteEvent } from "../../lib/resume-server";
-import "../../resume/resume.css";
 
 type PublicResumePageProps = {
   params: Promise<{
@@ -93,6 +92,7 @@ export default async function PublicResumeBySlugPage({ params, searchParams }: P
         languages={published.languages}
         status="public"
         aiGenerated={published.preset.ai_generated || published.document.ai_generated}
+        mode="public"
       />
     </main>
   );

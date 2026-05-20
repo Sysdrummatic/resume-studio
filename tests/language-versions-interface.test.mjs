@@ -42,12 +42,14 @@ test("resume locale handling supports newly added two-letter languages", () => {
   const schema = read("app/lib/resume-schema.ts");
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const preview = read("app/master-resume/resume-live-preview.tsx");
+  const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
 
   assert.equal(schema.includes("export type ResumeLocale = string"), true);
   assert.equal(schema.includes("/^[a-z]{2}$/.test(normalized) ? normalized : \"en\""), true);
   assert.equal(editor.includes("searchParams.get(\"locale\")"), true);
   assert.equal(editor.includes("setLanguageOptions(payload.languages.sort"), true);
-  assert.equal(preview.includes("getPreviewLabels(locale)"), true);
+  assert.equal(preview.includes("locale={locale}"), true);
+  assert.equal(renderer.includes("buildResumeRendererLabels(locale, labels)"), true);
 });
 
 test("preset APIs preserve dynamic default locales instead of forcing EN or PL", () => {

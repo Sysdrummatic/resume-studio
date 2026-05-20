@@ -40,12 +40,14 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         fontSize: sizeStyle.fontSize,
         lineHeight: 1,
         letterSpacing: "-0.02em",
-        color: "#ffffff",
+        color: "var(--portal-on-accent)",
         background: src
-          ? "linear-gradient(135deg, rgba(93, 124, 255, 0.16), rgba(125, 101, 247, 0.16))"
-          : "linear-gradient(135deg, #5d7cff, #7d65f7)",
-        border: "1px solid rgba(255, 255, 255, 0.14)",
-        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 18px rgba(0, 0, 0, 0.18)",
+          ? "var(--portal-control-bg)"
+          : "var(--portal-button-primary-bg)",
+        border: "1px solid var(--portal-control-border)",
+        boxShadow: src
+          ? "var(--portal-control-shadow)"
+          : "var(--portal-button-primary-shadow)",
       }}
     >
       {src ? (

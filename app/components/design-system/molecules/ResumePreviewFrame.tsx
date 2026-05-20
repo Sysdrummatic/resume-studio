@@ -16,6 +16,7 @@ export const ResumePreviewFrame: React.FC<ResumePreviewFrameProps> = ({ resume, 
            locale={locale} 
            status="public" 
            showChrome={false}
+           mode="preview"
          />
       </div>
     </div>

@@ -62,8 +62,11 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   assert.equal(client.includes("BasicResumeDocument"), true);
   assert.equal(page.includes("fetchResumeLanguages"), true);
   assert.equal(page.includes("initialDocuments={resumeDocuments}"), true);
+  assert.equal(page.includes("actorRole={actor.role}"), true);
   assert.equal(client.includes("buildLanguageOptions"), true);
   assert.equal(client.includes("onLanguageSelect={setActiveLocale}"), true);
+  assert.equal(client.includes("parseCanonicalPublicPath"), true);
+  assert.equal(client.includes("allowDraftPdf={actorRole === \"admin\"}"), true);
   assert.equal(preview.includes("export function BasicResumeDocument"), true);
 });
 

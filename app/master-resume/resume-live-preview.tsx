@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
-import { getDefaultSummary, getPreviewLabels } from "../lib/resume-schema";
-import ResumeBadges from "../components/resume-badges";
-import ResumeLanguageSwitcher from "../components/resume-language-switcher";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
-
-import { Download, FileText } from "lucide-react";
-import { Button } from "../components/design-system/atoms/Button";
-import { Typography } from "../components/design-system/atoms/Typography";
+import ResumeRenderer from "../components/resume-renderer/ResumeRenderer";
+import { buildPublishedResumeExportUrls } from "../lib/resume-export";
+import type { ResumeRenderAction, ResumeRendererLabels } from "../components/resume-renderer/build-resume-render-model";
 
 export type ResumeEditorStyle = "basic" | "empty";
 
@@ -22,8 +18,26 @@ type Props = {
   yamlContent: string;
   isExpanded: boolean;
   aiGenerated?: boolean;
+  allowDraftPdf?: boolean;
   onExpand: () => void;
   onClose: () => void;
+};
+
+type BasicResumeDocumentProps = {
+  locale: ResumeLocale;
+  resume: ResumeDocument;
+  languages?: ResumeLanguageOption[];
+  onLanguageSelect?: (locale: string) => void;
+  status?: "public" | "draft";
+  aiGenerated?: boolean;
+  personSlug?: string;
+  publicId?: string;
+  showChrome?: boolean;
+  mode?: "public" | "editor" | "preview";
+  roleOverride?: string | null;
+  allowDraftPdf?: boolean;
+  labels?: Partial<ResumeRendererLabels>;
+  isBusy?: boolean;
 };
 
 const BASIC_PREVIEW_WIDTH = 920;
@@ -33,10 +47,25 @@ const LANGUAGE_LABELS: Record<string, string> = {
   pl: "Polski",
 };
 
-function renderMeter(level: number) {
-  return [1, 2, 3, 4, 5].map((step) => (
-    <span key={step} className={`meter__dot ${step <= (level || 0) ? "meter__dot--active" : ""}`}></span>
-  ));
+async function exportPreviewPdf(resume: ResumeDocument, locale: ResumeLocale) {
+  const res = await fetch("/api/resume/export/pdf/preview", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ resume, locale }),
+  });
+  if (!res.ok) {
+    throw new Error("Failed to generate preview PDF.");
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `preview-${resume.brand_initials || "CV"}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
 }
 
 export function BasicResumeDocument({
@@ -49,257 +78,57 @@ export function BasicResumeDocument({
   personSlug,
   publicId,
   showChrome = true,
-}: {
-  locale: ResumeLocale;
-  resume: ResumeDocument;
-  languages?: ResumeLanguageOption[];
-  onLanguageSelect?: (locale: string) => void;
-  status?: "public" | "draft";
-  aiGenerated?: boolean;
-  personSlug?: string;
-  publicId?: string;
-  showChrome?: boolean;
-}) {
-  const labels = getPreviewLabels(locale);
-  const defaultSummary = getDefaultSummary(resume.summary);
+  mode = "preview",
+  roleOverride,
+  allowDraftPdf = false,
+  labels,
+  isBusy = false,
+}: BasicResumeDocumentProps) {
   const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] || locale.toUpperCase() }];
-  
-  // Construct the PDF download URL if we have the necessary params
-  const pdfDownloadUrl = personSlug && publicId 
-    ? `/api/resume/export/pdf?personSlug=${personSlug}&publicId=${publicId}&lang=${locale}`
-    : "#";
+  const exportUrls =
+    personSlug && publicId
+      ? buildPublishedResumeExportUrls(`/${encodeURIComponent(personSlug)}/${encodeURIComponent(publicId)}`, locale)
+      : null;
+
+  let pdfAction: ResumeRenderAction | undefined;
+  if (exportUrls?.pdfUrl) {
+    pdfAction = { label: "PDF", href: exportUrls.pdfUrl };
+  } else if (allowDraftPdf) {
+    pdfAction = { label: "PDF", onClick: () => exportPreviewPdf(resume, locale) };
+  } else {
+    pdfAction = { label: "PDF", disabled: true, disabledReason: "Available after publish" };
+  }
+
+  let atsAction: ResumeRenderAction | undefined;
+  if (exportUrls?.textUrl) {
+    atsAction = { label: "ATS Ready", href: exportUrls.textUrl };
+  } else {
+    atsAction = {
+      label: "ATS Ready",
+      disabled: true,
+      disabledReason: "Available after publish",
+    };
+  }
 
   return (
-    <div className={`resume-editor-basic resume-view-page resume-style--basic${showChrome ? "" : " resume-editor-basic--plain"}`}>
-      <div className="resume">
-        <header className="hero">
-          <div className="hero__title">
-            <div className="logo-circle">{resume.brand_initials || "CV"}</div>
-            <div className="hero__identity">
-              <Typography variant="h1" theme="light">{resume.name || "Your Name"}</Typography>
-              <Typography variant="body" theme="light" muted>{defaultSummary?.position || "Your Role"}</Typography>
-            </div>
-          </div>
-          {showChrome ? (
-            <div className="hero__actions">
-              <ResumeLanguageSwitcher languages={languageOptions} activeLocale={locale} ariaLabel="CV language" onSelect={onLanguageSelect} />
-              <ResumeBadges status={status} aiGenerated={aiGenerated} />
-              <div className="hero__export-actions" style={{ display: "flex", gap: "8px", marginLeft: "16px" }}>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  icon={<Download size={14} />}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    
-                    if (personSlug && publicId) {
-                      window.location.href = pdfDownloadUrl;
-                      return;
-                    }
-
-                    try {
-                      const res = await fetch("/api/resume/export/pdf/preview", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ resume }),
-                      });
-                      if (!res.ok) throw new Error("Failed to generate PDF");
-                      
-                      const blob = await res.blob();
-                      const url = window.URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `preview-${resume.brand_initials || "CV"}.pdf`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      window.URL.revokeObjectURL(url);
-                    } catch (err) {
-                      alert("Error generating preview PDF.");
-                      console.error(err);
-                    }
-                  }}
-                >
-                  PDF
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  icon={<FileText size={14} />}
-                  disabled 
-                >
-                  ATS Ready
-                </Button>
-              </div>
-            </div>
-          ) : null}
-        </header>
-
-        <main className="layout">
-          <section className="main-column">
-            {defaultSummary && (
-              <article className="section resume-section resume-section--summary">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.summary}</h2>
-                </div>
-                <p className="summary-text">{defaultSummary.description}</p>
-              </article>
-            )}
-
-            {resume.experience.length > 0 && (
-              <article className="section resume-section resume-section--experience">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.experience}</h2>
-                </div>
-                <div className="timeline">
-                  {resume.experience.map((item, index) => (
-                    <div key={`${item.company}-${index}`} className="timeline-item">
-                      <div className="timeline-item__period">{item.period}</div>
-                      <div className="timeline-item__content">
-                        <h3>{item.company || "Company"}</h3>
-                        <p className="timeline-item__subheading">{item.role || "Role"}</p>
-                        {item.highlights.length > 0 && (
-                          <ul className="item-list">
-                            {item.highlights.map((highlight, highlightIndex) => (
-                              <li key={`${highlight}-${highlightIndex}`}>{highlight}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            )}
-
-            {resume.education.length > 0 && (
-              <article className="section resume-section resume-section--education">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.education}</h2>
-                </div>
-                <div className="timeline timeline--compact">
-                  {resume.education.map((item, index) => (
-                    <div key={`${item.school}-${index}`} className="timeline-item">
-                      <div className="timeline-item__period">{item.period}</div>
-                      <div className="timeline-item__content">
-                        <h3>{item.school || "School"}</h3>
-                        {item.detail ? <p className="timeline-item__detail">{item.detail}</p> : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            )}
-
-            {resume.courses.length > 0 && (
-              <article className="section resume-section resume-section--courses">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.courses}</h2>
-                </div>
-                <div className="timeline timeline--compact timeline--courses">
-                  {resume.courses.map((item, index) => (
-                    <div key={`${item.name}-${index}`} className="timeline-item">
-                      <div className="timeline-item__period">{item.year || ""}</div>
-                      <div className="timeline-item__content">
-                        <h3>{item.name}</h3>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            )}
-          </section>
-
-          <aside className="sidebar">
-            <section className="card resume-section resume-section--personal">
-              <div className="section-title">
-                <span className="section-dot"></span>
-                <h2>{labels.personalInfo}</h2>
-              </div>
-              <dl className="contact-list">
-                {resume.contact.map((item, index) => (
-                  <div key={`${item.label}-${index}`} className="contact-item">
-                    <dt>{item.label}</dt>
-                    <dd>{item.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-
-            {resume.skills.length > 0 && (
-              <section className="card resume-section resume-section--skills">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.skills}</h2>
-                </div>
-                <div className="meter-list">
-                  {resume.skills.map((item, index) => (
-                    <div key={`${item.name}-${index}`} className="meter-item meter-item--plain">
-                      <div className="meter-item__label">
-                        <span>{item.name}</span>
-                      </div>
-                      <div className="meter">{renderMeter(item.level)}</div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {resume.tech_stack.length > 0 && (
-              <section className="card resume-section resume-section--tech-stack">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.techStack}</h2>
-                </div>
-                <ul className="pill-list">
-                  {resume.tech_stack.map((item, index) => (
-                    <li key={`${item}-${index}`}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {resume.languages.length > 0 && (
-              <section className="card resume-section resume-section--languages">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.languages}</h2>
-                </div>
-                <div className="meter-list meter-list--compact">
-                  {resume.languages.map((item, index) => (
-                    <div key={`${item.name}-${index}`} className="meter-item meter-item--plain">
-                      <div className="meter-item__label">
-                        <span>{item.name}</span>
-                        {item.level_text ? <span className="meter-item__note">{item.level_text}</span> : null}
-                      </div>
-                      <div className="meter">{renderMeter(item.level)}</div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {resume.interests.length > 0 && (
-              <section className="card resume-section resume-section--interests">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{labels.interests}</h2>
-                </div>
-                <ul className="pill-list">
-                  {resume.interests.map((item, index) => (
-                    <li key={`${item}-${index}`}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </aside>
-        </main>
-      </div>
-    </div>
+    <ResumeRenderer
+      locale={locale}
+      resume={resume}
+      languages={languageOptions}
+      activeLocale={locale}
+      onLanguageSelect={onLanguageSelect}
+      status={status}
+      aiGenerated={aiGenerated}
+      mode={mode}
+      roleOverride={roleOverride}
+      showChrome={showChrome}
+      labels={labels}
+      isBusy={isBusy}
+      actions={{
+        pdf: pdfAction,
+        ats: atsAction,
+      }}
+    />
   );
 }
 
@@ -312,6 +141,7 @@ export default function ResumeLivePreview({
   yamlContent,
   isExpanded,
   aiGenerated = false,
+  allowDraftPdf = false,
   onExpand,
   onClose,
 }: Props) {
@@ -319,7 +149,7 @@ export default function ResumeLivePreview({
   const documentRef = useRef<HTMLDivElement>(null);
   const [previewMetrics, setPreviewMetrics] = useState({ scale: 1, height: 0 });
 
-  function handleFrameKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  function handleFrameKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "Enter" && event.key !== " ") {
       return;
     }
@@ -389,12 +219,14 @@ export default function ResumeLivePreview({
               status="draft"
               aiGenerated={aiGenerated}
               showChrome
+              mode="editor"
+              allowDraftPdf={allowDraftPdf}
             />
           </div>
         </div>
       </div>
 
-      {isExpanded && (
+      {isExpanded ? (
         <div className="resume-editor-preview-modal" role="dialog" aria-modal="true" aria-label="Enlarged CV preview">
           <button type="button" className="resume-editor-preview-modal__backdrop" onClick={onClose} aria-label="Close preview"></button>
           <div className="resume-editor-preview-modal__body">
@@ -409,10 +241,12 @@ export default function ResumeLivePreview({
               status="draft"
               aiGenerated={aiGenerated}
               showChrome
+              mode="editor"
+              allowDraftPdf={allowDraftPdf}
             />
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 }

@@ -28,7 +28,7 @@ export function getLanguageDisplayLabel(option: ResumeLanguageOption, activeLoca
 }
 
 export default function ResumeLanguageSwitcher({ languages, activeLocale, ariaLabel, isBusy = false, onSelect }: Props) {
-  if (languages.length === 0) {
+  if (languages.length <= 1) {
     return null;
   }
 
@@ -36,6 +36,7 @@ export default function ResumeLanguageSwitcher({ languages, activeLocale, ariaLa
     <div
       className={`resume-language-switcher language-switcher ${isBusy ? "resume-language-switcher--busy language-switcher--busy" : ""}`}
       aria-label={ariaLabel}
+      aria-busy={isBusy ? "true" : undefined}
     >
       {languages.map((language) => {
         const isActive = normalizeLocaleCode(language.code) === normalizeLocaleCode(activeLocale);
@@ -58,6 +59,7 @@ export default function ResumeLanguageSwitcher({ languages, activeLocale, ariaLa
             type="button"
             className={className}
             aria-current={isActive ? "true" : undefined}
+            aria-pressed={isActive}
             disabled={isBusy}
             onClick={(event) => {
               event.stopPropagation();

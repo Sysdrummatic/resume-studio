@@ -46,14 +46,13 @@
 }
 
 .personal-hub {
-  --personal-hub-surface-border: rgba(255, 255, 255, 0.1);
-  --personal-hub-surface-border-strong: rgba(162, 178, 255, 0.2);
+  --personal-hub-surface-border: var(--portal-border);
+  --personal-hub-surface-border-strong: var(--portal-border-accent);
   --personal-hub-drawer-width: min(22rem, calc(100vw - 3.5rem));
-  --personal-hub-surface-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.018)),
-    rgba(13, 19, 35, 0.74);
-  --personal-hub-panel-glow: radial-gradient(circle at top left, rgba(109, 140, 255, 0.16), transparent 34%);
-  --personal-hub-surface-glow: rgba(124, 149, 255, 0.12);
-  --personal-hub-cyan-glow: rgba(95, 208, 216, 0.1);
+  --personal-hub-surface-fill: var(--portal-card-bg-muted);
+  --personal-hub-panel-glow: radial-gradient(circle at top left, var(--portal-accent-glow), transparent 34%);
+  --personal-hub-surface-glow: var(--portal-accent-glow);
+  --personal-hub-cyan-glow: var(--portal-accent-glow);
   position: relative;
   isolation: isolate;
 }
@@ -164,16 +163,12 @@
 .personal-hub__profile-panel {
   align-items: stretch;
   border-color: var(--personal-hub-surface-border-strong);
-  background:
-    radial-gradient(circle at top left, rgba(109, 140, 255, 0.16), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
-    rgba(9, 16, 31, 0.7) !important;
 }
 
 .personal-hub__eyebrow {
   display: inline-flex;
   margin-bottom: var(--space-sm);
-  color: #b7c5ff;
+  color: var(--accent);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -222,15 +217,37 @@
   min-height: 10rem;
   padding: var(--space-md);
   padding-bottom: 2.4rem;
-  border: 1px solid rgba(139, 154, 209, 0.14);
+  border: 1px solid var(--portal-border);
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)), rgba(8, 14, 28, 0.72);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--portal-card-bg);
+  box-shadow: var(--portal-input-shadow);
   text-align: left;
 }
 
 .personal-hub__bio-copy {
   text-align: left;
+  color: var(--text);
+}
+
+.personal-hub__bio-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.personal-hub__bio-input {
+  border: 1px solid var(--portal-border);
+  background: var(--portal-input-bg);
+  color: var(--text);
+  box-shadow: var(--portal-input-shadow);
+}
+
+.personal-hub__bio-input::placeholder {
+  color: var(--muted);
+}
+
+.personal-hub__bio-input:focus-visible {
+  outline: 2px solid var(--portal-focus-ring);
+  outline-offset: 2px;
 }
 
 .personal-hub__add-badge {
@@ -242,14 +259,14 @@
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--portal-border);
   border-radius: 999px;
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--portal-bg-elevated);
+  color: var(--text);
   font: inherit;
   font-size: 1.35rem;
   line-height: 1;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--shadow-bento);
   cursor: pointer;
   transform: translateX(-50%);
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
@@ -257,13 +274,13 @@
 
 .personal-hub__add-badge:hover,
 .personal-hub__add-badge:focus-visible {
-  background: #f8fafc;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
+  background: var(--portal-control-bg-hover);
+  box-shadow: var(--shadow-glass-hover);
   transform: translateX(-50%) translateY(-1px);
 }
 
 .personal-hub__add-badge:focus-visible {
-  outline: 2px solid rgba(109, 140, 255, 0.55);
+  outline: 2px solid var(--portal-focus-ring);
   outline-offset: 2px;
 }
 
@@ -315,13 +332,13 @@
 .personal-hub__secondary-action,
 .personal-hub__export-action {
   position: relative;
-  border-color: rgba(145, 160, 214, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-color: var(--portal-border);
 }
 
 .personal-hub__secondary-action,
 .personal-hub__export-action {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--portal-control-bg);
+  box-shadow: var(--portal-control-shadow);
 }
 
 .personal-hub__bio-actions button:hover,
@@ -330,17 +347,21 @@
 .personal-hub__secondary-action:focus-visible,
 .personal-hub__export-action:hover,
 .personal-hub__export-action:focus-visible {
-  border-color: rgba(169, 185, 255, 0.28);
-  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--portal-border-accent);
+  background: var(--portal-control-bg-hover);
   transform: translateY(-1px);
 }
 
+.personal-hub__text-action--success {
+  color: var(--accent);
+}
+
+.personal-hub__text-action--danger {
+  color: var(--portal-danger-text);
+}
+
 .personal-hub__insights-panel {
-  border-color: rgba(122, 139, 199, 0.2);
-  background:
-    radial-gradient(circle at top left, rgba(109, 140, 255, 0.14), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
-    rgba(10, 18, 35, 0.68) !important;
+  border-color: var(--personal-hub-surface-border-strong);
 }
 
 .personal-hub__insights-grid {
@@ -353,9 +374,13 @@
   min-height: 8.75rem;
   justify-content: center;
   gap: var(--space-xs);
-  border-color: rgba(139, 154, 209, 0.14);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)), rgba(8, 14, 28, 0.72) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--portal-border);
+  background: var(--portal-card-bg);
+  box-shadow: var(--portal-input-shadow);
+}
+
+.personal-hub__insight-value {
+  color: var(--accent);
 }
 
 .personal-hub__resume-preview {
@@ -374,10 +399,36 @@
   max-width: 24rem;
   padding: 1.25rem;
   text-align: center;
-  border: 1px solid rgba(139, 154, 209, 0.16);
+  border: 1px solid var(--portal-border);
   border-radius: var(--radius-card);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)), rgba(8, 14, 28, 0.72);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: var(--portal-card-bg);
+  box-shadow: var(--portal-input-shadow);
+}
+
+body[data-theme-transition="active"] .personal-hub::before,
+body[data-theme-transition="active"] .personal-hub::after,
+body[data-theme-transition="active"] .personal-hub__avatar-wrap::before,
+body[data-theme-transition="active"] .personal-hub__profile-panel,
+body[data-theme-transition="active"] .personal-hub__profile-panel::before,
+body[data-theme-transition="active"] .personal-hub__profile-panel::after,
+body[data-theme-transition="active"] .personal-hub__resume-panel,
+body[data-theme-transition="active"] .personal-hub__insights-panel,
+body[data-theme-transition="active"] .personal-hub__insights-panel::before,
+body[data-theme-transition="active"] .personal-hub__insights-panel::after,
+body[data-theme-transition="active"] .personal-hub__bio-block,
+body[data-theme-transition="active"] .personal-hub__bio-input,
+body[data-theme-transition="active"] .personal-hub__add-badge,
+body[data-theme-transition="active"] .personal-hub__bio-actions button,
+body[data-theme-transition="active"] .personal-hub__icon-action,
+body[data-theme-transition="active"] .personal-hub__text-action,
+body[data-theme-transition="active"] .personal-hub__primary-action,
+body[data-theme-transition="active"] .personal-hub__secondary-action,
+body[data-theme-transition="active"] .personal-hub__export-action,
+body[data-theme-transition="active"] .personal-hub__insight-card,
+body[data-theme-transition="active"] .personal-hub__preview-fallback {
+  transition-property: color, background, background-color, background-image, border-color, box-shadow, opacity;
+  transition-duration: var(--app-theme-transition-duration);
+  transition-timing-function: var(--app-theme-transition-easing);
 }
 
 @media (max-width: 699px) {
@@ -475,25 +526,25 @@
     justify-content: center;
     width: 2.75rem;
     height: 2.75rem;
-    border: 1px solid rgba(139, 154, 209, 0.16);
+    border: 1px solid var(--portal-border);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--portal-control-bg);
     color: var(--text);
     font: inherit;
     font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: var(--portal-control-shadow);
   }
 
   .personal-hub__drawer-close:hover,
   .personal-hub__drawer-close:focus-visible {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(169, 185, 255, 0.28);
+    background: var(--portal-control-bg-hover);
+    border-color: var(--portal-border-accent);
   }
 
   .personal-hub__drawer-close:focus-visible {
-    outline: 2px solid rgba(109, 140, 255, 0.55);
+    outline: 2px solid var(--portal-focus-ring);
     outline-offset: 2px;
   }
 
@@ -508,12 +559,12 @@
     width: 3rem;
     height: 5.5rem;
     padding-right: 0.55rem;
-    border: 1px solid rgba(139, 154, 209, 0.18);
+    border: 1px solid var(--portal-border);
     border-left: 0;
     border-radius: 0 999px 999px 0;
-    background: linear-gradient(180deg, rgba(16, 23, 42, 0.94), rgba(12, 18, 35, 0.9));
-    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
-    color: #dfe6ff;
+    background: var(--portal-panel-bg);
+    box-shadow: var(--shadow-glass);
+    color: var(--text);
     transform: translateY(-50%);
     cursor: pointer;
     backdrop-filter: blur(12px);
@@ -522,12 +573,12 @@
 
   .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready:hover,
   .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready:focus-visible {
-    background: linear-gradient(180deg, rgba(26, 37, 67, 0.98), rgba(16, 24, 47, 0.94));
-    color: #ffffff;
+    background: var(--portal-control-bg-hover);
+    color: var(--text);
   }
 
   .personal-hub.is-hydrated .personal-hub__drawer-handle.is-ready:focus-visible {
-    outline: 2px solid rgba(109, 140, 255, 0.55);
+    outline: 2px solid var(--portal-focus-ring);
     outline-offset: 2px;
   }
 
@@ -557,7 +608,7 @@
     z-index: 1180;
     display: block;
     border: 0;
-    background: rgba(7, 10, 20, 0.5);
+    background: var(--portal-overlay-bg);
     opacity: 0;
     pointer-events: none;
     transition: opacity 180ms ease;
@@ -577,9 +628,9 @@
     width: var(--personal-hub-drawer-width);
     padding: calc(var(--app-header-height) + env(safe-area-inset-top) + 0.9rem) 0.85rem calc(env(safe-area-inset-bottom) + 1rem);
     overflow-y: auto;
-    background: linear-gradient(180deg, rgba(7, 10, 20, 0.96), rgba(10, 16, 31, 0.94));
-    border-right: 1px solid rgba(139, 154, 209, 0.14);
-    box-shadow: 24px 0 60px rgba(0, 0, 0, 0.38);
+    background: var(--portal-panel-bg);
+    border-right: 1px solid var(--portal-border);
+    box-shadow: var(--shadow-glass);
     transform: translateX(calc(-100% - 1rem));
     transition: transform 220ms ease;
   }

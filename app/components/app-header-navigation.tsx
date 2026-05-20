@@ -12,6 +12,7 @@ type NavItem = {
 type Props = {
   account: ReactNode;
   items: NavItem[];
+  accessory?: ReactNode;
 };
 
 const MENU_AUTO_CLOSE_DELAY_MS = 1000;
@@ -23,7 +24,7 @@ function announceHeaderMenuOpen(menuName: string) {
   document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
 }
 
-export default function AppHeaderNavigation({ account, items }: Props) {
+export default function AppHeaderNavigation({ account, items, accessory = null }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(true);
@@ -166,6 +167,7 @@ export default function AppHeaderNavigation({ account, items }: Props) {
         </div>
       )}
 
+      {accessory ? <div className="app-header__accessory">{accessory}</div> : null}
       <div className="app-header__account">{account}</div>
     </div>
   );

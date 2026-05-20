@@ -49,3 +49,18 @@ test("personal hub mobile drawer geometry and fallback states are mobile-aware",
   assert.equal(source.includes("Preview mode"), false);
   assert.equal(source.includes('aria-label="Resume preview"'), true);
 });
+
+test("personal hub shell consumes portal theme tokens instead of local dark-only utilities", () => {
+  const source = read("app/user/user-client.tsx");
+  const styles = read("app/user/user.css");
+
+  assert.equal(styles.includes("--personal-hub-surface-fill: var(--portal-card-bg-muted);"), true);
+  assert.equal(styles.includes("--personal-hub-panel-glow: radial-gradient(circle at top left, var(--portal-accent-glow), transparent 34%);"), true);
+  assert.equal(styles.includes("background: var(--portal-overlay-bg);"), true);
+  assert.equal(styles.includes("background: var(--portal-panel-bg);"), true);
+  assert.equal(source.includes("bg-black/40"), false);
+  assert.equal(source.includes("text-white/80"), false);
+  assert.equal(source.includes("text-white/30"), false);
+  assert.equal(source.includes("bg-white/5"), false);
+  assert.equal(source.includes("border-white/10"), false);
+});

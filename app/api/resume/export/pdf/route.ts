@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
       React.createElement(CvPdfTemplate, {
         resume: doc,
         title: exportData.personSlug,
+        locale: exportData.locale,
       }),
     );
 

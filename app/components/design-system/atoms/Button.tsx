@@ -1,5 +1,4 @@
 import React, { ButtonHTMLAttributes } from 'react';
-import { colors } from '../../../styles/colors';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -21,21 +20,29 @@ export const Button: React.FC<ButtonProps> = ({
     switch (variant) {
       case 'primary':
         return {
-          background: `linear-gradient(135deg, ${colors.brand.primary}, ${colors.brand.secondary})`,
-          color: '#ffffff',
-          border: `1px solid ${colors.brand.primary}`,
+          background: 'var(--portal-button-primary-bg)',
+          color: 'var(--portal-on-accent)',
+          border: '1px solid var(--portal-button-primary-border)',
+          boxShadow: 'var(--portal-button-primary-shadow)',
+        };
+      case 'secondary':
+        return {
+          background: 'var(--portal-card-bg-muted)',
+          color: 'var(--text)',
+          border: '1px solid var(--portal-border)',
         };
       case 'ghost':
         return {
-          background: colors.dark.glassBgLight,
-          color: colors.text.darkApp.primary,
-          border: `1px solid ${colors.dark.glassBorder}`,
+          background: 'var(--portal-control-bg)',
+          color: 'var(--text)',
+          border: '1px solid var(--portal-control-border)',
+          boxShadow: 'var(--portal-control-shadow)',
         };
       case 'danger':
         return {
-          background: 'rgba(180, 30, 30, 0.15)',
-          color: colors.semantic.error.text,
-          border: `1px solid ${colors.semantic.error.border}`,
+          background: 'var(--portal-danger-bg)',
+          color: 'var(--portal-danger-text)',
+          border: '1px solid var(--portal-danger-border)',
         };
       default:
         return {};

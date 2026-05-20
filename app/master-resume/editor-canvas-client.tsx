@@ -1519,6 +1519,7 @@ export default function EditorCanvasClient() {
               yamlContent={yamlPanel}
               isExpanded={isPreviewExpanded}
               aiGenerated={aiGenerated}
+              allowDraftPdf={actor?.role === "admin"}
               onExpand={() => setIsPreviewExpanded(true)}
               onClose={() => setIsPreviewExpanded(false)}
             />

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   // 1. Auth check
-  const actorResult = await requireRequestActor();
+  const actorResult = await requireRequestActor(["admin"]);
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
@@ -27,11 +27,13 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const doc = normalizeResumeDocument(body.resume, "");
+    const locale = typeof body.locale === "string" ? body.locale : "en";
     
     const pdfBytes = await renderToBuffer(
       React.createElement(CvPdfTemplate, {
         resume: doc,
         title: doc.name || "Resume",
+        locale,
       })
     );
 

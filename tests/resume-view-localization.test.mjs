@@ -16,19 +16,22 @@ test("resume view loads locale config with resume data on language change", () =
   assert.equal(source.includes("type ResumeViewConfig"), true);
   assert.equal(source.includes("const [viewConfig, setViewConfig]"), true);
   assert.equal(source.includes("const handleLocaleChange = useCallback"), true);
-  assert.equal(source.includes("fetchYaml(`/${locale.config_path}`, isResumeViewConfig)"), true);
+  assert.equal(source.includes("fetchYaml<ResumeViewConfig>(`/${locale.config_path}`, isResumeViewConfig)"), true);
   assert.equal(source.includes("setViewConfig(loadedViewConfig)"), true);
 });
 
 test("resume view renders section headings from locale labels", () => {
   const source = read(componentPath);
+  const renderer = read(path.join(process.cwd(), "app", "components", "resume-renderer", "ResumeRenderer.tsx"));
 
-  assert.equal(source.includes("{labels.summary_heading}"), true);
-  assert.equal(source.includes("{labels.personal_info_heading}"), true);
-  assert.equal(source.includes("{labels.skills_heading}"), true);
-  assert.equal(source.includes("{labels.languages_heading}"), true);
-  assert.equal(source.includes("public: labels.public_view_badge"), true);
-  assert.equal(source.includes("aiGenerated: labels.ai_generated_badge"), true);
+  assert.equal(source.includes("buildRendererLabels"), true);
+  assert.equal(source.includes("summary_heading"), true);
+  assert.equal(source.includes("personal_info_heading"), true);
+  assert.equal(source.includes("public_view_badge"), true);
+  assert.equal(renderer.includes("rendererLabels.summary"), true);
+  assert.equal(renderer.includes("rendererLabels.personalInfo"), true);
+  assert.equal(renderer.includes("rendererLabels.languages"), true);
+  assert.equal(source.includes('pdf: { label: "PDF", disabled: true, disabledReason: "Available after publish" }'), true);
 });
 
 test("public locales define config paths", () => {

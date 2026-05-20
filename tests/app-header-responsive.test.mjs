@@ -47,3 +47,27 @@ test("account menu shows identity only on desktop width", () => {
   assert.equal(/\.account-menu__identity \{\s+display: none;/.test(styles), true);
   assert.equal(/\.account-menu__trigger \{\s+padding: 0\.35rem;/.test(styles), true);
 });
+
+test("header exposes an active theme switch slot in the top bar", () => {
+  const navigation = read(navigationPath);
+  const styles = read(stylesPath);
+  const themeSwitch = read(path.join(process.cwd(), "app", "components", "app-theme-switch.tsx"));
+  const themeModel = read(path.join(process.cwd(), "app", "lib", "app-theme.ts"));
+
+  assert.equal(navigation.includes("accessory?: ReactNode;"), true);
+  assert.equal(navigation.includes("app-header__accessory"), true);
+  assert.equal(themeSwitch.includes('role="switch"'), true);
+  assert.equal(themeSwitch.includes("Application theme:"), true);
+  assert.equal(themeSwitch.includes("Switch to ${nextTheme} theme."), true);
+  assert.equal(themeSwitch.includes("disabled={!canToggle}"), true);
+  assert.equal(themeSwitch.includes("MoonIcon"), true);
+  assert.equal(themeSwitch.includes("SunIcon"), true);
+  assert.equal(themeSwitch.includes("app-theme-switch__thumb"), true);
+  assert.equal(themeModel.includes('export const DEFAULT_APP_THEME: AppTheme = "dark";'), true);
+  assert.equal(themeModel.includes("light: {"), true);
+  assert.equal(themeModel.includes("enabled: true"), true);
+  assert.equal(themeModel.includes('export const APP_THEME_COOKIE_NAME = "opencvhub-theme";'), true);
+  assert.equal(styles.includes(".app-theme-switch"), true);
+  assert.equal(styles.includes(".app-theme-switch__thumb"), true);
+  assert.equal(styles.includes(".app-theme-switch--dark .app-theme-switch__thumb"), true);
+});

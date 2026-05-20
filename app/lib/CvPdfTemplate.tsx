@@ -1,12 +1,13 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { ResumeDocument } from "./resume-schema";
+import { getDefaultSummary } from "./resume-schema";
+import { buildResumeRendererLabels, getResumeHeroRole } from "../components/resume-renderer/build-resume-render-model";
 
-// Create styles
 const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
-    backgroundColor: "#F3F4F6", // Light gray background
+    backgroundColor: "#F3F4F6",
     padding: 24,
     fontFamily: "Helvetica",
   },
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#009c8a", // Accent green
+    backgroundColor: "#009c8a",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16, // Bento style rounded corners
+    borderRadius: 16,
     padding: 16,
   },
   sectionTitleBox: {
@@ -160,41 +161,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export const CvPdfTemplate = ({ resume, title }: { resume: ResumeDocument; title?: string }) => {
-  const renderSummary = () => {
-    if (!resume.summary) return null;
-    let text = "";
-    if (typeof resume.summary === "string") {
-      text = resume.summary;
-    } else if (Array.isArray(resume.summary)) {
-      const def = resume.summary.find((s) => s.default === true);
-      text = def ? def.description : "";
-    }
-    
-    if (!text) return null;
-
-    return (
-      <View style={styles.card} wrap={false}>
-        <View style={styles.sectionTitleBox}>
-          <View style={styles.sectionDot} />
-          <Text style={styles.sectionTitle}>Summary</Text>
-        </View>
-        <Text style={styles.text}>{text}</Text>
-      </View>
-    );
-  };
-
-  const getRole = () => {
-    if (typeof resume.summary !== "string" && Array.isArray(resume.summary) && resume.summary[0]) {
-      const pos = resume.summary[0].position;
-      if (pos && pos.toLowerCase() !== "default") {
-        return pos;
-      }
-    }
-    return "";
-  };
-
-  const roleText = getRole();
+export const CvPdfTemplate = ({
+  resume,
+  title,
+  locale = "en",
+}: {
+  resume: ResumeDocument;
+  title?: string;
+  locale?: string;
+}) => {
+  const labels = buildResumeRendererLabels(locale);
+  const defaultSummary = getDefaultSummary(resume.summary);
+  const roleText = getResumeHeroRole(resume);
 
   return (
     <Document title={title || resume.name || "Resume"}>
@@ -210,116 +188,122 @@ export const CvPdfTemplate = ({ resume, title }: { resume: ResumeDocument; title
         </View>
 
         <View style={styles.mainLayout}>
-          {/* Left Column */}
           <View style={styles.leftColumn}>
-            {renderSummary()}
+            {defaultSummary?.description ? (
+              <View style={styles.card} wrap={false}>
+                <View style={styles.sectionTitleBox}>
+                  <View style={styles.sectionDot} />
+                  <Text style={styles.sectionTitle}>{labels.summary}</Text>
+                </View>
+                <Text style={styles.text}>{defaultSummary.description}</Text>
+              </View>
+            ) : null}
 
-            {resume.experience && resume.experience.length > 0 && (
+            {resume.experience.length > 0 ? (
               <View style={styles.card}>
                 <View style={styles.sectionTitleBox}>
                   <View style={styles.sectionDot} />
-                  <Text style={styles.sectionTitle}>Experience</Text>
+                  <Text style={styles.sectionTitle}>{labels.experience}</Text>
                 </View>
                 {resume.experience.map((exp, idx) => (
                   <View key={idx} style={styles.itemBlock} wrap={false}>
                     <Text style={styles.itemPeriod}>{exp.period}</Text>
                     <Text style={styles.itemTitle}>{exp.company}</Text>
                     <Text style={styles.itemSubtitle}>{exp.role}</Text>
-                    {exp.highlights && exp.highlights.map((hl, i) => (
-                      <Text key={i} style={styles.highlight}>• {hl}</Text>
+                    {exp.highlights.map((highlight, highlightIndex) => (
+                      <Text key={highlightIndex} style={styles.highlight}>• {highlight}</Text>
                     ))}
                   </View>
                 ))}
               </View>
-            )}
+            ) : null}
 
-            {resume.education && resume.education.length > 0 && (
+            {resume.education.length > 0 ? (
               <View style={styles.card}>
                 <View style={styles.sectionTitleBox}>
                   <View style={styles.sectionDot} />
-                  <Text style={styles.sectionTitle}>Education</Text>
+                  <Text style={styles.sectionTitle}>{labels.education}</Text>
                 </View>
-                {resume.education.map((edu, idx) => (
+                {resume.education.map((education, idx) => (
                   <View key={idx} style={styles.itemBlock} wrap={false}>
-                    <Text style={styles.itemPeriod}>{edu.period}</Text>
-                    <Text style={styles.itemTitle}>{edu.school}</Text>
-                    {edu.detail && <Text style={styles.text}>{edu.detail}</Text>}
+                    <Text style={styles.itemPeriod}>{education.period}</Text>
+                    <Text style={styles.itemTitle}>{education.school}</Text>
+                    {education.detail ? <Text style={styles.text}>{education.detail}</Text> : null}
                   </View>
                 ))}
               </View>
-            )}
+            ) : null}
           </View>
 
-          {/* Right Column */}
           <View style={styles.rightColumn}>
-            {resume.contact && resume.contact.length > 0 && (
+            {resume.contact.length > 0 ? (
               <View style={styles.card}>
                 <View style={styles.sectionTitleBox}>
                   <View style={styles.sectionDot} />
-                  <Text style={styles.sectionTitle}>Personal Info</Text>
+                  <Text style={styles.sectionTitle}>{labels.personalInfo}</Text>
                 </View>
-                {resume.contact.map((c, idx) => (
+                {resume.contact.map((item, idx) => (
                   <View key={idx} style={styles.contactItem}>
-                    <Text style={styles.contactLabel}>{c.label}</Text>
-                    <Text style={styles.contactValue}>{c.value}</Text>
+                    <Text style={styles.contactLabel}>{item.label}</Text>
+                    <Text style={styles.contactValue}>{item.value}</Text>
                   </View>
                 ))}
               </View>
-            )}
+            ) : null}
 
-            {resume.skills && resume.skills.length > 0 && (
+            {resume.skills.length > 0 ? (
               <View style={styles.card}>
                 <View style={styles.sectionTitleBox}>
                   <View style={styles.sectionDot} />
-                  <Text style={styles.sectionTitle}>Skills</Text>
+                  <Text style={styles.sectionTitle}>{labels.skills}</Text>
                 </View>
-                {resume.skills.map((s, idx) => (
+                {resume.skills.map((skill, idx) => (
                   <View key={idx} style={styles.skillItem}>
-                    <Text style={styles.skillName}>{s.name}</Text>
+                    <Text style={styles.skillName}>{skill.name}</Text>
                     <View style={styles.meterBox}>
                       {[1, 2, 3, 4, 5].map((level) => (
-                        <View key={level} style={[styles.meterDot, (s.level || 0) >= level ? styles.meterDotActive : {}]} />
+                        <View key={level} style={[styles.meterDot, skill.level >= level ? styles.meterDotActive : {}]} />
                       ))}
                     </View>
                   </View>
                 ))}
               </View>
-            )}
+            ) : null}
 
-            {resume.tech_stack && resume.tech_stack.length > 0 && (
+            {resume.tech_stack.length > 0 ? (
               <View style={styles.card}>
                 <View style={styles.sectionTitleBox}>
                   <View style={styles.sectionDot} />
-                  <Text style={styles.sectionTitle}>Tech stack</Text>
+                  <Text style={styles.sectionTitle}>{labels.techStack}</Text>
                 </View>
                 <View style={styles.pillList}>
-                  {resume.tech_stack.map((t, idx) => (
+                  {resume.tech_stack.map((item, idx) => (
                     <View key={idx} style={styles.pill}>
-                      <Text style={styles.pillText}>{t}</Text>
+                      <Text style={styles.pillText}>{item}</Text>
                     </View>
                   ))}
                 </View>
               </View>
-            )}
+            ) : null}
 
-            {resume.languages && resume.languages.length > 0 && (
+            {resume.languages.length > 0 ? (
               <View style={styles.card}>
                 <View style={styles.sectionTitleBox}>
                   <View style={styles.sectionDot} />
-                  <Text style={styles.sectionTitle}>Languages</Text>
+                  <Text style={styles.sectionTitle}>{labels.languages}</Text>
                 </View>
-                {resume.languages.map((l, idx) => (
+                {resume.languages.map((language, idx) => (
                   <View key={idx} style={styles.skillItem}>
-                    <Text style={styles.skillName}>{l.name}</Text>
+                    <Text style={styles.skillName}>{language.name}</Text>
                     <View style={styles.meterBox}>
                       {[1, 2, 3, 4, 5].map((level) => (
-                        <View key={level} style={[styles.meterDot, (l.level || 0) >= level ? styles.meterDotActive : {}]} />
+                        <View key={level} style={[styles.meterDot, language.level >= level ? styles.meterDotActive : {}]} />
                       ))}
                     </View>
                   </View>
                 ))}
               </View>
-            )}
+            ) : null}
           </View>
         </View>
       </Page>

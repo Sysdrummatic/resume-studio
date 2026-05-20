@@ -349,6 +349,35 @@ ui_critique:
         - "Keep language in the brand cluster as a compact pill with explicit active-language labeling."
         - "Use a persistent logo slot in the brand so future iconography extends the current unit instead of replacing it."
         - "Differentiate Personal Hub surfaces through internal framing and hierarchy, not through a palette change."
+    - agent: ui_ux_designer
+      role: Design
+      task: "theme-transition-review"
+      ref: "portal-shell-theme-motion"
+      status: advisory_only
+      acceptance_criteria:
+        - "A 1.5s theme change should feel intentional at the shell layer without delaying readability or control recognition."
+        - "Portal shell motion must exclude resume/CV surfaces, preview canvases, and print-like editing stages."
+        - "Reduced-motion users should continue to receive near-instant theme swaps."
+      findings:
+        - "Portal theme state is applied at html/body through data-app-theme and semantic portal tokens in app/globals.css."
+        - "Resume/CV surfaces use an independent token set in app/resume/resume.css and should remain visually static during portal theme changes."
+        - "A full-page 1.5s transition on text, borders, and controls would make the interface feel latent, especially in dense dashboard and modal states."
+        - "The safest perceptual target for a longer transition is ambient chrome: page background, header glass, large shell surfaces, overlays, and decorative hero atmospherics."
+      viewport_review:
+        mobile_360:
+          - "Long transitions are most noticeable on sticky header and full-viewport background shifts; content legibility must settle early."
+          - "Compact controls in the header should keep their current fast micro-feedback even if shell ambience eases longer."
+        tablet_768:
+          - "Dashboard panels and modal frames can absorb a gentle shell fade, but dense list rows should not animate every token."
+        desktop_1440:
+          - "Landing hero gradients, ambient body layers, and large panel surfaces can carry most of the perceived transition without slowing interaction."
+      accessibility:
+        - "Preserve prefers-reduced-motion override for theme changes."
+        - "Do not animate focus rings, caret visibility, or semantic state colors in a way that obscures current focus or status."
+      recommendations_pending:
+        - "Use a split-duration model: 1.5s only for ambient shell layers and large container backgrounds; keep controls/text/state tokens at roughly 120-220ms."
+        - "Scope theme transition to portal shell selectors only and explicitly opt out .resume-view-page, .resume, .resume-editor-basic, preview canvases, and print/plain resume variants."
+        - "If a unified 1.5s requirement is mandatory, fake it through a temporary cross-fade overlay/background layer rather than slowing every component token."
   findings:
     - "Editor Saved Version panel now tracks deterministic loading, empty, and error states from the owner-scoped preset fetch."
     - "Canonical public URL is rendered before compatibility URL in the read-only panel."

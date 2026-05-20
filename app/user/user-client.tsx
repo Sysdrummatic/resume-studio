@@ -398,7 +398,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
               </button>
             </div>
             <section
-              className="personal-hub__profile-panel glassmorphism p-8 flex flex-col items-center text-center rounded-bento border border-white/10"
+              className="personal-hub__profile-panel p-8 flex flex-col items-center text-center rounded-bento"
               aria-labelledby="personal-hub-profile-title"
             >
               <div className="personal-hub__profile-summary w-full flex flex-col items-center text-center">
@@ -441,14 +441,14 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                         <textarea
                           value={bioValue}
                           onChange={(event) => setBioValue(event.target.value)}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent min-h-[120px] text-white/90 leading-relaxed"
+                          className="personal-hub__bio-input w-full rounded-xl p-4 text-sm min-h-[120px] leading-relaxed"
                           placeholder="Share a bit about yourself..."
                         />
                         <div className="personal-hub__bio-actions flex gap-2">
                         <button
                           onClick={handleBioSave}
                           disabled={isSavingBio}
-                          className="personal-hub__text-action text-success hover:text-success/80 bg-transparent border-0 cursor-pointer"
+                          className="personal-hub__text-action personal-hub__text-action--success bg-transparent border-0 cursor-pointer"
                         >
                           <Typography variant="small" className="font-bold">
                             Save
@@ -459,7 +459,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                             setIsBioEditing(false);
                             setBioValue(savedBioValue);
                           }}
-                          className="personal-hub__text-action text-error/70 hover:text-error bg-transparent border-0 cursor-pointer"
+                          className="personal-hub__text-action personal-hub__text-action--danger bg-transparent border-0 cursor-pointer"
                         >
                           <Typography variant="small" className="font-bold">
                             Cancel
@@ -469,8 +469,8 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                       </>
                     ) : (
                       <>
-                        <Typography variant="body" className="personal-hub__bio-copy leading-relaxed text-white/80 min-h-[60px]">
-                          {bioValue || <span className="text-white/30 italic">No bio yet. Click the plus icon to add one.</span>}
+                        <Typography variant="body" className="personal-hub__bio-copy leading-relaxed min-h-[60px]">
+                          {bioValue || <span className="personal-hub__bio-empty">No bio yet. Click the plus icon to add one.</span>}
                         </Typography>
                         <button
                           type="button"
@@ -500,21 +500,21 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
               </div>
             </section>
 
-            <section className="personal-hub__insights-panel glassmorphism p-6 rounded-bento border border-white/10">
+            <section className="personal-hub__insights-panel p-6 rounded-bento">
               <Typography variant="caption" muted className="mb-4 block font-bold tracking-widest text-[10px]">
                 Insights
               </Typography>
               <div className="personal-hub__insights-grid grid grid-cols-2 gap-4">
-                <div className="personal-hub__insight-card p-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col items-center">
-                  <Typography variant="h2" className="text-accent">
+                <div className="personal-hub__insight-card p-4 rounded-2xl flex flex-col items-center">
+                  <Typography variant="h2" className="personal-hub__insight-value">
                     {initialPresets.length}
                   </Typography>
                   <Typography variant="caption" muted className="text-[10px]">
                     Variants
                   </Typography>
                 </div>
-                <div className="personal-hub__insight-card p-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col items-center">
-                  <Typography variant="h2" className="text-accent">
+                <div className="personal-hub__insight-card p-4 rounded-2xl flex flex-col items-center">
+                  <Typography variant="h2" className="personal-hub__insight-value">
                     {publishedPresetsCount}
                   </Typography>
                   <Typography variant="caption" muted className="text-[10px]">

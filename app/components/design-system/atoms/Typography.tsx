@@ -6,14 +6,14 @@ type TypographyVariant = 'h1' | 'h2' | 'h3' | 'body' | 'small' | 'caption';
 export interface TypographyProps extends React.HTMLAttributes<HTMLElement> {
   variant?: TypographyVariant;
   as?: React.ElementType;
-  theme?: 'dark' | 'light';
+  theme?: 'app' | 'dark' | 'light';
   muted?: boolean;
 }
 
 export const Typography: React.FC<TypographyProps> = ({
   variant = 'body',
   as,
-  theme = 'dark',
+  theme = 'app',
   muted = false,
   children,
   style,
@@ -34,6 +34,9 @@ export const Typography: React.FC<TypographyProps> = ({
   };
 
   const getColorStyle = () => {
+    if (theme === 'app') {
+      return muted ? 'var(--muted)' : 'inherit';
+    }
     if (theme === 'dark') {
       return muted ? colors.text.darkApp.muted : colors.text.darkApp.primary;
     } else {
