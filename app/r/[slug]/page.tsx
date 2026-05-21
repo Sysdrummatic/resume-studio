@@ -1,5 +1,5 @@
 import { notFound, permanentRedirect } from "next/navigation";
-import { BasicResumeDocument } from "../../master-resume/resume-live-preview";
+import { BasicResumeDocument } from "../../components/resume-renderer/BasicResumeDocument";
 import PrintTrigger from "../../components/print-trigger";
 import { fetchCanonicalPublicPathBySlug, fetchPublishedResumePresetBySlug, trackLegacyPublicRouteEvent } from "../../lib/resume-server";
 

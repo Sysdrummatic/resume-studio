@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { StatusToast, useStatusToast } from "../components/status-toast";
-import type { AppRole } from "../lib/auth-types";
-import { hasCapability } from "../lib/rbac";
+import { APP_ROLES, type AppRole } from "../lib/auth-types";
+import { hasCapability, isNonStaffRole, isStaffRole } from "../lib/rbac";
 
 type UserOverview = {
   id: string;
@@ -40,10 +40,8 @@ type Props = {
   };
 };
 
-const ROLE_OPTIONS: AppRole[] = ["admin", "manager", "user", "recruiter"];
-
 function canRoleBeAssignedByManager(role: AppRole): boolean {
-  return role === "user" || role === "recruiter";
+  return isNonStaffRole(role);
 }
 
 export default function AdminUsersClient({ actorRole, initialUsers, initialStats }: Props) {
@@ -79,9 +77,9 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
 
   const roleOptions = useMemo(() => {
     if (hasCapability(state.actorRole, "admin.users.role_write")) {
-      return ROLE_OPTIONS;
+      return APP_ROLES;
     }
-    return ROLE_OPTIONS.filter((role) => canRoleBeAssignedByManager(role));
+    return APP_ROLES.filter((role) => canRoleBeAssignedByManager(role));
   }, [state.actorRole]);
 
   async function handleRoleChange(userId: string, role: AppRole) {
@@ -182,10 +180,10 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
             {state.users.map((user) => {
               const disableRoleInput =
                 busyUserId === user.id ||
-                (!hasCapability(state.actorRole, "admin.users.role_write") && (user.role === "admin" || user.role === "manager"));
+                (!hasCapability(state.actorRole, "admin.users.role_write") && isStaffRole(user.role));
               const disableDelete =
                 busyUserId === user.id ||
-                (!hasCapability(state.actorRole, "admin.users.role_write") && (user.role === "admin" || user.role === "manager"));
+                (!hasCapability(state.actorRole, "admin.users.role_write") && isStaffRole(user.role));
               const availableRoles = roleOptions.includes(user.role) ? roleOptions : [user.role, ...roleOptions];
 
               return (

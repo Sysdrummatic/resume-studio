@@ -27,5 +27,7 @@ Implements [ADR 0003](../adr/0003-privacy-first-admin-access.md).
 
 ## Recruiter Scope
 
-- Recruiter acts as own-account role in current MVP scope.
+- Recruiter acts as own-account role in current MVP scope (inherits user capabilities only, no admin/manager visibility).
+- In role inheritance model: admin inherits manager AND recruiter, but this is capability composition only; it does not grant admin any recruiter content-preview or ambient resume read.
+- All roles (user, recruiter, manager, admin) explicitly lack `resume.content.read_other` capability.
 - Any recruiter preview/access model requires explicit future ADR and consent model.

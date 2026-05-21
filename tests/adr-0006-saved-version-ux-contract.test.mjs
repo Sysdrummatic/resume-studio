@@ -19,11 +19,12 @@ test("ADR 0006 is accepted and checklist is complete", () => {
 
 test("dashboard publish modal supports language selection and default locale contract", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
+  const modal = read("app/components/PublishSavedVersionModal.tsx");
   assert.equal(client.includes("PublishSavedVersionModal"), true);
   assert.equal(client.includes("selectedLocales"), true);
   assert.equal(client.includes("defaultLocale"), true);
-  assert.equal(client.includes("Allow indexing for this Published CV"), true);
-  assert.equal(client.includes("Canonical URL is primary"), true);
+  assert.equal(modal.includes("Allow indexing for this Published CV"), true);
+  assert.equal(modal.includes("Canonical URL is primary"), true);
 });
 
 test("editor exposes read-only Saved Version/public-link state with canonical-first guidance", () => {
@@ -49,15 +50,16 @@ test("editor exposes read-only Saved Version/public-link state with canonical-fi
 
 test("editor publish controls keep Saved Version language selection and public-link wording separate from master resume publishing", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const modal = read("app/components/PublishSavedVersionModal.tsx");
   assert.equal(editor.includes("PublishSavedVersionModal"), true);
   assert.equal(editor.includes("openPublishSavedVersion"), true);
   assert.equal(editor.includes("publishSavedVersion"), true);
   assert.equal(editor.includes("unpublishSavedVersion"), true);
   assert.equal(editor.includes("selectedLocales"), true);
   assert.equal(editor.includes("defaultLocale"), true);
-  assert.equal(editor.includes("Allow indexing for this Published CV"), true);
-  assert.equal(editor.includes("Link state after publish"), true);
-  assert.equal(editor.includes("Publish CV Version"), true);
+  assert.equal(modal.includes("Allow indexing for this Published CV"), true);
+  assert.equal(modal.includes("Link state after publish"), true);
+  assert.equal(modal.includes("Publish CV Version"), true);
   assert.equal(editor.includes("Unpublish"), true);
   assert.equal(editor.includes("Publish and create revision"), true);
 });

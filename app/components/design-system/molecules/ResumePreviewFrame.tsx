@@ -1,6 +1,6 @@
 import React from "react";
 import type { ResumeDocument, ResumeLocale } from "../../../lib/resume-schema";
-import { BasicResumeDocument } from "../../../master-resume/resume-live-preview";
+import { BasicResumeDocument } from "../../resume-renderer/BasicResumeDocument";
 
 interface ResumePreviewFrameProps {
   resume: ResumeDocument;

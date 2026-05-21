@@ -132,6 +132,12 @@
   --muted: var(--portal-foreground-muted);
   --accent: var(--portal-accent);
   --border: var(--portal-border);
+  --text-dark-primary: #EDEDEF;
+  --text-dark-secondary: #C7CBD3;
+  --text-dark-muted: #8A8F98;
+  --text-light-primary: #1C1B1F;
+  --text-light-secondary: #49454F;
+  --text-light-muted: #625F69;
 }
 
 :root[data-app-theme="light"] {

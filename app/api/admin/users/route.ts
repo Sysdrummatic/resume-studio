@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { callRpc } from "../../../lib/supabase-http";
-import { hasCapability } from "../../../lib/rbac";
+import { hasCapability, isNonStaffRole } from "../../../lib/rbac";
+import { isAppRole } from "../../../lib/auth-types";
 
 type UserOverview = {
   id: string;
@@ -49,7 +50,7 @@ export async function GET(): Promise<Response> {
   }));
 
   if (!hasCapability(actorResult.actor.role, "admin.users.role_write")) {
-    users = users.filter((user) => user.id === actorResult.actor.userId || user.role === "user" || user.role === "recruiter");
+    users = users.filter((user) => user.id === actorResult.actor.userId || (isAppRole(user.role) && isNonStaffRole(user.role)));
   }
 
   const statsResult = await callRpc<

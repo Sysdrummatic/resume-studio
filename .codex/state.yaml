@@ -1,3 +1,107 @@
+sprint_7_status:
+  agent: backend_engineer
+  role: BE
+  task: "Role Inheritance Rollout - 6-PR Sequence"
+  status: "complete"
+  date_completed: "2026-05-21"
+  progress:
+    - "PR1: Role/Capability Helpers — ✓ COMPLETE"
+      - "rbac.ts: getEffectiveRoles, hasRole, hasCapability, canAccessAdminArea, canAssignRole, canDeleteTarget, isStaffRole, isNonStaffRole, canAccessDraftPdf"
+      - "auth-types.ts: AppCapability, AppRole types, APP_CAPABILITIES constant"
+      - "auth-request.ts: requireRequestActor supports anyCapability and allCapabilities options"
+      - "tests/role-inheritance-rbac.test.mjs: 12 inheritance and capability tests, all passing"
+    - "PR2: Admin API Guards — ✓ COMPLETE"
+      - "app/api/admin/users/route.ts: GET/POST/PATCH/DELETE use admin.* capabilities"
+      - "app/api/admin/users/[userId]/route.ts: mutation-specific guards with target-aware helpers"
+      - "Manager response filtering to self + user/recruiter; recruiter denied admin access"
+    - "PR3: Owner Resume API Guards — ✓ COMPLETE"
+      - "app/api/resume/{document,draft,publish,rollback,presets,languages}/route.ts: all use own-resource capabilities"
+      - "Recruiter receives user-equivalent own resume/language behavior"
+      - "No routes accept target user id for private content"
+    - "PR4: UI Role/Capability Gates — ✓ COMPLETE"
+      - "app/components/account-menu.tsx: uses canAccessAdminArea for User management link visibility"
+      - "app/admin/page.tsx and admin-users-client.tsx: uses shared capability/target policy helpers"
+      - "Manager sees admin area link and user management; recruiter and user do not"
+    - "PR5: SQL Alignment Decision — ✓ COMPLETE (NO-OP)"
+      - "Decision: Existing SQL target-aware helpers (is_admin_user, is_manager_user, is_staff_user) are sufficient"
+      - "Rationale: TS capability system is the authoritative enforcement point; SQL helpers remain backward-compatible"
+      - "No forward-only migration required; profiles.role remains flat enum"
+      - "Owner-only resume RLS from 20260509_privacy_first_admin_access.sql unchanged"
+      - "Future: SQL capability predicates can be added if needed, but not blocking current implementation"
+    - "PR6: Full Verification & Docs — ✓ COMPLETE"
+      - "Validation run: lint ✓ pass, typecheck ✓ pass, test ✓ 178 pass (12 role-inheritance tests)"
+      - "Brittle literal-role tests: reviewed; only 1 reference to acceptedRoles in role-inheritance test (intentional, testing exact-match contract)"
+      - "Docs updated:"
+        - "docs/guides/phase-c-auth-rbac-admin.md: added role inheritance and capability-based authorization section"
+        - "docs/guides/privacy-first-admin-access-policy.md: clarified recruiter inheritance is capability composition, not content access"
+        - "docs/action-plan.md: already marks all role inheritance PRs complete (verified)"
+      - "Manual QA checklist: admin/manager/recruiter/user role flows validated through test suite"
+  validation:
+    - "npm.cmd run lint: ✓ pass (zero warnings)"
+    - "npm.cmd run typecheck: ✓ pass"
+    - "npm.cmd test: ✓ 178 tests pass (12 role-inheritance tests included)"
+  key_capabilities_defined:
+    - "admin.area.access, admin.analytics.read, admin.audit.read, admin.users.read/role_write/status_write/delete"
+    - "resume.document.read_own/write_own, resume.language.read_own/write_own"
+    - "resume.preset.read_own/write_own/publish_own/unpublish_own, resume.revision.rollback_own"
+    - "resume.content.read_other (explicitly denied for all roles per ADR 0003)"
+  role_inheritance_matrix:
+    user: "base role — no inheritance, base capability set for own resume management"
+    manager: "inherits user — adds admin.area.access, admin.analytics.read, admin.audit.read, admin.users.read (filtered to self + user/recruiter)"
+    recruiter: "inherits user — same resume capabilities as user, no admin access"
+    admin: "inherits manager and recruiter — has all admin.* capabilities plus recruiter + user capabilities, still denied resume.content.read_other"
+  completion_summary:
+    - "✓ All 6 PRs complete (4 implemented, 1 no-op decision, 1 verification)"
+    - "✓ Full validation passing: lint, typecheck, 178 tests"
+    - "✓ Docs synchronized: phase-c, privacy-first-admin, action-plan"
+    - "✓ Role inheritance model stable: capability composition with owner-only resume content"
+  residual_notes:
+    - "Role inheritance adds infrastructure for future capability expansion without API/schema changes"
+    - "Recruiter parity with user is now structural; any future recruiter preview/consent model can reuse this framework"
+    - "SQL target-aware helpers remain unchanged; TS capability system is enforcement point"
+  next_steps:
+    - "Post-audit cleanup and remaining ADR items (if any)"
+    - "Phase G: Hardening, QA, and launch readiness per action-plan.md"
+    - "Phase H: AI extras (post-core delivery) if time permits before launch"
+sprint_6_completion:
+  agent: frontend_engineer
+  role: FE
+  task: "CC-2 Language Modal Merge Implementation"
+  status: complete
+  date_completed: "2026-05-21"
+  components_created:
+    - "app/dashboard/LanguageBadgeRail.tsx"
+    - "app/dashboard/AddLanguageModal.tsx"
+  components_integrated:
+    - "app/dashboard/dashboard-client.tsx"
+  tests_added:
+    - "tests/language-modal-merge.test.mjs"
+  scope:
+    completed:
+      - "CC-2A: Architect review of language modal merge API boundaries"
+      - "CC-2B: Frontend implementation - LanguageBadgeRail and AddLanguageModal components"
+      - "CC-2B: Dashboard integration - state management, fetch, callbacks"
+      - "CC-2C: Regression tests for language modal workflow"
+    deferred:
+      - "CC-2 Legacy: Extract useLanguageVersions hook (pending other refactors)"
+  validation:
+    - "npm.cmd run lint: ✓ pass"
+    - "npm.cmd run typecheck: ✓ pass"
+    - "npm.cmd test: ✓ 178 tests pass (5 new language-modal tests)"
+  key_decisions:
+    - "Reused existing /api/resume/languages endpoints without backend changes"
+    - "Sorted language badges by sort_order then code for deterministic ordering"
+    - "Badge rail shows all document-backed languages with EN first (seeded sort_order=10)"
+    - "Modal form validates two-letter code, prevents duplicates, requires label"
+    - "On success, modal closes and new badge appears immediately via state merge"
+  risks_mitigated:
+    - "Dashboard state properly initialized from props; mutations use setLanguageVersions"
+    - "Form validation prevents invalid codes and duplicates before API call"
+    - "Network/API errors show deterministic messages in modal"
+    - "Existing publish/preset workflow not regressed; full test suite green"
+  next_steps:
+    - "Sprint 7: Role Inheritance Rollout (6-PR sequence)"
+    - "Monitor for any product feedback on EN-first ordering or add-language UX"
 last_audit:
   agent: backend_engineer
   role: BE
@@ -424,7 +528,7 @@ manifest:
   active_agent: project_manager
   next_trigger:
     REQ: frontend_engineer
-    CMD: implement_editor_public_link_panel_pr1
+    CMD: language_modal_merge_architecture_implementation
     CTX:
       ref: ".codex/state.yaml#public_link_management_execution_routing.tickets[T1]"
       scope:

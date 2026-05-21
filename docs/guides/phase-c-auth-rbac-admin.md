@@ -36,7 +36,36 @@ This migration provides RPC helpers and constraints:
 - `get_staff_user_overview`
 - `log_admin_action`
 
-## Role behavior
+## Role inheritance and capability model
+
+Roles use inheritance to compose capabilities and avoid duplication. Persisted profiles retain flat `role` enum values (`admin`, `manager`, `user`, `recruiter`), but effective permissions expand through inheritance:
+
+- `user` (base):
+  - own resume document, revision, preset, language, and draft management.
+- `manager` (inherits user):
+  - everything user has.
+  - admin area access, analytics read, audit read (metadata-only).
+  - can manage `user` and `recruiter` target accounts only; cannot self-promote to `manager` or `admin`.
+- `recruiter` (inherits user):
+  - everything user has.
+  - explicitly no staff/admin access (separate from user inheritance flow).
+- `admin` (inherits manager and recruiter):
+  - everything manager has.
+  - everything recruiter has (including all user capabilities; capability composition, not content access expansion).
+  - all admin operations and full user management.
+  - explicitly denied private resume content read (`resume.content.read_other` blocked for all roles per ADR 0003).
+
+## Capability-based authorization
+
+Starting with Phase F role inheritance rollout:
+
+- API guards use `requireRequestActor({ anyCapability: "capability.name" })` instead of role arrays.
+- `app/lib/rbac.ts` exports capability helpers: `getEffectiveRoles()`, `hasCapability()`, `hasRole()`, `canAccessAdminArea()`, `canAssignRole()`, `canDeleteTarget()`.
+- `app/lib/auth-request.ts` supports backward-compatible `acceptedRoles` array and new `anyCapability`/`allCapabilities` options.
+- Backend enforces least-privilege: no route accepts a target user ID for private resume content.
+- UI gates use shared helpers (`canAccessAdminArea`, capability checks) to mirror server rules; UI gates are not the enforcement boundary.
+
+## Role behavior (legacy reference)
 
 - `admin`:
   - full user management access, including deleting any user.

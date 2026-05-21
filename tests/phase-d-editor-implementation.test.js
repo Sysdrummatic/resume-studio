@@ -46,6 +46,7 @@ test("phase D client exposes YAML and human-friendly editor tabs backed by one r
 test("phase D client supports summary list defaults in HFE and preview", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const preview = read("app/master-resume/resume-live-preview.tsx");
+  const basicResume = read("app/components/resume-renderer/BasicResumeDocument.tsx");
   const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
   const schema = read("app/lib/resume-schema.ts");
   const template = read("public/data/private/resume-en-template.yaml");
@@ -57,9 +58,9 @@ test("phase D client supports summary list defaults in HFE and preview", () => {
   assert.equal(template.includes("default: true"), true);
   assert.equal(editor.includes("updateSummary"), true);
   assert.equal(editor.includes("setDefaultSummary"), true);
-  assert.equal(preview.includes("ResumeRenderer"), true);
-  assert.equal(preview.includes("allowDraftPdf?: boolean;"), true);
-  assert.equal(editor.includes('allowDraftPdf={actor?.role === "admin"}'), true);
+  assert.equal(basicResume.includes("ResumeRenderer"), true);
+  assert.equal(basicResume.includes("allowDraftPdf?: boolean;"), true);
+  assert.equal(editor.includes("allowDraftPdf=") && editor.includes("canAccessDraftPdf"), true);
   assert.equal(renderer.includes("getDefaultSummary(resume.summary)"), true);
 });
 

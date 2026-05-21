@@ -134,3 +134,15 @@ export function canAssignRole(actorRole: AppRole, targetRole: AppRole, nextRole:
 
   return { allowed: true, reason: null };
 }
+
+export function isStaffRole(role: AppRole): boolean {
+  return hasRole(role, "manager");
+}
+
+export function isNonStaffRole(role: AppRole): boolean {
+  return MANAGER_MANAGEABLE_ROLES.has(role);
+}
+
+export function canAccessDraftPdf(role: AppRole): boolean {
+  return role === "admin";
+}

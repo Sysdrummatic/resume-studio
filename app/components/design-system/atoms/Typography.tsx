@@ -1,5 +1,4 @@
 import React from 'react';
-import { colors } from '../../../styles/colors';
 
 type TypographyVariant = 'h1' | 'h2' | 'h3' | 'body' | 'small' | 'caption';
 
@@ -38,9 +37,9 @@ export const Typography: React.FC<TypographyProps> = ({
       return muted ? 'var(--muted)' : 'inherit';
     }
     if (theme === 'dark') {
-      return muted ? colors.text.darkApp.muted : colors.text.darkApp.primary;
+      return muted ? 'var(--text-dark-muted)' : 'var(--text-dark-primary)';
     } else {
-      return muted ? colors.text.lightDoc.muted : colors.text.lightDoc.primary;
+      return muted ? 'var(--text-light-muted)' : 'var(--text-light-primary)';
     }
   };
 

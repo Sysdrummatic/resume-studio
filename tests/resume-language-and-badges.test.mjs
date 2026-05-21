@@ -38,11 +38,12 @@ test("resume badges support public draft and ai generated states", () => {
 test("resume renderers use shared language switcher and badges", () => {
   const sample = read("app/resume/resume-view-client.tsx");
   const preview = read("app/master-resume/resume-live-preview.tsx");
+  const basicResume = read("app/components/resume-renderer/BasicResumeDocument.tsx");
   const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
   const publicRoute = read("app/r/[slug]/page.tsx");
 
   assert.equal(sample.includes("ResumeRenderer"), true);
-  assert.equal(preview.includes("ResumeRenderer"), true);
+  assert.equal(basicResume.includes("ResumeRenderer"), true);
   assert.equal(renderer.includes("ResumeLanguageSwitcher"), true);
   assert.equal(renderer.includes("ResumeBadges"), true);
   assert.equal(publicRoute.includes("searchParams"), true);
@@ -53,13 +54,15 @@ test("resume renderers use shared language switcher and badges", () => {
 test("master resume preview receives all editor language options for in-CV language badges", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const preview = read("app/master-resume/resume-live-preview.tsx");
+  const basicResume = read("app/components/resume-renderer/BasicResumeDocument.tsx");
   const switcher = read("app/components/resume-language-switcher.tsx");
 
-  assert.equal(preview.includes("languages?: ResumeLanguageOption[]"), true);
-  assert.equal(preview.includes("onLanguageSelect?: (locale: string) => void"), true);
+  assert.equal(basicResume.includes("languages?: ResumeLanguageOption[]"), true);
+  assert.equal(basicResume.includes("onLanguageSelect?: (locale: string) => void"), true);
   assert.equal(editor.includes("languages={languageOptions.map"), true);
   assert.equal(editor.includes("onLanguageSelect={handleLocaleSwitch}"), true);
-  assert.equal(preview.includes("languages={languageOptions}"), true);
+  assert.equal(basicResume.includes("const languageOptions = languages?.length"), true);
+  assert.equal(basicResume.includes("languages={languageOptions}"), true);
   assert.equal(switcher.includes("event.stopPropagation()"), true);
 });
 

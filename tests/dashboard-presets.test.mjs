@@ -67,7 +67,9 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   assert.equal(client.includes("onLanguageSelect={setActiveLocale}"), true);
   assert.equal(client.includes("parseCanonicalPublicPath"), true);
   assert.equal(client.includes("allowDraftPdf={actorRole === \"admin\"}"), true);
-  assert.equal(preview.includes("export function BasicResumeDocument"), true);
+  const basicResumeDoc = read("app/components/resume-renderer/BasicResumeDocument.tsx");
+  assert.equal(basicResumeDoc.includes("export function BasicResumeDocument"), true);
+  assert.equal(preview.includes("BasicResumeDocument"), true);
 });
 
 test("preset list renders a right-aligned separated icon delete action", () => {

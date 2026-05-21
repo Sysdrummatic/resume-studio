@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireStaffActor } from "../lib/auth-server";
 import { fetchAllProfilesAsService, fetchAuthUsersAsService, fetchPlatformStatsAsService } from "../lib/supabase-http";
 import type { AppRole, ProfileRecord } from "../lib/auth-types";
-import { hasCapability } from "../lib/rbac";
+import { hasCapability, isNonStaffRole } from "../lib/rbac";
 
 type UserOverview = {
   id: string;
@@ -41,7 +41,7 @@ export default async function AdminPage() {
   }));
 
   if (!hasCapability(actor.role, "admin.users.role_write")) {
-    initialUsers = initialUsers.filter((user) => user.id === actor.userId || user.role === "user" || user.role === "recruiter");
+    initialUsers = initialUsers.filter((user) => user.id === actor.userId || isNonStaffRole(user.role));
   }
 
   const platformStats = platformStatsResult.data || {
