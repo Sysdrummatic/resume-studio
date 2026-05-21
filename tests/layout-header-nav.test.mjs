@@ -25,3 +25,16 @@ test("header keeps login link as rightmost item after Sample CV in primary nav",
   assert.notEqual(sampleCvIndex, -1);
   assert.equal(loginIndex > sampleCvIndex, true);
 });
+
+test("layout resolves the portal theme from cookie and passes an active switch", () => {
+  const source = readLayoutSource();
+
+  assert.equal(source.includes("DEFAULT_APP_THEME"), true);
+  assert.equal(source.includes("await cookies()"), true);
+  assert.equal(source.includes("APP_THEME_COOKIE_NAME"), true);
+  assert.equal(source.includes("resolveAppTheme"), true);
+  assert.equal(source.includes('data-app-theme={initialTheme}'), true);
+  assert.equal(source.includes("AppThemeSwitch"), true);
+  assert.equal(source.includes("initialTheme={initialTheme}"), true);
+  assert.equal(source.includes("accessory={<AppThemeSwitch initialTheme={initialTheme} />}"), true);
+});

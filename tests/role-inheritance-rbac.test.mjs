@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { canAccessAdminArea, getEffectiveRoles, hasCapability, hasRole, isRoleAuthorized } from "../app/lib/rbac.ts";
+import { canAccessAdminArea, canAccessDraftPdf, getEffectiveRoles, hasCapability, hasRole, isNonStaffRole, isRoleAuthorized, isStaffRole } from "../app/lib/rbac.ts";
 
 test("user has only base role and own resume capabilities", () => {
   assert.deepEqual(getEffectiveRoles("user"), ["user"]);
@@ -17,6 +17,8 @@ test("manager inherits user only", () => {
   assert.equal(hasRole("manager", "recruiter"), false);
   assert.equal(hasCapability("manager", "resume.document.read_own"), true);
   assert.equal(hasCapability("manager", "admin.area.access"), true);
+  assert.equal(hasCapability("manager", "admin.analytics.read"), true);
+  assert.equal(hasCapability("manager", "admin.audit.read"), true);
   assert.equal(hasCapability("manager", "admin.users.delete"), false);
 });
 
@@ -34,6 +36,8 @@ test("admin inherits manager recruiter and user capabilities", () => {
   assert.equal(hasRole("admin", "recruiter"), true);
   assert.equal(hasRole("admin", "user"), true);
   assert.equal(hasCapability("admin", "admin.users.delete"), true);
+  assert.equal(hasCapability("admin", "admin.analytics.read"), true);
+  assert.equal(hasCapability("admin", "admin.audit.read"), true);
   assert.equal(hasCapability("admin", "resume.document.read_own"), true);
   assert.equal(canAccessAdminArea("admin"), true);
   assert.equal(canAccessAdminArea("manager"), true);
@@ -56,4 +60,25 @@ test("private content access is not broadened for inherited roles", () => {
     assert.equal(hasCapability(role, "resume.content.read_other"), false);
     assert.equal(isRoleAuthorized(role, { anyCapability: "resume.content.read_other" }), false);
   }
+});
+
+test("canAccessDraftPdf allows only admin", () => {
+  assert.equal(canAccessDraftPdf("admin"), true);
+  assert.equal(canAccessDraftPdf("manager"), false);
+  assert.equal(canAccessDraftPdf("recruiter"), false);
+  assert.equal(canAccessDraftPdf("user"), false);
+});
+
+test("isStaffRole identifies manager and admin", () => {
+  assert.equal(isStaffRole("admin"), true);
+  assert.equal(isStaffRole("manager"), true);
+  assert.equal(isStaffRole("recruiter"), false);
+  assert.equal(isStaffRole("user"), false);
+});
+
+test("isNonStaffRole identifies user and recruiter", () => {
+  assert.equal(isNonStaffRole("user"), true);
+  assert.equal(isNonStaffRole("recruiter"), true);
+  assert.equal(isNonStaffRole("admin"), false);
+  assert.equal(isNonStaffRole("manager"), false);
 });

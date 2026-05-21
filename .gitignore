@@ -38,3 +38,7 @@ data/private/resume-private.yaml
 images/qrs/linkedin.png
 images/qrs/portal.png
 .next/
+
+# Claude Code configuration
+.claude/
+CLAUDE.md

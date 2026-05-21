@@ -98,7 +98,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       setPendingVerificationEmail("");
       showToast("Signed in. Redirecting...");
       shouldRedirect = true;
-      window.location.href = "/dashboard";
+      window.location.href = "/user";
     } catch {
       showToast("Unexpected sign-in error. Try again.", "error");
     } finally {

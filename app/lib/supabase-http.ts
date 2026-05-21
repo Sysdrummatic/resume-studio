@@ -291,7 +291,7 @@ export async function insertTable({
 export async function fetchProfileById(userId: string, accessToken: string): Promise<AuthResult<ProfileRecord>> {
   const result = await queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,role,is_active,created_at,updated_at",
+    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
     accessToken,
     query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
@@ -306,7 +306,7 @@ export async function fetchProfileById(userId: string, accessToken: string): Pro
 export async function fetchProfileByIdAsService(userId: string): Promise<AuthResult<ProfileRecord>> {
   const result = await queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,role,is_active,created_at,updated_at",
+    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
     useServiceRole: true,
     query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
@@ -321,10 +321,31 @@ export async function fetchProfileByIdAsService(userId: string): Promise<AuthRes
 export async function fetchAllProfilesAsService(): Promise<AuthResult<ProfileRecord[]>> {
   return queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,role,is_active,created_at,updated_at",
+    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
     useServiceRole: true,
     query: "order=created_at.desc",
   });
+}
+
+export type PlatformStats = {
+  total_users: number;
+  active_users: number;
+  total_resumes: number;
+  total_public_links: number;
+  total_public_views: number;
+};
+
+export async function fetchPlatformStatsAsService(): Promise<AuthResult<PlatformStats>> {
+  const result = await callRpc<PlatformStats[]>({
+    functionName: "get_admin_platform_stats",
+    useServiceRole: true,
+  });
+
+  return {
+    data: result.data?.[0] ?? null,
+    error: result.error,
+    status: result.status,
+  };
 }
 
 export async function fetchAuthUsersAsService(): Promise<AuthResult<SupabaseAuthUsersResponse>> {

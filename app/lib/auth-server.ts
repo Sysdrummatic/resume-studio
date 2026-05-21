@@ -1,38 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { fetchProfileById, fetchProfileByIdAsService, getAuthUser, refreshSession } from "./supabase-http";
+import { getAuthUser, refreshSession } from "./supabase-http";
 import { readAuthTokens } from "./auth-cookies";
 import { canAccessAdminArea } from "./rbac";
 import type { SessionActor } from "./auth-types";
-
-function normalizeEmail(email: unknown): string {
-  return typeof email === "string" ? email.trim().toLowerCase() : "";
-}
-
-function normalizeDisplayName(displayName: unknown, email: string): string {
-  if (typeof displayName === "string" && displayName.trim()) {
-    return displayName.trim();
-  }
-  if (email.includes("@")) {
-    return email.split("@")[0];
-  }
-  return "User";
-}
-
-
-async function resolveProfile(userId: string, accessToken: string) {
-  const profileResult = await fetchProfileById(userId, accessToken);
-  if (profileResult.data || profileResult.status < 500) {
-    return profileResult;
-  }
-
-  const fallbackResult = await fetchProfileByIdAsService(userId);
-  if (fallbackResult.data) {
-    return fallbackResult;
-  }
-
-  return profileResult;
-}
+import { normalizeEmail, normalizeDisplayName, resolveProfile } from "./auth-profile";
 
 async function readActorFromAccessToken(accessToken: string): Promise<SessionActor | null> {
   const authUserResult = await getAuthUser(accessToken);
@@ -52,8 +24,11 @@ async function readActorFromAccessToken(accessToken: string): Promise<SessionAct
     email,
     emailConfirmed: Boolean(user.email_confirmed_at),
     displayName: normalizeDisplayName(profileResult.data.display_name, email),
+    avatarUrl: profileResult.data.avatar_url,
     role: profileResult.data.role,
+    bio: profileResult.data.bio,
     isActive: profileResult.data.is_active,
+    accessToken,
   };
 }
 
@@ -77,7 +52,8 @@ export async function getCurrentActor(): Promise<SessionActor | null> {
     return null;
   }
 
-  return readActorFromAccessToken(refreshResult.data.access_token);
+  const actor = await readActorFromAccessToken(refreshResult.data.access_token);
+  return actor;
 }
 
 export async function requireAuthenticatedActor(): Promise<SessionActor> {

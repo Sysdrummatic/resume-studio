@@ -5,15 +5,20 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
+import { buildPublishedResumeExportUrls, parseCanonicalPublicPath } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
-import { BasicResumeDocument } from "../master-resume/resume-live-preview";
+import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
+import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
+import { LanguageBadgeRail } from "./LanguageBadgeRail";
+import { AddLanguageModal } from "./AddLanguageModal";
 
 type Props = {
   masterResume: ResumeDocumentRow | null;
   initialDocuments: ResumeDocumentRow[];
   languageOptions: ResumeLanguageRow[];
   initialPresets: ResumePresetRow[];
+  actorRole: string;
 };
 
 type PresetOptionKey = keyof ResumePresetSelection;
@@ -30,12 +35,6 @@ type PresetApiResponse = {
   preset?: ResumePresetRow;
 };
 
-type PublishDraft = {
-  preset: ResumePresetRow;
-  selectedLocales: ResumeLocale[];
-  defaultLocale: ResumeLocale;
-  allowIndexing: boolean;
-};
 
 const EMPTY_SELECTION: ResumePresetSelection = {
   summary: [],
@@ -328,12 +327,14 @@ function PresetPreviewModal({
   documents,
   languages,
   preset,
+  allowDraftPdf,
   onClose,
 }: {
   masterResume: ResumeDocumentRow;
   documents: ResumeDocumentRow[];
   languages: ResumeLanguageRow[];
   preset: ResumePresetRow;
+  allowDraftPdf: boolean;
   onClose: () => void;
 }) {
   const availableDocuments = documents.length ? documents : [masterResume];
@@ -345,6 +346,7 @@ function PresetPreviewModal({
     availableDocuments.find((document) => document.locale === activeLocale) ||
     availableDocuments.find((document) => document.locale === masterResume.locale) ||
     masterResume;
+  const publicLink = parseCanonicalPublicPath(preset.canonical_public_path);
   const previewResume = buildPresetResumeDocument(activeDocument.yaml_content, preset.selection);
   const cvLanguages = buildLanguageOptions(availableDocuments, languages);
 
@@ -367,6 +369,10 @@ function PresetPreviewModal({
               onLanguageSelect={setActiveLocale}
               status={preset.is_public ? "public" : "draft"}
               aiGenerated={preset.ai_generated}
+              mode="preview"
+              personSlug={publicLink?.personSlug}
+              publicId={publicLink?.publicId}
+              allowDraftPdf={allowDraftPdf}
             />
           </div>
         ) : (
@@ -377,121 +383,7 @@ function PresetPreviewModal({
   );
 }
 
-function PublishSavedVersionModal({
-  draft,
-  locales,
-  languageOptions,
-  onClose,
-  onPublish,
-}: {
-  draft: PublishDraft;
-  locales: ResumeLocale[];
-  languageOptions: ResumeLanguageRow[];
-  onClose: () => void;
-  onPublish: (payload: { preset: ResumePresetRow; selectedLocales: ResumeLocale[]; defaultLocale: ResumeLocale; allowIndexing: boolean }) => Promise<void>;
-}) {
-  const [selectedLocales, setSelectedLocales] = useState<ResumeLocale[]>(draft.selectedLocales);
-  const [defaultLocale, setDefaultLocale] = useState<ResumeLocale>(draft.defaultLocale);
-  const [allowIndexing, setAllowIndexing] = useState(draft.allowIndexing);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  const languageLabel = useMemo(() => {
-    const map = new Map(languageOptions.map((item) => [item.code, item.label]));
-    return (locale: ResumeLocale) => map.get(locale) || getFallbackLanguageLabel(locale).label;
-  }, [languageOptions]);
-
-  function toggleLocale(locale: ResumeLocale) {
-    setSelectedLocales((current) => {
-      const set = new Set(current);
-      if (set.has(locale)) {
-        set.delete(locale);
-      } else {
-        set.add(locale);
-      }
-      const next = Array.from(set).sort();
-      if (!next.includes(defaultLocale) && next.length > 0) {
-        setDefaultLocale(next[0]);
-      }
-      return next;
-    });
-  }
-
-  async function submit() {
-    if (selectedLocales.length === 0) {
-      setError("Select at least one language version.");
-      return;
-    }
-    if (!selectedLocales.includes(defaultLocale)) {
-      setError("Default language must be included in selected languages.");
-      return;
-    }
-    setError("");
-    setIsSubmitting(true);
-    await onPublish({ preset: draft.preset, selectedLocales, defaultLocale, allowIndexing });
-    setIsSubmitting(false);
-  }
-
-  return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Publish CV Version">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close publish modal"></button>
-      <div className="dashboard-modal__body">
-        <div className="section-row">
-          <h2>Publish CV Version</h2>
-          <button type="button" className="button button--ghost button--small" onClick={onClose}>
-            Close
-          </button>
-        </div>
-
-        <p className="card-lead">{draft.preset.title}</p>
-
-        <section className="stack">
-          <h3>Language Versions</h3>
-          {locales.map((locale) => (
-            <label key={locale} className="checkbox-row">
-              <input type="checkbox" checked={selectedLocales.includes(locale)} onChange={() => toggleLocale(locale)} />
-              {languageLabel(locale)}
-            </label>
-          ))}
-        </section>
-
-        <label>
-          Default language
-          <select value={defaultLocale} onChange={(event) => setDefaultLocale(event.target.value as ResumeLocale)}>
-            {selectedLocales.map((locale) => (
-              <option key={locale} value={locale}>
-                {languageLabel(locale)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="checkbox-row">
-          <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
-          Allow indexing for this Published CV
-        </label>
-
-        <div className="card stack">
-          <strong>Link state after publish</strong>
-          <p className="card-lead">Canonical URL is primary. Legacy /r/[slug] remains compatibility-only.</p>
-        </div>
-
-        {error ? <p className="status status--error">{error}</p> : null}
-
-        <div className="actions-row">
-          <button type="button" className="button button--primary" onClick={() => void submit()} disabled={isSubmitting}>
-            {isSubmitting ? "Publishing..." : "Publish CV Version"}
-          </button>
-          <button type="button" className="button button--ghost" onClick={onClose}>
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets }: Props) {
+export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets, actorRole }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
@@ -500,6 +392,9 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const { toast, showToast, closeToast } = useStatusToast();
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
+  const [languageVersions, setLanguageVersions] = useState<ResumeLanguageRow[]>(languageOptions);
+  const [isAddLanguageModalOpen, setIsAddLanguageModalOpen] = useState(false);
+  const [isLoadingLanguages, setIsLoadingLanguages] = useState(false);
 
   useEffect(() => {
     if (!masterResume) return;
@@ -514,6 +409,27 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
 
     return () => window.clearInterval(timer);
   }, [masterResume]);
+
+  useEffect(() => {
+    async function fetchLanguages() {
+      setIsLoadingLanguages(true);
+      try {
+        const response = await fetch("/api/resume/languages?withDocuments=true");
+        if (response.ok) {
+          const data = (await response.json()) as { languages?: ResumeLanguageRow[] };
+          if (data.languages) {
+            setLanguageVersions(data.languages);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch languages:", err);
+      } finally {
+        setIsLoadingLanguages(false);
+      }
+    }
+
+    fetchLanguages();
+  }, []);
 
   const hasMasterResume = Boolean(masterResume);
   const latestMasterUpdate = masterResume ? new Date(masterResume.updated_at).toLocaleString() : "Not saved yet";
@@ -604,6 +520,28 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     showToast("CV Version deleted.", "error");
   }
 
+  function exportText(preset: ResumePresetRow) {
+    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
+    if (!exportUrls) {
+      showToast("Publish this CV Version before exporting a snapshot.", "warning");
+      return;
+    }
+
+    window.open(exportUrls.textUrl, "_blank");
+    showToast("Preparing published text export...");
+  }
+
+  function exportPdf(preset: ResumePresetRow) {
+    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
+    if (!exportUrls) {
+      showToast("Publish this CV Version before exporting a snapshot PDF.", "warning");
+      return;
+    }
+
+    window.open(exportUrls.pdfUrl, "_blank");
+    showToast("Preparing published PDF export...");
+  }
+
   function openPublishSavedVersion(preset: ResumePresetRow) {
     const selectedLocales = Array.from(new Set(publishableLocales));
     if (selectedLocales.length === 0) {
@@ -619,6 +557,15 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     });
   }
 
+  function handleAddLanguageSuccess(language: ResumeLanguageRow) {
+    setLanguageVersions((current) => {
+      const exists = current.some((l) => l.code === language.code);
+      return exists ? current : [...current, language];
+    });
+    setIsAddLanguageModalOpen(false);
+    showToast(`Language version "${language.label}" added successfully.`);
+  }
+
   const modalOptions = useMemo(() => options, [options]);
 
   return (
@@ -630,6 +577,11 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           <div>
             <h2>Master Resume</h2>
             <p className="card-lead">English master CV · Updated {latestMasterUpdate}</p>
+            <LanguageBadgeRail
+              languages={languageVersions}
+              onAddLanguage={() => setIsAddLanguageModalOpen(true)}
+              isLoading={isLoadingLanguages}
+            />
           </div>
           <div className="actions-row">
             <Link className="button button--primary" href="/master-resume">
@@ -696,6 +648,12 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                         Publish
                       </button>
                     )}
+                    <button type="button" className="button button--ghost button--small" onClick={() => exportText(preset)}>
+                      ATS (TXT)
+                    </button>
+                    <button type="button" className="button button--ghost button--small" onClick={() => exportPdf(preset)}>
+                      PDF
+                    </button>
                   </div>
                   <div className="dashboard-resume-list__delete-separator">
                     <button
@@ -741,6 +699,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           documents={initialDocuments}
           languages={languageOptions}
           preset={previewPreset}
+          allowDraftPdf={actorRole === "admin"}
           onClose={() => {
             setPreviewPreset(null);
           }}
@@ -754,6 +713,14 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           languageOptions={languageOptions}
           onClose={() => setPublishDraft(null)}
           onPublish={publishPreset}
+        />
+      ) : null}
+
+      {isAddLanguageModalOpen ? (
+        <AddLanguageModal
+          existingLanguageCodes={languageVersions.map((l) => l.code)}
+          onClose={() => setIsAddLanguageModalOpen(false)}
+          onSuccess={handleAddLanguageSuccess}
         />
       ) : null}
 

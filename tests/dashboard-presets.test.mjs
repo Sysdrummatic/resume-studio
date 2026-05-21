@@ -62,9 +62,14 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   assert.equal(client.includes("BasicResumeDocument"), true);
   assert.equal(page.includes("fetchResumeLanguages"), true);
   assert.equal(page.includes("initialDocuments={resumeDocuments}"), true);
+  assert.equal(page.includes("actorRole={actor.role}"), true);
   assert.equal(client.includes("buildLanguageOptions"), true);
   assert.equal(client.includes("onLanguageSelect={setActiveLocale}"), true);
-  assert.equal(preview.includes("export function BasicResumeDocument"), true);
+  assert.equal(client.includes("parseCanonicalPublicPath"), true);
+  assert.equal(client.includes("allowDraftPdf={actorRole === \"admin\"}"), true);
+  const basicResumeDoc = read("app/components/resume-renderer/BasicResumeDocument.tsx");
+  assert.equal(basicResumeDoc.includes("export function BasicResumeDocument"), true);
+  assert.equal(preview.includes("BasicResumeDocument"), true);
 });
 
 test("preset list renders a right-aligned separated icon delete action", () => {
@@ -110,4 +115,24 @@ test("editor Saved Version panel uses owner-scoped publish and unpublish routes"
   assert.equal(editor.includes("/api/resume/presets/${encodeURIComponent(preset.id)}/unpublish"), true);
   assert.equal(editor.includes("await loadPresets();"), true);
   assert.equal(editor.includes("setPublishDraft(null);"), true);
+});
+
+test("snapshot exports use canonical public paths only for dashboard and editor flows", () => {
+  const dashboard = read("app/dashboard/dashboard-client.tsx");
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const userPage = read("app/user/page.tsx");
+  const userClient = read("app/user/user-client.tsx");
+  const exportLib = read("app/lib/resume-export.ts");
+
+  assert.equal(exportLib.includes("buildPublishedResumeExportUrls"), true);
+  assert.equal(exportLib.includes("textUrl"), true);
+  assert.equal(exportLib.includes("pdfUrl"), true);
+  assert.equal(dashboard.includes("buildPublishedResumeExportUrls"), true);
+  assert.equal(dashboard.includes("presetId="), false);
+  assert.equal(editor.includes("buildPublishedResumeExportUrls"), true);
+  assert.equal(editor.includes("presetId="), false);
+  assert.equal(userPage.includes("UserClient"), true);
+  assert.equal(userClient.includes("Primary Resume"), false);
+  assert.equal(userClient.includes('aria-label="Resume preview"'), true);
+  assert.equal(userClient.includes("buildPublishedResumeExportUrls"), true);
 });

@@ -1,0 +1,292 @@
+
+> opencvhub@0.0.0 test
+> node --test
+
+✔ account menu schedules auto-close after blur/loss of hover (1.6638ms)
+✔ account menu cancels close timer when hover/focus returns (0.5229ms)
+✔ account menu closes on click outside (0.4523ms)
+✔ account menu closes when another header menu opens (0.5964ms)
+✔ profile modal renders overlay container with close button label Zamknij (1.3977ms)
+✔ profile modal styles center the modal and blur the background (1.9716ms)
+✔ ADR 0004 is accepted and checklist is complete (1.2729ms)
+✔ ADR 0004 rollout guide documents communication and rollback (0.8677ms)
+✔ ADR 0005 is accepted and implementation checklist is complete (1.7757ms)
+✔ SEO/AEO runtime exports robots and sitemap routes (2.8294ms)
+✔ SEO/AEO QA checklist exists (0.5172ms)
+✔ ADR 0006 is accepted and checklist is complete (1.3782ms)
+✔ dashboard publish modal supports language selection and default locale contract (0.7727ms)
+✔ editor exposes read-only Saved Version/public-link state with canonical-first guidance (1.0003ms)
+✔ editor publish controls keep Saved Version language selection and public-link wording separate from master resume publishing (0.7611ms)
+✔ ADR 0007 is accepted and checklist is complete (1.5827ms)
+✔ ADR 0007 policy guide defines retention windows and RBAC visibility (0.9141ms)
+✔ analytics and audit contracts stay metadata-only on admin surfaces (2.2631ms)
+✔ ADR 0008 is accepted and checklist is complete (2.1597ms)
+✔ public OpenCV export route uses snapshot-only resolver and contract headers (0.563ms)
+✔ resume server exposes public export resolver with locale fallback (1.6583ms)
+✔ ADR 0009 is accepted and implementation checklist is complete (1.5907ms)
+✔ ADR 0009 implementation details in SQL migration (0.6364ms)
+✔ ADR 0009 implementation details in server and API route (3.3261ms)
+✔ ADR 0011 is superseded and records the initial dark-only rollout (1.316ms)
+✔ ADR 0012 accepts portal light mode within the app theme boundary (1.246ms)
+✔ app header uses hamburger navigation below desktop width (1.3894ms)
+✔ hamburger menu auto-closes after hover leave and outside click (0.5147ms)
+✔ hamburger menu closes when another header menu opens (1.3325ms)
+✔ account menu shows identity only on desktop width (0.7365ms)
+✔ header exposes an active theme switch slot in the top bar (1.0994ms)
+✔ app theme contract enables dark and light with dark as default (1.3029ms)
+✔ theme switch is interactive and persists the selected theme (2.1143ms)
+✔ layout resolves the initial theme on the server (0.551ms)
+✔ language menu badge and active states are tokenized for both themes (0.5946ms)
+✔ user avatar consumes portal theme variables instead of hardcoded dark colors (0.4581ms)
+(node:5856) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/app/lib/auth-cookies.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\LukaszMichta\Repos-Private\plm-resume\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ setAuthCookies keeps host-only cookies outside production app env (1.6349ms)
+✔ setAuthCookies keeps host-only cookies for preview when app env is missing (0.4367ms)
+✔ setAuthCookies applies configured cookie domain in production app env (0.469ms)
+✔ setAuthCookies applies configured cookie domain in production deploy context when app env is missing (0.3698ms)
+(node:38188) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/app/lib/client-http.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\LukaszMichta\Repos-Private\plm-resume\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ postJson returns parsed data for 200 JSON (33.8296ms)
+✔ postJson returns fallback for non-JSON 500 (0.6971ms)
+✔ postJson returns controlled error when request throws (0.3231ms)
+✔ legacy /r/[slug] route behaves as compatibility path and redirects to canonical public url (2.0763ms)
+✔ legacy /r/[slug] compatibility route is server-rendered and snapshot-backed (1.5598ms)
+✔ PR3 public route by person slug and public id resolves via Public Link source of truth (1.3756ms)
+✔ resume server exposes resolver for canonical public person-slug/public-id URLs (0.5885ms)
+✔ canonical public route emits SEO/AEO metadata contract (1.222ms)
+✔ legacy slug route keeps SEO-safe compatibility behavior (0.495ms)
+✔ ADR 0001 PR 1 migration adds a Published CV snapshot table for immutable public rendering (7.4957ms)
+✔ ADR 0001 PR 1 migration makes Published CV snapshots immutable (5.1358ms)
+✔ ADR 0001 PR 1 migration extends resume_public_links for canonical public URLs (20.4761ms)
+✔ ADR 0001 PR 1 migration adds profiles.person_slug with uniqueness and format protection (3.4772ms)
+✔ ADR 0001 PR 1 migration protects Public Link lifecycle and snapshot consistency (3.6363ms)
+✔ ADR 0001 PR 1 migration enables RLS for new publication tables and limits anonymous reads (10.4507ms)
+✔ ADR 0001 PR 1 migration keeps legacy resume_presets.slug during compatibility rollout (7.457ms)
+✔ PR4 migration adds transactional publish/unpublish RPC functions (1.3443ms)
+✔ PR4 publish RPC enforces explicit selected locales and default locale membership (0.574ms)
+✔ ADR 0002 publish RPC stamps OpenCV contract version explicitly (0.7879ms)
+✔ PR4 republish semantics keep active public-id and issue a new id only after unpublish (0.6478ms)
+✔ ADR 0001 publish runtime uses transactional RPC with explicit locale set (1.8777ms)
+✔ ADR 0001 unpublish runtime uses transactional RPC and keeps Saved Version private (0.7304ms)
+✔ ADR 0001 publication runtime keeps legacy slug compatibility resolver during rollout (0.6018ms)
+✔ editor public-link controls stay on owner-scoped preset APIs and do not touch public resolvers directly (0.5724ms)
+✔ ADR 0001 documents the publication domain model and test contracts (1.4534ms)
+✔ publication foundation migration adds person slugs and immutable snapshot tables (1.6953ms)
+✔ publication foundation extends resume_public_links without removing legacy preset slugs (0.695ms)
+✔ publication foundation defines RLS around active public snapshots and owner metadata (1.0475ms)
+✔ publication foundation is additive and keeps current public route runtime untouched (0.7615ms)
+✔ dashboard separates master resume from preset configurations (6.3534ms)
+✔ resume presets are stored as lightweight selection config (1.0212ms)
+✔ preset APIs expose create, update, publish and delete operations (0.8844ms)
+✔ preset modal auto-selects the only summary and enables choice only for multiple summaries (0.5596ms)
+✖ preset cards can open a rendered CV preview based on master resume selection (2.4793ms)
+✔ preset list renders a right-aligned separated icon delete action (0.8663ms)
+✔ dashboard prefers canonical public links and keeps legacy compatibility links (3.0305ms)
+✔ editor Saved Version panel uses owner-scoped publish and unpublish routes (0.6589ms)
+✔ snapshot exports use canonical public paths only for dashboard and editor flows (1.8901ms)
+✔ header account menu does not hide on home route (3.7075ms)
+(node:44776) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/app/lib/http-request-result.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\LukaszMichta\Repos-Private\plm-resume\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ requestJsonResult returns parsed data for 200 JSON (38.7703ms)
+✔ requestJsonResult returns fallback for non-JSON 500 (0.8618ms)
+✔ requestJsonResult returns controlled error when request throws (0.4933ms)
+✔ language versions are managed inside the master resume editor modal (3.564ms)
+✔ language version API creates metadata and prepares a resume document (0.8263ms)
+✔ resume locale handling supports newly added two-letter languages (1.139ms)
+✔ preset APIs preserve dynamic default locales instead of forcing EN or PL (0.8832ms)
+✔ public language switching only exposes published documents and uses preset variants (0.5711ms)
+✔ master resume editor loads saved EN documents instead of replacing them with the template (0.3579ms)
+✔ header renders login link for guests in primary nav (1.1603ms)
+✔ header keeps login link as rightmost item after Sample CV in primary nav (0.6112ms)
+✔ layout resolves the portal theme from cookie and passes an active switch (0.558ms)
+✔ legacy static HTML entry points and browser scripts are removed (3.3482ms)
+✔ HTML compatibility is preserved through Next redirects (0.7812ms)
+✔ public resume slugs are handled by the React route (1.2343ms)
+✔ ADR 0002 runtime defines supported OpenCV YAML contract boundary (1.5803ms)
+✔ ADR 0002 snapshot resolvers reject unsupported contract/schema versions (1.9245ms)
+✔ ADR 0002 policy doc defines compatibility and migration rules (0.5042ms)
+✔ personal hub mobile drawer uses the shared 980px breakpoint contract (3.1102ms)
+✔ personal hub mobile drawer applies dialog-style accessibility controls (1.0582ms)
+✔ personal hub mobile drawer geometry and fallback states are mobile-aware (1.1049ms)
+✔ personal hub shell consumes portal theme tokens instead of local dark-only utilities (0.7154ms)
+✔ empty resume template is schema-valid (1.5788ms)
+✔ legacy JSON payload is coerced into canonical YAML schema (7.3274ms)
+✔ invalid YAML payload reports schema and parse failures (0.9119ms)
+✔ migration plan creates EN/PL documents, revisions, and links (17.058ms)
+✔ normalizeLocale handles BCP47-like values and unsupported locales (0.2717ms)
+✔ createEmptyResumeDocument keeps Unicode initials for localized names (0.6519ms)
+✔ coerceLegacyResumeData drops incomplete qr_codes entries (0.3805ms)
+✔ validateResumeDocumentShape rejects non-string experience highlights items (0.2255ms)
+✔ migration plan keeps the newest duplicate locale and creates unique fallback slugs (17.6673ms)
+✔ generateSqlBackfill escapes apostrophes and avoids dollar-tag collisions (1.1608ms)
+✔ parseCliArgs keeps defaults and applies overrides (0.3411ms)
+✔ phase C migration defines required RPC functions (2.2135ms)
+✔ phase C migration grants execute permissions to authenticated role (2.7731ms)
+✔ phase D editor page loads canvas client and YAML runtime (1.4315ms)
+✔ phase D API endpoints exist for document load, publish and rollback (0.8348ms)
+✔ phase D client includes YAML export, publish and revision rollback actions (1.0873ms)
+✔ phase D client exposes YAML and human-friendly editor tabs backed by one resume state (1.6284ms)
+✖ phase D client supports summary list defaults in HFE and preview (3.2095ms)
+✔ phase D client migrates legacy YAML summary while loading editor drafts (0.6891ms)
+✔ phase D client keeps loaded YAML in panel and preserves publish status (0.478ms)
+✔ phase D server rejects publish/rollback success when RPC calls fail (0.5015ms)
+✔ ADR 0003 migration hardens content tables to owner-only RLS policies (1.4813ms)
+✔ ADR 0003 admin APIs expose metadata surface only (0.6995ms)
+✔ ADR 0003 keeps recruiter separate from staff admin permissions (1.8844ms)
+✔ text export route is snapshot-only and rejects preset fallback (1.2761ms)
+✔ pdf export route is snapshot-only and returns application/pdf (0.7762ms)
+✔ public export helper keeps canonical person slug and public id parsing local to the snapshot path (1.567ms)
+✔ resume language switcher implements full-name and compact locale display rules (3.7967ms)
+✔ resume badges support public draft and ai generated states (6.4266ms)
+✖ resume renderers use shared language switcher and badges (1.7679ms)
+✖ master resume preview receives all editor language options for in-CV language badges (1.3267ms)
+✔ resume visual shell keeps full-width hero, capsule badges, and centered timeline dots (0.8167ms)
+✔ disabled export actions use tooltip chrome instead of inline notes (1.6991ms)
+✔ Supabase migration prepares multilingual CV metadata (0.7262ms)
+✔ app header exposes a future-ready application language menu (0.7154ms)
+✔ resume live preview frame is not a button ancestor of interactive preview controls (2.1922ms)
+▶ Sample CV Data Integrity
+  ✔ locales.yaml should exist and be readable (1.1648ms)
+  ✔ Resume file "data/public/resume-en.yaml" should exist and contain basic info (0.8201ms)
+  ✔ Resume file "data/public/resume-pl.yaml" should exist and contain basic info (0.7367ms)
+✔ Sample CV Data Integrity (4.8498ms)
+(node:44204) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/app/lib/resume-schema.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\LukaszMichta\Repos-Private\plm-resume\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normalizeResumeDocument handles valid structure (1.6032ms)
+✔ normalizeResumeDocument coerces missing fields to defaults (0.8178ms)
+✔ normalizeResumeDocument uses fallbackName when name is missing (0.2217ms)
+✔ validateResumeDocument accepts valid documents (1.7147ms)
+✔ validateResumeDocument rejects invalid summary items (non-string fields) (0.6268ms)
+✔ validateResumeDocument rejects non-object input (0.2753ms)
+✔ normalizeLocale handles standard codes (0.4258ms)
+✔ normalizeLocale normalizes case and variants (0.2934ms)
+✔ normalizeLocale accepts any 2-letter code, defaults non-match to en (0.3254ms)
+✔ getDefaultSummary finds item with exactly one default: true (0.4235ms)
+✔ getDefaultSummary returns null if no default item (0.2013ms)
+✔ getDefaultSummary returns null if multiple defaults set (0.1625ms)
+✔ defaultResumeDocument creates template with required fields (0.1385ms)
+✔ sample CV delegates rendering to the shared resume renderer (1.5122ms)
+✔ legacy sample-only style selector and accent customizer are removed (2.0608ms)
+✔ resume document styling is consolidated in resume css instead of globals (0.8742ms)
+✔ resume view loads locale config with resume data on language change (1.1097ms)
+✔ resume view renders section headings from locale labels (0.6509ms)
+✔ public locales define config paths (2.0937ms)
+(node:42676) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/app/lib/rbac.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\LukaszMichta\Repos-Private\plm-resume\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ user has only base role and own resume capabilities (1.0975ms)
+✔ manager inherits user only (0.1817ms)
+✔ recruiter inherits user only (0.0891ms)
+✔ admin inherits manager recruiter and user capabilities (0.1018ms)
+✔ acceptedRoles remains exact-match while capability checks use inheritance (0.0992ms)
+✔ private content access is not broadened for inherited roles (0.7642ms)
+✔ canAccessDraftPdf allows only admin (0.1045ms)
+✔ isStaffRole identifies manager and admin (0.0628ms)
+✔ isNonStaffRole identifies user and recruiter (0.0738ms)
+✔ status toast renders status messages as a reusable browser-corner popup (7.6438ms)
+✔ page-level status messages use the shared toast component (1.6337ms)
+✔ destructive and warning statuses are routed to the expected toast variants (0.8775ms)
+✔ legacy static toast helper has been removed from public assets (0.4516ms)
+ℹ tests 173
+ℹ suites 0
+ℹ pass 169
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 832.4235
+
+✖ failing tests:
+
+test at tests\dashboard-presets.test.mjs:54:1
+✖ preset cards can open a rendered CV preview based on master resume selection (2.4793ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/tests/dashboard-presets.test.mjs:70:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1103:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:785:18)
+      at Test.postRun (node:internal/test_runner/test:1232:19)
+      at Test.run (node:internal/test_runner/test:1160:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:785:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\phase-d-editor-implementation.test.js:46:1
+✖ phase D client supports summary list defaults in HFE and preview (3.2095ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (C:\Users\LukaszMichta\Repos-Private\plm-resume\tests\phase-d-editor-implementation.test.js:60:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1103:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:785:18)
+      at Test.postRun (node:internal/test_runner/test:1232:19)
+      at Test.run (node:internal/test_runner/test:1160:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:785:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\resume-language-and-badges.test.mjs:38:1
+✖ resume renderers use shared language switcher and badges (1.7679ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/tests/resume-language-and-badges.test.mjs:45:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1103:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:785:18)
+      at Test.postRun (node:internal/test_runner/test:1232:19)
+      at Test.run (node:internal/test_runner/test:1160:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:785:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\resume-language-and-badges.test.mjs:53:1
+✖ master resume preview receives all editor language options for in-CV language badges (1.3267ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///C:/Users/LukaszMichta/Repos-Private/plm-resume/tests/resume-language-and-badges.test.mjs:62:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1103:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:785:18)
+      at Test.postRun (node:internal/test_runner/test:1232:19)
+      at Test.run (node:internal/test_runner/test:1160:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:785:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

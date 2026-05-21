@@ -26,7 +26,7 @@ test("ADR 0003 admin APIs expose metadata surface only", () => {
   assert.equal(adminUsers.includes("get_staff_user_overview"), true);
   assert.equal(adminUsers.includes("resume_documents"), false);
   assert.equal(adminUsers.includes("yaml_content"), false);
-  assert.equal(adminUserItem.includes("requireRequestActor([\"admin\", \"manager\"])"), true);
+  assert.equal(adminUserItem.includes("anyCapability: \"admin.users.read\""), true);
   assert.equal(adminUserItem.includes("resume-server"), false);
 });
 
@@ -34,8 +34,8 @@ test("ADR 0003 keeps recruiter separate from staff admin permissions", () => {
   const adminUsers = read("app/api/admin/users/route.ts");
   const adminUserItem = read("app/api/admin/users/[userId]/route.ts");
 
-  assert.equal(adminUsers.includes("requireRequestActor([\"admin\", \"manager\"])"), true);
-  assert.equal(adminUserItem.includes("requireRequestActor([\"admin\", \"manager\"])"), true);
+  assert.equal(adminUsers.includes("anyCapability: \"admin.users.read\""), true);
+  assert.equal(adminUserItem.includes("anyCapability: \"admin.users.read\""), true);
   assert.equal(adminUsers.includes("requireRequestActor([\"admin\", \"manager\", \"recruiter\"])"), false);
   assert.equal(adminUserItem.includes("requireRequestActor([\"admin\", \"manager\", \"recruiter\"])"), false);
 });

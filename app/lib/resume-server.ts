@@ -821,7 +821,9 @@ export function trackLegacyPublicRouteEvent(input: {
     outcome: input.outcome,
     timestamp: new Date().toISOString(),
   };
-  console.info("[public-route-compat]", JSON.stringify(payload));
+  if (process.env.COMPAT_ROUTE_DEBUG === "true") {
+    console.info("[public-route-compat]", JSON.stringify(payload));
+  }
 }
 
 async function fetchActivePublicLinkByPersonAndPublicId(
@@ -886,6 +888,66 @@ function buildPublishedSnapshotPreset(
   };
 }
 
+type ResolvedSnapshotLocales = {
+  defaultLocale: ResumeLocale;
+  requestedLocale: ResumeLocale;
+  allowedLocales: Set<ResumeLocale>;
+  localeRows: Array<ResumePublishedCvLocaleRow & { locale: ResumeLocale; selection: ResumePresetSelection }>;
+  activeLocaleRow: ResumePublishedCvLocaleRow & { locale: ResumeLocale; selection: ResumePresetSelection };
+};
+
+async function resolveSnapshotLocales(
+  link: ResumePublicLinkRow,
+  snapshot: ResumePublishedCvRow,
+  localeInput?: string,
+): Promise<ResolvedSnapshotLocales | null> {
+  const defaultLocale = normalizeLocale(link.default_locale || snapshot.default_locale);
+  const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
+  const linkLocales = normalizeLocales(link.available_locales || [], defaultLocale);
+  const snapshotLocales = normalizeLocales(snapshot.available_locales || [], defaultLocale);
+  const allowedLocales = new Set(linkLocales.filter((locale) => snapshotLocales.includes(locale)));
+  if (allowedLocales.size === 0) {
+    return null;
+  }
+
+  const localesResult = await queryTable<ResumePublishedCvLocaleRow>({
+    table: "resume_published_cv_locales",
+    select: RESUME_PUBLISHED_CV_LOCALE_SELECT,
+    useServiceRole: true,
+    query:
+      `published_cv_id=eq.${encodeURIComponent(snapshot.id)}` +
+      `&user_id=eq.${encodeURIComponent(snapshot.user_id)}` +
+      "&order=locale.asc",
+  });
+  if (!localesResult.data || localesResult.error) {
+    return null;
+  }
+
+  const localeRows = localesResult.data
+    .map((row) => ({
+      ...row,
+      locale: normalizeLocale(row.locale),
+      selection: normalizeResumePresetSelection(row.selection),
+    }))
+    .filter((row) => allowedLocales.has(row.locale));
+  if (localeRows.length === 0) {
+    return null;
+  }
+
+  const activeLocaleRow =
+    localeRows.find((row) => row.locale === requestedLocale) ||
+    localeRows.find((row) => row.locale === defaultLocale) ||
+    localeRows[0];
+
+  return {
+    defaultLocale,
+    requestedLocale,
+    allowedLocales,
+    localeRows,
+    activeLocaleRow,
+  };
+}
+
 async function fetchSnapshotPublishedResumePresetBySlug(
   normalizedSlug: string,
   localeInput?: string,
@@ -915,43 +977,12 @@ async function fetchSnapshotPublishedResumePresetBySlug(
     return { foundSnapshotLink: true, published: null };
   }
 
-  const defaultLocale = normalizeLocale(link.default_locale || snapshot.default_locale);
-  const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
-  const linkLocales = normalizeLocales(link.available_locales || [], defaultLocale);
-  const snapshotLocales = normalizeLocales(snapshot.available_locales || [], defaultLocale);
-  const allowedLocales = new Set(linkLocales.filter((locale) => snapshotLocales.includes(locale)));
-  if (allowedLocales.size === 0) {
+  const resolved = await resolveSnapshotLocales(link, snapshot, localeInput);
+  if (!resolved) {
     return { foundSnapshotLink: true, published: null };
   }
 
-  const localesResult = await queryTable<ResumePublishedCvLocaleRow>({
-    table: "resume_published_cv_locales",
-    select: RESUME_PUBLISHED_CV_LOCALE_SELECT,
-    useServiceRole: true,
-    query:
-      `published_cv_id=eq.${encodeURIComponent(snapshot.id)}` +
-      `&user_id=eq.${encodeURIComponent(snapshot.user_id)}` +
-      "&order=locale.asc",
-  });
-  if (!localesResult.data || localesResult.error) {
-    return { foundSnapshotLink: true, published: null };
-  }
-
-  const localeRows = localesResult.data
-    .map((row) => ({
-      ...row,
-      locale: normalizeLocale(row.locale),
-      selection: normalizeResumePresetSelection(row.selection),
-    }))
-    .filter((row) => allowedLocales.has(row.locale));
-  if (localeRows.length === 0) {
-    return { foundSnapshotLink: true, published: null };
-  }
-
-  const activeLocaleRow =
-    localeRows.find((row) => row.locale === requestedLocale) ||
-    localeRows.find((row) => row.locale === defaultLocale) ||
-    localeRows[0];
+  const { defaultLocale, localeRows, activeLocaleRow } = resolved;
   const activeSelection = normalizeResumePresetSelection(activeLocaleRow.selection || snapshot.selection);
   const resume = buildResumeDocumentFromPreset(activeLocaleRow.yaml_content, activeSelection);
   if (!resume) {
@@ -1009,43 +1040,12 @@ async function fetchPublishedResumeBySnapshotLink(
     return null;
   }
 
-  const defaultLocale = normalizeLocale(link.default_locale || snapshot.default_locale);
-  const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
-  const linkLocales = normalizeLocales(link.available_locales || [], defaultLocale);
-  const snapshotLocales = normalizeLocales(snapshot.available_locales || [], defaultLocale);
-  const allowedLocales = new Set(linkLocales.filter((locale) => snapshotLocales.includes(locale)));
-  if (allowedLocales.size === 0) {
+  const resolved = await resolveSnapshotLocales(link, snapshot, localeInput);
+  if (!resolved) {
     return null;
   }
 
-  const localesResult = await queryTable<ResumePublishedCvLocaleRow>({
-    table: "resume_published_cv_locales",
-    select: RESUME_PUBLISHED_CV_LOCALE_SELECT,
-    useServiceRole: true,
-    query:
-      `published_cv_id=eq.${encodeURIComponent(snapshot.id)}` +
-      `&user_id=eq.${encodeURIComponent(snapshot.user_id)}` +
-      "&order=locale.asc",
-  });
-  if (!localesResult.data || localesResult.error) {
-    return null;
-  }
-
-  const localeRows = localesResult.data
-    .map((row) => ({
-      ...row,
-      locale: normalizeLocale(row.locale),
-      selection: normalizeResumePresetSelection(row.selection),
-    }))
-    .filter((row) => allowedLocales.has(row.locale));
-  if (localeRows.length === 0) {
-    return null;
-  }
-
-  const activeLocaleRow =
-    localeRows.find((row) => row.locale === requestedLocale) ||
-    localeRows.find((row) => row.locale === defaultLocale) ||
-    localeRows[0];
+  const { defaultLocale, localeRows, activeLocaleRow } = resolved;
   const activeSelection = normalizeResumePresetSelection(activeLocaleRow.selection || snapshot.selection);
   const resume = buildResumeDocumentFromPreset(activeLocaleRow.yaml_content, activeSelection);
   if (!resume) {
@@ -1166,42 +1166,12 @@ export async function fetchPublishedResumeExportByPublicLink(
     return null;
   }
 
-  const defaultLocale = normalizeLocale(link.default_locale || snapshot.default_locale);
-  const requestedLocale = localeInput ? normalizeLocale(localeInput) : defaultLocale;
-  const linkLocales = normalizeLocales(link.available_locales || [], defaultLocale);
-  const snapshotLocales = normalizeLocales(snapshot.available_locales || [], defaultLocale);
-  const allowedLocales = new Set(linkLocales.filter((locale) => snapshotLocales.includes(locale)));
-  if (allowedLocales.size === 0) {
+  const resolved = await resolveSnapshotLocales(link, snapshot, localeInput);
+  if (!resolved) {
     return null;
   }
 
-  const localesResult = await queryTable<ResumePublishedCvLocaleRow>({
-    table: "resume_published_cv_locales",
-    select: RESUME_PUBLISHED_CV_LOCALE_SELECT,
-    useServiceRole: true,
-    query:
-      `published_cv_id=eq.${encodeURIComponent(snapshot.id)}` +
-      `&user_id=eq.${encodeURIComponent(snapshot.user_id)}` +
-      "&order=locale.asc",
-  });
-  if (!localesResult.data || localesResult.error) {
-    return null;
-  }
-
-  const localeRows = localesResult.data
-    .map((row) => ({
-      ...row,
-      locale: normalizeLocale(row.locale),
-    }))
-    .filter((row) => allowedLocales.has(row.locale));
-  if (localeRows.length === 0) {
-    return null;
-  }
-
-  const activeLocaleRow =
-    localeRows.find((row) => row.locale === requestedLocale) ||
-    localeRows.find((row) => row.locale === defaultLocale) ||
-    localeRows[0];
+  const { defaultLocale, allowedLocales, activeLocaleRow } = resolved;
 
   return {
     personSlug: link.person_slug,
@@ -1214,6 +1184,38 @@ export async function fetchPublishedResumeExportByPublicLink(
     openCvYamlContractVersion: snapshot.open_cv_yaml_contract_version,
     yamlContent: activeLocaleRow.yaml_content,
     canonicalPath: `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`,
+  };
+}
+
+export async function fetchResumeExportByPresetId(
+  accessToken: string,
+  userId: string,
+  presetId: string,
+): Promise<PublishedResumeExport | null> {
+  const preset = await fetchResumePresetById(accessToken, userId, presetId);
+  if (!preset) return null;
+
+  const document = await fetchDocumentById(accessToken, preset.document_id, userId);
+  if (!document) return null;
+
+  const selection = normalizeResumePresetSelection(preset.selection);
+  const doc = buildResumeDocumentFromPreset(document.yaml_content, selection);
+  if (!doc) return null;
+
+  // We serialize it back to YAML for the export route to handle it consistently
+  const yamlContent = yaml.dump(doc);
+
+  return {
+    personSlug: "user",
+    publicId: preset.id,
+    locale: preset.default_locale,
+    defaultLocale: preset.default_locale,
+    availableLocales: [preset.default_locale],
+    allowIndexing: false,
+    schemaVersion: document.schema_version,
+    openCvYamlContractVersion: OPEN_CV_PUBLIC_CONTRACT_MAJOR,
+    yamlContent,
+    canonicalPath: preset.canonical_public_path || `/dashboard?preset=${preset.id}`,
   };
 }
 

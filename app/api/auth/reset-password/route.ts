@@ -2,14 +2,11 @@ import { NextResponse } from "next/server";
 import { getAppBaseUrl } from "../../../lib/env";
 import { isValidEmailAddress } from "../../../lib/disposable-email";
 import { sendPasswordResetEmail } from "../../../lib/supabase-http";
+import { normalizeEmail } from "../../../lib/auth-profile";
 
 type ResetBody = {
   email?: string;
 };
-
-function normalizeEmail(value: unknown): string {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
 
 export async function POST(request: Request): Promise<Response> {
   let body: ResetBody;

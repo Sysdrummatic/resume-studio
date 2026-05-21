@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import type { AppRole, RequestActorAuthorizationOptions, SessionActor } from "./auth-types";
 import { clearAuthCookies, readAuthTokens, setAuthCookies } from "./auth-cookies";
-import { fetchProfileById, fetchProfileByIdAsService, getAuthUser, refreshSession } from "./supabase-http";
+import { getAuthUser, refreshSession } from "./supabase-http";
 import { isRoleAuthorized } from "./rbac";
+import { normalizeEmail, normalizeDisplayName, resolveProfile } from "./auth-profile";
 
 type RequestAuthResult =
   | {
@@ -16,31 +17,6 @@ type RequestAuthResult =
       message: string;
     };
 
-function normalizeDisplayName(displayName: unknown, email: string): string {
-  if (typeof displayName === "string" && displayName.trim()) {
-    return displayName.trim();
-  }
-  if (email.includes("@")) {
-    return email.split("@")[0];
-  }
-  return "User";
-}
-
-
-async function resolveProfile(userId: string, accessToken: string) {
-  const profileResult = await fetchProfileById(userId, accessToken);
-  if (profileResult.data || profileResult.status < 500) {
-    return profileResult;
-  }
-
-  const fallbackResult = await fetchProfileByIdAsService(userId);
-  if (fallbackResult.data) {
-    return fallbackResult;
-  }
-
-  return profileResult;
-}
-
 async function buildActor(accessToken: string): Promise<RequestAuthResult> {
   const userResult = await getAuthUser(accessToken);
   if (!userResult.data || userResult.error) {
@@ -51,7 +27,7 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
     };
   }
 
-  const email = typeof userResult.data.email === "string" ? userResult.data.email.toLowerCase() : "";
+  const email = normalizeEmail(userResult.data.email);
   const profileResult = await resolveProfile(userResult.data.id, accessToken);
   if (!profileResult.data || profileResult.error) {
     return {
@@ -66,8 +42,11 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
     email,
     emailConfirmed: Boolean(userResult.data.email_confirmed_at),
     displayName: normalizeDisplayName(profileResult.data.display_name, email),
+    avatarUrl: profileResult.data.avatar_url,
     role: profileResult.data.role,
+    bio: profileResult.data.bio,
     isActive: profileResult.data.is_active,
+    accessToken,
   };
 
   return { ok: true, actor, accessToken };

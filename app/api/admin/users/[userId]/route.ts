@@ -3,7 +3,7 @@ import { writeAdminAuditLog } from "../../../../lib/admin-audit";
 import type { AppRole } from "../../../../lib/auth-types";
 import { isAppRole } from "../../../../lib/auth-types";
 import { requireRequestActor } from "../../../../lib/auth-request";
-import { canAssignRole, canDeleteTarget } from "../../../../lib/rbac";
+import { canAssignRole, canDeleteTarget, hasCapability } from "../../../../lib/rbac";
 import { callRpc, deleteAuthUserAsService, fetchProfileByIdAsService } from "../../../../lib/supabase-http";
 
 type UpdateUserBody = {
@@ -22,7 +22,7 @@ function normalizeId(value: string): string {
 }
 
 export async function PATCH(request: Request, context: RouteContext): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager"]);
+  const actorResult = await requireRequestActor({ anyCapability: "admin.users.read" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
@@ -46,11 +46,11 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
   }
   const targetProfile = targetProfileResult.data;
 
-  if (actorResult.actor.role === "manager" && (targetProfile.role === "admin" || targetProfile.role === "manager")) {
+  if (!hasCapability(actorResult.actor.role, "admin.users.role_write") && (targetProfile.role === "admin" || targetProfile.role === "manager")) {
     return NextResponse.json({ error: "Manager cannot manage admin or manager accounts." }, { status: 403 });
   }
 
-  if (actorResult.actor.role === "manager" && actorResult.actor.userId === targetProfile.id) {
+  if (!hasCapability(actorResult.actor.role, "admin.users.role_write") && actorResult.actor.userId === targetProfile.id) {
     return NextResponse.json({ error: "Manager cannot modify own account privileges." }, { status: 403 });
   }
 
@@ -139,7 +139,7 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
 }
 
 export async function DELETE(_: Request, context: RouteContext): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager"]);
+  const actorResult = await requireRequestActor({ anyCapability: "admin.users.read" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }

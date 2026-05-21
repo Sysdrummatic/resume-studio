@@ -271,6 +271,19 @@ export function getDefaultSummary(summary: ResumeSummaryItem[]): ResumeSummaryIt
   return defaults.length === 1 ? defaults[0] : null;
 }
 
+const RESUME_ARRAY_KEYS = new Set<keyof ResumeDocument>([
+  "summary",
+  "contact",
+  "qr_codes",
+  "skills",
+  "tech_stack",
+  "languages",
+  "interests",
+  "experience",
+  "education",
+  "courses",
+]);
+
 export function validateResumeDocument(value: unknown): { valid: boolean; errors: string[] } {
   const source = asObject(value);
   const errors: string[] = [];
@@ -281,17 +294,7 @@ export function validateResumeDocument(value: unknown): { valid: boolean; errors
       return;
     }
     const valueAtKey = source[key];
-    const shouldBeArray =
-      key === "summary" ||
-      key === "contact" ||
-      key === "qr_codes" ||
-      key === "skills" ||
-      key === "tech_stack" ||
-      key === "languages" ||
-      key === "interests" ||
-      key === "experience" ||
-      key === "education" ||
-      key === "courses";
+    const shouldBeArray = RESUME_ARRAY_KEYS.has(key);
     if (shouldBeArray && !Array.isArray(valueAtKey)) {
       errors.push(`Key "${key}" must be an array.`);
     }

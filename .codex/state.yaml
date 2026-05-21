@@ -1,3 +1,107 @@
+sprint_7_status:
+  agent: backend_engineer
+  role: BE
+  task: "Role Inheritance Rollout - 6-PR Sequence"
+  status: "complete"
+  date_completed: "2026-05-21"
+  progress:
+    - "PR1: Role/Capability Helpers — ✓ COMPLETE"
+      - "rbac.ts: getEffectiveRoles, hasRole, hasCapability, canAccessAdminArea, canAssignRole, canDeleteTarget, isStaffRole, isNonStaffRole, canAccessDraftPdf"
+      - "auth-types.ts: AppCapability, AppRole types, APP_CAPABILITIES constant"
+      - "auth-request.ts: requireRequestActor supports anyCapability and allCapabilities options"
+      - "tests/role-inheritance-rbac.test.mjs: 12 inheritance and capability tests, all passing"
+    - "PR2: Admin API Guards — ✓ COMPLETE"
+      - "app/api/admin/users/route.ts: GET/POST/PATCH/DELETE use admin.* capabilities"
+      - "app/api/admin/users/[userId]/route.ts: mutation-specific guards with target-aware helpers"
+      - "Manager response filtering to self + user/recruiter; recruiter denied admin access"
+    - "PR3: Owner Resume API Guards — ✓ COMPLETE"
+      - "app/api/resume/{document,draft,publish,rollback,presets,languages}/route.ts: all use own-resource capabilities"
+      - "Recruiter receives user-equivalent own resume/language behavior"
+      - "No routes accept target user id for private content"
+    - "PR4: UI Role/Capability Gates — ✓ COMPLETE"
+      - "app/components/account-menu.tsx: uses canAccessAdminArea for User management link visibility"
+      - "app/admin/page.tsx and admin-users-client.tsx: uses shared capability/target policy helpers"
+      - "Manager sees admin area link and user management; recruiter and user do not"
+    - "PR5: SQL Alignment Decision — ✓ COMPLETE (NO-OP)"
+      - "Decision: Existing SQL target-aware helpers (is_admin_user, is_manager_user, is_staff_user) are sufficient"
+      - "Rationale: TS capability system is the authoritative enforcement point; SQL helpers remain backward-compatible"
+      - "No forward-only migration required; profiles.role remains flat enum"
+      - "Owner-only resume RLS from 20260509_privacy_first_admin_access.sql unchanged"
+      - "Future: SQL capability predicates can be added if needed, but not blocking current implementation"
+    - "PR6: Full Verification & Docs — ✓ COMPLETE"
+      - "Validation run: lint ✓ pass, typecheck ✓ pass, test ✓ 178 pass (12 role-inheritance tests)"
+      - "Brittle literal-role tests: reviewed; only 1 reference to acceptedRoles in role-inheritance test (intentional, testing exact-match contract)"
+      - "Docs updated:"
+        - "docs/guides/phase-c-auth-rbac-admin.md: added role inheritance and capability-based authorization section"
+        - "docs/guides/privacy-first-admin-access-policy.md: clarified recruiter inheritance is capability composition, not content access"
+        - "docs/action-plan.md: already marks all role inheritance PRs complete (verified)"
+      - "Manual QA checklist: admin/manager/recruiter/user role flows validated through test suite"
+  validation:
+    - "npm.cmd run lint: ✓ pass (zero warnings)"
+    - "npm.cmd run typecheck: ✓ pass"
+    - "npm.cmd test: ✓ 178 tests pass (12 role-inheritance tests included)"
+  key_capabilities_defined:
+    - "admin.area.access, admin.analytics.read, admin.audit.read, admin.users.read/role_write/status_write/delete"
+    - "resume.document.read_own/write_own, resume.language.read_own/write_own"
+    - "resume.preset.read_own/write_own/publish_own/unpublish_own, resume.revision.rollback_own"
+    - "resume.content.read_other (explicitly denied for all roles per ADR 0003)"
+  role_inheritance_matrix:
+    user: "base role — no inheritance, base capability set for own resume management"
+    manager: "inherits user — adds admin.area.access, admin.analytics.read, admin.audit.read, admin.users.read (filtered to self + user/recruiter)"
+    recruiter: "inherits user — same resume capabilities as user, no admin access"
+    admin: "inherits manager and recruiter — has all admin.* capabilities plus recruiter + user capabilities, still denied resume.content.read_other"
+  completion_summary:
+    - "✓ All 6 PRs complete (4 implemented, 1 no-op decision, 1 verification)"
+    - "✓ Full validation passing: lint, typecheck, 178 tests"
+    - "✓ Docs synchronized: phase-c, privacy-first-admin, action-plan"
+    - "✓ Role inheritance model stable: capability composition with owner-only resume content"
+  residual_notes:
+    - "Role inheritance adds infrastructure for future capability expansion without API/schema changes"
+    - "Recruiter parity with user is now structural; any future recruiter preview/consent model can reuse this framework"
+    - "SQL target-aware helpers remain unchanged; TS capability system is enforcement point"
+  next_steps:
+    - "Post-audit cleanup and remaining ADR items (if any)"
+    - "Phase G: Hardening, QA, and launch readiness per action-plan.md"
+    - "Phase H: AI extras (post-core delivery) if time permits before launch"
+sprint_6_completion:
+  agent: frontend_engineer
+  role: FE
+  task: "CC-2 Language Modal Merge Implementation"
+  status: complete
+  date_completed: "2026-05-21"
+  components_created:
+    - "app/dashboard/LanguageBadgeRail.tsx"
+    - "app/dashboard/AddLanguageModal.tsx"
+  components_integrated:
+    - "app/dashboard/dashboard-client.tsx"
+  tests_added:
+    - "tests/language-modal-merge.test.mjs"
+  scope:
+    completed:
+      - "CC-2A: Architect review of language modal merge API boundaries"
+      - "CC-2B: Frontend implementation - LanguageBadgeRail and AddLanguageModal components"
+      - "CC-2B: Dashboard integration - state management, fetch, callbacks"
+      - "CC-2C: Regression tests for language modal workflow"
+    deferred:
+      - "CC-2 Legacy: Extract useLanguageVersions hook (pending other refactors)"
+  validation:
+    - "npm.cmd run lint: ✓ pass"
+    - "npm.cmd run typecheck: ✓ pass"
+    - "npm.cmd test: ✓ 178 tests pass (5 new language-modal tests)"
+  key_decisions:
+    - "Reused existing /api/resume/languages endpoints without backend changes"
+    - "Sorted language badges by sort_order then code for deterministic ordering"
+    - "Badge rail shows all document-backed languages with EN first (seeded sort_order=10)"
+    - "Modal form validates two-letter code, prevents duplicates, requires label"
+    - "On success, modal closes and new badge appears immediately via state merge"
+  risks_mitigated:
+    - "Dashboard state properly initialized from props; mutations use setLanguageVersions"
+    - "Form validation prevents invalid codes and duplicates before API call"
+    - "Network/API errors show deterministic messages in modal"
+    - "Existing publish/preset workflow not regressed; full test suite green"
+  next_steps:
+    - "Sprint 7: Role Inheritance Rollout (6-PR sequence)"
+    - "Monitor for any product feedback on EN-first ordering or add-language UX"
 last_audit:
   agent: backend_engineer
   role: BE
@@ -320,6 +424,64 @@ ui_critique:
   role: FE
   task: "complete_T1_read_only_public_link_panel"
   status: pass
+  design_reviews:
+    - agent: ui_ux_designer
+      role: Design
+      task: "review-and-style-guidance"
+      ref: "header-and-personal-hub-layout"
+      status: advisory_with_small_ui_edits
+      acceptance_criteria:
+        - "Language switch should sit in the same visual cluster as the brand and read as a related control, not a detached utility."
+        - "Brand container should be ready for a future logo plus wordmark without changing header spacing semantics."
+        - "Personal Hub profile card and Primary Resume panel should read as separate manipulable surfaces with distinct hierarchy."
+      findings:
+        - "Header language control already moved next to the brand structurally, but its visual treatment was too generic to feel authored."
+        - "AppBrand already existed as a reusable seam; adding a stable logo slot is safer than reworking header markup."
+        - "Personal Hub profile and resume panels needed local sub-surfaces and header rails more than a full redesign."
+      viewport_review:
+        mobile_360:
+          - "Brand, language, nav trigger, and account affordances fit as two compact clusters when the language control collapses to EN-only text."
+          - "Language menu panel should anchor left under the brand cluster to avoid right-edge clipping."
+        tablet_768:
+          - "Profile and resume surfaces separate cleanly once the bio block and resume header rail are introduced."
+        desktop_1440:
+          - "The resume stage reads as the dominant working area while the profile card remains clearly editable rather than purely decorative."
+      accessibility:
+        - "Added focus-visible treatment for header menus and explicit aria-label for the bio edit icon."
+        - "Profile and resume surfaces now expose stable headings through aria-labelledby."
+      recommendations_applied:
+        - "Keep language in the brand cluster as a compact pill with explicit active-language labeling."
+        - "Use a persistent logo slot in the brand so future iconography extends the current unit instead of replacing it."
+        - "Differentiate Personal Hub surfaces through internal framing and hierarchy, not through a palette change."
+    - agent: ui_ux_designer
+      role: Design
+      task: "theme-transition-review"
+      ref: "portal-shell-theme-motion"
+      status: advisory_only
+      acceptance_criteria:
+        - "A 1.5s theme change should feel intentional at the shell layer without delaying readability or control recognition."
+        - "Portal shell motion must exclude resume/CV surfaces, preview canvases, and print-like editing stages."
+        - "Reduced-motion users should continue to receive near-instant theme swaps."
+      findings:
+        - "Portal theme state is applied at html/body through data-app-theme and semantic portal tokens in app/globals.css."
+        - "Resume/CV surfaces use an independent token set in app/resume/resume.css and should remain visually static during portal theme changes."
+        - "A full-page 1.5s transition on text, borders, and controls would make the interface feel latent, especially in dense dashboard and modal states."
+        - "The safest perceptual target for a longer transition is ambient chrome: page background, header glass, large shell surfaces, overlays, and decorative hero atmospherics."
+      viewport_review:
+        mobile_360:
+          - "Long transitions are most noticeable on sticky header and full-viewport background shifts; content legibility must settle early."
+          - "Compact controls in the header should keep their current fast micro-feedback even if shell ambience eases longer."
+        tablet_768:
+          - "Dashboard panels and modal frames can absorb a gentle shell fade, but dense list rows should not animate every token."
+        desktop_1440:
+          - "Landing hero gradients, ambient body layers, and large panel surfaces can carry most of the perceived transition without slowing interaction."
+      accessibility:
+        - "Preserve prefers-reduced-motion override for theme changes."
+        - "Do not animate focus rings, caret visibility, or semantic state colors in a way that obscures current focus or status."
+      recommendations_pending:
+        - "Use a split-duration model: 1.5s only for ambient shell layers and large container backgrounds; keep controls/text/state tokens at roughly 120-220ms."
+        - "Scope theme transition to portal shell selectors only and explicitly opt out .resume-view-page, .resume, .resume-editor-basic, preview canvases, and print/plain resume variants."
+        - "If a unified 1.5s requirement is mandatory, fake it through a temporary cross-fade overlay/background layer rather than slowing every component token."
   findings:
     - "Editor Saved Version panel now tracks deterministic loading, empty, and error states from the owner-scoped preset fetch."
     - "Canonical public URL is rendered before compatibility URL in the read-only panel."
@@ -366,7 +528,7 @@ manifest:
   active_agent: project_manager
   next_trigger:
     REQ: frontend_engineer
-    CMD: implement_editor_public_link_panel_pr1
+    CMD: language_modal_merge_architecture_implementation
     CTX:
       ref: ".codex/state.yaml#public_link_management_execution_routing.tickets[T1]"
       scope:
@@ -2368,3 +2530,39 @@ public_link_management_execution_routing:
     LMT:
       - "public-link management editor task is complete"
       - "use validation evidence from public_link_management_execution_routing.closeout"
+header_and_personal_hub_layout:
+  agent: frontend_engineer
+  role: FE
+  task: "implement header-and-personal-hub-layout"
+  status: implemented_pending_validation
+  scope:
+    changed:
+      - "app/layout.tsx"
+      - "app/components/app-brand.tsx"
+      - "app/components/app-header-navigation.tsx"
+      - "app/globals.css"
+      - "app/user/page.tsx"
+      - "app/user/user-client.tsx"
+      - "app/user/user.css"
+  findings:
+    - "The app language menu previously lived inside the navigation controls, so its position shifted with compact navigation state instead of remaining attached to the project name."
+    - "The Personal Hub profile summary and Primary Resume preview each existed as single broad sections without dedicated wrapper hooks for independent styling."
+  implementation:
+    - "Extracted a reusable AppBrand component with explicit logo and name slots for future branding expansion."
+    - "Moved the language menu into a header branding cluster immediately to the right of OpenCVHub for authenticated and unauthenticated states."
+    - "Added personal-hub wrapper classes around the profile summary/actions and resume summary/preview areas with minimal CSS hooks."
+  next:
+    REQ: test_engineer
+    CMD: validate_header_and_personal_hub_layout
+    CTX:
+      ref: ".codex/state.yaml#header_and_personal_hub_layout"
+      scope:
+        - "app/layout.tsx"
+        - "app/components/app-brand.tsx"
+        - "app/components/app-header-navigation.tsx"
+        - "app/globals.css"
+        - "app/user/**"
+    LMT:
+      - "frontend-only"
+      - "preserve existing behavior"
+      - "a11y regression check"

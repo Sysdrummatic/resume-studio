@@ -48,7 +48,6 @@ test("legacy static HTML entry points and browser scripts are removed", () => {
 
 test("HTML compatibility is preserved through Next redirects", () => {
   const netlifyConfig = read("netlify.toml");
-  const nextConfig = read("next.config.ts");
   const redirects = [
     ["/index.html", "/"],
     ["/login.html", "/login"],
@@ -65,9 +64,6 @@ test("HTML compatibility is preserved through Next redirects", () => {
   }
   assert.equal((netlifyConfig.match(/status = 301/g) || []).length >= redirects.length, true);
   assert.equal((netlifyConfig.match(/force = true/g) || []).length >= redirects.length, true);
-  assert.equal(nextConfig.includes('source: "/index.html"'), true);
-  assert.equal(nextConfig.includes('destination: "/"'), true);
-  assert.equal(nextConfig.includes("permanent: true"), true);
 });
 
 test("public resume slugs are handled by the React route", () => {

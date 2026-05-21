@@ -4,9 +4,13 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { FocusEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
+import { canAccessAdminArea } from "../lib/rbac";
+import { UserAvatar } from "./design-system/atoms/UserAvatar";
 
 type Props = {
   email: string;
+  displayName: string;
+  avatarUrl: string | null;
   role: AppRole;
   isActive: boolean;
   emailConfirmed: boolean;
@@ -27,7 +31,7 @@ function getInitial(email: string): string {
   return email.trim().charAt(0).toUpperCase() || "U";
 }
 
-export default function AccountMenu({ email, role, isActive, emailConfirmed }: Props) {
+export default function AccountMenu({ email, displayName, avatarUrl, role, isActive, emailConfirmed }: Props) {
   const [isBusy, setIsBusy] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
@@ -125,7 +129,12 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
     >
       <summary className="account-menu__trigger" aria-label="Open account menu">
         <span className="account-menu__avatar" aria-hidden>
-          {getInitial(email)}
+          <UserAvatar
+            initials={getInitial(displayName || email)}
+            src={avatarUrl || undefined}
+            size="sm"
+            className="account-menu__avatar-image"
+          />
         </span>
         <span className="account-menu__identity">
           <span className="account-menu__email">{email}</span>
@@ -136,7 +145,7 @@ export default function AccountMenu({ email, role, isActive, emailConfirmed }: P
         <button type="button" className="account-menu__item" onClick={openProfileModal}>
           Profile
         </button>
-        {role === "admin" && (
+        {canAccessAdminArea(role) && (
           <Link href="/admin" className="account-menu__item" role="menuitem">
             User management
           </Link>

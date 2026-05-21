@@ -2,15 +2,12 @@ import { NextResponse } from "next/server";
 import { getAppBaseUrl } from "../../../lib/env";
 import { isDisposableEmailAddress, isValidEmailAddress } from "../../../lib/disposable-email";
 import { signUpWithPassword } from "../../../lib/supabase-http";
+import { normalizeEmail } from "../../../lib/auth-profile";
 
 type SignUpBody = {
   email?: string;
   password?: string;
 };
-
-function normalizeEmail(value: unknown): string {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
 
 export async function POST(request: Request): Promise<Response> {
   let body: SignUpBody;

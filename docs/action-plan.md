@@ -53,25 +53,25 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Decide and write post-PR4 ADR backlog in priority order: OpenCV YAML contract, privacy-first admin, public route compatibility/deprecation, SEO/AEO policy, Saved Version/link-management UX, analytics/audit retention, and future OpenCV export/API surface.
      Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md), [ADR 0001 CV Publication Model](adr/0001-cv-publication-model.md), `.codex/state.yaml#adr_backlog`
 
-6. [ ] Phase F - User panel and analytics
-   - [ ] Build user panel for CV and link management.
-   - [ ] Add downloadable Published CV PDF export.
-   - [ ] Add plain text ATS-ready export for Published CV snapshots.
-   - [ ] Add owner-facing export controls in the editor/user panel.
-   - [ ] Ensure PDF and plain text exports read Published CV snapshots, not private drafts.
-   - [ ] Add tests for PDF/plain text export privacy, locale selection, and snapshot isolation.
-   - [ ] Add role-aware admin dashboard views for analytics and audit visibility.
-   - [ ] Add analytics widgets for counts, active links, and views.
-   - [ ] Add audit log explorer and filtering.
-   - [ ] Add recruiter baseline workflow smoke coverage.
-   - [/] Implement role inheritance capability model with API guards/UI gates/SQL helpers (least-privilege, privacy-first).
+6. [x] Phase F - User panel and analytics
+   - [x] Build user panel for CV and link management (Dashboard/Presets).
+   - [x] Add downloadable Published CV PDF export.
+   - [x] Add plain text ATS-ready export for Published CV snapshots.
+   - [x] Add owner-facing export controls in the editor/user panel.
+   - [x] Ensure PDF and plain text exports read Published CV snapshots, not private drafts.
+   - [x] Add tests for PDF/plain text export privacy, locale selection, and snapshot isolation.
+   - [x] Add role-aware admin dashboard views for analytics and audit visibility.
+   - [x] Add analytics widgets for counts, active links, and views.
+   - [x] Add audit log explorer and filtering.
+   - [x] Add recruiter baseline workflow smoke coverage.
+   - [x] Implement role inheritance capability model with API guards/UI gates/SQL helpers (least-privilege, privacy-first).
      Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md), [Phase C Auth + RBAC + Admin](guides/phase-c-auth-rbac-admin.md), [Privacy-First Admin Access Policy](guides/privacy-first-admin-access-policy.md), `.codex/state.yaml#role_inheritance_rollout_package`, `.codex/state.yaml#role_inheritance_model`
    - [x] Role inheritance PR1 complete: capability helpers and tests in `app/lib/rbac.ts`, `app/lib/auth-types.ts`, `app/lib/auth-request.ts`, `app/lib/auth-server.ts`, and `tests/**`.
-   - [ ] Role inheritance PR2: migrate `app/api/admin/users/**` to `admin.*` capabilities and target-aware helpers.
-   - [ ] Role inheritance PR3: migrate `app/api/resume/**` to `resume.*_own` capabilities.
-   - [ ] Role inheritance PR4: update `app/components/account-menu.tsx`, `app/admin/page.tsx`, and `app/admin/admin-users-client.tsx` to shared capability/target helpers.
-   - [ ] Role inheritance PR5: decide SQL alignment and add forward-only helper migration only if needed.
-   - [ ] Role inheritance PR6: update brittle literal-role tests, run full validation, and attach manual QA evidence.
+   - [x] Role inheritance PR2: migrate `app/api/admin/users/**` to `admin.*` capabilities and target-aware helpers.
+   - [x] Role inheritance PR3: migrate `app/api/resume/**` to `resume.*_own` capabilities.
+   - [x] Role inheritance PR4: update `app/components/account-menu.tsx`, `app/admin/page.tsx`, and `app/admin/admin-users-client.tsx` to shared capability/target helpers.
+   - [x] Role inheritance PR5: decide SQL alignment and add forward-only helper migration only if needed.
+   - [x] Role inheritance PR6: update brittle literal-role tests, run full validation, and attach manual QA evidence.
 
 7. [ ] Phase G - Hardening, QA, and launch readiness
    - [x] Confirm local CI-equivalent gates are green before deploy (`npm.cmd run verify`, `npm.cmd run build`).
@@ -126,11 +126,11 @@ gantt
   E4 ADR backlog closure                    :e4, 2026-05-13, 8d
 
   section Product/Admin Expansion (Phase F)
-  F1 User panel CV/link management         :f1, after e1, 12d
-  F2 Role inheritance PR2-PR6              :f2, 2026-05-13, 16d
-  F3 Analytics widgets                      :f3, after f1, 8d
-  F4 Audit explorer/filtering               :f4, after f2, 8d
-  F5 Recruiter smoke coverage               :f5, after f2, 4d
+  F1 User panel CV/link management         :done, f1, 2026-05-13, 1d
+  F2 Role inheritance PR2-PR6              :done, f2, 2026-05-13, 1d
+  F3 Analytics widgets                      :done, f3, 2026-05-13, 1d
+  F4 Audit explorer/filtering               :done, f4, 2026-05-13, 1d
+  F5 Recruiter smoke coverage               :done, f5, 2026-05-13, 1d
 
   section Editor Follow-up
   D-followup Public-link management in editor :d1, 2026-05-13, 6d

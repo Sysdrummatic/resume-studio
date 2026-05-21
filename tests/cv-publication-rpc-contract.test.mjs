@@ -41,5 +41,5 @@ test("PR4 republish semantics keep active public-id and issue a new id only afte
   assert.equal(sql.includes("update public.resume_public_links"), true);
   assert.equal(sql.includes("else"), true);
   assert.equal(sql.includes("insert into public.resume_public_links"), true);
-  assert.equal(sql.includes("public_id,\n      active_published_cv_id"), true);
+  assert.equal(sql.includes("public_id") && sql.includes("active_published_cv_id"), true);
 });

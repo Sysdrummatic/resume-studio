@@ -17,7 +17,7 @@ type PublishRouteContext = {
 };
 
 export async function POST(request: Request, context: PublishRouteContext): Promise<Response> {
-  const actorResult = await requireRequestActor(["admin", "manager", "user", "recruiter"]);
+  const actorResult = await requireRequestActor({ anyCapability: "resume.preset.publish_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }

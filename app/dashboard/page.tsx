@@ -28,7 +28,13 @@ export default async function DashboardPage() {
         </header>
       </section>
 
-      <DashboardClient masterResume={masterResume} initialDocuments={resumeDocuments} languageOptions={resumeLanguages} initialPresets={resumePresets} />
+      <DashboardClient
+        masterResume={masterResume}
+        initialDocuments={resumeDocuments}
+        languageOptions={resumeLanguages}
+        initialPresets={resumePresets}
+        actorRole={actor.role}
+      />
     </>
   );
 }

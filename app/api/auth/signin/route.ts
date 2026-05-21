@@ -3,15 +3,12 @@ import { cookies } from "next/headers";
 import { isValidEmailAddress } from "../../../lib/disposable-email";
 import { setAuthCookies } from "../../../lib/auth-cookies";
 import { fetchProfileById, fetchProfileByIdAsService, signInWithPassword, signOut } from "../../../lib/supabase-http";
+import { normalizeEmail } from "../../../lib/auth-profile";
 
 type SignInBody = {
   email?: string;
   password?: string;
 };
-
-function normalizeEmail(value: unknown): string {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
 
 function mapUpstreamStatus(status: number): number {
   return status >= 500 ? 503 : 400;

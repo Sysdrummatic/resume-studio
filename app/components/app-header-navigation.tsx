@@ -12,25 +12,26 @@ type NavItem = {
 type Props = {
   account: ReactNode;
   items: NavItem[];
-  language?: ReactNode;
+  accessory?: ReactNode;
 };
 
 const MENU_AUTO_CLOSE_DELAY_MS = 1000;
 const HEADER_MENU_OPEN_EVENT = "app-header-menu-open";
 const NAVIGATION_MENU_NAME = "navigation";
+const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";
 
 function announceHeaderMenuOpen(menuName: string) {
   document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
 }
 
-export default function AppHeaderNavigation({ account, items, language }: Props) {
+export default function AppHeaderNavigation({ account, items, accessory = null }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
 
   const updateMode = useCallback(() => {
-    const nextIsCompact = !window.matchMedia("(min-width: 1024px)").matches;
+    const nextIsCompact = !window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY).matches;
 
     setIsCompact(nextIsCompact);
     if (!nextIsCompact) {
@@ -166,8 +167,7 @@ export default function AppHeaderNavigation({ account, items, language }: Props)
         </div>
       )}
 
-      {language ? <div className="app-header__language">{language}</div> : null}
-
+      {accessory ? <div className="app-header__accessory">{accessory}</div> : null}
       <div className="app-header__account">{account}</div>
     </div>
   );
