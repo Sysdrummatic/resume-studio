@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function SampleResumePage() {
   return (
-    <main className="container py-8">
+    <main className="container pb-8">
       <ResumeViewClient />
     </main>
   );

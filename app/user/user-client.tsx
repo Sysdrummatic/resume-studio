@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
+import type { ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow } from "../lib/resume-server";
 import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
@@ -323,20 +324,43 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
     }
   }
 
-  const resumeForPreview = useMemo(() => {
-    if (!masterResume || !jsYamlReady) {
-      return null;
-    }
+  const [activePreviewLocale, setActivePreviewLocale] = useState<string | null>(null);
 
-    return parseResumeYaml(masterResume.yaml_content);
-  }, [masterResume, jsYamlReady]);
+  const allDocuments = useMemo(() => {
+    const docs = masterResume ? [masterResume] : [];
+    for (const doc of initialDocuments) {
+      if (!docs.some((d) => d.locale === doc.locale)) docs.push(doc);
+    }
+    return docs;
+  }, [masterResume, initialDocuments]);
+
+  const effectiveLocale = activePreviewLocale || masterResume?.locale || "en";
+
+  const resumeForPreview = useMemo(() => {
+    if (!jsYamlReady) return null;
+    const targetDoc = allDocuments.find((d) => d.locale === effectiveLocale) ?? masterResume;
+    return targetDoc ? parseResumeYaml(targetDoc.yaml_content) : null;
+  }, [allDocuments, effectiveLocale, jsYamlReady, masterResume]);
+
+  const previewLanguages = useMemo(() => {
+    return allDocuments.map((doc) => {
+      const lang = languageOptions.find((lo) => lo.code === doc.locale);
+      return {
+        code: doc.locale,
+        label: lang?.label ?? doc.locale.toUpperCase(),
+        shortLabel: lang?.short_label,
+      };
+    });
+  }, [allDocuments, languageOptions]);
+
+  const handlePreviewLocaleChange = useCallback((locale: string) => {
+    setActivePreviewLocale(locale);
+  }, []);
 
   const initials = getProfileInitials(actor.displayName || "", actor.email);
   const currentRole = useMemo(() => getLatestResumeRole(resumeForPreview), [resumeForPreview]);
   const isPreviewUnavailable = !masterResume || hasYamlLoaderTimedOut || (jsYamlReady && !resumeForPreview);
   const publishedPresetsCount = initialPresets.filter((preset) => preset.is_public).length;
-  void initialDocuments;
-  void languageOptions;
   const primaryExportUrls = initialPresets[0]
     ? buildPublishedResumeExportUrls(initialPresets[0].canonical_public_path, initialPresets[0].default_locale)
     : null;
@@ -532,10 +556,16 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
             aria-label="Resume preview"
             data-has-export={primaryExportUrls ? "true" : "false"}
           >
-            <div className="personal-hub__resume-preview flex-1 flex items-start justify-center overflow-auto min-h-[500px]">
+            <div className="personal-hub__resume-preview flex-1 flex items-start justify-center overflow-hidden min-h-[500px]">
               {resumeForPreview ? (
                 <div className="w-full max-w-[720px]">
-                  <ResumePreviewFrame resume={resumeForPreview} locale={masterResume?.locale || "en"} />
+                  <ResumePreviewFrame
+                    resume={resumeForPreview}
+                    locale={(effectiveLocale as ResumeLocale) || "en"}
+                    languages={previewLanguages}
+                    activeLocale={effectiveLocale}
+                    onLanguageSelect={handlePreviewLocaleChange}
+                  />
                 </div>
               ) : isPreviewUnavailable ? (
                 <div className="personal-hub__preview-fallback">

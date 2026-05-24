@@ -84,7 +84,7 @@ export default async function PublicResumeBySlugPage({ params, searchParams }: P
   });
 
   return (
-    <main className="container py-8 public-resume-route">
+    <main className="container pb-8 public-resume-route">
       <PrintTrigger />
       <BasicResumeDocument
         locale={published.document.locale}

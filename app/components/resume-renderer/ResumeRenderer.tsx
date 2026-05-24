@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Download, FileText } from "lucide-react";
 import { StatusToast, useStatusToast } from "../status-toast";
 import ResumeBadges from "../resume-badges";
@@ -35,6 +35,8 @@ type Props = {
     pdf?: ResumeRenderAction;
     ats?: ResumeRenderAction;
   };
+  scrollContainerRef?: React.RefObject<HTMLElement>;
+  embedded?: boolean;
 };
 
 function renderMeter(level: number) {
@@ -124,6 +126,8 @@ export default function ResumeRenderer({
   isBusy = false,
   labels,
   actions,
+  scrollContainerRef,
+  embedded = false,
 }: Props) {
   const rendererLabels = buildResumeRendererLabels(locale, labels);
   const config = buildResumeRenderConfig({
@@ -141,10 +145,12 @@ export default function ResumeRenderer({
   const { toast, showToast, closeToast } = useStatusToast();
   const [heroDocked, setHeroDocked] = useState(false);
   const [busyAction, setBusyAction] = useState<"pdf" | "ats" | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const defaultSummary = getDefaultSummary(resume.summary);
   const role = getResumeHeroRole(resume, roleOverride);
   const visibleLanguages = config.chrome.languages || [];
-  const allowStickyHero = config.mode === "public" && config.chrome.visible;
+  const isEmbedded = Boolean(scrollContainerRef) || embedded;
+  const allowStickyHero = (config.mode === "public" || Boolean(scrollContainerRef)) && config.chrome.visible;
   const rootClassName = [
     "resume-view-page",
     "resume-renderer",
@@ -153,6 +159,7 @@ export default function ResumeRenderer({
     `resume-render-mode--${config.mode}`,
     config.mode === "editor" || config.mode === "preview" ? "resume-editor-basic" : "",
     !config.chrome.visible ? "resume-editor-basic--plain resume-renderer--plain" : "",
+    isEmbedded ? "resume-renderer--embedded" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -163,26 +170,43 @@ export default function ResumeRenderer({
       return;
     }
 
+    const container = scrollContainerRef?.current ?? null;
+
     const updateHeroShadow = () => {
-      const hero = document.querySelector<HTMLElement>(".resume-renderer .hero");
+      const hero = rootRef.current?.querySelector<HTMLElement>(".hero");
       if (!hero) return;
 
-      const appHeaderHeight = parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue("--app-header-height"),
-      ) || 0;
-      const isDocked = window.scrollY > 0 && hero.getBoundingClientRect().top <= appHeaderHeight + 1;
+      let isDocked: boolean;
+      if (container) {
+        const containerTop = container.getBoundingClientRect().top;
+        const heroTop = hero.getBoundingClientRect().top;
+        isDocked = container.scrollTop > 0 && heroTop <= containerTop + 1;
+      } else {
+        const appHeaderHeight =
+          parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--app-header-height")) || 0;
+        isDocked = window.scrollY > 0 && hero.getBoundingClientRect().top <= appHeaderHeight + 1;
+      }
       setHeroDocked(isDocked);
     };
 
     updateHeroShadow();
-    window.addEventListener("scroll", updateHeroShadow, { passive: true });
-    window.addEventListener("resize", updateHeroShadow);
+
+    if (container) {
+      container.addEventListener("scroll", updateHeroShadow, { passive: true });
+    } else {
+      window.addEventListener("scroll", updateHeroShadow, { passive: true });
+      window.addEventListener("resize", updateHeroShadow);
+    }
 
     return () => {
-      window.removeEventListener("scroll", updateHeroShadow);
-      window.removeEventListener("resize", updateHeroShadow);
+      if (container) {
+        container.removeEventListener("scroll", updateHeroShadow);
+      } else {
+        window.removeEventListener("scroll", updateHeroShadow);
+        window.removeEventListener("resize", updateHeroShadow);
+      }
     };
-  }, [allowStickyHero]);
+  }, [allowStickyHero, scrollContainerRef]);
 
   async function runAction(kind: "pdf" | "ats") {
     const action = config.chrome.actions?.[kind];
@@ -202,7 +226,7 @@ export default function ResumeRenderer({
   }
 
   return (
-    <div className={rootClassName}>
+    <div className={rootClassName} ref={rootRef}>
       <StatusToast toast={toast} onClose={closeToast} />
 
       <div className="resume">
