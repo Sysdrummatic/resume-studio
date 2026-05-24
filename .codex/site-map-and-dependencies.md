@@ -1,4 +1,4 @@
-﻿# Site Map and Dependency Guide (OpenCVHub, formerly resume-studio)
+# Site Map and Dependency Guide (OpenCiVera, formerly resume-studio)
 
 This document explains **what happens in the project**, how the individual pages work, and what the dependencies are between:
 - the legacy static pages (`public/*.html` + `public/scripts/` + `public/styles/` + `public/data/public/*.yaml`),
@@ -39,7 +39,7 @@ This document explains **what happens in the project**, how the individual pages
 - `public/r/index.html` - legacy public share entry.
 
 ### Next.js: App Router (`app/`)
-- `app/page.tsx` - home (“OpenCVHub Rebuild”).
+- `app/page.tsx` - home (“OpenCiVera Rebuild”).
 - `app/login/page.tsx` - login UI (frontend for auth API).
 - `app/dashboard/page.tsx` - post-login dashboard.
 - `app/master-resume/page.tsx` - master resume (SaaS rebuild).

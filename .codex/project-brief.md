@@ -1,7 +1,7 @@
-# Project Brief (OpenCVHub)
+# Project Brief (OpenCiVera)
 
 ## What this repo is
-`OpenCVHub` is a hybrid project:
+`OpenCiVera` is a hybrid project:
 - Legacy static resume app (served from `public/` as HTML entry pages + browser scripts + YAML content).
 - In-progress Next.js SaaS rebuild (App Router).
 

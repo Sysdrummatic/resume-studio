@@ -38,7 +38,7 @@ function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl:
     inLanguage: published.document.locale,
     isPartOf: {
       "@type": "WebSite",
-      name: "OpenCVHub",
+      name: "OpenCiVera",
       url: getAppBaseUrl(),
     },
     mainEntity: compactJsonLd({
@@ -58,7 +58,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
 
   if (!publishedRoute) {
     return {
-      title: "Resume not found | OpenCVHub",
+      title: "Resume not found | OpenCiVera",
       robots: {
         index: false,
         follow: false,
@@ -67,7 +67,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
   }
 
   const { published, allowIndexing, personSlug: canonicalPersonSlug, publicId: canonicalPublicId } = publishedRoute;
-  const title = `${published.resume.name || published.preset.title} | OpenCVHub`;
+  const title = `${published.resume.name || published.preset.title} | OpenCiVera`;
   const description = published.resume.summary.find((s) => s.default)?.position || published.preset.title;
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const languageMap = Object.fromEntries(
@@ -109,7 +109,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
   const publicResumeJsonLd = buildPublicResumeJsonLd(published, canonicalUrl);
 
   return (
-    <main className="container py-8 public-resume-route">
+    <main className="container pb-8 public-resume-route">
       {allowIndexing ? (
         <script
           type="application/ld+json"

@@ -5,6 +5,7 @@ import path from "node:path";
 
 const samplePath = path.join(process.cwd(), "app", "resume", "resume-view-client.tsx");
 const rendererPath = path.join(process.cwd(), "app", "components", "resume-renderer", "ResumeRenderer.tsx");
+const basicResumePath = path.join(process.cwd(), "app", "components", "resume-renderer", "BasicResumeDocument.tsx");
 const resumeStylesPath = path.join(process.cwd(), "app", "resume", "resume.css");
 const globalStylesPath = path.join(process.cwd(), "app", "globals.css");
 
@@ -14,11 +15,13 @@ function read(filePath) {
 
 test("sample CV delegates rendering to the shared resume renderer", () => {
   const sample = read(samplePath);
+  const basicResume = read(basicResumePath);
   const renderer = read(rendererPath);
 
-  assert.equal(sample.includes("ResumeRenderer"), true);
+  assert.equal(sample.includes("BasicResumeDocument"), true, "Sample CV must use BasicResumeDocument");
+  assert.equal(sample.includes("import ResumeRenderer"), false, "Sample CV must not import ResumeRenderer directly");
   assert.equal(sample.includes('mode="public"'), true);
-  assert.equal(sample.includes("actions={{"), true);
+  assert.equal(basicResume.includes("actions={{"), true, "BasicResumeDocument passes actions to ResumeRenderer");
   assert.equal(renderer.includes('templateId: DEFAULT_TEMPLATE_ID'), false);
   assert.equal(renderer.includes("resume-template--sample-two-column"), true);
   assert.equal(renderer.includes("resume-theme--cv-basic-dot"), true);

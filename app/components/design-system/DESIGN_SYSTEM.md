@@ -1,6 +1,6 @@
-# OpenCVHub Design System
+# OpenCiVera Design System
 
-Ten dokument opisuje proces zarządzania stylami i budowania interfejsu aplikacji OpenCVHub zgodnie z architekturą Atomic Design i Design Tokens.
+Ten dokument opisuje proces zarządzania stylami i budowania interfejsu aplikacji OpenCiVera zgodnie z architekturą Atomic Design i Design Tokens.
 
 ## Color Hub (`src/styles/colors.ts`)
 

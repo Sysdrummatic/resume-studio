@@ -1,4 +1,4 @@
-# Task Checklists (OpenCVHub)
+# Task Checklists (OpenCiVera)
 
 Use these checklists while implementing changes. Copy the relevant section into your task description and mark items as you go.
 

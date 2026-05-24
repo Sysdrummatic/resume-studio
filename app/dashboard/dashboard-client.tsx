@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
@@ -342,6 +342,7 @@ function PresetPreviewModal({
     ? preset.default_locale
     : masterResume.locale;
   const [activeLocale, setActiveLocale] = useState<ResumeLocale>(initialLocale);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
   const activeDocument =
     availableDocuments.find((document) => document.locale === activeLocale) ||
     availableDocuments.find((document) => document.locale === masterResume.locale) ||
@@ -361,7 +362,7 @@ function PresetPreviewModal({
           </button>
         </div>
         {previewResume ? (
-          <div className="dashboard-preset-preview">
+          <div ref={previewContainerRef} className="dashboard-preset-preview">
             <BasicResumeDocument
               locale={activeDocument.locale}
               resume={previewResume}
@@ -369,10 +370,11 @@ function PresetPreviewModal({
               onLanguageSelect={setActiveLocale}
               status={preset.is_public ? "public" : "draft"}
               aiGenerated={preset.ai_generated}
-              mode="preview"
+              mode="public"
               personSlug={publicLink?.personSlug}
               publicId={publicLink?.publicId}
               allowDraftPdf={allowDraftPdf}
+              scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
             />
           </div>
         ) : (

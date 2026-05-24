@@ -1,4 +1,4 @@
-# Checklists (OpenCVHub)
+# Checklists (OpenCiVera)
 
 ## Before changing YAML/contracts
 - Confirm the consuming renderer(s): legacy (`scripts/`) vs Next (`app/`).

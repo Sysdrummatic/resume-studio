@@ -60,7 +60,7 @@ test("setAuthCookies keeps host-only cookies outside production app env", () => 
     {
       NEXT_PUBLIC_APP_ENV: "preview",
       CONTEXT: "deploy-preview",
-      NEXT_PUBLIC_COOKIE_DOMAIN: "opencvhub.netlify.app",
+      NEXT_PUBLIC_COOKIE_DOMAIN: "OpenCiVera.netlify.app",
     },
     () => {
       const cookieStore = buildCookieStore();
@@ -78,7 +78,7 @@ test("setAuthCookies keeps host-only cookies for preview when app env is missing
     {
       NEXT_PUBLIC_APP_ENV: undefined,
       CONTEXT: "deploy-preview",
-      NEXT_PUBLIC_COOKIE_DOMAIN: "opencvhub.netlify.app",
+      NEXT_PUBLIC_COOKIE_DOMAIN: "OpenCiVera.netlify.app",
     },
     () => {
       const cookieStore = buildCookieStore();
@@ -96,15 +96,15 @@ test("setAuthCookies applies configured cookie domain in production app env", ()
     {
       NEXT_PUBLIC_APP_ENV: "production",
       CONTEXT: "production",
-      NEXT_PUBLIC_COOKIE_DOMAIN: "opencvhub.netlify.app",
+      NEXT_PUBLIC_COOKIE_DOMAIN: "OpenCiVera.netlify.app",
     },
     () => {
       const cookieStore = buildCookieStore();
       setAuthCookies(cookieStore, buildSession());
 
       assert.equal(cookieStore.writes.length, 2);
-      assert.equal(cookieStore.writes[0].options?.domain, "opencvhub.netlify.app");
-      assert.equal(cookieStore.writes[1].options?.domain, "opencvhub.netlify.app");
+      assert.equal(cookieStore.writes[0].options?.domain, "OpenCiVera.netlify.app");
+      assert.equal(cookieStore.writes[1].options?.domain, "OpenCiVera.netlify.app");
     },
   );
 });
@@ -114,15 +114,15 @@ test("setAuthCookies applies configured cookie domain in production deploy conte
     {
       NEXT_PUBLIC_APP_ENV: undefined,
       CONTEXT: "production",
-      NEXT_PUBLIC_COOKIE_DOMAIN: "opencvhub.netlify.app",
+      NEXT_PUBLIC_COOKIE_DOMAIN: "OpenCiVera.netlify.app",
     },
     () => {
       const cookieStore = buildCookieStore();
       setAuthCookies(cookieStore, buildSession());
 
       assert.equal(cookieStore.writes.length, 2);
-      assert.equal(cookieStore.writes[0].options?.domain, "opencvhub.netlify.app");
-      assert.equal(cookieStore.writes[1].options?.domain, "opencvhub.netlify.app");
+      assert.equal(cookieStore.writes[0].options?.domain, "OpenCiVera.netlify.app");
+      assert.equal(cookieStore.writes[1].options?.domain, "OpenCiVera.netlify.app");
     },
   );
 });

@@ -42,13 +42,14 @@ test("resume renderers use shared language switcher and badges", () => {
   const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
   const publicRoute = read("app/r/[slug]/page.tsx");
 
-  assert.equal(sample.includes("ResumeRenderer"), true);
+  assert.equal(sample.includes("BasicResumeDocument"), true);
+  assert.equal(sample.includes("import ResumeRenderer"), false, "resume-view-client must not import ResumeRenderer directly");
   assert.equal(basicResume.includes("ResumeRenderer"), true);
   assert.equal(renderer.includes("ResumeLanguageSwitcher"), true);
   assert.equal(renderer.includes("ResumeBadges"), true);
   assert.equal(publicRoute.includes("searchParams"), true);
   assert.equal(publicRoute.includes("lang"), true);
-  assert.equal(sample.includes('disabledReason: "Available after publish"'), true);
+  assert.equal(basicResume.includes('disabledReason: "Available after publish"'), true);
 });
 
 test("master resume preview receives all editor language options for in-CV language badges", () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type RefObject, type KeyboardEvent } from "react";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
@@ -37,8 +37,8 @@ export default function ResumeLivePreview({
   onClose,
 }: Props) {
   const frameRef = useRef<HTMLDivElement>(null);
-  const documentRef = useRef<HTMLDivElement>(null);
-  const [previewMetrics, setPreviewMetrics] = useState({ scale: 1, height: 0 });
+  const modalBodyRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
 
   function handleFrameKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "Enter" && event.key !== " ") {
@@ -52,34 +52,19 @@ export default function ResumeLivePreview({
     if (styleCode !== "basic") {
       return;
     }
+    const frame = frameRef.current;
+    if (!frame) return;
 
-    const currentFrame = frameRef.current;
-    const currentDocument = documentRef.current;
-    if (!currentFrame || !currentDocument) {
-      return;
-    }
-    const frame = currentFrame;
-    const documentEl = currentDocument;
-
-    function updatePreviewMetrics() {
-      const nextScale = frame.clientWidth / BASIC_PREVIEW_WIDTH;
-      const nextHeight = documentEl.scrollHeight * nextScale;
-      setPreviewMetrics({
-        scale: nextScale,
-        height: nextHeight,
-      });
+    function updateScale() {
+      if (!frame) return;
+      setScale(frame.clientWidth / BASIC_PREVIEW_WIDTH);
     }
 
-    updatePreviewMetrics();
-
-    const resizeObserver = new ResizeObserver(updatePreviewMetrics);
+    updateScale();
+    const resizeObserver = new ResizeObserver(updateScale);
     resizeObserver.observe(frame);
-    resizeObserver.observe(documentEl);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [locale, resume, styleCode]);
+    return () => resizeObserver.disconnect();
+  }, [styleCode]);
 
   if (styleCode === "empty") {
     return <pre className="resume-editor-raw-preview">{yamlContent}</pre>;
@@ -96,31 +81,26 @@ export default function ResumeLivePreview({
         onKeyDown={handleFrameKeyDown}
         aria-label="Open enlarged CV preview"
       >
-        <div className="resume-editor-preview-scale-box" style={{ height: previewMetrics.height || undefined }}>
-          <div
-            className="resume-editor-preview-scale-content"
-            ref={documentRef}
-            style={{ transform: `scale(${previewMetrics.scale})` }}
-          >
-            <BasicResumeDocument
-              locale={locale}
-              resume={resume}
-              languages={languages}
-              onLanguageSelect={onLanguageSelect}
-              status="draft"
-              aiGenerated={aiGenerated}
-              showChrome
-              mode="editor"
-              allowDraftPdf={allowDraftPdf}
-            />
-          </div>
+        <div style={{ zoom: scale, width: `${BASIC_PREVIEW_WIDTH}px` }}>
+          <BasicResumeDocument
+            locale={locale}
+            resume={resume}
+            languages={languages}
+            onLanguageSelect={onLanguageSelect}
+            status="draft"
+            aiGenerated={aiGenerated}
+            showChrome
+            mode="editor"
+            allowDraftPdf={allowDraftPdf}
+            embedded
+          />
         </div>
       </div>
 
       {isExpanded ? (
         <div className="resume-editor-preview-modal" role="dialog" aria-modal="true" aria-label="Enlarged CV preview">
           <button type="button" className="resume-editor-preview-modal__backdrop" onClick={onClose} aria-label="Close preview"></button>
-          <div className="resume-editor-preview-modal__body">
+          <div ref={modalBodyRef} className="resume-editor-preview-modal__body">
             <button type="button" className="button button--ghost resume-editor-preview-modal__close" onClick={onClose}>
               Close
             </button>
@@ -130,11 +110,12 @@ export default function ResumeLivePreview({
               languages={languages}
               onLanguageSelect={onLanguageSelect}
               status="draft"
-              aiGenerated={aiGenerated}
-              showChrome
-              mode="editor"
-              allowDraftPdf={allowDraftPdf}
-            />
+            aiGenerated={aiGenerated}
+            showChrome
+            mode="public"
+            allowDraftPdf={allowDraftPdf}
+            scrollContainerRef={modalBodyRef as RefObject<HTMLElement>}
+          />
           </div>
         </div>
       ) : null}

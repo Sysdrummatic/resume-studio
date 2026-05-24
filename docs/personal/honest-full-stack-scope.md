@@ -1,6 +1,6 @@
 # Honest Full-Stack Scope
 
-This note separates the project areas that are clearly evidenced in OpenCVHub from the ones that should not be overstated.
+This note separates the project areas that are clearly evidenced in OpenCiVera from the ones that should not be overstated.
 
 ## Real skills supported by the project
 

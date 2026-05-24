@@ -52,6 +52,43 @@
   background: transparent;
 }
 
+/* Embedded mode: CV inside a scroll container (Personal Hub, Dashboard modal) */
+.resume-view-page.resume-renderer--embedded {
+  width: 100%;
+  min-height: unset;
+  margin-left: 0;
+}
+
+.resume-view-page.resume-renderer--embedded .hero {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  inline-size: calc(100% + 2 * var(--space-sm));
+  margin-inline: calc(-1 * var(--space-sm));
+  padding-inline: var(--space-sm);
+  margin-block-start: 0;
+}
+
+@media (min-width: 480px) {
+  .resume-view-page.resume-renderer--embedded .hero {
+    inline-size: calc(100% + 2 * var(--space-md));
+    margin-inline: calc(-1 * var(--space-md));
+    padding-inline: var(--space-md);
+  }
+}
+
+@media (min-width: 768px) {
+  .resume-view-page.resume-renderer--embedded .hero {
+    inline-size: calc(100% + 2 * var(--space-lg));
+    margin-inline: calc(-1 * var(--space-lg));
+    padding-inline: var(--space-lg);
+  }
+}
+
+.resume-view-page.resume-renderer--embedded .resume {
+  padding-top: 0;
+}
+
 @media (min-width: 480px) {
   .resume-view-page {
     --font-size-xl: 36px;
@@ -119,7 +156,10 @@ img {
 .resume {
   width: var(--resume-shell-width);
   margin: 0 auto;
-  padding: var(--space-md) var(--space-sm);
+  /* padding-top: 0 — hero is the first child and must start at its sticky
+     position so it locks immediately on the first scroll pixel.
+     Visual breathing room is provided by hero's own padding-top. */
+  padding: 0 var(--space-sm) var(--space-md);
   background: var(--bg);
   min-height: 100vh;
   position: relative;
@@ -127,13 +167,13 @@ img {
 
 @media (min-width: 480px) {
   .resume {
-    padding: var(--space-lg) var(--space-md);
+    padding: 0 var(--space-md) var(--space-lg);
   }
 }
 
 @media (min-width: 768px) {
   .resume {
-    padding: var(--space-xl) var(--space-lg);
+    padding: 0 var(--space-lg) var(--space-xl);
   }
 }
 

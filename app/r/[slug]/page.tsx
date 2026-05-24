@@ -22,7 +22,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumePag
 
   if (!published) {
     return {
-      title: "Resume not found | OpenCVHub",
+      title: "Resume not found | OpenCiVera",
       robots: {
         index: false,
         follow: false,
@@ -30,7 +30,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumePag
     };
   }
 
-  const title = `${published.resume.name || published.preset.title} | OpenCVHub`;
+  const title = `${published.resume.name || published.preset.title} | OpenCiVera`;
   const description = published.resume.summary.find((s) => s.default)?.position || published.preset.title;
   const allowIndexing = published.preset.allow_indexing;
 
@@ -84,7 +84,7 @@ export default async function PublicResumeBySlugPage({ params, searchParams }: P
   });
 
   return (
-    <main className="container py-8 public-resume-route">
+    <main className="container pb-8 public-resume-route">
       <PrintTrigger />
       <BasicResumeDocument
         locale={published.document.locale}

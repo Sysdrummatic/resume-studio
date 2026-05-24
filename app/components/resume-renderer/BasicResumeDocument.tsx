@@ -21,6 +21,8 @@ type BasicResumeDocumentProps = {
   allowDraftPdf?: boolean;
   labels?: Partial<ResumeRendererLabels>;
   isBusy?: boolean;
+  scrollContainerRef?: React.RefObject<HTMLElement>;
+  embedded?: boolean;
 };
 
 const LANGUAGE_LABELS: Record<string, string> = {
@@ -64,6 +66,8 @@ export function BasicResumeDocument({
   allowDraftPdf = false,
   labels,
   isBusy = false,
+  scrollContainerRef,
+  embedded = false,
 }: BasicResumeDocumentProps) {
   const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] || locale.toUpperCase() }];
   const exportUrls =
@@ -109,6 +113,8 @@ export function BasicResumeDocument({
         pdf: pdfAction,
         ats: atsAction,
       }}
+      scrollContainerRef={scrollContainerRef}
+      embedded={embedded}
     />
   );
 }

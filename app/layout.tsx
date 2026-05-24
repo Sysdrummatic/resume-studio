@@ -10,8 +10,8 @@ import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OpenCVHub",
-  description: "OpenCVHub platform foundation on Next.js"
+  title: "OpenCiVera",
+  description: "OpenCiVera platform foundation on Next.js"
 };
 
 export const viewport: Viewport = {

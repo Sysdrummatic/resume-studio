@@ -1,5 +1,5 @@
 
-> opencvhub@0.0.0 test
+> OpenCiVera@0.0.0 test
 > node --test
 
 ✔ account menu schedules auto-close after blur/loss of hover (1.6638ms)

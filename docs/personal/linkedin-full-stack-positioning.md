@@ -1,6 +1,6 @@
 # LinkedIn Full-Stack Positioning
 
-This note turns the current OpenCVHub project scope into concise LinkedIn-ready language.
+This note turns the current OpenCiVera project scope into concise LinkedIn-ready language.
 
 ## Strong but honest positioning
 

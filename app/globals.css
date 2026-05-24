@@ -353,6 +353,7 @@ body[data-theme-transition="active"] .dashboard-modal__body {
 }
 
 @keyframes app-ambient-float {
+
   0%,
   100% {
     transform: translate3d(0, 0, 0) scale(1);
@@ -909,7 +910,7 @@ a {
 
 @media (min-width: 600px) {
   .app-main {
-    padding: 2rem 0 3rem;
+    padding: 0 0 3rem;
   }
 }
 
@@ -1442,6 +1443,7 @@ a {
 }
 
 @media (max-width: 560px) {
+
   .resume-editor-tabs,
   .resume-human-editor__row,
   .resume-human-editor__row--compact,
@@ -1541,7 +1543,7 @@ a {
   align-items: center;
 }
 
-.language-versions__identity > span {
+.language-versions__identity>span {
   display: grid;
   place-items: center;
   width: 2.35rem;
@@ -1608,24 +1610,12 @@ a {
   display: block;
   border: 0;
   border-radius: 10px;
-  background: #f6f8f8;
+  background: var(--bg, #f6f8f8);
   padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
   cursor: zoom-in;
   text-align: left;
-}
-
-.resume-editor-preview-scale-box {
-  width: 100%;
-  min-height: 100%;
-  overflow: hidden;
-  background: #f6f8f8;
-}
-
-.resume-editor-preview-scale-content {
-  width: 920px;
-  transform-origin: top left;
 }
 
 .resume-editor-preview-modal .resume-editor-basic {
@@ -1672,7 +1662,7 @@ a {
   max-height: calc(100vh - 2rem);
   overflow: auto;
   border-radius: 12px;
-  background: #f6f8f8;
+  background: var(--bg, #f6f8f8);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
 }
 
@@ -1952,11 +1942,37 @@ a {
   overflow: auto;
   border-radius: 12px;
   background: #f6f8f8;
+  max-height: calc(100vh - 8rem);
 }
 
 .dashboard-preset-preview .resume-editor-basic {
   width: min(920px, 100%);
   margin: 0 auto;
+}
+
+/* Interactive scaled CV preview frame (Personal Hub) */
+.resume-preview-frame {
+  width: 100%;
+  height: clamp(22rem, 68dvh, 46rem);
+  overflow: hidden;
+  position: relative;
+}
+
+@media (max-width: 699px) {
+  .resume-preview-frame {
+    height: min(26rem, 62dvh);
+  }
+}
+
+@media (min-width: 700px) {
+  .resume-preview-frame {
+    height: min(34rem, 70dvh);
+  }
+}
+
+.resume-preview-frame__scroller {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Editor shell collapses on mobile, side-by-side on large screens */
@@ -2715,6 +2731,7 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

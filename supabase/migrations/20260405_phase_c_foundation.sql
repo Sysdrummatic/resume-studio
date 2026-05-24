@@ -1,4 +1,4 @@
--- Phase C foundation schema for OpenCVHub.
+-- Phase C foundation schema for OpenCiVera.
 -- Apply in Supabase SQL Editor or via Supabase CLI.
 
 begin;

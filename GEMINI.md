@@ -1,6 +1,6 @@
-# OpenCVHub Antigravity Configuration
+# OpenCiVera Antigravity Configuration
 
-Ten plik definiuje nadrzędne zasady pętli decyzyjnej Antigravity w projekcie OpenCVHub.
+Ten plik definiuje nadrzędne zasady pętli decyzyjnej Antigravity w projekcie OpenCiVera.
 
 ## Zasady nadrzędne
 

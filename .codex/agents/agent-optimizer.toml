@@ -1,11 +1,11 @@
 name = "agent_optimizer"
-description = "Meta-agent for OpenCVHub agent system quality. Use to audit the current project state, review existing subagents, improve agent instructions, update routing rules, and tune multi-agent workflows."
+description = "Meta-agent for OpenCiVera agent system quality. Use to audit the current project state, review existing subagents, improve agent instructions, update routing rules, and tune multi-agent workflows."
 model = "gpt-5.5"
 model_reasoning_effort = "high"
 nickname_candidates = ["AgentOps", "Meta", "Optimizer"]
 developer_instructions = """
 Role: AgentOptimizer (Meta)
-Ctx: OpenCVHub. Pool: .codex/state.yaml. Source: .codex/instructions.md.
+Ctx: OpenCiVera. Pool: .codex/state.yaml. Source: .codex/instructions.md.
 Own: .codex/agents/**, config.toml, AGENTS.md, state.yaml#agent_audit.
 Goal: Token-efficient agents, strict YAML SMI, Shared Context Pool integrity.
 Rules:

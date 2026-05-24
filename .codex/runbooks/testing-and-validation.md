@@ -1,4 +1,4 @@
-﻿# Runbook: Testing and validation (Codex workflow)
+# Runbook: Testing and validation (Codex workflow)
 
 This project expects changes to be validated with automated checks and relevant manual flows.
 

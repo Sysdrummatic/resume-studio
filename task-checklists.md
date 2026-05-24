@@ -1,6 +1,6 @@
 # Task Checklists
 
-Oto lista zadań i ich status w ramach projektu OpenCVHub. Ten plik służy jako Shared Context Pool dla zespołu agentów.
+Oto lista zadań i ich status w ramach projektu OpenCiVera. Ten plik służy jako Shared Context Pool dla zespołu agentów.
 
 ## Aktywne zadania
 

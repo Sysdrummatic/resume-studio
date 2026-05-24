@@ -109,7 +109,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
 
 ```mermaid
 gantt
-  title OpenCVHub Delivery Map (Execution Dependencies)
+  title OpenCiVera Delivery Map (Execution Dependencies)
   dateFormat  YYYY-MM-DD
   axisFormat  %d %b
 

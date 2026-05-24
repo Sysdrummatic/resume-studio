@@ -25,7 +25,7 @@ boundary between portal styling and CV styling:
 - `light` becomes an enabled application theme within the same `app theme` system.
 - Theme ids remain centralized in `app/lib/app-theme.ts`.
 - Theme switching is active in the top bar and uses the existing moon/sun toggle control.
-- Theme preference is persisted in the `opencvhub-theme` cookie so the server can render the initial theme safely.
+- Theme preference is persisted in the `OpenCiVera-theme` cookie so the server can render the initial theme safely.
 - Material You principles are adapted for the portal light mode through semantic portal tokens rather than component-level hardcoded colors.
 - CV styling remains explicitly out of scope. `app/resume/resume.css` is not repurposed for portal theming.
 
