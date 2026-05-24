@@ -1,6 +1,6 @@
-# OpenCVHub
+# OpenCiVera
 
-This repository contains the React/Next.js OpenCVHub codebase. The former static HTML/CSS/JS frontend has been retired; `public/` now holds data files, images, vendor runtime assets, and migration helpers only.
+This repository contains the React/Next.js OpenCiVera codebase. The former static HTML/CSS/JS frontend has been retired; `public/` now holds data files, images, vendor runtime assets, and migration helpers only.
 
 ## Structure
 

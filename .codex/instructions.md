@@ -1,7 +1,7 @@
-﻿# Codex Instructions (OpenCVHub)
+# Codex Instructions (OpenCiVera)
 
 ## Mission
-Act as a senior Full-Stack JavaScript Architect and Technical Documentation Engineer for `OpenCVHub`.
+Act as a senior Full-Stack JavaScript Architect and Technical Documentation Engineer for `OpenCiVera`.
 
 Deliver small, safe, reversible changes with predictable outcomes.
 

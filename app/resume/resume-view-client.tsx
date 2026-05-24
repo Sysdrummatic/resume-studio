@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Script from "next/script";
 import { StatusToast, useStatusToast } from "../components/status-toast";
-import ResumeRenderer from "../components/resume-renderer/ResumeRenderer";
+import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import type { ResumeRendererLabels } from "../components/resume-renderer/build-resume-render-model";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument } from "../lib/resume-schema";
@@ -206,21 +206,16 @@ export default function ResumeViewClient() {
       ) : null}
 
       {resumeData ? (
-        <ResumeRenderer
+        <BasicResumeDocument
           locale={activeLocale}
           resume={resumeData}
           mode="public"
           languages={languageOptions}
-          activeLocale={activeLocale}
           onLanguageSelect={(localeCode) => localesConfig && void handleLocaleChange(localeCode, localesConfig)}
           status="public"
           roleOverride={resumeRole}
           isBusy={isLoading}
           labels={buildRendererLabels(viewConfig)}
-          actions={{
-            pdf: { label: "PDF", disabled: true, disabledReason: "Available after publish" },
-            ats: { label: "ATS Ready", disabled: true, disabledReason: "Available after publish" },
-          }}
         />
       ) : null}
     </>

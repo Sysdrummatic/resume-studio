@@ -76,7 +76,7 @@ export default function HomePage() {
             <p className="home-kicker">Technical premium resume publishing</p>
             <h1 id="home-hero-title">Build a sharper public career surface on top of one controlled source record.</h1>
             <p className="home-hero__lead">
-              OpenCVHub is evolving into a structured platform for professionals who want cleaner publication logic, role-aware
+              OpenCiVera is evolving into a structured platform for professionals who want cleaner publication logic, role-aware
               resume delivery, and a more intentional public presence than static document workflows can offer.
             </p>
 
@@ -93,7 +93,7 @@ export default function HomePage() {
           <aside className="home-command" aria-label="Platform command surface">
             <div className="home-command__panel">
               <div className="home-command__header">
-                <p>OpenCVHub system</p>
+                <p>OpenCiVera system</p>
                 <span>Publishing signal</span>
               </div>
 

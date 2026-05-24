@@ -1,4 +1,4 @@
-# OpenCVHub Agent Team
+# OpenCiVera Agent Team
 
 Instrukcje nadrzędne i definicje agentów znajdują się w `file://.agent/agents.md`. Ten plik służy jako przewodnik po zasadach współpracy.
 

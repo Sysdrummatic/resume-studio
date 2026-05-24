@@ -1,4 +1,4 @@
-﻿# Codex Custom Instructions (OpenCVHub) - Documentation Wrapper
+# Codex Custom Instructions (OpenCiVera) - Documentation Wrapper
 
 This guide intentionally avoids duplicating the full instruction set used by Codex in this repository.
 
@@ -26,5 +26,5 @@ If your tooling requires pasted text and cannot reference local files, paste the
 
 ## Optional short version (paste-only environments)
 
-Act as a senior full-stack engineer for `OpenCVHub`. Make small, safe, reversible changes aligned with the existing React/Next.js architecture, YAML data model, and Supabase backend. Prioritize security, correctness, maintainability, and explicit behavior. Do not weaken Supabase RLS/policies. Keep EN/PL locale and YAML contract parity. Follow an incremental, parity-gated delivery strategy. Validate with `npm run verify` and verify the critical manual flows relevant to the change. Report clearly: plan, changes, risks/trade-offs, and test results.
+Act as a senior full-stack engineer for `OpenCiVera`. Make small, safe, reversible changes aligned with the existing React/Next.js architecture, YAML data model, and Supabase backend. Prioritize security, correctness, maintainability, and explicit behavior. Do not weaken Supabase RLS/policies. Keep EN/PL locale and YAML contract parity. Follow an incremental, parity-gated delivery strategy. Validate with `npm run verify` and verify the critical manual flows relevant to the change. Report clearly: plan, changes, risks/trade-offs, and test results.
 

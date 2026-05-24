@@ -18,7 +18,7 @@ export const APP_THEMES = Object.freeze(
 );
 
 export const DEFAULT_APP_THEME: AppTheme = "dark";
-export const APP_THEME_COOKIE_NAME = "opencvhub-theme";
+export const APP_THEME_COOKIE_NAME = "OpenCiVera-theme";
 export const APP_THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export const ENABLED_APP_THEMES = Object.freeze(

@@ -7,7 +7,7 @@ type Props = {
   name?: string;
 };
 
-export default function AppBrand({ href = "/", logo = null, name = "OpenCVHub" }: Props) {
+export default function AppBrand({ href = "/", logo = null, name = "OpenCiVera" }: Props) {
   return (
     <Link className="app-brand" href={href} aria-label={name}>
       {logo ? <span className="app-brand__logo" aria-hidden>{logo}</span> : null}

@@ -66,7 +66,7 @@ test("header exposes an active theme switch slot in the top bar", () => {
   assert.equal(themeModel.includes('export const DEFAULT_APP_THEME: AppTheme = "dark";'), true);
   assert.equal(themeModel.includes("light: {"), true);
   assert.equal(themeModel.includes("enabled: true"), true);
-  assert.equal(themeModel.includes('export const APP_THEME_COOKIE_NAME = "opencvhub-theme";'), true);
+  assert.equal(themeModel.includes('export const APP_THEME_COOKIE_NAME = "OpenCiVera-theme";'), true);
   assert.equal(styles.includes(".app-theme-switch"), true);
   assert.equal(styles.includes(".app-theme-switch__thumb"), true);
   assert.equal(styles.includes(".app-theme-switch--dark .app-theme-switch__thumb"), true);

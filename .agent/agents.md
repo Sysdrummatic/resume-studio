@@ -1,6 +1,6 @@
-# OpenCVHub Agent Team
+# OpenCiVera Agent Team
 
-Ten plik definiuje role, odpowiedzialności i instrukcje systemowe dla zespołu agentów OpenCVHub. Każdy agent musi przestrzegać protokołu SMI (Strict Management Interface) i korzystać z zasady "Progressive Disclosure".
+Ten plik definiuje role, odpowiedzialności i instrukcje systemowe dla zespołu agentów OpenCiVera. Każdy agent musi przestrzegać protokołu SMI (Strict Management Interface) i korzystać z zasady "Progressive Disclosure".
 
 ## Konwencje współpracy
 
@@ -50,7 +50,7 @@ Ten plik definiuje role, odpowiedzialności i instrukcje systemowe dla zespołu 
 **Instrukcje**:
 - Oceniaj hierarchię wizualną, spacing, typografię i interakcje.
 - Działaj jako doradca dla `frontend_engineer`. Preferuj rekomendacje ponad bezpośrednią edycję kodu.
-- Pilnuj spójności design language OpenCVHub. Odrzucaj generyczne rozwiązania ("SaaS slop").
+- Pilnuj spójności design language OpenCiVera. Odrzucaj generyczne rozwiązania ("SaaS slop").
 - Testuj interfejs w różnych stanach: Empty, Loading, Error oraz na różnych viewportach.
 
 ## Senior System Engineer

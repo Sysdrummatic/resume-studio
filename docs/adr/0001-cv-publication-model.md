@@ -6,7 +6,7 @@ Date: 2026-05-08
 
 ## Context
 
-OpenCVHub is moving toward a product model where a user creates one private Master CV, saves tailored versions for specific roles or companies, and publishes selected versions through stable public URLs.
+OpenCiVera is moving toward a product model where a user creates one private Master CV, saves tailored versions for specific roles or companies, and publishes selected versions through stable public URLs.
 
 The current implementation already supports parts of this flow, but the domain model is mixed:
 
@@ -20,7 +20,7 @@ This mixes private saved work, public identity, and published content. It also m
 
 ## Decision
 
-OpenCVHub will use three separate domain concepts for CV publication:
+OpenCiVera will use three separate domain concepts for CV publication:
 
 - `Saved Version`: the private, editable CV version owned by a user. This is the product name for the current preset concept. It has no public URL by itself and is never resolved directly by anonymous public routes.
 - `Published CV`: an immutable publish-time snapshot of a Saved Version. It contains validated OpenCV YAML, schema version, selected content, locale data, publish metadata, and the data needed to render the public CV.

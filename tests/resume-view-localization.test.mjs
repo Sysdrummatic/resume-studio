@@ -23,6 +23,7 @@ test("resume view loads locale config with resume data on language change", () =
 test("resume view renders section headings from locale labels", () => {
   const source = read(componentPath);
   const renderer = read(path.join(process.cwd(), "app", "components", "resume-renderer", "ResumeRenderer.tsx"));
+  const basicResume = read(path.join(process.cwd(), "app", "components", "resume-renderer", "BasicResumeDocument.tsx"));
 
   assert.equal(source.includes("buildRendererLabels"), true);
   assert.equal(source.includes("summary_heading"), true);
@@ -31,7 +32,7 @@ test("resume view renders section headings from locale labels", () => {
   assert.equal(renderer.includes("rendererLabels.summary"), true);
   assert.equal(renderer.includes("rendererLabels.personalInfo"), true);
   assert.equal(renderer.includes("rendererLabels.languages"), true);
-  assert.equal(source.includes('pdf: { label: "PDF", disabled: true, disabledReason: "Available after publish" }'), true);
+  assert.equal(basicResume.includes('disabledReason: "Available after publish"'), true, "BasicResumeDocument owns disabled-action messaging");
 });
 
 test("public locales define config paths", () => {

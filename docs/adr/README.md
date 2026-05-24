@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory stores architectural decisions that define product and technical contracts for OpenCVHub.
+This directory stores architectural decisions that define product and technical contracts for OpenCiVera.
 
 - [ADR 0001: CV Publication Model](0001-cv-publication-model.md)
 - [ADR 0002: OpenCV YAML Public Contract And Schema Evolution](0002-opencv-yaml-public-contract.md)

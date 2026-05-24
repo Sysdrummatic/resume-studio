@@ -1,7 +1,7 @@
 import ResumeViewClient from "./resume-view-client";
 
 export const metadata = {
-  title: "Sample Resume | OpenCVHub",
+  title: "Sample Resume | OpenCiVera",
   description: "View a sample resume powered by YAML and Next.js.",
 };
 

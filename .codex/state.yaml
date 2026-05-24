@@ -2549,7 +2549,7 @@ header_and_personal_hub_layout:
     - "The Personal Hub profile summary and Primary Resume preview each existed as single broad sections without dedicated wrapper hooks for independent styling."
   implementation:
     - "Extracted a reusable AppBrand component with explicit logo and name slots for future branding expansion."
-    - "Moved the language menu into a header branding cluster immediately to the right of OpenCVHub for authenticated and unauthenticated states."
+    - "Moved the language menu into a header branding cluster immediately to the right of OpenCiVera for authenticated and unauthenticated states."
     - "Added personal-hub wrapper classes around the profile summary/actions and resume summary/preview areas with minimal CSS hooks."
   next:
     REQ: test_engineer

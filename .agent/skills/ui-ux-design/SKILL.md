@@ -1,11 +1,11 @@
 ---
 name: UI/UX Design
-description: Ten skill definiuje standardy projektowania interfejsów premium dla OpenCVHub, skupiając się na estetyce, czytelności i responsywności. Używaj go przy zadaniach dotyczących layoutu, stylizacji CSS oraz poprawy wrażeń użytkownika (UX).
+description: Ten skill definiuje standardy projektowania interfejsów premium dla OpenCiVera, skupiając się na estetyce, czytelności i responsywności. Używaj go przy zadaniach dotyczących layoutu, stylizacji CSS oraz poprawy wrażeń użytkownika (UX).
 ---
 
-# UI/UX Design Skill (OpenCVHub)
+# UI/UX Design Skill (OpenCiVera)
 
-Ten plik definiuje premium standard projektowania UI/UX dla agentow pracujacych nad OpenCVHub. Uzywaj go przy zadaniach dotyczacych layoutu, stylow, hierarchii informacji, interakcji, responsywnosci, polishu i ogolnego kierunku wizualnego strony lub produktu.
+Ten plik definiuje premium standard projektowania UI/UX dla agentow pracujacych nad OpenCiVera. Uzywaj go przy zadaniach dotyczacych layoutu, stylow, hierarchii informacji, interakcji, responsywnosci, polishu i ogolnego kierunku wizualnego strony lub produktu.
 
 ## Cel
 
@@ -39,7 +39,7 @@ Ten skill ma produkowac decyzje projektowe, nie tylko estetyczne sugestie. Agent
 
 ## Kontekst produktu
 
-OpenCVHub nie jest landing page'em marketingowym. To produkt z obszarami roboczymi, danymi uzytkownika, adminem, widokami CV, eksportem i przeplywami publikacji. Oznacza to:
+OpenCiVera nie jest landing page'em marketingowym. To produkt z obszarami roboczymi, danymi uzytkownika, adminem, widokami CV, eksportem i przeplywami publikacji. Oznacza to:
 
 - dashboardy i panele maja byc operacyjne, ale nie nudne
 - formularze i akcje musza byc jednoznaczne

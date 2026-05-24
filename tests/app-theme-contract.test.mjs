@@ -13,7 +13,7 @@ test("app theme contract enables dark and light with dark as default", () => {
   assert.equal(model.includes("dark: {"), true);
   assert.equal(model.includes("light: {"), true);
   assert.equal(model.includes('export const DEFAULT_APP_THEME: AppTheme = "dark";'), true);
-  assert.equal(model.includes('export const APP_THEME_COOKIE_NAME = "opencvhub-theme";'), true);
+  assert.equal(model.includes('export const APP_THEME_COOKIE_NAME = "OpenCiVera-theme";'), true);
   assert.equal(model.includes("getNextAppTheme"), true);
   assert.equal(model.includes("resolveAppTheme"), true);
 });

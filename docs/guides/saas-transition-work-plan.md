@@ -1,4 +1,4 @@
-﻿# OpenCVHub Rebuild Work Plan (Next.js + React)
+# OpenCiVera Rebuild Work Plan (Next.js + React)
 
 This document is the execution source of truth for rebuilding the product from static pages to a production-ready SaaS in Next.js.
 

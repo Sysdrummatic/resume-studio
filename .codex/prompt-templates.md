@@ -1,4 +1,4 @@
-# Prompt Templates (OpenCVHub)
+# Prompt Templates (OpenCiVera)
 
 Use these templates to start new tasks. They are designed to keep scope small, follow the repo plans, and enforce validation and rollback discipline.
 
