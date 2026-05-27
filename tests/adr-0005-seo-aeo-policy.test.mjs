@@ -37,7 +37,7 @@ test("SEO/AEO runtime exports robots and sitemap routes", () => {
 });
 
 test("SEO/AEO QA checklist exists", () => {
-  const guide = read("docs/guides/seo-aeo-preview-qa-checklist.md");
+  const guide = read("docs/guides/testing/seo-aeo-preview-qa-checklist.md");
   assert.equal(guide.includes("Metadata Contract"), true);
   assert.equal(guide.includes("Sitemap Contract"), true);
   assert.equal(guide.includes("Structured Data Contract"), true);

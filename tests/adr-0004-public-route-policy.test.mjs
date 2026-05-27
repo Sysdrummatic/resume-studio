@@ -18,7 +18,7 @@ test("ADR 0004 is accepted and checklist is complete", () => {
 });
 
 test("ADR 0004 rollout guide documents communication and rollback", () => {
-  const guide = read("docs/guides/public-route-compatibility-rollout.md");
+  const guide = read("docs/guides/policies/public-route-compatibility-rollout.md");
   assert.equal(guide.includes("User Communication Checklist"), true);
   assert.equal(guide.includes("Rollback Triggers"), true);
   assert.equal(guide.includes("[public-route-compat]"), true);

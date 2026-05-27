@@ -19,7 +19,7 @@ test("ADR 0007 is accepted and checklist is complete", () => {
 });
 
 test("ADR 0007 policy guide defines retention windows and RBAC visibility", () => {
-  const guide = read("docs/guides/publication-analytics-audit-policy.md");
+  const guide = read("docs/guides/policies/publication-analytics-audit-policy.md");
 
   assert.equal(guide.includes("Route telemetry logs: 30 days."), true);
   assert.equal(guide.includes("Aggregated analytics series: 365 days."), true);

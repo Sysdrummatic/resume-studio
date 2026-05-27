@@ -25,7 +25,7 @@ test("ADR 0002 snapshot resolvers reject unsupported contract/schema versions", 
 });
 
 test("ADR 0002 policy doc defines compatibility and migration rules", () => {
-  const policy = read("docs/guides/opencv-yaml-public-contract-policy.md");
+  const policy = read("docs/guides/policies/opencv-yaml-public-contract-policy.md");
 
   assert.equal(policy.includes("Versioning Rules"), true);
   assert.equal(policy.includes("Historical Snapshot Migration Policy"), true);
