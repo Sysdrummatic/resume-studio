@@ -20,7 +20,7 @@ function migration() {
 
 test("ADR 0001 documents the publication domain model and test contracts", () => {
   const adr = read("docs/adr/0001-cv-publication-model.md");
-  const contracts = read("docs/guides/cv-publication-test-contracts.md");
+  const contracts = read("docs/guides/testing/cv-publication-test-contracts.md");
 
   assert.equal(adr.includes("Saved Version"), true);
   assert.equal(adr.includes("Published CV"), true);

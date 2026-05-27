@@ -18,10 +18,11 @@ If your tooling requires pasted text and cannot reference local files, paste the
 
 - `README.md`
 - `docs/README.md`
-- `docs/guides/saas-transition-work-plan.md` (execution plan + migration strategy)
-- `docs/guides/react-frontend-transition-plan.md` (incremental migration guardrails)
-- `docs/guides/phase-b-yaml-data-layer.md` (YAML-first DB model)
-- `docs/guides/phase-c-auth-rbac-admin.md` (auth + RBAC + admin model)
+- `docs/guides/archive/saas-transition-work-plan.md` (historical execution plan)
+- `docs/guides/archive/react-frontend-transition-plan.md` (static → Next.js migration notes)
+- `docs/phases/phase-b-yaml-data-layer.md` (YAML-first data model)
+- `docs/phases/phase-c-auth-rbac-admin.md` (auth, RBAC, admin architecture)
+- `docs/PHASES.md` (canonical phase definitions and roadmap)
 - `.codex/site-map-and-dependencies.md` (route map + dependency map)
 
 ## Optional short version (paste-only environments)
