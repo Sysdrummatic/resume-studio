@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenCiVera SVG Files</title>
+<style>
+body{background:#0a0a0c;color:#EDEDEF;font-family:system-ui,sans-serif;padding:40px;margin:0;}
+h1{font-size:1.5rem;margin:0 0 4px;}
+p{color:#8A8F98;margin:0 0 32px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.cell{background:#111114;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.cell.lt{background:#FAF8FF;}
+.frame{height:90px;display:flex;align-items:center;justify-content:center;}
+.frame img{max-width:180px;max-height:90px;}
+.name{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#8A8F98;text-align:center;word-break:break-all;}
+.cell.lt .name{color:#555;}
+</style>
+</head>
+<body>
+<h1>OpenCiVera — SVG asset files</h1>
+<p>18 standalone .svg files. Light-background variants shown on white.</p>
+<div class="grid" id="g"></div>
+<script>
+const files=[
+ ["icon-favicon.svg",0],["icon-ios-app.svg",0],["icon-android-adaptive.svg",0],["icon-pwa.svg",0],
+ ["logo-horizontal-dark.svg",0],["logo-horizontal-light.svg",1],["logo-horizontal-gradient.svg",0],["logo-stacked.svg",0],
+ ["social-twitter-lockup.svg",0],["social-linkedin-lockup.svg",0],["social-opengraph-lockup.svg",0],
+ ["ocv-abbreviation-dark.svg",0],["ocv-abbreviation-light.svg",1],["ocv-abbreviation-gradient.svg",0],["ocv-abbreviation-large.svg",0],
+ ["ocv-monogram-square.svg",0],["ocv-monogram-circle.svg",0],["ocv-monogram-minimal.svg",0]
+];
+const g=document.getElementById('g');
+files.forEach(([f,lt])=>{
+ const c=document.createElement('div');
+ c.className='cell'+(lt?' lt':'');
+ c.innerHTML=`<div class="frame"><img src="${encodeURIComponent(f)}" alt="${f}"></div><div class="name">${f}</div>`;
+ g.appendChild(c);
+});
+</script>
+</body>
+</html>

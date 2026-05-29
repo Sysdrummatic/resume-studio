@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenCiVera — Design System</title>
+<style>
+/* ============================================================
+   OpenCiVera Design System
+   ------------------------------------------------------------
+   One token system, two modes:
+     • Night  (default) — the "Portal" aesthetic: deep space
+       backgrounds, glass surfaces, indigo + teal accents.
+     • Day            — light counterpart, lavender-tinted
+       neutrals, same brand hues tuned for AA contrast on white.
+
+   Switch by setting  data-theme="night" | "day"  on <html>.
+   Everything below resolves from CSS custom properties, so the
+   whole UI re-themes from one attribute.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* ---- TOKENS : shared ------------------------------------- */
+:root {
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Consolas', monospace;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+
+  /* brand hues (constant across modes) */
+  --brand-indigo:        #5E6AD2;
+  --brand-indigo-bright: #6872D9;
+  --brand-teal:          #009c8a;
+
+  /* spacing */
+  --space-2xs: 4px;  --space-xs: 8px;  --space-sm: 12px;  --space-md: 16px;
+  --space-lg: 24px;  --space-xl: 32px; --space-2xl: 48px; --space-3xl: 64px;
+
+  /* radius */
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+}
+
+/* ---- TOKENS : Night (default / Portal) ------------------- */
+:root, :root[data-theme="night"] {
+  --bg-deep:      #020203;
+  --bg-base:      #050506;
+  --bg-elevated:  #0a0a0c;
+  --surface:      rgba(255,255,255,0.05);
+  --surface-hover:rgba(255,255,255,0.08);
+
+  --fg:           #EDEDEF;
+  --fg-secondary: #C7CBD3;
+  --fg-muted:     #8A8F98;
+
+  --accent:        #5E6AD2;
+  --accent-bright: #6872D9;
+  --accent-teal:   #009c8a;
+  --teal-text:     #5EEAD4;
+
+  --border:       rgba(255,255,255,0.06);
+  --border-hover: rgba(255,255,255,0.10);
+
+  --shadow-glass:       0 0 0 1px rgba(255,255,255,0.06), 0 18px 48px rgba(0,0,0,0.42), 0 0 80px rgba(0,0,0,0.16);
+  --shadow-glass-hover: 0 0 0 1px rgba(255,255,255,0.10), 0 22px 58px rgba(0,0,0,0.50), 0 0 92px rgba(94,106,210,0.10);
+  --shadow-bento:       0 14px 32px rgba(0,0,0,0.18);
+
+  --ambient: radial-gradient(ellipse at top, rgba(94,106,210,0.12) 0%, transparent 50%),
+             radial-gradient(ellipse at bottom right, rgba(0,156,138,0.08) 0%, transparent 50%);
+  color-scheme: dark;
+}
+
+/* ---- TOKENS : Day ---------------------------------------- */
+:root[data-theme="day"] {
+  --bg-deep:      #ffffff;
+  --bg-base:      #f5f4fb;
+  --bg-elevated:  #ffffff;
+  --surface:      rgba(94,106,210,0.05);
+  --surface-hover:rgba(94,106,210,0.09);
+
+  --fg:           #17151f;
+  --fg-secondary: #3a3748;
+  --fg-muted:     #5d5a70;
+
+  --accent:        #5048C4;
+  --accent-bright: #5E6AD2;
+  --accent-teal:   #00897a;
+  --teal-text:     #00897a;
+
+  --border:       rgba(23,21,31,0.09);
+  --border-hover: rgba(23,21,31,0.16);
+
+  --shadow-glass:       0 1px 2px rgba(23,21,31,0.04), 0 12px 32px rgba(23,21,31,0.07);
+  --shadow-glass-hover: 0 2px 4px rgba(23,21,31,0.06), 0 18px 44px rgba(80,72,196,0.12);
+  --shadow-bento:       0 8px 24px rgba(23,21,31,0.06);
+
+  --ambient: radial-gradient(ellipse at top, rgba(94,106,210,0.08) 0%, transparent 50%),
+             radial-gradient(ellipse at bottom right, rgba(0,156,138,0.05) 0%, transparent 50%);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--fg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body::before {
+  content: ""; position: fixed; inset: 0;
+  background: var(--bg-base);
+  pointer-events: none; z-index: -2;
+  transition: background-color 320ms ease;
+}
+body::after {
+  content: ""; position: fixed; inset: 0;
+  background: var(--ambient);
+  pointer-events: none; z-index: -1;
+  transition: opacity 320ms ease;
+}
+
+.container { max-width: 1320px; margin: 0 auto; padding: var(--space-2xl) var(--space-lg) var(--space-3xl); }
+
+/* ---- Top bar -------------------------------------------- */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(20px);
+  background: color-mix(in srgb, var(--bg-base) 82%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-in {
+  max-width: 1320px; margin: 0 auto;
+  padding: var(--space-sm) var(--space-lg);
+  display: flex; align-items: center; gap: var(--space-lg);
+}
+.topbar .brand { display: flex; align-items: center; gap: var(--space-xs); }
+.topbar .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; letter-spacing: -0.01em; }
+.topbar .tag {
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+  color: var(--fg-muted); padding: 3px 8px; border: 1px solid var(--border);
+  border-radius: 999px; margin-left: var(--space-xs);
+}
+.topbar nav { margin-left: auto; display: flex; gap: var(--space-lg); }
+.topbar nav a { font-size: 0.85rem; color: var(--fg-muted); text-decoration: none; transition: color 160ms; }
+.topbar nav a:hover { color: var(--fg); }
+
+/* day/night toggle */
+.mode-toggle {
+  display: flex; gap: 2px; padding: 3px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+}
+.mode-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border: none; background: transparent; cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+  color: var(--fg-muted); border-radius: 8px; transition: all 160ms;
+}
+.mode-btn svg { width: 13px; height: 13px; }
+.mode-btn.active { background: var(--accent); color: #fff; }
+
+/* ---- Hero header ---------------------------------------- */
+.ds-header { margin-bottom: var(--space-3xl); padding-top: var(--space-xl); }
+.ds-eyebrow {
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent);
+  margin-bottom: var(--space-md);
+}
+.ds-title {
+  font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.5rem);
+  font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; margin-bottom: var(--space-md);
+}
+.ds-subtitle { font-size: 1.1rem; color: var(--fg-muted); max-width: 620px; line-height: 1.6; }
+
+/* ---- Section -------------------------------------------- */
+.section { margin-bottom: var(--space-3xl); scroll-margin-top: 80px; }
+.section-title {
+  font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
+  letter-spacing: -0.01em; margin-bottom: var(--space-xs);
+  display: flex; align-items: center; gap: var(--space-sm);
+}
+.section-title::before {
+  content: ""; width: 4px; height: 26px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-teal)); border-radius: 2px;
+}
+.section-desc { color: var(--fg-muted); font-size: 0.95rem; max-width: 640px; margin-bottom: var(--space-lg); line-height: 1.6; }
+.subsection-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; margin-bottom: var(--space-md); color: var(--fg-secondary); }
+
+.card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: var(--space-xl);
+  box-shadow: var(--shadow-glass); margin-bottom: var(--space-lg);
+  transition: background-color 320ms ease, border-color 320ms ease, box-shadow 320ms ease;
+}
+
+.grid { display: grid; gap: var(--space-lg); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+/* ---- Brand assets --------------------------------------- */
+.asset-frame {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 150px; padding: var(--space-xl);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); position: relative;
+}
+.asset-frame.on-gradient { background: linear-gradient(135deg, var(--brand-indigo), var(--brand-teal)); border-color: transparent; }
+.asset-label {
+  position: absolute; top: var(--space-sm); left: var(--space-md);
+  font-family: var(--font-mono); font-size: 0.68rem; color: var(--fg-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.asset-frame.on-gradient .asset-label { color: rgba(255,255,255,0.75); }
+.asset-caption { font-family: var(--font-mono); font-size: 0.72rem; color: var(--fg-muted); margin-top: var(--space-sm); text-align: center; }
+
+.icon-tiles { display: flex; flex-wrap: wrap; gap: var(--space-lg); align-items: flex-end; }
+.icon-tile { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); }
+
+.clearspace-note {
+  display: flex; gap: var(--space-sm); align-items: flex-start;
+  padding: var(--space-md); background: var(--surface); border-radius: var(--radius-md);
+  font-size: 0.875rem; color: var(--fg-muted); line-height: 1.55;
+}
+.clearspace-note strong { color: var(--fg); font-weight: 600; }
+
+/* ---- Color swatches ------------------------------------- */
+.color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--space-md); }
+.swatch { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-elevated); }
+.swatch-block { height: 96px; }
+.swatch-info { padding: var(--space-sm) var(--space-md); }
+.swatch-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; }
+.swatch-token { font-family: var(--font-mono); font-size: 0.7rem; color: var(--fg-muted); }
+.swatch-val { font-family: var(--font-mono); font-size: 0.72rem; color: var(--fg-secondary); }
+
+/* ---- Type specimens ------------------------------------- */
+.specimen { padding: var(--space-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: var(--space-md); background: var(--bg-elevated); }
+.specimen-label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--fg-muted); margin-bottom: var(--space-xs); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ---- Spacing / radius demos ----------------------------- */
+.row { display: flex; flex-wrap: wrap; gap: var(--space-md); align-items: center; margin-bottom: var(--space-md); }
+.measure-label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--fg-muted); min-width: 96px; }
+.spacing-block { height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent-teal)); border-radius: var(--radius-sm); }
+.radius-block { width: 72px; height: 72px; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); }
+
+/* ---- Components: buttons -------------------------------- */
+.btn {
+  padding: var(--space-sm) var(--space-lg); border-radius: var(--radius-md);
+  font-family: var(--font-body); font-size: 0.9375rem; font-weight: 600;
+  cursor: pointer; transition: all 200ms ease; border: 1px solid;
+  display: inline-flex; align-items: center; gap: var(--space-xs);
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+  border-color: var(--accent); color: #fff;
+  box-shadow: 0 0 0 1px rgba(94,106,210,0.2), 0 10px 24px rgba(94,106,210,0.3), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(94,106,210,0.3), 0 12px 28px rgba(94,106,210,0.4), inset 0 1px 0 rgba(255,255,255,0.18); }
+.btn-secondary { background: var(--surface); border-color: var(--border); color: var(--fg); }
+.btn-secondary:hover { background: var(--surface-hover); border-color: var(--border-hover); transform: translateY(-1px); }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--fg-muted); }
+.btn-ghost:hover { background: var(--surface); color: var(--fg); }
+.btn-small { padding: var(--space-xs) var(--space-md); font-size: 0.875rem; }
+.btn-large { padding: var(--space-md) var(--space-xl); font-size: 1.0625rem; }
+
+/* inputs */
+.input, .select {
+  padding: var(--space-sm) var(--space-md); background: var(--bg-deep);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  color: var(--fg); font-family: var(--font-body); font-size: 0.9375rem; width: 100%;
+  transition: all 200ms ease;
+}
+.input:focus, .select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(94,106,210,0.15); }
+.input::placeholder { color: var(--fg-muted); opacity: 0.7; }
+.form-group { margin-bottom: var(--space-lg); }
+.form-label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: var(--space-xs); }
+.form-hint { font-size: 0.8rem; color: var(--fg-muted); margin-top: var(--space-2xs); }
+.checkbox, .toggle-wrap { display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; }
+
+/* demo card */
+.demo-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-lg); box-shadow: var(--shadow-bento); transition: all 300ms ease; }
+.demo-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-glass-hover); border-color: var(--border-hover); }
+.demo-card-title { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-bottom: var(--space-2xs); }
+.demo-card-text { color: var(--fg-muted); font-size: 0.9rem; }
+
+/* badges */
+.badge { display: inline-flex; align-items: center; padding: var(--space-2xs) var(--space-sm); border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); }
+.badge-primary { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent-bright); }
+.badge-success { background: color-mix(in srgb, var(--accent-teal) 15%, transparent); color: var(--teal-text); }
+.badge-warning { background: rgba(251,191,36,0.15); color: #B45309; }
+:root[data-theme="night"] .badge-warning { color: #FCD34D; }
+
+/* toggle switch */
+.toggle { position: relative; display: inline-block; width: 46px; height: 26px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; transition: all 300ms; }
+.toggle-slider::before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: all 300ms; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.toggle input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* tokens table */
+.tokens-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.tokens-table th, .tokens-table td { padding: var(--space-sm) var(--space-md); text-align: left; border-bottom: 1px solid var(--border); }
+.tokens-table th { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); background: var(--surface); }
+.tokens-table td { font-family: var(--font-mono); font-size: 0.84rem; }
+.tokens-table tr:last-child td { border-bottom: none; }
+.token-dot { display: inline-block; width: 26px; height: 26px; border-radius: var(--radius-sm); border: 1px solid var(--border); vertical-align: middle; margin-right: var(--space-sm); }
+
+/* code block */
+.code-block { background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-lg); overflow-x: auto; margin-top: var(--space-md); }
+.code-block code { font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.7; color: var(--fg-secondary); white-space: pre; }
+.code-block .k { color: var(--accent-bright); }
+.code-block .s { color: var(--teal-text); }
+
+@media (max-width: 820px) {
+  .topbar nav { display: none; }
+  .ds-title { font-size: 2.2rem; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+        <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" stroke="var(--accent)" stroke-width="1.8" fill="none"/>
+        <circle cx="16" cy="16" r="5" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+        <circle cx="16" cy="16" r="2" fill="var(--accent-teal)"/>
+      </svg>
+      <span class="brand-name">OpenCiVera</span>
+      <span class="tag">Design System</span>
+    </div>
+    <nav>
+      <a href="#brand">Brand</a>
+      <a href="#colors">Colors</a>
+      <a href="#type">Type</a>
+      <a href="#space">Spacing</a>
+      <a href="#components">Components</a>
+      <a href="#tokens">Tokens</a>
+    </nav>
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="night" onclick="setMode('night')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        Night
+      </button>
+      <button class="mode-btn" data-mode="day" onclick="setMode('day')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        Day
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- HEADER -->
+  <header class="ds-header">
+    <div class="ds-eyebrow">// OpenCiVera Design System v1.0</div>
+    <h1 class="ds-title">One source of truth for the OpenCiVera product surface.</h1>
+    <p class="ds-subtitle">A technical, premium design language built on the "Portal" aesthetic — deep space backgrounds, glass surfaces, indigo &amp; teal accents. Every value resolves from CSS custom properties and re-themes between <strong>Night</strong> and <strong>Day</strong> from a single attribute.</p>
+  </header>
+
+  <!-- BRAND ASSETS -->
+  <section class="section" id="brand">
+    <h2 class="section-title">Brand Assets</h2>
+    <p class="section-desc">The complete logo system. The mark is a hexagonal "portal" badge — concentric rings around a teal core, with three indigo vertices — paired with the Space Grotesk wordmark. Wordmarks below use <code>currentColor</code>, so they adapt to the active mode.</p>
+
+    <!-- Primary lockups -->
+    <div class="card">
+      <h3 class="subsection-title">Primary Logo</h3>
+      <div class="grid grid-2">
+        <div>
+          <div class="asset-frame">
+            <span class="asset-label">Horizontal</span>
+            <svg width="240" height="64" viewBox="0 0 240 64" fill="none">
+              <g transform="translate(32,32)">
+                <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" fill="url(#bg1)" opacity="0.15"/>
+                <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" stroke="url(#bg1)" stroke-width="2.3" fill="none"/>
+                <circle cx="0" cy="0" r="7" stroke="var(--accent)" stroke-width="1.8" fill="none"/>
+                <circle cx="0" cy="0" r="3" fill="var(--accent-teal)"/>
+                <circle cx="0" cy="-13.5" r="1.6" fill="var(--accent-bright)"/>
+                <circle cx="11.7" cy="6.75" r="1.6" fill="var(--accent-bright)"/>
+                <circle cx="-11.7" cy="6.75" r="1.6" fill="var(--accent-bright)"/>
+              </g>
+              <text x="60" y="40" font-family="'Space Grotesk', sans-serif" font-size="25" font-weight="700" fill="currentColor">OpenCiVera</text>
+              <defs><linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="0.5" stop-color="#6872D9"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+            </svg>
+          </div>
+          <p class="asset-caption">logo-horizontal · primary lockup</p>
+        </div>
+        <div>
+          <div class="asset-frame">
+            <span class="asset-label">Stacked</span>
+            <svg width="180" height="120" viewBox="0 0 180 120" fill="none">
+              <g transform="translate(90,38)">
+                <polygon points="0,-22 19.05,-11 19.05,11 0,22 -19.05,11 -19.05,-11" fill="url(#bg2)" opacity="0.15"/>
+                <polygon points="0,-22 19.05,-11 19.05,11 0,22 -19.05,11 -19.05,-11" stroke="url(#bg2)" stroke-width="2.6" fill="none"/>
+                <circle cx="0" cy="0" r="9" stroke="var(--accent)" stroke-width="2.2" fill="none"/>
+                <circle cx="0" cy="0" r="3.6" fill="var(--accent-teal)"/>
+                <circle cx="0" cy="-16.5" r="1.9" fill="var(--accent-bright)"/>
+                <circle cx="14.3" cy="8.25" r="1.9" fill="var(--accent-bright)"/>
+                <circle cx="-14.3" cy="8.25" r="1.9" fill="var(--accent-bright)"/>
+              </g>
+              <text x="90" y="98" font-family="'Space Grotesk', sans-serif" font-size="26" font-weight="700" fill="currentColor" text-anchor="middle">OpenCiVera</text>
+              <defs><linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="0.5" stop-color="#6872D9"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+            </svg>
+          </div>
+          <p class="asset-caption">logo-stacked · vertical lockup</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mark + monograms -->
+    <div class="card">
+      <h3 class="subsection-title">Symbol &amp; Monograms</h3>
+      <div class="icon-tiles">
+        <div class="icon-tile">
+          <div class="asset-frame" style="width:140px;height:140px;min-height:0;">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+              <g transform="translate(40,40)">
+                <polygon points="0,-24 20.78,-12 20.78,12 0,24 -20.78,12 -20.78,-12" fill="url(#bg3)" opacity="0.15"/>
+                <polygon points="0,-24 20.78,-12 20.78,12 0,24 -20.78,12 -20.78,-12" stroke="url(#bg3)" stroke-width="2.8" fill="none"/>
+                <circle cx="0" cy="0" r="10" stroke="var(--accent)" stroke-width="2.4" fill="none"/>
+                <circle cx="0" cy="0" r="4" fill="var(--accent-teal)"/>
+                <circle cx="0" cy="-18" r="2" fill="var(--accent-bright)"/>
+                <circle cx="15.5" cy="9" r="2" fill="var(--accent-bright)"/>
+                <circle cx="-15.5" cy="9" r="2" fill="var(--accent-bright)"/>
+              </g>
+              <defs><linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="0.5" stop-color="#6872D9"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+            </svg>
+          </div>
+          <p class="asset-caption">symbol</p>
+        </div>
+        <div class="icon-tile">
+          <div class="asset-frame" style="width:140px;height:140px;min-height:0;">
+            <svg width="84" height="40" viewBox="0 0 160 60" fill="none">
+              <g transform="translate(25,30)"><polygon points="0,-14 12.12,-7 12.12,7 0,14 -12.12,7 -12.12,-7" stroke="url(#bg4)" stroke-width="2" fill="none"/><circle cx="0" cy="0" r="4" fill="var(--accent-teal)"/></g>
+              <g transform="translate(65,30)"><path d="M 10 -12 Q 0 -16, -7 -7 Q -10 0, -7 7 Q 0 16, 10 12" stroke="url(#bg4)" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+              <g transform="translate(105,30)"><path d="M -9 -12 L 0 12 L 9 -12" stroke="url(#bg4)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+              <defs><linearGradient id="bg4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="0.5" stop-color="#6872D9"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+            </svg>
+          </div>
+          <p class="asset-caption">OCV mark</p>
+        </div>
+        <div class="icon-tile">
+          <div class="asset-frame" style="width:140px;height:140px;min-height:0;">
+            <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="50" r="48" fill="url(#bg5)" opacity="0.1"/>
+              <circle cx="50" cy="50" r="48" stroke="url(#bg5)" stroke-width="2" fill="none"/>
+              <g transform="translate(50,50) scale(0.65)">
+                <g transform="translate(-45,0)"><polygon points="0,-16 13.86,-8 13.86,8 0,16 -13.86,8 -13.86,-8" stroke="url(#bg5)" stroke-width="2" fill="none"/><circle cx="0" cy="0" r="5" fill="var(--accent-teal)"/></g>
+                <g transform="translate(0,0)"><path d="M 12 -14 Q 0 -18, -8 -8 Q -11 0, -8 8 Q 0 18, 12 14" stroke="url(#bg5)" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+                <g transform="translate(38,0)"><path d="M -10 -14 L 0 14 L 10 -14" stroke="url(#bg5)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+              </g>
+              <defs><linearGradient id="bg5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="0.5" stop-color="#6872D9"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+            </svg>
+          </div>
+          <p class="asset-caption">circle badge</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- App icons -->
+    <div class="card">
+      <h3 class="subsection-title">App Icons &amp; Favicon</h3>
+      <div class="icon-tiles">
+        <div class="icon-tile">
+          <svg width="96" height="96" viewBox="0 0 80 80" style="border-radius:18px;">
+            <rect width="80" height="80" fill="url(#bg6)"/>
+            <g transform="translate(40,40)">
+              <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" fill="rgba(255,255,255,0.1)"/>
+              <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" stroke="#fff" stroke-width="2.5" fill="none"/>
+              <circle cx="0" cy="0" r="8" stroke="rgba(255,255,255,0.9)" stroke-width="2" fill="none"/>
+              <circle cx="0" cy="0" r="3.5" fill="#fff"/>
+              <circle cx="0" cy="-15" r="1.8" fill="#fff" opacity="0.9"/>
+              <circle cx="13" cy="7.5" r="1.8" fill="#fff" opacity="0.9"/>
+              <circle cx="-13" cy="7.5" r="1.8" fill="#fff" opacity="0.9"/>
+            </g>
+            <defs><linearGradient id="bg6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+          </svg>
+          <p class="asset-caption">iOS / PWA · 18px radius</p>
+        </div>
+        <div class="icon-tile">
+          <svg width="96" height="96" viewBox="0 0 80 80" style="border-radius:50%;">
+            <circle cx="40" cy="40" r="40" fill="url(#bg7)"/>
+            <g transform="translate(40,40)">
+              <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" stroke="#fff" stroke-width="2.5" fill="none"/>
+              <circle cx="0" cy="0" r="7" stroke="rgba(255,255,255,0.9)" stroke-width="1.8" fill="none"/>
+              <circle cx="0" cy="0" r="3" fill="#fff"/>
+            </g>
+            <defs><linearGradient id="bg7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+          </svg>
+          <p class="asset-caption">Android adaptive</p>
+        </div>
+        <div class="icon-tile">
+          <svg width="56" height="56" viewBox="0 0 80 80" style="border-radius:10px;border:1px solid var(--border);">
+            <g transform="translate(40,40)">
+              <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" stroke="url(#bg8)" stroke-width="2.5" fill="none"/>
+              <circle cx="0" cy="0" r="8" stroke="var(--accent)" stroke-width="2" fill="none"/>
+              <circle cx="0" cy="0" r="3.5" fill="var(--accent-teal)"/>
+            </g>
+            <defs><linearGradient id="bg8" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="1" stop-color="#009c8a"/></linearGradient></defs>
+          </svg>
+          <p class="asset-caption">favicon · 32px</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- On gradient + clearspace -->
+    <div class="grid grid-2">
+      <div class="card" style="margin:0;">
+        <h3 class="subsection-title">Reversed / On Color</h3>
+        <div class="asset-frame on-gradient">
+          <span class="asset-label">On brand gradient</span>
+          <svg width="220" height="60" viewBox="0 0 240 64" fill="none">
+            <g transform="translate(32,32)">
+              <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" fill="rgba(255,255,255,0.15)"/>
+              <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" stroke="#fff" stroke-width="2.3" fill="none"/>
+              <circle cx="0" cy="0" r="7" stroke="rgba(255,255,255,0.9)" stroke-width="1.8" fill="none"/>
+              <circle cx="0" cy="0" r="3" fill="#fff"/>
+            </g>
+            <text x="60" y="40" font-family="'Space Grotesk', sans-serif" font-size="25" font-weight="700" fill="#fff">OpenCiVera</text>
+          </svg>
+        </div>
+      </div>
+      <div class="card" style="margin:0;display:flex;flex-direction:column;">
+        <h3 class="subsection-title">Clear Space &amp; Usage</h3>
+        <div class="clearspace-note">
+          <span>Keep clear space equal to the height of the hexagon mark on all sides. Don't recolor the wordmark outside the mode tokens, stretch, rotate, or place the mark on a busy photo without the gradient plate. Minimum mark size: <strong>24px</strong>.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLORS -->
+  <section class="section" id="colors">
+    <h2 class="section-title">Colors</h2>
+    <p class="section-desc">Brand hues are constant across modes. Surfaces, text and borders are <strong>tokens</strong> that swap between Night and Day — toggle the switch (top-right) to preview both. Always reference the token, never a raw hex.</p>
+
+    <div class="card">
+      <h3 class="subsection-title">Brand</h3>
+      <div class="color-grid">
+        <div class="swatch"><div class="swatch-block" style="background:#5E6AD2;"></div><div class="swatch-info"><div class="swatch-name">Indigo · Primary</div><div class="swatch-token">--accent</div><div class="swatch-val">#5E6AD2</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#6872D9;"></div><div class="swatch-info"><div class="swatch-name">Indigo · Bright</div><div class="swatch-token">--accent-bright</div><div class="swatch-val">#6872D9</div></div></div>
+        <div class="swatch"><div class="swatch-block" style="background:#009c8a;"></div><div class="swatch-info"><div class="swatch-name">Teal · Secondary</div><div class="swatch-token">--accent-teal</div><div class="swatch-val">#009c8a</div></div></div>
+      </div>
+      <div class="clearspace-note" style="margin-top:var(--space-md);">
+        <span><strong>Note:</strong> <code>--accent-bright</code> is the lighter end-stop of the primary gradient and the primary hover state — not a standalone brand color. <strong>Teal</strong> is the true complementary/secondary (status, "live", the logo core).</span>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card" style="margin:0;">
+        <h3 class="subsection-title">Surfaces — adapt to mode</h3>
+        <div class="color-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">
+          <div class="swatch"><div class="swatch-block" style="background:var(--bg-deep);"></div><div class="swatch-info"><div class="swatch-name">Deep</div><div class="swatch-token">--bg-deep</div></div></div>
+          <div class="swatch"><div class="swatch-block" style="background:var(--bg-base);"></div><div class="swatch-info"><div class="swatch-name">Base</div><div class="swatch-token">--bg-base</div></div></div>
+          <div class="swatch"><div class="swatch-block" style="background:var(--bg-elevated);"></div><div class="swatch-info"><div class="swatch-name">Elevated</div><div class="swatch-token">--bg-elevated</div></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin:0;">
+        <h3 class="subsection-title">Text — adapt to mode</h3>
+        <div class="color-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">
+          <div class="swatch"><div class="swatch-block" style="background:var(--fg);"></div><div class="swatch-info"><div class="swatch-name">Primary</div><div class="swatch-token">--fg</div></div></div>
+          <div class="swatch"><div class="swatch-block" style="background:var(--fg-secondary);"></div><div class="swatch-info"><div class="swatch-name">Secondary</div><div class="swatch-token">--fg-secondary</div></div></div>
+          <div class="swatch"><div class="swatch-block" style="background:var(--fg-muted);"></div><div class="swatch-info"><div class="swatch-name">Muted</div><div class="swatch-token">--fg-muted</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPOGRAPHY -->
+  <section class="section" id="type">
+    <h2 class="section-title">Typography</h2>
+    <p class="section-desc">Three families: <strong>Space Grotesk</strong> for display &amp; the wordmark, <strong>Inter</strong> for body &amp; UI, <strong>JetBrains Mono</strong> for labels, code and data.</p>
+
+    <div class="card">
+      <div class="grid grid-3">
+        <div class="specimen"><div class="specimen-label">Display</div><div style="font-family:var(--font-display);font-size:1.05rem;font-weight:700;">Space Grotesk</div></div>
+        <div class="specimen"><div class="specimen-label">Body / UI</div><div style="font-family:var(--font-body);font-size:1.05rem;">Inter</div></div>
+        <div class="specimen"><div class="specimen-label">Mono / Code</div><div style="font-family:var(--font-mono);font-size:1.05rem;">JetBrains Mono</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="subsection-title">Scale</h3>
+      <div class="specimen"><div class="specimen-label">Display · 3rem · 700</div><div style="font-family:var(--font-display);font-size:3rem;font-weight:700;letter-spacing:-0.025em;">Career, published.</div></div>
+      <div class="specimen"><div class="specimen-label">H1 · 1.6rem · 700</div><div style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;">Section Title</div></div>
+      <div class="specimen"><div class="specimen-label">H2 · 1.05rem · 600</div><div style="font-family:var(--font-display);font-size:1.05rem;font-weight:600;">Subsection Title</div></div>
+      <div class="specimen"><div class="specimen-label">Body · 0.9375rem · 400</div><div style="font-family:var(--font-body);font-size:0.9375rem;">Standard body text used throughout the interface for general content and descriptions.</div></div>
+      <div class="specimen"><div class="specimen-label">Mono label · 0.72rem · 600</div><div style="font-family:var(--font-mono);font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);">// publishing model</div></div>
+    </div>
+  </section>
+
+  <!-- SPACING -->
+  <section class="section" id="space">
+    <h2 class="section-title">Spacing &amp; Radius</h2>
+    <p class="section-desc">An 8px-based scale (with a 4px and 12px half-step) and four radii. Use tokens for every gap, pad and corner.</p>
+    <div class="grid grid-2">
+      <div class="card" style="margin:0;">
+        <h3 class="subsection-title">Spacing scale</h3>
+        <div class="row"><div class="measure-label">2xs · 4</div><div class="spacing-block" style="width:4px;"></div></div>
+        <div class="row"><div class="measure-label">xs · 8</div><div class="spacing-block" style="width:8px;"></div></div>
+        <div class="row"><div class="measure-label">sm · 12</div><div class="spacing-block" style="width:12px;"></div></div>
+        <div class="row"><div class="measure-label">md · 16</div><div class="spacing-block" style="width:16px;"></div></div>
+        <div class="row"><div class="measure-label">lg · 24</div><div class="spacing-block" style="width:24px;"></div></div>
+        <div class="row"><div class="measure-label">xl · 32</div><div class="spacing-block" style="width:32px;"></div></div>
+        <div class="row"><div class="measure-label">2xl · 48</div><div class="spacing-block" style="width:48px;"></div></div>
+        <div class="row"><div class="measure-label">3xl · 64</div><div class="spacing-block" style="width:64px;"></div></div>
+      </div>
+      <div class="card" style="margin:0;">
+        <h3 class="subsection-title">Border radius</h3>
+        <div class="row"><div class="radius-block" style="border-radius:var(--radius-sm);"></div><div class="measure-label">sm · 8px</div></div>
+        <div class="row"><div class="radius-block" style="border-radius:var(--radius-md);"></div><div class="measure-label">md · 12px</div></div>
+        <div class="row"><div class="radius-block" style="border-radius:var(--radius-lg);"></div><div class="measure-label">lg · 16px</div></div>
+        <div class="row"><div class="radius-block" style="border-radius:var(--radius-xl);"></div><div class="measure-label">xl · 20px</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section class="section" id="components">
+    <h2 class="section-title">Components</h2>
+    <p class="section-desc">Core building blocks. Primary buttons carry the brand gradient + inner highlight; everything else is quiet by default and lifts on hover.</p>
+
+    <div class="card">
+      <h3 class="subsection-title">Buttons</h3>
+      <div style="margin-bottom:var(--space-lg);"><div class="specimen-label" style="margin-bottom:var(--space-sm);">Primary</div><div class="row"><button class="btn btn-primary btn-small">Small</button><button class="btn btn-primary">Default</button><button class="btn btn-primary btn-large">Large</button></div></div>
+      <div style="margin-bottom:var(--space-lg);"><div class="specimen-label" style="margin-bottom:var(--space-sm);">Secondary</div><div class="row"><button class="btn btn-secondary btn-small">Small</button><button class="btn btn-secondary">Default</button><button class="btn btn-secondary btn-large">Large</button></div></div>
+      <div><div class="specimen-label" style="margin-bottom:var(--space-sm);">Ghost</div><div class="row"><button class="btn btn-ghost btn-small">Small</button><button class="btn btn-ghost">Default</button><button class="btn btn-ghost btn-large">Large</button></div></div>
+    </div>
+
+    <div class="card">
+      <h3 class="subsection-title">Forms</h3>
+      <div class="grid grid-2">
+        <div class="form-group"><label class="form-label">Text input</label><input type="text" class="input" placeholder="you@example.com"><div class="form-hint">Helper text goes here</div></div>
+        <div class="form-group"><label class="form-label">Select</label><select class="select"><option>English</option><option>Polski</option></select></div>
+        <div class="form-group"><label class="form-label">Checkbox</label><label class="checkbox"><input type="checkbox" checked><span>Make profile public</span></label></div>
+        <div class="form-group"><label class="form-label">Toggle</label><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="subsection-title">Cards &amp; Badges</h3>
+      <div class="grid grid-3" style="margin-bottom:var(--space-lg);">
+        <div class="demo-card"><div class="demo-card-title">One source record</div><p class="demo-card-text">A standard elevated card. Hover to see the lift and border highlight.</p></div>
+        <div class="demo-card"><div class="demo-card-title">Role-aware delivery</div><p class="demo-card-text">Cards hold any content with consistent spacing and elevation.</p></div>
+        <div class="demo-card"><div class="demo-card-title">Public surface</div><p class="demo-card-text">Glass surfaces in Night, soft shadow in Day — same token.</p></div>
+      </div>
+      <div class="row"><span class="badge badge-primary">Primary</span><span class="badge badge-success">Live</span><span class="badge badge-warning">Draft</span></div>
+    </div>
+  </section>
+
+  <!-- TOKENS + GETTING STARTED -->
+  <section class="section" id="tokens">
+    <h2 class="section-title">Tokens &amp; Getting Started</h2>
+    <p class="section-desc">Drop the token layer into your app, set <code>data-theme</code> on the root, and reference tokens everywhere.</p>
+
+    <div class="card">
+      <h3 class="subsection-title">Switching modes</h3>
+      <div class="code-block"><code><span class="k">&lt;html</span> data-theme=<span class="s">"night"</span><span class="k">&gt;</span>   <span style="color:var(--fg-muted)">// or "day"</span>
+
+<span style="color:var(--fg-muted)">// JS — persist the choice</span>
+<span class="k">function</span> setMode(mode) {
+  document.documentElement.setAttribute(<span class="s">'data-theme'</span>, mode);
+  localStorage.setItem(<span class="s">'ocv-theme'</span>, mode);
+}</code></div>
+    </div>
+
+    <div class="card">
+      <h3 class="subsection-title">Key tokens</h3>
+      <table class="tokens-table">
+        <thead><tr><th>Token</th><th>Night</th><th>Day</th><th>Usage</th></tr></thead>
+        <tbody>
+          <tr><td><span class="token-dot" style="background:#5E6AD2;"></span>--accent</td><td>#5E6AD2</td><td>#5048C4</td><td>Primary brand, buttons, links</td></tr>
+          <tr><td>--accent-teal</td><td>#009c8a</td><td>#00897a</td><td>Secondary / status accent</td></tr>
+          <tr><td>--bg-base</td><td>#050506</td><td>#f5f4fb</td><td>Page background</td></tr>
+          <tr><td>--bg-elevated</td><td>#0a0a0c</td><td>#ffffff</td><td>Cards, panels</td></tr>
+          <tr><td>--fg</td><td>#EDEDEF</td><td>#17151f</td><td>Primary text</td></tr>
+          <tr><td>--border</td><td>rgba(255··0.06)</td><td>rgba(23··0.09)</td><td>Hairlines, dividers</td></tr>
+          <tr><td>--space-md</td><td colspan="2">16px</td><td>Standard spacing step</td></tr>
+          <tr><td>--radius-xl</td><td colspan="2">20px</td><td>Cards, large surfaces</td></tr>
+          <tr><td>--shadow-glass</td><td colspan="2">mode-specific</td><td>Elevated surfaces</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+function setMode(mode) {
+  document.documentElement.setAttribute('data-theme', mode);
+  localStorage.setItem('ocv-theme', mode);
+  document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.mode === mode); });
+}
+(function(){
+  var saved = localStorage.getItem('ocv-theme');
+  setMode(saved || 'night');
+})();
+</script>
+
+</body>
+</html>

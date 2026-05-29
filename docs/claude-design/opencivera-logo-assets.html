@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenCiVera Logo Assets - Variation 3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap');
+
+:root {
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --portal-bg-base: #050506;
+  --portal-bg-elevated: #0a0a0c;
+  --portal-surface: rgba(255, 255, 255, 0.05);
+  --portal-foreground: #EDEDEF;
+  --portal-foreground-muted: #8A8F98;
+  --portal-accent: #5E6AD2;
+  --portal-border: rgba(255, 255, 255, 0.06);
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-primary);
+  background: var(--portal-bg-base);
+  color: var(--portal-foreground);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at top, rgba(94, 106, 210, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(0, 156, 138, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: var(--space-2xl);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-md);
+  background: linear-gradient(135deg, var(--portal-foreground), var(--portal-foreground-muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: var(--portal-foreground-muted);
+}
+
+.section {
+  margin-bottom: var(--space-2xl);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--portal-accent), #009c8a);
+  border-radius: 2px;
+}
+
+.card {
+  background: var(--portal-bg-elevated);
+  border: 1px solid var(--portal-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 18px 48px rgba(0, 0, 0, 0.42);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: var(--space-lg);
+  color: var(--portal-foreground-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+}
+
+.asset-box {
+  background: var(--portal-surface);
+  border: 1px solid var(--portal-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  transition: all 300ms ease;
+}
+
+.asset-box:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.asset-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--portal-foreground-muted);
+  text-align: center;
+}
+
+.asset-meta {
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--portal-foreground-muted);
+  opacity: 0.7;
+}
+
+.bg-dark {
+  background: #020203;
+}
+
+.bg-light {
+  background: #FAF8FF;
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, #5E6AD2, #009c8a);
+}
+
+.social-preview {
+  width: 100%;
+  aspect-ratio: 1.91/1;
+  background: var(--portal-bg-elevated);
+  border: 1px solid var(--portal-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.social-preview::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at top left, rgba(94, 106, 210, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(0, 156, 138, 0.1) 0%, transparent 50%);
+}
+
+.social-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <h1 class="title">OpenCiVera Logo Assets</h1>
+    <p class="subtitle">Variation 3: Geometric Tech — Complete asset package</p>
+  </header>
+
+  <!-- APP ICONS -->
+  <section class="section">
+    <h2 class="section-title">App Icons & Favicons</h2>
+    
+    <div class="grid">
+      <!-- 16x16 Favicon -->
+      <div class="asset-box">
+        <svg width="64" height="64" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(40, 40)">
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     fill="url(#favicon-grad)" opacity="0.15"/>
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     stroke="url(#favicon-grad)" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="8" stroke="#5E6AD2" stroke-width="2" fill="none"/>
+            <circle cx="0" cy="0" r="3.5" fill="#009c8a"/>
+            <circle cx="0" cy="-15" r="1.8" fill="#6872D9"/>
+            <circle cx="13" cy="7.5" r="1.8" fill="#6872D9"/>
+            <circle cx="-13" cy="7.5" r="1.8" fill="#6872D9"/>
+          </g>
+          <defs>
+            <linearGradient id="favicon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5E6AD2"/>
+              <stop offset="50%" stop-color="#6872D9"/>
+              <stop offset="100%" stop-color="#009c8a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="asset-label">Favicon</div>
+        <div class="asset-meta">16×16 / 32×32</div>
+      </div>
+
+      <!-- iOS App Icon -->
+      <div class="asset-box">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="80" rx="18" fill="url(#ios-bg)"/>
+          <g transform="translate(40, 40)">
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     fill="rgba(255,255,255,0.1)"/>
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     stroke="white" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="8" stroke="rgba(255,255,255,0.9)" stroke-width="2" fill="none"/>
+            <circle cx="0" cy="0" r="3.5" fill="white"/>
+            <circle cx="0" cy="-15" r="1.8" fill="white" opacity="0.9"/>
+            <circle cx="13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+            <circle cx="-13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+          </g>
+          <defs>
+            <linearGradient id="ios-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5E6AD2"/>
+              <stop offset="50%" stop-color="#6872D9"/>
+              <stop offset="100%" stop-color="#009c8a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="asset-label">iOS App Icon</div>
+        <div class="asset-meta">1024×1024</div>
+      </div>
+
+      <!-- Android App Icon -->
+      <div class="asset-box">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="40" fill="url(#android-bg)"/>
+          <g transform="translate(40, 40)">
+            <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" 
+                     fill="rgba(255,255,255,0.12)"/>
+            <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" 
+                     stroke="white" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="7" stroke="rgba(255,255,255,0.9)" stroke-width="1.8" fill="none"/>
+            <circle cx="0" cy="0" r="3" fill="white"/>
+            <circle cx="0" cy="-13" r="1.6" fill="white" opacity="0.9"/>
+            <circle cx="11.5" cy="6.5" r="1.6" fill="white" opacity="0.9"/>
+            <circle cx="-11.5" cy="6.5" r="1.6" fill="white" opacity="0.9"/>
+          </g>
+          <defs>
+            <linearGradient id="android-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5E6AD2"/>
+              <stop offset="50%" stop-color="#6872D9"/>
+              <stop offset="100%" stop-color="#009c8a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="asset-label">Android Adaptive</div>
+        <div class="asset-meta">512×512</div>
+      </div>
+
+      <!-- PWA Icon -->
+      <div class="asset-box">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="80" rx="16" fill="url(#pwa-bg)"/>
+          <g transform="translate(40, 40)">
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     fill="rgba(255,255,255,0.1)"/>
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     stroke="white" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="8" stroke="rgba(255,255,255,0.9)" stroke-width="2" fill="none"/>
+            <circle cx="0" cy="0" r="3.5" fill="white"/>
+            <circle cx="0" cy="-15" r="1.8" fill="white" opacity="0.9"/>
+            <circle cx="13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+            <circle cx="-13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+          </g>
+          <defs>
+            <linearGradient id="pwa-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5E6AD2"/>
+              <stop offset="50%" stop-color="#6872D9"/>
+              <stop offset="100%" stop-color="#009c8a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="asset-label">PWA Icon</div>
+        <div class="asset-meta">512×512</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL LOGOS -->
+  <section class="section">
+    <h2 class="section-title">Full Logo Variations</h2>
+    
+    <div class="card">
+      <div class="card-title">Horizontal Lockup - Dark Background</div>
+      <div class="bg-dark" style="padding: var(--space-2xl); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+        <svg width="280" height="80" viewBox="0 0 280 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(40, 40)">
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     fill="url(#logo1-grad)" opacity="0.15"/>
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     stroke="url(#logo1-grad)" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="8" stroke="#5E6AD2" stroke-width="2" fill="none"/>
+            <circle cx="0" cy="0" r="3.5" fill="#009c8a"/>
+            <circle cx="0" cy="-15" r="1.8" fill="#6872D9"/>
+            <circle cx="13" cy="7.5" r="1.8" fill="#6872D9"/>
+            <circle cx="-13" cy="7.5" r="1.8" fill="#6872D9"/>
+          </g>
+          <text x="76" y="48" font-family="'Space Grotesk', sans-serif" font-size="28" font-weight="700" fill="#EDEDEF">
+            OpenCiVera
+          </text>
+          <defs>
+            <linearGradient id="logo1-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5E6AD2"/>
+              <stop offset="50%" stop-color="#6872D9"/>
+              <stop offset="100%" stop-color="#009c8a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Horizontal Lockup - Light Background</div>
+      <div class="bg-light" style="padding: var(--space-2xl); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+        <svg width="280" height="80" viewBox="0 0 280 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(40, 40)">
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     fill="url(#logo2-grad)" opacity="0.12"/>
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     stroke="url(#logo2-grad)" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="8" stroke="#5E6AD2" stroke-width="2" fill="none"/>
+            <circle cx="0" cy="0" r="3.5" fill="#007a6a"/>
+            <circle cx="0" cy="-15" r="1.8" fill="#6872D9"/>
+            <circle cx="13" cy="7.5" r="1.8" fill="#6872D9"/>
+            <circle cx="-13" cy="7.5" r="1.8" fill="#6872D9"/>
+          </g>
+          <text x="76" y="48" font-family="'Space Grotesk', sans-serif" font-size="28" font-weight="700" fill="#1C1B1F">
+            OpenCiVera
+          </text>
+          <defs>
+            <linearGradient id="logo2-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5E6AD2"/>
+              <stop offset="50%" stop-color="#6872D9"/>
+              <stop offset="100%" stop-color="#007a6a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Horizontal Lockup - Gradient Background</div>
+      <div class="bg-gradient" style="padding: var(--space-2xl); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+        <svg width="280" height="80" viewBox="0 0 280 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(40, 40)">
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     fill="rgba(255,255,255,0.15)"/>
+            <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                     stroke="white" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="8" stroke="rgba(255,255,255,0.9)" stroke-width="2" fill="none"/>
+            <circle cx="0" cy="0" r="3.5" fill="white"/>
+            <circle cx="0" cy="-15" r="1.8" fill="white" opacity="0.9"/>
+            <circle cx="13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+            <circle cx="-13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+          </g>
+          <text x="76" y="48" font-family="'Space Grotesk', sans-serif" font-size="28" font-weight="700" fill="white">
+            OpenCiVera
+          </text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Stacked Lockup</div>
+      <div class="bg-dark" style="padding: var(--space-2xl); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+        <svg width="200" height="140" viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(100, 40)">
+            <polygon points="0,-24 20.78,-12 20.78,12 0,24 -20.78,12 -20.78,-12" 
+                     fill="url(#logo4-grad)" opacity="0.15"/>
+            <polygon points="0,-24 20.78,-12 20.78,12 0,24 -20.78,12 -20.78,-12" 
+                     stroke="url(#logo4-grad)" stroke-width="3" fill="none"/>
+            <circle cx="0" cy="0" r="10" stroke="#5E6AD2" stroke-width="2.5" fill="none"/>
+            <circle cx="0" cy="0" r="4" fill="#009c8a"/>
+            <circle cx="0" cy="-18" r="2" fill="#6872D9"/>
+            <circle cx="15.5" cy="9" r="2" fill="#6872D9"/>
+            <circle cx="-15.5" cy="9" r="2" fill="#6872D9"/>
+          </g>
+          <text x="100" y="105" font-family="'Space Grotesk', sans-serif" font-size="32" font-weight="700" fill="#EDEDEF" text-anchor="middle">
+            OpenCiVera
+          </text>
+          <defs>
+            <linearGradient id="logo4-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5E6AD2"/>
+              <stop offset="50%" stop-color="#6872D9"/>
+              <stop offset="100%" stop-color="#009c8a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL MEDIA -->
+  <section class="section">
+    <h2 class="section-title">Social Media Assets</h2>
+    
+    <div class="card">
+      <div class="card-title">Twitter/X Header (1500×500)</div>
+      <div class="social-preview" style="aspect-ratio: 3/1;">
+        <div class="social-content">
+          <svg width="320" height="120" viewBox="0 0 320 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(60, 60)">
+              <polygon points="0,-28 24.25,-14 24.25,14 0,28 -24.25,14 -24.25,-14" 
+                       fill="url(#twitter-grad)" opacity="0.2"/>
+              <polygon points="0,-28 24.25,-14 24.25,14 0,28 -24.25,14 -24.25,-14" 
+                       stroke="url(#twitter-grad)" stroke-width="3.5" fill="none"/>
+              <circle cx="0" cy="0" r="12" stroke="#5E6AD2" stroke-width="3" fill="none"/>
+              <circle cx="0" cy="0" r="5" fill="#009c8a"/>
+              <circle cx="0" cy="-21" r="2.5" fill="#6872D9"/>
+              <circle cx="18" cy="10.5" r="2.5" fill="#6872D9"/>
+              <circle cx="-18" cy="10.5" r="2.5" fill="#6872D9"/>
+            </g>
+            <text x="115" y="70" font-family="'Space Grotesk', sans-serif" font-size="38" font-weight="700" fill="#EDEDEF">
+              OpenCiVera
+            </text>
+            <defs>
+              <linearGradient id="twitter-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5E6AD2"/>
+                <stop offset="50%" stop-color="#6872D9"/>
+                <stop offset="100%" stop-color="#009c8a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">LinkedIn Banner (1584×396)</div>
+      <div class="social-preview" style="aspect-ratio: 4/1;">
+        <div class="social-content">
+          <svg width="320" height="100" viewBox="0 0 320 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(50, 50)">
+              <polygon points="0,-24 20.78,-12 20.78,12 0,24 -20.78,12 -20.78,-12" 
+                       fill="url(#linkedin-grad)" opacity="0.2"/>
+              <polygon points="0,-24 20.78,-12 20.78,12 0,24 -20.78,12 -20.78,-12" 
+                       stroke="url(#linkedin-grad)" stroke-width="3" fill="none"/>
+              <circle cx="0" cy="0" r="10" stroke="#5E6AD2" stroke-width="2.5" fill="none"/>
+              <circle cx="0" cy="0" r="4" fill="#009c8a"/>
+              <circle cx="0" cy="-18" r="2" fill="#6872D9"/>
+              <circle cx="15.5" cy="9" r="2" fill="#6872D9"/>
+              <circle cx="-15.5" cy="9" r="2" fill="#6872D9"/>
+            </g>
+            <text x="93" y="58" font-family="'Space Grotesk', sans-serif" font-size="32" font-weight="700" fill="#EDEDEF">
+              OpenCiVera
+            </text>
+            <defs>
+              <linearGradient id="linkedin-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5E6AD2"/>
+                <stop offset="50%" stop-color="#6872D9"/>
+                <stop offset="100%" stop-color="#009c8a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Open Graph / Social Share (1200×630)</div>
+      <div class="social-preview">
+        <div class="social-content">
+          <svg width="340" height="200" viewBox="0 0 340 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(170, 80)">
+              <polygon points="0,-32 27.71,-16 27.71,16 0,32 -27.71,16 -27.71,-16" 
+                       fill="url(#og-grad)" opacity="0.2"/>
+              <polygon points="0,-32 27.71,-16 27.71,16 0,32 -27.71,16 -27.71,-16" 
+                       stroke="url(#og-grad)" stroke-width="4" fill="none"/>
+              <circle cx="0" cy="0" r="14" stroke="#5E6AD2" stroke-width="3.5" fill="none"/>
+              <circle cx="0" cy="0" r="6" fill="#009c8a"/>
+              <circle cx="0" cy="-24" r="3" fill="#6872D9"/>
+              <circle cx="21" cy="12" r="3" fill="#6872D9"/>
+              <circle cx="-21" cy="12" r="3" fill="#6872D9"/>
+            </g>
+            <text x="170" y="150" font-family="'Space Grotesk', sans-serif" font-size="44" font-weight="700" fill="#EDEDEF" text-anchor="middle">
+              OpenCiVera
+            </text>
+            <text x="170" y="175" font-family="'Inter', sans-serif" font-size="16" font-weight="500" fill="#8A8F98" text-anchor="middle">
+              Open Source Design System
+            </text>
+            <defs>
+              <linearGradient id="og-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5E6AD2"/>
+                <stop offset="50%" stop-color="#6872D9"/>
+                <stop offset="100%" stop-color="#009c8a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OCV ABBREVIATION -->
+  <section class="section">
+    <h2 class="section-title">OCV Abbreviation Logos</h2>
+    
+    <div class="card">
+      <div class="card-title">Concept: Hexagonal O + Bold C + V</div>
+      <p style="color: var(--portal-foreground-muted); margin-bottom: var(--space-xl); font-size: 0.9375rem;">
+        Clean, minimal letterforms where the hexagonal logo represents "O" followed by bold "C" and "V" letterforms for strong visual impact.
+      </p>
+
+      <!-- Minimal Stroke with Bold C/V -->
+      <div style="margin-bottom: var(--space-2xl);">
+        <div class="label">Minimal Stroke with Bold Letters</div>
+        <p style="color: var(--portal-foreground-muted); font-size: 0.875rem; margin-bottom: var(--space-lg);">
+          Hexagon uses original stroke width (2.5px), while C and V use thicker strokes (4px) for emphasis and balance.
+        </p>
+        
+        <div class="grid">
+          <div class="asset-box bg-dark">
+            <svg width="220" height="80" viewBox="0 0 220 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- O (hexagon) -->
+              <g transform="translate(40, 40)">
+                <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                         fill="url(#ocv3-grad)" opacity="0.15"/>
+                <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                         stroke="url(#ocv3-grad)" stroke-width="2.5" fill="none"/>
+                <circle cx="0" cy="0" r="8" stroke="#5E6AD2" stroke-width="2" fill="none"/>
+                <circle cx="0" cy="0" r="3.5" fill="#009c8a"/>
+                <circle cx="0" cy="-15" r="1.8" fill="#6872D9"/>
+                <circle cx="13" cy="7.5" r="1.8" fill="#6872D9"/>
+                <circle cx="-13" cy="7.5" r="1.8" fill="#6872D9"/>
+              </g>
+              
+              <!-- C (bold) -->
+              <g transform="translate(100, 40)">
+                <path d="M 16 -18 Q 0 -22, -10 -10 Q -14 0, -10 10 Q 0 22, 16 18" 
+                      stroke="url(#ocv3-grad)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </g>
+              
+              <!-- V (bold) -->
+              <g transform="translate(160, 40)">
+                <path d="M -14 -18 L 0 18 L 14 -18" 
+                      stroke="url(#ocv3-grad)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+              
+              <defs>
+                <linearGradient id="ocv3-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#5E6AD2"/>
+                  <stop offset="50%" stop-color="#6872D9"/>
+                  <stop offset="100%" stop-color="#009c8a"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="asset-meta">Dark Background</div>
+          </div>
+
+          <div class="asset-box bg-light">
+            <svg width="220" height="80" viewBox="0 0 220 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- O (hexagon) -->
+              <g transform="translate(40, 40)">
+                <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                         fill="url(#ocv3b-grad)" opacity="0.12"/>
+                <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                         stroke="url(#ocv3b-grad)" stroke-width="2.5" fill="none"/>
+                <circle cx="0" cy="0" r="8" stroke="#5E6AD2" stroke-width="2" fill="none"/>
+                <circle cx="0" cy="0" r="3.5" fill="#007a6a"/>
+                <circle cx="0" cy="-15" r="1.8" fill="#6872D9"/>
+                <circle cx="13" cy="7.5" r="1.8" fill="#6872D9"/>
+                <circle cx="-13" cy="7.5" r="1.8" fill="#6872D9"/>
+              </g>
+              
+              <!-- C (bold) -->
+              <g transform="translate(100, 40)">
+                <path d="M 16 -18 Q 0 -22, -10 -10 Q -14 0, -10 10 Q 0 22, 16 18" 
+                      stroke="url(#ocv3b-grad)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </g>
+              
+              <!-- V (bold) -->
+              <g transform="translate(160, 40)">
+                <path d="M -14 -18 L 0 18 L 14 -18" 
+                      stroke="url(#ocv3b-grad)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+              
+              <defs>
+                <linearGradient id="ocv3b-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#5E6AD2"/>
+                  <stop offset="50%" stop-color="#6872D9"/>
+                  <stop offset="100%" stop-color="#007a6a"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="asset-meta">Light Background</div>
+          </div>
+
+          <div class="asset-box bg-gradient">
+            <svg width="220" height="80" viewBox="0 0 220 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- O (hexagon) -->
+              <g transform="translate(40, 40)">
+                <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                         fill="rgba(255,255,255,0.15)"/>
+                <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" 
+                         stroke="white" stroke-width="2.5" fill="none"/>
+                <circle cx="0" cy="0" r="8" stroke="rgba(255,255,255,0.9)" stroke-width="2" fill="none"/>
+                <circle cx="0" cy="0" r="3.5" fill="white"/>
+                <circle cx="0" cy="-15" r="1.8" fill="white" opacity="0.9"/>
+                <circle cx="13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+                <circle cx="-13" cy="7.5" r="1.8" fill="white" opacity="0.9"/>
+              </g>
+              
+              <!-- C (bold) -->
+              <g transform="translate(100, 40)">
+                <path d="M 16 -18 Q 0 -22, -10 -10 Q -14 0, -10 10 Q 0 22, 16 18" 
+                      stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </g>
+              
+              <!-- V (bold) -->
+              <g transform="translate(160, 40)">
+                <path d="M -14 -18 L 0 18 L 14 -18" 
+                      stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </svg>
+            <div class="asset-meta">Gradient Background</div>
+          </div>
+        </div>
+
+        <!-- Large showcase -->
+        <div style="margin-top: var(--space-xl); padding: var(--space-2xl); background: var(--portal-surface); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+          <svg width="300" height="120" viewBox="0 0 300 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- O (hexagon) -->
+            <g transform="translate(60, 60)">
+              <polygon points="0,-28 24.25,-14 24.25,14 0,28 -24.25,14 -24.25,-14" 
+                       fill="url(#ocv3-large-grad)" opacity="0.15"/>
+              <polygon points="0,-28 24.25,-14 24.25,14 0,28 -24.25,14 -24.25,-14" 
+                       stroke="url(#ocv3-large-grad)" stroke-width="3.5" fill="none"/>
+              <circle cx="0" cy="0" r="11" stroke="#5E6AD2" stroke-width="2.8" fill="none"/>
+              <circle cx="0" cy="0" r="5" fill="#009c8a"/>
+              <circle cx="0" cy="-21" r="2.5" fill="#6872D9"/>
+              <circle cx="18" cy="10.5" r="2.5" fill="#6872D9"/>
+              <circle cx="-18" cy="10.5" r="2.5" fill="#6872D9"/>
+            </g>
+            
+            <!-- C (bold) -->
+            <g transform="translate(150, 60)">
+              <path d="M 22 -26 Q 0 -32, -14 -14 Q -20 0, -14 14 Q 0 32, 22 26" 
+                    stroke="url(#ocv3-large-grad)" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+            </g>
+            
+            <!-- V (bold) -->
+            <g transform="translate(230, 60)">
+              <path d="M -20 -26 L 0 26 L 20 -26" 
+                    stroke="url(#ocv3-large-grad)" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            
+            <defs>
+              <linearGradient id="ocv3-large-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5E6AD2"/>
+                <stop offset="50%" stop-color="#6872D9"/>
+                <stop offset="100%" stop-color="#009c8a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="card-title">OCV Monogram Variants</h3>
+      <p style="color: var(--portal-foreground-muted); margin-bottom: var(--space-lg); font-size: 0.9375rem;">
+        Compact monogram versions for small spaces, badges, and icons.
+      </p>
+
+      <div class="grid">
+        <!-- Square Monogram -->
+        <div class="asset-box">
+          <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" rx="16" fill="url(#mono-bg)" opacity="0.1"/>
+            <rect width="100" height="100" rx="16" stroke="url(#mono-bg)" stroke-width="2" fill="none"/>
+            
+            <!-- Compact OCV -->
+            <g transform="translate(50, 50) scale(0.7)">
+              <!-- O -->
+              <g transform="translate(-45, 0)">
+                <polygon points="0,-16 13.86,-8 13.86,8 0,16 -13.86,8 -13.86,-8" 
+                         stroke="url(#mono-bg)" stroke-width="2" fill="none"/>
+                <circle cx="0" cy="0" r="5" fill="#009c8a"/>
+              </g>
+              <!-- C (bold) -->
+              <g transform="translate(0, 0)">
+                <path d="M 12 -14 Q 0 -18, -8 -8 Q -11 0, -8 8 Q 0 18, 12 14" 
+                      stroke="url(#mono-bg)" stroke-width="3" fill="none" stroke-linecap="round"/>
+              </g>
+              <!-- V (bold) -->
+              <g transform="translate(38, 0)">
+                <path d="M -10 -14 L 0 14 L 10 -14" 
+                      stroke="url(#mono-bg)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </g>
+            
+            <defs>
+              <linearGradient id="mono-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5E6AD2"/>
+                <stop offset="50%" stop-color="#6872D9"/>
+                <stop offset="100%" stop-color="#009c8a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="asset-label">Square Badge</div>
+          <div class="asset-meta">100×100</div>
+        </div>
+
+        <!-- Circle Monogram -->
+        <div class="asset-box">
+          <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="48" fill="url(#mono-circle)" opacity="0.1"/>
+            <circle cx="50" cy="50" r="48" stroke="url(#mono-circle)" stroke-width="2" fill="none"/>
+            
+            <!-- Compact OCV -->
+            <g transform="translate(50, 50) scale(0.65)">
+              <!-- O -->
+              <g transform="translate(-45, 0)">
+                <polygon points="0,-16 13.86,-8 13.86,8 0,16 -13.86,8 -13.86,-8" 
+                         stroke="url(#mono-circle)" stroke-width="2" fill="none"/>
+                <circle cx="0" cy="0" r="5" fill="#009c8a"/>
+              </g>
+              <!-- C (bold) -->
+              <g transform="translate(0, 0)">
+                <path d="M 12 -14 Q 0 -18, -8 -8 Q -11 0, -8 8 Q 0 18, 12 14" 
+                      stroke="url(#mono-circle)" stroke-width="3" fill="none" stroke-linecap="round"/>
+              </g>
+              <!-- V (bold) -->
+              <g transform="translate(38, 0)">
+                <path d="M -10 -14 L 0 14 L 10 -14" 
+                      stroke="url(#mono-circle)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </g>
+            
+            <defs>
+              <linearGradient id="mono-circle" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5E6AD2"/>
+                <stop offset="50%" stop-color="#6872D9"/>
+                <stop offset="100%" stop-color="#009c8a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="asset-label">Circle Badge</div>
+          <div class="asset-meta">100×100</div>
+        </div>
+
+        <!-- Minimal No Background -->
+        <div class="asset-box bg-dark">
+          <svg width="100" height="50" viewBox="0 0 160 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- O -->
+            <g transform="translate(25, 30)">
+              <polygon points="0,-14 12.12,-7 12.12,7 0,14 -12.12,7 -12.12,-7" 
+                       stroke="url(#mono-min)" stroke-width="2" fill="none"/>
+              <circle cx="0" cy="0" r="4" fill="#009c8a"/>
+            </g>
+            <!-- C (bold) -->
+            <g transform="translate(65, 30)">
+              <path d="M 10 -12 Q 0 -16, -7 -7 Q -10 0, -7 7 Q 0 16, 10 12" 
+                    stroke="url(#mono-min)" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </g>
+            <!-- V (bold) -->
+            <g transform="translate(105, 30)">
+              <path d="M -9 -12 L 0 12 L 9 -12" 
+                    stroke="url(#mono-min)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            
+            <defs>
+              <linearGradient id="mono-min" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5E6AD2"/>
+                <stop offset="50%" stop-color="#6872D9"/>
+                <stop offset="100%" stop-color="#009c8a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="asset-label">Minimal / No BG</div>
+          <div class="asset-meta">Transparent</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTRUCTIONS -->
+  <section class="section">
+    <div class="card">
+      <h3 class="card-title">Usage Instructions</h3>
+      <div style="color: var(--portal-foreground-muted); line-height: 1.7; font-size: 0.9375rem;">
+        <p style="margin-bottom: var(--space-md);"><strong style="color: var(--portal-foreground);">To export SVG files:</strong></p>
+        <ol style="margin-left: var(--space-lg); margin-bottom: var(--space-lg);">
+          <li style="margin-bottom: var(--space-xs);">Right-click on any SVG logo above</li>
+          <li style="margin-bottom: var(--space-xs);">Select "Inspect" or "Inspect Element"</li>
+          <li style="margin-bottom: var(--space-xs);">Find the &lt;svg&gt; tag in the developer tools</li>
+          <li style="margin-bottom: var(--space-xs);">Right-click the &lt;svg&gt; element and "Copy" → "Copy element"</li>
+          <li style="margin-bottom: var(--space-xs);">Paste into a text editor and save as .svg file</li>
+        </ol>
+        
+        <p style="margin-bottom: var(--space-md);"><strong style="color: var(--portal-foreground);">Recommended sizes:</strong></p>
+        <ul style="margin-left: var(--space-lg);">
+          <li style="margin-bottom: var(--space-xs);">Favicon: 16×16, 32×32, 48×48</li>
+          <li style="margin-bottom: var(--space-xs);">iOS App Icon: 1024×1024</li>
+          <li style="margin-bottom: var(--space-xs);">Android Adaptive Icon: 512×512</li>
+          <li style="margin-bottom: var(--space-xs);">PWA Icon: 512×512, 192×192</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+</body>
+</html>

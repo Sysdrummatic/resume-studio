@@ -52,6 +52,7 @@ All Phase E architectural contracts are documented:
 
 ### Preparing for beta test launch
 
+- [x] Reorganize documentation for better tracking
 - [ ] Create Lukasz Michta's own public CV snapshot
 - [ ] Publish on canonical route (live example for new users)
 - [ ] Link from landing page and marketing materials

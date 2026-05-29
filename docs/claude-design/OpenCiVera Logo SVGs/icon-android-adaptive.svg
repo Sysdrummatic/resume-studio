@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 80 80" fill="none">
+  <circle cx="40" cy="40" r="40" fill="url(#grad)"></circle>
+  <g transform="translate(40, 40)">
+    <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" fill="rgba(255,255,255,0.12)"></polygon>
+    <polygon points="0,-18 15.59,-9 15.59,9 0,18 -15.59,9 -15.59,-9" stroke="white" stroke-width="2.5" fill="none"></polygon>
+    <circle cx="0" cy="0" r="7" stroke="rgba(255,255,255,0.9)" stroke-width="1.8" fill="none"></circle>
+    <circle cx="0" cy="0" r="3" fill="white"></circle>
+    <circle cx="0" cy="-13" r="1.6" fill="white" opacity="0.9"></circle>
+    <circle cx="11.5" cy="6.5" r="1.6" fill="white" opacity="0.9"></circle>
+    <circle cx="-11.5" cy="6.5" r="1.6" fill="white" opacity="0.9"></circle>
+  </g>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5E6AD2"></stop>
+      <stop offset="50%" stop-color="#6872D9"></stop>
+      <stop offset="100%" stop-color="#009c8a"></stop>
+    </linearGradient>
+  </defs>
+</svg>

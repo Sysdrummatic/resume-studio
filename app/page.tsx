@@ -184,6 +184,69 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="home-resume-preview" aria-labelledby="home-resume-title">
+        <div className="home-section-heading">
+          <p className="home-kicker">Sample profile</p>
+          <h2 id="home-resume-title">Inspect the public surface.</h2>
+          <p>
+            This is an example of a published public resume built from the OpenCiVera platform. Click to interact, or view the full public link.
+          </p>
+        </div>
+
+        <div className="home-resume-frame">
+          <div className="home-resume-chrome">
+            <div className="home-resume-chrome__bar">
+              <div className="home-resume-chrome__dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div className="home-resume-chrome__url">
+                <svg className="home-resume-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>opencvhub.netlify.app/resume</span>
+              </div>
+              <Link href="/resume" className="home-resume-external" aria-label="Open in new tab">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </Link>
+            </div>
+            <div className="home-resume-loading" aria-label="Loading sample resume">
+              <div className="home-resume-loading-spinner" aria-hidden="true"></div>
+              <p className="home-resume-loading-text">Loading sample resume...</p>
+            </div>
+            <iframe
+              src="https://opencvhub.netlify.app/resume"
+              className="home-resume-iframe"
+              title="Sample public resume showing OpenCiVera platform capabilities"
+              loading="lazy"
+              sandbox="allow-scripts allow-same-origin allow-forms"
+            ></iframe>
+            <noscript>
+              <div className="home-resume-fallback" style={{ display: 'flex' }}>
+                <p>Couldn't load the sample resume</p>
+                <p>JavaScript is required to view the embedded preview. You can still explore the platform by viewing the full example.</p>
+                <Link href="/resume" className="btn btn--primary">
+                  View sample resume →
+                </Link>
+              </div>
+            </noscript>
+            <div className="home-resume-fallback">
+              <p>Couldn't load the sample resume</p>
+              <p>The embedded preview is temporarily unavailable. You can still explore the platform by viewing the full example.</p>
+              <Link href="/resume" className="btn btn--primary">
+                View sample resume →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="home-cta" aria-labelledby="home-cta-title">
         <div className="home-cta__copy">
           <p className="home-kicker">Current release</p>
@@ -203,6 +266,24 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      <footer className="home-footer">
+        <div className="home-footer__content">
+          <div className="home-footer__branding">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="6" opacity="0.3"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+            </svg>
+            <span>OpenCiVera</span>
+          </div>
+          <nav className="home-footer__nav">
+            <Link href="/resume">Sample resume</Link>
+            <Link href="/login">Platform</Link>
+          </nav>
+          <p className="home-footer__copyright">© 2026 OpenCiVera</p>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="80" viewBox="0 0 280 80" fill="none">
+  
+  <g transform="translate(40, 40)">
+    <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" fill="url(#grad)" opacity="0.15"></polygon>
+    <polygon points="0,-20 17.32,-10 17.32,10 0,20 -17.32,10 -17.32,-10" stroke="url(#grad)" stroke-width="2.5" fill="none"></polygon>
+    <circle cx="0" cy="0" r="8" stroke="#5E6AD2" stroke-width="2" fill="none"></circle>
+    <circle cx="0" cy="0" r="3.5" fill="#009c8a"></circle>
+    <circle cx="0" cy="-15" r="1.8" fill="#6872D9"></circle>
+    <circle cx="13" cy="7.5" r="1.8" fill="#6872D9"></circle>
+    <circle cx="-13" cy="7.5" r="1.8" fill="#6872D9"></circle>
+  </g>
+  <text x="76" y="48" font-family="&#39;Space Grotesk&#39;, sans-serif" font-size="28" font-weight="700" fill="#EDEDEF">OpenCiVera</text>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5E6AD2"></stop>
+      <stop offset="50%" stop-color="#6872D9"></stop>
+      <stop offset="100%" stop-color="#009c8a"></stop>
+    </linearGradient>
+  </defs>
+</svg>

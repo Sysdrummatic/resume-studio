@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenCiVera — Technical premium resume publishing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root, :root[data-theme="night"] {
+  /* surfaces — DS portal (night) */
+  --bg:           #050506;
+  --bg-raised:    rgba(255,255,255,0.05);
+  --bg-card:      #0a0a0c;
+  --bg-elevated:  #0a0a0c;
+  --bg-deep:      #020203;
+
+  --fg:           #EDEDEF;
+  --fg-muted:     #8A8F98;
+  --fg-dim:       #565b66;
+
+  --accent:       #5E6AD2;
+  --accent-bright:#6872D9;
+  --accent-soft:  rgba(94,106,210,0.15);
+  --teal:         #009c8a;
+  --teal-soft:    rgba(0,156,138,0.15);
+  --teal-text:    #5EEAD4;
+
+  --border:       rgba(255,255,255,0.06);
+  --border-hi:    rgba(255,255,255,0.10);
+
+  --shadow-glass:       0 0 0 1px rgba(255,255,255,0.06), 0 18px 48px rgba(0,0,0,0.42), 0 0 80px rgba(0,0,0,0.16);
+  --shadow-glass-hover: 0 0 0 1px rgba(255,255,255,0.10), 0 22px 58px rgba(0,0,0,0.50), 0 0 92px rgba(94,106,210,0.10);
+  --shadow-bento:       0 14px 32px rgba(0,0,0,0.18);
+  --hero-glow:    radial-gradient(ellipse 65% 45% at 50% -8%, rgba(94,106,210,0.18) 0%, transparent 65%);
+
+  --font-d: 'Space Grotesk', 'Inter', sans-serif;
+  --font-b: 'Inter', system-ui, sans-serif;
+  --font-m: 'JetBrains Mono', monospace;
+
+  --r:   12px;
+  --rl:  16px;
+  --rxl: 20px;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="day"] {
+  --bg:           #f5f4fb;
+  --bg-raised:    rgba(94,106,210,0.05);
+  --bg-card:      #ffffff;
+  --bg-elevated:  #ffffff;
+  --bg-deep:      #ffffff;
+
+  --fg:           #17151f;
+  --fg-muted:     #5d5a70;
+  --fg-dim:       #8b889c;
+
+  --accent:       #5048C4;
+  --accent-bright:#5E6AD2;
+  --accent-soft:  rgba(94,106,210,0.12);
+  --teal:         #00897a;
+  --teal-soft:    rgba(0,137,122,0.12);
+  --teal-text:    #00897a;
+
+  --border:       rgba(23,21,31,0.09);
+  --border-hi:    rgba(23,21,31,0.16);
+
+  --shadow-glass:       0 1px 2px rgba(23,21,31,0.04), 0 12px 32px rgba(23,21,31,0.07);
+  --shadow-glass-hover: 0 2px 4px rgba(23,21,31,0.06), 0 18px 44px rgba(80,72,196,0.12);
+  --shadow-bento:       0 8px 24px rgba(23,21,31,0.06);
+  --hero-glow:    radial-gradient(ellipse 65% 45% at 50% -8%, rgba(94,106,210,0.10) 0%, transparent 65%);
+
+  color-scheme: light;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{scroll-behavior:smooth;min-height:100vh;}
+
+body{
+  font-family:var(--font-b);
+  background:var(--bg);
+  color:var(--fg);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* Solid base color painted on a fixed layer (covers any host-forced bg) */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  pointer-events:none;
+  z-index:-2;
+  transition:background-color 280ms ease;
+}
+/* Ambient glow, top only */
+body::after{
+  content:"";
+  position:fixed;
+  top:0;left:0;right:0;
+  height:500px;
+  background:var(--hero-glow);
+  pointer-events:none;
+  z-index:-1;
+}
+
+header,main,footer{position:relative;z-index:1;}
+
+.wrap{
+  max-width:1160px;
+  margin:0 auto;
+  padding:0 24px;
+}
+
+/* ── HEADER ───────────────────────────────────── */
+header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  backdrop-filter:blur(20px);
+  background:color-mix(in srgb, var(--bg) 80%, transparent);
+  border-bottom:1px solid var(--border);
+  padding:13px 0;
+}
+.hd{
+  display:flex;
+  align-items:center;
+  gap:28px;
+}
+.logo{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  text-decoration:none;
+  color:var(--fg);
+  flex-shrink:0;
+}
+.logo-name{
+  font-family:var(--font-d);
+  font-size:.975rem;
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+nav{
+  display:flex;
+  gap:24px;
+  margin-left:auto;
+}
+nav a{
+  font-size:.875rem;
+  color:var(--fg-muted);
+  text-decoration:none;
+  transition:color 160ms;
+}
+nav a:hover{color:var(--fg);}
+
+.ltoggle{
+  display:flex;
+  gap:2px;
+  padding:3px;
+  background:var(--bg-raised);
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+.lbtn{
+  padding:3px 10px;
+  font-family:var(--font-m);
+  font-size:.7rem;
+  font-weight:600;
+  border-radius:5px;
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  color:var(--fg-muted);
+  transition:all 140ms;
+}
+.lbtn.on{background:var(--accent);color:#fff;}
+
+.theme-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:34px;height:34px;
+  border-radius:8px;
+  background:var(--bg-raised);
+  border:1px solid var(--border);
+  color:var(--fg-muted);
+  cursor:pointer;
+  transition:all 160ms;
+  flex-shrink:0;
+}
+.theme-toggle:hover{color:var(--fg);border-color:var(--border-hi);}
+.theme-toggle .ic-sun{display:none;}
+.theme-toggle .ic-moon{display:block;}
+:root[data-theme="day"] .theme-toggle .ic-sun{display:block;}
+:root[data-theme="day"] .theme-toggle .ic-moon{display:none;}
+
+.hd-cta{
+  display:flex;
+  gap:8px;
+  flex-shrink:0;
+}
+
+/* ── BUTTONS ──────────────────────────────────── */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:10px 20px;
+  border-radius:var(--r);
+  font-family:var(--font-b);
+  font-size:.9rem;
+  font-weight:500;
+  text-decoration:none;
+  cursor:pointer;
+  border:1px solid transparent;
+  transition:all 170ms ease;
+  white-space:nowrap;
+}
+.btn-p{background:linear-gradient(135deg, var(--accent), var(--accent-bright));color:#fff;border-color:var(--accent);box-shadow:0 0 0 1px rgba(94,106,210,.2), 0 10px 24px rgba(94,106,210,.3), inset 0 1px 0 rgba(255,255,255,.18);}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 0 0 1px rgba(94,106,210,.3), 0 12px 28px rgba(94,106,210,.4), inset 0 1px 0 rgba(255,255,255,.18);}
+.btn-o{background:transparent;color:var(--fg);border-color:var(--border-hi);}
+.btn-o:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.2);}
+.btn-g{background:transparent;color:var(--fg-muted);border-color:transparent;}
+.btn-g:hover{color:var(--fg);}
+.btn-lg{padding:13px 26px;font-size:.95rem;}
+
+/* ── HERO ─────────────────────────────────────── */
+.hero{padding:80px 0 72px;}
+.hero-in{
+  display:grid;
+  grid-template-columns:1.1fr 1fr;
+  gap:60px;
+  align-items:center;
+}
+.hero-lbl{
+  font-family:var(--font-m);
+  font-size:.7rem;
+  font-weight:600;
+  color:var(--teal);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-family:var(--font-d);
+  font-size:clamp(2.1rem,4.2vw,3.4rem);
+  font-weight:800;
+  line-height:1.07;
+  letter-spacing:-.03em;
+  margin-bottom:20px;
+  text-wrap:balance;
+}
+.hero h1 em{font-style:normal;color:var(--fg-muted);}
+.hero-lead{
+  font-size:1rem;
+  line-height:1.68;
+  color:var(--fg-muted);
+  margin-bottom:32px;
+  max-width:500px;
+  text-wrap:pretty;
+}
+.hero-acts{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:28px;
+}
+.hero-meta{
+  display:flex;
+  gap:20px;
+  font-family:var(--font-m);
+  font-size:.72rem;
+  color:var(--fg-dim);
+}
+.hm{display:flex;align-items:center;gap:7px;}
+.hm-dot{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--teal);
+  opacity:.7;
+}
+
+/* Signal card (hero right) */
+.signal-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--rl);
+  overflow:hidden;
+  box-shadow:var(--shadow-glass);
+}
+.sc-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:13px 18px;
+  border-bottom:1px solid var(--border);
+}
+.sc-title{
+  font-family:var(--font-m);
+  font-size:.68rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--fg-muted);
+}
+.sc-status{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-family:var(--font-m);
+  font-size:.68rem;
+  color:var(--teal);
+}
+.sc-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--teal);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+.sc-body{padding:16px 18px;display:flex;flex-direction:column;gap:10px;}
+.sc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.sc-node{
+  background:var(--bg-raised);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:12px;
+}
+.sc-node.hl{
+  border-color:rgba(91,103,217,.3);
+  background:rgba(91,103,217,.07);
+}
+.sc-nlbl{
+  font-family:var(--font-m);
+  font-size:.62rem;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  color:var(--fg-dim);
+  margin-bottom:7px;
+}
+.sc-nval{
+  font-family:var(--font-d);
+  font-size:.85rem;
+  font-weight:700;
+  color:var(--fg);
+}
+.sc-node.hl .sc-nval{color:#8890e8;}
+.sc-divider{height:1px;background:var(--border);}
+.sc-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.sc-mi{
+  background:var(--bg-raised);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:11px 12px;
+}
+.sc-mk{
+  font-family:var(--font-m);
+  font-size:.62rem;
+  color:var(--fg-dim);
+  margin-bottom:5px;
+}
+.sc-mv{
+  font-family:var(--font-m);
+  font-size:.72rem;
+  font-weight:600;
+  color:var(--teal);
+}
+.sc-wide{grid-column:span 2;}
+
+/* ── DIVIDER ──────────────────────────────────── */
+.div{height:1px;background:var(--border);}
+
+/* ── SECTIONS ─────────────────────────────────── */
+.sec{padding:76px 0;}
+.sec-tag{
+  font-family:var(--font-m);
+  font-size:.68rem;
+  font-weight:600;
+  color:var(--accent);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+.sec-h{
+  font-family:var(--font-d);
+  font-size:clamp(1.75rem,3.2vw,2.5rem);
+  font-weight:800;
+  letter-spacing:-.025em;
+  line-height:1.1;
+  margin-bottom:14px;
+  text-wrap:balance;
+}
+.sec-p{
+  font-size:.975rem;
+  color:var(--fg-muted);
+  max-width:580px;
+  line-height:1.68;
+  text-wrap:pretty;
+}
+.sec-hdr{margin-bottom:48px;}
+.sec-hdr.c{text-align:center;}
+.sec-hdr.c .sec-p{margin:0 auto;}
+
+/* ── 3-COL CARDS ──────────────────────────────── */
+.grid3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+.card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--rl);
+  padding:26px 22px;
+  box-shadow:var(--shadow-bento);
+  transition:border-color 200ms,transform 200ms,box-shadow 200ms,background-color 280ms;
+}
+.card:hover{border-color:var(--border-hi);transform:translateY(-2px);box-shadow:var(--shadow-glass-hover);}
+.card-tag{
+  font-family:var(--font-m);
+  font-size:.63rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--fg-dim);
+  margin-bottom:9px;
+}
+.chip{
+  display:inline-block;
+  font-family:var(--font-m);
+  font-size:.68rem;
+  font-weight:600;
+  padding:2px 8px;
+  border-radius:999px;
+  margin-bottom:14px;
+}
+.chip-t{background:var(--teal-soft);color:var(--teal-text);}
+.chip-a{background:var(--accent-soft);color:var(--accent-bright);}
+.card h3{
+  font-family:var(--font-d);
+  font-size:1.05rem;
+  font-weight:700;
+  margin-bottom:9px;
+  letter-spacing:-.01em;
+}
+.card p{font-size:.875rem;color:var(--fg-muted);line-height:1.62;}
+
+/* ── OPERATING MODEL ──────────────────────────── */
+.op-in{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:60px;
+  align-items:start;
+}
+.steps{}
+.step{
+  display:flex;
+  gap:20px;
+  padding:22px 0;
+  border-bottom:1px solid var(--border);
+}
+.step:first-child{border-top:1px solid var(--border);}
+.step-n{
+  font-family:var(--font-m);
+  font-size:.72rem;
+  font-weight:600;
+  color:var(--fg-dim);
+  padding-top:2px;
+  flex-shrink:0;
+  width:24px;
+}
+.step-c h3{
+  font-family:var(--font-d);
+  font-size:1rem;
+  font-weight:700;
+  margin-bottom:6px;
+  letter-spacing:-.01em;
+}
+.step-c p{font-size:.875rem;color:var(--fg-muted);line-height:1.62;}
+
+.signals-box{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--rl);
+  overflow:hidden;
+  position:sticky;
+  top:76px;
+  box-shadow:var(--shadow-glass);
+}
+.sb-head{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  font-family:var(--font-m);
+  font-size:.68rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--fg-dim);
+}
+.sb-list{
+  list-style:none;
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.sb-list li{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:.875rem;
+  color:var(--fg-muted);
+}
+.sb-chk{
+  width:18px;height:18px;
+  border-radius:5px;
+  background:var(--teal-soft);
+  border:1px solid color-mix(in srgb, var(--teal) 30%, transparent);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  color:var(--teal);
+}
+.sb-foot{
+  padding:13px 18px;
+  border-top:1px solid var(--border);
+  font-size:.8rem;
+  color:var(--fg-dim);
+  font-style:italic;
+  line-height:1.55;
+}
+
+/* ── CV PREVIEW ───────────────────────────────── */
+.cv-sec{border-top:1px solid var(--border);}
+.cv-outer{
+  margin-top:44px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--rxl);
+  overflow:hidden;
+  box-shadow:var(--shadow-glass);
+}
+.cv-chrome{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 16px;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+}
+.chrome-dots{display:flex;gap:6px;}
+.chrome-dot{
+  width:10px;height:10px;
+  border-radius:50%;
+  background:rgba(255,255,255,.1);
+}
+.chrome-url{
+  flex:1;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:5px 12px;
+  font-family:var(--font-m);
+  font-size:.7rem;
+  color:var(--fg-muted);
+  display:flex;align-items:center;gap:6px;
+}
+.chrome-lock{color:var(--teal);}
+.chrome-hi{color:var(--fg);}
+.chrome-ext{
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  color:var(--fg-muted);
+  text-decoration:none;
+  transition:all 150ms;
+  flex-shrink:0;
+}
+.chrome-ext:hover{border-color:var(--border-hi);color:var(--fg);}
+.cv-wrap{
+  position:relative;
+  height:720px;
+  background:#fff;
+  overflow:hidden;
+}
+.cv-iframe{
+  width:100%;height:100%;
+  border:none;display:block;
+}
+.cv-fallback{
+  display:none;
+  position:absolute;inset:0;
+  background:#f5f5f8;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  text-align:center;
+  padding:40px;
+}
+.cv-fallback p{font-size:.9rem;color:#666;max-width:380px;line-height:1.6;}
+
+/* ── FLOW ─────────────────────────────────────── */
+.flow-grid{
+  display:grid;
+  grid-template-columns:1fr 32px 1fr 32px 1fr;
+  gap:0;
+  align-items:start;
+  margin-top:44px;
+}
+.flow-arr{
+  display:flex;
+  align-items:flex-start;
+  padding-top:26px;
+  justify-content:center;
+  color:var(--fg-dim);
+}
+.flow-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--rl);
+  padding:26px 22px;
+  box-shadow:var(--shadow-bento);
+  transition:border-color 200ms,transform 200ms,box-shadow 200ms,background-color 280ms;
+}
+.flow-card:hover{border-color:var(--border-hi);transform:translateY(-2px);box-shadow:var(--shadow-glass-hover);}
+.flow-step{
+  font-family:var(--font-m);
+  font-size:.63rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--fg-dim);
+  margin-bottom:10px;
+}
+.flow-card h3{
+  font-family:var(--font-d);
+  font-size:1.1rem;
+  font-weight:700;
+  letter-spacing:-.01em;
+  margin-bottom:8px;
+}
+.flow-card p{font-size:.875rem;color:var(--fg-muted);line-height:1.62;}
+
+/* ── FINAL CTA ────────────────────────────────── */
+.cta-sec{padding:76px 0;}
+.cta-box{
+  border:1px solid var(--border-hi);
+  border-radius:var(--rxl);
+  padding:64px 48px;
+  text-align:center;
+  background:var(--bg-card);
+  position:relative;
+  overflow:hidden;
+  box-shadow:var(--shadow-glass);
+}
+.cta-box::before{
+  content:"";
+  position:absolute;
+  top:0;left:50%;
+  transform:translateX(-50%);
+  width:55%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+}
+.cta-lbl{
+  font-family:var(--font-m);
+  font-size:.68rem;
+  color:var(--fg-dim);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:16px;
+}
+.cta-box h2{
+  font-family:var(--font-d);
+  font-size:clamp(1.7rem,3vw,2.4rem);
+  font-weight:800;
+  letter-spacing:-.025em;
+  line-height:1.1;
+  margin-bottom:14px;
+  text-wrap:balance;
+}
+.cta-box > .cta-p{
+  color:var(--fg-muted);
+  font-size:.975rem;
+  line-height:1.65;
+  margin-bottom:32px;
+  max-width:480px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.cta-acts{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+/* ── FOOTER ───────────────────────────────────── */
+footer{
+  border-top:1px solid var(--border);
+  padding:36px 0 26px;
+}
+.ft-in{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.ft-left{display:flex;align-items:center;gap:24px;}
+.ft-links{display:flex;gap:18px;}
+.ft-links a{
+  font-size:.84rem;
+  color:var(--fg-dim);
+  text-decoration:none;
+  transition:color 140ms;
+}
+.ft-links a:hover{color:var(--fg-muted);}
+.ft-copy{
+  font-family:var(--font-m);
+  font-size:.68rem;
+  color:var(--fg-dim);
+}
+
+/* ── RESPONSIVE ───────────────────────────────── */
+@media(max-width:940px){
+  .hero-in{grid-template-columns:1fr;gap:40px;}
+  .grid3{grid-template-columns:1fr;}
+  .op-in{grid-template-columns:1fr;}
+  .signals-box{position:static;}
+  .flow-grid{grid-template-columns:1fr;gap:14px;}
+  .flow-arr{display:none;}
+  nav,.ltoggle{display:none;}
+  .cv-wrap{height:520px;}
+  .cta-box{padding:40px 24px;}
+}
+@media(max-width:600px){
+  .hero,.sec,.cta-sec{padding:56px 0;}
+  .hero-acts{flex-direction:column;}
+  .hero-acts .btn{width:100%;justify-content:center;}
+  .hero-meta{gap:12px;flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="wrap">
+    <div class="hd">
+      <a href="/" class="logo">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" stroke="#5b67d9" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="16" r="5" stroke="#5b67d9" stroke-width="1.5" fill="none"/>
+          <circle cx="16" cy="16" r="2" fill="#00b49c"/>
+          <circle cx="16" cy="5" r="1.5" fill="#5b67d9" opacity="0.55"/>
+          <circle cx="25.8" cy="20.5" r="1.5" fill="#5b67d9" opacity="0.55"/>
+          <circle cx="6.2" cy="20.5" r="1.5" fill="#5b67d9" opacity="0.55"/>
+        </svg>
+        <span class="logo-name">OpenCiVera</span>
+      </a>
+
+      <nav>
+        <a href="#model">Publishing model</a>
+        <a href="#platform">Platform</a>
+        <a href="#resume">Sample CV</a>
+        <a href="#flow">Flow</a>
+      </nav>
+
+      <div class="ltoggle">
+        <button class="lbtn on">EN</button>
+        <button class="lbtn">PL</button>
+      </div>
+
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle day / night">
+        <svg class="ic-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="ic-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </button>
+
+      <div class="hd-cta">
+        <a href="https://opencvhub.netlify.app/resume" target="_blank" rel="noopener" class="btn btn-g">Sample resume</a>
+        <a href="https://opencvhub.netlify.app/login" target="_blank" rel="noopener" class="btn btn-p">Access platform</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-in">
+
+      <div>
+        <div class="hero-lbl">Technical premium resume publishing</div>
+        <h1>Build a sharper public career surface on top of <em>one controlled source record.</em></h1>
+        <p class="hero-lead">OpenCiVera is evolving into a structured platform for professionals who want cleaner publication logic, role-aware resume delivery, and a more intentional public presence than static document workflows can offer.</p>
+        <div class="hero-acts">
+          <a href="https://opencvhub.netlify.app/login" target="_blank" rel="noopener" class="btn btn-p btn-lg">
+            Access platform
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#resume" class="btn btn-o btn-lg">View sample resume</a>
+        </div>
+        <div class="hero-meta">
+          <div class="hm"><span class="hm-dot"></span>Auth-aware platform</div>
+          <div class="hm"><span class="hm-dot"></span>RBAC model</div>
+          <div class="hm"><span class="hm-dot"></span>EN / PL</div>
+        </div>
+      </div>
+
+      <div class="signal-card">
+        <div class="sc-head">
+          <span class="sc-title">OpenCiVera system</span>
+          <span class="sc-status"><span class="sc-dot"></span>Active direction</span>
+        </div>
+        <div class="sc-body">
+          <div class="sc-row">
+            <div class="sc-node hl">
+              <div class="sc-nlbl">Surface</div>
+              <div class="sc-nval">Public CV</div>
+            </div>
+            <div class="sc-node">
+              <div class="sc-nlbl">Model</div>
+              <div class="sc-nval">Master source</div>
+            </div>
+            <div class="sc-node">
+              <div class="sc-nlbl">Control</div>
+              <div class="sc-nval">Role-aware</div>
+            </div>
+          </div>
+          <div class="sc-divider"></div>
+          <div class="sc-meta">
+            <div class="sc-mi">
+              <div class="sc-mk">Output</div>
+              <div class="sc-mv">Publication</div>
+            </div>
+            <div class="sc-mi">
+              <div class="sc-mk">Locale</div>
+              <div class="sc-mv">EN / PL</div>
+            </div>
+            <div class="sc-mi">
+              <div class="sc-mk">Status</div>
+              <div class="sc-mv">Live</div>
+            </div>
+            <div class="sc-mi sc-wide">
+              <div class="sc-mk">Source pipeline</div>
+              <div class="sc-mv" style="font-size:.65rem;letter-spacing:.02em;">YAML → structured record → public surface</div>
+            </div>
+            <div class="sc-mi">
+              <div class="sc-mk">Views</div>
+              <div class="sc-mv">Multi</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- PUBLISHING MODEL -->
+<section class="sec" id="model">
+  <div class="wrap">
+    <div class="sec-hdr">
+      <div class="sec-tag">// publishing model</div>
+      <h2 class="sec-h">From document editing to controlled public release.</h2>
+      <p class="sec-p">Shape resume output through structure, visibility, and release logic instead of constantly branching ad-hoc files.</p>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-tag">source resume</div>
+        <span class="chip chip-t">1 record</span>
+        <h3>One structured career record</h3>
+        <p>Maintain one authoritative source instead of managing disconnected CV files that diverge every time you apply.</p>
+      </div>
+      <div class="card">
+        <div class="card-tag">publication system</div>
+        <span class="chip chip-a">Multi-view</span>
+        <h3>Shape different public narratives</h3>
+        <p>Present distinct professional profiles for different audiences without fragmenting your underlying source data.</p>
+      </div>
+      <div class="card">
+        <div class="card-tag">locale-aware output</div>
+        <span class="chip chip-t">EN / PL</span>
+        <h3>Language-specific delivery</h3>
+        <p>Preserve locale-appropriate presentation while keeping the publishing model coherent and the source unified.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- OPERATING MODEL -->
+<section class="sec" id="platform">
+  <div class="wrap">
+    <div class="sec-hdr">
+      <div class="sec-tag">// operating model</div>
+      <h2 class="sec-h">A modular workflow for public career presentation.</h2>
+    </div>
+
+    <div class="op-in">
+      <div class="steps">
+        <div class="step">
+          <div class="step-n">01</div>
+          <div class="step-c">
+            <h3>Structured source layer</h3>
+            <p>Store the career record as reusable data, not as one-off page composition. YAML-powered, version-controlled, designed for iteration without duplication.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">02</div>
+          <div class="step-c">
+            <h3>Selection and visibility</h3>
+            <p>Curate the signal for specific hiring contexts with clearer control over what stays visible. Role-aware filtering without rewriting the document itself.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">03</div>
+          <div class="step-c">
+            <h3>Public release surface</h3>
+            <p>Publish a cleaner, deliberate output instead of exposing an internal draft as-is. The surface is designed for professional signal, not document formatting.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="signals-box">
+        <div class="sb-head">Foundation signals</div>
+        <ul class="sb-list">
+          <li>
+            <span class="sb-chk">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            Auth-aware platform foundation
+          </li>
+          <li>
+            <span class="sb-chk">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            RBAC and admin-ready model
+          </li>
+          <li>
+            <span class="sb-chk">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            Resume export surface
+          </li>
+          <li>
+            <span class="sb-chk">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            Publication lifecycle controls
+          </li>
+        </ul>
+        <div class="sb-foot">Designed as a product system, not just a static resume renderer with a nicer shell.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- CV PREVIEW -->
+<section class="sec cv-sec" id="resume">
+  <div class="wrap">
+    <div class="sec-hdr">
+      <div class="sec-tag">// sample profile</div>
+      <h2 class="sec-h">Inspect the public surface.</h2>
+      <p class="sec-p">The output layer is a clean structured view — designed for professional signal, not document formatting. This is what recipients see when they open your link.</p>
+    </div>
+
+    <div class="cv-outer">
+      <div class="cv-chrome">
+        <div class="chrome-dots">
+          <div class="chrome-dot"></div>
+          <div class="chrome-dot"></div>
+          <div class="chrome-dot"></div>
+        </div>
+        <div class="chrome-url">
+          <svg class="chrome-lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          opencvhub.netlify.app/<span class="chrome-hi">resume</span>
+        </div>
+        <a href="https://opencvhub.netlify.app/resume" target="_blank" rel="noopener" class="chrome-ext" title="Open in new tab">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      </div>
+      <div class="cv-wrap">
+        <iframe
+          id="cv-iframe"
+          class="cv-iframe"
+          src="https://opencvhub.netlify.app/resume"
+          title="Sample resume — OpenCiVera"
+          loading="lazy"
+          sandbox="allow-scripts allow-same-origin allow-forms"
+        ></iframe>
+        <div class="cv-fallback" id="cv-fallback">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+          <p>The sample resume is protected from direct embedding. Click below to open the live public profile.</p>
+          <a href="https://opencvhub.netlify.app/resume" target="_blank" rel="noopener" class="btn btn-p">Open sample resume ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- FLOW -->
+<section class="sec" id="flow">
+  <div class="wrap">
+    <div class="sec-hdr c">
+      <div class="sec-tag">// flow</div>
+      <h2 class="sec-h">Three deliberate stages from source data to public delivery.</h2>
+    </div>
+
+    <div class="flow-grid">
+      <div class="flow-card">
+        <div class="flow-step">Capture</div>
+        <h3>Build the master record once</h3>
+        <p>Collect the full career story in a format that can survive iteration, localisation, and reuse. One YAML source. Everything else is derived.</p>
+      </div>
+      <div class="flow-arr">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="flow-card">
+        <div class="flow-step">Configure</div>
+        <h3>Tune the public signal</h3>
+        <p>Decide what should stay visible for a given audience rather than rewriting the document itself. Role-aware visibility without source duplication.</p>
+      </div>
+      <div class="flow-arr">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="flow-card">
+        <div class="flow-step">Release</div>
+        <h3>Publish with a cleaner surface</h3>
+        <p>Turn structured source data into a public view that reads like a designed professional profile — not an exported document.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="div"></div>
+
+<!-- FINAL CTA -->
+<section class="cta-sec">
+  <div class="wrap">
+    <div class="cta-box">
+      <div class="cta-lbl">// current release</div>
+      <h2>The platform foundation is live and the publishing model is taking shape.</h2>
+      <p class="cta-p">Explore the sample public resume, sign in to the current platform shell, and follow the transition toward a more controlled and premium resume workflow.</p>
+      <div class="cta-acts">
+        <a href="https://opencvhub.netlify.app/login" target="_blank" rel="noopener" class="btn btn-p btn-lg">
+          Open product shell
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="https://opencvhub.netlify.app/resume" target="_blank" rel="noopener" class="btn btn-o btn-lg">Inspect public example ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="ft-in">
+      <div class="ft-left">
+        <a href="/" class="logo" style="gap:8px;">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+            <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" stroke="#5b67d9" stroke-width="1.8" fill="none"/>
+            <circle cx="16" cy="16" r="5" stroke="#5b67d9" stroke-width="1.5" fill="none"/>
+            <circle cx="16" cy="16" r="2" fill="#00b49c"/>
+          </svg>
+          <span style="font-size:.9rem;font-weight:700;font-family:var(--font-d);">OpenCiVera</span>
+        </a>
+        <div class="ft-links">
+          <a href="https://opencvhub.netlify.app/resume" target="_blank" rel="noopener">Sample resume</a>
+          <a href="https://opencvhub.netlify.app/login" target="_blank" rel="noopener">Platform</a>
+        </div>
+      </div>
+      <div class="ft-copy">© 2026 OpenCiVera</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Day / night theme toggle (persisted)
+(function() {
+  var root = document.documentElement;
+  var saved = localStorage.getItem('ocv-theme');
+  var initial = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'day' : 'night');
+  root.setAttribute('data-theme', initial);
+  var btn = document.getElementById('themeToggle');
+  if (btn) {
+    btn.addEventListener('click', function() {
+      var next = root.getAttribute('data-theme') === 'day' ? 'night' : 'day';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('ocv-theme', next);
+    });
+  }
+})();
+
+// Language toggle (cosmetic)
+document.querySelectorAll('.lbtn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.lbtn').forEach(function(b) { b.classList.remove('on'); });
+    btn.classList.add('on');
+  });
+});
+
+// CV iframe: show fallback if embed is blocked
+(function() {
+  var iframe = document.getElementById('cv-iframe');
+  var fallback = document.getElementById('cv-fallback');
+  if (!iframe || !fallback) return;
+
+  // After load, try to detect blocked iframe (same-origin check)
+  iframe.addEventListener('load', function() {
+    try {
+      // If cross-origin, this throws → content loaded from external origin → success
+      var doc = iframe.contentDocument || iframe.contentWindow.document;
+      // Same origin: check if body is empty (blocked)
+      if (!doc.body || doc.body.innerHTML.trim() === '') {
+        showFallback();
+      }
+    } catch(e) {
+      // Cross-origin access denied = external site loaded = good, do nothing
+    }
+  });
+
+  // Timeout: if 5s pass with no load event, show fallback
+  var t = setTimeout(showFallback, 5000);
+  iframe.addEventListener('load', function() { clearTimeout(t); });
+  iframe.addEventListener('error', function() { clearTimeout(t); showFallback(); });
+
+  function showFallback() {
+    iframe.style.display = 'none';
+    fallback.style.display = 'flex';
+  }
+})();
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    var id = this.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
