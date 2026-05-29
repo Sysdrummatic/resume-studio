@@ -364,6 +364,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
   const primaryExportUrls = initialPresets[0]
     ? buildPublishedResumeExportUrls(initialPresets[0].canonical_public_path, initialPresets[0].default_locale)
     : null;
+  const activePreviewLanguage = previewLanguages.find((language) => language.code === effectiveLocale);
 
   return (
     <div className={`personal-hub py-4 md:py-8 ${isHydrated ? "is-hydrated" : ""}`}>
@@ -556,32 +557,50 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
             aria-label="Resume preview"
             data-has-export={primaryExportUrls ? "true" : "false"}
           >
-            <div className="personal-hub__resume-preview flex-1 flex items-start justify-center overflow-hidden min-h-[500px]">
-              {resumeForPreview ? (
-                <div className="w-full max-w-[720px]">
-                  <ResumePreviewFrame
-                    resume={resumeForPreview}
-                    locale={(effectiveLocale as ResumeLocale) || "en"}
-                    languages={previewLanguages}
-                    activeLocale={effectiveLocale}
-                    onLanguageSelect={handlePreviewLocaleChange}
-                  />
-                </div>
-              ) : isPreviewUnavailable ? (
-                <div className="personal-hub__preview-fallback">
-                  <Typography variant="h3">Preview unavailable</Typography>
-                  <Typography variant="body" muted>
-                    The resume preview could not be rendered in this view. Use export actions or reopen the page.
+            <div className="personal-hub__preview-shell">
+              <header className="personal-hub__preview-header">
+                <div>
+                  <Typography variant="caption" muted className="personal-hub__preview-eyebrow">
+                    Resume preview
+                  </Typography>
+                  <Typography variant="h3" className="personal-hub__preview-title">
+                    Current public surface
                   </Typography>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                  <Typography variant="body" muted className="animate-pulse">
-                    Rendering your resume...
-                  </Typography>
+                <div className="personal-hub__preview-meta">
+                  <span className="personal-hub__preview-pill">{activePreviewLanguage?.shortLabel || effectiveLocale.toUpperCase()}</span>
+                  <span className="personal-hub__preview-pill">{previewLanguages.length} locales</span>
+                  <span className="personal-hub__preview-pill">{publishedPresetsCount} published</span>
                 </div>
-              )}
+              </header>
+
+              <div className="personal-hub__resume-preview flex-1 flex items-start justify-center overflow-hidden min-h-[500px]">
+                {resumeForPreview ? (
+                  <div className="w-full max-w-[720px]">
+                    <ResumePreviewFrame
+                      resume={resumeForPreview}
+                      locale={(effectiveLocale as ResumeLocale) || "en"}
+                      languages={previewLanguages}
+                      activeLocale={effectiveLocale}
+                      onLanguageSelect={handlePreviewLocaleChange}
+                    />
+                  </div>
+                ) : isPreviewUnavailable ? (
+                  <div className="personal-hub__preview-fallback">
+                    <Typography variant="h3">Preview unavailable</Typography>
+                    <Typography variant="body" muted>
+                      The resume preview could not be rendered in this view. Use export actions or reopen the page.
+                    </Typography>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                    <Typography variant="body" muted className="animate-pulse">
+                      Rendering your resume...
+                    </Typography>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         </div>

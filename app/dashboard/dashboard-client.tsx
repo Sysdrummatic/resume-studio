@@ -436,6 +436,9 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const hasMasterResume = Boolean(masterResume);
   const latestMasterUpdate = masterResume ? new Date(masterResume.updated_at).toLocaleString() : "Not saved yet";
   const publishableLocales = (initialDocuments.length ? initialDocuments : masterResume ? [masterResume] : []).map((doc) => doc.locale);
+  const publishedPresetCount = presets.filter((preset) => preset.is_public).length;
+  const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
+  const localeCount = languageVersions.length;
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!masterResume) return;
@@ -574,11 +577,12 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     <div className="stack">
       <StatusToast toast={toast} onClose={closeToast} />
 
-      <section className="card stack">
-        <div className="section-row">
-          <div>
-            <h2>Master Resume</h2>
-            <p className="card-lead">English master CV · Updated {latestMasterUpdate}</p>
+      <section className="card dashboard-panel stack">
+        <div className="dashboard-panel__header">
+          <div className="stack">
+            <div className="product-surface__eyebrow">Source record</div>
+            <h2 className="dashboard-panel__title">Master Resume</h2>
+            <p className="dashboard-panel__lead">English master CV. Updated {latestMasterUpdate}</p>
             <LanguageBadgeRail
               languages={languageVersions}
               onAddLanguage={() => setIsAddLanguageModalOpen(true)}
@@ -587,7 +591,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           </div>
           <div className="actions-row">
             <Link className="button button--primary" href="/master-resume">
-              Edit
+              Edit master resume
             </Link>
             <button
               type="button"
@@ -598,16 +602,47 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
               }}
               disabled={!hasMasterResume}
             >
-              Create CV
+              Create CV version
             </button>
+          </div>
+        </div>
+        <div className="dashboard-panel__stats" aria-label="Master resume summary">
+          <div className="product-metric">
+            <span className="product-metric__label">Locales</span>
+            <strong>{localeCount}</strong>
+            <small>Active language set</small>
+          </div>
+          <div className="product-metric">
+            <span className="product-metric__label">Published</span>
+            <strong>{publishedPresetCount}</strong>
+            <small>Live public CVs</small>
+          </div>
+          <div className="product-metric">
+            <span className="product-metric__label">Private</span>
+            <strong>{privatePresetCount}</strong>
+            <small>Draft or internal versions</small>
           </div>
         </div>
       </section>
 
-      <section className="card stack">
-        <h2>Your CVs</h2>
+      <section className="card dashboard-panel stack">
+        <div className="dashboard-panel__header">
+          <div className="stack">
+            <div className="product-surface__eyebrow">Public surfaces</div>
+            <h2 className="dashboard-panel__title">Your CVs</h2>
+            <p className="dashboard-panel__lead">Target specific audiences without branching the master resume into disconnected files.</p>
+          </div>
+          <div className="dashboard-panel__chips" aria-label="CV version state summary">
+            <span className="dashboard-chip">{presets.length} total</span>
+            <span className="dashboard-chip">{publishedPresetCount} published</span>
+            <span className="dashboard-chip">{privatePresetCount} private</span>
+          </div>
+        </div>
         {presets.length === 0 ? (
-          <p className="card-lead">No CV Versions yet.</p>
+          <div className="dashboard-empty-state">
+            <h3>No CV versions yet</h3>
+            <p>Create the first public variant from the master resume, then publish locale-specific output from here.</p>
+          </div>
         ) : (
           <ul className="dashboard-resume-list">
             {presets.map((preset) => (
@@ -646,7 +681,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                         Unpublish
                       </button>
                     ) : (
-                      <button type="button" className="button button--ghost button--small" onClick={() => openPublishSavedVersion(preset)}>
+                      <button type="button" className="button button--primary button--small" onClick={() => openPublishSavedVersion(preset)}>
                         Publish
                       </button>
                     )}

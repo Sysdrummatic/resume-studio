@@ -1,15 +1,20 @@
 import Link from "next/link";
+import LandingPageFooter from "./components/footer";
+import RotatingWord from "./components/rotating-word";
+
+// Words cycled in the hero headline — edit this list to taste.
+const heroRotatingWords = ["grows", "evolves", "adapts", "scales"];
 
 const publishingModel = [
   {
-    tag: "source resume",
+    tag: "master resume",
     chip: "1 record",
     chipType: "t" as const,
     title: "One structured career record",
     copy: "Maintain one authoritative source instead of managing disconnected CV files that diverge every time you apply.",
   },
   {
-    tag: "publication system",
+    tag: "publication path",
     chip: "Multi-view",
     chipType: "a" as const,
     title: "Shape different public narratives",
@@ -24,63 +29,8 @@ const publishingModel = [
   },
 ];
 
-const operatingSteps = [
-  {
-    n: "01",
-    title: "Structured source layer",
-    copy: "Store the career record as reusable data, not as one-off page composition. YAML-powered, version-controlled, designed for iteration without duplication.",
-  },
-  {
-    n: "02",
-    title: "Selection and visibility",
-    copy: "Curate the signal for specific hiring contexts with clearer control over what stays visible. Role-aware filtering without rewriting the document itself.",
-  },
-  {
-    n: "03",
-    title: "Public release surface",
-    copy: "Publish a cleaner, deliberate output instead of exposing an internal draft as-is. The surface is designed for professional signal, not document formatting.",
-  },
-];
-
-const foundationSignals = [
-  "Auth-aware platform foundation",
-  "RBAC and admin-ready model",
-  "Resume export surface",
-  "Publication lifecycle controls",
-];
-
-const flow = [
-  {
-    step: "Capture",
-    title: "Build the master record once",
-    copy: "Collect the full career story in a format that can survive iteration, localisation, and reuse. One YAML source. Everything else is derived.",
-  },
-  {
-    step: "Configure",
-    title: "Tune the public signal",
-    copy: "Decide what should stay visible for a given audience rather than rewriting the document itself. Role-aware visibility without source duplication.",
-  },
-  {
-    step: "Release",
-    title: "Publish with a cleaner surface",
-    copy: "Turn structured source data into a public view that reads like a designed professional profile — not an exported document.",
-  },
-];
-
 const ArrowIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M5 12h14M12 5l7 7-7 7" />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
-const FlowArrow = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M5 12h14M12 5l7 7-7 7" />
   </svg>
 );
@@ -92,17 +42,31 @@ export default function HomePage() {
       <section className="lp-hero" aria-labelledby="lp-hero-title">
         <div className="lp-hero__in">
           <div>
-            <div className="lp-hero__lbl">Technical premium resume publishing</div>
+            <div className="lp-hero__lbl">{"// LiveCV publication platform"}</div>
             <h1 id="lp-hero-title" className="lp-hero__title">
-              Build a sharper public career surface on top of <em>one controlled source record.</em>
+              Create your ultimate LiveCV. <br />
+              Which <RotatingWord words={heroRotatingWords} /> with you.
             </h1>
             <p className="lp-hero__lead">
-              OpenCiVera is evolving into a structured platform for professionals who want cleaner publication logic,
-              role-aware resume delivery, and a more intentional public presence than static document workflows can offer.
+              Managing your CV is broken. <br />
+
+              You create a version for one job.
+              Then another version for a different role.
+              Then you need it in English, then Polish.
+              Six months later, three different PDFs float around out there.
+              Nobody knows which version a recruiter actually has.
+              <br /><br />
+              OpenCiVera fixes this. <br />
+
+              Build your career story once.
+              Manage everything from one place.
+              Share different versions to different people — without duplicating data.
+              Change something? Everyone sees the update instantly.
+              Your CV is finally under your control.
             </p>
             <div className="lp-hero__acts">
               <Link href="/login" className="btn btn-p btn-lg">
-                Access platform
+                Create your CV
                 <ArrowIcon />
               </Link>
               <Link href="#resume" className="btn btn-o btn-lg">
@@ -110,13 +74,13 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="lp-hero__meta">
-              <span className="lp-hm"><span className="lp-hm__dot" />Auth-aware platform</span>
-              <span className="lp-hm"><span className="lp-hm__dot" />RBAC model</span>
-              <span className="lp-hm"><span className="lp-hm__dot" />EN / PL</span>
+              <span className="lp-hm"><span className="lp-hm__dot" />One master CV</span>
+              <span className="lp-hm"><span className="lp-hm__dot" />Multiple configurations</span>
+              <span className="lp-hm"><span className="lp-hm__dot" />LiveCV always up-to-date</span>
             </div>
           </div>
 
-          <aside className="lp-signal" aria-label="OpenCiVera system signal">
+          {/* <aside className="lp-signal" aria-label="OpenCiVera system signal">
             <div className="lp-signal__head">
               <span className="lp-signal__title">OpenCiVera system</span>
               <span className="lp-signal__status"><span className="lp-signal__dot" />Active direction</span>
@@ -160,68 +124,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          </aside>
-        </div>
-      </section>
-
-      <div className="lp-div" />
-
-      {/* PUBLISHING MODEL */}
-      <section className="lp-sec" id="model" aria-labelledby="lp-model-title">
-        <div className="lp-sechdr">
-          <div className="lp-tag">{"// publishing model"}</div>
-          <h2 id="lp-model-title" className="lp-h">From document editing to controlled public release.</h2>
-          <p className="lp-p">Shape resume output through structure, visibility, and release logic instead of constantly branching ad-hoc files.</p>
-        </div>
-
-        <div className="lp-grid3">
-          {publishingModel.map((card) => (
-            <article key={card.title} className="lp-card">
-              <div className="lp-card__tag">{card.tag}</div>
-              <span className={`lp-chip lp-chip--${card.chipType}`}>{card.chip}</span>
-              <h3>{card.title}</h3>
-              <p>{card.copy}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <div className="lp-div" />
-
-      {/* OPERATING MODEL */}
-      <section className="lp-sec" id="platform" aria-labelledby="lp-platform-title">
-        <div className="lp-sechdr">
-          <div className="lp-tag">{"// operating model"}</div>
-          <h2 id="lp-platform-title" className="lp-h">A modular workflow for public career presentation.</h2>
-        </div>
-
-        <div className="lp-op">
-          <div className="lp-steps">
-            {operatingSteps.map((step) => (
-              <div key={step.n} className="lp-step">
-                <div className="lp-step__n">{step.n}</div>
-                <div className="lp-step__c">
-                  <h3>{step.title}</h3>
-                  <p>{step.copy}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <aside className="lp-signals-box" aria-label="Foundation signals">
-            <div className="lp-signals-box__head">Foundation signals</div>
-            <ul className="lp-signals-box__list">
-              {foundationSignals.map((signal) => (
-                <li key={signal}>
-                  <span className="lp-chk"><CheckIcon /></span>
-                  {signal}
-                </li>
-              ))}
-            </ul>
-            <div className="lp-signals-box__foot">
-              Designed as a product system, not just a static resume renderer with a nicer shell.
-            </div>
-          </aside>
+          </aside> */}
         </div>
       </section>
 
@@ -230,8 +133,8 @@ export default function HomePage() {
       {/* CV PREVIEW */}
       <section className="lp-sec lp-cv-sec" id="resume" aria-labelledby="lp-resume-title">
         <div className="lp-sechdr">
-          <div className="lp-tag">{"// sample profile"}</div>
-          <h2 id="lp-resume-title" className="lp-h">Inspect the public surface.</h2>
+          <div className="lp-tag">{"// public link in action"}</div>
+          <h2 id="lp-resume-title" className="lp-h">Your CV as your public business card.</h2>
           <p className="lp-p">
             The output layer is a clean structured view — designed for professional signal, not document formatting.
             This is what recipients see when they open your link.
@@ -288,27 +191,22 @@ export default function HomePage() {
 
       <div className="lp-div" />
 
-      {/* FLOW */}
-      <section className="lp-sec" id="flow" aria-labelledby="lp-flow-title">
-        <div className="lp-sechdr lp-sechdr--c">
-          <div className="lp-tag">{"// flow"}</div>
-          <h2 id="lp-flow-title" className="lp-h">Three deliberate stages from source data to public delivery.</h2>
+      {/* PUBLISHING MODEL */}
+      <section className="lp-sec" id="model" aria-labelledby="lp-model-title">
+        <div className="lp-sechdr">
+          <div className="lp-tag">{"// CV as Code model"}</div>
+          <h2 id="lp-model-title" className="lp-h">Focus on your career record.</h2>
+          <p className="lp-p">By using the CV as Code model, you can manage your career information in a structured and consistent way. Don&apos;t think about layout or adjusting your data to given template. Create your CV with ease by editing YAML or using the editor and leave the rest to us.</p>
         </div>
 
-        <div className="lp-flow">
-          {flow.map((item, index) => (
-            <div key={item.step} className="lp-flow__cell">
-              <article className="lp-flow__card">
-                <div className="lp-flow__step">{item.step}</div>
-                <h3>{item.title}</h3>
-                <p>{item.copy}</p>
-              </article>
-              {index < flow.length - 1 ? (
-                <div className="lp-flow__arr" aria-hidden="true">
-                  <FlowArrow />
-                </div>
-              ) : null}
-            </div>
+        <div className="lp-grid3">
+          {publishingModel.map((card) => (
+            <article key={card.title} className="lp-card">
+              <div className="lp-card__tag">{card.tag}</div>
+              <span className={`lp-chip lp-chip--${card.chipType}`}>{card.chip}</span>
+              <h3>{card.title}</h3>
+              <p>{card.copy}</p>
+            </article>
           ))}
         </div>
       </section>
@@ -326,15 +224,16 @@ export default function HomePage() {
           </p>
           <div className="lp-cta__acts">
             <Link href="/login" className="btn btn-p btn-lg">
-              Open product shell
+              Login
               <ArrowIcon />
             </Link>
-            <Link href="/resume" className="btn btn-o btn-lg">Inspect public example ↗</Link>
+            <Link href="/resume" className="btn btn-o btn-lg">Check example profile ↗</Link>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
+      <LandingPageFooter />
+      {/* Legacy inline footer kept only for reference.
       <footer className="lp-footer">
         <div className="lp-footer__in">
           <div className="lp-footer__left">
@@ -353,7 +252,7 @@ export default function HomePage() {
           </div>
           <p className="lp-footer__copy">© 2026 OpenCiVera</p>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }

@@ -15,17 +15,39 @@ export default async function DashboardPage() {
   const masterResume = resumeDocuments.find((document) => document.locale === "en") || resumeDocuments[0] || null;
 
   return (
-    <>
+    <div className="dashboard-page stack">
       <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
-      <section className="card stack">
-        <header className="card-header">
-          <div>
-            <h1>Dashboard</h1>
-            <p className="card-lead">
-              Logged in as <strong>{actor.displayName}</strong> ({actor.email}).
+      <section className="card dashboard-overview">
+        <div className="dashboard-overview__copy stack">
+          <div className="product-surface__eyebrow">Publishing workspace</div>
+          <div className="stack">
+            <h1 className="product-surface__title">Dashboard</h1>
+            <p className="product-surface__lead">
+              Manage the master record, locale variants, and public CV versions from one authenticated surface.
             </p>
           </div>
-        </header>
+          <p className="dashboard-overview__account">
+            Logged in as <strong>{actor.displayName || actor.email}</strong> ({actor.email}).
+          </p>
+        </div>
+
+        <div className="dashboard-overview__stats" aria-label="Dashboard summary">
+          <div className="product-metric">
+            <span className="product-metric__label">Resume docs</span>
+            <strong>{resumeDocuments.length}</strong>
+            <small>Stored source records</small>
+          </div>
+          <div className="product-metric">
+            <span className="product-metric__label">CV versions</span>
+            <strong>{resumePresets.length}</strong>
+            <small>Targeted public variants</small>
+          </div>
+          <div className="product-metric">
+            <span className="product-metric__label">Locales</span>
+            <strong>{resumeLanguages.length}</strong>
+            <small>Enabled language set</small>
+          </div>
+        </div>
       </section>
 
       <DashboardClient
@@ -35,6 +57,6 @@ export default async function DashboardPage() {
         initialPresets={resumePresets}
         actorRole={actor.role}
       />
-    </>
+    </div>
   );
 }

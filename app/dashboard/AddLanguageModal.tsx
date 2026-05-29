@@ -96,12 +96,16 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="dashboard-modal__body" style={{ maxWidth: "420px" }}>
-        <h2 style={{ margin: "0 0 16px", fontSize: "1.1rem" }}>Add Language Version</h2>
+      <div className="dashboard-modal__body dashboard-modal__body--compact">
+        <div className="stack">
+          <div className="product-surface__eyebrow">Locale setup</div>
+          <h2 className="dashboard-modal__title">Add Language Version</h2>
+          <p className="dashboard-modal__copy">Create a new locale entry and an associated resume document in one step.</p>
+        </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "12px" }}>
-          <label style={{ display: "grid", gap: "4px" }}>
-            <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Language Code</span>
+        <form onSubmit={handleSubmit} className="dashboard-modal__form">
+          <label>
+            <span className="dashboard-modal__field-label">Language code</span>
             <input
               type="text"
               placeholder="e.g., en, pl, de"
@@ -109,38 +113,22 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
               onChange={(e) => setCode(e.target.value)}
               disabled={isLoading}
               maxLength={2}
-              style={{
-                padding: "8px",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                color: "var(--text)",
-                font: "inherit",
-              }}
             />
           </label>
 
-          <label style={{ display: "grid", gap: "4px" }}>
-            <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Language Name</span>
+          <label>
+            <span className="dashboard-modal__field-label">Language name</span>
             <input
               type="text"
               placeholder="e.g., English, Polish"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               disabled={isLoading}
-              style={{
-                padding: "8px",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                color: "var(--text)",
-                font: "inherit",
-              }}
             />
           </label>
 
-          <label style={{ display: "grid", gap: "4px" }}>
-            <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Short Label (Optional)</span>
+          <label>
+            <span className="dashboard-modal__field-label">Short label</span>
             <input
               type="text"
               placeholder="e.g., En, Pl"
@@ -148,34 +136,21 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
               onChange={(e) => setShortLabel(e.target.value)}
               disabled={isLoading}
               maxLength={4}
-              style={{
-                padding: "8px",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                color: "var(--text)",
-                font: "inherit",
-              }}
             />
           </label>
 
-          {error && (
-            <div style={{ padding: "8px", borderRadius: "6px", background: "#fee2e2", color: "#7f1d1d", fontSize: "0.9rem" }}>
-              {error}
-            </div>
-          )}
+          {error ? <div className="dashboard-modal__error">{error}</div> : null}
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "8px" }}>
+          <div className="dashboard-modal__footer">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
               className="button button--ghost"
-              style={{ minWidth: "80px" }}
             >
               Cancel
             </button>
-            <button type="submit" disabled={isLoading} className="button button--primary" style={{ minWidth: "80px" }}>
+            <button type="submit" disabled={isLoading} className="button button--primary">
               {isLoading ? "Adding..." : "Add"}
             </button>
           </div>
