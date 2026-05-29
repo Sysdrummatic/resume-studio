@@ -11,7 +11,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "OpenCiVera",
-  description: "OpenCiVera platform foundation on Next.js"
+  description: "OpenCiVera platform foundation on Next.js",
+  icons: {
+    icon: "/favicon.svg",
+  }
 };
 
 export const viewport: Viewport = {
