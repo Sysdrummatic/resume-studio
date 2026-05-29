@@ -1,287 +1,357 @@
 import Link from "next/link";
 
-const platformStats = [
+const publishingModel = [
   {
-    value: "1",
-    label: "source resume",
-    detail: "Maintain one structured career record instead of managing disconnected CV files.",
+    tag: "source resume",
+    chip: "1 record",
+    chipType: "t" as const,
+    title: "One structured career record",
+    copy: "Maintain one authoritative source instead of managing disconnected CV files that diverge every time you apply.",
   },
   {
-    value: "Multi-view",
-    label: "publication system",
-    detail: "Shape different public narratives without fragmenting your underlying source data.",
+    tag: "publication system",
+    chip: "Multi-view",
+    chipType: "a" as const,
+    title: "Shape different public narratives",
+    copy: "Present distinct professional profiles for different audiences without fragmenting your underlying source data.",
   },
   {
-    value: "EN / PL",
-    label: "locale-aware output",
-    detail: "Preserve language-specific delivery while keeping the publishing model coherent.",
+    tag: "locale-aware output",
+    chip: "EN / PL",
+    chipType: "t" as const,
+    title: "Language-specific delivery",
+    copy: "Preserve locale-appropriate presentation while keeping the publishing model coherent and the source unified.",
   },
 ];
 
-const operatingLayers = [
+const operatingSteps = [
   {
-    id: "01",
+    n: "01",
     title: "Structured source layer",
-    copy: "Store the career record as reusable data, not as one-off page composition.",
+    copy: "Store the career record as reusable data, not as one-off page composition. YAML-powered, version-controlled, designed for iteration without duplication.",
   },
   {
-    id: "02",
+    n: "02",
     title: "Selection and visibility",
-    copy: "Curate the signal for specific hiring contexts with clearer control over what stays visible.",
+    copy: "Curate the signal for specific hiring contexts with clearer control over what stays visible. Role-aware filtering without rewriting the document itself.",
   },
   {
-    id: "03",
+    n: "03",
     title: "Public release surface",
-    copy: "Publish a cleaner, deliberate output instead of exposing an internal draft as-is.",
+    copy: "Publish a cleaner, deliberate output instead of exposing an internal draft as-is. The surface is designed for professional signal, not document formatting.",
   },
 ];
 
-const systemSignals = [
+const foundationSignals = [
   "Auth-aware platform foundation",
   "RBAC and admin-ready model",
   "Resume export surface",
   "Publication lifecycle controls",
 ];
 
-const workflow = [
+const flow = [
   {
     step: "Capture",
     title: "Build the master record once",
-    copy: "Collect the full career story in a format that can survive iteration, localization, and reuse.",
+    copy: "Collect the full career story in a format that can survive iteration, localisation, and reuse. One YAML source. Everything else is derived.",
   },
   {
     step: "Configure",
     title: "Tune the public signal",
-    copy: "Decide what should stay visible for a given audience rather than rewriting the document itself.",
+    copy: "Decide what should stay visible for a given audience rather than rewriting the document itself. Role-aware visibility without source duplication.",
   },
   {
     step: "Release",
     title: "Publish with a cleaner surface",
-    copy: "Turn structured source data into a public view that reads like a designed professional profile.",
+    copy: "Turn structured source data into a public view that reads like a designed professional profile — not an exported document.",
   },
 ];
 
+const ArrowIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const FlowArrow = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
+);
+
 export default function HomePage() {
   return (
-    <div className="home-page">
-      <section className="home-hero" aria-labelledby="home-hero-title">
-        <div className="home-hero__backdrop" aria-hidden="true">
-          <div className="home-hero__orb home-hero__orb--left"></div>
-          <div className="home-hero__orb home-hero__orb--right"></div>
-          <div className="home-hero__grid"></div>
-        </div>
-
-        <div className="home-hero__content">
-          <div className="home-hero__intro">
-            <p className="home-kicker">Technical premium resume publishing</p>
-            <h1 id="home-hero-title">Build a sharper public career surface on top of one controlled source record.</h1>
-            <p className="home-hero__lead">
-              OpenCiVera is evolving into a structured platform for professionals who want cleaner publication logic, role-aware
-              resume delivery, and a more intentional public presence than static document workflows can offer.
+    <div className="lp">
+      {/* HERO */}
+      <section className="lp-hero" aria-labelledby="lp-hero-title">
+        <div className="lp-hero__in">
+          <div>
+            <div className="lp-hero__lbl">Technical premium resume publishing</div>
+            <h1 id="lp-hero-title" className="lp-hero__title">
+              Build a sharper public career surface on top of <em>one controlled source record.</em>
+            </h1>
+            <p className="lp-hero__lead">
+              OpenCiVera is evolving into a structured platform for professionals who want cleaner publication logic,
+              role-aware resume delivery, and a more intentional public presence than static document workflows can offer.
             </p>
-
-            <div className="home-hero__actions">
-              <Link className="btn btn--primary" href="/login">
+            <div className="lp-hero__acts">
+              <Link href="/login" className="btn btn-p btn-lg">
                 Access platform
+                <ArrowIcon />
               </Link>
-              <Link className="btn btn--ghost" href="/resume">
+              <Link href="#resume" className="btn btn-o btn-lg">
                 View sample resume
               </Link>
             </div>
+            <div className="lp-hero__meta">
+              <span className="lp-hm"><span className="lp-hm__dot" />Auth-aware platform</span>
+              <span className="lp-hm"><span className="lp-hm__dot" />RBAC model</span>
+              <span className="lp-hm"><span className="lp-hm__dot" />EN / PL</span>
+            </div>
           </div>
 
-          <aside className="home-command" aria-label="Platform command surface">
-            <div className="home-command__panel">
-              <div className="home-command__header">
-                <p>OpenCiVera system</p>
-                <span>Publishing signal</span>
-              </div>
-
-              <div className="home-command__core">
-                <div className="home-command__badge">Active direction</div>
-                <h2>From document editing to controlled public release.</h2>
-                <p>
-                  Shape resume output through structure, visibility, and release logic instead of constantly branching ad-hoc files.
-                </p>
-              </div>
-
-              <dl className="home-command__metrics">
-                <div>
-                  <dt>Surface</dt>
-                  <dd>Public CV</dd>
-                </div>
-                <div>
-                  <dt>Model</dt>
-                  <dd>Master source</dd>
-                </div>
-                <div>
-                  <dt>Control</dt>
-                  <dd>Role-aware</dd>
-                </div>
-              </dl>
+          <aside className="lp-signal" aria-label="OpenCiVera system signal">
+            <div className="lp-signal__head">
+              <span className="lp-signal__title">OpenCiVera system</span>
+              <span className="lp-signal__status"><span className="lp-signal__dot" />Active direction</span>
             </div>
-          </aside>
-        </div>
-
-        <dl className="home-signals" aria-label="Platform highlights">
-          {platformStats.map((stat) => (
-            <div key={stat.label} className="home-signals__item">
-              <dt>{stat.label}</dt>
-              <dd>{stat.value}</dd>
-              <p>{stat.detail}</p>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <section className="home-operating-model" aria-labelledby="home-operating-model-title">
-        <div className="home-section-heading">
-          <p className="home-kicker">Operating model</p>
-          <h2 id="home-operating-model-title">A modular workflow for public career presentation.</h2>
-        </div>
-
-        <div className="home-operating-model__layout">
-          <div className="home-operating-model__stack">
-            {operatingLayers.map((layer) => (
-              <article key={layer.id} className="home-layer-card">
-                <p className="home-layer-card__index">{layer.id}</p>
-                <div>
-                  <h3>{layer.title}</h3>
-                  <p>{layer.copy}</p>
+            <div className="lp-signal__body">
+              <div className="lp-signal__row">
+                <div className="lp-node lp-node--hl">
+                  <div className="lp-node__lbl">Surface</div>
+                  <div className="lp-node__val">Public CV</div>
                 </div>
-              </article>
-            ))}
-          </div>
-
-          <aside className="home-system-frame" aria-label="System capabilities">
-            <p className="home-system-frame__label">Foundation signals</p>
-            <ul className="home-system-frame__list">
-              {systemSignals.map((signal) => (
-                <li key={signal}>{signal}</li>
-              ))}
-            </ul>
-            <p className="home-system-frame__footnote">
-              Designed as a product system, not just a static resume renderer with a nicer shell.
-            </p>
+                <div className="lp-node">
+                  <div className="lp-node__lbl">Model</div>
+                  <div className="lp-node__val">Master source</div>
+                </div>
+                <div className="lp-node">
+                  <div className="lp-node__lbl">Control</div>
+                  <div className="lp-node__val">Role-aware</div>
+                </div>
+              </div>
+              <div className="lp-signal__divider" />
+              <div className="lp-signal__meta">
+                <div className="lp-mi">
+                  <div className="lp-mi__k">Output</div>
+                  <div className="lp-mi__v">Publication</div>
+                </div>
+                <div className="lp-mi">
+                  <div className="lp-mi__k">Locale</div>
+                  <div className="lp-mi__v">EN / PL</div>
+                </div>
+                <div className="lp-mi">
+                  <div className="lp-mi__k">Status</div>
+                  <div className="lp-mi__v">Live</div>
+                </div>
+                <div className="lp-mi lp-mi--wide">
+                  <div className="lp-mi__k">Source pipeline</div>
+                  <div className="lp-mi__v lp-mi__v--sm">YAML → structured record → public surface</div>
+                </div>
+                <div className="lp-mi">
+                  <div className="lp-mi__k">Views</div>
+                  <div className="lp-mi__v">Multi</div>
+                </div>
+              </div>
+            </div>
           </aside>
         </div>
       </section>
 
-      <section className="home-workflow" aria-labelledby="home-workflow-title">
-        <div className="home-section-heading">
-          <p className="home-kicker">Flow</p>
-          <h2 id="home-workflow-title">Three deliberate stages from source data to public delivery.</h2>
+      <div className="lp-div" />
+
+      {/* PUBLISHING MODEL */}
+      <section className="lp-sec" id="model" aria-labelledby="lp-model-title">
+        <div className="lp-sechdr">
+          <div className="lp-tag">{"// publishing model"}</div>
+          <h2 id="lp-model-title" className="lp-h">From document editing to controlled public release.</h2>
+          <p className="lp-p">Shape resume output through structure, visibility, and release logic instead of constantly branching ad-hoc files.</p>
         </div>
 
-        <div className="home-workflow__rail">
-          {workflow.map((item) => (
-            <article key={item.step} className="home-workflow__step">
-              <p className="home-workflow__number">{item.step}</p>
-              <h3>{item.title}</h3>
-              <p>{item.copy}</p>
+        <div className="lp-grid3">
+          {publishingModel.map((card) => (
+            <article key={card.title} className="lp-card">
+              <div className="lp-card__tag">{card.tag}</div>
+              <span className={`lp-chip lp-chip--${card.chipType}`}>{card.chip}</span>
+              <h3>{card.title}</h3>
+              <p>{card.copy}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="home-resume-preview" aria-labelledby="home-resume-title">
-        <div className="home-section-heading">
-          <p className="home-kicker">Sample profile</p>
-          <h2 id="home-resume-title">Inspect the public surface.</h2>
-          <p>
-            This is an example of a published public resume built from the OpenCiVera platform. Click to interact, or view the full public link.
+      <div className="lp-div" />
+
+      {/* OPERATING MODEL */}
+      <section className="lp-sec" id="platform" aria-labelledby="lp-platform-title">
+        <div className="lp-sechdr">
+          <div className="lp-tag">{"// operating model"}</div>
+          <h2 id="lp-platform-title" className="lp-h">A modular workflow for public career presentation.</h2>
+        </div>
+
+        <div className="lp-op">
+          <div className="lp-steps">
+            {operatingSteps.map((step) => (
+              <div key={step.n} className="lp-step">
+                <div className="lp-step__n">{step.n}</div>
+                <div className="lp-step__c">
+                  <h3>{step.title}</h3>
+                  <p>{step.copy}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <aside className="lp-signals-box" aria-label="Foundation signals">
+            <div className="lp-signals-box__head">Foundation signals</div>
+            <ul className="lp-signals-box__list">
+              {foundationSignals.map((signal) => (
+                <li key={signal}>
+                  <span className="lp-chk"><CheckIcon /></span>
+                  {signal}
+                </li>
+              ))}
+            </ul>
+            <div className="lp-signals-box__foot">
+              Designed as a product system, not just a static resume renderer with a nicer shell.
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <div className="lp-div" />
+
+      {/* CV PREVIEW */}
+      <section className="lp-sec lp-cv-sec" id="resume" aria-labelledby="lp-resume-title">
+        <div className="lp-sechdr">
+          <div className="lp-tag">{"// sample profile"}</div>
+          <h2 id="lp-resume-title" className="lp-h">Inspect the public surface.</h2>
+          <p className="lp-p">
+            The output layer is a clean structured view — designed for professional signal, not document formatting.
+            This is what recipients see when they open your link.
           </p>
         </div>
 
-        <div className="home-resume-frame">
-          <div className="home-resume-chrome">
-            <div className="home-resume-chrome__bar">
-              <div className="home-resume-chrome__dots">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <div className="home-resume-chrome__url">
-                <svg className="home-resume-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <span>opencvhub.netlify.app/resume</span>
-              </div>
-              <Link href="/resume" className="home-resume-external" aria-label="Open in new tab">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
-              </Link>
+        <div className="lp-cv">
+          <div className="lp-cv__chrome">
+            <div className="lp-cv__dots">
+              <span />
+              <span />
+              <span />
             </div>
-            <div className="home-resume-loading" aria-label="Loading sample resume">
-              <div className="home-resume-loading-spinner" aria-hidden="true"></div>
-              <p className="home-resume-loading-text">Loading sample resume...</p>
+            <div className="lp-cv__url">
+              <svg className="lp-cv__lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              opencvhub.netlify.app/<span className="lp-cv__url-hi">resume</span>
+            </div>
+            <Link href="/resume" className="lp-cv__ext" aria-label="Open sample resume">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </Link>
+          </div>
+          <div className="lp-cv__wrap">
+            <div className="lp-cv__loading" aria-label="Loading sample resume">
+              <div className="lp-cv__spinner" aria-hidden="true" />
+              <p>Loading sample resume…</p>
             </div>
             <iframe
               src="https://opencvhub.netlify.app/resume"
-              className="home-resume-iframe"
-              title="Sample public resume showing OpenCiVera platform capabilities"
+              className="lp-cv__iframe"
+              title="Sample public resume — OpenCiVera"
               loading="lazy"
               sandbox="allow-scripts allow-same-origin allow-forms"
-            ></iframe>
-            <noscript>
-              <div className="home-resume-fallback" style={{ display: 'flex' }}>
-                <p>Couldn't load the sample resume</p>
-                <p>JavaScript is required to view the embedded preview. You can still explore the platform by viewing the full example.</p>
-                <Link href="/resume" className="btn btn--primary">
-                  View sample resume →
-                </Link>
-              </div>
-            </noscript>
-            <div className="home-resume-fallback">
-              <p>Couldn't load the sample resume</p>
+            />
+            <div className="lp-cv__fallback">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="9" y1="13" x2="15" y2="13" />
+                <line x1="9" y1="17" x2="13" y2="17" />
+              </svg>
               <p>The embedded preview is temporarily unavailable. You can still explore the platform by viewing the full example.</p>
-              <Link href="/resume" className="btn btn--primary">
-                View sample resume →
-              </Link>
+              <Link href="/resume" className="btn btn-p">Open sample resume ↗</Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="home-cta" aria-labelledby="home-cta-title">
-        <div className="home-cta__copy">
-          <p className="home-kicker">Current release</p>
-          <h2 id="home-cta-title">The platform foundation is live and the publishing model is taking shape.</h2>
-          <p>
-            Explore the sample public resume, sign in to the current platform shell, and follow the transition toward a more
-            controlled and premium resume workflow.
-          </p>
+      <div className="lp-div" />
+
+      {/* FLOW */}
+      <section className="lp-sec" id="flow" aria-labelledby="lp-flow-title">
+        <div className="lp-sechdr lp-sechdr--c">
+          <div className="lp-tag">{"// flow"}</div>
+          <h2 id="lp-flow-title" className="lp-h">Three deliberate stages from source data to public delivery.</h2>
         </div>
 
-        <div className="home-cta__actions">
-          <Link className="btn btn--primary" href="/login">
-            Open product shell
-          </Link>
-          <Link className="btn btn--ghost" href="/resume">
-            Inspect public example
-          </Link>
+        <div className="lp-flow">
+          {flow.map((item, index) => (
+            <div key={item.step} className="lp-flow__cell">
+              <article className="lp-flow__card">
+                <div className="lp-flow__step">{item.step}</div>
+                <h3>{item.title}</h3>
+                <p>{item.copy}</p>
+              </article>
+              {index < flow.length - 1 ? (
+                <div className="lp-flow__arr" aria-hidden="true">
+                  <FlowArrow />
+                </div>
+              ) : null}
+            </div>
+          ))}
         </div>
       </section>
 
-      <footer className="home-footer">
-        <div className="home-footer__content">
-          <div className="home-footer__branding">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <circle cx="12" cy="12" r="6" opacity="0.3"></circle>
-              <circle cx="12" cy="12" r="2"></circle>
-            </svg>
-            <span>OpenCiVera</span>
+      <div className="lp-div" />
+
+      {/* FINAL CTA */}
+      <section className="lp-cta-sec" aria-labelledby="lp-cta-title">
+        <div className="lp-cta">
+          <div className="lp-cta__lbl">{"// current release"}</div>
+          <h2 id="lp-cta-title">The platform foundation is live and the publishing model is taking shape.</h2>
+          <p className="lp-cta__p">
+            Explore the sample public resume, sign in to the current platform shell, and follow the transition toward a
+            more controlled and premium resume workflow.
+          </p>
+          <div className="lp-cta__acts">
+            <Link href="/login" className="btn btn-p btn-lg">
+              Open product shell
+              <ArrowIcon />
+            </Link>
+            <Link href="/resume" className="btn btn-o btn-lg">Inspect public example ↗</Link>
           </div>
-          <nav className="home-footer__nav">
-            <Link href="/resume">Sample resume</Link>
-            <Link href="/login">Platform</Link>
-          </nav>
-          <p className="home-footer__copyright">© 2026 OpenCiVera</p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="lp-footer">
+        <div className="lp-footer__in">
+          <div className="lp-footer__left">
+            <div className="lp-footer__brand">
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" stroke="var(--accent)" strokeWidth="1.8" fill="none" />
+                <circle cx="16" cy="16" r="5" stroke="var(--accent)" strokeWidth="1.5" fill="none" />
+                <circle cx="16" cy="16" r="2" fill="var(--accent-teal)" />
+              </svg>
+              <span>OpenCiVera</span>
+            </div>
+            <nav className="lp-footer__links">
+              <Link href="/resume">Sample resume</Link>
+              <Link href="/login">Platform</Link>
+            </nav>
+          </div>
+          <p className="lp-footer__copy">© 2026 OpenCiVera</p>
         </div>
       </footer>
     </div>
