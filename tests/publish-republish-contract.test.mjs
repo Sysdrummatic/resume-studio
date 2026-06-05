@@ -125,11 +125,7 @@ test("fetchProfileIdentity uses service role to avoid RLS recursion on profiles 
 // 4. TypeScript — updateProfileIdentity używa service role (fix dla RLS recursion)
 // ─────────────────────────────────────────────────────────────────────────────
 
-<<<<<<< HEAD
-test("updateProfileIdentity uses useServiceRole AND accessToken to bypass RLS while keeping auth context", () => {
-=======
 test("updateProfileIdentity uses useServiceRole to bypass RLS recursion on profiles", () => {
->>>>>>> b96514082da90282419f95af3d5554e152899789
   const server = read("app/lib/resume-server.ts");
 
   const fnMatch = server.match(
@@ -139,24 +135,6 @@ test("updateProfileIdentity uses useServiceRole to bypass RLS recursion on profi
   assert.ok(fnMatch.length > 0, "updateProfileIdentity must exist");
   assert.ok(
     fnMatch.includes("useServiceRole: true"),
-<<<<<<< HEAD
-    "updateProfileIdentity must set useServiceRole:true so apikey bypasses RLS",
-  );
-  assert.ok(
-    fnMatch.includes("accessToken"),
-    "updateProfileIdentity must forward accessToken so auth.uid() is set for guard_profile_update trigger self-update check",
-  );
-});
-
-test("updateProfileIdentity passes accessToken so guard_profile_update trigger allows self-update", () => {
-  const server = read("app/lib/resume-server.ts");
-
-  // Pattern: useServiceRole: true + accessToken in the same updateTable call
-  assert.match(
-    server,
-    /updateTable\(\{[\s\S]{0,200}useServiceRole: true[\s\S]{0,200}accessToken/,
-    "updateTable call in updateProfileIdentity must have both useServiceRole and accessToken",
-=======
     "updateProfileIdentity must use service role to avoid recursive RLS from profiles_assign_person_slug trigger",
   );
   assert.ok(
@@ -168,7 +146,6 @@ test("updateProfileIdentity passes accessToken so guard_profile_update trigger a
 test("updateProfileIdentity does not take accessToken as parameter", () => {
   const server = read("app/lib/resume-server.ts");
 
-  // Sygnatura powinna mieć tylko userId i values
   const fnSignature = server.match(
     /async function updateProfileIdentity\([^)]+\)/,
   )?.[0] ?? "";
@@ -177,7 +154,6 @@ test("updateProfileIdentity does not take accessToken as parameter", () => {
   assert.ok(
     !fnSignature.includes("accessToken"),
     "updateProfileIdentity must not accept accessToken parameter after service-role fix",
->>>>>>> b96514082da90282419f95af3d5554e152899789
   );
 });
 
