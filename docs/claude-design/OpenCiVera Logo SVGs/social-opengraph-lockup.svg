@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="200" viewBox="0 0 340 200" fill="none">
+  
+  <g transform="translate(170, 80)">
+    <polygon points="0,-32 27.71,-16 27.71,16 0,32 -27.71,16 -27.71,-16" fill="url(#grad)" opacity="0.2"></polygon>
+    <polygon points="0,-32 27.71,-16 27.71,16 0,32 -27.71,16 -27.71,-16" stroke="url(#grad)" stroke-width="4" fill="none"></polygon>
+    <circle cx="0" cy="0" r="14" stroke="#5E6AD2" stroke-width="3.5" fill="none"></circle>
+    <circle cx="0" cy="0" r="6" fill="#009c8a"></circle>
+    <circle cx="0" cy="-24" r="3" fill="#6872D9"></circle>
+    <circle cx="21" cy="12" r="3" fill="#6872D9"></circle>
+    <circle cx="-21" cy="12" r="3" fill="#6872D9"></circle>
+  </g>
+  <text x="170" y="150" font-family="&#39;Space Grotesk&#39;, sans-serif" font-size="44" font-weight="700" fill="#EDEDEF" text-anchor="middle">OpenCiVera</text>
+  <text x="170" y="175" font-family="&#39;Inter&#39;, sans-serif" font-size="16" font-weight="500" fill="#8A8F98" text-anchor="middle">Open Source Design System</text>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5E6AD2"></stop>
+      <stop offset="50%" stop-color="#6872D9"></stop>
+      <stop offset="100%" stop-color="#009c8a"></stop>
+    </linearGradient>
+  </defs>
+</svg>

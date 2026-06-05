@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { FocusEvent } from "react";
+import type { FocusEvent, FormEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
 import { canAccessAdminArea } from "../lib/rbac";
 import { UserAvatar } from "./design-system/atoms/UserAvatar";
@@ -10,6 +10,8 @@ import { UserAvatar } from "./design-system/atoms/UserAvatar";
 type Props = {
   email: string;
   displayName: string;
+  firstName: string;
+  lastName: string;
   avatarUrl: string | null;
   role: AppRole;
   isActive: boolean;
@@ -31,9 +33,13 @@ function getInitial(email: string): string {
   return email.trim().charAt(0).toUpperCase() || "U";
 }
 
-export default function AccountMenu({ email, displayName, avatarUrl, role, isActive, emailConfirmed }: Props) {
+export default function AccountMenu({ email, displayName, firstName, lastName, avatarUrl, role, isActive, emailConfirmed }: Props) {
   const [isBusy, setIsBusy] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileFirstName, setProfileFirstName] = useState(firstName);
+  const [profileLastName, setProfileLastName] = useState(lastName);
+  const [currentDisplayName, setCurrentDisplayName] = useState(displayName);
+  const [profileError, setProfileError] = useState("");
   const menuRef = useRef<HTMLDetailsElement>(null);
   const closeTimerRef = useRef<number | null>(null);
 
@@ -84,6 +90,50 @@ export default function AccountMenu({ email, displayName, avatarUrl, role, isAct
 
   function closeProfileModal() {
     setIsProfileOpen(false);
+    setProfileError("");
+  }
+
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isBusy) {
+      return;
+    }
+
+    setIsBusy(true);
+    setProfileError("");
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: profileFirstName,
+          lastName: profileLastName,
+        }),
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        data?: {
+          first_name?: string | null;
+          last_name?: string | null;
+          display_name?: string | null;
+        };
+      };
+      if (!response.ok || payload.error) {
+        setProfileError(payload.error || "Profile update failed.");
+        return;
+      }
+
+      const nextFirstName = payload.data?.first_name || profileFirstName.trim();
+      const nextLastName = payload.data?.last_name || profileLastName.trim();
+      setProfileFirstName(nextFirstName);
+      setProfileLastName(nextLastName);
+      setCurrentDisplayName(payload.data?.display_name || `${nextFirstName} ${nextLastName}`.trim());
+      closeProfileModal();
+    } catch {
+      setProfileError("Profile update failed.");
+    } finally {
+      setIsBusy(false);
+    }
   }
 
   function cancelMenuAutoClose() {
@@ -130,14 +180,14 @@ export default function AccountMenu({ email, displayName, avatarUrl, role, isAct
       <summary className="account-menu__trigger" aria-label="Open account menu">
         <span className="account-menu__avatar" aria-hidden>
           <UserAvatar
-            initials={getInitial(displayName || email)}
+            initials={getInitial(currentDisplayName || email)}
             src={avatarUrl || undefined}
             size="sm"
             className="account-menu__avatar-image"
           />
         </span>
         <span className="account-menu__identity">
-          <span className="account-menu__email">{email}</span>
+          <span className="account-menu__email" title={email}>{currentDisplayName || email}</span>
           <span className="account-menu__role">{role}</span>
         </span>
       </summary>
@@ -174,7 +224,37 @@ export default function AccountMenu({ email, displayName, avatarUrl, role, isAct
                   Zamknij
                 </button>
               </div>
+              <form className="profile-modal__form" onSubmit={handleProfileSubmit}>
+                <label className="profile-modal__field">
+                  <span>Imie</span>
+                  <input
+                    value={profileFirstName}
+                    onChange={(event) => setProfileFirstName(event.target.value)}
+                    autoComplete="given-name"
+                    maxLength={120}
+                  />
+                </label>
+                <label className="profile-modal__field">
+                  <span>Nazwisko</span>
+                  <input
+                    value={profileLastName}
+                    onChange={(event) => setProfileLastName(event.target.value)}
+                    autoComplete="family-name"
+                    maxLength={120}
+                  />
+                </label>
+                {profileError ? <p className="profile-modal__error">{profileError}</p> : null}
+                <div className="profile-modal__actions">
+                  <button type="submit" className="button button--primary button--small" disabled={isBusy}>
+                    {isBusy ? "Zapisywanie..." : "Zapisz"}
+                  </button>
+                </div>
+              </form>
               <div className="meta-grid">
+                <p>
+                  <span className="meta-label">Email</span>
+                  <span className="meta-value">{email}</span>
+                </p>
                 <p>
                   <span className="meta-label">Role</span>
                   <span className="meta-value">{role}</span>

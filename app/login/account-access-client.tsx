@@ -55,6 +55,18 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       ? { id: 0, message: contextualMessage, variant: contextualVariant as "warning" | "success" }
       : null;
   const activeToast = toast || contextualToast;
+  const activeTabCopy = useMemo(() => {
+    if (activeTab === "signup") {
+      return "Create an account, verify your email, then continue into your resume workspace.";
+    }
+    if (activeTab === "reset") {
+      return "Request a recovery link for the email address tied to your account.";
+    }
+    if (activeTab === "new-password") {
+      return "Set a new password for the recovery session opened from your email link.";
+    }
+    return "Sign in to continue into the personal hub, dashboard, and publication controls.";
+  }, [activeTab]);
 
   useEffect(() => {
     const hashParams = parseHashParams(window.location.hash);
@@ -215,141 +227,163 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   }
 
   return (
-    <section className="card auth-card">
-      <h1>Account access</h1>
-      <p className="card-lead">Phase C provides sign up, sign in, password reset, email verification and RBAC.</p>
+    <div className="auth-access">
 
-      <StatusToast toast={activeToast} onClose={closeActiveToast} />
+      <section className="card auth-card auth-access__card">
+        <div className="auth-card__header">
+          <div className="stack">
+            <div className="product-surface__eyebrow">Account access</div>
+            <div className="stack">
+              <h2 className="auth-card__title">OpenCiVera auth</h2>
+              <p className="auth-card__lead">{activeTabCopy}</p>
+            </div>
+          </div>
+        </div>
 
-      <div className="tabs" role="tablist" aria-label="Auth actions">
-        <button
-          type="button"
-          className={`tab ${activeTab === "signin" ? "is-active" : ""}`}
-          onClick={() => setActiveTab("signin")}
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          className={`tab ${activeTab === "signup" ? "is-active" : ""}`}
-          onClick={() => setActiveTab("signup")}
-        >
-          Sign up
-        </button>
-        <button
-          type="button"
-          className={`tab ${activeTab === "reset" ? "is-active" : ""}`}
-          onClick={() => setActiveTab("reset")}
-        >
-          Reset password
-        </button>
-        {recoveryToken && (
+        <StatusToast toast={activeToast} onClose={closeActiveToast} />
+
+        <div className="tabs auth-card__tabs" role="tablist" aria-label="Auth actions">
           <button
             type="button"
-            className={`tab ${activeTab === "new-password" ? "is-active" : ""}`}
-            onClick={() => setActiveTab("new-password")}
+            className={`tab ${activeTab === "signin" ? "is-active" : ""}`}
+            onClick={() => setActiveTab("signin")}
           >
-            New password
+            Sign in
           </button>
+          <button
+            type="button"
+            className={`tab ${activeTab === "signup" ? "is-active" : ""}`}
+            onClick={() => setActiveTab("signup")}
+          >
+            Sign up
+          </button>
+          <button
+            type="button"
+            className={`tab ${activeTab === "reset" ? "is-active" : ""}`}
+            onClick={() => setActiveTab("reset")}
+          >
+            Reset password
+          </button>
+          {recoveryToken && (
+            <button
+              type="button"
+              className={`tab ${activeTab === "new-password" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("new-password")}
+            >
+              New password
+            </button>
+          )}
+        </div>
+
+        {pendingVerificationEmail ? (
+          <p className="auth-card__note">Pending verification email: {pendingVerificationEmail}</p>
+        ) : null}
+
+        {activeTab === "signin" && (
+          <form className="stack auth-card__form" onSubmit={handleSignIn}>
+            <label className="auth-card__field">
+              <span className="auth-card__label">Email</span>
+              <input
+                type="email"
+                value={signinEmail}
+                onChange={(event) => setSigninEmail(event.target.value)}
+                autoComplete="email"
+                required
+              />
+            </label>
+            <label className="auth-card__field">
+              <span className="auth-card__label">Password</span>
+              <input
+                type="password"
+                value={signinPassword}
+                onChange={(event) => setSigninPassword(event.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </label>
+            <div className="auth-card__actions">
+              <button className="button button--primary" type="submit" disabled={isBusy}>
+                {isBusy ? "Signing in..." : "Sign in"}
+              </button>
+              <button className="button button--ghost" type="button" onClick={handleResendVerification} disabled={isBusy}>
+                Resend verification email
+              </button>
+            </div>
+          </form>
         )}
-      </div>
 
-      {activeTab === "signin" && (
-        <form className="stack" onSubmit={handleSignIn}>
-          <label>
-            Email
-            <input
-              type="email"
-              value={signinEmail}
-              onChange={(event) => setSigninEmail(event.target.value)}
-              autoComplete="email"
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              value={signinPassword}
-              onChange={(event) => setSigninPassword(event.target.value)}
-              autoComplete="current-password"
-              required
-            />
-          </label>
-          <button className="button button--primary" type="submit" disabled={isBusy}>
-            {isBusy ? "Signing in..." : "Sign in"}
-          </button>
-          <button className="button button--ghost" type="button" onClick={handleResendVerification} disabled={isBusy}>
-            Resend verification email
-          </button>
-        </form>
-      )}
+        {activeTab === "signup" && (
+          <form className="stack auth-card__form" onSubmit={handleSignUp}>
+            <label className="auth-card__field">
+              <span className="auth-card__label">Email</span>
+              <input
+                type="email"
+                value={signupEmail}
+                onChange={(event) => setSignupEmail(event.target.value)}
+                autoComplete="email"
+                required
+              />
+            </label>
+            <label className="auth-card__field">
+              <span className="auth-card__label">Password</span>
+              <input
+                type="password"
+                value={signupPassword}
+                onChange={(event) => setSignupPassword(event.target.value)}
+                autoComplete="new-password"
+                minLength={10}
+                required
+              />
+            </label>
+            <div className="auth-card__actions">
+              <button className="button button--primary" type="submit" disabled={isBusy}>
+                {isBusy ? "Creating account..." : "Create account"}
+              </button>
+            </div>
+          </form>
+        )}
 
-      {activeTab === "signup" && (
-        <form className="stack" onSubmit={handleSignUp}>
-          <label>
-            Email
-            <input
-              type="email"
-              value={signupEmail}
-              onChange={(event) => setSignupEmail(event.target.value)}
-              autoComplete="email"
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              value={signupPassword}
-              onChange={(event) => setSignupPassword(event.target.value)}
-              autoComplete="new-password"
-              minLength={10}
-              required
-            />
-          </label>
-          <button className="button button--primary" type="submit" disabled={isBusy}>
-            {isBusy ? "Creating account..." : "Create account"}
-          </button>
-        </form>
-      )}
+        {activeTab === "reset" && (
+          <form className="stack auth-card__form" onSubmit={handleResetPassword}>
+            <label className="auth-card__field">
+              <span className="auth-card__label">Email</span>
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={(event) => setResetEmail(event.target.value)}
+                autoComplete="email"
+                required
+              />
+            </label>
+            <div className="auth-card__actions">
+              <button className="button button--primary" type="submit" disabled={isBusy}>
+                {isBusy ? "Sending..." : "Send reset link"}
+              </button>
+            </div>
+          </form>
+        )}
 
-      {activeTab === "reset" && (
-        <form className="stack" onSubmit={handleResetPassword}>
-          <label>
-            Email
-            <input
-              type="email"
-              value={resetEmail}
-              onChange={(event) => setResetEmail(event.target.value)}
-              autoComplete="email"
-              required
-            />
-          </label>
-          <button className="button button--primary" type="submit" disabled={isBusy}>
-            {isBusy ? "Sending..." : "Send reset link"}
-          </button>
-        </form>
-      )}
-
-      {activeTab === "new-password" && recoveryToken && (
-        <form className="stack" onSubmit={handleUpdatePassword}>
-          <label>
-            New password
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              autoComplete="new-password"
-              minLength={10}
-              required
-            />
-          </label>
-          <button className="button button--primary" type="submit" disabled={isBusy}>
-            {isBusy ? "Updating..." : "Update password"}
-          </button>
-        </form>
-      )}
-    </section>
+        {activeTab === "new-password" && recoveryToken && (
+          <form className="stack auth-card__form" onSubmit={handleUpdatePassword}>
+            <label className="auth-card__field">
+              <span className="auth-card__label">New password</span>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                autoComplete="new-password"
+                minLength={10}
+                required
+              />
+            </label>
+            <div className="auth-card__actions">
+              <button className="button button--primary" type="submit" disabled={isBusy}>
+                {isBusy ? "Updating..." : "Update password"}
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
+    </div>
   );
 }

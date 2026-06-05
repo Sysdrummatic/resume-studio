@@ -19,6 +19,16 @@ test("profile modal renders overlay container with close button label Zamknij", 
   assert.equal(source.includes("<dialog"), false);
 });
 
+test("profile modal exposes editable first and last name fields", () => {
+  const source = read(componentPath);
+
+  assert.equal(source.includes("profileFirstName"), true);
+  assert.equal(source.includes("profileLastName"), true);
+  assert.equal(source.includes('autoComplete="given-name"'), true);
+  assert.equal(source.includes('autoComplete="family-name"'), true);
+  assert.equal(source.includes('fetch("/api/user/profile"'), true);
+});
+
 test("profile modal styles center the modal and blur the background", () => {
   const styles = read(stylesPath);
 

@@ -4,7 +4,7 @@ import { getAuthUser, refreshSession } from "./supabase-http";
 import { readAuthTokens } from "./auth-cookies";
 import { canAccessAdminArea } from "./rbac";
 import type { SessionActor } from "./auth-types";
-import { normalizeEmail, normalizeDisplayName, resolveProfile } from "./auth-profile";
+import { normalizeEmail, normalizeProfileForActor, resolveProfile } from "./auth-profile";
 
 async function readActorFromAccessToken(accessToken: string): Promise<SessionActor | null> {
   const authUserResult = await getAuthUser(accessToken);
@@ -19,11 +19,16 @@ async function readActorFromAccessToken(accessToken: string): Promise<SessionAct
   }
 
   const email = normalizeEmail(user.email);
+  const profile = normalizeProfileForActor(profileResult.data, email);
   return {
     userId: user.id,
     email,
     emailConfirmed: Boolean(user.email_confirmed_at),
-    displayName: normalizeDisplayName(profileResult.data.display_name, email),
+    displayName: profile.displayName,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    personSlug: profile.personSlug,
+    nameSyncMode: profile.nameSyncMode,
     avatarUrl: profileResult.data.avatar_url,
     role: profileResult.data.role,
     bio: profileResult.data.bio,

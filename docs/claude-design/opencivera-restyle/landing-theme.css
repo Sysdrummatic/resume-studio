@@ -1,0 +1,289 @@
+/* ============================================================
+   OpenCiVera — Landing Page Theme
+   Drop-in stylesheet driven by the OpenCiVera Design System tokens.
+   Supports night (default) + day via [data-theme] on <html>.
+   Token names + values mirror Design System.html exactly.
+
+   HOW TO USE
+   ----------
+   1. Load Google Fonts (Space Grotesk / Inter / JetBrains Mono) — see <head> snippet in RESTYLE-GUIDE.md.
+   2. Include this file AFTER your reset/base styles.
+   3. Toggle modes by setting the attribute on the root element:
+        document.documentElement.setAttribute('data-theme', 'night' | 'day')
+      (defaults to night if unset). Persist the choice in localStorage.
+   4. The landing markup uses the class names below (.hero, .card, .btn-p, …).
+      If your components use different names, map them or add these as aliases.
+   ============================================================ */
+
+/* ---- 1. DESIGN TOKENS ------------------------------------- */
+/* Night (default) — the DS Portal theme */
+:root,
+:root[data-theme="night"] {
+  /* typography */
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Consolas', monospace;
+
+  /* surfaces */
+  --bg-deep:      #020203;
+  --bg-base:      #050506;
+  --bg-elevated:  #0a0a0c;
+  --surface:      rgba(255, 255, 255, 0.05);
+  --surface-hover:rgba(255, 255, 255, 0.08);
+
+  /* text */
+  --fg:           #EDEDEF;
+  --fg-secondary: #C7CBD3;
+  --fg-muted:     #8A8F98;
+  --fg-dim:       #565b66; /* tertiary labels / captions (landing-local) */
+
+  /* brand */
+  --accent:       #5E6AD2;
+  --accent-bright:#6872D9;
+  --accent-teal:  #009c8a;
+  --accent-soft:  rgba(94, 106, 210, 0.15);
+  --teal-soft:    rgba(0, 156, 138, 0.15);
+  --teal-text:    #5EEAD4;
+
+  /* borders */
+  --border:       rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.10);
+
+  /* spacing scale */
+  --space-2xs: 4px;
+  --space-xs:  8px;
+  --space-sm:  12px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* shadows */
+  --shadow-glass:       0 0 0 1px rgba(255,255,255,0.06), 0 18px 48px rgba(0,0,0,0.42), 0 0 80px rgba(0,0,0,0.16);
+  --shadow-glass-hover: 0 0 0 1px rgba(255,255,255,0.10), 0 22px 58px rgba(0,0,0,0.50), 0 0 92px rgba(94,106,210,0.10);
+  --shadow-bento:       0 14px 32px rgba(0,0,0,0.18);
+
+  /* ambient hero glow (landing-local) */
+  --hero-glow: radial-gradient(ellipse 65% 45% at 50% -8%, rgba(94,106,210,0.18) 0%, transparent 65%);
+
+  color-scheme: dark;
+}
+
+/* Day — light counterpart, soft lavender-tinted neutrals on-palette */
+:root[data-theme="day"] {
+  --bg-deep:      #ffffff;
+  --bg-base:      #f5f4fb;   /* soft lavender white */
+  --bg-elevated:  #ffffff;
+  --surface:      rgba(94, 106, 210, 0.05);
+  --surface-hover:rgba(94, 106, 210, 0.09);
+
+  --fg:           #17151f;
+  --fg-secondary: #3a3748;
+  --fg-muted:     #5d5a70;
+  --fg-dim:       #8b889c;
+
+  --accent:       #5048C4;   /* slightly deeper for AA contrast on white */
+  --accent-bright:#5E6AD2;
+  --accent-teal:  #00897a;
+  --accent-soft:  rgba(94, 106, 210, 0.12);
+  --teal-soft:    rgba(0, 137, 122, 0.12);
+  --teal-text:    #00897a;
+
+  --border:       rgba(23, 21, 31, 0.09);
+  --border-hover: rgba(23, 21, 31, 0.16);
+
+  --shadow-glass:       0 1px 2px rgba(23,21,31,0.04), 0 12px 32px rgba(23,21,31,0.07);
+  --shadow-glass-hover: 0 2px 4px rgba(23,21,31,0.06), 0 18px 44px rgba(80,72,196,0.12);
+  --shadow-bento:       0 8px 24px rgba(23,21,31,0.06);
+
+  --hero-glow: radial-gradient(ellipse 65% 45% at 50% -8%, rgba(94,106,210,0.10) 0%, transparent 65%);
+
+  color-scheme: light;
+}
+
+/* Smooth crossfade when switching modes */
+:root { transition: none; }
+body, header, .card, .signal-card, .signals-box, .flow-card, .cta-box, .step {
+  transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, box-shadow 280ms ease;
+}
+
+/* ---- 2. BASE --------------------------------------------- */
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--fg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 500px;
+  background: var(--hero-glow);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 var(--space-lg); }
+
+/* ---- 3. HEADER ------------------------------------------- */
+header {
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: blur(20px);
+  background: color-mix(in srgb, var(--bg-base) 80%, transparent);
+  border-bottom: 1px solid var(--border);
+  padding: 13px 0;
+}
+.logo-name { font-family: var(--font-display); font-weight: 700; letter-spacing: -.01em; }
+nav a {
+  font-size: .875rem; color: var(--fg-muted); text-decoration: none;
+  transition: color 160ms;
+}
+nav a:hover { color: var(--fg); }
+
+/* segmented toggles (language + theme) */
+.seg {
+  display: flex; gap: 2px; padding: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.seg-btn {
+  padding: 4px 10px; border: none; background: transparent; cursor: pointer;
+  font-family: var(--font-mono); font-size: .7rem; font-weight: 600;
+  color: var(--fg-muted); border-radius: 5px; transition: all 140ms;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.seg-btn.on { background: var(--accent); color: #fff; }
+
+/* ---- 4. BUTTONS (DS spec) -------------------------------- */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body); font-size: .9375rem; font-weight: 600;
+  text-decoration: none; cursor: pointer; border: 1px solid transparent;
+  transition: all 200ms ease; white-space: nowrap;
+}
+.btn-lg { padding: var(--space-md) var(--space-xl); font-size: 1.0625rem; }
+
+.btn-p {                       /* primary — DS gradient + inner highlight */
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+  border-color: var(--accent); color: #fff;
+  box-shadow: 0 0 0 1px rgba(94,106,210,0.20), 0 10px 24px rgba(94,106,210,0.30), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.btn-p:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(94,106,210,0.30), 0 12px 28px rgba(94,106,210,0.40), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.btn-o {                       /* secondary */
+  background: var(--surface); border-color: var(--border); color: var(--fg);
+}
+.btn-o:hover { background: var(--surface-hover); border-color: var(--border-hover); transform: translateY(-1px); }
+.btn-g {                       /* ghost */
+  background: transparent; border-color: var(--border); color: var(--fg-muted);
+}
+.btn-g:hover { background: var(--surface); color: var(--fg); }
+
+/* ---- 5. TYPE --------------------------------------------- */
+.hero h1, .sec-h, .cta-box h2 {
+  font-family: var(--font-display); font-weight: 700;
+  letter-spacing: -.025em; line-height: 1.07; text-wrap: balance; margin: 0;
+}
+.hero h1 { font-size: clamp(2.1rem, 4.2vw, 3.4rem); margin-bottom: var(--space-lg); }
+.hero h1 em { font-style: normal; color: var(--fg-muted); }
+.sec-h { font-size: clamp(1.75rem, 3.2vw, 2.5rem); line-height: 1.1; margin-bottom: 14px; }
+.card h3, .step-c h3, .flow-card h3 {
+  font-family: var(--font-display); font-weight: 700; letter-spacing: -.01em; margin: 0 0 9px;
+}
+
+.hero-lead, .sec-p, .card p, .step-c p, .flow-card p, .cta-p {
+  color: var(--fg-muted); text-wrap: pretty;
+}
+.hero-lead { font-size: 1rem; line-height: 1.68; max-width: 500px; margin-bottom: var(--space-xl); }
+.sec-p { font-size: .975rem; line-height: 1.68; max-width: 580px; }
+.card p, .step-c p, .flow-card p { font-size: .875rem; line-height: 1.62; }
+
+/* mono eyebrows / labels */
+.sec-tag, .hero-lbl, .card-tag, .flow-step, .cta-lbl, .sc-title, .sb-head {
+  font-family: var(--font-mono); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.sec-tag { font-size: .68rem; color: var(--accent); margin-bottom: 14px; }
+.hero-lbl { font-size: .7rem; color: var(--accent-teal); letter-spacing: .1em; margin-bottom: var(--space-md); }
+.card-tag, .flow-step { font-size: .63rem; color: var(--fg-dim); margin-bottom: 10px; }
+.cta-lbl { font-size: .68rem; color: var(--fg-dim); margin-bottom: var(--space-md); }
+
+/* ---- 6. CARDS (DS bento) --------------------------------- */
+.card, .flow-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: var(--space-lg);
+  box-shadow: var(--shadow-bento); transition: all 300ms ease;
+}
+.card:hover, .flow-card:hover {
+  transform: translateY(-2px); box-shadow: var(--shadow-glass-hover); border-color: var(--border-hover);
+}
+.chip {
+  display: inline-block; font-family: var(--font-mono); font-size: .68rem; font-weight: 600;
+  padding: 2px 8px; border-radius: 999px; margin-bottom: 14px;
+}
+.chip-t { background: var(--teal-soft); color: var(--teal-text); }
+.chip-a { background: var(--accent-soft); color: var(--accent-bright); }
+
+/* ---- 7. SIGNAL / SIGNALS PANELS -------------------------- */
+.signal-card, .signals-box {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-glass); overflow: hidden;
+}
+.sc-node, .sc-mi {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+}
+.sc-node.hl { border-color: color-mix(in srgb, var(--accent) 35%, transparent); background: var(--accent-soft); }
+.sc-dot, .hm-dot { background: var(--accent-teal); }
+.sb-chk {
+  background: var(--teal-soft); border: 1px solid color-mix(in srgb, var(--accent-teal) 30%, transparent);
+  color: var(--accent-teal); border-radius: 5px;
+}
+
+/* ---- 8. STEPS -------------------------------------------- */
+.step { border-bottom: 1px solid var(--border); }
+.step:first-child { border-top: 1px solid var(--border); }
+.step-n { font-family: var(--font-mono); font-weight: 600; color: var(--fg-dim); }
+
+/* ---- 9. CV PREVIEW FRAME --------------------------------- */
+.cv-outer {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-glass);
+}
+.cv-chrome { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
+.chrome-url { background: var(--surface); border: 1px solid var(--border); color: var(--fg-muted); }
+
+/* ---- 10. FINAL CTA --------------------------------------- */
+.cta-box {
+  background: var(--bg-elevated); border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xl); box-shadow: var(--shadow-glass); position: relative; overflow: hidden;
+}
+.cta-box::before {
+  content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 55%; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+/* ---- 11. FOOTER & DIVIDERS ------------------------------- */
+footer { border-top: 1px solid var(--border); }
+.div { height: 1px; background: var(--border); }
+.ft-copy { font-family: var(--font-mono); color: var(--fg-dim); }
+
+/* ---- 12. DIVIDER LINES IN HERO CARD ---------------------- */
+.sc-divider { background: var(--border); }

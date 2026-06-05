@@ -1,26 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import type { ResumeLanguageRow } from "../lib/resume-server";
+import { useEffect, useState } from "react";
+import type { ResumeUserLocaleRow } from "../lib/resume-server";
 
 interface AddLanguageModalProps {
   existingLanguageCodes: string[];
   onClose: () => void;
-  onSuccess: (language: ResumeLanguageRow) => void;
+  onSuccess: (language: ResumeUserLocaleRow) => void;
+  language?: ResumeUserLocaleRow | null;
+  isDeleting?: boolean;
+  onDelete?: (language: ResumeUserLocaleRow) => Promise<void>;
+  onSetDefault?: (language: ResumeUserLocaleRow) => Promise<void>;
 }
 
 interface ApiResponse {
   ok?: boolean;
   error?: string;
-  language?: ResumeLanguageRow;
+  language?: ResumeUserLocaleRow;
 }
 
-export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: AddLanguageModalProps) {
+export function AddLanguageModal({
+  existingLanguageCodes,
+  onClose,
+  onSuccess,
+  language = null,
+  isDeleting = false,
+  onDelete,
+  onSetDefault,
+}: AddLanguageModalProps) {
   const [code, setCode] = useState("");
   const [label, setLabel] = useState("");
   const [shortLabel, setShortLabel] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const isEditing = Boolean(language);
+
+  useEffect(() => {
+    setCode(language?.code || "");
+    setLabel(language?.label || "");
+    setShortLabel(language?.short_label || "");
+    setError("");
+  }, [language]);
 
   function normalizeCode(input: string): string {
     return input.toLowerCase().trim().slice(0, 2);
@@ -40,7 +60,7 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
       return false;
     }
 
-    if (existingLanguageCodes.includes(normalized)) {
+    if (!isEditing && existingLanguageCodes.includes(normalized)) {
       setError("This language already exists.");
       return false;
     }
@@ -69,6 +89,7 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
           label: label.trim(),
           shortLabel: shortLabel.trim() || undefined,
           createDocument: true,
+          setDefault: false,
         }),
       });
 
@@ -80,7 +101,6 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
       }
 
       onSuccess(result.language);
-      onClose();
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -89,58 +109,48 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Add language version">
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={isEditing ? "Edit language version" : "Add language version"}>
       <button
         type="button"
         className="dashboard-modal__backdrop"
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="dashboard-modal__body" style={{ maxWidth: "420px" }}>
-        <h2 style={{ margin: "0 0 16px", fontSize: "1.1rem" }}>Add Language Version</h2>
+      <div className="dashboard-modal__body dashboard-modal__body--compact">
+        <div className="stack">
+          <div className="product-surface__eyebrow">Locale setup</div>
+          <h2 className="dashboard-modal__title">{isEditing ? "Edit Language Version" : "Add Language Version"}</h2>
+          <p className="dashboard-modal__copy">
+            {isEditing ? "Update the locale label, short badge, or default status for this account." : "Create a new locale entry and an associated resume document in one step."}
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "12px" }}>
-          <label style={{ display: "grid", gap: "4px" }}>
-            <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Language Code</span>
+        <form onSubmit={handleSubmit} className="dashboard-modal__form">
+          <label>
+            <span className="dashboard-modal__field-label">Language code</span>
             <input
               type="text"
               placeholder="e.g., en, pl, de"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isEditing}
               maxLength={2}
-              style={{
-                padding: "8px",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                color: "var(--text)",
-                font: "inherit",
-              }}
             />
           </label>
 
-          <label style={{ display: "grid", gap: "4px" }}>
-            <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Language Name</span>
+          <label>
+            <span className="dashboard-modal__field-label">Language name</span>
             <input
               type="text"
               placeholder="e.g., English, Polish"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               disabled={isLoading}
-              style={{
-                padding: "8px",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                color: "var(--text)",
-                font: "inherit",
-              }}
             />
           </label>
 
-          <label style={{ display: "grid", gap: "4px" }}>
-            <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Short Label (Optional)</span>
+          <label>
+            <span className="dashboard-modal__field-label">Short label</span>
             <input
               type="text"
               placeholder="e.g., En, Pl"
@@ -148,35 +158,42 @@ export function AddLanguageModal({ existingLanguageCodes, onClose, onSuccess }: 
               onChange={(e) => setShortLabel(e.target.value)}
               disabled={isLoading}
               maxLength={4}
-              style={{
-                padding: "8px",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                color: "var(--text)",
-                font: "inherit",
-              }}
             />
           </label>
 
-          {error && (
-            <div style={{ padding: "8px", borderRadius: "6px", background: "#fee2e2", color: "#7f1d1d", fontSize: "0.9rem" }}>
-              {error}
-            </div>
-          )}
+          {error ? <div className="dashboard-modal__error">{error}</div> : null}
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "8px" }}>
+          <div className="dashboard-modal__footer">
+            {isEditing && onDelete && language ? (
+              <button
+                type="button"
+                onClick={() => void onDelete(language)}
+                disabled={isLoading || isDeleting}
+                className="button button--ghost button--danger"
+              >
+                {isDeleting ? "Removing..." : "Remove"}
+              </button>
+            ) : null}
+            {isEditing && onSetDefault && language && !language.is_default ? (
+              <button
+                type="button"
+                onClick={() => void onSetDefault(language)}
+                disabled={isLoading}
+                className="button button--ghost"
+              >
+                Set default
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
               className="button button--ghost"
-              style={{ minWidth: "80px" }}
             >
               Cancel
             </button>
-            <button type="submit" disabled={isLoading} className="button button--primary" style={{ minWidth: "80px" }}>
-              {isLoading ? "Adding..." : "Add"}
+            <button type="submit" disabled={isLoading} className="button button--primary">
+              {isLoading ? (isEditing ? "Saving..." : "Adding...") : isEditing ? "Save changes" : "Add"}
             </button>
           </div>
         </form>

@@ -1,24 +1,32 @@
 "use client";
 
-import type { ResumeLanguageRow } from "../lib/resume-server";
+import type { ResumeUserLocaleRow } from "../lib/resume-server";
 
 interface LanguageBadgeRailProps {
-  languages: ResumeLanguageRow[];
+  languages: ResumeUserLocaleRow[];
   onAddLanguage: () => void;
+  onEditLanguage: (language: ResumeUserLocaleRow) => void;
   isLoading?: boolean;
 }
 
-export function LanguageBadgeRail({ languages, onAddLanguage, isLoading = false }: LanguageBadgeRailProps) {
-  const sorted = languages.sort((left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code));
+export function LanguageBadgeRail({ languages, onAddLanguage, onEditLanguage, isLoading = false }: LanguageBadgeRailProps) {
+  const sorted = [...languages].sort(
+    (left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code),
+  );
 
   return (
     <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
       {sorted.map((language) => (
-        <span
+        <button
           key={language.code}
+          type="button"
+          onClick={() => onEditLanguage(language)}
+          aria-label={`Edit language version ${language.label}`}
+          title={language.is_default ? `${language.label} (Default)` : language.label}
           style={{
             display: "inline-flex",
             alignItems: "center",
+            gap: "6px",
             padding: "4px 8px",
             borderRadius: "999px",
             background: "var(--accent-light, rgba(94, 106, 210, 0.12))",
@@ -26,10 +34,13 @@ export function LanguageBadgeRail({ languages, onAddLanguage, isLoading = false 
             fontSize: "0.85rem",
             fontWeight: 600,
             whiteSpace: "nowrap",
+            border: "none",
+            cursor: "pointer",
           }}
         >
-          {language.label}
-        </span>
+          <span>{language.label}</span>
+          {language.is_default ? <span style={{ fontSize: "0.72rem", opacity: 0.8 }}>Default</span> : null}
+        </button>
       ))}
       <button
         type="button"

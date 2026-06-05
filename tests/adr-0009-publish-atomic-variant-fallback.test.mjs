@@ -29,8 +29,8 @@ test("ADR 0009 implementation details in server and API route", () => {
   const server = read("app/lib/resume-server.ts");
   const route = read("app/api/resume/presets/[presetId]/publish/route.ts");
   
-  // Verify propagation in server
-  assert.equal(server.includes("throw new Error(rpcResult.error || \"CV Version publish failed.\");"), true);
+  // Verify propagation in server — step-labelled throws
+  assert.equal(server.includes("[publish:step=rpc]"), true);
   
   // Verify propagation in API route
   assert.equal(route.includes("const message = error instanceof Error ? error.message : \"CV Version publish failed.\";"), true);
