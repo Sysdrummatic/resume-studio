@@ -255,7 +255,10 @@ const RESUME_PUBLISHED_CV_LOCALE_SELECT =
 const RESUME_PUBLIC_LINK_SELECT =
   "id,document_id,user_id,preset_id,slug,person_slug,public_id,active_published_cv_id,default_locale,available_locales,is_active,status,allow_indexing,published_at,revoked_at,legacy_slug,updated_at";
 const PROFILE_IDENTITY_SELECT = "id,display_name,first_name,last_name,person_slug,name_sync_mode";
+<<<<<<< HEAD
 const PROFILE_SLUG_SELECT = "id,display_name,person_slug";
+=======
+>>>>>>> b96514082da90282419f95af3d5554e152899789
 const OPEN_CV_PUBLIC_CONTRACT_MAJOR = "1";
 const OPEN_CV_MIN_SCHEMA_VERSION = 1;
 
@@ -717,7 +720,10 @@ async function fetchProfileIdentity(userId: string): Promise<ProfileIdentityRow 
 }
 
 async function updateProfileIdentity(
+<<<<<<< HEAD
   accessToken: string,
+=======
+>>>>>>> b96514082da90282419f95af3d5554e152899789
   userId: string,
   values: Record<string, string | null>,
 ): Promise<boolean> {
@@ -760,6 +766,7 @@ async function syncProfileNameFromResumeYaml(
     values.person_slug = buildCompactPersonSlug(parts.firstName, parts.lastName, displayName);
   }
 
+<<<<<<< HEAD
   return updateProfileIdentity(accessToken, userId, values);
 }
 
@@ -786,12 +793,30 @@ async function refreshProfilePersonSlugForPublish(accessToken: string, userId: s
     nameParts.firstName,
     nameParts.lastName,
     profile.display_name || userId,
+=======
+  return updateProfileIdentity(userId, values);
+}
+
+async function refreshProfilePersonSlugForPublish(accessToken: string, userId: string): Promise<boolean> {
+  const profile = await fetchProfileIdentity(userId);
+  if (!profile) {
+    return false;
+  }
+
+  const displayName = buildProfileDisplayName(profile.first_name, profile.last_name, profile.display_name || userId);
+  const nameParts = displayName ? splitProfileName(displayName) : { firstName: "", lastName: "" };
+  const nextPersonSlug = buildCompactPersonSlug(
+    profile.first_name || nameParts.firstName,
+    profile.last_name || nameParts.lastName,
+    displayName || userId,
+>>>>>>> b96514082da90282419f95af3d5554e152899789
   );
 
   if (profile.person_slug === nextPersonSlug) {
     return true;
   }
 
+<<<<<<< HEAD
   const updateResult = await updateTable({
     table: "profiles",
     useServiceRole: true,
@@ -807,6 +832,9 @@ async function refreshProfilePersonSlugForPublish(accessToken: string, userId: s
   }
 
   return true;
+=======
+  return updateProfileIdentity(userId, { person_slug: nextPersonSlug });
+>>>>>>> b96514082da90282419f95af3d5554e152899789
 }
 
 async function fetchDocumentByLocale(
