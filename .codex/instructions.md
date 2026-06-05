@@ -11,6 +11,11 @@ Deliver small, safe, reversible changes with predictable outcomes.
   - Next.js rebuild: `app/` (App Router), TypeScript + React, server routes under `app/api/`.
 - Supabase is the source of truth for auth/data; migrations live in `supabase/migrations/`.
 
+## Supabase CLI
+- Zainstalowany globalnie: `npm install -g supabase`
+- Use: `supabase db push` (push local migrations)
+- Use: `supabase pull` (pull schema z production)
+
 ## Decision Priorities
 1. Security and data integrity
 2. Functional correctness

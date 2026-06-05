@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow, ResumePresetSelection } from "../lib/resume-server";
+import type {
+  ResumeDocumentRow,
+  ResumePresetRow,
+  ResumePresetSelection,
+  ResumeUserLocaleRow,
+  ResumeUserLocaleVersionRow,
+} from "../lib/resume-server";
 import { buildPublishedResumeExportUrls, parseCanonicalPublicPath } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
@@ -16,7 +22,7 @@ import { AddLanguageModal } from "./AddLanguageModal";
 type Props = {
   masterResume: ResumeDocumentRow | null;
   initialDocuments: ResumeDocumentRow[];
-  languageOptions: ResumeLanguageRow[];
+  languageOptions: ResumeUserLocaleRow[];
   initialPresets: ResumePresetRow[];
   actorRole: string;
 };
@@ -177,7 +183,7 @@ function getFallbackLanguageLabel(locale: string): { label: string; shortLabel: 
   return { label: locale.toUpperCase(), shortLabel: locale.slice(0, 2).toUpperCase() };
 }
 
-function buildLanguageOptions(documents: ResumeDocumentRow[], languages: ResumeLanguageRow[]): ResumeLanguageOption[] {
+function buildLanguageOptions(documents: ResumeDocumentRow[], languages: ResumeUserLocaleRow[]): ResumeLanguageOption[] {
   const metadata = new Map(languages.map((language) => [language.code, language]));
   return documents
     .map((document) => {
@@ -332,7 +338,7 @@ function PresetPreviewModal({
 }: {
   masterResume: ResumeDocumentRow;
   documents: ResumeDocumentRow[];
-  languages: ResumeLanguageRow[];
+  languages: ResumeUserLocaleRow[];
   preset: ResumePresetRow;
   allowDraftPdf: boolean;
   onClose: () => void;
@@ -394,9 +400,46 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const { toast, showToast, closeToast } = useStatusToast();
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
-  const [languageVersions, setLanguageVersions] = useState<ResumeLanguageRow[]>(languageOptions);
+  const [documents, setDocuments] = useState<ResumeDocumentRow[]>(initialDocuments);
+  const [languageVersions, setLanguageVersions] = useState<ResumeUserLocaleRow[]>(languageOptions);
   const [isAddLanguageModalOpen, setIsAddLanguageModalOpen] = useState(false);
   const [isLoadingLanguages, setIsLoadingLanguages] = useState(false);
+  const [editingLanguage, setEditingLanguage] = useState<ResumeUserLocaleRow | null>(null);
+  const [isDeletingLanguage, setIsDeletingLanguage] = useState(false);
+
+  const refreshLanguages = useCallback(async () => {
+    setIsLoadingLanguages(true);
+    try {
+      const response = await fetch("/api/resume/languages?withDocuments=true");
+      if (!response.ok) {
+        throw new Error("Language list could not be refreshed.");
+      }
+      const data = (await response.json()) as { languages?: ResumeUserLocaleVersionRow[] };
+      if (data.languages) {
+        setLanguageVersions(
+          data.languages.map((language) => ({
+            user_id: language.user_id,
+            code: language.code,
+            label: language.label,
+            short_label: language.short_label,
+            labels: language.labels,
+            is_default: language.is_default,
+            sort_order: language.sort_order,
+            created_at: language.created_at,
+            updated_at: language.updated_at,
+            label_override: language.label_override,
+            short_label_override: language.short_label_override,
+          })),
+        );
+        setDocuments(data.languages.map((language) => language.document).filter((document): document is ResumeDocumentRow => Boolean(document)));
+      }
+    } catch (err) {
+      console.error("Failed to fetch languages:", err);
+      showToast("Language list could not be refreshed.", "warning");
+    } finally {
+      setIsLoadingLanguages(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
     if (!masterResume) return;
@@ -413,32 +456,16 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   }, [masterResume]);
 
   useEffect(() => {
-    async function fetchLanguages() {
-      setIsLoadingLanguages(true);
-      try {
-        const response = await fetch("/api/resume/languages?withDocuments=true");
-        if (response.ok) {
-          const data = (await response.json()) as { languages?: ResumeLanguageRow[] };
-          if (data.languages) {
-            setLanguageVersions(data.languages);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch languages:", err);
-      } finally {
-        setIsLoadingLanguages(false);
-      }
-    }
-
-    fetchLanguages();
-  }, []);
+    void refreshLanguages();
+  }, [refreshLanguages]);
 
   const hasMasterResume = Boolean(masterResume);
   const latestMasterUpdate = masterResume ? new Date(masterResume.updated_at).toLocaleString() : "Not saved yet";
-  const publishableLocales = (initialDocuments.length ? initialDocuments : masterResume ? [masterResume] : []).map((doc) => doc.locale);
+  const publishableLocales = (documents.length ? documents : masterResume ? [masterResume] : []).map((doc) => doc.locale);
   const publishedPresetCount = presets.filter((preset) => preset.is_public).length;
   const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
   const localeCount = languageVersions.length;
+  const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!masterResume) return;
@@ -451,7 +478,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
         selection: payload.selection,
         allowIndexing: payload.allowIndexing,
         aiGenerated: payload.aiGenerated,
-        defaultLocale: masterResume.locale,
+        defaultLocale: defaultLanguageVersion?.code || masterResume.locale,
         isPublic: false,
       }),
     });
@@ -525,6 +552,18 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     showToast("CV Version deleted.", "error");
   }
 
+  function copyPublicLink(preset: ResumePresetRow) {
+    if (!preset.canonical_public_path) {
+      showToast("Publish this CV Version first.", "warning");
+      return;
+    }
+    const url = `${window.location.origin}${preset.canonical_public_path}`;
+    navigator.clipboard.writeText(url).then(
+      () => showToast("Public link copied to clipboard."),
+      () => showToast("Could not copy to clipboard.", "error"),
+    );
+  }
+
   function exportText(preset: ResumePresetRow) {
     const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
     if (!exportUrls) {
@@ -562,13 +601,49 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     });
   }
 
-  function handleAddLanguageSuccess(language: ResumeLanguageRow) {
-    setLanguageVersions((current) => {
-      const exists = current.some((l) => l.code === language.code);
-      return exists ? current : [...current, language];
-    });
+  async function handleAddLanguageSuccess(language: ResumeUserLocaleRow) {
+    await refreshLanguages();
     setIsAddLanguageModalOpen(false);
-    showToast(`Language version "${language.label}" added successfully.`);
+    setEditingLanguage(null);
+    showToast(`Language version "${language.label}" saved successfully.`);
+  }
+
+  async function handleSetDefaultLanguage(language: ResumeUserLocaleRow) {
+    const response = await fetch("/api/resume/languages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: language.code, setDefault: true }),
+    });
+    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale };
+    if (!response.ok || payload.error) {
+      showToast(payload.error || "Default language update failed.", "error");
+      return;
+    }
+    await refreshLanguages();
+    setEditingLanguage((current) => (current ? { ...current, is_default: current.code === language.code } : current));
+    showToast("Default language updated.");
+  }
+
+  async function handleDeleteLanguage(language: ResumeUserLocaleRow) {
+    setIsDeletingLanguage(true);
+    try {
+      const response = await fetch("/api/resume/languages", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: language.code }),
+      });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok || payload.error) {
+        showToast(payload.error || "Language version delete failed.", "error");
+        return;
+      }
+      await refreshLanguages();
+      setEditingLanguage(null);
+      setIsAddLanguageModalOpen(false);
+      showToast(`Language version "${language.label}" removed.`);
+    } finally {
+      setIsDeletingLanguage(false);
+    }
   }
 
   const modalOptions = useMemo(() => options, [options]);
@@ -582,10 +657,17 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           <div className="stack">
             <div className="product-surface__eyebrow">Source record</div>
             <h2 className="dashboard-panel__title">Master Resume</h2>
-            <p className="dashboard-panel__lead">English master CV. Updated {latestMasterUpdate}</p>
+            <p className="dashboard-panel__lead">Primary source CV. Updated {latestMasterUpdate}</p>
             <LanguageBadgeRail
               languages={languageVersions}
-              onAddLanguage={() => setIsAddLanguageModalOpen(true)}
+              onAddLanguage={() => {
+                setEditingLanguage(null);
+                setIsAddLanguageModalOpen(true);
+              }}
+              onEditLanguage={(language) => {
+                setEditingLanguage(language);
+                setIsAddLanguageModalOpen(true);
+              }}
               isLoading={isLoadingLanguages}
             />
           </div>
@@ -685,6 +767,11 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                         Publish
                       </button>
                     )}
+                    {preset.is_public && (
+                      <button type="button" className="button button--ghost button--small" onClick={() => copyPublicLink(preset)}>
+                        Copy link
+                      </button>
+                    )}
                     <button type="button" className="button button--ghost button--small" onClick={() => exportText(preset)}>
                       ATS (TXT)
                     </button>
@@ -733,8 +820,8 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
       {previewPreset && masterResume ? (
         <PresetPreviewModal
           masterResume={masterResume}
-          documents={initialDocuments}
-          languages={languageOptions}
+          documents={documents}
+          languages={languageVersions}
           preset={previewPreset}
           allowDraftPdf={actorRole === "admin"}
           onClose={() => {
@@ -747,7 +834,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
         <PublishSavedVersionModal
           draft={publishDraft}
           locales={Array.from(new Set(publishableLocales))}
-          languageOptions={languageOptions}
+          languageOptions={languageVersions}
           onClose={() => setPublishDraft(null)}
           onPublish={publishPreset}
         />
@@ -756,8 +843,15 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
       {isAddLanguageModalOpen ? (
         <AddLanguageModal
           existingLanguageCodes={languageVersions.map((l) => l.code)}
-          onClose={() => setIsAddLanguageModalOpen(false)}
+          language={editingLanguage}
+          isDeleting={isDeletingLanguage}
+          onClose={() => {
+            setIsAddLanguageModalOpen(false);
+            setEditingLanguage(null);
+          }}
           onSuccess={handleAddLanguageSuccess}
+          onDelete={handleDeleteLanguage}
+          onSetDefault={handleSetDefaultLanguage}
         />
       ) : null}
 

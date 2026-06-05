@@ -11,9 +11,10 @@ test("language badge rail displays ordered language badges with plus button", ()
   const component = read("app/dashboard/LanguageBadgeRail.tsx");
 
   assert.equal(component.includes("export function LanguageBadgeRail"), true);
-  assert.equal(component.includes("languages: ResumeLanguageRow[]"), true);
+  assert.equal(component.includes("languages: ResumeUserLocaleRow[]"), true);
   assert.equal(component.includes("onAddLanguage: () => void"), true);
-  assert.equal(component.includes("languages.sort"), true);
+  assert.equal(component.includes("onEditLanguage"), true);
+  assert.equal(component.includes("[...languages].sort"), true);
   assert.equal(component.includes("sort_order"), true);
   assert.equal(component.includes("--accent-light"), true);
   assert.equal(component.includes("--accent-dark"), true);
@@ -25,7 +26,9 @@ test("add language modal form validates and submits to language API", () => {
 
   assert.equal(component.includes("export function AddLanguageModal"), true);
   assert.equal(component.includes("existingLanguageCodes: string[]"), true);
-  assert.equal(component.includes("onSuccess: (language: ResumeLanguageRow) => void"), true);
+  assert.equal(component.includes("onSuccess: (language: ResumeUserLocaleRow) => void"), true);
+  assert.equal(component.includes("onDelete?: (language: ResumeUserLocaleRow) => Promise<void>"), true);
+  assert.equal(component.includes("onSetDefault?: (language: ResumeUserLocaleRow) => Promise<void>"), true);
   assert.equal(component.includes("normalizeCode"), true);
   assert.equal(component.includes("validateForm"), true);
   assert.equal(component.includes("/api/resume/languages"), true);
@@ -46,9 +49,12 @@ test("dashboard client integrates language badge rail and modal", () => {
   assert.equal(client.includes("isLoadingLanguages"), true);
   assert.equal(client.includes("setLanguageVersions"), true);
   assert.equal(client.includes("/api/resume/languages?withDocuments=true"), true);
+  assert.equal(client.includes("refreshLanguages"), true);
   assert.equal(client.includes("LanguageBadgeRail"), true);
   assert.equal(client.includes("AddLanguageModal"), true);
   assert.equal(client.includes("handleAddLanguageSuccess"), true);
+  assert.equal(client.includes("handleSetDefaultLanguage"), true);
+  assert.equal(client.includes("handleDeleteLanguage"), true);
 });
 
 test("dashboard language management preserves existing preset and publish behavior", () => {
@@ -63,7 +69,8 @@ test("dashboard language management preserves existing preset and publish behavi
   assert.equal(client.includes("publishableLocales"), true);
   assert.equal(client.includes("savePreset"), true);
   assert.equal(client.includes("publishPreset"), true);
-  assert.equal(page.includes("fetchResumeLanguages"), true);
+  assert.equal(page.includes("fetchResumeUserLocalesForUser"), true);
+  assert.equal(page.includes("bootstrapResumeUserLocales"), true);
   assert.equal(page.includes("fetchResumePresetsForUser"), true);
 });
 
@@ -72,8 +79,10 @@ test("language API endpoint supports add and fetch operations", () => {
 
   assert.equal(route.includes("export async function GET"), true);
   assert.equal(route.includes("export async function POST"), true);
-  assert.equal(route.includes("fetchResumeLanguages"), true);
-  assert.equal(route.includes("upsertResumeLanguage"), true);
+  assert.equal(route.includes("bootstrapResumeUserLocales"), true);
+  assert.equal(route.includes("fetchResumeLanguageVersionsForUser"), true);
+  assert.equal(route.includes("upsertResumeUserLocale"), true);
+  assert.equal(route.includes("deleteResumeUserLocale"), true);
   assert.equal(route.includes("withDocuments"), true);
   assert.equal(route.includes("code:"), true);
   assert.equal(route.includes("label:"), true);

@@ -228,60 +228,6 @@ export default function AccountAccessClient({ reason, verified }: Props) {
 
   return (
     <div className="auth-access">
-      <section className="card auth-access__intro">
-        <div className="auth-access__intro-copy stack">
-          <div className="product-surface__eyebrow">Platform access</div>
-          <div className="stack">
-            <h1 className="product-surface__title">Resume publication access without leaving the workflow.</h1>
-            <p className="product-surface__lead">
-              Use one account for the master record, locale-specific resume versions, and publication controls. The auth
-              flow stays technical and direct: sign up, verify, recover, continue.
-            </p>
-          </div>
-        </div>
-
-        <div className="auth-access__signal-grid" aria-label="Account flow summary">
-          <article className="auth-access__signal">
-            <span className="auth-access__signal-label">Access model</span>
-            <strong>Verified sessions</strong>
-            <p>Email verification gates access before protected surfaces open.</p>
-          </article>
-          <article className="auth-access__signal">
-            <span className="auth-access__signal-label">Destination</span>
-            <strong>Hub and dashboard</strong>
-            <p>Continue into the personal hub, master resume editor, and CV version management.</p>
-          </article>
-          <article className="auth-access__signal">
-            <span className="auth-access__signal-label">Control</span>
-            <strong>Role-aware shell</strong>
-            <p>Auth, RBAC, and publication state are kept on the same platform surface.</p>
-          </article>
-        </div>
-
-        <div className="auth-access__timeline" aria-label="Access steps">
-          <div className="auth-access__timeline-item">
-            <span className="auth-access__timeline-index">01</span>
-            <div>
-              <h2>Create or restore access</h2>
-              <p>Choose sign in, account creation, or password recovery from the same form surface.</p>
-            </div>
-          </div>
-          <div className="auth-access__timeline-item">
-            <span className="auth-access__timeline-index">02</span>
-            <div>
-              <h2>Verify the account</h2>
-              <p>Verification email and recovery messaging stay contextual, without branching to separate pages.</p>
-            </div>
-          </div>
-          <div className="auth-access__timeline-item">
-            <span className="auth-access__timeline-index">03</span>
-            <div>
-              <h2>Continue into the workspace</h2>
-              <p>After sign-in, the platform restores the authenticated shell and directs you into `/user`.</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section className="card auth-card auth-access__card">
         <div className="auth-card__header">

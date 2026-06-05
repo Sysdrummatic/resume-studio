@@ -1,19 +1,22 @@
 import Script from "next/script";
 import UserClient from "./user-client";
 import { requireAuthenticatedActor } from "../lib/auth-server";
-import { fetchResumeDocumentsForUser, fetchResumeLanguages, fetchResumePresetsForUser } from "../lib/resume-server";
+import { bootstrapResumeUserLocales, fetchResumeDocumentsForUser, fetchResumePresetsForUser, fetchResumeUserLocalesForUser } from "../lib/resume-server";
 import "./user.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function UserPage() {
   const actor = await requireAuthenticatedActor();
+  await bootstrapResumeUserLocales(actor.accessToken, actor.userId, actor.displayName);
   const resumeDocuments = await fetchResumeDocumentsForUser(actor.userId);
   const [resumePresets, resumeLanguages] = await Promise.all([
     fetchResumePresetsForUser(actor.userId),
-    fetchResumeLanguages({ enabledOnly: true }),
+    fetchResumeUserLocalesForUser(actor.userId),
   ]);
-  const masterResume = resumeDocuments.find((document) => document.locale === "en") || resumeDocuments[0] || null;
+  const ownedLocaleCodes = new Set(resumeLanguages.map((language) => language.code));
+  const ownedDocuments = resumeDocuments.filter((document) => ownedLocaleCodes.has(document.locale));
+  const masterResume = ownedDocuments.find((document) => document.locale === "en") || ownedDocuments[0] || null;
 
   return (
     <>
@@ -21,7 +24,7 @@ export default async function UserPage() {
       <UserClient 
         actor={actor}
         masterResume={masterResume} 
-        initialDocuments={resumeDocuments} 
+        initialDocuments={ownedDocuments} 
         languageOptions={resumeLanguages} 
         initialPresets={resumePresets} 
       />

@@ -19,6 +19,8 @@ type SupabaseAuthUsersResponse = {
 };
 
 const NETWORK_ERROR_MESSAGE = "Authentication service is temporarily unavailable. Try again.";
+const PROFILE_SELECT =
+  "id,display_name,first_name,last_name,person_slug,name_sync_mode,avatar_url,role,bio,is_active,created_at,updated_at";
 
 function buildHeaders(
   options: {
@@ -291,7 +293,7 @@ export async function insertTable({
 export async function fetchProfileById(userId: string, accessToken: string): Promise<AuthResult<ProfileRecord>> {
   const result = await queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
+    select: PROFILE_SELECT,
     accessToken,
     query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
@@ -306,7 +308,7 @@ export async function fetchProfileById(userId: string, accessToken: string): Pro
 export async function fetchProfileByIdAsService(userId: string): Promise<AuthResult<ProfileRecord>> {
   const result = await queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
+    select: PROFILE_SELECT,
     useServiceRole: true,
     query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
@@ -321,7 +323,7 @@ export async function fetchProfileByIdAsService(userId: string): Promise<AuthRes
 export async function fetchAllProfilesAsService(): Promise<AuthResult<ProfileRecord[]>> {
   return queryTable<ProfileRecord>({
     table: "profiles",
-    select: "id,display_name,avatar_url,role,bio,is_active,created_at,updated_at",
+    select: PROFILE_SELECT,
     useServiceRole: true,
     query: "order=created_at.desc",
   });

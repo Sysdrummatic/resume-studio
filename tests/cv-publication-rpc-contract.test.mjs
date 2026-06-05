@@ -43,3 +43,22 @@ test("PR4 republish semantics keep active public-id and issue a new id only afte
   assert.equal(sql.includes("insert into public.resume_public_links"), true);
   assert.equal(sql.includes("public_id") && sql.includes("active_published_cv_id"), true);
 });
+
+test("republish after unpublish reactivates revoked public link instead of duplicating canonical URL", () => {
+  const sql = read("supabase/migrations/20260604_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
+
+  assert.equal(sql.includes("create or replace function public.publish_resume_saved_version"), true);
+  assert.equal(sql.includes("for update"), true);
+  assert.equal(sql.includes("if revoked_link.id is not null then"), true);
+  assert.match(
+    sql,
+    /update public\.resume_public_links\s+set[\s\S]+where id = revoked_link\.id;/,
+    "Expected revoked public links to be reactivated through UPDATE by id.",
+  );
+  assert.equal(sql.includes("insert into public.resume_public_links"), true);
+  assert.match(
+    sql,
+    /else\s+insert into public\.resume_public_links/,
+    "Expected INSERT to remain only for first publish when no revoked link exists.",
+  );
+});

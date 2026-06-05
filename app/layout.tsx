@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           { href: "/dashboard", label: "Dashboard" },
         ]
       : []),
-    { href: "/resume", label: "Sample CV" },
+    ...(actor ? [{ href: "/resume", label: "Sample CV" }] : []),
     ...(!actor ? [{ href: "/login", label: "Login" }] : []),
   ];
 
@@ -53,6 +53,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                   <AccountMenu
                     email={actor.email}
                     displayName={actor.displayName}
+                    firstName={actor.firstName}
+                    lastName={actor.lastName}
                     avatarUrl={actor.avatarUrl}
                     role={actor.role}
                     isActive={actor.isActive}
