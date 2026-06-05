@@ -4,6 +4,7 @@ import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
 import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
+import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
 
 export type ResumeDocumentRow = {
   id: string;
@@ -48,6 +49,50 @@ export type ResumeLanguageInput = {
   shortLabel?: string;
   labels?: Record<string, string>;
   isEnabled?: boolean;
+};
+
+type ProfileIdentityRow = {
+  id: string;
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  person_slug: string | null;
+  name_sync_mode: "auto" | "manual" | null;
+};
+
+type ResumeUserLocaleRecord = {
+  user_id: string;
+  locale: ResumeLocale;
+  label_override: string | null;
+  short_label_override: string | null;
+  is_default: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ResumeUserLocaleRow = {
+  user_id: string;
+  code: ResumeLocale;
+  label: string;
+  short_label: string;
+  labels: Record<string, string>;
+  is_default: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  label_override: string | null;
+  short_label_override: string | null;
+};
+
+export type ResumeUserLocaleVersionRow = ResumeUserLocaleRow & {
+  document: ResumeDocumentRow | null;
+};
+
+export type ResumeUserLocaleInput = {
+  code: string;
+  label: string;
+  shortLabel?: string;
 };
 
 export type ResumePresetSelection = {
@@ -197,6 +242,8 @@ const FALLBACK_LANGUAGE_LABELS: Record<string, { label: string; shortLabel: stri
 };
 
 const RESUME_LANGUAGE_SELECT = "code,label,short_label,labels,is_enabled,sort_order,created_at,updated_at";
+const RESUME_USER_LOCALE_SELECT =
+  "user_id,locale,label_override,short_label_override,is_default,sort_order,created_at,updated_at";
 const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,ai_generated,updated_at";
 const RESUME_PRESET_SELECT =
   "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at";
@@ -207,6 +254,8 @@ const RESUME_PUBLISHED_CV_LOCALE_SELECT =
   "id,published_cv_id,user_id,locale,source_document_id,source_revision_id,source_variant_id,title,yaml_content,schema_version,selection,labels,render_data,ai_generated,created_at";
 const RESUME_PUBLIC_LINK_SELECT =
   "id,document_id,user_id,preset_id,slug,person_slug,public_id,active_published_cv_id,default_locale,available_locales,is_active,status,allow_indexing,published_at,revoked_at,legacy_slug,updated_at";
+const PROFILE_IDENTITY_SELECT = "id,display_name,first_name,last_name,person_slug,name_sync_mode";
+const PROFILE_SLUG_SELECT = "id,display_name,person_slug";
 const OPEN_CV_PUBLIC_CONTRACT_MAJOR = "1";
 const OPEN_CV_MIN_SCHEMA_VERSION = 1;
 
@@ -296,6 +345,35 @@ export function validateResumeLanguageInput(input: ResumeLanguageInput): string[
   return errors;
 }
 
+function normalizeResumeUserLocaleInput(input: ResumeUserLocaleInput): ResumeUserLocaleInput {
+  const code = normalizeLocale(input.code);
+  const label = String(input.label || "").trim();
+  const shortLabel = String(input.shortLabel || code.toUpperCase())
+    .trim()
+    .toUpperCase()
+    .slice(0, 2);
+  return {
+    code,
+    label,
+    shortLabel,
+  };
+}
+
+export function validateResumeUserLocaleInput(input: ResumeUserLocaleInput): string[] {
+  const normalized = normalizeResumeUserLocaleInput(input);
+  const errors: string[] = [];
+  if (!/^[a-z]{2}$/.test(normalized.code)) {
+    errors.push("Language code must be a two-letter ISO code.");
+  }
+  if (!normalized.label) {
+    errors.push("Language name is required.");
+  }
+  if (!/^[A-Z]{2}$/.test(normalized.shortLabel || "")) {
+    errors.push("Short label must contain two uppercase letters.");
+  }
+  return errors;
+}
+
 export async function fetchResumeLanguages(options: { enabledOnly?: boolean } = {}): Promise<ResumeLanguageRow[]> {
   const enabledQuery = options.enabledOnly ? "&is_enabled=eq.true" : "";
   const result = await queryTable<ResumeLanguageRow>({
@@ -316,6 +394,79 @@ export async function fetchResumeLanguages(options: { enabledOnly?: boolean } = 
     is_enabled: Boolean(language.is_enabled),
     sort_order: Number(language.sort_order) || 100,
   }));
+}
+
+async function fetchRawResumeUserLocalesForUser(
+  userId: string,
+  options: { accessToken?: string } = {},
+): Promise<ResumeUserLocaleRecord[]> {
+  const queryOptions = {
+    table: "resume_user_locales",
+    select: RESUME_USER_LOCALE_SELECT,
+    query: `user_id=eq.${encodeURIComponent(userId)}&order=is_default.desc,sort_order.asc,locale.asc`,
+  };
+  const result = options.accessToken
+    ? await queryTable<ResumeUserLocaleRecord>({
+        ...queryOptions,
+        accessToken: options.accessToken,
+      })
+    : await queryTable<ResumeUserLocaleRecord>({
+        ...queryOptions,
+        useServiceRole: true,
+      });
+
+  if (!result.data || result.error) {
+    return [];
+  }
+
+  return result.data.map((row) => ({
+    ...row,
+    locale: normalizeLocale(row.locale),
+    label_override: row.label_override ? String(row.label_override).trim() || null : null,
+    short_label_override: row.short_label_override ? String(row.short_label_override).trim().toUpperCase().slice(0, 2) || null : null,
+    is_default: Boolean(row.is_default),
+    sort_order: Number(row.sort_order) || 100,
+  }));
+}
+
+function resolveResumeUserLocales(
+  userLocales: ResumeUserLocaleRecord[],
+  globalLocales: ResumeLanguageRow[],
+): ResumeUserLocaleRow[] {
+  const globalByCode = new Map(globalLocales.map((language) => [language.code, language]));
+  return userLocales.map((row) => {
+    const globalLocale = globalByCode.get(row.locale);
+    const fallback = getFallbackLanguageLabel(row.locale);
+    return {
+      user_id: row.user_id,
+      code: row.locale,
+      label: row.label_override || globalLocale?.label || fallback.label,
+      short_label: row.short_label_override || globalLocale?.short_label || fallback.shortLabel,
+      labels: globalLocale?.labels || normalizeLabelMap(PREVIEW_LABELS.en),
+      is_default: row.is_default,
+      sort_order: row.sort_order,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      label_override: row.label_override,
+      short_label_override: row.short_label_override,
+    };
+  });
+}
+
+export async function fetchResumeUserLocalesForUser(
+  userId: string,
+  options: { accessToken?: string } = {},
+): Promise<ResumeUserLocaleRow[]> {
+  const [userLocales, globalLocales] = await Promise.all([
+    fetchRawResumeUserLocalesForUser(userId, options),
+    fetchResumeLanguages(),
+  ]);
+  return resolveResumeUserLocales(userLocales, globalLocales);
+}
+
+async function fetchResumeUserLocaleMapForUser(userId: string): Promise<Map<ResumeLocale, ResumeUserLocaleRow>> {
+  const locales = await fetchResumeUserLocalesForUser(userId);
+  return new Map(locales.map((locale) => [locale.code, locale]));
 }
 
 export async function upsertResumeLanguage(input: ResumeLanguageInput): Promise<ResumeLanguageRow | null> {
@@ -380,6 +531,84 @@ export async function upsertResumeLanguage(input: ResumeLanguageInput): Promise<
   };
 }
 
+async function ensureGlobalResumeLanguage(input: ResumeUserLocaleInput): Promise<ResumeLanguageRow | null> {
+  const normalized = normalizeResumeUserLocaleInput(input);
+  const existingLanguages = await fetchResumeLanguages();
+  const existing = existingLanguages.find((language) => language.code === normalized.code);
+  if (existing) {
+    return existing;
+  }
+
+  return upsertResumeLanguage({
+    code: normalized.code,
+    label: normalized.label,
+    shortLabel: normalized.shortLabel,
+  });
+}
+
+export async function upsertResumeUserLocale(
+  accessToken: string,
+  userId: string,
+  input: ResumeUserLocaleInput,
+  options: { setDefault?: boolean } = {},
+): Promise<ResumeUserLocaleRow | null> {
+  const normalized = normalizeResumeUserLocaleInput(input);
+  if (validateResumeUserLocaleInput(normalized).length > 0) {
+    return null;
+  }
+
+  const globalLanguage = await ensureGlobalResumeLanguage(normalized);
+  if (!globalLanguage) {
+    return null;
+  }
+
+  const currentLocales = await fetchRawResumeUserLocalesForUser(userId, { accessToken });
+  const existing = currentLocales.find((locale) => locale.locale === normalized.code);
+  const shouldSetDefault = options.setDefault === true || currentLocales.length === 0;
+
+  if (existing) {
+    const updated = await updateTable({
+      table: "resume_user_locales",
+      accessToken,
+      query: `user_id=eq.${encodeURIComponent(userId)}&locale=eq.${encodeURIComponent(normalized.code)}`,
+      values: {
+        label_override: normalized.label || globalLanguage.label,
+        short_label_override: normalized.shortLabel || globalLanguage.short_label,
+        updated_at: new Date().toISOString(),
+      },
+    });
+    if (!updated.data || updated.error || !updated.data[0]) {
+      return null;
+    }
+  } else {
+    const inserted = await insertTable({
+      table: "resume_user_locales",
+      accessToken,
+      values: {
+        user_id: userId,
+        locale: normalized.code,
+        label_override: normalized.label || globalLanguage.label,
+        short_label_override: normalized.shortLabel || globalLanguage.short_label,
+        is_default: currentLocales.length === 0,
+        sort_order: ((currentLocales[currentLocales.length - 1]?.sort_order || 0) + 10) || 10,
+      },
+    });
+    if (!inserted.data || inserted.error || !inserted.data[0]) {
+      return null;
+    }
+  }
+
+  if (shouldSetDefault) {
+    const defaultUpdated = await setDefaultResumeLocaleForUser(accessToken, userId, normalized.code);
+    if (!defaultUpdated) {
+      return null;
+    }
+  }
+
+  const nextLocales = await fetchResumeUserLocalesForUser(userId, { accessToken });
+  return nextLocales.find((locale) => locale.code === normalized.code) || null;
+}
+
 export async function disableResumeLanguage(codeInput: string): Promise<boolean> {
   const code = normalizeLocale(codeInput);
   const updated = await updateTable({
@@ -392,6 +621,49 @@ export async function disableResumeLanguage(codeInput: string): Promise<boolean>
     },
   });
   return Boolean(updated.data && !updated.error && updated.data.length > 0);
+}
+
+export async function deleteResumeUserLocale(
+  accessToken: string,
+  userId: string,
+  codeInput: string,
+): Promise<{ ok: boolean; defaultLocale: ResumeLocale | null }> {
+  const code = normalizeLocale(codeInput);
+  const currentLocales = await fetchResumeUserLocalesForUser(userId, { accessToken });
+  const target = currentLocales.find((locale) => locale.code === code);
+  if (!target || currentLocales.length <= 1) {
+    return { ok: false, defaultLocale: currentLocales.find((locale) => locale.is_default)?.code || null };
+  }
+
+  const deleteResult = await deleteTable({
+    table: "resume_user_locales",
+    accessToken,
+    query: `user_id=eq.${encodeURIComponent(userId)}&locale=eq.${encodeURIComponent(code)}`,
+  });
+
+  if (!deleteResult.data || deleteResult.error || deleteResult.data.length === 0) {
+    return { ok: false, defaultLocale: currentLocales.find((locale) => locale.is_default)?.code || null };
+  }
+
+  const remainingLocales = currentLocales.filter((locale) => locale.code !== code);
+  const presets = await fetchResumePresetsForUser(userId);
+  const deletedLocaleWasInUse = target.is_default || presets.some((preset) => preset.default_locale === code);
+
+  if (!deletedLocaleWasInUse) {
+    return { ok: true, defaultLocale: remainingLocales.find((locale) => locale.is_default)?.code || null };
+  }
+
+  const fallbackLocale =
+    remainingLocales.find((locale) => locale.code === "en")?.code ||
+    remainingLocales.find((locale) => locale.is_default)?.code ||
+    remainingLocales[0]?.code ||
+    null;
+  if (!fallbackLocale) {
+    return { ok: false, defaultLocale: null };
+  }
+
+  const defaultUpdated = await setDefaultResumeLocaleForUser(accessToken, userId, fallbackLocale);
+  return { ok: defaultUpdated, defaultLocale: defaultUpdated ? fallbackLocale : null };
 }
 
 export function buildDefaultResumeYaml(name: string): string {
@@ -419,6 +691,122 @@ export function buildDefaultResumeYaml(name: string): string {
     "education: []",
     "courses: []",
   ].join("\n");
+}
+
+function extractResumeNameFromYaml(yamlContent: string): string {
+  try {
+    const parsed = yaml.load(yamlContent);
+    return normalizeResumeDocument(parsed).name.trim();
+  } catch {
+    return "";
+  }
+}
+
+async function fetchProfileIdentity(userId: string): Promise<ProfileIdentityRow | null> {
+  const result = await queryTable<ProfileIdentityRow>({
+    table: "profiles",
+    select: PROFILE_IDENTITY_SELECT,
+    useServiceRole: true,
+    query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
+  });
+
+  if (!result.data || result.error) {
+    return null;
+  }
+  return result.data[0] || null;
+}
+
+async function updateProfileIdentity(
+  accessToken: string,
+  userId: string,
+  values: Record<string, string | null>,
+): Promise<boolean> {
+  const result = await updateTable({
+    table: "profiles",
+    useServiceRole: true,
+    query: `id=eq.${encodeURIComponent(userId)}`,
+    values,
+  });
+
+  return Boolean(result.data?.[0]) && !result.error;
+}
+
+async function syncProfileNameFromResumeYaml(
+  accessToken: string,
+  userId: string,
+  yamlContent: string,
+  options: { updatePersonSlug?: boolean } = {},
+): Promise<boolean> {
+  const resumeName = extractResumeNameFromYaml(yamlContent);
+  if (!resumeName) {
+    return true;
+  }
+
+  const profile = await fetchProfileIdentity(userId);
+  if (!profile || normalizeNameSyncMode(profile.name_sync_mode) === "manual") {
+    return true;
+  }
+
+  const parts = splitProfileName(resumeName);
+  const displayName = buildProfileDisplayName(parts.firstName, parts.lastName, resumeName);
+  const values: Record<string, string | null> = {
+    first_name: parts.firstName,
+    last_name: parts.lastName,
+    display_name: displayName,
+    name_sync_mode: "auto",
+  };
+
+  if (options.updatePersonSlug) {
+    values.person_slug = buildCompactPersonSlug(parts.firstName, parts.lastName, displayName);
+  }
+
+  return updateProfileIdentity(accessToken, userId, values);
+}
+
+async function refreshProfilePersonSlugForPublish(accessToken: string, userId: string): Promise<boolean> {
+  type ProfileSlugRow = { id: string; display_name: string | null; person_slug: string | null };
+  const profileResult = await queryTable<ProfileSlugRow>({
+    table: "profiles",
+    select: PROFILE_SLUG_SELECT,
+    useServiceRole: true,
+    query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
+  });
+
+  if (profileResult.error) {
+    throw new Error(`[publish:step=refreshSlug:fetchProfile] Supabase error: ${profileResult.error} (status=${profileResult.status})`);
+  }
+  if (!profileResult.data || profileResult.data.length === 0) {
+    throw new Error(`[publish:step=refreshSlug:fetchProfile] No profile row for userId=${userId} — profile may not exist`);
+  }
+
+  const profile = profileResult.data[0];
+
+  const nameParts = profile.display_name ? splitProfileName(profile.display_name) : { firstName: "", lastName: "" };
+  const nextPersonSlug = buildCompactPersonSlug(
+    nameParts.firstName,
+    nameParts.lastName,
+    profile.display_name || userId,
+  );
+
+  if (profile.person_slug === nextPersonSlug) {
+    return true;
+  }
+
+  const updateResult = await updateTable({
+    table: "profiles",
+    useServiceRole: true,
+    query: `id=eq.${encodeURIComponent(userId)}`,
+    values: { person_slug: nextPersonSlug },
+  });
+
+  if (updateResult.error) {
+    throw new Error(`[publish:step=refreshSlug:updateSlug] Supabase error: ${updateResult.error} (status=${updateResult.status})`);
+  }
+  if (!updateResult.data?.[0]) {
+    throw new Error(`[publish:step=refreshSlug:updateSlug] UPDATE returned 0 rows for userId=${userId} — trigger may have blocked it`);
+  }
+
+  return true;
 }
 
 async function fetchDocumentByLocale(
@@ -475,14 +863,85 @@ export async function fetchResumeDocumentsForUser(userId: string): Promise<Resum
   return result.data;
 }
 
-export async function fetchResumeLanguageVersionsForUser(userId: string): Promise<
-  Array<
-    ResumeLanguageRow & {
-      document: ResumeDocumentRow | null;
+async function ensureResumeDocumentRecord(
+  accessToken: string,
+  userId: string,
+  locale: ResumeLocale,
+  fallbackName: string,
+): Promise<ResumeDocumentPayload | null> {
+  let document = await fetchDocumentByLocale(accessToken, userId, locale);
+
+  if (!document) {
+    const insertResult = await insertTable({
+      table: "resume_documents",
+      accessToken,
+      values: {
+        user_id: userId,
+        locale,
+        title: "Master resume",
+        yaml_content: buildDefaultResumeYaml(fallbackName),
+        schema_version: 1,
+        is_public: false,
+        allow_indexing: false,
+        ai_generated: false,
+        created_by: userId,
+      },
+    });
+
+    if (!insertResult.data || insertResult.error) {
+      return null;
     }
-  >
-> {
-  const [languages, documents] = await Promise.all([fetchResumeLanguages(), fetchResumeDocumentsForUser(userId)]);
+
+    document = insertResult.data[0] as unknown as ResumeDocumentRow;
+    await callRpc<number>({
+      functionName: "create_resume_revision",
+      payload: {
+        input_document_id: document.id,
+        input_change_note: "Initial seed",
+      },
+      accessToken,
+    });
+  }
+
+  const revisions = await fetchRevisions(accessToken, document.id);
+  return {
+    document,
+    revisions,
+  };
+}
+
+export async function bootstrapResumeUserLocales(accessToken: string, userId: string, fallbackName: string): Promise<ResumeUserLocaleRow[]> {
+  const currentLocales = await fetchResumeUserLocalesForUser(userId, { accessToken });
+  if (currentLocales.length > 0) {
+    if (!currentLocales.some((locale) => locale.is_default)) {
+      const fallbackLocale = currentLocales.find((locale) => locale.code === "en")?.code || currentLocales[0]?.code;
+      if (fallbackLocale) {
+        await setDefaultResumeLocaleForUser(accessToken, userId, fallbackLocale);
+      }
+    }
+    return fetchResumeUserLocalesForUser(userId, { accessToken });
+  }
+
+  const nextLocale = await upsertResumeUserLocale(
+    accessToken,
+    userId,
+    {
+      code: "en",
+      label: "English",
+      shortLabel: "EN",
+    },
+    { setDefault: true },
+  );
+  if (!nextLocale) {
+    return [];
+  }
+
+  await ensureResumeDocumentRecord(accessToken, userId, "en", fallbackName);
+  return fetchResumeUserLocalesForUser(userId, { accessToken });
+}
+
+export async function fetchResumeLanguageVersionsForUser(userId: string): Promise<ResumeUserLocaleVersionRow[]> {
+  const [languages, documents] = await Promise.all([fetchResumeUserLocalesForUser(userId), fetchResumeDocumentsForUser(userId)]);
   return languages.map((language) => ({
     ...language,
     document: documents.find((document) => document.locale === language.code) || null,
@@ -744,8 +1203,7 @@ async function fetchLegacyPublishedResumePresetFromRow(
     return null;
   }
 
-  const languageMetadata = await fetchResumeLanguages({ enabledOnly: true });
-  const languageLabels = new Map(languageMetadata.map((language) => [language.code, language]));
+  const languageLabels = await fetchResumeUserLocaleMapForUser(normalizedPreset.user_id);
 
   return {
     preset: normalizedPreset,
@@ -989,8 +1447,7 @@ async function fetchSnapshotPublishedResumePresetBySlug(
     return { foundSnapshotLink: true, published: null };
   }
 
-  const languageMetadata = await fetchResumeLanguages({ enabledOnly: true });
-  const languageLabels = new Map(languageMetadata.map((language) => [language.code, language]));
+  const languageLabels = link.user_id ? await fetchResumeUserLocaleMapForUser(link.user_id) : new Map();
   const languageSlug = link.legacy_slug || link.slug || normalizedSlug;
   const document = publishedLocaleToDocument(activeLocaleRow, link, snapshot);
   const preset = buildPublishedSnapshotPreset(link, snapshot, activeLocaleRow, defaultLocale, normalizedSlug);
@@ -1052,8 +1509,7 @@ async function fetchPublishedResumeBySnapshotLink(
     return null;
   }
 
-  const languageMetadata = await fetchResumeLanguages({ enabledOnly: true });
-  const languageLabels = new Map(languageMetadata.map((language) => [language.code, language]));
+  const languageLabels = link.user_id ? await fetchResumeUserLocaleMapForUser(link.user_id) : new Map();
   const document = publishedLocaleToDocument(activeLocaleRow, link, snapshot);
   const normalizedSlug = link.slug || link.legacy_slug || "";
   const preset = buildPublishedSnapshotPreset(link, snapshot, activeLocaleRow, defaultLocale, normalizedSlug);
@@ -1247,8 +1703,37 @@ export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitem
 
 export async function setDefaultResumeLocaleForUser(accessToken: string, userId: string, localeInput: string): Promise<boolean> {
   const locale = normalizeLocale(localeInput);
-  const documents = await fetchResumeDocumentsForUser(userId);
-  if (!documents.some((document) => document.locale === locale)) {
+  const locales = await fetchResumeUserLocalesForUser(userId, { accessToken });
+  if (!locales.some((entry) => entry.code === locale)) {
+    return false;
+  }
+
+  const currentDefault = locales.find((entry) => entry.is_default)?.code || null;
+  if (currentDefault && currentDefault !== locale) {
+    const clearCurrent = await updateTable({
+      table: "resume_user_locales",
+      accessToken,
+      query: `user_id=eq.${encodeURIComponent(userId)}&locale=eq.${encodeURIComponent(currentDefault)}`,
+      values: {
+        is_default: false,
+        updated_at: new Date().toISOString(),
+      },
+    });
+    if (clearCurrent.error) {
+      return false;
+    }
+  }
+
+  const setNext = await updateTable({
+    table: "resume_user_locales",
+    accessToken,
+    query: `user_id=eq.${encodeURIComponent(userId)}&locale=eq.${encodeURIComponent(locale)}`,
+    values: {
+      is_default: true,
+      updated_at: new Date().toISOString(),
+    },
+  });
+  if (setNext.error || !setNext.data || !setNext.data[0]) {
     return false;
   }
 
@@ -1369,10 +1854,29 @@ async function fetchResumePresetById(accessToken: string, userId: string, preset
   if (!result.data || result.error || !result.data[0]) {
     return null;
   }
-  return {
+  const preset = {
     ...result.data[0],
     default_locale: normalizeLocale(result.data[0].default_locale),
     selection: normalizeResumePresetSelection(result.data[0].selection),
+  };
+
+  const linkResult = await queryTable<ResumePublicLinkRow>({
+    table: "resume_public_links",
+    select: RESUME_PUBLIC_LINK_SELECT,
+    useServiceRole: true,
+    query: `preset_id=eq.${encodeURIComponent(presetId)}&user_id=eq.${encodeURIComponent(userId)}&status=eq.active&is_active=eq.true&limit=1`,
+  });
+  const link = linkResult.data?.[0] ?? null;
+  return {
+    ...preset,
+    canonical_public_path:
+      link?.person_slug && link?.public_id
+        ? `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`
+        : null,
+    compatibility_public_path:
+      link?.legacy_slug || preset.slug
+        ? `/r/${encodeURIComponent(link?.legacy_slug || preset.slug || "")}`
+        : null,
   };
 }
 
@@ -1393,17 +1897,25 @@ export async function publishResumePreset(
   },
 ): Promise<ResumePresetRow | null> {
   const existingPreset = await fetchResumePresetById(accessToken, userId, presetId);
-  if (!existingPreset) return null;
+  if (!existingPreset) throw new Error("[publish:step=fetchPreset] preset not found or access denied");
 
   const documents = await fetchResumeDocumentsForUser(userId);
   const documentById = new Map(documents.map((document) => [document.id, document]));
   const baseDocument = documentById.get(existingPreset.document_id);
-  if (!baseDocument) return null;
+  if (!baseDocument) throw new Error(`[publish:step=fetchDocument] document ${existingPreset.document_id} not found (docs returned: ${documents.length})`);
+
+  const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, baseDocument.yaml_content, {
+    updatePersonSlug: true,
+  });
+  if (!profileSynced) throw new Error("[publish:step=syncProfile] updateProfileIdentity returned no rows — check SUPABASE_SERVICE_ROLE_KEY and profiles table");
+
+  const publicIdentityReady = await refreshProfilePersonSlugForPublish(accessToken, userId);
+  if (!publicIdentityReady) throw new Error("[publish:step=refreshSlug] fetchProfileIdentity returned null or updateProfileIdentity returned no rows");
 
   const explicitLocales = Array.from(new Set(payload.selectedLocales.map((locale) => normalizeLocale(locale))));
-  if (explicitLocales.length === 0) return null;
+  if (explicitLocales.length === 0) throw new Error("[publish:step=locales] selectedLocales empty after normalization");
   const requestedDefaultLocale = normalizeLocale(payload.defaultLocale || existingPreset.default_locale || baseDocument.locale);
-  if (!explicitLocales.includes(requestedDefaultLocale)) return null;
+  if (!explicitLocales.includes(requestedDefaultLocale)) throw new Error(`[publish:step=defaultLocale] ${requestedDefaultLocale} not in ${explicitLocales.join(",")}`);
 
   const rpcResult = await callRpc<string>({
     functionName: "publish_resume_saved_version",
@@ -1416,11 +1928,8 @@ export async function publishResumePreset(
     },
     accessToken,
   });
-  if (rpcResult.error) {
-    throw new Error(rpcResult.error || "CV Version publish failed.");
-  }
-  if (!rpcResult.data) return null;
-
+  if (rpcResult.error) throw new Error(`[publish:step=rpc] ${rpcResult.error}`);
+  if (!rpcResult.data) throw new Error("[publish:step=rpc] publish_resume_saved_version returned no data");
 
   return fetchResumePresetById(accessToken, userId, presetId);
 }
@@ -1456,45 +1965,12 @@ export async function ensureResumeDocument(
   fallbackName: string,
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
-  let document = await fetchDocumentByLocale(accessToken, userId, locale);
-
-  if (!document) {
-    const insertResult = await insertTable({
-      table: "resume_documents",
-      accessToken,
-      values: {
-        user_id: userId,
-        locale,
-        title: "Master resume",
-        yaml_content: buildDefaultResumeYaml(fallbackName),
-        schema_version: 1,
-        is_public: false,
-        allow_indexing: false,
-        ai_generated: false,
-        created_by: userId,
-      },
-    });
-
-    if (!insertResult.data || insertResult.error) {
-      return null;
-    }
-
-    document = insertResult.data[0] as unknown as ResumeDocumentRow;
-    await callRpc<number>({
-      functionName: "create_resume_revision",
-      payload: {
-        input_document_id: document.id,
-        input_change_note: "Initial seed",
-      },
-      accessToken,
-    });
+  const locales = await bootstrapResumeUserLocales(accessToken, userId, fallbackName);
+  if (!locales.some((entry) => entry.code === locale)) {
+    return null;
   }
 
-  const revisions = await fetchRevisions(accessToken, document.id);
-  return {
-    document,
-    revisions,
-  };
+  return ensureResumeDocumentRecord(accessToken, userId, locale, fallbackName);
 }
 
 export async function publishResumeDocument(
@@ -1566,6 +2042,17 @@ export async function publishResumeDocument(
     return null;
   }
 
+  const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, payload.yamlContent, {
+    updatePersonSlug: true,
+  });
+  if (!profileSynced) {
+    return null;
+  }
+  const publicIdentityReady = await refreshProfilePersonSlugForPublish(accessToken, userId);
+  if (!publicIdentityReady) {
+    return null;
+  }
+
   const revisions = await fetchRevisions(accessToken, document.id);
   return {
     document,
@@ -1627,6 +2114,13 @@ export async function saveResumeDraftDocument(
       return null;
     }
     document = updateResult.data[0] as unknown as ResumeDocumentRow;
+  }
+
+  const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, payload.yamlContent, {
+    updatePersonSlug: true,
+  });
+  if (!profileSynced) {
+    return null;
   }
 
   const revisions = await fetchRevisions(accessToken, document.id);

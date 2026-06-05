@@ -45,6 +45,10 @@ export type SupabaseSessionResponse = {
 export type ProfileRecord = {
   id: string;
   display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  person_slug: string | null;
+  name_sync_mode: "auto" | "manual" | null;
   avatar_url: string | null;
   role: AppRole;
   bio: string | null;
@@ -58,6 +62,10 @@ export type SessionActor = {
   email: string;
   emailConfirmed: boolean;
   displayName: string;
+  firstName: string;
+  lastName: string;
+  personSlug: string | null;
+  nameSyncMode: "auto" | "manual";
   avatarUrl: string | null;
   role: AppRole;
   bio: string | null;

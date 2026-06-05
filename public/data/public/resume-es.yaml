@@ -1,0 +1,94 @@
+brand_initials: "AH"
+name: "Ariana Holt"
+summary: |
+  Soy una Product Scientist creativa que combina investigacion UX y ciencia de datos para desarrollar herramientas de IA centradas en las personas.
+  Durante los ultimos siete anos he liderado equipos interdisciplinarios en plataformas para desarrolladores, creando marcos
+  que equilibran la experimentacion con la gobernanza. Me comunico con claridad con las partes interesadas, prototipo con rapidez
+  y nunca dejo de aprender.
+contact:
+  - label: Ubicacion
+    value: "Portland, OR"
+  - label: Telefono
+    value: +1 555 204 1130
+    link: tel:+15552041130
+  - label: Correo electronico
+    value: ariana.holt@example.com
+    link: mailto:ariana.holt@example.com
+  - label: LinkedIn
+    value: linkedin.com/in/arianaholt
+    link: https://www.linkedin.com/in/arianaholt
+  - label: Portafolio
+    value: arianaholt.dev
+    link: https://arianaholt.dev
+qr_codes:
+  - label: Sitio personal
+    image: images/qrs/qr.png
+    size: 130
+skills:
+  - name: Descubrimiento de producto
+    level: 4
+  - name: Narrativa con datos
+    level: 4
+  - name: Diseno de experimentos
+    level: 5
+tech_stack:
+  - Python
+  - TypeScript
+  - React
+  - Snowflake
+  - Looker
+  - Linear
+  - Figma
+  - Notion
+languages:
+  - name: Ingles
+    level_text: Nativo
+    level: 5
+  - name: Espanol
+    level_text: Profesional
+    level: 3
+interests:
+  - Senderismo urbano
+  - Diseno de ceramica
+  - Literatura de ciencia ficcion
+  - Voluntariado
+experience:
+  - period: "2022-03 – actual"
+    company: Nova Labs
+    role: Lead Product Scientist
+    highlights:
+      - Lance una plataforma de experimentacion adoptada en toda la empresa, reduciendo el tiempo de validacion en un 40%
+      - Mentoricé a 6 investigadores y analistas en narrativa con datos y facilitacion con stakeholders
+      - Co-cree un marco de IA etica aplicado a 5 productos insignia
+  - period: "2019-07 – 2022-02"
+    company: Interlink Systems
+    role: Senior UX Researcher
+    highlights:
+      - Lidere el discovery de una suite de herramientas para desarrolladores utilizada por mas de 1500 ingenieros
+      - Introduje una practica continua de entrevistas y paneles mixed-method
+      - Colabore con PMs para construir un modelo de priorizacion de roadmap con un 93% de alineacion entre stakeholders
+  - period: "2016-01 – 2019-06"
+    company: Harbor Robotics
+    role: Research Engineer
+    highlights:
+      - Disene la instrumentacion de telemetria de seguridad para robots de almacen
+      - Cree un playbook de experimentacion adoptado en 4 unidades de negocio
+      - Presente hallazgos trimestrales directamente al equipo ejecutivo y a inversores
+education:
+  - period: "2014-09 – 2015-12"
+    school: New York Institute of Technology, Master en Interaccion Persona-Computadora
+    detail: "Tesis: Analitica interpretable para sistemas autonomos"
+  - period: "2010-09 – 2014-06"
+    school: Oregon State University, Bachelor en Ciencias de la Computacion
+    detail: "Minor en Ciencias Cognitivas"
+courses:
+  - year: 2025
+    name: Certificacion en Responsible AI Systems – Gradient School
+  - year: 2024
+    name: Product Strategy Sprint – Reforge
+  - year: 2023
+    name: Narrative Visualization – Stanford Continuing Studies
+  - year: 2021
+    name: Advanced Experimentation – Udacity
+  - year: 2020
+    name: Leadership Intensive – On Deck

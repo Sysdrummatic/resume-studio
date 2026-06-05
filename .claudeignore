@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.next/
+dist/
+build/
+.vercel/
+.turbo/
+
+# Locks
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Version control
+.git/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Database
+.supabase/
+supabase/migrations/
+
+# Testing
+coverage/
+
+# Third-party
+public/images/
+
+

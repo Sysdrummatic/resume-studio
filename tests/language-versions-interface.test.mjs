@@ -32,8 +32,10 @@ test("language version API creates metadata and prepares a resume document", () 
   assert.equal(route.includes("requireRequestActor({ anyCapability: \"resume.language.read_own\" })"), true);
   assert.equal(server.includes("fetchResumeLanguageVersionsForUser"), true);
   assert.equal(server.includes("upsertResumeLanguage"), true);
-  assert.equal(server.includes("disableResumeLanguage"), true);
-  assert.equal(server.includes("validateResumeLanguageInput"), true);
+  assert.equal(server.includes("upsertResumeUserLocale"), true);
+  assert.equal(server.includes("deleteResumeUserLocale"), true);
+  assert.equal(server.includes("validateResumeUserLocaleInput"), true);
+  assert.equal(server.includes("bootstrapResumeUserLocales"), true);
   assert.equal(server.includes("const updated = await updateTable"), true);
   assert.equal(server.includes("is_public: false"), true);
 });
@@ -47,7 +49,7 @@ test("resume locale handling supports newly added two-letter languages", () => {
   assert.equal(schema.includes("export type ResumeLocale = string"), true);
   assert.equal(schema.includes("/^[a-z]{2}$/.test(normalized) ? normalized : \"en\""), true);
   assert.equal(editor.includes("searchParams.get(\"locale\")"), true);
-  assert.equal(editor.includes("setLanguageOptions(payload.languages.sort"), true);
+  assert.equal(editor.includes("const sorted = payload.languages.sort"), true);
   assert.equal(preview.includes("locale={locale}"), true);
   assert.equal(renderer.includes("buildResumeRendererLabels(locale, labels)"), true);
 });
@@ -77,6 +79,20 @@ test("public language switching only exposes published documents and uses preset
   assert.equal(server.includes("languageDocuments.length === 0"), true);
   assert.equal(migration.includes("resume_preset_variants_update_own_or_staff"), true);
   assert.equal(migration.includes("and d.locale = resume_preset_variants.locale"), true);
+});
+
+test("resume user locale schema separates owner locale state from the global language catalog", () => {
+  const migration = read("supabase/migrations/20260603_resume_user_locales.sql");
+  const server = read("app/lib/resume-server.ts");
+
+  assert.equal(migration.includes("create table if not exists public.resume_user_locales"), true);
+  assert.equal(migration.includes("label_override"), true);
+  assert.equal(migration.includes("short_label_override"), true);
+  assert.equal(migration.includes("is_default boolean not null default false"), true);
+  assert.equal(migration.includes("grant select, insert, update, delete on public.resume_user_locales to authenticated"), true);
+  assert.equal(migration.includes("insert into public.resume_user_locales"), true);
+  assert.equal(server.includes("fetchResumeUserLocalesForUser"), true);
+  assert.equal(server.includes("fetchResumeUserLocaleMapForUser"), true);
 });
 
 test("master resume editor loads saved EN documents instead of replacing them with the template", () => {

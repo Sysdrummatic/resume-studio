@@ -55,12 +55,12 @@ All Phase E architectural contracts are documented:
 - [x] Reorganize documentation for better tracking
 - [ ] Create Lukasz Michta's own public CV snapshot
 - [ ] Publish on canonical route (live example for new users)
-- [ ] Link from landing page and marketing materials
 - [ ] Verify SEO metadata renders correctly
-- [ ] Adjust Landing page to project start
+- [x] Adjust Landing page to project start
 - [ ] Create first login user profile creator
-- [ ] Make a foundation for profiles information
+- [x] Make a foundation for profiles information
 - [ ] Fix styling in Personal Hub tab
+- [ ] Fix locale creator and workflow
 - [ ] Improve the user experience
 - [ ] Prepare onboarding materials for beta users (how to use editor, publish, share)
 - [ ] Announce private beta sign-ups to tech writer communities

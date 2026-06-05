@@ -3,7 +3,7 @@ import type { AppRole, RequestActorAuthorizationOptions, SessionActor } from "./
 import { clearAuthCookies, readAuthTokens, setAuthCookies } from "./auth-cookies";
 import { getAuthUser, refreshSession } from "./supabase-http";
 import { isRoleAuthorized } from "./rbac";
-import { normalizeEmail, normalizeDisplayName, resolveProfile } from "./auth-profile";
+import { normalizeEmail, normalizeProfileForActor, resolveProfile } from "./auth-profile";
 
 type RequestAuthResult =
   | {
@@ -37,11 +37,16 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
     };
   }
 
+  const profile = normalizeProfileForActor(profileResult.data, email);
   const actor: SessionActor = {
     userId: userResult.data.id,
     email,
     emailConfirmed: Boolean(userResult.data.email_confirmed_at),
-    displayName: normalizeDisplayName(profileResult.data.display_name, email),
+    displayName: profile.displayName,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    personSlug: profile.personSlug,
+    nameSyncMode: profile.nameSyncMode,
     avatarUrl: profileResult.data.avatar_url,
     role: profileResult.data.role,
     bio: profileResult.data.bio,

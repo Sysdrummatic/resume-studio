@@ -22,20 +22,8 @@ import type {
   ResumeSkill,
   ResumeSummaryItem,
 } from "../lib/resume-schema";
-import type { ResumePresetRow } from "../lib/resume-server";
+import type { ResumeDocumentRow, ResumePresetRow, ResumeUserLocaleVersionRow } from "../lib/resume-server";
 import { defaultResumeDocument, normalizeResumeDocument, validateResumeDocument } from "../lib/resume-schema";
-
-type ResumeDocumentRow = {
-  id: string;
-  locale: ResumeLocale;
-  title: string;
-  yaml_content: string;
-  schema_version: number;
-  is_public: boolean;
-  allow_indexing: boolean;
-  ai_generated: boolean;
-  updated_at: string;
-};
 
 type ApiDocumentResponse = {
   ok?: boolean;
@@ -50,12 +38,7 @@ type ApiDocumentResponse = {
   revisions?: ResumeRevisionItem[];
 };
 
-type ResumeLanguageMetadata = {
-  code: ResumeLocale;
-  label: string;
-  short_label: string;
-  sort_order?: number;
-};
+type ResumeLanguageMetadata = ResumeUserLocaleVersionRow;
 
 type ApiLanguagesResponse = {
   ok?: boolean;
@@ -154,8 +137,7 @@ export default function EditorCanvasClient() {
   const searchParams = useSearchParams();
   const [locale, setLocale] = useState<ResumeLocale>(searchParams.get("locale") || "en");
   const [languageOptions, setLanguageOptions] = useState<ResumeLanguageMetadata[]>([
-    { code: "en", label: "English", short_label: "EN" },
-    { code: "pl", label: "Polski", short_label: "PL" },
+    { code: "en", label: "English", short_label: "EN", labels: {}, is_default: true, sort_order: 10, created_at: "", updated_at: "", user_id: "", label_override: null, short_label_override: null, document: null },
   ]);
   const [editorTab, setEditorTab] = useState<EditorTab>("yaml");
   const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>("basic");
@@ -192,7 +174,7 @@ export default function EditorCanvasClient() {
     [newLanguageShortLabel, normalizedNewLanguageCode],
   );
   const publishableLocales = useMemo(() => {
-    const next = Array.from(new Set(languageOptions.map((language) => language.code)));
+    const next = Array.from(new Set(languageOptions.filter((language) => language.document).map((language) => language.code)));
     if (documentRow?.locale && !next.includes(documentRow.locale)) {
       next.unshift(documentRow.locale);
     }
@@ -224,6 +206,24 @@ export default function EditorCanvasClient() {
       setIsPresetsLoading(false);
     }
   }, [showToast]);
+
+  const refreshLanguages = useCallback(async () => {
+    const response = await fetch("/api/resume/languages?withDocuments=true");
+    const payload = (await response.json()) as ApiLanguagesResponse;
+    if (!response.ok || payload.error || !payload.languages?.length) {
+      throw new Error(payload.error || "Language list could not be refreshed.");
+    }
+
+    const sorted = payload.languages.sort(
+      (left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code),
+    );
+    setLanguageOptions(sorted);
+    const nextDefaultLocale = sorted.find((language) => language.is_default)?.code || sorted[0]?.code || "en";
+    setDefaultLocale(nextDefaultLocale);
+    if (!sorted.some((language) => language.code === locale)) {
+      setLocale(nextDefaultLocale);
+    }
+  }, [locale]);
 
 
   const loadLocaleDocument = useCallback(
@@ -312,7 +312,11 @@ export default function EditorCanvasClient() {
         const response = await fetch("/api/resume/languages?withDocuments=true");
         const payload = (await response.json()) as ApiLanguagesResponse;
         if (mounted && payload.languages?.length) {
-          setLanguageOptions(payload.languages.sort((left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code)));
+          const sorted = payload.languages.sort(
+            (left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code),
+          );
+          setLanguageOptions(sorted);
+          setDefaultLocale(sorted.find((language) => language.is_default)?.code || sorted[0]?.code || "en");
         }
       } catch {
         if (mounted) {
@@ -330,10 +334,6 @@ export default function EditorCanvasClient() {
   useEffect(() => {
     void loadPresets();
   }, [loadPresets]);
-
-  useEffect(() => {
-    setDefaultLocale((current) => current || locale);
-  }, [locale]);
 
   async function saveLanguageVersion() {
     if (!/^[a-z]{2}$/.test(normalizedNewLanguageCode)) {
@@ -370,13 +370,14 @@ export default function EditorCanvasClient() {
       showToast(payload.error || "Language version save failed.", "error");
       return;
     }
+    await refreshLanguages();
     setIsLanguageModalOpen(false);
     setEditingLanguageCode(null);
     setNewLanguageCode("");
     setNewLanguageLabel("");
     setNewLanguageShortLabel("");
     setLocale(normalizedNewLanguageCode as ResumeLocale);
-    showToast("Language version created.");
+    showToast(editingLanguageCode ? "Language version updated." : "Language version created.");
   }
 
   async function setDefaultLanguage(code: ResumeLocale) {
@@ -390,6 +391,7 @@ export default function EditorCanvasClient() {
       showToast(payload.error || "Default language update failed.", "error");
       return;
     }
+    await refreshLanguages();
     setDefaultLocale(payload.defaultLocale || code);
     showToast("Default language updated.");
   }
@@ -400,14 +402,14 @@ export default function EditorCanvasClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
     });
-    const payload = (await response.json()) as { error?: string };
+    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale };
     if (!response.ok || payload.error) {
       showToast(payload.error || "Language version delete failed.", "error");
       return;
     }
-    setLanguageOptions((current) => current.filter((language) => language.code !== code));
+    await refreshLanguages();
     if (locale === code) {
-      const fallback = languageOptions.find((language) => language.code !== code)?.code || "en";
+      const fallback = payload.defaultLocale || languageOptions.find((language) => language.code !== code)?.code || "en";
       setLocale(fallback as ResumeLocale);
     }
     showToast("Language version deleted.");

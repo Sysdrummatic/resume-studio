@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import {
+  bootstrapResumeUserLocales,
+  deleteResumeUserLocale,
   ensureResumeDocument,
-  disableResumeLanguage,
   fetchResumeLanguageVersionsForUser,
-  fetchResumeLanguages,
   setDefaultResumeLocaleForUser,
-  upsertResumeLanguage,
-  validateResumeLanguageInput,
+  upsertResumeUserLocale,
+  validateResumeUserLocaleInput,
 } from "../../../lib/resume-server";
 import { normalizeLocale } from "../../../lib/resume-schema";
 
@@ -27,13 +27,30 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
 
+  await bootstrapResumeUserLocales(actorResult.accessToken, actorResult.actor.userId, actorResult.actor.displayName);
+
   const { searchParams } = new URL(request.url);
   const withDocuments = searchParams.get("withDocuments") === "true";
-  const languages = withDocuments
-    ? await fetchResumeLanguageVersionsForUser(actorResult.actor.userId)
-    : await fetchResumeLanguages({ enabledOnly: true });
+  const languages = await fetchResumeLanguageVersionsForUser(actorResult.actor.userId);
 
-  return NextResponse.json({ ok: true, languages });
+  return NextResponse.json({
+    ok: true,
+    languages: withDocuments
+      ? languages
+      : languages.map((language) => ({
+          user_id: language.user_id,
+          code: language.code,
+          label: language.label,
+          short_label: language.short_label,
+          labels: language.labels,
+          is_default: language.is_default,
+          sort_order: language.sort_order,
+          created_at: language.created_at,
+          updated_at: language.updated_at,
+          label_override: language.label_override,
+          short_label_override: language.short_label_override,
+        })),
+  });
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -53,15 +70,15 @@ export async function POST(request: Request): Promise<Response> {
     code: String(body.code || ""),
     label: String(body.label || ""),
     shortLabel: body.shortLabel,
-    labels: body.labels,
-    isEnabled: body.isEnabled,
   };
-  const errors = validateResumeLanguageInput(input);
+  const errors = validateResumeUserLocaleInput(input);
   if (errors.length > 0) {
     return NextResponse.json({ error: errors.join(" ") }, { status: 400 });
   }
 
-  const language = await upsertResumeLanguage(input);
+  const language = await upsertResumeUserLocale(actorResult.accessToken, actorResult.actor.userId, input, {
+    setDefault: body.setDefault,
+  });
   if (!language) {
     return NextResponse.json({ error: "Language version could not be saved." }, { status: 500 });
   }
@@ -126,10 +143,10 @@ export async function DELETE(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Language code is required." }, { status: 400 });
   }
 
-  const deleted = await disableResumeLanguage(code);
-  if (!deleted) {
+  const deleted = await deleteResumeUserLocale(actorResult.accessToken, actorResult.actor.userId, code);
+  if (!deleted.ok) {
     return NextResponse.json({ error: "Language version could not be removed." }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, defaultLocale: deleted.defaultLocale });
 }

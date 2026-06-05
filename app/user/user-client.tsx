@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeLocale } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumeLanguageRow, ResumePresetRow } from "../lib/resume-server";
+import type { ResumeDocumentRow, ResumePresetRow, ResumeUserLocaleRow } from "../lib/resume-server";
 import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { Typography } from "../components/design-system/atoms/Typography";
@@ -18,7 +18,7 @@ type Props = {
   actor: SessionActor;
   masterResume: ResumeDocumentRow | null;
   initialDocuments: ResumeDocumentRow[];
-  languageOptions: ResumeLanguageRow[];
+  languageOptions: ResumeUserLocaleRow[];
   initialPresets: ResumePresetRow[];
 };
 

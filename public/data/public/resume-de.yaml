@@ -1,0 +1,95 @@
+brand_initials: "AH"
+name: "Ariana Holt"
+summary: |
+  Ich bin eine innovative Produktwissenschaftlerin, die UX-Forschung und Datenwissenschaft kombiniert,
+  um menschenzentrierte KI-Tools zu entwickeln. In den vergangenen sieben Jahren habe ich
+  funktionsübergreifende Teams für Entwicklerplattformen geleitet und Frameworks geschaffen,
+  die Experimentierfreude mit verantwortungsvoller Steuerung in Einklang bringen. Ich kommuniziere
+  klar mit Stakeholdern, entwickle schnell Prototypen und lerne kontinuierlich dazu.
+contact:
+  - label: Standort
+    value: "Portland, OR"
+  - label: Telefon
+    value: +1 555 204 1130
+    link: tel:+15552041130
+  - label: E-Mail
+    value: ariana.holt@example.com
+    link: mailto:ariana.holt@example.com
+  - label: LinkedIn
+    value: linkedin.com/in/arianaholt
+    link: https://www.linkedin.com/in/arianaholt
+  - label: Portfolio
+    value: arianaholt.dev
+    link: https://arianaholt.dev
+qr_codes:
+  - label: Persönliche Website
+    image: images/qrs/qr.png
+    size: 130
+skills:
+  - name: Produktentdeckung
+    level: 4
+  - name: Daten-Storytelling
+    level: 4
+  - name: Experimentdesign
+    level: 5
+tech_stack:
+  - Python
+  - TypeScript
+  - React
+  - Snowflake
+  - Looker
+  - Linear
+  - Figma
+  - Notion
+languages:
+  - name: Englisch
+    level_text: Muttersprache
+    level: 5
+  - name: Spanisch
+    level_text: Beruflich
+    level: 3
+interests:
+  - Wandern in der Stadt
+  - Keramikdesign
+  - Science-Fiction-Literatur
+  - Ehrenamtliches Engagement
+experience:
+  - period: "2022-03 – heute"
+    company: Nova Labs
+    role: Lead Product Scientist
+    highlights:
+      - Experimentierplattform eingeführt, die unternehmensweit übernommen wurde und die Validierungszeit um 40 % verkürzte
+      - 6 Forscher und Analysten in Daten-Storytelling und Stakeholder-Moderation betreut
+      - Gemeinsam ein ethisches KI-Framework entwickelt, das in 5 Flaggschiff-Produkten angewendet wird
+  - period: "2019-07 – 2022-02"
+    company: Interlink Systems
+    role: Senior UX Researcher
+    highlights:
+      - Discovery für eine Entwickler-Tooling-Suite geleitet, die von über 1.500 Ingenieuren genutzt wird
+      - Kontinuierliche Interview-Praxis und Mixed-Method-Dashboards eingeführt
+      - Mit Produktmanagern ein Roadmap-Priorisierungsmodell entwickelt mit 93 % Stakeholder-Zustimmung
+  - period: "2016-01 – 2019-06"
+    company: Harbor Robotics
+    role: Research Engineer
+    highlights:
+      - Sicherheitstelemetrie für Lagerroboter konzipiert und instrumentiert
+      - Experimentier-Playbook entwickelt, das in 4 Geschäftsbereichen übernommen wurde
+      - Quartalsberichte direkt vor Führungskräften und Investoren präsentiert
+education:
+  - period: "2014-09 – 2015-12"
+    school: New York Institute of Technology, Master of Human-Computer Interaction
+    detail: "Abschlussarbeit: Interpretierbare Analytik für autonome Systeme"
+  - period: "2010-09 – 2014-06"
+    school: Oregon State University, Bachelor of Computer Science
+    detail: "Nebenfach Kognitionswissenschaft"
+courses:
+  - year: 2025
+    name: Zertifizierung für verantwortungsvolle KI-Systeme – Gradient School
+  - year: 2024
+    name: Produktstrategie-Sprint – Reforge
+  - year: 2023
+    name: Narrative Visualisierung – Stanford Continuing Studies
+  - year: 2021
+    name: Fortgeschrittenes Experimentieren – Udacity
+  - year: 2020
+    name: Leadership Intensivprogramm – On Deck
