@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Download, FileText } from "lucide-react";
+import { ChevronDown, Download, FileText } from "lucide-react";
 import { StatusToast, useStatusToast } from "../status-toast";
 import ResumeBadges from "../resume-badges";
 import ResumeLanguageSwitcher from "../resume-language-switcher";
@@ -34,6 +34,7 @@ type Props = {
   actions?: {
     pdf?: ResumeRenderAction;
     ats?: ResumeRenderAction;
+    atsMenu?: ResumeRenderAction[];
   };
   scrollContainerRef?: React.RefObject<HTMLElement>;
   embedded?: boolean;
@@ -109,6 +110,83 @@ function ResumeActionButton({
       <span className="hero__export-button-icon" aria-hidden="true">{icon}</span>
       <span>{action.label}</span>
     </button>
+  );
+}
+
+function AtsExportDropdown({ label, items }: { label: string; items: ResumeRenderAction[] }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      const firstItem = containerRef.current?.querySelector<HTMLElement>(".hero__export-menu-item");
+      firstItem?.focus();
+    }
+  }, [open]);
+
+  return (
+    <div className="hero__export-dropdown" ref={containerRef}>
+      <button
+        type="button"
+        ref={buttonRef}
+        className="hero__export-button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="hero__export-button-icon" aria-hidden="true">
+          <FileText size={14} />
+        </span>
+        <span>{label}</span>
+        <span className={`hero__export-button-chevron${open ? " hero__export-button-chevron--open" : ""}`} aria-hidden="true">
+          <ChevronDown size={14} />
+        </span>
+      </button>
+      {open ? (
+        <div className="hero__export-menu" id={menuId} role="menu" aria-label={label}>
+          {items.map((item, index) => (
+            <a
+              key={`${item.label}-${index}`}
+              role="menuitem"
+              className="hero__export-menu-item"
+              href={item.href}
+              download={item.download}
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -272,7 +350,12 @@ export default function ResumeRenderer({
                         onRun={() => runAction("pdf")}
                       />
                     ) : null}
-                    {config.chrome.actions?.ats ? (
+                    {config.chrome.actions?.atsMenu?.length ? (
+                      <AtsExportDropdown
+                        label={config.chrome.actions.ats?.label || rendererLabels.atsAction}
+                        items={config.chrome.actions.atsMenu}
+                      />
+                    ) : config.chrome.actions?.ats ? (
                       <ResumeActionButton
                         action={config.chrome.actions.ats}
                         kind="ats"

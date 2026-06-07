@@ -57,6 +57,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Build user panel for CV and link management (Dashboard/Presets).
    - [x] Add downloadable Published CV PDF export.
    - [x] Add plain text ATS-ready export for Published CV snapshots.
+   - [x] Add ATS export dropdown (CVasCode / .txt / .yaml) with ATS-cleaned plain text and YAML plus raw CVasCode source export.
    - [x] Add owner-facing export controls in the editor/user panel.
    - [x] Ensure PDF and plain text exports read Published CV snapshots, not private drafts.
    - [x] Add tests for PDF/plain text export privacy, locale selection, and snapshot isolation.

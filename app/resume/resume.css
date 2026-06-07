@@ -426,6 +426,63 @@ img {
   transform: translate(-50%, 0) scale(1);
 }
 
+.hero__export-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.hero__export-button-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease-out;
+}
+
+.hero__export-button-chevron--open {
+  transform: rotate(180deg);
+}
+
+.hero__export-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  gap: 2px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-float);
+  z-index: 30;
+}
+
+.hero__export-menu-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--accent-dark);
+  font: inherit;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease-out, color 0.18s ease-out;
+}
+
+.hero__export-menu-item:hover,
+.hero__export-menu-item:focus-visible {
+  background: var(--accent);
+  color: #ffffff;
+  outline: none;
+}
 
 .logo-circle {
   width: var(--logo-size);

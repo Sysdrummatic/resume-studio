@@ -41,3 +41,43 @@ test("public export helper keeps canonical person slug and public id parsing loc
   assert.equal(exportLib.includes("publicId"), true);
   assert.equal(exportLib.includes("personSlug"), true);
 });
+
+test("export helper exposes ats yaml and cvac urls", () => {
+  const exportLib = read("app/lib/resume-export.ts");
+
+  assert.equal(exportLib.includes("export function convertResumeToAtsYaml"), true);
+  assert.equal(exportLib.includes("yamlUrl:"), true);
+  assert.equal(exportLib.includes("cvacUrl:"), true);
+  assert.equal(exportLib.includes("/api/resume/export/yaml"), true);
+  assert.equal(exportLib.includes("/api/resume/export/cvac"), true);
+});
+
+test("plain text export drops non-ats decorations and uses clean section labels", () => {
+  const exportLib = read("app/lib/resume-export.ts");
+
+  assert.equal(exportLib.includes("--- "), false);
+  assert.equal(exportLib.includes("/5)"), false);
+  assert.equal(exportLib.includes("WORK EXPERIENCE"), true);
+  assert.equal(exportLib.includes("CERTIFICATIONS"), true);
+  assert.equal(/lines\.push\(`\(\$\{doc\.brand_initials\}\)`\)/.test(exportLib), false);
+});
+
+test("ats yaml export route is snapshot-only, rate limited, and returns text/yaml", () => {
+  const route = read("app/api/resume/export/yaml/route.ts");
+
+  assert.equal(route.includes("fetchPublishedResumeExportByPublicLink"), true);
+  assert.equal(route.includes("convertResumeToAtsYaml"), true);
+  assert.equal(route.includes("rateLimit"), true);
+  assert.equal(route.includes("\"Content-Type\": \"text/yaml; charset=utf-8\""), true);
+  assert.equal(route.includes("personSlug and publicId are required"), true);
+});
+
+test("cvac export route returns raw published yaml untransformed and is rate limited", () => {
+  const route = read("app/api/resume/export/cvac/route.ts");
+
+  assert.equal(route.includes("fetchPublishedResumeExportByPublicLink"), true);
+  assert.equal(route.includes("exportData.yamlContent"), true);
+  assert.equal(route.includes("normalizeResumeDocument"), false);
+  assert.equal(route.includes("rateLimit"), true);
+  assert.equal(route.includes("\"Content-Type\": \"text/yaml; charset=utf-8\""), true);
+});

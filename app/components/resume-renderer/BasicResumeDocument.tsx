@@ -84,9 +84,15 @@ export function BasicResumeDocument({
     pdfAction = { label: "PDF", disabled: true, disabledReason: "Available after publish" };
   }
 
-  let atsAction: ResumeRenderAction | undefined;
-  if (exportUrls?.textUrl) {
-    atsAction = { label: "ATS Ready", href: exportUrls.textUrl };
+  let atsAction: ResumeRenderAction;
+  let atsMenu: ResumeRenderAction[] | undefined;
+  if (exportUrls) {
+    atsAction = { label: "ATS Ready" };
+    atsMenu = [
+      { label: "CVasCode", href: exportUrls.cvacUrl, download: true },
+      { label: ".txt", href: exportUrls.textUrl, download: true },
+      { label: ".yaml", href: exportUrls.yamlUrl, download: true },
+    ];
   } else {
     atsAction = {
       label: "ATS Ready",
@@ -112,6 +118,7 @@ export function BasicResumeDocument({
       actions={{
         pdf: pdfAction,
         ats: atsAction,
+        atsMenu,
       }}
       scrollContainerRef={scrollContainerRef}
       embedded={embedded}
