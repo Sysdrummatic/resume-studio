@@ -48,6 +48,7 @@ export type ResumeRenderChrome = {
   actions?: {
     pdf?: ResumeRenderAction;
     ats?: ResumeRenderAction;
+    atsMenu?: ResumeRenderAction[];
   };
 };
 

@@ -189,7 +189,7 @@ Build user dashboard (presets/links management), PDF/ATS export, owner-facing an
 ### Key Deliverables
 - ✓ User dashboard at `/dashboard` (CV versions, links, analytics)
 - ✓ Downloadable PDF export (Bento-style)
-- ✓ Plain-text ATS-ready export
+- ✓ ATS export dropdown: CVasCode (raw `.yaml`), ATS-cleaned `.txt`, and ATS-cleaned `.yaml`
 - ✓ Owner-facing view analytics
 - ✓ Admin analytics widgets and audit log explorer
 - ✓ Role-inheritance capability model (RBAC PR1–PR6)

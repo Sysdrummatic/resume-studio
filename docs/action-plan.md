@@ -57,6 +57,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Build user panel for CV and link management (Dashboard/Presets).
    - [x] Add downloadable Published CV PDF export.
    - [x] Add plain text ATS-ready export for Published CV snapshots.
+   - [x] Add ATS export dropdown (CVasCode / .txt / .yaml) with ATS-cleaned plain text and YAML plus raw CVasCode source export.
    - [x] Add owner-facing export controls in the editor/user panel.
    - [x] Ensure PDF and plain text exports read Published CV snapshots, not private drafts.
    - [x] Add tests for PDF/plain text export privacy, locale selection, and snapshot isolation.
@@ -104,6 +105,25 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [ ] Add tests for unauthorized access, quota exhaustion, validation, and happy path.
    - [ ] Add phase 2 job-description-tailored fictional CV option.
      Source: [AI Demo Resume Generation Workstream](guides/ai-demo-resume-generation-plan.md)
+
+9. [ ] Phase I — ATS Intelligence (post-launch)
+   - [ ] Phase I-1: `app/lib/ats-rules.ts` — pure scoring engine
+   - [ ] Phase I-1: ATS Score Sidebar component w edytorze
+   - [ ] Phase I-1: Testy jednostkowe dla wszystkich reguł ATS
+   - [ ] Phase I-2: Visual Score tab
+   - [ ] Phase I-3: AI keyword gap endpoint (po Phase H)
+     Source: [Phase I ATS Intelligence Workstream](guides/phase-i-ats-intelligence-plan.md)
+
+10. [ ] Phase J — Semantic Public Link URL (post-launch, after Phase I)
+    - [ ] Migracja profiles.person_slug na format z myślnikiem (ariana-holt)
+    - [ ] Redirect 301 dla starych URL-i
+    - [ ] Kolumna role_slug i link_type w resume_public_links
+    - [ ] Nowy route app/[personSlug]/[roleSlug]/[publicId]/page.tsx
+    - [ ] Aktualizacja publish modal — checkbox general/role
+    - [ ] Aktualizacja publish_resume_saved_version RPC
+    - [ ] Migracja istniejących linków na link_type = 'general'
+    - [ ] ADR 0013, testy, dokumentacja
+      Source: [Phase J Semantic Public Link URL](guides/phase-j-semantic-url-plan.md)
 
 ## Gantt Map (Dependencies And Parallel Work)
 

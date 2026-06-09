@@ -17,6 +17,8 @@ Global completion checklist:
 - [x] Phase E - Public CV + SEO/AEO + URL compatibility
 - [x] Phase F - User panel + admin analytics/audit
 - [ ] Phase G - Hardening, QA, launch readiness
+- [ ] Phase I — ATS Intelligence (post-launch, after Phase G)
+- [ ] Phase J — Semantic Public Link URL (post-launch, after Phase I)
 
 Current implementation status as of `2026-05-09`:
 
@@ -290,6 +292,42 @@ Checklist:
 Definition of done:
 - Quality gates pass consistently.
 - Production release readiness checklist is complete.
+
+### Phase I — ATS Intelligence
+
+Branch: `feat/phase-i1-ats-score-sidebar`
+
+Checklist:
+- [ ] Static ATS rules engine implemented and tested
+- [ ] ATS Score Sidebar integrated in editor canvas
+- [ ] Visual Score tab added
+- [ ] AI keyword gap analysis added (depends on Phase H)
+
+Definition of done:
+- Editor shows live ATS score with actionable issues
+- All rules covered by unit tests
+- No editor performance regression
+
+### Phase J — Semantic Public Link URL
+
+Branch: `feat/phase-j-semantic-public-url`
+
+Checklist:
+- [ ] profiles.person_slug migracja na format ariana-holt
+- [ ] Redirect 301 legacy slugów
+- [ ] resume_public_links.role_slug + link_type
+- [ ] Route /{name}/{role}/{id}
+- [ ] Publish modal checkbox general/role
+- [ ] RPC rozszerzony o link_type i role_slug
+- [ ] Migracja istniejących linków
+- [ ] ADR 0013 + testy + docs
+
+Definition of done:
+- Oba formaty URL działają end-to-end
+- Stare URL-e przekierowują 301
+- Publish modal pozwala wybrać format przed pierwszą publikacją
+- Wybór jest niezmienny po publikacji
+- Wszystkie testy zielone
 
 ## 9) Execution Workflow
 

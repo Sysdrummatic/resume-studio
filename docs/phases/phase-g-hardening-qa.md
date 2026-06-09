@@ -108,7 +108,7 @@ Phase G is the quality and readiness phase. After Phase E–F deliver features, 
   - Existing user log-in → update CV → republish → view updated public link
   - Admin manages users and views analytics
   - Recruiter signs up and views published CVs
-  - User downloads PDF and ATS exports
+  - User downloads PDF and ATS exports (CVasCode `.yaml`, ATS `.txt`, ATS `.yaml`) from the export dropdown
 
 - [ ] **E2E regression suite**:
   - Run automated E2E tests on preview deploy

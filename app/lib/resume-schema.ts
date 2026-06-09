@@ -37,6 +37,7 @@ export type ResumeExperience = {
 export type ResumeEducation = {
   period: string;
   school: string;
+  degree: string;
   detail: string;
 };
 
@@ -217,16 +218,17 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
     education: asArray(source.education)
       .map((item) => {
         if (typeof item === "string") {
-          return { period: "", school: asText(item), detail: "" };
+          return { period: "", school: asText(item), degree: "", detail: "" };
         }
         const row = asObject(item);
         return {
           period: asText(row.period),
           school: asText(row.school),
+          degree: asText(row.degree),
           detail: asText(row.detail),
         };
       })
-      .filter((row) => row.period || row.school || row.detail),
+      .filter((row) => row.period || row.school || row.degree || row.detail),
     courses: asArray(source.courses)
       .map((item) => {
         if (typeof item === "string") {

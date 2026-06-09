@@ -49,11 +49,14 @@ Phase F delivers the user-facing platform features: dashboard for CV management,
   - Professional typography and formatting
   - Privacy: PDF export only for CV owner
 
-- ✓ **Plain-Text ATS Export**: ATS-ready format
-  - Clean, parseable text without formatting
-  - Readable by applicant tracking systems
-  - Language selection
-  - Privacy: ATS export only for CV owner
+- ✓ **ATS Export Dropdown**: three published-snapshot export formats behind one menu
+  - **CVasCode** (`.yaml`): raw published source YAML, no transformations
+  - **`.txt`**: ATS-cleaned plain text — contact values only, merged `SKILLS`, `Role | Company | MM/YYYY – Present` ordering, `CERTIFICATIONS` label, no ratings/interests/decorations
+  - **`.yaml`**: ATS-cleaned YAML — interests removed, skills + tech stack flattened, ratings stripped
+  - Clean, parseable output readable by applicant tracking systems
+  - Language selection (EN/PL)
+  - Accessible dropdown: chevron indicator, keyboard navigation, Escape/outside-click to close
+  - Privacy: exports read the published snapshot only, available after publish
 
 ### Admin Panel Enhancements
 
@@ -161,7 +164,13 @@ Phase F delivers the user-facing platform features: dashboard for CV management,
 - `app/api/resume/presets/{id}/publish/route.ts` — publish endpoint
 - `app/api/resume/presets/{id}/unpublish/route.ts` — unpublish endpoint
 - `app/api/resume/export/pdf/route.ts` — PDF export endpoint
-- `app/api/resume/export/ats/route.ts` — ATS export endpoint
+- `app/api/resume/export/text/route.ts` — ATS-cleaned plain text export endpoint
+- `app/api/resume/export/yaml/route.ts` — ATS-cleaned YAML export endpoint
+- `app/api/resume/export/cvac/route.ts` — raw CVasCode source YAML export endpoint
+- `app/lib/resume-export.ts` — export URL builder and ATS plain text/YAML converters
+- `app/components/resume-renderer/ResumeRenderer.tsx` — ATS export dropdown UI
+- `app/components/resume-renderer/BasicResumeDocument.tsx` — wires export URLs into the dropdown menu
+- `tests/resume-export-contract.test.mjs` — export route and converter contract tests
 - `app/admin/analytics-widgets.tsx` — admin analytics dashboard
 - `app/admin/audit-explorer.tsx` — searchable audit logs
 - `app/lib/rbac.ts` — capability helpers and role inheritance
@@ -179,7 +188,10 @@ Phase F delivers the user-facing platform features: dashboard for CV management,
 - [x] Open/Copy actions work only for published links
 - [x] Private (unpublished) versions have no link displayed
 - [x] PDF export reads snapshot, not draft
-- [x] ATS export is plain text, parseable by systems
+- [x] ATS `.txt` export is plain text, parseable by systems (no ratings, interests, or decorations)
+- [x] ATS `.yaml` export is cleaned (interests removed, skills + tech stack flattened, ratings stripped)
+- [x] CVasCode export returns raw published source YAML untransformed
+- [x] New export routes are rate limited (5/60s per IP) and snapshot-only
 - [x] Admin can see analytics widgets (total CVs, active links, views)
 - [x] Audit log shows publish/unpublish/export actions
 - [x] Recruiter role cannot access draft or private CVs
@@ -246,7 +258,7 @@ Phase G (Hardening & QA) includes:
 
 ✓ **All Phase F deliverables shipped**:
 - User dashboard with CV versions and links
-- PDF and ATS export
+- PDF export plus the ATS export dropdown (CVasCode / .txt / .yaml)
 - Admin analytics and audit logs
 - Recruiter role and basic workflow
 - Role inheritance capability model
@@ -264,6 +276,7 @@ From [action-plan.md § Phase F](../action-plan.md#phase-f---user-panel-and-anal
 - [x] Build user panel for CV and link management
 - [x] Add downloadable PDF export
 - [x] Add plain text ATS-ready export
+- [x] Add ATS export dropdown (CVasCode / .txt / .yaml) with ATS-cleaned plain text and YAML plus raw CVasCode source export
 - [x] Add owner-facing export controls
 - [x] Ensure exports read published snapshots
 - [x] Add tests for export privacy and snapshot isolation
