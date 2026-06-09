@@ -52,13 +52,16 @@ test("export helper exposes ats yaml and cvac urls", () => {
   assert.equal(exportLib.includes("/api/resume/export/cvac"), true);
 });
 
-test("plain text export drops non-ats decorations and uses clean section labels", () => {
+test("plain text export drops non-ats decorations and sources section labels from ats-export-rules", () => {
   const exportLib = read("app/lib/resume-export.ts");
+  const rules = read("app/lib/ats-export-rules.ts");
 
   assert.equal(exportLib.includes("--- "), false);
   assert.equal(exportLib.includes("/5)"), false);
-  assert.equal(exportLib.includes("WORK EXPERIENCE"), true);
-  assert.equal(exportLib.includes("CERTIFICATIONS"), true);
+  assert.equal(exportLib.includes("ATS_SECTION_HEADERS"), true);
+  assert.equal(exportLib.includes('from "./ats-export-rules"'), true);
+  assert.equal(rules.includes('experience: "WORK EXPERIENCE"'), true);
+  assert.equal(rules.includes('certifications: "CERTIFICATIONS"'), true);
   assert.equal(/lines\.push\(`\(\$\{doc\.brand_initials\}\)`\)/.test(exportLib), false);
 });
 

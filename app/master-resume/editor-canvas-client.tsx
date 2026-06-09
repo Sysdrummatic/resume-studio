@@ -1190,7 +1190,7 @@ export default function EditorCanvasClient() {
                 <section className="resume-human-editor__section">
                   <div className="section-row">
                     <h3>Education</h3>
-                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("education", { period: "", school: "", detail: "" })}>
+                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("education", { period: "", school: "", degree: "", detail: "" })}>
                       + Add
                     </button>
                   </div>
@@ -1198,6 +1198,7 @@ export default function EditorCanvasClient() {
                     <div className="resume-human-editor__card" key={`education-${index}`}>
                       <input placeholder="Period" value={item.period} onChange={(event) => updateEducation(index, "period", event.target.value)} />
                       <input placeholder="School" value={item.school} onChange={(event) => updateEducation(index, "school", event.target.value)} />
+                      <input placeholder="Degree" value={item.degree} onChange={(event) => updateEducation(index, "degree", event.target.value)} />
                       <textarea rows={2} placeholder="Detail" value={item.detail} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
                       <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("education", index)}>
                         Remove

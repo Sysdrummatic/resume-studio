@@ -1,5 +1,12 @@
 import yaml from "js-yaml";
-import { ResumeDocument } from "./resume-schema";
+import type { ResumeDocument } from "./resume-schema";
+import {
+  ATS_DATE_OPEN_END,
+  ATS_PERIOD_OPEN_TOKENS,
+  ATS_SECTION_HEADERS,
+  ATS_STRIP_SECTIONS,
+  ATS_SUMMARY_POSITION_NOISE,
+} from "./ats-export-rules";
 
 type PublicExportPath = {
   personSlug: string;
@@ -14,7 +21,12 @@ type PublishedResumeExportUrls = {
   cvacUrl: string;
 };
 
-const PRESENT_TOKENS = new Set(["now", "present", "actual", "current", "obecnie", "teraz"]);
+const PRESENT_TOKENS = new Set<string>(ATS_PERIOD_OPEN_TOKENS);
+const SUMMARY_POSITION_NOISE = new Set<string>(ATS_SUMMARY_POSITION_NOISE);
+
+function isSummaryPositionNoise(position: string): boolean {
+  return SUMMARY_POSITION_NOISE.has(position.trim().toLowerCase());
+}
 
 function formatDateToken(token: string): string {
   const trimmed = token.trim();
@@ -22,7 +34,7 @@ function formatDateToken(token: string): string {
     return "";
   }
   if (PRESENT_TOKENS.has(trimmed.toLowerCase())) {
-    return "Present";
+    return ATS_DATE_OPEN_END;
   }
   const isoMatch = trimmed.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
   if (isoMatch) {
@@ -32,7 +44,7 @@ function formatDateToken(token: string): string {
 }
 
 function formatPeriodForAts(period: string): string {
-  const parts = period.split(/\s*[–—-]\s*/).filter(Boolean);
+  const parts = period.split(/\s+[–—-]\s+/).filter(Boolean);
   if (parts.length === 0) {
     return "";
   }
@@ -127,7 +139,7 @@ export function convertResumeToPlainText(doc: ResumeDocument): string {
 
   const summary = getAtsSummary(doc);
   if (summary) {
-    sections.push(["SUMMARY", wrapText(summary).join("\n")].join("\n"));
+    sections.push([ATS_SECTION_HEADERS.summary, wrapText(summary).join("\n")].join("\n"));
   }
 
   if (doc.experience.length > 0) {
@@ -136,69 +148,64 @@ export function convertResumeToPlainText(doc: ResumeDocument): string {
       const bullets = item.highlights.map((highlight) => `- ${highlight}`);
       return [heading, ...(bullets.length ? ["", ...bullets] : [])].join("\n");
     });
-    sections.push(["WORK EXPERIENCE", blocks.join("\n\n")].join("\n"));
+    sections.push([ATS_SECTION_HEADERS.experience, blocks.join("\n\n")].join("\n"));
   }
 
   if (doc.education.length > 0) {
     const blocks = doc.education.map((item) => {
-      const heading = [item.school, formatPeriodForAts(item.period)].filter(Boolean).join(" | ");
+      const heading = [item.degree, item.school, formatPeriodForAts(item.period)].filter(Boolean).join(" | ");
       return [heading, ...(item.detail ? [item.detail] : [])].join("\n");
     });
-    sections.push(["EDUCATION", blocks.join("\n")].join("\n"));
+    sections.push([ATS_SECTION_HEADERS.education, blocks.join("\n")].join("\n"));
   }
 
   const skills = getAtsSkills(doc);
   if (skills.length > 0) {
-    sections.push(["SKILLS", skills.join(", ")].join("\n"));
+    sections.push([ATS_SECTION_HEADERS.skills, skills.join(", ")].join("\n"));
   }
 
   if (doc.courses.length > 0) {
     const lines = doc.courses.map((item) =>
       [item.name, item.year > 0 ? String(item.year) : ""].filter(Boolean).join(" | "),
     );
-    sections.push(["CERTIFICATIONS", lines.join("\n")].join("\n"));
+    sections.push([ATS_SECTION_HEADERS.certifications, lines.join("\n")].join("\n"));
   }
 
   if (doc.languages.length > 0) {
     const lines = doc.languages.map(
       (item) => `${item.name}${item.level_text ? ` (${item.level_text})` : ""}`,
     );
-    sections.push(["LANGUAGES", lines.join("\n")].join("\n"));
+    sections.push([ATS_SECTION_HEADERS.languages, lines.join("\n")].join("\n"));
   }
 
   return sections.join("\n\n");
 }
 
-export function convertResumeToAtsYaml(doc: ResumeDocument): string {
-  const atsDoc = {
-    name: doc.name,
-    summary: getAtsSummary(doc),
-    contact: doc.contact.map((item) => ({
-      label: item.label,
-      value: item.value,
-      ...(item.link ? { link: item.link } : {}),
-    })),
-    experience: doc.experience.map((item) => ({
-      role: item.role,
-      company: item.company,
-      period: formatPeriodForAts(item.period),
-      highlights: item.highlights,
-    })),
-    education: doc.education.map((item) => ({
-      school: item.school,
-      period: formatPeriodForAts(item.period),
-      ...(item.detail ? { detail: item.detail } : {}),
-    })),
-    skills: getAtsSkills(doc),
-    certifications: doc.courses.map((item) => ({
-      name: item.name,
-      ...(item.year > 0 ? { year: item.year } : {}),
-    })),
-    languages: doc.languages.map((item) => ({
-      name: item.name,
-      ...(item.level_text ? { level: item.level_text } : {}),
-    })),
-  };
+function stripAtsSections(doc: Record<string, unknown>): Record<string, unknown> {
+  const strip = new Set<string>(ATS_STRIP_SECTIONS);
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(doc)) {
+    if (strip.has(key)) {
+      continue;
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
+export function convertResumeToAtsYaml(doc: ResumeDocument, locale: string): string {
+  void locale;
+
+  const summary = doc.summary
+    .filter((item) => item.description.trim())
+    .map((item) => (isSummaryPositionNoise(item.position) ? { ...item, position: "" } : item));
+  const skills = doc.skills.map((item) => ({ name: item.name }));
+
+  const atsDoc = stripAtsSections({ ...doc, summary, skills });
 
   return yaml.dump(atsDoc, { indent: 2, lineWidth: 100, noRefs: true });
+}
+
+export function getRawYamlSource(yamlContent: string): string {
+  return yamlContent;
 }

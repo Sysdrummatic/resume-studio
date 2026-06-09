@@ -14,3 +14,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0010: API Hardening and Resource Protection](0010-api-hardening-and-resource-protection.md)
 - [ADR 0011: Portal Theme Dark Default, Light Mode Deferred](0011-portal-theme-dark-default-light-deferred.md)
 - [ADR 0012: Portal Light Mode Material You Within App Theme Boundary](0012-portal-theme-light-mode-material-you.md)
+- [ADR 0013: Semantic Public Link URL](0013-semantic-public-link-url.md)

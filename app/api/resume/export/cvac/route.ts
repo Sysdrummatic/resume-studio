@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
+import { getRawYamlSource } from "../../../../lib/resume-export";
 import { rateLimit } from "../../../../lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Published CV snapshot not found." }, { status: 404 });
   }
 
-  return new NextResponse(exportData.yamlContent, {
+  return new NextResponse(getRawYamlSource(exportData.yamlContent), {
     headers: {
       "Content-Type": "text/yaml; charset=utf-8",
       "Content-Disposition": `attachment; filename="cvac-${exportData.personSlug}-${exportData.locale}.yaml"`,

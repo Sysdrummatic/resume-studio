@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const doc = normalizeResumeDocument(yaml.load(exportData.yamlContent), "");
-    const atsYaml = convertResumeToAtsYaml(doc);
+    const atsYaml = convertResumeToAtsYaml(doc, exportData.locale);
 
     return new NextResponse(atsYaml, {
       headers: {
