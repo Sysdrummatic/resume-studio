@@ -17,6 +17,7 @@ type Props = {
   isExpanded: boolean;
   aiGenerated?: boolean;
   allowDraftPdf?: boolean;
+  draftPdfEnabled?: boolean;
   onExpand: () => void;
   onClose: () => void;
 };
@@ -33,6 +34,7 @@ export default function ResumeLivePreview({
   isExpanded,
   aiGenerated = false,
   allowDraftPdf = false,
+  draftPdfEnabled = true,
   onExpand,
   onClose,
 }: Props) {
@@ -92,6 +94,7 @@ export default function ResumeLivePreview({
             showChrome
             mode="editor"
             allowDraftPdf={allowDraftPdf}
+            draftPdfEnabled={draftPdfEnabled}
             embedded
           />
         </div>
@@ -114,6 +117,7 @@ export default function ResumeLivePreview({
             showChrome
             mode="public"
             allowDraftPdf={allowDraftPdf}
+            draftPdfEnabled={draftPdfEnabled}
             scrollContainerRef={modalBodyRef as RefObject<HTMLElement>}
           />
           </div>

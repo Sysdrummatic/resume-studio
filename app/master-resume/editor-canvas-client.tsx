@@ -133,7 +133,7 @@ async function fetchText(path: string) {
   return response.text();
 }
 
-export default function EditorCanvasClient() {
+export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
   const searchParams = useSearchParams();
   const [locale, setLocale] = useState<ResumeLocale>(searchParams.get("locale") || "en");
   const [languageOptions, setLanguageOptions] = useState<ResumeLanguageMetadata[]>([
@@ -1404,6 +1404,7 @@ export default function EditorCanvasClient() {
               isExpanded={isPreviewExpanded}
               aiGenerated={aiGenerated}
               allowDraftPdf={actor && isAppRole(actor.role) ? canAccessDraftPdf(actor.role) : false}
+              draftPdfEnabled={draftPdfEnabled}
               onExpand={() => setIsPreviewExpanded(true)}
               onClose={() => setIsPreviewExpanded(false)}
             />
