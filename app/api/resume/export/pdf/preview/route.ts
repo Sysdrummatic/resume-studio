@@ -2,6 +2,8 @@ import React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { CvPdfTemplate } from "../../../../../lib/CvPdfTemplate";
+import { buildPdfFilename } from "../../../../../lib/pdf/filename";
+import { isPdfDraftEnabled } from "../../../../../lib/pdf-feature-flags";
 import { normalizeResumeDocument } from "../../../../../lib/resume-schema";
 import { requireRequestActor } from "../../../../../lib/auth-request";
 import { rateLimit } from "../../../../../lib/rate-limit";
@@ -24,11 +26,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const draftPdfEnabled = await isPdfDraftEnabled();
+  if (!draftPdfEnabled) {
+    return NextResponse.json({ error: "Draft PDF export is currently disabled." }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
     const doc = normalizeResumeDocument(body.resume, "");
     const locale = typeof body.locale === "string" ? body.locale : "en";
-    
+
     const pdfBytes = await renderToBuffer(
       React.createElement(CvPdfTemplate, {
         resume: doc,
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(Uint8Array.from(pdfBytes), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="preview-${doc.brand_initials || "CV"}.pdf"`,
+        "Content-Disposition": `attachment; filename="${buildPdfFilename(doc, "draft")}"`,
       },
     });
   } catch (err) {
