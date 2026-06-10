@@ -67,8 +67,9 @@ Historical documentation. Not needed for current development. For reference only
   - Phase D: [phase-d-editor-canvas.md](../phases/phase-d-editor-canvas.md)
   - Phase E: [phase-e-public-surface.md](../phases/phase-e-public-surface.md)
   - Phase F: [phase-f-ux-community.md](../phases/phase-f-ux-community.md)
-  - Phase G: [phase-g-hardening-qa.md](../phases/phase-g-hardening-qa.md)
-  - Phase H: [phase-h-ai-ecosystem.md](../phases/phase-h-ai-ecosystem.md)
+  - Phase G: [phase-g-vercel-puppeteer-pdf.md](../phases/phase-g-vercel-puppeteer-pdf.md)
+  - Phase H: [phase-h-hardening-qa.md](../phases/phase-h-hardening-qa.md)
+  - Phase I: [phase-i-ai-ecosystem.md](../phases/phase-i-ai-ecosystem.md)
 - **Architecture Decisions**: [docs/adr/README.md](../adr/README.md)
 - **Execution Checklist**: [docs/action-plan.md](../action-plan.md)
 
