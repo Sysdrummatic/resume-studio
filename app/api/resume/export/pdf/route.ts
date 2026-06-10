@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { CvPdfTemplate } from "../../../../lib/CvPdfTemplate";
+import { buildPdfFilename } from "../../../../lib/pdf/filename";
 import { normalizeResumeDocument } from "../../../../lib/resume-schema";
 import { rateLimit } from "../../../../lib/rate-limit";
 import yaml from "js-yaml";
@@ -38,13 +39,14 @@ export async function GET(req: NextRequest) {
         resume: doc,
         title: exportData.personSlug,
         locale: exportData.locale,
+        publicId,
       }),
     );
 
     return new NextResponse(Uint8Array.from(pdfBytes), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="resume-${exportData.personSlug}-${exportData.locale}.pdf"`,
+        "Content-Disposition": `attachment; filename="${buildPdfFilename(doc, publicId)}"`,
         "Cache-Control": "private, no-store, max-age=0",
       },
     });

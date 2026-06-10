@@ -1,4 +1,4 @@
-# Phase G: Hardening, QA & Launch Readiness
+# Phase H: Hardening, QA & Launch Readiness
 
 **Status**: ◐ **60% IN PROGRESS**  
 **ETA**: Jun 2026 (target: 2026-06-30)  
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Phase G is the quality and readiness phase. After Phase E–F deliver features, Phase G ensures everything is secure, tested, observable, and ready for production launch. This is the last quality gate before real users access the platform.
+Phase H is the quality and readiness phase. After Phase E–G deliver features, Phase H ensures everything is secure, tested, observable, and ready for production launch. This is the last quality gate before real users access the platform.
 
 ### Key Theme
 **From MVP → production-ready.** All critical paths tested; security/perf/a11y verified.
@@ -28,7 +28,7 @@ Phase G is the quality and readiness phase. After Phase E–F deliver features, 
   - `npm.cmd run build` — full Next.js build
 
 - [ ] **Preview deploy QA**:
-  - Netlify preview builds triggered automatically
+  - Vercel preview builds triggered automatically
   - Smoke test suite runs on preview URL
   - Manual QA on preview before production push
 
@@ -40,7 +40,7 @@ Phase G is the quality and readiness phase. After Phase E–F deliver features, 
 ### Infrastructure & Migrations
 
 - [ ] **Supabase migrations applied**:
-  - All Phase A–F migrations active
+  - All Phase A–G migrations active
   - New tables and policies in place
   - Backup and recovery procedures tested
 
@@ -88,7 +88,7 @@ Phase G is the quality and readiness phase. After Phase E–F deliver features, 
   - Published CV visible on public route
   - Unpublish makes public route 404/noindex
 
-- [ ] **Netlify deployment**:
+- [ ] **Deployment platform validation**:
   - CI pipeline completes successfully
   - Build artifacts are correct
   - Static assets serve correctly
@@ -149,7 +149,7 @@ Phase G is the quality and readiness phase. After Phase E–F deliver features, 
 
 - [ ] **Secret management**:
   - No secrets in environment files
-  - Netlify/Supabase secrets correctly configured
+  - Vercel secrets correctly configured
   - Database passwords not in logs
   - API keys rotated if exposed
 
@@ -184,7 +184,7 @@ Phase G is the quality and readiness phase. After Phase E–F deliver features, 
 ### Release & Rollback
 
 - [ ] **Release checklist prepared**:
-  - All Phase E–F features in production
+  - All Phase E–G features in production
   - No critical bugs open
   - Rollback plan documented
   - Communication plan for users
@@ -263,7 +263,7 @@ Manual QA Checklist
 
 **Mitigation**: 
 - Pre-deploy checklist verifies all env vars
-- Netlify deploy preview runs before production
+- Vercel deploy preview runs before production
 - Rollback to previous deploy if critical issue
 
 ### Risk 2: RLS Policies Don't Match Code Logic
@@ -271,16 +271,16 @@ Manual QA Checklist
 **Scenario**: Code checks RBAC capability, but RLS policy allows unauthorized access.
 
 **Mitigation**:
-- Phase G includes SQL alignment verification (task from memory)
+- Phase H includes SQL alignment verification (task from memory)
 - Tests assert both code and RLS behavior
 - Manual QA checks cross-user data isolation
 
 ### Risk 3: Legacy Redirects Break During Migration
 
-**Scenario**: Old `.html` URLs stop working after domain migration or Netlify config change.
+**Scenario**: Old `.html` URLs stop working after platform migration or DNS change.
 
 **Mitigation**:
-- netlify.toml has explicit redirect rules
+- vercel.json has explicit redirect rules
 - Pre-deploy testing verifies old URLs
 - Rollback plan includes redirect config
 
@@ -296,7 +296,7 @@ Manual QA Checklist
 
 ---
 
-## Phase G Execution Plan
+## Phase H Execution Plan
 
 ### Week 1 (2026-05-27 to 2026-06-02)
 - [ ] Finalize deployment QA procedures
@@ -327,24 +327,24 @@ Manual QA Checklist
 ## Related Documentation
 
 ### Test Contracts & Guides
-- [Deployment QA Checklist](../guides/deployment-qa.md)
-- [CV Publication Test Contracts](../guides/cv-publication-test-contracts.md)
-- [SEO/AEO Preview QA Checklist](../guides/seo-aeo-preview-qa-checklist.md)
+- [Deployment QA Checklist](../guides/testing/deployment-qa.md)
+- [CV Publication Test Contracts](../guides/testing/cv-publication-test-contracts.md)
+- [SEO/AEO Preview QA Checklist](../guides/testing/seo-aeo-preview-qa-checklist.md)
 
 ### Architecture Decisions
 - [ADR 0010: API Hardening and Resource Protection](../adr/0010-api-hardening-and-resource-protection.md)
 
 ### Execution
-- [action-plan.md § Phase G](../action-plan.md#phase-g---hardening-qa-and-launch-readiness)
+- [action-plan.md § Phase H](../action-plan.md#phase-h---hardening-qa-and-launch-readiness)
 
 ---
 
-## Transition to Phase H
+## Transition to Phase I
 
-After Phase G launch-readiness gate passes:
+After Phase H launch-readiness gate passes:
 
 1. **Production launch** announced to community
-2. **Phase H planning** begins (AI features, post-launch)
+2. **Phase I planning** begins (AI features, post-launch)
 3. **Monitoring & on-call** activated for production
 4. **Team retrospective** to document learnings
 
@@ -361,9 +361,9 @@ After Phase G launch-readiness gate passes:
 
 ---
 
-## Phase G Completion Checklist
+## Phase H Completion Checklist
 
-From [action-plan.md § Phase G](../action-plan.md#phase-g---hardening-qa-and-launch-readiness):
+From [action-plan.md § Phase H](../action-plan.md#phase-h---hardening-qa-and-launch-readiness):
 
 - [x] Local CI-equivalent gates are green
 - [ ] Preview deploy QA is complete
@@ -373,7 +373,7 @@ From [action-plan.md § Phase G](../action-plan.md#phase-g---hardening-qa-and-la
 - [ ] Protected route access controls verified
 - [ ] Admin panel and audit functionality verified
 - [ ] Editor publish/rollback workflows tested
-- [ ] Netlify deployment validated
+- [ ] Deployment platform validation complete
 - [ ] Legacy redirects verified
 - [ ] E2E regression suite complete
 - [ ] Performance and accessibility checks passed
@@ -383,4 +383,3 @@ From [action-plan.md § Phase G](../action-plan.md#phase-g---hardening-qa-and-la
 - [ ] Production smoke test protocol executed
 
 **Current Status**: **60% in progress**. Started 2026-05-20; target completion 2026-06-30.
-
