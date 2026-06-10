@@ -92,7 +92,21 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [ ] Finalize observability dashboards and alerting.
    - [ ] Prepare release checklist and rollback playbook.
    - [ ] Execute production smoke test protocol.
-     Source: [Deployment and QA Checklist](guides/deployment-qa.md), [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
+   - [x] PDF rendering module — professional CV export
+     - [x] PdfTheme interface + cvBasicDotTheme (design tokens from resume.css)
+     - [x] PdfEngine interface + ReactPdfEngine implementation
+     - [x] Space Grotesk font embedded (public/fonts/)
+     - [x] Section components: Header, Summary, Experience, Education, Courses, PersonalInfo, Skills, TechStack, Languages, Interests
+     - [x] TwoColumnTemplate A4 layout
+     - [x] CvPdfDocument main entry point
+     - [x] CvPdfTemplate.tsx re-export (backward compat)
+     - [x] buildPdfFilename() — {name}-{date}-opencivera-{publicId}.pdf
+     - [x] platform_feature_flags migration + isPdfDraftEnabled()
+     - [ ] Apply 20260610_pdf_feature_flags.sql to production (`supabase db push`)
+     - [x] BasicResumeDocument updated for DB-driven draft flag
+     - [x] ADR 0014 written and indexed
+     - [x] Contract tests pass
+     Source: [ADR 0014: PDF Rendering Architecture](adr/0014-pdf-rendering-architecture.md), [Deployment and QA Checklist](guides/deployment-qa.md), [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 
 8. [ ] Phase H - AI extras (post-core delivery)
    - [ ] Add AI demo generation actions in the editor.
