@@ -10,30 +10,33 @@ type PdfCoursesProps = {
   theme: PdfTheme;
 };
 
+// Mirrors the web .course-list tiles: tinted rounded row with year column + name.
 export function PdfCourses({ courses, title, theme }: PdfCoursesProps) {
   return (
-    <PdfSectionCard title={title} theme={theme} wrap minTitlePresenceAhead={32}>
+    <PdfSectionCard title={title} theme={theme} wrap>
       {courses.map((course, index) => (
         <View
           key={index}
           wrap={false}
-          style={{ flexDirection: "row", marginBottom: index === courses.length - 1 ? 0 : theme.spacing.xs }}
+          style={{
+            flexDirection: "row",
+            backgroundColor: theme.colors.courseItemBg,
+            borderRadius: theme.radii.md,
+            padding: theme.spacing.sm,
+            marginBottom: index === courses.length - 1 ? 0 : 6,
+          }}
         >
-          {course.year ? (
-            <Text style={{ fontSize: theme.typography.sizes.sm, color: theme.colors.muted, width: 36 }}>
-              {course.year}
-            </Text>
-          ) : null}
           <Text
             style={{
-              fontSize: theme.typography.sizes.md,
-              color: theme.colors.text,
-              flex: 1,
-              lineHeight: theme.typography.lineHeight,
+              width: 44,
+              fontSize: theme.typography.sizes.sm,
+              fontWeight: 700,
+              color: theme.colors.accentDark,
             }}
           >
-            {course.name}
+            {course.year > 0 ? String(course.year) : ""}
           </Text>
+          <Text style={{ flex: 1, fontSize: theme.typography.sizes.sm, color: theme.colors.text }}>{course.name}</Text>
         </View>
       ))}
     </PdfSectionCard>

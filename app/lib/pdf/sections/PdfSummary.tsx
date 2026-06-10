@@ -15,7 +15,7 @@ export function PdfSummary({ summary, title, theme }: PdfSummaryProps) {
     <PdfSectionCard title={title} theme={theme}>
       <Text
         style={{
-          fontSize: theme.typography.sizes.md,
+          fontSize: theme.typography.sizes.body,
           color: theme.colors.text,
           lineHeight: theme.typography.lineHeight,
         }}

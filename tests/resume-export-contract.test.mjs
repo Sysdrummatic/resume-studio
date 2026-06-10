@@ -83,7 +83,17 @@ test("pdf preview route uses buildPdfFilename and respects the draft pdf feature
 
 test("experience section keeps each employer block unsplit across pages", () => {
   const experience = read("app/lib/pdf/sections/PdfExperience.tsx");
-  assert.equal(experience.includes("wrap={false}"), true);
+  const primitives = read("app/lib/pdf/primitives.tsx");
+  assert.equal(experience.includes("PdfTimelineItem"), true);
+  assert.equal(primitives.includes("wrap={false}"), true);
+});
+
+test("pdf theme carries timeline and course background tokens from resume.css", () => {
+  const theme = read("app/lib/pdf/theme.ts");
+  assert.equal(theme.includes("timelineItemBg"), true);
+  assert.equal(theme.includes("courseItemBg"), true);
+  assert.equal(theme.includes("accentDark"), true);
+  assert.equal(theme.includes("#f0f7f6"), true);
 });
 
 test("platform_feature_flags migration defines pdf_draft_enabled key", () => {

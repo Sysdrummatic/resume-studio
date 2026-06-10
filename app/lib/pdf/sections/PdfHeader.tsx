@@ -23,6 +23,8 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
           marginRight: theme.spacing.lg,
         }}
       >
+        {/* Logo font: web uses 'Homemade Apple' (handwritten). PDF uses SpaceGrotesk Bold. */}
+        {/* Embed Homemade Apple separately if brand consistency requires it. */}
         <Text style={{ color: theme.colors.white, fontSize: theme.typography.sizes.xl, fontWeight: 700 }}>
           {resume.brand_initials || "CV"}
         </Text>

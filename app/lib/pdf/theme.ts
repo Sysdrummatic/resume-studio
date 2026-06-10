@@ -2,6 +2,7 @@ export interface PdfTheme {
   id: string;
   colors: {
     accent: string;
+    accentDark: string;
     accentLight: string;
     text: string;
     muted: string;
@@ -9,6 +10,8 @@ export interface PdfTheme {
     border: string;
     pageBg: string;
     white: string;
+    timelineItemBg: string;
+    courseItemBg: string;
   };
   typography: {
     fontFamily: string;
@@ -52,6 +55,7 @@ export const cvBasicDotTheme: PdfTheme = {
   id: "cv-basic-dot",
   colors: {
     accent: "#009c8a",
+    accentDark: "#007d6c",
     accentLight: "#e6f4f2",
     text: "#1b1b1b",
     muted: "#6d6d6d",
@@ -59,6 +63,8 @@ export const cvBasicDotTheme: PdfTheme = {
     border: "#e3e6e8",
     pageBg: "#f6f8f8",
     white: "#ffffff",
+    timelineItemBg: "#f6f8f8",
+    courseItemBg: "#f0f7f6",
   },
   typography: {
     fontFamily: "SpaceGrotesk",
@@ -68,8 +74,8 @@ export const cvBasicDotTheme: PdfTheme = {
       md: 10,
       body: 11,
       lg: 13,
-      xl: 16,
-      hero: 22,
+      xl: 15,
+      hero: 26,
     },
     lineHeight: 1.5,
   },
