@@ -1,4 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+/*
+ * Space Grotesk is self-hosted exclusively for the CV domain
+ * (app/resume/resume.css references the family by name).
+ * Portal typography is Geist via next/font (see app/layout.tsx).
+ */
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/SpaceGrotesk-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   color-scheme: dark;
@@ -8,9 +19,9 @@
   --app-theme-transition-easing: ease;
 
   /* OpenCiVera Design System Tokens â€” Shared */
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
-  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --font-body: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Consolas', monospace;
+  --font-display: var(--font-geist-sans), system-ui, sans-serif;
 
   /* Brand hues (constant across modes) */
   --brand-indigo: #5E6AD2;
@@ -374,7 +385,6 @@ body[data-theme-transition="active"] .app-theme-switch__thumb,
 body[data-theme-transition="active"] .app-theme-switch__icon,
 body[data-theme-transition="active"] .card,
 body[data-theme-transition="active"] .card::before,
-body[data-theme-transition="active"] .glassmorphism,
 body[data-theme-transition="active"] .status,
 body[data-theme-transition="active"] .button,
 body[data-theme-transition="active"] .tab,
@@ -948,7 +958,13 @@ a {
   background: var(--portal-card-bg);
   padding: 1.5rem;
   box-shadow: var(--shadow-glass);
+}
+
+/* Glass is opt-in: only for cards floating over visual content. */
+.card--glass {
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-glass);
 }
 
 .card::before {
@@ -958,13 +974,6 @@ a {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--portal-card-highlight), transparent);
   pointer-events: none;
-}
-
-.glassmorphism {
-  background: var(--portal-card-bg) !important;
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--portal-border) !important;
-  box-shadow: var(--shadow-glass);
 }
 
 .card h1 {

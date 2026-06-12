@@ -29,7 +29,7 @@ export default async function AuditLogsPage() {
   });
 
   return (
-    <section className="card stack">
+    <section className="stack">
       <header className="card-header">
         <div>
           <h1>Audit Log Explorer</h1>

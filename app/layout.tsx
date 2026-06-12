@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { cookies } from "next/headers";
 import AppBrand from "./components/app-brand";
 import AppHeaderNavigation from "./components/app-header-navigation";
@@ -38,7 +40,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   ];
 
   return (
-    <html lang="en" data-app-theme={initialTheme}>
+    <html lang="en" data-app-theme={initialTheme} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body data-app-theme={initialTheme}>
         <header className="app-header">
           <div className="app-shell app-header__inner">

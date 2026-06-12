@@ -29,8 +29,9 @@ export function LanguageBadgeRail({ languages, onAddLanguage, onEditLanguage, is
             gap: "6px",
             padding: "4px 8px",
             borderRadius: "999px",
-            background: "var(--accent-light, rgba(94, 106, 210, 0.12))",
-            color: "var(--accent-dark, #5e6ad2)",
+            // Fallback is the neutral surface token: --portal-accent-glow is 0.30 alpha, far louder than this chip tint.
+            background: "var(--accent-light, var(--portal-surface))",
+            color: "var(--accent-dark, var(--portal-accent))",
             fontSize: "0.85rem",
             fontWeight: 600,
             whiteSpace: "nowrap",
