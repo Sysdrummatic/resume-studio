@@ -959,7 +959,13 @@ a {
   background: var(--portal-card-bg);
   padding: 1.5rem;
   box-shadow: var(--shadow-glass);
+}
+
+/* Glass is opt-in: only for cards floating over visual content. */
+.card--glass {
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-glass);
 }
 
 .card::before {
