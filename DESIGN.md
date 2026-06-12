@@ -57,14 +57,21 @@ It is not available to portal surfaces.
 
 ### Scale (portal — `product` register)
 
-| Token     | Size    | Weight | Tracking     | Line-height | Usage                        |
-| --------- | ------- | ------ | ------------ | ----------- | ---------------------------- |
-| `h1`      | 2.5rem  | 700    | −0.05em      | 1.1         | Page-level display headings  |
-| `h2`      | 1.75rem | 700    | −0.04em      | 1.2         | Section headings             |
-| `h3`      | 1.25rem | 600    | −0.02em      | 1.3         | Card headings, sub-sections  |
-| `body`    | 1rem    | 400    | 0            | 1.6         | Default prose                |
-| `small`   | 0.85rem | 400    | 0            | 1.5         | Supporting text, meta        |
-| `caption` | 0.75rem | 400    | +0.05em (UC) | —           | Labels, timestamps, kickers  |
+Tokenized in `:root` (`app/globals.css`): `--font-size-*`, `--leading-*`, `--tracking-*`.
+The Typography atom consumes these tokens; no hardcoded sizes in components.
+
+| Variant   | Size token / value           | Weight | Tracking                      | Line-height               | Usage                        |
+| --------- | ---------------------------- | ------ | ----------------------------- | ------------------------- | ---------------------------- |
+| `display` | `--font-size-display` 3.5rem | 700    | `--tracking-tight` −0.05em    | `--leading-tight` 1.1     | Hero/landing only            |
+| `h1`      | `--font-size-2xl` 2.25rem    | 700    | `--tracking-tight` −0.05em    | `--leading-tight` 1.1     | Page-level display headings  |
+| `h2`      | `--font-size-xl` 1.75rem     | 700    | `--tracking-snug` −0.03em     | `--leading-snug` 1.2      | Section headings             |
+| `h3`      | `--font-size-lg` 1.375rem    | 600    | `--tracking-normal` −0.01em   | `--leading-normal` 1.3    | Card headings, sub-sections  |
+| `body`    | `--font-size-base` 1rem      | 400    | `--tracking-normal` −0.01em   | `--leading-relaxed` 1.6   | Default prose                |
+| `small`   | `--font-size-sm` 0.8125rem   | 400    | 0                             | `--leading-relaxed` 1.6   | Supporting text, meta        |
+| `caption` | `--font-size-xs` 0.6875rem   | 400    | `--tracking-wide` +0.04em (UC)| —                         | Labels, timestamps, kickers  |
+
+`--tracking-brand` (−0.06em) is reserved for the brand wordmark (`.app-brand__name`) and nothing else.
+`--font-size-md` (1.125rem) is available for comfortable long-form body; `--leading-loose` (1.75) is reserved for CV-scale readability.
 
 ### Scale (CV — `resume` domain)
 
