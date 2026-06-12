@@ -16,3 +16,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0012: Portal Light Mode Material You Within App Theme Boundary](0012-portal-theme-light-mode-material-you.md)
 - [ADR 0013: Semantic Public Link URL](0013-semantic-public-link-url.md)
 - [ADR 0014: PDF Rendering Architecture](0014-pdf-rendering-architecture.md)
+- [ADR 0015: PDF Rendering Migration — Puppeteer on Vercel](0015-vercel-puppeteer-pdf-migration.md)

@@ -1,8 +1,8 @@
-# Phase H: AI & Ecosystem
+# Phase I: AI & Ecosystem
 
 **Status**: ◯ **PLANNED, NOT STARTED**  
 **ETA**: Jul–Sep 2026 (post-launch)  
-**Depends On**: Phase G completion & production launch  
+**Depends On**: Phase H completion & production launch  
 
 > AI-assisted CV generation, community style themes, LinkedIn import, GitHub enrichment, and first integrations from the open standard.
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Phase H is a post-core-delivery workstream. After Phase G launches the product, Phase H adds AI features and ecosystem integrations. These are not blocking launch; they're high-value additions based on user feedback and feature requests.
+Phase I is a post-core-delivery workstream. After Phase H launches the product, Phase I adds AI features and ecosystem integrations. These are not blocking launch; they're high-value additions based on user feedback and feature requests.
 
 ### Key Theme
 **From platform → ecosystem.** OpenCV YAML becomes a standard; third-party tools adopt it.
@@ -19,7 +19,7 @@ Phase H is a post-core-delivery workstream. After Phase G launches the product, 
 
 - **No launch blockers**: AI features are nice-to-have, not must-have
 - **User feedback first**: Beta users guide feature priorities
-- **Parallel workstream**: Can start Phase H planning during Phase G
+- **Parallel workstream**: Can start Phase I planning during Phase H
 - **Risk mitigation**: De-couples AI provider decisions from core launch
 
 ---
@@ -42,8 +42,8 @@ Phase H is a post-core-delivery workstream. After Phase G launches the product, 
 - [ ] "Generated with AI" badge on preview
 - [ ] Tests for unauthorized access, quota exhaustion, schema validation
 
-**Timeline**: 3–4 weeks (after Phase G)  
-**Implementation Plan**: [docs/guides/ai-demo-resume-generation-plan.md](../guides/ai-demo-resume-generation-plan.md)
+**Timeline**: 3–4 weeks (after Phase H)  
+**Implementation Plan**: [docs/guides/ai-demo-resume-generation-plan.md](../guides/features/ai-demo-resume-generation-plan.md)
 
 ### Job Description Tailoring
 
@@ -137,7 +137,7 @@ Phase H is a post-core-delivery workstream. After Phase G launches the product, 
 2. **OpenAI GPT-4** — general purpose, widely supported
 3. **Open-source (Llama)** — self-hosted, cost control
 
-**Decision Needed**: Phase H planning session with team
+**Decision Needed**: Phase I planning session with team
 
 **Factors**:
 - Cost per generation
@@ -182,21 +182,21 @@ Phase H is a post-core-delivery workstream. After Phase G launches the product, 
 ## Related Documentation
 
 ### Implementation Plans
-- [AI Demo Resume Generation Workstream](../guides/ai-demo-resume-generation-plan.md)
+- [AI Demo Resume Generation Workstream](../guides/features/ai-demo-resume-generation-plan.md)
 
 ### Architecture (Future ADRs)
-- ADR 0013 (TBD): AI Generation Model and Safety (to be created)
-- ADR 0014 (TBD): Third-Party Integration API (to be created)
+- ADR 0016 (TBD): AI Generation Model and Safety (to be created)
+- ADR 0017 (TBD): Third-Party Integration API (to be created)
 
 ### Execution
-- [action-plan.md § Phase H](../action-plan.md#phase-h---ai-extras-post-core-delivery)
+- [action-plan.md § Phase I](../action-plan.md#phase-i---ai-extras-post-core-delivery)
 
 ---
 
 ## Dependency Graph
 
 ```
-Phase G Launch
+Phase H Launch
 │
 ├─→ AI Demo Generation (3-4w)
 │   └─→ Job Description Tailoring (2-3w)
@@ -219,22 +219,22 @@ Phase G Launch
 
 ---
 
-## Phase H Planning Checklist
+## Phase I Planning Checklist
 
-Before starting Phase H implementation:
+Before starting Phase I implementation:
 
 - [ ] Team meeting on AI provider selection
 - [ ] Budget approval for API costs
 - [ ] Privacy and safety guidelines finalized
 - [ ] Community engagement plan documented
-- [ ] Phase H ADRs drafted (AI generation, integrations)
+- [ ] Phase I ADRs drafted (AI generation, integrations)
 - [ ] First feature design doc (likely: demo generation)
 
 ---
 
-## Transition to Phase I (Vision)
+## Transition to Phase J (Vision)
 
-Phase H success sets up Phase I (Professional Identity Platform):
+Phase I success sets up Phase J (Professional Identity Platform):
 - Recruiter access powered by AI-discovered insights
 - Community themes become verified visual standards
 - Third-party integrations drive adoption
@@ -242,22 +242,21 @@ Phase H success sets up Phase I (Professional Identity Platform):
 
 ---
 
-## Non-Scope (Phase I or Later)
+## Non-Scope (Phase J or Later)
 
-- **Recruiter recruiting/matching**: Requires verified identity (Phase I)
-- **Salary insights**: Requires external data partnerships (Phase I)
-- **Course recommendations**: Requires external education integrations (Phase I)
-- **Verified badge system**: Requires identity verification (Phase I)
+- **Recruiter recruiting/matching**: Requires verified identity (Phase J)
+- **Salary insights**: Requires external data partnerships (Phase J)
+- **Course recommendations**: Requires external education integrations (Phase J)
+- **Verified badge system**: Requires identity verification (Phase J)
 
 ---
 
 ## Current Status
 
-**Planning Phase**: Architecture decisions pending. Implementation blocked until Phase G launch (target: end of June 2026).
+**Planning Phase**: Architecture decisions pending. Implementation blocked until Phase H launch (target: end of June 2026).
 
 **Next Steps**:
-1. Final Phase G launch confirmation
-2. Schedule Phase H kickoff meeting
+1. Final Phase H launch confirmation
+2. Schedule Phase I kickoff meeting
 3. Prioritize features based on beta user feedback
 4. Begin AI provider evaluation
-

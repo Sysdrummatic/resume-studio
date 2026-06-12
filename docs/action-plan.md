@@ -74,7 +74,36 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Role inheritance PR5: decide SQL alignment and add forward-only helper migration only if needed.
    - [x] Role inheritance PR6: update brittle literal-role tests, run full validation, and attach manual QA evidence.
 
-7. [ ] Phase G - Hardening, QA, and launch readiness
+7. [ ] Phase G - PDF Visual Fidelity: Vercel + Puppeteer Migration
+   - [ ] Phase 1 — Code preparation (engine factory, internal render route, pdf mode)
+     - [ ] Confirm PdfEngine interface is the sole entry point in both PDF export endpoints
+     - [ ] Add engine-factory.ts with PDF_ENGINE env var switching (react-pdf | puppeteer)
+     - [ ] Add PDF_ENGINE to all env var templates (.env.*.example)
+     - [ ] Add internal render route /api/resume/pdf-render/[token] with HMAC token validation
+     - [ ] Add PDF_RENDER_SECRET to env var templates
+     - [ ] Add mode="pdf" to ResumeRenderMode — no chrome, print-optimized CSS
+     - [ ] Add contract tests: valid token → 200, invalid/expired/missing → 403, snapshot-only
+   - [ ] Phase 2 — Vercel migration
+     - [ ] Add vercel.json with function maxDuration config for PDF routes
+     - [ ] Port all Netlify redirects from netlify.toml to vercel.json
+     - [ ] Reconfigure all environment variables on Vercel dashboard
+     - [ ] Validate all routes on Vercel preview deploy
+     - [ ] Run full smoke test protocol on Vercel preview
+     - [ ] Switch production DNS to Vercel
+     - [ ] Run full smoke test protocol on Vercel production
+   - [ ] Phase 3 — PuppeteerEngine implementation
+     - [ ] Add @sparticuz/chromium and puppeteer-core to dependencies
+     - [ ] Implement PuppeteerEngine in app/lib/pdf/engine-puppeteer.ts
+     - [ ] Wire PDF_ENGINE=puppeteer in Vercel production and preview env vars
+     - [ ] Visual QA: PDF output matches web view for all sections
+   - [ ] Phase 4 — Cleanup
+     - [ ] Decide: keep react-pdf as dev fallback or remove entirely
+     - [ ] Update local-development.md, environment-matrix.md, deployment-qa.md
+     - [ ] Update ADR 0014 status to "Partially Superseded"
+     - [ ] Update CLAUDE.md — Vercel as deployment platform
+     Source: [ADR 0015](adr/0015-vercel-puppeteer-pdf-migration.md), [Vercel Puppeteer PDF Migration Guide](guides/vercel-puppeteer-pdf-migration.md)
+
+8. [ ] Phase H - Hardening, QA, and launch readiness
    - [x] Confirm local CI-equivalent gates are green before deploy (`npm.cmd run verify`, `npm.cmd run build`).
    - [ ] Preview deploy QA is complete for the next release.
    - [ ] Production deploy QA is complete for the next release.
@@ -83,7 +112,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [ ] Run protected route smoke checks.
    - [ ] Run admin panel and audit smoke checks.
    - [ ] Run editor publish and rollback smoke checks.
-   - [ ] Validate Netlify serves the latest build.
+   - [ ] Validate deployment platform serves the latest build.
    - [ ] Confirm legacy redirects still resolve.
    - [ ] Capture release evidence if required.
    - [ ] Complete E2E regression suite for critical paths.
@@ -108,7 +137,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
      - [x] Contract tests pass
      Source: [ADR 0014: PDF Rendering Architecture](adr/0014-pdf-rendering-architecture.md), [Deployment and QA Checklist](guides/deployment-qa.md), [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 
-8. [ ] Phase H - AI extras (post-core delivery)
+9. [ ] Phase I - AI extras (post-core delivery)
    - [ ] Add AI demo generation actions in the editor.
    - [ ] Add provider config and environment variable handling for AI generation.
    - [ ] Add `ai_resume_generations` usage tracking migration and helpers.
@@ -118,17 +147,17 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [ ] Add AI badge rendering in preview and editor state.
    - [ ] Add tests for unauthorized access, quota exhaustion, validation, and happy path.
    - [ ] Add phase 2 job-description-tailored fictional CV option.
-     Source: [AI Demo Resume Generation Workstream](guides/ai-demo-resume-generation-plan.md)
+     Source: [AI Demo Resume Generation Workstream](guides/features/ai-demo-resume-generation-plan.md)
 
-9. [ ] Phase I — ATS Intelligence (post-launch)
-   - [ ] Phase I-1: `app/lib/ats-rules.ts` — pure scoring engine
-   - [ ] Phase I-1: ATS Score Sidebar component w edytorze
-   - [ ] Phase I-1: Testy jednostkowe dla wszystkich reguł ATS
-   - [ ] Phase I-2: Visual Score tab
-   - [ ] Phase I-3: AI keyword gap endpoint (po Phase H)
-     Source: [Phase I ATS Intelligence Workstream](guides/phase-i-ats-intelligence-plan.md)
+10. [ ] Phase J — ATS Intelligence (post-launch)
+   - [ ] Phase J-1: `app/lib/ats-rules.ts` — pure scoring engine
+   - [ ] Phase J-1: ATS Score Sidebar component w edytorze
+   - [ ] Phase J-1: Testy jednostkowe dla wszystkich reguł ATS
+   - [ ] Phase J-2: Visual Score tab
+   - [ ] Phase J-3: AI keyword gap endpoint (po Phase I)
+     Source: [Phase J ATS Intelligence Workstream](guides/phase-j-ats-intelligence-plan.md)
 
-10. [ ] Phase J — Semantic Public Link URL (post-launch, after Phase I)
+11. [ ] Phase K — Semantic Public Link URL (post-launch, after Phase J)
     - [ ] Migracja profiles.person_slug na format z myślnikiem (ariana-holt)
     - [ ] Redirect 301 dla starych URL-i
     - [ ] Kolumna role_slug i link_type w resume_public_links
@@ -137,7 +166,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
     - [ ] Aktualizacja publish_resume_saved_version RPC
     - [ ] Migracja istniejących linków na link_type = 'general'
     - [ ] ADR 0013, testy, dokumentacja
-      Source: [Phase J Semantic Public Link URL](guides/phase-j-semantic-url-plan.md)
+      Source: [Phase K Semantic Public Link URL](guides/phase-k-semantic-url-plan.md)
 
 ## Gantt Map (Dependencies And Parallel Work)
 
@@ -169,17 +198,23 @@ gantt
   section Editor Follow-up
   D-followup Public-link management in editor :d1, 2026-05-13, 6d
 
-  section AI Extras (Phase H - Post-core)
-  AI1 Provider/env + usage tracking         :ai1, 2026-05-13, 6d
+  section PDF Fidelity (Phase G)
+  G1 Code prep + engine factory             :g1, after f4, 8d
+  G2 Vercel migration + validation          :g2, after g1, 6d
+  G3 PuppeteerEngine + visual QA            :g3, after g2, 8d
+  G4 Cleanup + react-pdf decision           :g4, after g3, 3d
+
+  section Hardening And Release (Phase H)
+  H1 E2E/perf/a11y/security                 :h1, after e2, 10d
+  H2 Deploy QA + migrations + smoke         :h2, after h1, 8d
+  H3 Observability + rollback playbook      :h3, after h1, 5d
+  H4 Production go-live checks              :h4, after h2, 4d
+
+  section AI Extras (Phase I - Post-core)
+  AI1 Provider/env + usage tracking         :ai1, after h4, 6d
   AI2 API + prompt/schema validator         :ai2, after ai1, 8d
   AI3 Editor UI + badge + tests             :ai3, after ai2, 8d
   AI4 Phase 2 JD-tailored option            :ai4, after ai3, 6d
-
-  section Hardening And Release (Phase G)
-  G1 E2E/perf/a11y/security                 :g1, after e2, 10d
-  G2 Deploy QA + migrations + smoke         :g2, after f4, 8d
-  G3 Observability + rollback playbook      :g3, after g1, 5d
-  G4 Production go-live checks              :g4, after g2, 4d
 ```
 
 ## Parallelization Notes
