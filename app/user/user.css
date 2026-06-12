@@ -880,7 +880,7 @@ body[data-theme-transition="active"] .personal-hub__preview-fallback {
 .account-status-dot {
   width: 10px;
   height: 10px;
-  background: #22c55e;
+  background: var(--portal-success-strong);
   border-radius: 50%;
   flex-shrink: 0;
 }

@@ -30,9 +30,9 @@ test("status toast renders status messages as a reusable browser-corner popup", 
   assert.equal(styles.includes(".status-toast--success"), true);
   assert.equal(styles.includes(".status-toast--warning"), true);
   assert.equal(styles.includes(".status-toast--error"), true);
-  assert.equal(styles.includes("#dcfce7"), true);
-  assert.equal(styles.includes("#fef9c3"), true);
-  assert.equal(styles.includes("#fee2e2"), true);
+  assert.equal(styles.includes("border-color: var(--portal-success-border)"), true);
+  assert.equal(styles.includes("border-color: var(--portal-warning-border)"), true);
+  assert.equal(styles.includes("border-color: var(--portal-danger-border)"), true);
 });
 
 test("page-level status messages use the shared toast component", () => {

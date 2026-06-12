@@ -143,6 +143,16 @@
   --portal-danger-bg-hover: rgba(180, 30, 30, 0.18);
   --portal-danger-border: rgba(255, 85, 85, 0.5);
   --portal-danger-text: #ffb1b1;
+  --portal-success-bg: rgba(64, 200, 140, 0.12);
+  --portal-success-border: rgba(64, 200, 140, 0.4);
+  --portal-success-text: #a6e9c8;
+  --portal-success-strong: #40c88c;
+  --portal-warning-bg: rgba(232, 178, 82, 0.12);
+  --portal-warning-border: rgba(232, 178, 82, 0.4);
+  --portal-warning-text: #f1d8a2;
+  --portal-info-bg: rgba(94, 106, 210, 0.14);
+  --portal-info-border: rgba(94, 106, 210, 0.45);
+  --portal-info-text: #c7d0ff;
   --portal-overlay-bg: rgba(5, 5, 6, 0.58);
   --portal-home-kicker: #c6ccff;
   --portal-home-lead: #bcc6e5;
@@ -279,6 +289,16 @@
   --portal-danger-bg-hover: rgba(186, 26, 26, 0.12);
   --portal-danger-border: rgba(186, 26, 26, 0.2);
   --portal-danger-text: #8c1d18;
+  --portal-success-bg: rgba(20, 122, 75, 0.1);
+  --portal-success-border: rgba(20, 122, 75, 0.3);
+  --portal-success-text: #135f3d;
+  --portal-success-strong: #178a54;
+  --portal-warning-bg: rgba(158, 103, 10, 0.1);
+  --portal-warning-border: rgba(158, 103, 10, 0.32);
+  --portal-warning-text: #6f4d08;
+  --portal-info-bg: rgba(80, 72, 196, 0.1);
+  --portal-info-border: rgba(80, 72, 196, 0.28);
+  --portal-info-text: #443a8f;
   --portal-overlay-bg: rgba(73, 69, 79, 0.16);
   --portal-home-kicker: #6750a4;
   --portal-home-lead: #625f69;
@@ -1365,12 +1385,12 @@ a {
 }
 
 .status--ok {
-  color: #c7d5ff;
+  color: var(--portal-success-text);
 }
 
 .status--error {
-  color: #ff8e8e;
-  border-color: rgba(255, 85, 85, 0.55);
+  color: var(--portal-danger-text);
+  border-color: var(--portal-danger-border);
 }
 
 .status-toast {
@@ -1397,21 +1417,21 @@ a {
 }
 
 .status-toast--success {
-  background: #dcfce7;
-  border-color: #166534;
-  color: #14532d;
+  background: linear-gradient(var(--portal-success-bg), var(--portal-success-bg)), var(--portal-bg-elevated);
+  border-color: var(--portal-success-border);
+  color: var(--portal-success-text);
 }
 
 .status-toast--warning {
-  background: #fef9c3;
-  border-color: #854d0e;
-  color: #713f12;
+  background: linear-gradient(var(--portal-warning-bg), var(--portal-warning-bg)), var(--portal-bg-elevated);
+  border-color: var(--portal-warning-border);
+  color: var(--portal-warning-text);
 }
 
 .status-toast--error {
-  background: #fee2e2;
-  border-color: #991b1b;
-  color: #7f1d1d;
+  background: linear-gradient(var(--portal-danger-bg), var(--portal-danger-bg)), var(--portal-bg-elevated);
+  border-color: var(--portal-danger-border);
+  color: var(--portal-danger-text);
 }
 
 .status-toast__close {
@@ -1434,7 +1454,7 @@ a {
 
 .status-toast__close:hover,
 .status-toast__close:focus-visible {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--portal-surface-hover);
 }
 
 @keyframes status-toast-slide-in {
@@ -2212,10 +2232,10 @@ a {
 
 .dashboard-resume-list__badge {
   flex: 0 0 auto;
-  border: 1px solid rgba(90, 220, 160, 0.28);
+  border: 1px solid var(--portal-success-border);
   border-radius: 999px;
   padding: 0.28rem 0.6rem;
-  color: #bdf6d7;
+  color: var(--portal-success-text);
   font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 600;
@@ -2224,8 +2244,8 @@ a {
 }
 
 .dashboard-resume-list__badge--private {
-  border-color: rgba(255, 210, 105, 0.35);
-  color: #ffe1a3;
+  border-color: var(--portal-warning-border);
+  color: var(--portal-warning-text);
 }
 
 .dashboard-resume-list__header {
