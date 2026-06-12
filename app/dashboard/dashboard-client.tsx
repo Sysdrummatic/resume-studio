@@ -468,7 +468,6 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const publishableLocales = (documents.length ? documents : masterResume ? [masterResume] : []).map((doc) => doc.locale);
   const publishedPresetCount = presets.filter((preset) => preset.is_public).length;
   const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
-  const localeCount = languageVersions.length;
   const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
@@ -661,7 +660,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           <div className="stack">
             <div className="product-surface__eyebrow">Source record</div>
             <h2 className="dashboard-panel__title">Master Resume</h2>
-            <p className="dashboard-panel__lead">Primary source CV. Updated {latestMasterUpdate}</p>
+            <p className="dashboard-panel__lead">Updated {latestMasterUpdate}</p>
             <LanguageBadgeRail
               languages={languageVersions}
               onAddLanguage={() => {
@@ -692,23 +691,6 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
             </button>
           </div>
         </div>
-        <div className="dashboard-panel__stats" aria-label="Master resume summary">
-          <div className="product-metric">
-            <span className="product-metric__label">Locales</span>
-            <strong>{localeCount}</strong>
-            <small>Active language set</small>
-          </div>
-          <div className="product-metric">
-            <span className="product-metric__label">Published</span>
-            <strong>{publishedPresetCount}</strong>
-            <small>Live public CVs</small>
-          </div>
-          <div className="product-metric">
-            <span className="product-metric__label">Private</span>
-            <strong>{privatePresetCount}</strong>
-            <small>Draft or internal versions</small>
-          </div>
-        </div>
       </section>
 
       <section className="card dashboard-panel stack">
@@ -716,7 +698,6 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           <div className="stack">
             <div className="product-surface__eyebrow">Public surfaces</div>
             <h2 className="dashboard-panel__title">Your CVs</h2>
-            <p className="dashboard-panel__lead">Target specific audiences without branching the master resume into disconnected files.</p>
           </div>
           <div className="dashboard-panel__chips" aria-label="CV version state summary">
             <span className="dashboard-chip">{presets.length} total</span>

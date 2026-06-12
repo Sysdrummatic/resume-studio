@@ -1070,47 +1070,6 @@ a {
   letter-spacing: -0.04em;
 }
 
-.product-surface__lead {
-  max-width: 62ch;
-  margin: 0;
-  color: var(--portal-foreground-muted);
-  font-size: 0.98rem;
-  line-height: 1.7;
-}
-
-.product-metric {
-  display: grid;
-  gap: 0.32rem;
-  min-width: 0;
-  padding: 0.95rem 1rem;
-  border: 1px solid var(--portal-border);
-  border-radius: 16px;
-  background: var(--portal-card-bg-muted);
-  box-shadow: var(--portal-input-shadow);
-}
-
-.product-metric strong {
-  color: var(--text);
-  font-size: 1.4rem;
-  line-height: 1;
-  letter-spacing: -0.04em;
-}
-
-.product-metric small {
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.45;
-}
-
-.product-metric__label {
-  color: var(--portal-foreground-subtle);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .tabs {
   display: flex;
   gap: 0.5rem;
@@ -1490,24 +1449,6 @@ a {
 .dashboard-page {
   display: grid;
   gap: 1rem;
-}
-
-.dashboard-overview {
-  display: grid;
-  gap: 1.15rem;
-}
-
-.dashboard-overview__account {
-  margin: 0;
-  color: var(--portal-foreground-subtle);
-  font-size: 0.9rem;
-}
-
-.dashboard-overview__stats,
-.dashboard-panel__stats {
-  display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .dashboard-panel {
