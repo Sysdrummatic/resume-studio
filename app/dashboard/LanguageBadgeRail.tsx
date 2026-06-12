@@ -30,7 +30,7 @@ export function LanguageBadgeRail({ languages, onAddLanguage, onEditLanguage, is
             padding: "4px 8px",
             borderRadius: "999px",
             background: "var(--accent-light, rgba(94, 106, 210, 0.12))",
-            color: "var(--accent-dark, #5e6ad2)",
+            color: "var(--accent-dark, var(--portal-accent))",
             fontSize: "0.85rem",
             fontWeight: 600,
             whiteSpace: "nowrap",
