@@ -49,7 +49,7 @@ test("resume locale handling supports newly added two-letter languages", () => {
   assert.equal(schema.includes("export type ResumeLocale = string"), true);
   assert.equal(schema.includes("/^[a-z]{2}$/.test(normalized) ? normalized : \"en\""), true);
   assert.equal(editor.includes("searchParams.get(\"locale\")"), true);
-  assert.equal(editor.includes("const sorted = payload.languages.sort"), true);
+  assert.equal(editor.includes("const sorted = sortLanguageRows(payload.languages)"), true);
   assert.equal(preview.includes("locale={locale}"), true);
   assert.equal(renderer.includes("buildResumeRendererLabels(locale, labels)"), true);
 });

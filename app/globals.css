@@ -1686,6 +1686,10 @@ a {
   background: var(--portal-surface-ghost);
 }
 
+.section-row .resume-editor-tabs {
+  flex: 1;
+}
+
 .resume-editor-tabs__tab {
   border: 0;
   border-radius: 8px;
