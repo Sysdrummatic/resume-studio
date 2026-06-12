@@ -134,5 +134,5 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   assert.equal(userPage.includes("UserClient"), true);
   assert.equal(userClient.includes("Primary Resume"), false);
   assert.equal(userClient.includes('aria-label="Resume preview"'), true);
-  assert.equal(userClient.includes("buildPublishedResumeExportUrls"), true);
+  assert.equal(userClient.includes("presetId="), false);
 });
