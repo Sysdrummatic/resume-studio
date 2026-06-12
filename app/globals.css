@@ -385,7 +385,6 @@ body[data-theme-transition="active"] .app-theme-switch__thumb,
 body[data-theme-transition="active"] .app-theme-switch__icon,
 body[data-theme-transition="active"] .card,
 body[data-theme-transition="active"] .card::before,
-body[data-theme-transition="active"] .glassmorphism,
 body[data-theme-transition="active"] .status,
 body[data-theme-transition="active"] .button,
 body[data-theme-transition="active"] .tab,
@@ -975,13 +974,6 @@ a {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--portal-card-highlight), transparent);
   pointer-events: none;
-}
-
-.glassmorphism {
-  background: var(--portal-card-bg) !important;
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--portal-border) !important;
-  box-shadow: var(--shadow-glass);
 }
 
 .card h1 {
