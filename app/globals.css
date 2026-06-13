@@ -2520,6 +2520,39 @@ a {
   background: var(--lp-border);
 }
 
+/* Scroll reveal: a restrained one-time entrance for below-the-fold sections.
+   The hidden start state applies only after ScrollReveal marks the page ready,
+   so content stays visible without JS and for crawlers. */
+.lp--reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 600ms var(--ease-out-expo),
+    transform 600ms var(--ease-out-expo);
+}
+
+.lp--reveal-ready [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Gentle stagger across the three publishing-model cards. */
+.lp--reveal-ready .lp-card[data-reveal]:nth-child(2) {
+  transition-delay: 80ms;
+}
+
+.lp--reveal-ready .lp-card[data-reveal]:nth-child(3) {
+  transition-delay: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp--reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 /* ── SECTION HEADERS ──────────────────────────── */
 .lp-sec {
   padding: 76px 0;

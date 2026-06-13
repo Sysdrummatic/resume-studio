@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LandingPageFooter from "./components/footer";
 import RotatingWord from "./components/rotating-word";
+import ScrollReveal from "./components/scroll-reveal";
 
 // Words cycled in the hero headline — edit this list to taste.
 const heroRotatingWords = ["grows", "evolves", "adapts", "scales"];
@@ -76,16 +77,16 @@ export default function HomePage() {
 
       {/* CV PREVIEW */}
       <section className="lp-sec lp-cv-sec" id="resume" aria-labelledby="lp-resume-title">
-        <div className="lp-sechdr">
+        <div className="lp-sechdr" data-reveal>
           <div className="lp-tag">{"// public link in action"}</div>
           <h2 id="lp-resume-title" className="lp-h">Your CV as your public business card.</h2>
           <p className="lp-p">
-            The output layer is a clean structured view — designed for professional signal, not document formatting.
+            The output layer is a clean structured view, designed for professional signal, not document formatting.
             This is what recipients see when they open your link.
           </p>
         </div>
 
-        <div className="lp-cv">
+        <div className="lp-cv" data-reveal>
           <div className="lp-cv__chrome">
             <div className="lp-cv__dots">
               <span />
@@ -137,7 +138,7 @@ export default function HomePage() {
 
       {/* PUBLISHING MODEL */}
       <section className="lp-sec" id="model" aria-labelledby="lp-model-title">
-        <div className="lp-sechdr">
+        <div className="lp-sechdr" data-reveal>
           <div className="lp-tag">{"// CV as Code model"}</div>
           <h2 id="lp-model-title" className="lp-h">Focus on your career record.</h2>
           <p className="lp-p">By using the CV as Code model, you can manage your career information in a structured and consistent way. Don&apos;t think about layout or adjusting your data to given template. Create your CV with ease by editing YAML or using the editor and leave the rest to us.</p>
@@ -145,7 +146,7 @@ export default function HomePage() {
 
         <div className="lp-grid3">
           {publishingModel.map((card) => (
-            <article key={card.title} className="lp-card">
+            <article key={card.title} className="lp-card" data-reveal>
               <div className="lp-card__tag">{card.tag}</div>
               <span className={`lp-chip lp-chip--${card.chipType}`}>{card.chip}</span>
               <h3>{card.title}</h3>
@@ -159,7 +160,7 @@ export default function HomePage() {
 
       {/* FINAL CTA */}
       <section className="lp-cta-sec" aria-labelledby="lp-cta-title">
-        <div className="lp-cta">
+        <div className="lp-cta" data-reveal>
           <div className="lp-cta__lbl">{"// current release"}</div>
           <h2 id="lp-cta-title">The platform foundation is live and the publishing model is taking shape.</h2>
           <p className="lp-cta__p">
@@ -177,6 +178,7 @@ export default function HomePage() {
       </section>
 
       <LandingPageFooter />
+      <ScrollReveal />
     </div>
   );
 }
