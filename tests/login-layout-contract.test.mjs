@@ -28,7 +28,7 @@ test("login access container uses a stable responsive width", () => {
 
 test("login card fills the access container instead of shrinking to content", () => {
   const styles = readStyles();
-  const cardRule = styles.match(/\.auth-access__intro,\s*\.auth-access__card\s*\{([^}]*)\}/m)?.[1] || "";
+  const cardRule = styles.match(/\.auth-access__card\s*\{([^}]*)\}/m)?.[1] || "";
 
   assert.equal(cardRule.includes("min-width: 0"), true);
   assert.equal(cardRule.includes("width: 100%"), true);
