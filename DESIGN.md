@@ -268,7 +268,7 @@ With image: `--portal-control-bg` fill. Without image: `--portal-button-primary-
 
 ```
 Ambient float:     10s ease-in-out infinite, background gradients only
-Theme transition:  1500ms cubic-bezier(0.22, 1, 0.36, 1), view transitions API
+Theme transition:  200ms cubic-bezier(0.22, 1, 0.36, 1), view transitions API
 Micro:             ~160ms, hover / focus / state (legacy; migrating to the tokens above)
 ```
 

@@ -22,7 +22,7 @@ test("theme switch is interactive and persists the selected theme", () => {
   const switchSource = read("app/components/app-theme-switch.tsx");
   const styles = read("app/globals.css");
 
-  assert.equal(switchSource.includes("const APP_THEME_TRANSITION_MS = 1500;"), true);
+  assert.equal(switchSource.includes("const APP_THEME_TRANSITION_MS = 200;"), true);
   assert.equal(switchSource.includes('role="switch"'), true);
   assert.equal(switchSource.includes('aria-checked={theme === "light"}'), true);
   assert.equal(switchSource.includes("Switch to ${nextTheme} theme."), true);
@@ -37,7 +37,7 @@ test("theme switch is interactive and persists the selected theme", () => {
   assert.equal(styles.includes("color: var(--portal-on-accent);"), true);
   assert.equal(styles.includes("::view-transition-old(root)"), true);
   assert.equal(styles.includes('body[data-theme-transition="active"]'), true);
-  assert.equal(styles.includes("--app-theme-transition-duration: 1500ms;"), true);
+  assert.equal(styles.includes("--app-theme-transition-duration: 200ms;"), true);
 });
 
 test("layout resolves the initial theme on the server", () => {
