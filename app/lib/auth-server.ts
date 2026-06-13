@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAuthUser, refreshSession } from "./supabase-http";
+import { getAuthUser } from "./supabase-http";
 import { readAuthTokens } from "./auth-cookies";
 import { canAccessAdminArea } from "./rbac";
 import type { SessionActor } from "./auth-types";
@@ -38,27 +38,18 @@ async function readActorFromAccessToken(accessToken: string): Promise<SessionAct
 }
 
 export async function getCurrentActor(): Promise<SessionActor | null> {
+  // The proxy (proxy.ts) refreshes and persists the session before any server
+  // component renders, so the access token here is already current. This is a
+  // pure reader; do not reintroduce a refresh fallback (it cannot persist
+  // rotated tokens from a server component and would burn the refresh token).
   const cookieStore = await cookies();
-  const { accessToken, refreshToken } = readAuthTokens(cookieStore);
+  const { accessToken } = readAuthTokens(cookieStore);
 
-  if (accessToken) {
-    const actor = await readActorFromAccessToken(accessToken);
-    if (actor) {
-      return actor;
-    }
-  }
-
-  if (!refreshToken) {
+  if (!accessToken) {
     return null;
   }
 
-  const refreshResult = await refreshSession(refreshToken);
-  if (!refreshResult.data || refreshResult.error) {
-    return null;
-  }
-
-  const actor = await readActorFromAccessToken(refreshResult.data.access_token);
-  return actor;
+  return readActorFromAccessToken(accessToken);
 }
 
 export async function requireAuthenticatedActor(): Promise<SessionActor> {
