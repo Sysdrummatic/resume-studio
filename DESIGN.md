@@ -113,7 +113,6 @@ Success: green (64,200,140 family). Warning: amber (232,178,82). Danger: red (ex
 Info: the accent indigo. Light theme defines parallel values at matched roles.
 State colors are reserved for state: toasts, badges, status text, live dots. Never decoration.
 No hardcoded semantic hex in components or page CSS; consume the tokens.
-
 **Ambient light**: directional, top-left only. Single light source.  
 Defined in `--portal-body-ambient` via three radial-gradients at positions ~18%/12%, ~78%/16%, ~74%/68%.
 
@@ -333,7 +332,6 @@ CV domain (OUT OF SCOPE for portal changes):
 
 Portal theme changes must not produce visible side-effects in the CV domain.  
 Every task that touches `app/resume/resume.css` requires an explicit scope declaration.
-
 ---
 
 ## Anti-Patterns

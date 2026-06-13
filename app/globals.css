@@ -27,7 +27,6 @@
   --font-body: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), 'Consolas', monospace;
   --font-display: var(--font-geist-sans), system-ui, sans-serif;
-
   /* Type scale */
   --font-size-xs: 0.6875rem;
   /* 11px — captions, timestamps */
@@ -69,7 +68,6 @@
   /* captions — uppercase labels */
   --tracking-brand: -0.06em;
   /* brand wordmark only */
-
   /* Brand hues (constant across modes) */
   --brand-indigo: #5E6AD2;
   --brand-indigo-bright: #6872D9;
