@@ -2595,22 +2595,17 @@ a {
   color: var(--lp-fg-muted);
   max-width: 580px;
   line-height: 1.68;
-  margin: 0 auto;
+  margin: 0;
   text-wrap: pretty;
 }
 
 .lp-sechdr {
   margin-bottom: 48px;
-  text-align: center;
 }
 
 /* ── HERO ─────────────────────────────────────── */
 .lp-hero {
   padding: 64px 0 56px;
-}
-
-.lp-hero__in {
-  text-align: center;
 }
 
 .lp-hero__lbl {
@@ -2690,7 +2685,7 @@ a {
   font-size: 1rem;
   line-height: 1.68;
   color: var(--lp-fg-muted);
-  margin: 0 auto 32px;
+  margin: 0 0 32px;
   max-width: 660px;
   text-wrap: pretty;
 }
@@ -2699,7 +2694,6 @@ a {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: center;
   margin-bottom: 28px;
 }
 
@@ -2707,7 +2701,6 @@ a {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
-  justify-content: center;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--lp-fg-muted);
@@ -2979,7 +2972,6 @@ a {
   border: 1px solid var(--lp-border-hi);
   border-radius: var(--lp-rxl);
   padding: 64px 48px;
-  text-align: center;
   background: var(--lp-bg-card);
   position: relative;
   overflow: hidden;
@@ -2990,11 +2982,10 @@ a {
   content: "";
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 55%;
+  left: 0;
+  width: 40%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--lp-accent), transparent);
+  background: linear-gradient(90deg, var(--lp-accent), transparent);
 }
 
 .lp-cta__lbl {
@@ -3021,14 +3012,13 @@ a {
   color: var(--lp-fg-muted);
   font-size: 0.975rem;
   line-height: 1.65;
-  margin: 0 auto 32px;
+  margin: 0 0 32px;
   max-width: 480px;
 }
 
 .lp-cta__acts {
   display: flex;
   gap: 12px;
-  justify-content: center;
   flex-wrap: wrap;
 }
 
