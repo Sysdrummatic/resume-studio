@@ -18,6 +18,11 @@
   --app-theme-transition-duration: 1500ms;
   --app-theme-transition-easing: ease;
 
+  /* Motion: decisive deceleration for state changes; press is faster than settle. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-press: 90ms;
+  --motion-settle: 220ms;
+
   /* OpenCiVera Design System Tokens â€” Shared */
   --font-body: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), 'Consolas', monospace;
@@ -1148,10 +1153,10 @@ a {
   cursor: pointer;
   box-shadow: var(--portal-control-shadow);
   transition:
-    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    background 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform var(--motion-settle) var(--ease-out-expo),
+    border-color var(--motion-settle) var(--ease-out-expo),
+    background var(--motion-settle) var(--ease-out-expo),
+    box-shadow var(--motion-settle) var(--ease-out-expo);
 }
 
 .button:hover,
@@ -1165,6 +1170,12 @@ a {
 .button:focus-visible {
   outline: 2px solid var(--portal-focus-ring);
   outline-offset: 2px;
+}
+
+/* Press feedback: cancel the hover lift and settle down quickly. */
+.button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  transition-duration: var(--motion-press);
 }
 
 .button:disabled {
