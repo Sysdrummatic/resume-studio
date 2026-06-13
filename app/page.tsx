@@ -48,21 +48,11 @@ export default function HomePage() {
               Which <RotatingWord words={heroRotatingWords} /> with you.
             </h1>
             <p className="lp-hero__lead">
-              Managing your CV is broken. <br />
-
-              You create a version for one job.
-              Then another version for a different role.
-              Then you need it in English, then Polish.
-              Six months later, three different PDFs float around out there.
-              Nobody knows which version a recruiter actually has.
+              Managing your CV is broken. One version for this job, another for that role,
+              then translations, and six months later nobody knows which PDF a recruiter has.
               <br /><br />
-              OpenCiVera fixes this. <br />
-
-              Build your career story once.
-              Manage everything from one place.
-              Share different versions to different people — without duplicating data.
-              Change something? Everyone sees the update instantly.
-              Your CV is finally under your control.
+              OpenCiVera fixes that. Build your career record once, publish a tailored version
+              for each audience, and update all of them the instant anything changes.
             </p>
             <div className="lp-hero__acts">
               <Link href="/login" className="btn btn-p btn-lg">
@@ -79,52 +69,6 @@ export default function HomePage() {
               <span className="lp-hm"><span className="lp-hm__dot" />LiveCV always up-to-date</span>
             </div>
           </div>
-
-          {/* <aside className="lp-signal" aria-label="OpenCiVera system signal">
-            <div className="lp-signal__head">
-              <span className="lp-signal__title">OpenCiVera system</span>
-              <span className="lp-signal__status"><span className="lp-signal__dot" />Active direction</span>
-            </div>
-            <div className="lp-signal__body">
-              <div className="lp-signal__row">
-                <div className="lp-node lp-node--hl">
-                  <div className="lp-node__lbl">Surface</div>
-                  <div className="lp-node__val">Public CV</div>
-                </div>
-                <div className="lp-node">
-                  <div className="lp-node__lbl">Model</div>
-                  <div className="lp-node__val">Master source</div>
-                </div>
-                <div className="lp-node">
-                  <div className="lp-node__lbl">Control</div>
-                  <div className="lp-node__val">Role-aware</div>
-                </div>
-              </div>
-              <div className="lp-signal__divider" />
-              <div className="lp-signal__meta">
-                <div className="lp-mi">
-                  <div className="lp-mi__k">Output</div>
-                  <div className="lp-mi__v">Publication</div>
-                </div>
-                <div className="lp-mi">
-                  <div className="lp-mi__k">Locale</div>
-                  <div className="lp-mi__v">EN / PL</div>
-                </div>
-                <div className="lp-mi">
-                  <div className="lp-mi__k">Status</div>
-                  <div className="lp-mi__v">Live</div>
-                </div>
-                <div className="lp-mi lp-mi--wide">
-                  <div className="lp-mi__k">Source pipeline</div>
-                  <div className="lp-mi__v lp-mi__v--sm">YAML → structured record → public surface</div>
-                </div>
-                <div className="lp-mi">
-                  <div className="lp-mi__k">Views</div>
-                  <div className="lp-mi__v">Multi</div>
-                </div>
-              </div>
-            </div>
-          </aside> */}
         </div>
       </section>
 
@@ -233,26 +177,6 @@ export default function HomePage() {
       </section>
 
       <LandingPageFooter />
-      {/* Legacy inline footer kept only for reference.
-      <footer className="lp-footer">
-        <div className="lp-footer__in">
-          <div className="lp-footer__left">
-            <div className="lp-footer__brand">
-              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" stroke="var(--accent)" strokeWidth="1.8" fill="none" />
-                <circle cx="16" cy="16" r="5" stroke="var(--accent)" strokeWidth="1.5" fill="none" />
-                <circle cx="16" cy="16" r="2" fill="var(--accent-teal)" />
-              </svg>
-              <span>OpenCiVera</span>
-            </div>
-            <nav className="lp-footer__links">
-              <Link href="/resume">Sample resume</Link>
-              <Link href="/login">Platform</Link>
-            </nav>
-          </div>
-          <p className="lp-footer__copy">© 2026 OpenCiVera</p>
-        </div>
-      </footer> */}
     </div>
   );
 }
