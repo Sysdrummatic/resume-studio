@@ -107,6 +107,13 @@ Grid line:           rgba(255, 255, 255, 0.02)
 Focus ring:          rgba(94, 106, 210, 0.55)
 ```
 
+**Semantic state tokens** (dark): `--portal-{success|warning|danger|info}-{bg|border|text}`,
+plus `--portal-success-strong` for solid live-state indicators (status dots).
+Success: green (64,200,140 family). Warning: amber (232,178,82). Danger: red (existing).
+Info: the accent indigo. Light theme defines parallel values at matched roles.
+State colors are reserved for state: toasts, badges, status text, live dots. Never decoration.
+No hardcoded semantic hex in components or page CSS; consume the tokens.
+
 **Ambient light**: directional, top-left only. Single light source.  
 Defined in `--portal-body-ambient` via three radial-gradients at positions ~18%/12%, ~78%/16%, ~74%/68%.
 
