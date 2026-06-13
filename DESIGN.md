@@ -256,18 +256,40 @@ With image: `--portal-control-bg` fill. Without image: `--portal-button-primary-
 
 **Philosophy**: purposeful, never decorative.
 
+### Tokens (`:root`, `app/globals.css`)
+
 ```
-Ambient float:     10s ease-in-out infinite — background gradients only
-Theme transition:  1500ms cubic-bezier(0.22, 1, 0.36, 1) — view transitions API
-Micro:             160ms ease — hover, focus, state changes
+--ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1)   decisive deceleration; the standard curve
+--motion-press:   90ms                            press / tap feedback (faster than settle)
+--motion-settle:  220ms                           hover and settle transitions
 ```
+
+### Established timings
+
+```
+Ambient float:     10s ease-in-out infinite, background gradients only
+Theme transition:  1500ms cubic-bezier(0.22, 1, 0.36, 1), view transitions API
+Micro:             ~160ms, hover / focus / state (legacy; migrating to the tokens above)
+```
+
+### Patterns
+
+- **Button press**: `.button:active:not(:disabled)` cancels the hover lift and settles to
+  `scale(0.98)` over `--motion-press` (90ms). Applies to every action button portal-wide.
+- **Scroll reveal (brand / landing only)**: below-the-fold sections fade and rise 16px on
+  `--ease-out-expo` over 600ms as they enter the viewport, with an 80ms stagger across the
+  publishing-model cards. Driven by `app/components/scroll-reveal.tsx` (IntersectionObserver).
+  The hidden start state is gated behind the `.lp--reveal-ready` class the controller adds, so
+  content stays visible without JS and for crawlers. The hero is never gated.
 
 **Rules**:
 - Ambient animation only on non-content layers (background pseudo-elements)
-- Entrance animations must not delay information access
+- Entrance animations must not delay information access: gate only below-the-fold content, never the hero
 - No looping animations on content elements at idle state
-- `prefers-reduced-motion: reduce` must disable all non-essential motion
+- `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
+  `app/globals.css` zeroes transition and animation durations; reveal targets are forced visible
 - Light source for ambient gradients: top-left only, never circular bloom
+- New transitions use `--ease-out-expo`. No bounce, no elastic curves
 
 ---
 
@@ -317,7 +339,7 @@ Every task that touches `app/resume/resume.css` requires an explicit scope decla
 ## Anti-Patterns
 
 The following patterns are grounds for rejection in PR review  
-and will be flagged by `npx impeccable detect src/`.
+and will be flagged by `/impeccable detect app/` (portal code lives in `app/`, not `src/`).
 
 | Pattern                      | Why rejected                                          |
 | ---------------------------- | ----------------------------------------------------- |
