@@ -57,11 +57,11 @@ export default function HomePage() {
             </p>
             <div className="lp-hero__acts">
               <Link href="/login" className="btn btn-p btn-lg">
-                Create your CV
+                Create LiveCV
                 <ArrowIcon />
               </Link>
-              <Link href="#resume" className="btn btn-o btn-lg">
-                View sample resume
+              <Link href="/resume" className="btn btn-o btn-lg">
+                View sample LiveCV
               </Link>
             </div>
             <div className="lp-hero__meta">
@@ -162,17 +162,17 @@ export default function HomePage() {
       <section className="lp-cta-sec" aria-labelledby="lp-cta-title">
         <div className="lp-cta lp-container" data-reveal>
           <div className="lp-cta__lbl">{"// get started"}</div>
-          <h2 id="lp-cta-title">Build your LiveCV on OpenCiVera.</h2>
+          <h2 id="lp-cta-title">Build your LiveCV with OpenCiVera.</h2>
           <p className="lp-cta__p">
             Open the sample LiveCV to see a published link in action, then sign in and build your own
             from one structured source.
           </p>
           <div className="lp-cta__acts">
             <Link href="/login" className="btn btn-p btn-lg">
-              Login
+              Create LiveCV
               <ArrowIcon />
             </Link>
-            <Link href="/resume" className="btn btn-o btn-lg">Check example profile ↗</Link>
+            <Link href="/resume" className="btn btn-o btn-lg">View sample LiveCV ↗</Link>
           </div>
         </div>
       </section>
