@@ -141,7 +141,7 @@ export default function HomePage() {
         <div className="lp-sechdr" data-reveal>
           <div className="lp-tag">{"// CV as Code model"}</div>
           <h2 id="lp-model-title" className="lp-h">Focus on your career record.</h2>
-          <p className="lp-p">By using the CV as Code model, you can manage your career information in a structured and consistent way. Don&apos;t think about layout or adjusting your data to given template. Create your CV with ease by editing YAML or using the editor and leave the rest to us.</p>
+          <p className="lp-p">Manage your career information in one structured, consistent record. Don&apos;t think about layout or fitting your data to a given template. Edit YAML or use the editor, and leave the rest to us.</p>
         </div>
 
         <div className="lp-grid3">
@@ -161,11 +161,11 @@ export default function HomePage() {
       {/* FINAL CTA */}
       <section className="lp-cta-sec" aria-labelledby="lp-cta-title">
         <div className="lp-cta" data-reveal>
-          <div className="lp-cta__lbl">{"// current release"}</div>
-          <h2 id="lp-cta-title">The platform foundation is live and the publishing model is taking shape.</h2>
+          <div className="lp-cta__lbl">{"// get started"}</div>
+          <h2 id="lp-cta-title">Build your LiveCV on OpenCiVera.</h2>
           <p className="lp-cta__p">
-            Explore the sample public resume, sign in to the current platform shell, and follow the transition toward a
-            more controlled and premium resume workflow.
+            Open the sample LiveCV to see a published link in action, then sign in and build your own
+            from one structured source.
           </p>
           <div className="lp-cta__acts">
             <Link href="/login" className="btn btn-p btn-lg">
