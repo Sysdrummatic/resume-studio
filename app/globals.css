@@ -2451,8 +2451,19 @@ a {
   --lp-r: 12px;
   --lp-rl: 16px;
   --lp-rxl: 20px;
+  --lp-container-width: 900px;
+  --lp-container-padding: 0 1.5rem;
 
   display: block;
+}
+
+/* Single shared measure for every text section. The CV preview is the only
+   element allowed to break out wider. */
+.lp-container {
+  width: 100%;
+  max-width: var(--lp-container-width);
+  margin-inline: auto;
+  padding: var(--lp-container-padding);
 }
 
 :root[data-app-theme="light"] .lp {
@@ -2584,12 +2595,13 @@ a {
   color: var(--lp-fg-muted);
   max-width: 580px;
   line-height: 1.68;
-  margin: 0;
+  margin: 0 auto;
   text-wrap: pretty;
 }
 
 .lp-sechdr {
   margin-bottom: 48px;
+  text-align: center;
 }
 
 /* ── HERO ─────────────────────────────────────── */
@@ -2598,7 +2610,7 @@ a {
 }
 
 .lp-hero__in {
-  max-width: 820px;
+  text-align: center;
 }
 
 .lp-hero__lbl {
@@ -2678,7 +2690,7 @@ a {
   font-size: 1rem;
   line-height: 1.68;
   color: var(--lp-fg-muted);
-  margin: 0 0 32px;
+  margin: 0 auto 32px;
   max-width: 660px;
   text-wrap: pretty;
 }
@@ -2687,6 +2699,7 @@ a {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: center;
   margin-bottom: 28px;
 }
 
@@ -2694,6 +2707,7 @@ a {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
+  justify-content: center;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--lp-fg-muted);
@@ -2787,7 +2801,8 @@ a {
 }
 
 .lp-cv {
-  margin-top: 44px;
+  max-width: 1100px;
+  margin: 44px auto 0;
   background: var(--lp-bg-card);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-rxl);
@@ -3072,11 +3087,6 @@ a {
 
 /* ── RESPONSIVE ───────────────────────────────── */
 @media (max-width: 940px) {
-  .lp-hero__in {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
   .lp-grid3 {
     grid-template-columns: 1fr;
   }

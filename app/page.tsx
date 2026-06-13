@@ -41,7 +41,7 @@ export default function HomePage() {
     <div className="lp">
       {/* HERO */}
       <section className="lp-hero" aria-labelledby="lp-hero-title">
-        <div className="lp-hero__in">
+        <div className="lp-hero__in lp-container">
           <div>
             <div className="lp-hero__lbl">{"// LiveCV publication platform"}</div>
             <h1 id="lp-hero-title" className="lp-hero__title">
@@ -77,7 +77,7 @@ export default function HomePage() {
 
       {/* CV PREVIEW */}
       <section className="lp-sec lp-cv-sec" id="resume" aria-labelledby="lp-resume-title">
-        <div className="lp-sechdr" data-reveal>
+        <div className="lp-sechdr lp-container" data-reveal>
           <div className="lp-tag">{"// public link in action"}</div>
           <h2 id="lp-resume-title" className="lp-h">Your CV as your public business card.</h2>
           <p className="lp-p">
@@ -138,13 +138,13 @@ export default function HomePage() {
 
       {/* PUBLISHING MODEL */}
       <section className="lp-sec" id="model" aria-labelledby="lp-model-title">
-        <div className="lp-sechdr" data-reveal>
+        <div className="lp-sechdr lp-container" data-reveal>
           <div className="lp-tag">{"// CV as Code model"}</div>
           <h2 id="lp-model-title" className="lp-h">Focus on your career record.</h2>
           <p className="lp-p">Manage your career information in one structured, consistent record. Don&apos;t think about layout or fitting your data to a given template. Edit YAML or use the editor, and leave the rest to us.</p>
         </div>
 
-        <div className="lp-grid3">
+        <div className="lp-grid3 lp-container">
           {publishingModel.map((card) => (
             <article key={card.title} className="lp-card" data-reveal>
               <div className="lp-card__tag">{card.tag}</div>
@@ -160,7 +160,7 @@ export default function HomePage() {
 
       {/* FINAL CTA */}
       <section className="lp-cta-sec" aria-labelledby="lp-cta-title">
-        <div className="lp-cta" data-reveal>
+        <div className="lp-cta lp-container" data-reveal>
           <div className="lp-cta__lbl">{"// get started"}</div>
           <h2 id="lp-cta-title">Build your LiveCV on OpenCiVera.</h2>
           <p className="lp-cta__p">
