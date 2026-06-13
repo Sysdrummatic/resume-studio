@@ -1,13 +1,13 @@
 import Script from "next/script";
 import UserClient from "./user-client";
-import { requireAuthenticatedActor } from "../lib/auth-server";
+import { requireAdminActor } from "../lib/auth-server";
 import { bootstrapResumeUserLocales, fetchResumeDocumentsForUser, fetchResumePresetsForUser, fetchResumeUserLocalesForUser } from "../lib/resume-server";
 import "./user.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function UserPage() {
-  const actor = await requireAuthenticatedActor();
+  const actor = await requireAdminActor();
   await bootstrapResumeUserLocales(actor.accessToken, actor.userId, actor.displayName);
   const resumeDocuments = await fetchResumeDocumentsForUser(actor.userId);
   const [resumePresets, resumeLanguages] = await Promise.all([

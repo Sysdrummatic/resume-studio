@@ -146,3 +146,7 @@ export function isNonStaffRole(role: AppRole): boolean {
 export function canAccessDraftPdf(role: AppRole): boolean {
   return role === "admin";
 }
+
+export function isAdminRole(role: AppRole): boolean {
+  return role === "admin";
+}

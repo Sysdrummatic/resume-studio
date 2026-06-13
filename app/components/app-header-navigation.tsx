@@ -7,12 +7,15 @@ import type { FocusEvent } from "react";
 type NavItem = {
   href: string;
   label: string;
+  emphasis?: "primary" | "secondary";
 };
 
 type Props = {
   account: ReactNode;
   items: NavItem[];
   accessory?: ReactNode;
+  leadingAccessory?: ReactNode;
+  forceInlineItems?: boolean;
 };
 
 const MENU_AUTO_CLOSE_DELAY_MS = 1000;
@@ -24,11 +27,26 @@ function announceHeaderMenuOpen(menuName: string) {
   document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
 }
 
-export default function AppHeaderNavigation({ account, items, accessory = null }: Props) {
+function getNavItemClassName(item: NavItem): string | undefined {
+  if (!item.emphasis) {
+    return undefined;
+  }
+
+  return `app-nav__action app-nav__action--${item.emphasis}`;
+}
+
+export default function AppHeaderNavigation({
+  account,
+  items,
+  accessory = null,
+  leadingAccessory = null,
+  forceInlineItems = false,
+}: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const shouldUseCompactMenu = isCompact && !forceInlineItems;
 
   const updateMode = useCallback(() => {
     const nextIsCompact = !window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY).matches;
@@ -114,18 +132,20 @@ export default function AppHeaderNavigation({ account, items, accessory = null }
   }
 
   return (
-    <div className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""}`}>
-      {!isCompact && (
-        <nav className="app-nav" aria-label="Primary">
+    <div className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""} ${forceInlineItems ? "app-header__controls--inline" : ""}`}>
+      {leadingAccessory ? <div className="app-header__leading">{leadingAccessory}</div> : null}
+
+      {!shouldUseCompactMenu && items.length > 0 && (
+        <nav className={`app-nav ${forceInlineItems ? "app-nav--actions" : ""}`} aria-label="Primary">
           {items.map((item) => (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} className={getNavItemClassName(item)}>
               {item.label}
             </Link>
           ))}
         </nav>
       )}
 
-      {isCompact && (
+      {shouldUseCompactMenu && (
         <div
           className="app-nav-menu"
           ref={menuRef}
@@ -158,7 +178,7 @@ export default function AppHeaderNavigation({ account, items, accessory = null }
           {isOpen && (
             <nav className="app-nav-menu__panel" id="primary-mobile-menu" aria-label="Primary">
               {items.map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}>
+                <Link key={item.href} href={item.href} className={getNavItemClassName(item)} onClick={() => setIsOpen(false)}>
                   {item.label}
                 </Link>
               ))}

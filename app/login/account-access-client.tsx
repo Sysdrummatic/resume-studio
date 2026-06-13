@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { postJson } from "../lib/client-http";
 
-type TabId = "signin" | "signup" | "reset" | "new-password";
+type InitialAuthMode = "signin" | "signup" | "reset";
+type AuthMode = InitialAuthMode | "new-password";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -17,10 +20,12 @@ function parseHashParams(hash: string): URLSearchParams {
 type Props = {
   reason: string;
   verified: string;
+  mode: InitialAuthMode;
 };
 
-export default function AccountAccessClient({ reason, verified }: Props) {
-  const [activeTab, setActiveTab] = useState<TabId>("signin");
+export default function AccountAccessClient({ reason, verified, mode }: Props) {
+  const router = useRouter();
+  const [activeMode, setActiveMode] = useState<AuthMode>(mode);
   const { toast, showToast, closeToast } = useStatusToast();
   const [isBusy, setIsBusy] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
@@ -33,6 +38,14 @@ export default function AccountAccessClient({ reason, verified }: Props) {
   const [resetEmail, setResetEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [recoveryToken, setRecoveryToken] = useState("");
+
+  const setMode = useCallback(
+    (nextMode: InitialAuthMode) => {
+      setActiveMode(nextMode);
+      router.replace(`/login?mode=${nextMode}`, { scroll: false });
+    },
+    [router],
+  );
 
   const contextualMessage = useMemo(() => {
     if (verified === "1") {
@@ -55,29 +68,67 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       ? { id: 0, message: contextualMessage, variant: contextualVariant as "warning" | "success" }
       : null;
   const activeToast = toast || contextualToast;
-  const activeTabCopy = useMemo(() => {
-    if (activeTab === "signup") {
-      return "Create an account, verify your email, then continue into your resume workspace.";
+
+  useEffect(() => {
+    if (!recoveryToken) {
+      setActiveMode(mode);
     }
-    if (activeTab === "reset") {
-      return "Request a recovery link for the email address tied to your account.";
-    }
-    if (activeTab === "new-password") {
-      return "Set a new password for the recovery session opened from your email link.";
-    }
-    return "Sign in to continue into the personal hub, dashboard, and publication controls.";
-  }, [activeTab]);
+  }, [mode, recoveryToken]);
 
   useEffect(() => {
     const hashParams = parseHashParams(window.location.hash);
     if (hashParams.get("type") === "recovery" && hashParams.get("access_token")) {
       setRecoveryToken(hashParams.get("access_token")!);
-      setActiveTab("new-password");
+      setActiveMode("new-password");
       showToast("Set your new password below.", "warning");
       // Clean hash from URL without reload
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
   }, [showToast]);
+
+  const modeMeta = useMemo(() => {
+    if (activeMode === "signup") {
+      return {
+        eyebrow: "Account setup",
+        title: "Create your account",
+        lead: "Open your workspace, verify your email, then publish from one structured source.",
+        alternateLabel: "Already have an account?",
+        alternateHref: "/login?mode=signin",
+        alternateAction: "Sign in",
+      };
+    }
+
+    if (activeMode === "reset") {
+      return {
+        eyebrow: "Recovery",
+        title: "Reset your password",
+        lead: "Request a recovery link for the email address tied to your account.",
+        alternateLabel: "Remembered your password?",
+        alternateHref: "/login?mode=signin",
+        alternateAction: "Back to sign in",
+      };
+    }
+
+    if (activeMode === "new-password") {
+      return {
+        eyebrow: "Recovery",
+        title: "Set a new password",
+        lead: "Finish the recovery session opened from your email link.",
+        alternateLabel: "",
+        alternateHref: "",
+        alternateAction: "",
+      };
+    }
+
+    return {
+      eyebrow: "Account access",
+      title: "Sign in",
+      lead: "Continue into your dashboard and publication controls.",
+      alternateLabel: "Need an account?",
+      alternateHref: "/login?mode=signup",
+      alternateAction: "Sign up",
+    };
+  }, [activeMode]);
 
   const closeActiveToast = useCallback(() => {
     if (toast) {
@@ -110,7 +161,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       setPendingVerificationEmail("");
       showToast("Signed in. Redirecting...");
       shouldRedirect = true;
-      window.location.href = "/user";
+      window.location.href = "/dashboard";
     } catch {
       showToast("Unexpected sign-in error. Try again.", "error");
     } finally {
@@ -140,8 +191,8 @@ export default function AccountAccessClient({ reason, verified }: Props) {
 
       showToast(payload.message || "Account created. Verify your email before sign in.");
       setPendingVerificationEmail(email);
-      setActiveTab("signin");
       setSigninEmail(email);
+      setMode("signin");
     } catch {
       showToast("Unexpected sign-up error. Try again.", "error");
     } finally {
@@ -218,7 +269,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
       showToast(payload.message || "Password updated. You can sign in now.");
       setRecoveryToken("");
       setNewPassword("");
-      setActiveTab("signin");
+      setMode("signin");
     } catch {
       showToast("Unexpected error. Try again.", "error");
     } finally {
@@ -228,58 +279,24 @@ export default function AccountAccessClient({ reason, verified }: Props) {
 
   return (
     <div className="auth-access">
+      <StatusToast toast={activeToast} onClose={closeActiveToast} />
 
       <section className="card auth-card auth-access__card">
         <div className="auth-card__header">
           <div className="stack">
-            <div className="product-surface__eyebrow">Account access</div>
+            <div className="product-surface__eyebrow">{modeMeta.eyebrow}</div>
             <div className="stack">
-              <h2 className="auth-card__title">OpenCiVera auth</h2>
-              <p className="auth-card__lead">{activeTabCopy}</p>
+              <h2 className="auth-card__title">{modeMeta.title}</h2>
+              <p className="auth-card__lead">{modeMeta.lead}</p>
             </div>
           </div>
-        </div>
-
-        <StatusToast toast={activeToast} onClose={closeActiveToast} />
-
-        <div className="tabs auth-card__tabs" role="tablist" aria-label="Auth actions">
-          <button
-            type="button"
-            className={`tab ${activeTab === "signin" ? "is-active" : ""}`}
-            onClick={() => setActiveTab("signin")}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            className={`tab ${activeTab === "signup" ? "is-active" : ""}`}
-            onClick={() => setActiveTab("signup")}
-          >
-            Sign up
-          </button>
-          <button
-            type="button"
-            className={`tab ${activeTab === "reset" ? "is-active" : ""}`}
-            onClick={() => setActiveTab("reset")}
-          >
-            Reset password
-          </button>
-          {recoveryToken && (
-            <button
-              type="button"
-              className={`tab ${activeTab === "new-password" ? "is-active" : ""}`}
-              onClick={() => setActiveTab("new-password")}
-            >
-              New password
-            </button>
-          )}
         </div>
 
         {pendingVerificationEmail ? (
           <p className="auth-card__note">Pending verification email: {pendingVerificationEmail}</p>
         ) : null}
 
-        {activeTab === "signin" && (
+        {activeMode === "signin" && (
           <form className="stack auth-card__form" onSubmit={handleSignIn}>
             <label className="auth-card__field">
               <span className="auth-card__label">Email</span>
@@ -301,18 +318,25 @@ export default function AccountAccessClient({ reason, verified }: Props) {
                 required
               />
             </label>
+            <div className="auth-card__support-row">
+              <Link href="/login?mode=reset" className="auth-card__link">
+                Forgot password?
+              </Link>
+              {pendingVerificationEmail ? (
+                <button type="button" className="auth-card__text-button" onClick={handleResendVerification} disabled={isBusy}>
+                  Resend verification email
+                </button>
+              ) : null}
+            </div>
             <div className="auth-card__actions">
               <button className="button button--primary" type="submit" disabled={isBusy}>
                 {isBusy ? "Signing in..." : "Sign in"}
-              </button>
-              <button className="button button--ghost" type="button" onClick={handleResendVerification} disabled={isBusy}>
-                Resend verification email
               </button>
             </div>
           </form>
         )}
 
-        {activeTab === "signup" && (
+        {activeMode === "signup" && (
           <form className="stack auth-card__form" onSubmit={handleSignUp}>
             <label className="auth-card__field">
               <span className="auth-card__label">Email</span>
@@ -343,7 +367,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
           </form>
         )}
 
-        {activeTab === "reset" && (
+        {activeMode === "reset" && (
           <form className="stack auth-card__form" onSubmit={handleResetPassword}>
             <label className="auth-card__field">
               <span className="auth-card__label">Email</span>
@@ -363,7 +387,7 @@ export default function AccountAccessClient({ reason, verified }: Props) {
           </form>
         )}
 
-        {activeTab === "new-password" && recoveryToken && (
+        {activeMode === "new-password" && recoveryToken && (
           <form className="stack auth-card__form" onSubmit={handleUpdatePassword}>
             <label className="auth-card__field">
               <span className="auth-card__label">New password</span>
@@ -383,6 +407,15 @@ export default function AccountAccessClient({ reason, verified }: Props) {
             </div>
           </form>
         )}
+
+        {modeMeta.alternateHref ? (
+          <p className="auth-card__footer">
+            {modeMeta.alternateLabel}{" "}
+            <Link href={modeMeta.alternateHref} className="auth-card__link">
+              {modeMeta.alternateAction}
+            </Link>
+          </p>
+        ) : null}
       </section>
     </div>
   );

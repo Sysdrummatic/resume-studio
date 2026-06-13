@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuthUser } from "./supabase-http";
 import { readAuthTokens } from "./auth-cookies";
-import { canAccessAdminArea } from "./rbac";
+import { canAccessAdminArea, isAdminRole } from "./rbac";
 import type { SessionActor } from "./auth-types";
 import { normalizeEmail, normalizeProfileForActor, resolveProfile } from "./auth-profile";
 
@@ -72,6 +72,14 @@ export async function requireAuthenticatedActor(): Promise<SessionActor> {
 export async function requireStaffActor(): Promise<SessionActor> {
   const actor = await requireAuthenticatedActor();
   if (!canAccessAdminArea(actor.role)) {
+    redirect("/dashboard?reason=forbidden");
+  }
+  return actor;
+}
+
+export async function requireAdminActor(): Promise<SessionActor> {
+  const actor = await requireAuthenticatedActor();
+  if (!isAdminRole(actor.role)) {
     redirect("/dashboard?reason=forbidden");
   }
   return actor;

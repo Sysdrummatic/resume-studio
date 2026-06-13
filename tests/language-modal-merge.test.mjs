@@ -7,18 +7,16 @@ function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
-test("language badge rail displays ordered language badges with plus button", () => {
-  const component = read("app/dashboard/LanguageBadgeRail.tsx");
+test("dashboard links language version count to master resume management", () => {
+  const client = read("app/dashboard/dashboard-client.tsx");
+  const styles = read("app/globals.css");
 
-  assert.equal(component.includes("export function LanguageBadgeRail"), true);
-  assert.equal(component.includes("languages: ResumeUserLocaleRow[]"), true);
-  assert.equal(component.includes("onAddLanguage: () => void"), true);
-  assert.equal(component.includes("onEditLanguage"), true);
-  assert.equal(component.includes("[...languages].sort"), true);
-  assert.equal(component.includes("sort_order"), true);
-  assert.equal(component.includes("--accent-light"), true);
-  assert.equal(component.includes("--accent-dark"), true);
-  assert.equal(component.includes("<svg"), true);
+  assert.equal(client.includes("const manageLanguagesHref = \"/master-resume?panel=languages\";"), true);
+  assert.equal(client.includes("dashboard-chip dashboard-chip--link"), true);
+  assert.equal(client.includes("href={manageLanguagesHref}"), true);
+  assert.equal(client.includes("LanguageBadgeRail"), false);
+  assert.equal(client.includes("AddLanguageModal"), false);
+  assert.equal(styles.includes(".dashboard-chip--link"), true);
 });
 
 test("add language modal form validates and submits to language API", () => {
@@ -39,22 +37,15 @@ test("add language modal form validates and submits to language API", () => {
   assert.equal(component.includes("createDocument: true"), true);
 });
 
-test("dashboard client integrates language badge rail and modal", () => {
+test("dashboard client keeps language options for publish flow without in-dashboard management UI", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
 
-  assert.equal(client.includes("import { LanguageBadgeRail }"), true);
-  assert.equal(client.includes("import { AddLanguageModal }"), true);
   assert.equal(client.includes("languageVersions"), true);
-  assert.equal(client.includes("isAddLanguageModalOpen"), true);
-  assert.equal(client.includes("isLoadingLanguages"), true);
-  assert.equal(client.includes("setLanguageVersions"), true);
-  assert.equal(client.includes("/api/resume/languages?withDocuments=true"), true);
-  assert.equal(client.includes("refreshLanguages"), true);
-  assert.equal(client.includes("LanguageBadgeRail"), true);
-  assert.equal(client.includes("AddLanguageModal"), true);
-  assert.equal(client.includes("handleAddLanguageSuccess"), true);
-  assert.equal(client.includes("handleSetDefaultLanguage"), true);
-  assert.equal(client.includes("handleDeleteLanguage"), true);
+  assert.equal(client.includes("publishableLocales"), true);
+  assert.equal(client.includes("defaultLanguageVersion"), true);
+  assert.equal(client.includes("languageOptions={languageVersions}"), true);
+  assert.equal(client.includes("isAddLanguageModalOpen"), false);
+  assert.equal(client.includes("refreshLanguages"), false);
 });
 
 test("dashboard language management preserves existing preset and publish behavior", () => {

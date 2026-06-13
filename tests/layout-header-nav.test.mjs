@@ -9,21 +9,22 @@ function readLayoutSource() {
   return fs.readFileSync(layoutPath, "utf8");
 }
 
-test("header renders login link for guests in primary nav", () => {
+test("header renders sign-up and sign-in actions for guests", () => {
   const source = readLayoutSource();
 
-  assert.equal(source.includes('{ href: "/login", label: "Login" }'), true);
-  assert.equal(source.includes('{ href: "/login", label: "Sign in" }'), false);
+  assert.equal(source.includes('{ href: "/login?mode=signup", label: "Sign up", emphasis: "primary" as const }'), true);
+  assert.equal(source.includes('{ href: "/login?mode=signin", label: "Sign in", emphasis: "secondary" as const }'), true);
+  assert.equal(source.includes('{ href: "/login", label: "Login" }'), false);
 });
 
-test("header keeps login link as rightmost item after Sample CV in primary nav", () => {
+test("header keeps guest auth actions separate from authenticated navigation items", () => {
   const source = readLayoutSource();
-  const loginIndex = source.indexOf('{ href: "/login", label: "Login" }');
+  const signUpIndex = source.indexOf('{ href: "/login?mode=signup", label: "Sign up", emphasis: "primary" as const }');
   const sampleCvIndex = source.indexOf('{ href: "/resume", label: "Sample CV" }');
 
-  assert.notEqual(loginIndex, -1);
+  assert.notEqual(signUpIndex, -1);
   assert.notEqual(sampleCvIndex, -1);
-  assert.equal(loginIndex > sampleCvIndex, true);
+  assert.equal(signUpIndex > sampleCvIndex, true);
 });
 
 test("layout resolves the portal theme from cookie and passes an active switch", () => {
@@ -36,5 +37,6 @@ test("layout resolves the portal theme from cookie and passes an active switch",
   assert.equal(source.includes('data-app-theme={initialTheme}'), true);
   assert.equal(source.includes("AppThemeSwitch"), true);
   assert.equal(source.includes("initialTheme={initialTheme}"), true);
-  assert.equal(source.includes("accessory={<AppThemeSwitch initialTheme={initialTheme} />}"), true);
+  assert.equal(source.includes("leadingAccessory={actor ? null : <AppThemeSwitch initialTheme={initialTheme} />}"), true);
+  assert.equal(source.includes("accessory={actor ? <AppThemeSwitch initialTheme={initialTheme} /> : null}"), true);
 });

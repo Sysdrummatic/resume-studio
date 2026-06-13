@@ -72,28 +72,28 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   assert.equal(preview.includes("BasicResumeDocument"), true);
 });
 
-test("preset list renders a right-aligned separated icon delete action", () => {
+test("preset list keeps delete as a compact icon action inside the row action cluster", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
   const styles = read("app/globals.css");
 
   assert.equal(client.includes("button__icon"), true);
   assert.equal(client.includes("aria-label={`Delete CV Version ${preset.title}`}"), true);
-  assert.equal(client.includes("dashboard-resume-list__delete-separator"), true);
-  assert.equal(styles.includes(".dashboard-resume-list__delete-separator"), true);
-  assert.equal(styles.includes("border-left: 1px solid var(--border);"), true);
+  assert.equal(client.includes("dashboard-resume-list__delete-separator"), false);
+  assert.equal(styles.includes(".dashboard-resume-list__delete-separator"), false);
+  assert.equal(client.includes("dashboard-resume-list__secondary-actions"), true);
 });
 
-test("dashboard prefers canonical public links and keeps legacy compatibility links", () => {
+test("dashboard hides routing internals while editor still exposes canonical and compatibility link management", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
   const editor = read("app/master-resume/editor-canvas-client.tsx");
-  const styles = read("app/globals.css");
   const server = read("app/lib/resume-server.ts");
   const canonicalIndex = editor.indexOf("Canonical URL");
   const compatibilityIndex = editor.indexOf("Compatibility URL");
 
-  assert.equal(client.includes("preset.canonical_public_path"), true);
-  assert.equal(client.includes("compatibility"), true);
-  assert.equal(client.includes("canonical"), true);
+  assert.equal(client.includes("dashboard-resume-list__links"), false);
+  assert.equal(client.includes("<dt>Updated</dt>"), false);
+  assert.equal(client.includes("<dt>Canonical</dt>"), false);
+  assert.equal(client.includes("<dt>Compatibility</dt>"), false);
   assert.equal(editor.includes("Canonical URL"), true);
   assert.equal(editor.includes("Compatibility URL"), true);
   assert.equal(editor.includes("Open public CV"), true);
@@ -102,8 +102,6 @@ test("dashboard prefers canonical public links and keeps legacy compatibility li
   assert.equal(editor.includes("const hasPublishedCanonicalLink = preset.is_public && Boolean(preset.canonical_public_path);"), true);
   assert.equal(canonicalIndex >= 0 && compatibilityIndex > canonicalIndex, true);
   assert.equal(editor.includes("resume_public_links"), false);
-  assert.equal(styles.includes(".dashboard-resume-list__links"), true);
-  assert.equal(styles.includes("grid-template-columns: auto minmax(0, 1fr);"), true);
   assert.equal(server.includes("canonical_public_path"), true);
   assert.equal(server.includes("compatibility_public_path"), true);
 });

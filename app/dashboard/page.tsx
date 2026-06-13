@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   return (
     <div className="dashboard-page stack">
       <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
-      <header className="stack">
+      <header className="dashboard-page__hero stack">
         <div className="product-surface__eyebrow">Publishing workspace</div>
         <h1 className="product-surface__title">Dashboard</h1>
       </header>

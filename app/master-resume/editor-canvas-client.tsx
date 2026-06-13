@@ -139,6 +139,7 @@ async function fetchText(path: string) {
 
 export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
   const searchParams = useSearchParams();
+  const requestedPanel = searchParams.get("panel");
   const [locale, setLocale] = useState<ResumeLocale>(searchParams.get("locale") || "en");
   const [languageOptions, setLanguageOptions] = useState<ResumeLanguageMetadata[]>([
     { code: "en", label: "English", short_label: "EN", labels: {}, is_default: true, sort_order: 10, created_at: "", updated_at: "", user_id: "", label_override: null, short_label_override: null, document: null },
@@ -170,6 +171,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [presetsError, setPresetsError] = useState("");
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
   const [activePresetActionId, setActivePresetActionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (requestedPanel === "languages") {
+      setIsLanguageModalOpen(true);
+    }
+  }, [requestedPanel]);
 
   const validation = useMemo(() => validateResumeDocument(resume), [resume]);
   const normalizedNewLanguageCode = useMemo(() => newLanguageCode.trim().toLowerCase().split("-")[0].slice(0, 2), [newLanguageCode]);

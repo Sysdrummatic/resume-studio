@@ -8,6 +8,7 @@ import AppLanguageMenu from "./components/app-language-menu";
 import AppThemeSwitch from "./components/app-theme-switch";
 import AccountMenu from "./components/account-menu";
 import { getCurrentActor } from "./lib/auth-server";
+import { isAdminRole } from "./lib/rbac";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
 import "./globals.css";
 
@@ -28,16 +29,17 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const cookieStore = await cookies();
   const initialTheme = resolveAppTheme(cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME);
   const actor = await getCurrentActor();
-  const navItems = [
-    ...(actor
-      ? [
-          { href: "/user", label: "Personal Hub" },
-          { href: "/dashboard", label: "Dashboard" },
-        ]
-      : []),
-    ...(actor ? [{ href: "/resume", label: "Sample CV" }] : []),
-    ...(!actor ? [{ href: "/login", label: "Login" }] : []),
-  ];
+  const isAdmin = actor ? isAdminRole(actor.role) : false;
+  const navItems = actor
+    ? [
+        ...(isAdmin ? [{ href: "/user", label: "Personal Hub" }] : []),
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/resume", label: "Sample CV" },
+      ]
+    : [
+        { href: "/login?mode=signup", label: "Sign up", emphasis: "primary" as const },
+        { href: "/login?mode=signin", label: "Sign in", emphasis: "secondary" as const },
+      ];
 
   return (
     <html lang="en" data-app-theme={initialTheme} className={`${GeistSans.variable} ${GeistMono.variable}`}>
@@ -46,10 +48,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <div className="app-shell app-header__inner">
             <div className="app-header__branding">
               <AppBrand />
-              <AppLanguageMenu />
+              {isAdmin ? <AppLanguageMenu /> : null}
             </div>
             <AppHeaderNavigation
               items={navItems}
+              leadingAccessory={actor ? null : <AppThemeSwitch initialTheme={initialTheme} />}
               account={
                 actor ? (
                   <AccountMenu
@@ -64,7 +67,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                   />
                 ) : null
               }
-              accessory={<AppThemeSwitch initialTheme={initialTheme} />}
+              accessory={actor ? <AppThemeSwitch initialTheme={initialTheme} /> : null}
+              forceInlineItems={!actor}
             />
           </div>
         </header>

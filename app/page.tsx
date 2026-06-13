@@ -56,7 +56,7 @@ export default function HomePage() {
               for each audience, and update all of them the instant anything changes.
             </p>
             <div className="lp-hero__acts">
-              <Link href="/login" className="btn btn-p btn-lg">
+              <Link href="/login?mode=signup" className="btn btn-p btn-lg">
                 Create LiveCV
                 <ArrowIcon />
               </Link>
@@ -168,7 +168,7 @@ export default function HomePage() {
             from one structured source.
           </p>
           <div className="lp-cta__acts">
-            <Link href="/login" className="btn btn-p btn-lg">
+            <Link href="/login?mode=signup" className="btn btn-p btn-lg">
               Create LiveCV
               <ArrowIcon />
             </Link>
