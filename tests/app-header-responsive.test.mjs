@@ -16,7 +16,7 @@ test("app header uses hamburger navigation below desktop width", () => {
   assert.equal(source.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
   assert.equal(source.includes("window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY)"), true);
   assert.equal(source.includes('className="app-nav-menu__trigger"'), true);
-  assert.equal(source.includes('className="app-nav"'), true);
+  assert.equal(source.includes("className={`app-nav ${forceInlineItems ? \"app-nav--actions\" : \"\"}`}"), true);
 });
 
 test("hamburger menu auto-closes after hover leave and outside click", () => {
@@ -55,6 +55,9 @@ test("header exposes an active theme switch slot in the top bar", () => {
   const themeModel = read(path.join(process.cwd(), "app", "lib", "app-theme.ts"));
 
   assert.equal(navigation.includes("accessory?: ReactNode;"), true);
+  assert.equal(navigation.includes("leadingAccessory?: ReactNode;"), true);
+  assert.equal(navigation.includes("forceInlineItems?: boolean;"), true);
+  assert.equal(navigation.includes("app-header__leading"), true);
   assert.equal(navigation.includes("app-header__accessory"), true);
   assert.equal(themeSwitch.includes('role="switch"'), true);
   assert.equal(themeSwitch.includes("Application theme:"), true);
@@ -68,6 +71,7 @@ test("header exposes an active theme switch slot in the top bar", () => {
   assert.equal(themeModel.includes("enabled: true"), true);
   assert.equal(themeModel.includes('export const APP_THEME_COOKIE_NAME = "OpenCiVera-theme";'), true);
   assert.equal(styles.includes(".app-theme-switch"), true);
+  assert.equal(styles.includes(".app-header__leading"), true);
   assert.equal(styles.includes(".app-theme-switch__thumb"), true);
   assert.equal(styles.includes(".app-theme-switch--dark .app-theme-switch__thumb"), true);
 });

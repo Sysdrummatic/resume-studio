@@ -19,6 +19,10 @@ type CookieStore = {
   ): void;
 };
 
+type CookieReader = {
+  get(name: string): { value: string } | undefined;
+};
+
 type AuthTokens = {
   accessToken: string | null;
   refreshToken: string | null;
@@ -43,7 +47,7 @@ function getCookieDomain(): string | undefined {
   return configuredDomain ? configuredDomain : undefined;
 }
 
-export function readAuthTokens(cookieStore: CookieStore): AuthTokens {
+export function readAuthTokens(cookieStore: CookieReader): AuthTokens {
   return {
     accessToken: cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null,
     refreshToken: cookieStore.get(REFRESH_TOKEN_COOKIE)?.value ?? null,

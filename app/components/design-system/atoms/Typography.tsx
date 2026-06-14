@@ -22,13 +22,13 @@ export const Typography: React.FC<TypographyProps> = ({
 
   const getVariantStyles = () => {
     switch (variant) {
-      case 'h1': return { fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.05em', lineHeight: 1.1 };
-      case 'h2': return { fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.2 };
-      case 'h3': return { fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.3 };
-      case 'small': return { fontSize: '0.85rem', lineHeight: 1.5 };
-      case 'caption': return { fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase' as const };
+      case 'h1': return { fontSize: 'var(--font-size-2xl)', fontWeight: 700, letterSpacing: 'var(--tracking-tight)', lineHeight: 'var(--leading-tight)' };
+      case 'h2': return { fontSize: 'var(--font-size-xl)', fontWeight: 700, letterSpacing: 'var(--tracking-snug)', lineHeight: 'var(--leading-snug)' };
+      case 'h3': return { fontSize: 'var(--font-size-lg)', fontWeight: 600, letterSpacing: 'var(--tracking-normal)', lineHeight: 'var(--leading-normal)' };
+      case 'small': return { fontSize: 'var(--font-size-sm)', lineHeight: 'var(--leading-relaxed)' };
+      case 'caption': return { fontSize: 'var(--font-size-xs)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase' as const };
       case 'body':
-      default: return { fontSize: '1rem', lineHeight: 1.6 };
+      default: return { fontSize: 'var(--font-size-base)', letterSpacing: 'var(--tracking-normal)', lineHeight: 'var(--leading-relaxed)' };
     }
   };
 

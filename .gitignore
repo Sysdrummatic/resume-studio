@@ -42,3 +42,6 @@ images/qrs/portal.png
 # Claude Code configuration
 .claude/
 CLAUDE.md
+
+.impeccable/
+

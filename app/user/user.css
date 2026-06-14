@@ -23,17 +23,6 @@
   margin-bottom: 1.5rem;
 }
 
-.personal-hub__avatar-wrap::before {
-  content: "";
-  position: absolute;
-  inset: -0.85rem;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(109, 140, 255, 0.24), rgba(109, 140, 255, 0));
-  filter: blur(10px);
-  opacity: 0.9;
-  pointer-events: none;
-}
-
 .personal-hub__avatar {
   position: relative;
   z-index: 1;
@@ -47,41 +36,11 @@
 
 .personal-hub {
   --personal-hub-surface-border: var(--portal-border);
-  --personal-hub-surface-border-strong: var(--portal-border-accent);
   --personal-hub-drawer-width: min(22rem, calc(100vw - 3.5rem));
   --personal-hub-surface-fill: var(--portal-card-bg-muted);
   --personal-hub-panel-glow: radial-gradient(circle at top left, var(--portal-accent-glow), transparent 34%);
-  --personal-hub-surface-glow: rgba(94, 106, 210, 0.12);
-  --personal-hub-cyan-glow: rgba(0, 156, 138, 0.1);
   position: relative;
   isolation: isolate;
-}
-
-.personal-hub::before,
-.personal-hub::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(28px);
-  opacity: 0.7;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.personal-hub::before {
-  top: 1rem;
-  left: -3rem;
-  width: 14rem;
-  height: 14rem;
-  background: radial-gradient(circle, rgba(122, 141, 255, 0.24), rgba(122, 141, 255, 0));
-}
-
-.personal-hub::after {
-  right: -2rem;
-  bottom: 4rem;
-  width: 12rem;
-  height: 12rem;
-  background: radial-gradient(circle, rgba(77, 207, 214, 0.16), rgba(77, 207, 214, 0));
 }
 
 .personal-hub__layout {
@@ -115,54 +74,23 @@
   display: none;
 }
 
-.personal-hub__profile-panel,
-.personal-hub__resume-panel,
-.personal-hub__insights-panel {
+.personal-hub__profile-panel {
   position: relative;
   box-shadow: var(--shadow-glass);
   background: var(--personal-hub-panel-glow), var(--personal-hub-surface-fill) !important;
   overflow: clip;
   backdrop-filter: blur(12px);
+  align-items: stretch;
+  border-color: var(--personal-hub-surface-border);
 }
 
-.personal-hub__resume-panel {
-  box-shadow: none;
-  background: transparent !important;
-  border: 0 !important;
-  backdrop-filter: none;
-}
-
-.personal-hub__profile-panel::before,
-.personal-hub__resume-panel::before,
-.personal-hub__insights-panel::before {
+.personal-hub__profile-panel::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
   height: 1px;
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
   pointer-events: none;
-}
-
-.personal-hub__resume-panel::before,
-.personal-hub__resume-panel::after {
-  display: none;
-}
-
-.personal-hub__profile-panel::after,
-.personal-hub__resume-panel::after,
-.personal-hub__insights-panel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 18% 0%, var(--personal-hub-surface-glow), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
-  pointer-events: none;
-}
-
-.personal-hub__profile-panel {
-  align-items: stretch;
-  border-color: var(--personal-hub-surface-border);
 }
 
 .personal-hub__eyebrow {
@@ -183,8 +111,7 @@
 
 .personal-hub__profile-intro,
 .personal-hub__bio-shell,
-.personal-hub__bio-block,
-.personal-hub__insights-grid {
+.personal-hub__bio-block {
   position: relative;
   z-index: 1;
 }
@@ -302,21 +229,10 @@
 }
 
 .personal-hub__bio-actions button,
-.personal-hub__icon-action,
 .personal-hub__text-action,
 .personal-hub__primary-action,
-.personal-hub__secondary-action,
-.personal-hub__export-action {
+.personal-hub__secondary-action {
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
-}
-
-.personal-hub__icon-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  border-radius: 0.75rem;
 }
 
 .personal-hub__text-action {
@@ -329,14 +245,12 @@
 }
 
 .personal-hub__primary-action,
-.personal-hub__secondary-action,
-.personal-hub__export-action {
+.personal-hub__secondary-action {
   position: relative;
   border-color: var(--portal-border);
 }
 
-.personal-hub__secondary-action,
-.personal-hub__export-action {
+.personal-hub__secondary-action {
   background: var(--portal-control-bg);
   box-shadow: var(--portal-control-shadow);
 }
@@ -344,9 +258,7 @@
 .personal-hub__bio-actions button:hover,
 .personal-hub__bio-actions button:focus-visible,
 .personal-hub__secondary-action:hover,
-.personal-hub__secondary-action:focus-visible,
-.personal-hub__export-action:hover,
-.personal-hub__export-action:focus-visible {
+.personal-hub__secondary-action:focus-visible {
   border-color: var(--portal-border-accent);
   background: var(--portal-control-bg-hover);
   transform: translateY(-1px);
@@ -358,29 +270,6 @@
 
 .personal-hub__text-action--danger {
   color: var(--portal-danger-text);
-}
-
-.personal-hub__insights-panel {
-  border-color: var(--personal-hub-surface-border);
-}
-
-.personal-hub__insights-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
-}
-
-.personal-hub__insight-card {
-  min-height: 8.75rem;
-  justify-content: center;
-  gap: var(--space-xs);
-  border: 1px solid var(--portal-border);
-  background: var(--portal-surface-ghost);
-  box-shadow: var(--portal-input-shadow);
-}
-
-.personal-hub__insight-value {
-  color: var(--accent);
 }
 
 .personal-hub__preview-shell {
@@ -402,20 +291,8 @@
   flex-wrap: wrap;
 }
 
-.personal-hub__preview-eyebrow,
 .personal-hub__preview-title {
   margin: 0;
-}
-
-.personal-hub__preview-eyebrow {
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-}
-
-.personal-hub__preview-title {
   line-height: 1.1;
 }
 
@@ -463,26 +340,16 @@
   box-shadow: var(--portal-input-shadow);
 }
 
-body[data-theme-transition="active"] .personal-hub::before,
-body[data-theme-transition="active"] .personal-hub::after,
-body[data-theme-transition="active"] .personal-hub__avatar-wrap::before,
 body[data-theme-transition="active"] .personal-hub__profile-panel,
 body[data-theme-transition="active"] .personal-hub__profile-panel::before,
-body[data-theme-transition="active"] .personal-hub__profile-panel::after,
 body[data-theme-transition="active"] .personal-hub__resume-panel,
-body[data-theme-transition="active"] .personal-hub__insights-panel,
-body[data-theme-transition="active"] .personal-hub__insights-panel::before,
-body[data-theme-transition="active"] .personal-hub__insights-panel::after,
 body[data-theme-transition="active"] .personal-hub__bio-block,
 body[data-theme-transition="active"] .personal-hub__bio-input,
 body[data-theme-transition="active"] .personal-hub__add-badge,
 body[data-theme-transition="active"] .personal-hub__bio-actions button,
-body[data-theme-transition="active"] .personal-hub__icon-action,
 body[data-theme-transition="active"] .personal-hub__text-action,
 body[data-theme-transition="active"] .personal-hub__primary-action,
 body[data-theme-transition="active"] .personal-hub__secondary-action,
-body[data-theme-transition="active"] .personal-hub__export-action,
-body[data-theme-transition="active"] .personal-hub__insight-card,
 body[data-theme-transition="active"] .personal-hub__preview-fallback {
   transition-property: color, background, background-color, background-image, border-color, box-shadow, opacity;
   transition-duration: var(--app-theme-transition-duration);
@@ -499,17 +366,12 @@ body[data-theme-transition="active"] .personal-hub__preview-fallback {
   }
 
   .personal-hub__profile-panel,
-  .personal-hub__resume-panel,
-  .personal-hub__insights-panel {
+  .personal-hub__resume-panel {
     border-radius: var(--radius-bento);
   }
 
   .personal-hub__profile-panel {
     padding: 1.1rem !important;
-  }
-
-  .personal-hub__insights-panel {
-    padding: 1rem !important;
   }
 
   .personal-hub__resume-panel {
@@ -532,14 +394,6 @@ body[data-theme-transition="active"] .personal-hub__preview-fallback {
   .personal-hub__bio-actions {
     width: 100%;
     justify-content: flex-end;
-  }
-
-  .personal-hub__insights-grid {
-    gap: 0.75rem !important;
-  }
-
-  .personal-hub__insight-card {
-    min-height: 6.25rem;
   }
 
   .personal-hub__bio-shell,
@@ -764,133 +618,18 @@ body[data-theme-transition="active"] .personal-hub__preview-fallback {
   .personal-hub__sidebar-column,
   .personal-hub__drawer-handle-icon,
   .personal-hub__bio-actions button,
-  .personal-hub__icon-action,
   .personal-hub__text-action,
   .personal-hub__primary-action,
-  .personal-hub__secondary-action,
-  .personal-hub__export-action {
+  .personal-hub__secondary-action {
     transition: none !important;
     animation: none !important;
   }
 
   .personal-hub__secondary-action:hover,
   .personal-hub__secondary-action:focus-visible,
-  .personal-hub__export-action:hover,
-  .personal-hub__export-action:focus-visible,
   .personal-hub__bio-actions button:hover,
   .personal-hub__bio-actions button:focus-visible {
     transform: none;
   }
 }
 
-.user-page__header {
-  margin-bottom: 2rem;
-}
-
-.user-page__title {
-  margin: 0;
-  font-size: 2rem;
-}
-
-.user-panel-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-}
-
-.user-panel-layout__main {
-  gap: 2rem;
-}
-
-.user-panel-layout__sidebar {
-  gap: 1rem;
-}
-
-.user-card__title {
-  margin: 0;
-  font-size: 1.25rem;
-}
-
-.user-card__heading {
-  margin: 0;
-}
-
-.user-card__compact-stack {
-  gap: 0.5rem;
-}
-
-.user-card__full-width-button {
-  text-align: center;
-}
-
-.user-role-badge {
-  text-transform: uppercase;
-}
-
-.user-email-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.user-email-status__dot {
-  color: #4ade80;
-}
-
-.user-snapshot__meta {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.user-snapshot__actions-cell {
-  text-align: right;
-}
-
-.user-snapshot__actions {
-  justify-content: flex-end;
-}
-
-.user-snapshot__empty {
-  text-align: center;
-  padding: 2rem;
-  color: var(--muted);
-}
-
-@media (min-width: 900px) {
-  .user-panel-layout {
-    grid-template-columns: 2fr 1fr;
-  }
-}
-
-.user-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.user-status__label {
-  font-size: 0.9rem;
-}
-
-.user-status__description {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.account-status-dot {
-  width: 10px;
-  height: 10px;
-  background: #22c55e;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.account-status-dot--pulse {
-  animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-  0% { opacity: 0.4; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0.4; transform: scale(0.9); }
-}

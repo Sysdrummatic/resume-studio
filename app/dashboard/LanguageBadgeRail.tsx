@@ -15,57 +15,29 @@ export function LanguageBadgeRail({ languages, onAddLanguage, onEditLanguage, is
   );
 
   return (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
-      {sorted.map((language) => (
-        <button
-          key={language.code}
-          type="button"
-          onClick={() => onEditLanguage(language)}
-          aria-label={`Edit language version ${language.label}`}
-          title={language.is_default ? `${language.label} (Default)` : language.label}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "4px 8px",
-            borderRadius: "999px",
-            // Fallback is the neutral surface token: --portal-accent-glow is 0.30 alpha, far louder than this chip tint.
-            background: "var(--accent-light, var(--portal-surface))",
-            color: "var(--accent-dark, var(--portal-accent))",
-            fontSize: "0.85rem",
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <span>{language.label}</span>
-          {language.is_default ? <span style={{ fontSize: "0.72rem", opacity: 0.8 }}>Default</span> : null}
-        </button>
-      ))}
+    <div className="dashboard-language-rail">
+      <div className="dashboard-language-rail__list" aria-label="Language versions">
+        {sorted.map((language) => (
+          <button
+            key={language.code}
+            type="button"
+            className="dashboard-language-rail__pill"
+            onClick={() => onEditLanguage(language)}
+            aria-label={`Edit language version ${language.label}`}
+            title={language.is_default ? `${language.label} (Default)` : language.label}
+          >
+            <span>{language.label}</span>
+            {language.is_default ? <span className="dashboard-language-rail__pill-meta">Default</span> : null}
+          </button>
+        ))}
+      </div>
       <button
         type="button"
+        className="dashboard-language-rail__add"
         onClick={onAddLanguage}
         disabled={isLoading}
         aria-label="Add language version"
         title="Add language version"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "24px",
-          height: "24px",
-          border: "none",
-          borderRadius: "4px",
-          background: "transparent",
-          color: "var(--text)",
-          cursor: isLoading ? "not-allowed" : "pointer",
-          opacity: isLoading ? 0.6 : 1,
-          fontSize: "16px",
-          lineHeight: 1,
-          padding: 0,
-          transition: "opacity 120ms ease",
-        }}
       >
         <svg
           width="16"

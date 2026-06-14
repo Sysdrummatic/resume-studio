@@ -6,7 +6,6 @@ import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumePresetRow, ResumeUserLocaleRow } from "../lib/resume-server";
-import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { Typography } from "../components/design-system/atoms/Typography";
 import { Button } from "../components/design-system/atoms/Button";
@@ -361,10 +360,6 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
   const currentRole = useMemo(() => getLatestResumeRole(resumeForPreview), [resumeForPreview]);
   const isPreviewUnavailable = !masterResume || hasYamlLoaderTimedOut || (jsYamlReady && !resumeForPreview);
   const publishedPresetsCount = initialPresets.filter((preset) => preset.is_public).length;
-  const primaryExportUrls = initialPresets[0]
-    ? buildPublishedResumeExportUrls(initialPresets[0].canonical_public_path, initialPresets[0].default_locale)
-    : null;
-  const activePreviewLanguage = previewLanguages.find((language) => language.code === effectiveLocale);
 
   return (
     <div className={`personal-hub py-4 md:py-8 ${isHydrated ? "is-hydrated" : ""}`}>
@@ -525,51 +520,17 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
               </div>
             </section>
 
-            <section className="personal-hub__insights-panel p-6 rounded-bento">
-              <Typography variant="caption" muted className="mb-4 block font-bold tracking-widest text-[10px]">
-                Insights
-              </Typography>
-              <div className="personal-hub__insights-grid grid grid-cols-2 gap-4">
-                <div className="personal-hub__insight-card p-4 rounded-2xl flex flex-col items-center">
-                  <Typography variant="h2" className="personal-hub__insight-value">
-                    {initialPresets.length}
-                  </Typography>
-                  <Typography variant="caption" muted className="text-[10px]">
-                    Variants
-                  </Typography>
-                </div>
-                <div className="personal-hub__insight-card p-4 rounded-2xl flex flex-col items-center">
-                  <Typography variant="h2" className="personal-hub__insight-value">
-                    {publishedPresetsCount}
-                  </Typography>
-                  <Typography variant="caption" muted className="text-[10px]">
-                    Public
-                  </Typography>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
 
         <div ref={contentRef} className="personal-hub__content">
-          <section
-            className="personal-hub__resume-panel h-full flex flex-col overflow-hidden relative"
-            aria-label="Resume preview"
-            data-has-export={primaryExportUrls ? "true" : "false"}
-          >
+          <section className="personal-hub__resume-panel h-full flex flex-col overflow-hidden relative" aria-label="Resume preview">
             <div className="personal-hub__preview-shell">
               <header className="personal-hub__preview-header">
-                <div>
-                  <Typography variant="caption" muted className="personal-hub__preview-eyebrow">
-                    Resume preview
-                  </Typography>
-                  <Typography variant="h3" className="personal-hub__preview-title">
-                    Current public surface
-                  </Typography>
-                </div>
+                <Typography variant="h3" className="personal-hub__preview-title">
+                  Resume preview
+                </Typography>
                 <div className="personal-hub__preview-meta">
-                  <span className="personal-hub__preview-pill">{activePreviewLanguage?.shortLabel || effectiveLocale.toUpperCase()}</span>
-                  <span className="personal-hub__preview-pill">{previewLanguages.length} locales</span>
                   <span className="personal-hub__preview-pill">{publishedPresetsCount} published</span>
                 </div>
               </header>
@@ -589,7 +550,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                   <div className="personal-hub__preview-fallback">
                     <Typography variant="h3">Preview unavailable</Typography>
                     <Typography variant="body" muted>
-                      The resume preview could not be rendered in this view. Use export actions or reopen the page.
+                      The resume preview could not be rendered in this view. Reload the page to try again.
                     </Typography>
                   </div>
                 ) : (

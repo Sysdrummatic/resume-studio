@@ -7,9 +7,9 @@ const brandColors = {
 } as const;
 
 const semanticColors = {
-  success: { bg: "#dcfce7", text: "#14532d", border: "#166534" },
-  warning: { bg: "#fef9c3", text: "#713f12", border: "#854d0e" },
-  error: { bg: "#fee2e2", text: "#7f1d1d", border: "#991b1b" },
+  success: { bg: "var(--portal-success-bg)", text: "var(--portal-success-text)", border: "var(--portal-success-border)" },
+  warning: { bg: "var(--portal-warning-bg)", text: "var(--portal-warning-text)", border: "var(--portal-warning-border)" },
+  error: { bg: "var(--portal-danger-bg)", text: "var(--portal-danger-text)", border: "var(--portal-danger-border)" },
 } as const;
 
 const themeTextColors = {

@@ -69,7 +69,6 @@ test("HTML compatibility is preserved through Next redirects", () => {
 test("public resume slugs are handled by the React route", () => {
   const route = read("app/r/[slug]/page.tsx");
   const server = read("app/lib/resume-server.ts");
-  const dashboard = read("app/dashboard/dashboard-client.tsx");
 
   assert.equal(route.includes("fetchCanonicalPublicPathBySlug"), true);
   assert.equal(route.includes("permanentRedirect"), true);
@@ -79,5 +78,4 @@ test("public resume slugs are handled by the React route", () => {
   assert.equal(server.includes("fetchCanonicalPublicPathBySlug"), true);
   assert.equal(server.includes("buildResumeDocumentFromPreset"), true);
   assert.equal(server.includes('table: "resume_public_links"'), true);
-  assert.equal(dashboard.includes("compatibility_public_path"), true);
 });

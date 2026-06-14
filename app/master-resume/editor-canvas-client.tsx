@@ -125,6 +125,10 @@ function normalizeYamlForEditor(yamlContent: string, fallbackName: string): { re
   };
 }
 
+function sortLanguageRows(rows: ResumeLanguageMetadata[]) {
+  return rows.sort((left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code));
+}
+
 async function fetchText(path: string) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) {
@@ -135,6 +139,7 @@ async function fetchText(path: string) {
 
 export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
   const searchParams = useSearchParams();
+  const requestedPanel = searchParams.get("panel");
   const [locale, setLocale] = useState<ResumeLocale>(searchParams.get("locale") || "en");
   const [languageOptions, setLanguageOptions] = useState<ResumeLanguageMetadata[]>([
     { code: "en", label: "English", short_label: "EN", labels: {}, is_default: true, sort_order: 10, created_at: "", updated_at: "", user_id: "", label_override: null, short_label_override: null, document: null },
@@ -166,6 +171,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [presetsError, setPresetsError] = useState("");
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
   const [activePresetActionId, setActivePresetActionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (requestedPanel === "languages") {
+      setIsLanguageModalOpen(true);
+    }
+  }, [requestedPanel]);
 
   const validation = useMemo(() => validateResumeDocument(resume), [resume]);
   const normalizedNewLanguageCode = useMemo(() => newLanguageCode.trim().toLowerCase().split("-")[0].slice(0, 2), [newLanguageCode]);
@@ -214,9 +225,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
       throw new Error(payload.error || "Language list could not be refreshed.");
     }
 
-    const sorted = payload.languages.sort(
-      (left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code),
-    );
+    const sorted = sortLanguageRows(payload.languages);
     setLanguageOptions(sorted);
     const nextDefaultLocale = sorted.find((language) => language.is_default)?.code || sorted[0]?.code || "en";
     setDefaultLocale(nextDefaultLocale);
@@ -312,9 +321,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         const response = await fetch("/api/resume/languages?withDocuments=true");
         const payload = (await response.json()) as ApiLanguagesResponse;
         if (mounted && payload.languages?.length) {
-          const sorted = payload.languages.sort(
-            (left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code),
-          );
+          const sorted = sortLanguageRows(payload.languages);
           setLanguageOptions(sorted);
           setDefaultLocale(sorted.find((language) => language.is_default)?.code || sorted[0]?.code || "en");
         }
@@ -784,7 +791,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
       <header className="resume-editor-shell__header">
         <div>
           <h1>Master Resume Editor</h1>
-          <p className="card-lead">YAML editor with a live basic CV preview.</p>
         </div>
         <div className="resume-editor-shell__locale-switch">
           {languageOptions.map((language) => (
@@ -920,42 +926,41 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
       <div className="resume-editor-shell__content">
         <div className="resume-editor-form">
           <section className="stack resume-editor-panel">
-            <div className="resume-editor-tabs" role="tablist" aria-label="Resume editor mode">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={editorTab === "yaml"}
-                className={`resume-editor-tabs__tab ${editorTab === "yaml" ? "is-active" : ""}`}
-                onClick={() => setEditorTab("yaml")}
-              >
-                YAML Editor
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={editorTab === "human"}
-                className={`resume-editor-tabs__tab ${editorTab === "human" ? "is-active" : ""}`}
-                onClick={() => setEditorTab("human")}
-              >
-                Human-friendly Editor
-              </button>
+            <div className="section-row">
+              <div className="resume-editor-tabs" role="tablist" aria-label="Resume editor mode">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={editorTab === "yaml"}
+                  className={`resume-editor-tabs__tab ${editorTab === "yaml" ? "is-active" : ""}`}
+                  onClick={() => setEditorTab("yaml")}
+                >
+                  YAML Editor
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={editorTab === "human"}
+                  className={`resume-editor-tabs__tab ${editorTab === "human" ? "is-active" : ""}`}
+                  onClick={() => setEditorTab("human")}
+                >
+                  Human-friendly Editor
+                </button>
+              </div>
+              <label className="resume-editor-style-select">
+                CV style
+                <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
+                  {EDITOR_STYLES.map((style) => (
+                    <option key={style.code} value={style.code}>
+                      {style.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
             {editorTab === "yaml" ? (
               <div className="stack">
-                <div className="section-row">
-                  <h2>YAML Editor</h2>
-                  <label className="resume-editor-style-select">
-                    CV style
-                    <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
-                      {EDITOR_STYLES.map((style) => (
-                        <option key={style.code} value={style.code}>
-                          {style.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
                 <textarea
                   className="resume-editor-yaml"
                   spellCheck={false}
@@ -974,20 +979,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
               </div>
             ) : (
               <div className="resume-human-editor">
-                <div className="section-row">
-                  <h2>Human-friendly Editor</h2>
-                  <label className="resume-editor-style-select">
-                    CV style
-                    <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
-                      {EDITOR_STYLES.map((style) => (
-                        <option key={style.code} value={style.code}>
-                          {style.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
                 <section className="resume-human-editor__section">
                   <h3>Core</h3>
                   <div className="resume-human-editor__grid">

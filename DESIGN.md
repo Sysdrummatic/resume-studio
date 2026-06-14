@@ -57,14 +57,21 @@ It is not available to portal surfaces.
 
 ### Scale (portal — `product` register)
 
-| Token     | Size    | Weight | Tracking     | Line-height | Usage                        |
-| --------- | ------- | ------ | ------------ | ----------- | ---------------------------- |
-| `h1`      | 2.5rem  | 700    | −0.05em      | 1.1         | Page-level display headings  |
-| `h2`      | 1.75rem | 700    | −0.04em      | 1.2         | Section headings             |
-| `h3`      | 1.25rem | 600    | −0.02em      | 1.3         | Card headings, sub-sections  |
-| `body`    | 1rem    | 400    | 0            | 1.6         | Default prose                |
-| `small`   | 0.85rem | 400    | 0            | 1.5         | Supporting text, meta        |
-| `caption` | 0.75rem | 400    | +0.05em (UC) | —           | Labels, timestamps, kickers  |
+Tokenized in `:root` (`app/globals.css`): `--font-size-*`, `--leading-*`, `--tracking-*`.
+The Typography atom consumes these tokens; no hardcoded sizes in components.
+
+| Variant   | Size token / value           | Weight | Tracking                      | Line-height               | Usage                        |
+| --------- | ---------------------------- | ------ | ----------------------------- | ------------------------- | ---------------------------- |
+| `display` | `--font-size-display` 3.5rem | 700    | `--tracking-tight` −0.05em    | `--leading-tight` 1.1     | Hero/landing only            |
+| `h1`      | `--font-size-2xl` 2.25rem    | 700    | `--tracking-tight` −0.05em    | `--leading-tight` 1.1     | Page-level display headings  |
+| `h2`      | `--font-size-xl` 1.75rem     | 700    | `--tracking-snug` −0.03em     | `--leading-snug` 1.2      | Section headings             |
+| `h3`      | `--font-size-lg` 1.375rem    | 600    | `--tracking-normal` −0.01em   | `--leading-normal` 1.3    | Card headings, sub-sections  |
+| `body`    | `--font-size-base` 1rem      | 400    | `--tracking-normal` −0.01em   | `--leading-relaxed` 1.6   | Default prose                |
+| `small`   | `--font-size-sm` 0.8125rem   | 400    | 0                             | `--leading-relaxed` 1.6   | Supporting text, meta        |
+| `caption` | `--font-size-xs` 0.6875rem   | 400    | `--tracking-wide` +0.04em (UC)| —                         | Labels, timestamps, kickers  |
+
+`--tracking-brand` (−0.06em) is reserved for the brand wordmark (`.app-brand__name`) and nothing else.
+`--font-size-md` (1.125rem) is available for comfortable long-form body; `--leading-loose` (1.75) is reserved for CV-scale readability.
 
 ### Scale (CV — `resume` domain)
 
@@ -100,6 +107,12 @@ Grid line:           rgba(255, 255, 255, 0.02)
 Focus ring:          rgba(94, 106, 210, 0.55)
 ```
 
+**Semantic state tokens** (dark): `--portal-{success|warning|danger|info}-{bg|border|text}`,
+plus `--portal-success-strong` for solid live-state indicators (status dots).
+Success: green (64,200,140 family). Warning: amber (232,178,82). Danger: red (existing).
+Info: the accent indigo. Light theme defines parallel values at matched roles.
+State colors are reserved for state: toasts, badges, status text, live dots. Never decoration.
+No hardcoded semantic hex in components or page CSS; consume the tokens.
 **Ambient light**: directional, top-left only. Single light source.  
 Defined in `--portal-body-ambient` via three radial-gradients at positions ~18%/12%, ~78%/16%, ~74%/68%.
 
@@ -242,18 +255,40 @@ With image: `--portal-control-bg` fill. Without image: `--portal-button-primary-
 
 **Philosophy**: purposeful, never decorative.
 
+### Tokens (`:root`, `app/globals.css`)
+
 ```
-Ambient float:     10s ease-in-out infinite — background gradients only
-Theme transition:  1500ms cubic-bezier(0.22, 1, 0.36, 1) — view transitions API
-Micro:             160ms ease — hover, focus, state changes
+--ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1)   decisive deceleration; the standard curve
+--motion-press:   90ms                            press / tap feedback (faster than settle)
+--motion-settle:  220ms                           hover and settle transitions
 ```
+
+### Established timings
+
+```
+Ambient float:     10s ease-in-out infinite, background gradients only
+Theme transition:  200ms cubic-bezier(0.22, 1, 0.36, 1), view transitions API
+Micro:             ~160ms, hover / focus / state (legacy; migrating to the tokens above)
+```
+
+### Patterns
+
+- **Button press**: `.button:active:not(:disabled)` cancels the hover lift and settles to
+  `scale(0.98)` over `--motion-press` (90ms). Applies to every action button portal-wide.
+- **Scroll reveal (brand / landing only)**: below-the-fold sections fade and rise 16px on
+  `--ease-out-expo` over 600ms as they enter the viewport, with an 80ms stagger across the
+  publishing-model cards. Driven by `app/components/scroll-reveal.tsx` (IntersectionObserver).
+  The hidden start state is gated behind the `.lp--reveal-ready` class the controller adds, so
+  content stays visible without JS and for crawlers. The hero is never gated.
 
 **Rules**:
 - Ambient animation only on non-content layers (background pseudo-elements)
-- Entrance animations must not delay information access
+- Entrance animations must not delay information access: gate only below-the-fold content, never the hero
 - No looping animations on content elements at idle state
-- `prefers-reduced-motion: reduce` must disable all non-essential motion
+- `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
+  `app/globals.css` zeroes transition and animation durations; reveal targets are forced visible
 - Light source for ambient gradients: top-left only, never circular bloom
+- New transitions use `--ease-out-expo`. No bounce, no elastic curves
 
 ---
 
@@ -297,13 +332,12 @@ CV domain (OUT OF SCOPE for portal changes):
 
 Portal theme changes must not produce visible side-effects in the CV domain.  
 Every task that touches `app/resume/resume.css` requires an explicit scope declaration.
-
 ---
 
 ## Anti-Patterns
 
 The following patterns are grounds for rejection in PR review  
-and will be flagged by `npx impeccable detect src/`.
+and will be flagged by `/impeccable detect app/` (portal code lives in `app/`, not `src/`).
 
 | Pattern                      | Why rejected                                          |
 | ---------------------------- | ----------------------------------------------------- |
