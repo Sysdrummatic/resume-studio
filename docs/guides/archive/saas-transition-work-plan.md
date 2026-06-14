@@ -224,6 +224,20 @@ Definition of done:
 - Full auth and RBAC behavior validated by E2E tests.
 - Audit logs capture role and user-management operations.
 
+#### Role behavior: last-admin safeguard (Phase G follow-up)
+
+The system always retains at least one `admin` account. This is enforced by a
+`BEFORE DELETE` trigger on `public.profiles`
+(`supabase/migrations/20260614_prevent_last_admin_deletion.sql`,
+`prevent_last_admin_deletion()` / `is_last_admin()`), which raises an exception
+if the row being deleted is the last remaining `admin`. The trigger is
+path-independent — it covers both the admin-panel "delete user" flow
+(`can_delete_user_account` already permits an admin to delete another admin)
+and self-service deletion (`DELETE /api/user/account`). The self-service route
+additionally pre-checks `is_last_admin`/`is_only_profile` for admin callers and
+returns a `409` before attempting deletion, so the failure surfaces as a clear
+message rather than a generic 500.
+
 ### Phase D - Resume Editor Canvas (Live) + Versioning UX
 
 Branch: `feat/phase-d-editor-canvas`

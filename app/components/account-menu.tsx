@@ -119,9 +119,9 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
     setDeleteError("");
     try {
       const response = await fetch("/api/user/account", { method: "DELETE" });
-      const payload = (await response.json()) as { error?: string; warning?: string };
+      const payload = (await response.json()) as { error?: string; message?: string; warning?: string };
       if (!response.ok || payload.error) {
-        setDeleteError(payload.error || "Nie udało się usunąć konta.");
+        setDeleteError(payload.message || payload.error || "Nie udało się usunąć konta.");
         return;
       }
 

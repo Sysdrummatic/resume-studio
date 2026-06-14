@@ -134,6 +134,18 @@ Each item includes the source guide it comes from, so the detailed rationale and
      required to enable). `app/privacy/page.tsx` Section 5 updated to clarify
      that self-service deletion is immediate, while the 30-day window applies
      only to the manual/admin-mediated runbook path.
+   - [x] PR5 follow-up: prevent the system from ever reaching a zero-admin
+     state — `supabase/migrations/20260614_prevent_last_admin_deletion.sql`
+     adds `is_last_admin()`/`is_only_profile()` plus a `BEFORE DELETE` trigger
+     on `public.profiles` (`WHEN (old.role = 'admin')`) that raises an
+     exception if the row being deleted is the last admin. This is a
+     path-independent backstop covering both the admin-panel "delete user"
+     flow and `DELETE /api/user/account`. The latter additionally pre-checks
+     `is_last_admin`/`is_only_profile` via RPC for admin callers and returns
+     `409 { error: "last_admin" | "only_account" }` before attempting
+     deletion; the Profile modal Danger Zone shows the returned message inline
+     without clearing the session. Test contract:
+     `tests/last-admin-safeguard.test.mjs`.
    - [x] Confirm local CI-equivalent gates are green before deploy (`npm.cmd run verify`, `npm.cmd run build`).
    - [ ] Preview deploy QA is complete for the next release.
    - [ ] Production deploy QA is complete for the next release.
