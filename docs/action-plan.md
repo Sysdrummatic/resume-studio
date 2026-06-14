@@ -104,6 +104,11 @@ Each item includes the source guide it comes from, so the detailed rationale and
      Source: [ADR 0015](adr/0015-vercel-puppeteer-pdf-migration.md), [Vercel Puppeteer PDF Migration Guide](guides/vercel-puppeteer-pdf-migration.md)
 
 8. [ ] Phase H - Hardening, QA, and launch readiness
+   - [x] Add public Privacy Policy page (`/privacy`, English only, indexable), linked from
+     the homepage footer, the Personal Hub "Policies" section, and the sign-up form.
+     Privacy Policy text is a founder-authored draft based on the current data model;
+     pending legal review. Data retention ADR, processor DPA checklist, and a
+     data-subject-request runbook are tracked as a follow-up (PR2).
    - [x] Confirm local CI-equivalent gates are green before deploy (`npm.cmd run verify`, `npm.cmd run build`).
    - [ ] Preview deploy QA is complete for the next release.
    - [ ] Production deploy QA is complete for the next release.

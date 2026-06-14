@@ -359,6 +359,13 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
                 required
               />
             </label>
+            <p className="auth-card__note">
+              By creating an account, you agree to our{" "}
+              <Link href="/privacy" className="auth-card__link">
+                Privacy Policy
+              </Link>
+              .
+            </p>
             <div className="auth-card__actions">
               <button className="button button--primary" type="submit" disabled={isBusy}>
                 {isBusy ? "Creating account..." : "Create account"}

@@ -516,6 +516,17 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                       </Button>
                     </Link>
                   </div>
+
+                  <div className="personal-hub__policies w-full space-y-3 mt-6">
+                    <Typography variant="caption" muted className="font-bold tracking-widest text-[10px]">
+                      Policies
+                    </Typography>
+                    <Link href="/privacy" className="w-full block">
+                      <Button variant="ghost" className="personal-hub__secondary-action w-full justify-center">
+                        Privacy Policy
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </section>
