@@ -35,6 +35,15 @@ underlying retention/deletion model and Known Gaps.
 
 ## Erasure requests
 
+**Self-service (preferred)**: if the requester still has account access, direct them to
+**Profile > Delete account and all data** (two-step, type-to-confirm). This calls
+`DELETE /api/user/account`, which deletes `auth.users` immediately (cascading to all
+tables per ADR 0016's Scope and Cascade Map) and sends a confirmation email if
+`RESEND_API_KEY`/`EMAIL_FROM_ADDRESS` are configured. No admin action is needed, and the
+30-day grace period below does not apply to this path.
+
+**Manual (fallback for users without account access)**:
+
 1. Confirm the request and start the **30-day grace period** defined in
    [ADR 0016](../../docs/adr/0016-account-data-retention-and-deletion.md).
 2. On expiry, if the request has not been withdrawn, an admin deletes the

@@ -526,6 +526,11 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                         Privacy Policy
                       </Button>
                     </Link>
+                    <Link href="/terms" className="w-full block">
+                      <Button variant="ghost" className="personal-hub__secondary-action w-full justify-center">
+                        Terms of Service
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
