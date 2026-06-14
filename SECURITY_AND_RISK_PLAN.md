@@ -85,18 +85,28 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
 
 ## R06 — Account Deletion Cascade Completeness
 - Category: Security / Privacy
-- Status: In Progress
+- Status: Mitigated (residual gaps open)
 - Description: Self-service account deletion (R01 / Art. 17) depends on complete
   cascading deletes across `resume_*` tables and Supabase Storage objects.
   `admin_audit_logs` is confirmed `ON DELETE RESTRICT` (handled by not writing to
-  it for self-deletion). Completeness of other cascades is being traced during
-  PR2/account-deletion implementation.
-- Mitigations: explicit cascade-tracing discovery step in PR2 and
-  `feat/account-deletion-gdpr-art17`.
-- Residual gaps: any non-cascading table found becomes a "Known Gap" in the
-  retention ADR — to be filled in once those PRs land.
-- Tracking: `docs/adr/00XX-account-data-retention-and-deletion.md` ("Known
-  Gaps").
+  it for self-deletion).
+- Mitigations: cascade map verified end-to-end in ADR 0016; `DELETE
+  /api/user/account` (PR4, `feat/account-deletion-gdpr-art17`) implements
+  self-service deletion via `deleteAuthUserAsService()`.
+- Residual gaps: ADR 0016 "Known Gaps" tracks two open items — (1) the
+  `user.deleted` audit entry on the admin-mediated path is silently dropped due
+  to insert-after-cascade ordering; (2) **`admin_audit_logs.actor_user_id` is
+  `ON DELETE RESTRICT`, so an admin/manager account that has ever performed an
+  audited action cannot be deleted via the cascade-only process.** `DELETE
+  /api/user/account` (PR4) calls `requireRequestActor()` with no role
+  restriction, so an admin/manager can invoke self-service deletion on their own
+  account and the cascade would fail at the database level if that account is
+  `actor_user_id` on any `admin_audit_logs` row — overlaps with R02 (RBAC
+  boundary drift). Recommendation: either restrict this route to
+  `user`/`recruiter` roles, or handle staff self-deletion as a separate,
+  manually-reviewed procedure (per ADR 0016 Known Gap 2).
+- Tracking: `docs/adr/0016-account-data-retention-and-deletion.md` ("Known
+  Gaps"), `feat/account-deletion-gdpr-art17`, cross-ref R02.
 
 ## R07 — Brand / Legal Entity Registration Incomplete
 - Category: Legal / Business
