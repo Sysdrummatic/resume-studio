@@ -33,7 +33,7 @@ test("DELETE /api/user/account deletes the auth user before sending the confirma
 test("DELETE /api/user/account captures the caller's email before the auth user is deleted", () => {
   const source = read(routePath);
 
-  const destructureIndex = source.indexOf("const { userId, email } = actorResult.actor;");
+  const destructureIndex = source.indexOf("const { userId, email, role } = actorResult.actor;");
   const deleteIndex = source.indexOf("deleteAuthUserAsService(");
   const emailIndex = source.indexOf("sendEmail(");
 

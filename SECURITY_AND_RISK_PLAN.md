@@ -107,6 +107,10 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
   manually-reviewed procedure (per ADR 0016 Known Gap 2).
 - Tracking: `docs/adr/0016-account-data-retention-and-deletion.md` ("Known
   Gaps"), `feat/account-deletion-gdpr-art17`, cross-ref R02.
+- Note (R08): the specific case of the *last* admin self-deleting (zero-admin
+  state) is now blocked by `feat/last-admin-safeguard` (DB trigger + 409 from
+  `DELETE /api/user/account`). The `admin_audit_logs.actor_user_id` `ON DELETE
+  RESTRICT` gap above remains open for non-last admin/manager accounts.
 
 ## R07 — Brand / Legal Entity Registration Incomplete
 - Category: Legal / Business
@@ -119,6 +123,23 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
   business registration recommended before scaling beyond personal/early-access
   use; EUIPO verification still pending.
 - Tracking: none yet — flagged here as the canonical reference.
+
+## R08 — Admin Account Lockout via Self/Admin Deletion
+- Category: Security
+- Status: Mitigated
+- Description: the system could reach a zero-admin state via self-service
+  account deletion (`DELETE /api/user/account`, R06) or via the admin-panel
+  flow (an admin deleting another admin account, permitted by
+  `can_delete_user_account`).
+- Mitigations: `supabase/migrations/20260614_prevent_last_admin_deletion.sql`
+  adds a `BEFORE DELETE` trigger on `public.profiles`
+  (`prevent_last_admin_deletion()` / `is_last_admin()`) that raises an
+  exception if the row being deleted is the last `admin` — a path-independent
+  backstop for both deletion paths. `DELETE /api/user/account` additionally
+  pre-checks `is_last_admin`/`is_only_profile` via RPC for admin callers and
+  returns `409 { error: "last_admin" | "only_account" }` before attempting
+  deletion.
+- Tracking: `feat/last-admin-safeguard`, cross-ref R06.
 
 ---
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { clearAuthCookies } from "../../../lib/auth-cookies";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { deleteAuthUserAsService } from "../../../lib/supabase-http";
+import { callRpc, deleteAuthUserAsService } from "../../../lib/supabase-http";
 import { sendEmail } from "../../../lib/email";
 
 // Target account is derived exclusively from the caller's own session
@@ -14,7 +14,43 @@ export async function DELETE(): Promise<Response> {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
 
-  const { userId, email } = actorResult.actor;
+  const { userId, email, role } = actorResult.actor;
+
+  // Backstop against a zero-admin system: the DB trigger
+  // prevent_last_admin_deletion() enforces this independently of this check.
+  if (role === "admin") {
+    const lastAdminResult = await callRpc<boolean>({
+      functionName: "is_last_admin",
+      payload: { p_user_id: userId },
+      accessToken: actorResult.accessToken,
+    });
+
+    if (lastAdminResult.data) {
+      const onlyAccountResult = await callRpc<boolean>({
+        functionName: "is_only_profile",
+        payload: { p_user_id: userId },
+        accessToken: actorResult.accessToken,
+      });
+
+      if (onlyAccountResult.data) {
+        return NextResponse.json(
+          {
+            error: "only_account",
+            message: "Your account is the only account in the system; deletion is blocked.",
+          },
+          { status: 409 },
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error: "last_admin",
+          message: "Promote another account to admin before deleting this one.",
+        },
+        { status: 409 },
+      );
+    }
+  }
 
   const deleteResult = await deleteAuthUserAsService(userId);
   if (deleteResult.error) {
