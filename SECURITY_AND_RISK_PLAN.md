@@ -1,0 +1,118 @@
+# Security and Risk Plan
+
+Tracks security, privacy, and legal-compliance risks for OpenCiVera. Complements
+the general execution risk register in `docs/guides/saas-transition-work-plan.md`
+(section 10), which covers engineering/delivery risks (migration, SEO, UI
+consistency). This document covers risks involving personal data, legal
+exposure, and external processors/dependencies with compliance implications.
+
+Risk IDs (R01, R02, ...) are stable references, used from commits, PRs, and other
+docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
+
+## Status legend
+- Open — not yet addressed
+- In Progress — mitigation underway
+- Mitigated — primary mitigation shipped; residual gaps tracked separately
+- Deferred — intentionally postponed (e.g. post-launch)
+
+---
+
+## R01 — Personal Data Processing Without GDPR-Compliant Policies/Mechanisms
+- Category: Privacy / Legal
+- Status: Mitigated (residual gaps open)
+- Description: OpenCiVera collects and processes personal data (account info, CV
+  content including names, contact details, work history) without, until now, a
+  public privacy policy, defined retention rules, a data-subject-request process,
+  or a self-service erasure mechanism.
+- Mitigations: privacy policy page (`app/privacy/page.tsx`), data retention ADR +
+  manual DSR runbook + processor compliance checklist, self-service account
+  deletion (Art. 17), Terms of Service page.
+- Residual gaps: Resend confirmation email shipped inactive pending domain
+  registration (tracked in a separate issue); ToS sections 10-11
+  (liability/governing law) require legal review before paying customers; Polish
+  translation of privacy policy/ToS not yet done; EN/PL language inconsistency in
+  Profile modal noted but not fixed.
+- Tracking: `feat/privacy-policy-page`, `docs/data-retention-and-dsr-runbook`,
+  `feat/account-deletion-gdpr-art17`, `feat/terms-of-service-page`.
+
+## R02 — RBAC/RLS Privilege Boundary Drift Across 4-Role Model
+- Category: Security
+- Status: Open (audit scoped)
+- Description: admin/manager/user/recruiter roles are enforced via RLS +
+  capability helpers (`app/lib/rbac.ts`). As features are added, capability
+  checks and RLS policies can drift out of sync, creating privilege-escalation or
+  data-leakage paths.
+- Mitigations: capability-based RBAC implemented (role inheritance PR1-PR5);
+  Phase G includes a dedicated read-only "RBAC capability drift" audit.
+- Residual gaps: audit not yet executed.
+- Tracking: Phase G pre-launch audits (security/RLS contracts; RBAC capability
+  drift).
+
+## R03 — ATS Export Data Quality / Leakage
+- Category: Data quality / Privacy-adjacent
+- Status: Open (fix scoped)
+- Description: CV exports intended for external ATS systems currently leak
+  internal metadata, use non-standard section headers/skill-rating notation, and
+  inconsistently render "now" vs "Present" — sending more, or differently
+  formatted, data than intended to third-party systems.
+- Mitigations: comprehensive fix scoped (`ats-export-rules.ts`, export functions,
+  three export formats, two new endpoints).
+- Residual gaps: not yet implemented.
+- Tracking: Phase G ATS export correctness audit.
+
+## R04 — Infrastructure/Processor Change: PDF Rendering Migration to Vercel
+- Category: Infrastructure / Privacy (new processor)
+- Status: Deferred (planned)
+- Description: PDF export migration from `@react-pdf/renderer` to
+  Puppeteer-on-Vercel (ADR 0014) introduces Vercel as a new infrastructure
+  provider processing personal data (CV content) for PDF generation.
+- Mitigations: ADR 0014 + migration guide already written.
+- Residual gaps: when executed, must (a) add Vercel to
+  `processor-compliance-checklist.md`, (b) update `app/privacy/page.tsx` Section
+  4 + "Last updated", (c) verify Vercel's DPA/SCC status — same pattern
+  established for Netlify/Resend under R01.
+- Tracking: ADR 0014.
+
+## R05 — Future AI Sub-Processors for ATS Scoring (Phase I)
+- Category: Privacy (future processor)
+- Status: Deferred (post-launch)
+- Description: Phase I plans AI-based keyword-gap analysis using Gemini Flash or
+  Groq, which would process CV content as a new sub-processor.
+- Mitigations: explicitly deferred; not yet built.
+- Residual gaps: before enabling, repeat processor-compliance-checklist +
+  privacy policy update (same pattern as R04).
+- Tracking: Phase I (post-launch).
+
+## R06 — Account Deletion Cascade Completeness
+- Category: Security / Privacy
+- Status: In Progress
+- Description: Self-service account deletion (R01 / Art. 17) depends on complete
+  cascading deletes across `resume_*` tables and Supabase Storage objects.
+  `admin_audit_logs` is confirmed `ON DELETE RESTRICT` (handled by not writing to
+  it for self-deletion). Completeness of other cascades is being traced during
+  PR2/account-deletion implementation.
+- Mitigations: explicit cascade-tracing discovery step in PR2 and
+  `feat/account-deletion-gdpr-art17`.
+- Residual gaps: any non-cascading table found becomes a "Known Gap" in the
+  retention ADR — to be filled in once those PRs land.
+- Tracking: `docs/adr/00XX-account-data-retention-and-deletion.md` ("Known
+  Gaps").
+
+## R07 — Brand / Legal Entity Registration Incomplete
+- Category: Legal / Business
+- Status: Open
+- Description: OpenCiVera is not yet a registered business entity; the domain is
+  not yet registered; EUIPO class 35/42 trademark verification is pending.
+- Mitigations: privacy policy names an individual as data controller, which is
+  valid under GDPR at current scale.
+- Residual gaps: domain registration blocks Resend activation (R01 residual);
+  business registration recommended before scaling beyond personal/early-access
+  use; EUIPO verification still pending.
+- Tracking: none yet — flagged here as the canonical reference.
+
+---
+
+## Maintenance
+Review this document whenever: a new external processor is introduced, a Phase G
+audit completes, or a residual gap above is closed. Update the relevant risk's
+"Status" and "Residual gaps", and keep `docs/action-plan.md` cross-referenced.
