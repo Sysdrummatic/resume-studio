@@ -12,15 +12,20 @@ function buildPublicUrl(base: string, personSlug: string, publicId: string, loca
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getAppBaseUrl().replace(/\/+$/, "");
+  const entries: MetadataRoute.Sitemap = [
+    {
+      url: `${base}/privacy`,
+    },
+  ];
+
   let links = [];
   try {
     links = await fetchIndexablePublicLinksForSitemap();
   } catch {
     // Build environments without Supabase env vars should not fail sitemap generation.
-    return [];
+    return entries;
   }
 
-  const entries: MetadataRoute.Sitemap = [];
   for (const link of links) {
     const canonical = buildPublicUrl(base, link.personSlug, link.publicId);
     entries.push({

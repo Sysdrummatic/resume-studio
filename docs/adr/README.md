@@ -17,3 +17,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0013: Semantic Public Link URL](0013-semantic-public-link-url.md)
 - [ADR 0014: PDF Rendering Architecture](0014-pdf-rendering-architecture.md)
 - [ADR 0015: PDF Rendering Migration — Puppeteer on Vercel](0015-vercel-puppeteer-pdf-migration.md)
+- [ADR 0016: Account Data Retention And Deletion](0016-account-data-retention-and-deletion.md)
