@@ -109,6 +109,11 @@ Each item includes the source guide it comes from, so the detailed rationale and
      Privacy Policy text is a founder-authored draft based on the current data model;
      pending legal review. Data retention ADR, processor DPA checklist, and a
      data-subject-request runbook are tracked as a follow-up (PR2).
+   - [x] PR2 follow-up: add [ADR 0016](adr/0016-account-data-retention-and-deletion.md)
+     (account data retention and deletion, with a verified cascade map and two
+     documented Known Gaps), `.codex/runbooks/data-subject-request.md`, and
+     `docs/guides/processor-compliance-checklist.md`. Closes the data-retention/DSR
+     follow-up referenced in the PR1 Privacy Policy entry above.
    - [x] Confirm local CI-equivalent gates are green before deploy (`npm.cmd run verify`, `npm.cmd run build`).
    - [ ] Preview deploy QA is complete for the next release.
    - [ ] Production deploy QA is complete for the next release.

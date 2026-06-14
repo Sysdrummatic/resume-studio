@@ -29,7 +29,10 @@ This file tracks post-MVP ideas mentioned during product planning.
   only; founder-authored draft pending legal review.
 - Terms of service page (the "Policies" section in Personal Hub reserves space for this
   entry).
-- GDPR export/delete requests.
+- GDPR export/delete requests — manual process documented (see
+  [ADR 0016](../../adr/0016-account-data-retention-and-deletion.md) and
+  [.codex/runbooks/data-subject-request.md](../../../.codex/runbooks/data-subject-request.md));
+  self-service automation remains backlog.
 - Unsubscribe preferences.
 - Non-English translation of the privacy policy.
 
