@@ -372,6 +372,10 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
                 I have read and accept the{" "}
                 <Link href="/privacy" className="auth-card__link">
                   Privacy Policy
+                </Link>{" "}
+                and{" "}
+                <Link href="/terms" className="auth-card__link">
+                  Terms of Service
                 </Link>
                 .
               </span>

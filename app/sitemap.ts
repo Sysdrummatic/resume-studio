@@ -16,6 +16,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${base}/privacy`,
     },
+    {
+      url: `${base}/terms`,
+    },
   ];
 
   let links = [];

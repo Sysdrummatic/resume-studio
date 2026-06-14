@@ -114,6 +114,14 @@ Each item includes the source guide it comes from, so the detailed rationale and
      documented Known Gaps), `.codex/runbooks/data-subject-request.md`, and
      `docs/guides/processor-compliance-checklist.md`. Closes the data-retention/DSR
      follow-up referenced in the PR1 Privacy Policy entry above.
+   - [x] PR3 follow-up: add public Terms of Service page (`/terms`, English only,
+     indexable), linked from the homepage footer, the Personal Hub "Policies"
+     section, and the sign-up form (alongside the Privacy Policy link added by
+     PR1). Mirrors the structure and placeholder values of the PR1 Privacy Policy
+     page. **Sections 10 (Limitation of Liability) and 11 (Governing Law) of the
+     Terms of Service are placeholder text and require legal review before this
+     Service has any paying customers or a significant user base. They have not
+     been verified against Polish or EU consumer-protection law.**
    - [x] Confirm local CI-equivalent gates are green before deploy (`npm.cmd run verify`, `npm.cmd run build`).
    - [ ] Preview deploy QA is complete for the next release.
    - [ ] Production deploy QA is complete for the next release.

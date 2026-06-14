@@ -27,14 +27,15 @@ This file tracks post-MVP ideas mentioned during product planning.
 - [x] Privacy policy page — shipped at `/privacy` (Phase G hardening), linked from the
   homepage footer, the Personal Hub "Policies" section, and the sign-up form. English
   only; founder-authored draft pending legal review.
-- Terms of service page (the "Policies" section in Personal Hub reserves space for this
-  entry).
+- [x] Terms of service page — shipped at `/terms` (Phase G hardening), linked from the
+  homepage footer, the Personal Hub "Policies" section, and the sign-up form. English
+  only; founder-authored draft pending legal review (Sections 10 and 11 in particular).
 - GDPR export/delete requests — manual process documented (see
   [ADR 0016](../../adr/0016-account-data-retention-and-deletion.md) and
   [.codex/runbooks/data-subject-request.md](../../../.codex/runbooks/data-subject-request.md));
   self-service automation remains backlog.
 - Unsubscribe preferences.
-- Non-English translation of the privacy policy.
+- Non-English translation of the privacy policy and terms of service.
 
 ## Internationalization expansion
 

@@ -17,6 +17,7 @@ export default function LandingPageFooter() {
             <Link href="/resume">Sample resume</Link>
             <Link href="/login">Platform</Link>
             <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Service</Link>
           </nav>
         </div>
         <p className="lp-footer__copy">© 2026 OpenCiVera</p>
