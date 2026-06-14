@@ -1194,6 +1194,21 @@ a {
   gap: 0.65rem;
 }
 
+.auth-card__form .checkbox-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.auth-card__form .checkbox-row input {
+  width: auto;
+  flex: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
 .auth-card__support-row,
 .auth-card__footer {
   display: flex;

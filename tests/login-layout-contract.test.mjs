@@ -55,3 +55,11 @@ test("login flow uses separate modes for sign in, sign up, and reset", () => {
   assert.equal(client.includes('router.replace(`/login?mode=${nextMode}`, { scroll: false });'), true);
   assert.equal(client.includes('setMode("signin");'), true);
 });
+
+test("signup requires accepting the privacy policy before account creation is enabled", () => {
+  const client = readSource(loginClientPath);
+
+  assert.equal(client.includes("const [signupPolicyAccepted, setSignupPolicyAccepted] = useState(false);"), true);
+  assert.match(client, /type="checkbox"\s*\n\s*checked={signupPolicyAccepted}/);
+  assert.match(client, /disabled={isBusy \|\| !signupPolicyAccepted}/);
+});

@@ -35,6 +35,7 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
   const [signinPassword, setSigninPassword] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [signupPolicyAccepted, setSignupPolicyAccepted] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [recoveryToken, setRecoveryToken] = useState("");
@@ -192,6 +193,7 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
       showToast(payload.message || "Account created. Verify your email before sign in.");
       setPendingVerificationEmail(email);
       setSigninEmail(email);
+      setSignupPolicyAccepted(false);
       setMode("signin");
     } catch {
       showToast("Unexpected sign-up error. Try again.", "error");
@@ -359,15 +361,23 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
                 required
               />
             </label>
-            <p className="auth-card__note">
-              By creating an account, you agree to our{" "}
-              <Link href="/privacy" className="auth-card__link">
-                Privacy Policy
-              </Link>
-              .
-            </p>
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={signupPolicyAccepted}
+                onChange={(event) => setSignupPolicyAccepted(event.target.checked)}
+                required
+              />
+              <span>
+                I have read and accept the{" "}
+                <Link href="/privacy" className="auth-card__link">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
             <div className="auth-card__actions">
-              <button className="button button--primary" type="submit" disabled={isBusy}>
+              <button className="button button--primary" type="submit" disabled={isBusy || !signupPolicyAccepted}>
                 {isBusy ? "Creating account..." : "Create account"}
               </button>
             </div>
