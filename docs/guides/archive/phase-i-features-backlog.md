@@ -30,10 +30,14 @@ This file tracks post-MVP ideas mentioned during product planning.
 - [x] Terms of service page — shipped at `/terms` (Phase G hardening), linked from the
   homepage footer, the Personal Hub "Policies" section, and the sign-up form. English
   only; founder-authored draft pending legal review (Sections 10 and 11 in particular).
-- GDPR export/delete requests — manual process documented (see
-  [ADR 0016](../../adr/0016-account-data-retention-and-deletion.md) and
-  [.codex/runbooks/data-subject-request.md](../../../.codex/runbooks/data-subject-request.md));
-  self-service automation remains backlog.
+- [x] GDPR self-service account deletion — `DELETE /api/user/account` + Profile "Delete
+  account and all data" two-step confirmation (Phase G hardening, GDPR Art. 17). Manual
+  process (see [ADR 0016](../../adr/0016-account-data-retention-and-deletion.md) and
+  [.codex/runbooks/data-subject-request.md](../../../.codex/runbooks/data-subject-request.md))
+  remains the fallback for users without account access. Data export/portability remains
+  covered by existing CV export features.
+- Enable Resend confirmation email for account deletion once a sending domain is verified
+  (set `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` env vars — no code change required).
 - Unsubscribe preferences.
 - Non-English translation of the privacy policy and terms of service.
 

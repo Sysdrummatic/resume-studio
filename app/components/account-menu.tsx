@@ -40,6 +40,10 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
   const [profileLastName, setProfileLastName] = useState(lastName);
   const [currentDisplayName, setCurrentDisplayName] = useState(displayName);
   const [profileError, setProfileError] = useState("");
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
   const closeTimerRef = useRef<number | null>(null);
 
@@ -91,6 +95,42 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
   function closeProfileModal() {
     setIsProfileOpen(false);
     setProfileError("");
+    setIsDeleteConfirmOpen(false);
+    setDeleteConfirmInput("");
+    setDeleteError("");
+  }
+
+  function openDeleteConfirm() {
+    setDeleteError("");
+    setIsDeleteConfirmOpen(true);
+  }
+
+  function cancelDeleteConfirm() {
+    setIsDeleteConfirmOpen(false);
+    setDeleteConfirmInput("");
+    setDeleteError("");
+  }
+
+  async function handleDeleteAccount() {
+    if (isDeleting) {
+      return;
+    }
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      const response = await fetch("/api/user/account", { method: "DELETE" });
+      const payload = (await response.json()) as { error?: string; warning?: string };
+      if (!response.ok || payload.error) {
+        setDeleteError(payload.error || "Nie udało się usunąć konta.");
+        return;
+      }
+
+      window.location.href = "/login?reason=account_deleted";
+    } catch {
+      setDeleteError("Nie udało się usunąć konta.");
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
@@ -267,6 +307,42 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
                   <span className="meta-label">Email verification</span>
                   <span className="meta-value">{emailConfirmed ? "verified" : "pending"}</span>
                 </p>
+              </div>
+              <div className="profile-modal__danger-zone">
+                <h3>Usuń konto i wszystkie dane</h3>
+                {!isDeleteConfirmOpen ? (
+                  <button type="button" className="button button--danger button--small" onClick={openDeleteConfirm}>
+                    Usuń konto i wszystkie dane
+                  </button>
+                ) : (
+                  <div className="profile-modal__danger-zone-confirm">
+                    <p>
+                      Ta operacja jest nieodwracalna. Konto oraz wszystkie dane CV zostaną trwale
+                      usunięte. Aby potwierdzić, wpisz swój adres email ({email}) poniżej.
+                    </p>
+                    <input
+                      type="email"
+                      value={deleteConfirmInput}
+                      onChange={(event) => setDeleteConfirmInput(event.target.value)}
+                      placeholder={email}
+                      autoComplete="off"
+                    />
+                    {deleteError ? <p className="profile-modal__error">{deleteError}</p> : null}
+                    <div className="profile-modal__actions">
+                      <button type="button" className="button button--ghost button--small" onClick={cancelDeleteConfirm} disabled={isDeleting}>
+                        Anuluj
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger button--small"
+                        onClick={handleDeleteAccount}
+                        disabled={isDeleting || deleteConfirmInput.trim().toLowerCase() !== email.toLowerCase()}
+                      >
+                        {isDeleting ? "Usuwanie..." : "Usuń konto na zawsze"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

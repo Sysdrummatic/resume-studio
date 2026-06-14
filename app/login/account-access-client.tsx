@@ -52,6 +52,9 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
     if (verified === "1") {
       return "Email verification completed. You can sign in now.";
     }
+    if (reason === "account_deleted") {
+      return "Your account and all associated data have been permanently deleted.";
+    }
     if (reason === "inactive") {
       return "Your account is inactive. Contact support or an administrator.";
     }
@@ -63,7 +66,7 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
     }
     return "";
   }, [reason, verified]);
-  const contextualVariant = contextualMessage ? "warning" : "success";
+  const contextualVariant = reason === "account_deleted" ? "success" : contextualMessage ? "warning" : "success";
   const contextualToast =
     contextualMessage && !isContextualMessageHidden
       ? { id: 0, message: contextualMessage, variant: contextualVariant as "warning" | "success" }

@@ -122,6 +122,18 @@ Each item includes the source guide it comes from, so the detailed rationale and
      Terms of Service are placeholder text and require legal review before this
      Service has any paying customers or a significant user base. They have not
      been verified against Polish or EU consumer-protection law.**
+   - [x] PR4 follow-up: add self-service account deletion (GDPR Art. 17) —
+     `DELETE /api/user/account` plus a two-step "Delete account and all data"
+     confirmation in the Profile modal (`app/components/account-menu.tsx`).
+     Deletes `auth.users` via the Supabase Auth Admin API; all personal-data
+     tables cascade per ADR 0016 (PR2), and no Supabase Storage objects exist to
+     clean up. No write to `admin_audit_logs` or any new lifecycle table — the
+     deleted account row is the record (builds on PR1/PR2). Sends a Resend
+     confirmation email, implemented but **inactive** until `RESEND_API_KEY` and
+     `EMAIL_FROM_ADDRESS` are set in the hosting environment (no code change
+     required to enable). `app/privacy/page.tsx` Section 5 updated to clarify
+     that self-service deletion is immediate, while the 30-day window applies
+     only to the manual/admin-mediated runbook path.
    - [x] Confirm local CI-equivalent gates are green before deploy (`npm.cmd run verify`, `npm.cmd run build`).
    - [ ] Preview deploy QA is complete for the next release.
    - [ ] Production deploy QA is complete for the next release.

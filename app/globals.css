@@ -2687,6 +2687,52 @@ a {
   justify-content: flex-end;
 }
 
+.profile-modal__danger-zone {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--portal-border);
+}
+
+.profile-modal__danger-zone h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--portal-danger-text);
+}
+
+.profile-modal__danger-zone-confirm {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.profile-modal__danger-zone-confirm p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.profile-modal__danger-zone-confirm input {
+  width: 100%;
+  border: 1px solid var(--portal-control-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.78rem;
+  background: var(--portal-input-bg);
+  color: var(--text);
+  box-shadow: var(--portal-input-shadow);
+  font: inherit;
+}
+
+.profile-modal__danger-zone-confirm input:focus-visible {
+  outline: 2px solid var(--portal-focus-ring);
+  outline-offset: 2px;
+  border-color: var(--portal-border-accent);
+}
+
+.profile-modal__danger-zone-confirm .profile-modal__actions {
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 /* LANDING PAGE STYLES — OpenCiVera Design System */
 .lp {
   /* night (default) — DS portal */

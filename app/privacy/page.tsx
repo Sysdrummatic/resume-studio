@@ -121,9 +121,17 @@ export default function PrivacyPolicyPage() {
           </li>
           <li>
             <Typography as="span" variant="body">
-              If you request deletion of your account, we will delete your personal data
-              within 30 days of confirming the request, except where retention is required by
-              law or for legitimate security purposes (such as administrative audit logs).
+              If you delete your account yourself using the &quot;Delete account and all
+              data&quot; option in your account settings, your personal data is deleted
+              immediately.
+            </Typography>
+          </li>
+          <li>
+            <Typography as="span" variant="body">
+              If you request deletion through other means (for example, because you can no
+              longer access your account), we will delete your personal data within 30 days
+              of confirming the request, except where retention is required by law or for
+              legitimate security purposes (such as administrative audit logs).
             </Typography>
           </li>
           <li>
