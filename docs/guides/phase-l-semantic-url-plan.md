@@ -1,8 +1,8 @@
-# Phase J — Semantic Public Link URL
+# Phase L — Semantic Public Link URL
 
 Status: Planned (post-launch)
 
-Depends on: Phase G (hardening/launch) and Phase I (ATS Intelligence) complete and stable in production.
+Depends on: Phase I (hardening/launch) and Phase K (ATS Intelligence) complete and stable in production.
 
 Related ADR: [ADR 0013 — Semantic Public Link URL](../adr/0013-semantic-public-link-url.md)
 
@@ -14,7 +14,7 @@ communicate the role a given Saved Version targets. The current canonical shape
 (no hyphen between first and last name), which reads poorly when shared and does not
 expose the targeted role.
 
-Phase J introduces a semantic, snapshot-stable URL model that:
+Phase L introduces a semantic, snapshot-stable URL model that:
 - separates the human-readable name slug from the opaque public id,
 - supports an optional role segment derived from the published CV at publish time,
 - keeps URLs immutable per Public Link so shared links never silently change meaning.
@@ -85,8 +85,8 @@ ariana-holt/technical-writer/432c7756f7674d
 
 ## Dependencies
 
-- Phase G complete (hardening/launch readiness) — URL changes affect SEO and must ship on a stable base.
-- Phase I complete (ATS Intelligence) — avoids overlapping churn in editor/publish surfaces.
+- Phase I complete (hardening/launch readiness) — URL changes affect SEO and must ship on a stable base.
+- Phase K complete (ATS Intelligence) — avoids overlapping churn in editor/publish surfaces.
 
 ## Suggested PR breakdown (minimum 3)
 

@@ -2,9 +2,9 @@
   "roadmap": {
     "title": "OpenCiVera Product Roadmap",
     "description": "Single source of truth for product phases and timeline",
-    "lastUpdated": "2026-05-27",
-    "currentPhase": "G",
-    "progressPercent": 63,
+    "lastUpdated": "2026-06-15",
+    "currentPhase": "I",
+    "progressPercent": 50,
     "phases": [
       {
         "id": "A",
@@ -105,7 +105,7 @@
         "adrs": ["0006", "0009"],
         "actionItems": "action-plan.md#phase-d---editor-canvas-and-revisioning-complete",
         "blockedBy": ["C"],
-        "blocks": ["E", "F"]
+        "blocks": ["E"]
       },
       {
         "id": "E",
@@ -116,7 +116,7 @@
           "start": "2026-05-12",
           "end": "2026-06-30"
         },
-        "progress": 50,
+        "progress": 95,
         "description": "Make CVs publicly shareable with SEO/AEO support and backward compatibility.",
         "deliverables": [
           "✓ Public route /person-slug/public-id with SSR/ISR",
@@ -134,11 +134,38 @@
         "adrs": ["0001", "0004", "0005", "0007"],
         "actionItems": "action-plan.md#phase-e---public-resume-rendering-and-seqaeo",
         "blockedBy": ["D"],
-        "blocks": ["G"],
-        "notes": "Core delivery complete (2026-05-23); minor work remains for demo CV + beta users"
+        "blocks": ["F", "G", "I"],
+        "notes": "Core delivery complete (2026-05-23); minor work remains for demo CV + beta users. Transition: Phase F (beta testing) and Phase I (hardening) underway in parallel."
       },
       {
         "id": "F",
+        "name": "Community Beta Testing",
+        "status": "planned",
+        "theme": "Real-world validation with external beta testers",
+        "eta": {
+          "start": null,
+          "end": null
+        },
+        "progress": 0,
+        "description": "Recruit and run a structured 4-week beta program with 5 testers, collecting feedback to validate UX and surface bugs before launch.",
+        "deliverables": [
+          "◯ Beta test scenarios adapted for non-technical testers (#71)",
+          "◯ Recruit 5 beta testers from the tech-writer community (#72)",
+          "◯ Feedback infrastructure: Typeform, GitHub Project board, Discord/Slack (#73)",
+          "◯ Solo internal QA baseline before external testing (#74)",
+          "◯ Beta tester onboarding and 4-week testing window (#75)",
+          "◯ Continuous feedback collection and weekly sentiment tracking (#76)",
+          "◯ Post-beta review, bug triage, and launch-readiness decision (#77)"
+        ],
+        "guide": "phases/phase-f-community-beta-testing.md",
+        "adrs": [],
+        "actionItems": "action-plan.md#phase-f---community-beta-testing",
+        "blockedBy": ["E"],
+        "blocks": [],
+        "notes": "Planned, not started; 4 weeks post Phase E launch prep, runs in parallel with Phase I"
+      },
+      {
+        "id": "G",
         "name": "User Experience & Community",
         "status": "complete",
         "theme": "User-facing features and analytics",
@@ -158,15 +185,41 @@
           "✓ Role-inheritance capability model (RBAC PR1–PR6)",
           "✓ Recruiter baseline workflow"
         ],
-        "guide": "phases/phase-f-ux-community.md",
+        "guide": "phases/phase-g-ux-community.md",
         "adrs": ["0003", "0007"],
-        "actionItems": "action-plan.md#phase-f---user-panel-and-analytics",
-        "blockedBy": ["D"],
-        "blocks": [],
+        "actionItems": "action-plan.md#phase-g---user-panel-and-analytics",
+        "blockedBy": ["E"],
+        "blocks": ["H"],
         "notes": "Completed early (2026-05-13), 2 weeks ahead of schedule"
       },
       {
-        "id": "G",
+        "id": "H",
+        "name": "PDF Visual Fidelity — Vercel + Puppeteer Migration",
+        "status": "planned",
+        "theme": "Pixel-perfect PDF export via browser-based rendering",
+        "eta": {
+          "start": null,
+          "end": null
+        },
+        "progress": 0,
+        "description": "Switch PDF rendering from a layout-engine-based renderer to Puppeteer + Chromium, migrating the deployment platform from Netlify to Vercel.",
+        "deliverables": [
+          "◯ Engine factory (PDF_ENGINE env var) + signed-token render route",
+          "◯ Print-optimized render mode with print-safe CSS",
+          "◯ Vercel migration and preview validation",
+          "◯ PuppeteerEngine implementation (@sparticuz/chromium + puppeteer-core)",
+          "◯ Visual QA: pixel-perfect parity with web layout",
+          "◯ Cleanup, documentation, and ADR 0015"
+        ],
+        "guide": "phases/phase-h-vercel-puppeteer-pdf.md",
+        "adrs": ["0014", "0015"],
+        "actionItems": "action-plan.md#phase-h---pdf-visual-fidelity-vercel--puppeteer-migration",
+        "blockedBy": ["G"],
+        "blocks": [],
+        "notes": "Planned, not started; starts after Phase G completes"
+      },
+      {
+        "id": "I",
         "name": "Hardening, QA & Launch Readiness",
         "status": "in-progress",
         "theme": "Quality assurance and production readiness",
@@ -174,7 +227,7 @@
           "start": "2026-05-20",
           "end": "2026-06-30"
         },
-        "progress": 20,
+        "progress": 60,
         "description": "Comprehensive testing, security hardening, observability setup, and pre-launch validation.",
         "deliverables": [
           "✓ Local CI-equivalent gates configured",
@@ -185,7 +238,7 @@
           "◯ Protected route access controls",
           "◯ Admin panel and audit verification",
           "◯ Editor publish/rollback workflows",
-          "◯ Netlify deployment validation",
+          "◯ Deployment platform validation",
           "◯ Legacy redirect verification",
           "◯ E2E regression suite",
           "◯ Performance and accessibility checks",
@@ -194,15 +247,15 @@
           "◯ Release checklist and rollback playbook",
           "◯ Production smoke test protocol"
         ],
-        "guide": "phases/phase-g-hardening-qa.md",
+        "guide": "phases/phase-i-hardening-qa.md",
         "adrs": ["0010"],
-        "actionItems": "action-plan.md#phase-g---hardening-qa-and-launch-readiness",
+        "actionItems": "action-plan.md#phase-i---hardening-qa-and-launch-readiness",
         "blockedBy": ["E"],
-        "blocks": ["H"],
-        "notes": "Started 2026-05-20; parallel with end of Phase E"
+        "blocks": ["J", "K"],
+        "notes": "Started 2026-05-20; runs in parallel with Phase F and the end of Phase E"
       },
       {
-        "id": "H",
+        "id": "J",
         "name": "AI & Ecosystem",
         "status": "planned",
         "theme": "AI-assisted features and community contributions",
@@ -220,15 +273,61 @@
           "◯ GitHub enrichment",
           "◯ Third-party integrations"
         ],
-        "guide": "phases/phase-h-ai-ecosystem.md",
+        "guide": "phases/phase-j-ai-ecosystem.md",
         "adrs": [],
-        "actionItems": "action-plan.md#phase-h---ai-extras-post-core-delivery",
-        "blockedBy": ["G"],
-        "blocks": [],
-        "notes": "Not blocking Phase G; post-core delivery feature set"
+        "actionItems": "action-plan.md#phase-j---ai-extras-post-core-delivery",
+        "blockedBy": ["I"],
+        "blocks": ["M"],
+        "notes": "Not blocking Phase I; post-core delivery feature set"
       },
       {
-        "id": "I",
+        "id": "K",
+        "name": "ATS Intelligence",
+        "status": "planned",
+        "theme": "Live ATS compliance scoring in the editor",
+        "eta": {
+          "start": null,
+          "end": null
+        },
+        "progress": 0,
+        "description": "Live, read-only ATS compliance scoring in the Master Resume editor, analyzed against ATS export rules without modifying CV data or the PDF layout.",
+        "deliverables": [
+          "◯ K-1: ATS Score Sidebar (static scoring engine + rules)",
+          "◯ K-2: Visual Score tab (human-readability rules)",
+          "◯ K-3: AI keyword gap analysis (free-tier LLM, rate-limited)"
+        ],
+        "guide": "guides/phase-k-ats-intelligence-plan.md",
+        "adrs": [],
+        "actionItems": "action-plan.md#phase-k---ats-intelligence-post-launch",
+        "blockedBy": ["I"],
+        "blocks": ["L"],
+        "notes": "Planned, post-launch; foundation delivered in Phase G (app/lib/ats-export-rules.ts)"
+      },
+      {
+        "id": "L",
+        "name": "Semantic Public Link URL",
+        "status": "planned",
+        "theme": "Human-readable, recruiter-friendly public CV URLs",
+        "eta": {
+          "start": null,
+          "end": null
+        },
+        "progress": 0,
+        "description": "Introduce a semantic, snapshot-stable public URL model separating the human-readable name slug from the opaque public ID, with an optional role segment.",
+        "deliverables": [
+          "◯ PR1: profiles.person_slug migration to hyphenated name-slug + legacy redirects",
+          "◯ PR2: role_slug/link_type columns + role-specific route",
+          "◯ PR3: publish modal general/role choice, RPC extension, link backfill"
+        ],
+        "guide": "guides/phase-l-semantic-url-plan.md",
+        "adrs": ["0013"],
+        "actionItems": "action-plan.md#phase-l---semantic-public-link-url-post-launch-after-phase-k",
+        "blockedBy": ["I", "K"],
+        "blocks": [],
+        "notes": "Planned, post-launch; requires both Phase I and Phase K complete"
+      },
+      {
+        "id": "M",
         "name": "Professional Identity Platform",
         "status": "vision",
         "theme": "Long-term identity and recruiter platform",
@@ -249,14 +348,14 @@
         "guide": null,
         "adrs": [],
         "actionItems": null,
-        "blockedBy": ["H"],
+        "blockedBy": ["J"],
         "blocks": [],
         "notes": "Vision only; not part of MVP timeline"
       }
     ],
     "timeline": {
       "startDate": "2026-04-01",
-      "currentDate": "2026-05-27",
+      "currentDate": "2026-06-15",
       "endDate": "2026-06-30",
       "milestones": [
         {
@@ -271,7 +370,7 @@
         },
         {
           "date": "2026-05-13",
-          "phase": "F",
+          "phase": "G",
           "event": "User panel & analytics complete (2 weeks early)"
         },
         {
@@ -281,12 +380,12 @@
         },
         {
           "date": "2026-05-20",
-          "phase": "G",
+          "phase": "I",
           "event": "Hardening & QA begins"
         },
         {
           "date": "2026-06-30",
-          "phase": "G",
+          "phase": "I",
           "event": "Target: Launch readiness complete"
         }
       ]
@@ -294,19 +393,19 @@
     "dependencies": {
       "strict_sequence": ["A", "B", "C", "D"],
       "parallel_paths": {
-        "E_and_F": ["E", "F"],
-        "notes": "E (public routes) and F (user panel) can overlap after D"
+        "E_unlocks": ["F", "G", "I"],
+        "notes": "F (beta testing), G (UX/community), and I (hardening) can all overlap after E"
       },
-      "post_core": ["G", "H", "I"]
+      "post_core": ["H", "J", "K", "L", "M"]
     },
     "statistics": {
-      "total_phases": 9,
+      "total_phases": 13,
       "complete": 5,
-      "in_progress": 3,
-      "planned": 1,
+      "in_progress": 2,
+      "planned": 5,
       "vision": 1,
-      "overall_completion_percent": 63,
-      "estimated_days_to_launch": 34
+      "overall_completion_percent": 50,
+      "estimated_days_to_launch": 15
     }
   }
 }

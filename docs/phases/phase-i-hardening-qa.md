@@ -1,4 +1,4 @@
-# Phase H: Hardening, QA & Launch Readiness
+# Phase I: Hardening, QA & Launch Readiness
 
 **Status**: ◐ **60% IN PROGRESS**  
 **ETA**: Jun 2026 (target: 2026-06-30)  
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Phase H is the quality and readiness phase. After Phase E–G deliver features, Phase H ensures everything is secure, tested, observable, and ready for production launch. This is the last quality gate before real users access the platform.
+Phase I is the quality and readiness phase. After Phase E–H deliver features, Phase I ensures everything is secure, tested, observable, and ready for production launch. This is the last quality gate before real users access the platform.
 
 ### Key Theme
 **From MVP → production-ready.** All critical paths tested; security/perf/a11y verified.
@@ -40,7 +40,7 @@ Phase H is the quality and readiness phase. After Phase E–G deliver features, 
 ### Infrastructure & Migrations
 
 - [ ] **Supabase migrations applied**:
-  - All Phase A–G migrations active
+  - All Phase A–H migrations active
   - New tables and policies in place
   - Backup and recovery procedures tested
 
@@ -184,7 +184,7 @@ Phase H is the quality and readiness phase. After Phase E–G deliver features, 
 ### Release & Rollback
 
 - [ ] **Release checklist prepared**:
-  - All Phase E–G features in production
+  - All Phase E–H features in production
   - No critical bugs open
   - Rollback plan documented
   - Communication plan for users
@@ -271,7 +271,7 @@ Manual QA Checklist
 **Scenario**: Code checks RBAC capability, but RLS policy allows unauthorized access.
 
 **Mitigation**:
-- Phase H includes SQL alignment verification (task from memory)
+- Phase I includes SQL alignment verification (task from memory)
 - Tests assert both code and RLS behavior
 - Manual QA checks cross-user data isolation
 
@@ -296,7 +296,7 @@ Manual QA Checklist
 
 ---
 
-## Phase H Execution Plan
+## Phase I Execution Plan
 
 ### Week 1 (2026-05-27 to 2026-06-02)
 - [ ] Finalize deployment QA procedures
@@ -335,16 +335,16 @@ Manual QA Checklist
 - [ADR 0010: API Hardening and Resource Protection](../adr/0010-api-hardening-and-resource-protection.md)
 
 ### Execution
-- [action-plan.md § Phase H](../action-plan.md#phase-h---hardening-qa-and-launch-readiness)
+- [action-plan.md § Phase I](../action-plan.md#phase-i---hardening-qa-and-launch-readiness)
 
 ---
 
-## Transition to Phase I
+## Transition to Phase J
 
-After Phase H launch-readiness gate passes:
+After Phase I launch-readiness gate passes:
 
 1. **Production launch** announced to community
-2. **Phase I planning** begins (AI features, post-launch)
+2. **Phase J planning** begins (AI features, post-launch)
 3. **Monitoring & on-call** activated for production
 4. **Team retrospective** to document learnings
 
@@ -361,9 +361,9 @@ After Phase H launch-readiness gate passes:
 
 ---
 
-## Phase H Completion Checklist
+## Phase I Completion Checklist
 
-From [action-plan.md § Phase H](../action-plan.md#phase-h---hardening-qa-and-launch-readiness):
+From [action-plan.md § Phase I](../action-plan.md#phase-i---hardening-qa-and-launch-readiness):
 
 - [x] Local CI-equivalent gates are green
 - [ ] Preview deploy QA is complete

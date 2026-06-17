@@ -4,8 +4,8 @@
 > 
 > This file replaces scattered phase definitions across action-plan.md, ROADMAP.md, and individual guides. All phase metadata is consolidated here.
 
-Last Updated: **2026-05-27**  
-Current Focus: **Phase G (Hardening & QA)**  
+Last Updated: **2026-06-15**  
+Current Focus: **Phase I (Hardening, QA & Launch Readiness)**  
 
 ---
 
@@ -173,11 +173,64 @@ Public CVs are discoverable, shareable, and marked with SEO metadata; legacy lin
 ### Notes
 - **Status as of 2026-05-23**: ADR 0001–0007 merged (PR4); Phase E core delivery complete
 - **Remaining work**: Demo CV publication + beta user onboarding (scheduled for end-May)
-- **Transition**: Phase G hardening tasks now underway in parallel
+- **Transition**: Phase F beta testing and Phase I hardening tasks now underway in parallel
 
 ---
 
-## Phase F: User Experience & Community
+## Phase F: Community Beta Testing
+
+**Status**: ◯ **PLANNED, NOT STARTED**  
+**ETA**: 4 weeks (post Phase E launch prep)  
+**Theme**: Real-world validation with external beta testers
+
+### Overview
+Recruit and run a structured beta program with 5 testers over 4 weeks. Collect feedback via Likert-scale sentiment surveys and GitHub Issues labeling to validate UX, surface bugs, and gather testimonials before Phase I hardening concludes.
+
+### Scope & Deliverables
+- [ ] Beta test scenarios adapted for non-technical testers (#71)
+- [ ] Recruit 5 beta testers from the tech-writer community (#72)
+- [ ] Feedback infrastructure: Typeform, GitHub Project board, Discord/Slack channel (#73)
+- [ ] Solo internal QA pass to establish a baseline before external testing (#74)
+- [ ] Beta tester onboarding and 4-week testing window (#75)
+- [ ] Continuous feedback collection and weekly sentiment tracking (#76)
+- [ ] Post-beta review, bug triage, and launch-readiness decision (#77)
+
+### Responsible Parties
+- **software_architect**: scenario completeness, GitHub setup/labeling, bug severity assessment
+- **ui_ux_designer**: user-friendly language, UX friction review, improvement prioritization
+- **frontend_engineer**: technical edge cases, solo QA execution
+- **founder**: tester recruitment, onboarding, weekly check-ins, launch decision
+- **project_manager**: Typeform/channel setup, daily triage, progress tracking
+
+### Timeline
+| Week | Focus |
+|------|-------|
+| Pre-Week 1 | Setup + solo testing (#71–74) |
+| Week 1–2 | Tester onboarding + testing window (#75) |
+| Week 1–4 | Feedback collection & daily triage (#76) |
+| Week 3–4 | Analysis + prioritization (#77) |
+
+### Key Metrics
+| Metric | Target |
+|--------|--------|
+| Beta testers recruited | 5/5 |
+| Avg sentiment score | ≥ 3.5/5 |
+| Feedback items logged | ≥ 30 |
+| Scenario completion | ≥ 80% per tester |
+| Critical bugs found | < 3 (ideally 0) |
+| Launch readiness | Green |
+
+### Related Documentation
+- **Phase Guide**: [docs/phases/phase-f-community-beta-testing.md](phases/phase-f-community-beta-testing.md)
+- **Execution**: [action-plan.md § Phase F](action-plan.md#phase-f---community-beta-testing)
+- **Related ADRs**: None
+
+### Success Criteria
+5 confirmed beta testers complete ≥80% of scenarios; average sentiment ≥3.5/5 across ≥30 feedback items; 0 critical security issues; launch-readiness decision documented.
+
+---
+
+## Phase G: User Experience & Community
 
 **Status**: ✓ **COMPLETE**  
 **ETA**: Jun 2026 (completed early, 2026-05-13)  
@@ -196,8 +249,8 @@ Build user dashboard (presets/links management), PDF/ATS export, owner-facing an
 - ✓ Recruiter baseline workflow
 
 ### Related Documentation
-- **Phase Guide**: [docs/phases/phase-f-ux-community.md](phases/phase-f-ux-community.md)
-- **Execution**: [action-plan.md § Phase F](action-plan.md#phase-f---user-panel-and-analytics)
+- **Phase Guide**: [docs/phases/phase-g-ux-community.md](phases/phase-g-ux-community.md)
+- **Execution**: [action-plan.md § Phase G](action-plan.md#phase-g---user-panel-and-analytics)
 - **Related ADRs**:
   - [ADR 0003: Privacy-First Admin Access](adr/0003-privacy-first-admin-access.md) (role inheritance)
   - [ADR 0007: Publication Analytics, View Counting, and Audit Retention](adr/0007-publication-analytics-and-audit-retention.md)
@@ -206,16 +259,47 @@ Build user dashboard (presets/links management), PDF/ATS export, owner-facing an
 Users can see who viewed their CV; admins can audit all actions.
 
 ### Notes
-- **Delivered early**: Phase F completed 2026-05-13 (2 weeks ahead of schedule)
+- **Delivered early**: Phase G completed 2026-05-13 (2 weeks ahead of schedule)
 - **User panel PR**: Merged with public-link management integration
 - **Role inheritance**: 6 PRs refactoring RBAC from string literals to capability model
 
 ---
 
-## Phase G: Hardening, QA & Launch Readiness
+## Phase H: PDF Visual Fidelity — Vercel + Puppeteer Migration
 
-**Status**: ◐ **20% IN PROGRESS** (CI automation complete, manual checks pending)  
+**Status**: ◯ **PLANNED, NOT STARTED**  
+**ETA**: Jun–Jul 2026 (after Phase G)  
+**Theme**: Pixel-perfect PDF export via browser-based rendering
+
+### Overview
+Eliminate the visual fidelity gap in PDF exports by switching from a layout-engine-based renderer (`@react-pdf/renderer`) to a browser-based renderer (Puppeteer + Chromium), and migrate the deployment platform from Netlify to Vercel to support the larger serverless bundle Chromium requires.
+
+### Scope & Deliverables
+- [ ] Engine factory (`PDF_ENGINE` env var switching) + internal signed-token PDF render route
+- [ ] Print-optimized render mode (`mode="pdf"`) with print-safe CSS
+- [ ] Vercel migration: `vercel.json`, ported redirects, reconfigured env vars, full preview validation
+- [ ] `PuppeteerEngine` implementation (`@sparticuz/chromium` + `puppeteer-core`)
+- [ ] Visual QA: PDF output matches web layout pixel-for-pixel (two-column layout, timeline dots, cards, fonts)
+- [ ] Cleanup & documentation: keep/remove `react-pdf` decision, update deployment guides, ADR 0015
+
+### Related Documentation
+- **Phase Guide**: [docs/phases/phase-h-vercel-puppeteer-pdf.md](phases/phase-h-vercel-puppeteer-pdf.md)
+- **Execution**: [action-plan.md § Phase H](action-plan.md#phase-h---pdf-visual-fidelity-vercel--puppeteer-migration)
+- **Implementation Guide**: [Vercel + Puppeteer PDF Migration Guide](guides/vercel-puppeteer-pdf-migration.md)
+- **Related ADRs**:
+  - [ADR 0015: PDF Rendering Migration — Puppeteer on Vercel](adr/0015-vercel-puppeteer-pdf-migration.md)
+  - [ADR 0014: PDF Rendering Architecture](adr/0014-pdf-rendering-architecture.md) (partially superseded)
+
+### Success Criteria
+PDF exports are pixel-perfect and match the web CV layout exactly; all routes validated on Vercel; internal render route secured with HMAC tokens; visual QA passed; documentation updated to reflect Vercel.
+
+---
+
+## Phase I: Hardening, QA & Launch Readiness
+
+**Status**: ◐ **60% IN PROGRESS**  
 **ETA**: Jun 2026 (target: 2026-06-30)  
+**Started**: 2026-05-20  
 **Theme**: Quality assurance and production readiness
 
 **Progress Breakdown**:
@@ -235,7 +319,7 @@ Comprehensive testing, security hardening, observability setup, and pre-launch v
 - [ ] Protected route access controls verified
 - [ ] Admin panel and audit functionality verified
 - [ ] Editor publish/rollback workflows tested
-- [ ] Netlify deployment validated
+- [ ] Deployment platform validated
 - [ ] Legacy redirect verification (*.html routes)
 - [ ] E2E regression suite for critical paths
 - [ ] Performance and accessibility checks
@@ -245,9 +329,9 @@ Comprehensive testing, security hardening, observability setup, and pre-launch v
 - [ ] Production smoke test protocol executed
 
 ### Related Documentation
-- **Phase Guide**: [docs/phases/phase-g-hardening-qa.md](phases/phase-g-hardening-qa.md)
-- **Execution**: [action-plan.md § Phase G](action-plan.md#phase-g---hardening-qa-and-launch-readiness)
-- **QA Checklist**: [docs/guides/deployment-qa.md](guides/deployment-qa.md)
+- **Phase Guide**: [docs/phases/phase-i-hardening-qa.md](phases/phase-i-hardening-qa.md)
+- **Execution**: [action-plan.md § Phase I](action-plan.md#phase-i---hardening-qa-and-launch-readiness)
+- **QA Checklist**: [docs/guides/testing/deployment-qa.md](guides/testing/deployment-qa.md)
 - **Related ADRs**:
   - [ADR 0010: API Hardening and Resource Protection](adr/0010-api-hardening-and-resource-protection.md)
 
@@ -258,14 +342,14 @@ All critical paths tested; security/perf/a11y checks pass; team confident in lau
 - **Completed**: Local CI gates green
 - **In Progress**: Deploy QA (preview); auth smoke checks scheduled
 - **Blocked**: None
-- **At Risk**: Release timeline depends on parallel Phase H AI feature decisions
+- **At Risk**: Release timeline depends on parallel Phase J AI feature decisions
 
 ---
 
-## Phase H: AI & Ecosystem (Post-Core Delivery)
+## Phase J: AI & Ecosystem (Post-Core Delivery)
 
 **Status**: ◯ **PLANNED, NOT STARTED**  
-**ETA**: Q3 2026 (after Phase G launch)  
+**ETA**: Q3 2026 (after Phase I launch)  
 **Theme**: AI-assisted features and community contributions
 
 ### Overview
@@ -280,22 +364,72 @@ Post-MVP AI features, third-party integrations, and community-driven extensions.
 - [ ] Third-party integrations (OpenCV YAML used by external tools)
 
 ### Related Documentation
-- **Phase Guide**: [docs/phases/phase-h-ai-ecosystem.md](phases/phase-h-ai-ecosystem.md)
-- **Execution**: [action-plan.md § Phase H](action-plan.md#phase-h---ai-extras-post-core-delivery)
-- **Implementation Plan**: [docs/guides/ai-demo-resume-generation-plan.md](guides/ai-demo-resume-generation-plan.md)
-- **Related ADRs**: None yet (to be created during Phase G planning)
+- **Phase Guide**: [docs/phases/phase-j-ai-ecosystem.md](phases/phase-j-ai-ecosystem.md)
+- **Execution**: [action-plan.md § Phase J](action-plan.md#phase-j---ai-extras-post-core-delivery)
+- **Implementation Plan**: [docs/guides/features/ai-demo-resume-generation-plan.md](guides/features/ai-demo-resume-generation-plan.md)
+- **Related ADRs**: None yet (to be created during Phase I planning)
 
 ### Success Criteria
 First AI features in production; documented OpenCV YAML integration example.
 
 ### Notes
-- **Not blocking Phase G**: Phase H is purely additive; no Phase G gates depend on it
-- **Implementation pattern**: Each Phase H feature is self-contained workstream
+- **Not blocking Phase I**: Phase J is purely additive; no Phase I gates depend on it
+- **Implementation pattern**: Each Phase J feature is self-contained workstream
 - **Community-driven**: OpenCV YAML standard to be published for third-party adoption
 
 ---
 
-## Phase I: Professional Identity Platform (Vision/Future)
+## Phase K: ATS Intelligence (Post-Launch)
+
+**Status**: ◯ **PLANNED, POST-LAUNCH**  
+**ETA**: TBD (after Phase I)  
+**Theme**: Live ATS compliance scoring in the editor
+
+### Overview
+Live, read-only ATS compliance scoring in the Master Resume editor. Analyzes the YAML source against ATS export rules — never modifies CV data, never touches the visual PDF layout.
+
+### Scope & Deliverables
+- [ ] **K-1 — ATS Score Sidebar (static rules)**: `app/lib/ats-rules.ts` scoring engine, collapsible sidebar with score ring + category mini-bars + issue list, covering Structure/Skills/Dates/Contact/Metadata categories
+- [ ] **K-2 — Visual Score tab**: human-readability rules (summary length, bullet counts, measurable achievements, language coverage)
+- [ ] **K-3 — AI keyword gap analysis (post Phase I)**: `POST /api/resume/ats-keyword-gap` comparing CV content against a job description using a free-tier LLM (Gemini Flash / Groq), rate-limited per user/day
+
+### Related Documentation
+- **Phase Guide**: [docs/guides/phase-k-ats-intelligence-plan.md](guides/phase-k-ats-intelligence-plan.md)
+- **Execution**: [action-plan.md § Phase K](action-plan.md#phase-k---ats-intelligence-post-launch)
+- **Foundation**: `app/lib/ats-export-rules.ts` (delivered in the ATS Export refactor, Phase G)
+- **Related ADRs**: None yet
+
+### Success Criteria
+Correct ATS score for the Ariana Holt fixture; all scoring rules covered by unit tests; sidebar update latency < 600ms; zero regressions in editor tests.
+
+---
+
+## Phase L: Semantic Public Link URL (Post-Launch)
+
+**Status**: ◯ **PLANNED, POST-LAUNCH**  
+**ETA**: TBD (after Phase I and Phase K)  
+**Theme**: Human-readable, recruiter-friendly public CV URLs
+
+### Overview
+Introduce a semantic, snapshot-stable public URL model: `/{name-slug}/{public_id}` (general) and `/{name-slug}/{role-slug}/{public_id}` (role-specific), separating the human-readable name slug from the opaque public ID and optionally encoding the targeted role at publish time.
+
+### Scope & Deliverables
+- [ ] **PR1** — Migrate `profiles.person_slug` to hyphenated `name-slug` format with a dry-run report; add `301` redirects from legacy slug shapes
+- [ ] **PR2** — Add `resume_public_links.role_slug` + `link_type` columns/constraints; new route `app/[personSlug]/[roleSlug]/[publicId]/page.tsx`
+- [ ] **PR3** — Publish modal general/role choice (immutable after first publish), `publish_resume_saved_version` RPC extension, backfill existing links to `link_type = 'general'`
+
+### Related Documentation
+- **Phase Guide**: [docs/guides/phase-l-semantic-url-plan.md](guides/phase-l-semantic-url-plan.md)
+- **Execution**: [action-plan.md § Phase L](action-plan.md#phase-l---semantic-public-link-url-post-launch-after-phase-k)
+- **Related ADRs**:
+  - [ADR 0013: Semantic Public Link URL](adr/0013-semantic-public-link-url.md)
+
+### Success Criteria
+Both URL formats work end-to-end; legacy URLs `301`-redirect to the new format; publish modal lets the user choose the format before first publish, and the choice is immutable afterward.
+
+---
+
+## Phase M: Professional Identity Platform (Vision/Future)
 
 **Status**: ✦ **VISION ONLY**  
 **ETA**: 2027+  
@@ -314,7 +448,7 @@ Mature platform: verified professional identity, recruiter access, public API, G
 
 ### Related Documentation
 - **Phase Guide**: Not yet created (vision phase)
-- **Related ADRs**: To be created during Phase H retrospective
+- **Related ADRs**: To be created during Phase J retrospective
 - **Strategic notes**: Defined in original ROADMAP.md but not part of MVP timeline
 
 ### Success Criteria
@@ -325,20 +459,25 @@ OpenCiVera becomes trusted identity standard; third-party integrations exist.
 ## Phase Dependency Graph
 
 ```
-A (Foundation) 
-├─→ B (YAML Data Layer)
-│   ├─→ C (Auth + RBAC)
-│   │   ├─→ D (Editor)
-│   │   │   ├─→ E (Public Surface) ─→ F (UX/Analytics)
-│   │   │   │                       └─→ G (Hardening) ─→ H (AI) ─→ I (Platform Vision)
+A (Foundation)
+└─→ B (YAML Data Layer)
+    └─→ C (Auth + RBAC)
+        └─→ D (Editor)
+            └─→ E (Public Surface)
+                ├─→ F (Beta Testing)
+                ├─→ G (UX/Community) ─→ H (PDF Fidelity)
+                └─→ I (Hardening & Launch)
+                    ├─→ J (AI & Ecosystem) ─→ M (Platform Vision)
+                    └─→ K (ATS Intelligence) ─→ L (Semantic URL)
 ```
 
 **Key Constraints**:
 - Phases A–D are strictly sequential (each blocks the next)
-- E and F can overlap (E public routes + F user panel in parallel)
-- G can start after E completes (hardening independent of F analytics)
-- H cannot start until G launch (Phase H is post-core delivery)
-- I is vision-only (no current timeline)
+- E unlocks F (beta testing), G (UX/community), and I (hardening) — these can overlap
+- H (PDF fidelity) starts after G completes
+- I (hardening/launch) gates J (AI & Ecosystem) and K (ATS Intelligence)
+- L (Semantic URL) requires both I and K complete
+- M is vision-only (depends on J), no current timeline
 
 ---
 
@@ -351,10 +490,14 @@ A (Foundation)
 | C | 100% | 2026-05-01 | Auth team |
 | D | 100% | 2026-05-08 | Frontend team |
 | E | 95% | 2026-05-23 | MVP team (PR4 merged) |
-| F | 100% | 2026-05-13 | Product team |
-| G | 60% | 2026-05-27 | QA/Security team |
+| F | 0% | — | Planned |
+| G | 100% | 2026-05-13 | Product team |
 | H | 0% | — | Planned |
-| I | 0% | — | Vision |
+| I | 60% | 2026-05-27 | QA/Security team |
+| J | 0% | — | Planned |
+| K | 0% | — | Planned, post-launch |
+| L | 0% | — | Planned, post-launch |
+| M | 0% | — | Vision |
 
 ---
 
@@ -366,7 +509,6 @@ When a phase is complete or changes status:
 2. Update the `Last Updated` date in the metrics table
 3. Link any new deliverables or ADRs
 4. Mention new phase guides in the "Phase Guide" link
-5. Create a commit message like: `docs: Phase F complete → advance to Phase G hardening`
+5. Create a commit message like: `docs: Phase E complete → advance to Phase F`
 
-**This file is the single source of truth.** All other phase references (ROADMAP.md, action-plan.md) should link to this file rather than duplicate definitions.
-
+**This file is the single source of truth.** All other phase references (ROADMAP.md, action-plan.md, CLAUDE.md) should link to this file rather than duplicate definitions.

@@ -200,15 +200,18 @@ All Phase E architectural contracts are documented:
 
 ---
 
-## Transition to Phase F & G
+## Transition to Phase F, G & I
 
 ### Phase F Dependency
-Phase F (User Experience & Analytics) depends on Phase E public routes being stable. Both can run in parallel:
-- **Phase E**: Public route SSR/metadata finalization
-- **Phase F**: User dashboard, analytics, audit logging
+Phase F (Community Beta Testing) begins once Phase E core delivery is stable — beta testers exercise the public routes and editor end-to-end.
 
 ### Phase G Dependency
-Phase G (Hardening & QA) begins after Phase E core delivery (2026-05-23). Includes:
+Phase G (User Experience & Community) depends on Phase E public routes being stable. Both can run in parallel:
+- **Phase E**: Public route SSR/metadata finalization
+- **Phase G**: User dashboard, analytics, audit logging
+
+### Phase I Dependency
+Phase I (Hardening & QA) begins after Phase E core delivery (2026-05-23). Includes:
 - Deploy QA for public routes
 - Legacy compatibility regression tests
 - SEO metadata validation
@@ -228,7 +231,7 @@ Phase G (Hardening & QA) begins after Phase E core delivery (2026-05-23). Includ
 - Founder's demo CV published (marketing)
 - Beta user onboarding complete
 
-✓ **Ready to transition to Phase G hardening** once demo CV + beta collection is done
+✓ **Ready to transition to Phase F (beta testing) and Phase I (hardening)** once demo CV + beta collection is done
 
 ---
 

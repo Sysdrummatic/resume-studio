@@ -3,10 +3,10 @@
 > One source of truth for your career. A living link, not a static file.
 > Built in public — here's where we're going.
 
-**Updated**: 2026-05-27  
-**Overall Progress**: 63% (4 phases complete, 3 in progress)  
-**Current Focus**: Phase E (Launch prep) → Phase G (Hardening & QA)  
-**Status Note**: Phase E technical core (100% complete as of 2026-05-23); launch prep not yet started. Phase G CI automation complete (187 tests ✓); manual QA pending.  
+**Updated**: 2026-06-15  
+**Overall Progress**: 50% (5 phases complete, 2 in progress, 6 planned/vision)  
+**Current Focus**: Phase F (Community Beta Testing) & Phase I (Hardening & QA)  
+**Status Note**: Phase E technical core 100% complete (as of 2026-05-23); Phase F beta testing not yet started. Phase I CI automation complete (187 tests ✓); manual QA pending.  
 
 ---
 
@@ -55,7 +55,25 @@ Authentication, RBAC, YAML data layer, editor canvas, admin panel. The engine is
 
 ---
 
-### Phase F: User Experience & Community
+### Phase F: Community Beta Testing
+
+**4 weeks, post Phase E launch prep** ◯ Planned, Not Started
+
+Recruit and run a structured beta program with 5 testers over 4 weeks. Collect feedback via sentiment surveys and GitHub Issues to validate UX, surface bugs, and gather testimonials before launch.
+
+- ◯ Beta test scenarios adapted for non-technical testers
+- ◯ Recruit 5 beta testers from the tech-writer community
+- ◯ Feedback infrastructure (Typeform, GitHub Project board, Discord/Slack)
+- ◯ Solo internal QA baseline before external testing
+- ◯ Beta tester onboarding and 4-week testing window
+- ◯ Continuous feedback collection and weekly sentiment tracking
+- ◯ Post-beta review and launch-readiness decision
+
+**Details**: [docs/phases/phase-f-community-beta-testing.md](docs/phases/phase-f-community-beta-testing.md)
+
+---
+
+### Phase G: User Experience & Community
 
 **May–Jun 2026** ✓ Complete (Delivered Early)
 
@@ -68,13 +86,30 @@ User dashboard, PDF/ATS export, owner analytics, and audit logging.
 - ✓ Audit logging — Privilege action tracking
 - ✓ Recruiter baseline — Public CV access for recruiter role
 
-**Details**: [docs/phases/phase-f-ux-community.md](docs/phases/phase-f-ux-community.md)
+**Details**: [docs/phases/phase-g-ux-community.md](docs/phases/phase-g-ux-community.md)
 
 ---
 
-### Phase G: Hardening, QA & Launch Readiness
+### Phase H: PDF Visual Fidelity — Vercel + Puppeteer Migration
 
-**Jun 2026** ◐ 20% In Progress (CI automation done; manual QA pending)
+**Jun–Jul 2026 (after Phase G)** ◯ Planned, Not Started
+
+Eliminate the visual fidelity gap in PDF exports by switching to a browser-based renderer (Puppeteer + Chromium) and migrating the deployment platform from Netlify to Vercel.
+
+- ◯ Engine factory (`PDF_ENGINE` env var switching) + signed-token render route
+- ◯ Print-optimized render mode with print-safe CSS
+- ◯ Vercel migration and preview validation
+- ◯ `PuppeteerEngine` implementation (`@sparticuz/chromium` + `puppeteer-core`)
+- ◯ Visual QA: pixel-perfect parity with web layout
+- ◯ Cleanup, documentation, and ADR 0015
+
+**Details**: [docs/phases/phase-h-vercel-puppeteer-pdf.md](docs/phases/phase-h-vercel-puppeteer-pdf.md)
+
+---
+
+### Phase I: Hardening, QA & Launch Readiness
+
+**Jun 2026 (target 2026-06-30)** ◐ 60% In Progress
 
 **Complete**: Local CI gates (lint/typecheck/test ✓187/187/build).  
 **Pending**: Deploy QA, smoke tests, performance/accessibility, observability, release checklist, rollback playbook.
@@ -88,13 +123,13 @@ User dashboard, PDF/ATS export, owner analytics, and audit logging.
 - ◯ Observability and alerting
 - ◯ Release checklist and rollback plan
 
-**Details**: [docs/phases/phase-g-hardening-qa.md](docs/phases/phase-g-hardening-qa.md)
+**Details**: [docs/phases/phase-i-hardening-qa.md](docs/phases/phase-i-hardening-qa.md)
 
 ---
 
-### Phase H: AI & Ecosystem
+### Phase J: AI & Ecosystem
 
-**Jul–Sep 2026** ◯ Planned (Post-Launch)
+**Q3 2026 (after Phase I launch)** ◯ Planned, Not Started
 
 AI-assisted CV generation, community themes, integrations, third-party adoption.
 
@@ -105,11 +140,39 @@ AI-assisted CV generation, community themes, integrations, third-party adoption.
 - ◯ GitHub enrichment — Auto-populate tech stack
 - ◯ Third-party integrations — OpenCV YAML ecosystem
 
-**Details**: [docs/phases/phase-h-ai-ecosystem.md](docs/phases/phase-h-ai-ecosystem.md)
+**Details**: [docs/phases/phase-j-ai-ecosystem.md](docs/phases/phase-j-ai-ecosystem.md)
 
 ---
 
-### Phase I: Professional Identity Platform
+### Phase K: ATS Intelligence (Post-Launch)
+
+**TBD (after Phase I)** ◯ Planned, Post-Launch
+
+Live, read-only ATS compliance scoring in the Master Resume editor — never modifies CV data, never touches the visual PDF layout.
+
+- ◯ K-1: ATS Score Sidebar (static scoring engine + rules)
+- ◯ K-2: Visual Score tab (human-readability rules)
+- ◯ K-3: AI keyword gap analysis (free-tier LLM, rate-limited)
+
+**Details**: [docs/guides/phase-k-ats-intelligence-plan.md](docs/guides/phase-k-ats-intelligence-plan.md)
+
+---
+
+### Phase L: Semantic Public Link URL (Post-Launch)
+
+**TBD (after Phase I and Phase K)** ◯ Planned, Post-Launch
+
+Human-readable, recruiter-friendly public CV URLs: `/{name-slug}/{public_id}` (general) and `/{name-slug}/{role-slug}/{public_id}` (role-specific).
+
+- ◯ PR1: `profiles.person_slug` migration to hyphenated `name-slug` + legacy redirects
+- ◯ PR2: `role_slug`/`link_type` columns + role-specific route
+- ◯ PR3: Publish modal general/role choice, RPC extension, link backfill
+
+**Details**: [docs/guides/phase-l-semantic-url-plan.md](docs/guides/phase-l-semantic-url-plan.md)
+
+---
+
+### Phase M: Professional Identity Platform
 
 **2027+** ✦ Vision Only
 
@@ -122,34 +185,37 @@ Verified professional identity, recruiter access, public API, and OpenCiVera as 
 - ✦ Verified badge system (trust signal)
 - ✦ Recruiter scheduling (contact + calendar)
 
-**Details**: [docs/PHASES.md § Phase I](docs/PHASES.md#phase-i-professional-identity-platform-vision)
+**Details**: [docs/PHASES.md § Phase M](docs/PHASES.md#phase-m-professional-identity-platform-visionfuture)
 
 ---
 
 ## Key Dependencies
 
 ```
-A (Foundation) 
-├─→ B (YAML Data Layer)
-│   ├─→ C (Auth + RBAC)
-│   │   ├─→ D (Editor)
-│   │   │   ├─→ E (Public Surface) ┐
-│   │   │   │                       ├─→ G (Hardening) ─→ H (AI) ─→ I (Platform Vision)
-│   │   │   └─→ F (UX/Analytics) ┘
+A (Foundation)
+└─→ B (YAML Data Layer)
+    └─→ C (Auth + RBAC)
+        └─→ D (Editor)
+            └─→ E (Public Surface)
+                ├─→ F (Beta Testing)
+                ├─→ G (UX/Community) ─→ H (PDF Fidelity)
+                └─→ I (Hardening & Launch)
+                    ├─→ J (AI & Ecosystem) ─→ M (Platform Vision)
+                    └─→ K (ATS Intelligence) ─→ L (Semantic URL)
 ```
 
 **Key Insights**:
 - Phases A–D are strictly sequential (each blocks the next)
-- E and F overlap in parallel (both start after D)
-- G starts after E completes (independent of F timing)
-- H is post-launch (only starts after G goes live)
-- I is vision-only (no current timeline)
+- E unlocks F (beta testing), G (UX/community), and I (hardening) — these can overlap
+- H (PDF fidelity) starts after G completes
+- I (hardening/launch) gates J (AI & Ecosystem) and K (ATS Intelligence)
+- L (Semantic URL) requires both I and K complete
+- M is vision-only (depends on J), no current timeline
 
 ---
 
 ## Execution & Progress Tracking
 
 - **Consolidated Action Plan**: [docs/action-plan.md](docs/action-plan.md)
-- **Deployment QA**: [docs/guides/deployment-qa.md](docs/guides/deployment-qa.md)
+- **Deployment QA**: [docs/guides/testing/deployment-qa.md](docs/guides/testing/deployment-qa.md)
 - **Machine-Readable Structure**: [docs/ROADMAP_STRUCTURE.json](docs/ROADMAP_STRUCTURE.json)
-

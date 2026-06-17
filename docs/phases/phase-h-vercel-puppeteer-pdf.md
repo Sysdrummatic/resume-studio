@@ -1,8 +1,8 @@
-# Phase G: PDF Visual Fidelity — Vercel + Puppeteer Migration
+# Phase H: PDF Visual Fidelity — Vercel + Puppeteer Migration
 
 **Status**: ◯ **PLANNED, NOT STARTED**  
-**ETA**: Jun–Jul 2026 (after Phase F)  
-**Depends On**: Phase E–F completion  
+**ETA**: Jun–Jul 2026 (after Phase G)  
+**Depends On**: Phase E, G completion  
 
 > Eliminate visual fidelity gap in PDF exports. Migrate deployment platform from Netlify to Vercel and swap PDF rendering engine from @react-pdf/renderer to Puppeteer for pixel-perfect output.
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Phase G improves the PDF export experience by switching from a layout-engine-based renderer (react-pdf) to a browser-based renderer (Puppeteer). This produces PDFs visually identical to the web CV view, including all CSS features: pseudo-elements, CSS Grid, box-shadow, and fluid typography.
+Phase H improves the PDF export experience by switching from a layout-engine-based renderer (react-pdf) to a browser-based renderer (Puppeteer). This produces PDFs visually identical to the web CV view, including all CSS features: pseudo-elements, CSS Grid, box-shadow, and fluid typography.
 
 ### Key Theme
 **From pixel-approximation → pixel-perfect.** PDF exports match the web layout exactly. Infrastructure moves from Netlify to Vercel to support larger serverless bundles.
@@ -19,7 +19,7 @@ Phase G improves the PDF export experience by switching from a layout-engine-bas
 
 ## Why This Phase?
 
-**Current state (Phase F end)**:
+**Current state (Phase G end)**:
 - PDF exports use @react-pdf/renderer (Yoga layout engine)
 - Yoga cannot render CSS pseudo-elements, Grid, or complex borders
 - Web layout has teal timeline dots (::before), two-column Grid, and shadows
@@ -72,7 +72,7 @@ Before moving infrastructure, wire up the new engine abstraction.
   - [ ] Route never serves private draft content (snapshot-only)
 
 **Timeline**: ~1 week  
-**Blockers**: None (work on Netlify in parallel with Phase F)
+**Blockers**: None (work on Netlify in parallel with Phase G)
 
 ---
 
@@ -285,7 +285,7 @@ Trade-off: PDF quality degrades to current react-pdf (visual fidelity gap return
 - [Deployment QA Checklist](../guides/testing/deployment-qa.md) (will be updated for Vercel)
 
 ### Execution
-- [action-plan.md § Phase G](../action-plan.md#phase-g---pdf-visual-fidelity-vercel--puppeteer-migration)
+- [action-plan.md § Phase H](../action-plan.md#phase-h---pdf-visual-fidelity-vercel--puppeteer-migration)
 
 ---
 
@@ -300,20 +300,20 @@ Trade-off: PDF quality degrades to current react-pdf (visual fidelity gap return
 
 ---
 
-## Transition to Phase H
+## Transition to Phase I
 
-After Phase G completion:
+After Phase H completion:
 
 1. **PDF exports on production** are pixel-perfect
 2. **Vercel platform stability** confirmed over 1–2 weeks
-3. **Phase H planning begins** — Hardening, QA, launch readiness
+3. **Phase I planning begins** — Hardening, QA, launch readiness
 4. **Netlify contract** cancelled or demoted to redirects-only
 
 ---
 
-## Phase G Status
+## Phase H Status
 
-**Current**: Not started (planned for after Phase F completion)  
-**Next step**: Phase F completion → Phase G kickoff  
+**Current**: Not started (planned for after Phase G completion)  
+**Next step**: Phase G completion → Phase H kickoff  
 **Estimated duration**: ~4–5 weeks (Phase 1–4)  
 **Team**: Backend (engine factory + render route), DevOps (Vercel setup), QA (visual + smoke tests)
