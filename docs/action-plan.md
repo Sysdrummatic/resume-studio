@@ -53,7 +53,17 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Decide and write post-PR4 ADR backlog in priority order: OpenCV YAML contract, privacy-first admin, public route compatibility/deprecation, SEO/AEO policy, Saved Version/link-management UX, analytics/audit retention, and future OpenCV export/API surface.
      Source: [SaaS Transition Work Plan](guides/saas-transition-work-plan.md), [ADR 0001 CV Publication Model](adr/0001-cv-publication-model.md), `.codex/state.yaml#adr_backlog`
 
-6. [x] Phase F - User panel and analytics
+6. [ ] Phase F - Community Beta Testing
+   - [ ] Adapt test scenarios for non-technical beta testers (#71).
+   - [ ] Recruit 5 beta testers from the tech-writer community (#72).
+   - [ ] Set up feedback infrastructure: Typeform, GitHub Project board, Discord/Slack channel, and labeling scheme (#73).
+   - [ ] Run solo internal QA across all core scenarios to establish a baseline before external testing (#74).
+   - [ ] Onboard beta testers and run the 4-week testing window (#75).
+   - [ ] Collect feedback continuously and track weekly sentiment (#76).
+   - [ ] Run post-beta review, triage feedback, and make the launch-readiness decision (#77).
+     Source: [Phase F Community Beta Testing](phases/phase-f-community-beta-testing.md)
+
+7. [x] Phase G - User panel and analytics
    - [x] Build user panel for CV and link management (Dashboard/Presets).
    - [x] Add downloadable Published CV PDF export.
    - [x] Add plain text ATS-ready export for Published CV snapshots.
@@ -74,7 +84,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [x] Role inheritance PR5: decide SQL alignment and add forward-only helper migration only if needed.
    - [x] Role inheritance PR6: update brittle literal-role tests, run full validation, and attach manual QA evidence.
 
-7. [ ] Phase G - PDF Visual Fidelity: Vercel + Puppeteer Migration
+8. [ ] Phase H - PDF Visual Fidelity: Vercel + Puppeteer Migration
    - [ ] Phase 1 — Code preparation (engine factory, internal render route, pdf mode)
      - [ ] Confirm PdfEngine interface is the sole entry point in both PDF export endpoints
      - [ ] Add engine-factory.ts with PDF_ENGINE env var switching (react-pdf | puppeteer)
@@ -103,7 +113,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
      - [ ] Update CLAUDE.md — Vercel as deployment platform
      Source: [ADR 0015](adr/0015-vercel-puppeteer-pdf-migration.md), [Vercel Puppeteer PDF Migration Guide](guides/vercel-puppeteer-pdf-migration.md)
 
-8. [ ] Phase H - Hardening, QA, and launch readiness
+9. [ ] Phase I - Hardening, QA, and launch readiness
    - [x] Add public Privacy Policy page (`/privacy`, English only, indexable), linked from
      the homepage footer, the Personal Hub "Policies" section, and the sign-up form.
      Privacy Policy text is a founder-authored draft based on the current data model;
@@ -179,7 +189,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
      - [x] Contract tests pass
      Source: [ADR 0014: PDF Rendering Architecture](adr/0014-pdf-rendering-architecture.md), [Deployment and QA Checklist](guides/deployment-qa.md), [SaaS Transition Work Plan](guides/saas-transition-work-plan.md)
 
-9. [ ] Phase I - AI extras (post-core delivery)
+10. [ ] Phase J - AI extras (post-core delivery)
    - [ ] Add AI demo generation actions in the editor.
    - [ ] Add provider config and environment variable handling for AI generation.
    - [ ] Add `ai_resume_generations` usage tracking migration and helpers.
@@ -191,15 +201,15 @@ Each item includes the source guide it comes from, so the detailed rationale and
    - [ ] Add phase 2 job-description-tailored fictional CV option.
      Source: [AI Demo Resume Generation Workstream](guides/features/ai-demo-resume-generation-plan.md)
 
-10. [ ] Phase J — ATS Intelligence (post-launch)
-   - [ ] Phase J-1: `app/lib/ats-rules.ts` — pure scoring engine
-   - [ ] Phase J-1: ATS Score Sidebar component w edytorze
-   - [ ] Phase J-1: Testy jednostkowe dla wszystkich reguł ATS
-   - [ ] Phase J-2: Visual Score tab
-   - [ ] Phase J-3: AI keyword gap endpoint (po Phase I)
-     Source: [Phase J ATS Intelligence Workstream](guides/phase-j-ats-intelligence-plan.md)
+11. [ ] Phase K — ATS Intelligence (post-launch)
+   - [ ] Phase K-1: `app/lib/ats-rules.ts` — pure scoring engine
+   - [ ] Phase K-1: ATS Score Sidebar component w edytorze
+   - [ ] Phase K-1: Testy jednostkowe dla wszystkich reguł ATS
+   - [ ] Phase K-2: Visual Score tab
+   - [ ] Phase K-3: AI keyword gap endpoint (po Phase J)
+     Source: [Phase K ATS Intelligence Workstream](guides/phase-k-ats-intelligence-plan.md)
 
-11. [ ] Phase K — Semantic Public Link URL (post-launch, after Phase J)
+12. [ ] Phase L — Semantic Public Link URL (post-launch, after Phase K)
     - [ ] Migracja profiles.person_slug na format z myślnikiem (ariana-holt)
     - [ ] Redirect 301 dla starych URL-i
     - [ ] Kolumna role_slug i link_type w resume_public_links
@@ -208,7 +218,7 @@ Each item includes the source guide it comes from, so the detailed rationale and
     - [ ] Aktualizacja publish_resume_saved_version RPC
     - [ ] Migracja istniejących linków na link_type = 'general'
     - [ ] ADR 0013, testy, dokumentacja
-      Source: [Phase K Semantic Public Link URL](guides/phase-k-semantic-url-plan.md)
+      Source: [Phase L Semantic Public Link URL](guides/phase-l-semantic-url-plan.md)
 
 ## Gantt Map (Dependencies And Parallel Work)
 
@@ -230,30 +240,36 @@ gantt
   E3 Redirect compatibility verification    :e3, after e1, 4d
   E4 ADR backlog closure                    :e4, 2026-05-13, 8d
 
-  section Product/Admin Expansion (Phase F)
-  F1 User panel CV/link management         :done, f1, 2026-05-13, 1d
-  F2 Role inheritance PR2-PR6              :done, f2, 2026-05-13, 1d
-  F3 Analytics widgets                      :done, f3, 2026-05-13, 1d
-  F4 Audit explorer/filtering               :done, f4, 2026-05-13, 1d
-  F5 Recruiter smoke coverage               :done, f5, 2026-05-13, 1d
+  section Beta Testing (Phase F)
+  F1 Scenario adaptation + recruiting       :f1, after e1, 7d
+  F2 Feedback infra + solo QA               :f2, after f1, 5d
+  F3 Tester onboarding + testing window     :f3, after f2, 14d
+  F4 Feedback review + launch decision      :f4, after f3, 7d
+
+  section Product/Admin Expansion (Phase G)
+  G1 User panel CV/link management         :done, g1, 2026-05-13, 1d
+  G2 Role inheritance PR2-PR6              :done, g2, 2026-05-13, 1d
+  G3 Analytics widgets                      :done, g3, 2026-05-13, 1d
+  G4 Audit explorer/filtering               :done, g4, 2026-05-13, 1d
+  G5 Recruiter smoke coverage               :done, g5, 2026-05-13, 1d
 
   section Editor Follow-up
   D-followup Public-link management in editor :d1, 2026-05-13, 6d
 
-  section PDF Fidelity (Phase G)
-  G1 Code prep + engine factory             :g1, after f4, 8d
-  G2 Vercel migration + validation          :g2, after g1, 6d
-  G3 PuppeteerEngine + visual QA            :g3, after g2, 8d
-  G4 Cleanup + react-pdf decision           :g4, after g3, 3d
+  section PDF Fidelity (Phase H)
+  H1 Code prep + engine factory             :h1, after g4, 8d
+  H2 Vercel migration + validation          :h2, after h1, 6d
+  H3 PuppeteerEngine + visual QA            :h3, after h2, 8d
+  H4 Cleanup + react-pdf decision           :h4, after h3, 3d
 
-  section Hardening And Release (Phase H)
-  H1 E2E/perf/a11y/security                 :h1, after e2, 10d
-  H2 Deploy QA + migrations + smoke         :h2, after h1, 8d
-  H3 Observability + rollback playbook      :h3, after h1, 5d
-  H4 Production go-live checks              :h4, after h2, 4d
+  section Hardening And Release (Phase I)
+  I1 E2E/perf/a11y/security                 :i1, after e2, 10d
+  I2 Deploy QA + migrations + smoke         :i2, after i1, 8d
+  I3 Observability + rollback playbook      :i3, after i1, 5d
+  I4 Production go-live checks              :i4, after i2, 4d
 
-  section AI Extras (Phase I - Post-core)
-  AI1 Provider/env + usage tracking         :ai1, after h4, 6d
+  section AI Extras (Phase J - Post-core)
+  AI1 Provider/env + usage tracking         :ai1, after i4, 6d
   AI2 API + prompt/schema validator         :ai2, after ai1, 8d
   AI3 Editor UI + badge + tests             :ai3, after ai2, 8d
   AI4 Phase 2 JD-tailored option            :ai4, after ai3, 6d
@@ -263,12 +279,14 @@ gantt
 
 - Can run in parallel:
   - `E4 ADR backlog closure` with `E1 Public route SSR/ISR hardening`.
-  - `F2 Role inheritance PR2-PR6` with `F1 User panel CV/link management`.
-  - `D-followup` can progress independently of most Phase E/F tasks.
+  - `F1-F4 Beta Testing` with `G1-G5 Product/Admin Expansion` (both depend only on Phase E core delivery).
+  - `G2 Role inheritance PR2-PR6` with `G1 User panel CV/link management`.
+  - `D-followup` can progress independently of most Phase E/G tasks.
 - Should stay sequential:
   - `E2` after `E1` (metadata/sitemap stabilizes after route behavior is final).
-  - `F3/F4/F5` after `F1/F2` foundations.
-  - `Phase G` hardening/release gates after core Phase E/F deliverables.
+  - `F2/F3/F4` after `F1` (feedback infra and the testing window depend on scenario adaptation/recruiting).
+  - `G3/G4/G5` after `G1/G2` foundations.
+  - `Phase I` hardening/release gates after core Phase E/G deliverables.
 
 ## Sprint Routing - Editor Public-Link Management
 

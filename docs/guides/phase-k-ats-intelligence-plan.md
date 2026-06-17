@@ -1,8 +1,8 @@
-# Phase I — ATS Intelligence Workstream
+# Phase K — ATS Intelligence Workstream
 
 Status: Planned (post-launch)
 
-Depends on: Phase G complete, stable production release.
+Depends on: Phase I complete, stable production release.
 
 ## Goal
 
@@ -16,11 +16,11 @@ Visual PDF layout is never touched.
 - stałe używane przez warstwę eksportu
 - typy `ATSRuleResult`, `ATSScoreCategory`, `ATSCategoryScore`, `ATSScoreResult`
 
-Engine scoringowy Phase I-1 importuje te typy bezpośrednio.
+Engine scoringowy Phase K-1 importuje te typy bezpośrednio.
 
-## Phase I-1 — ATS Score Sidebar (static rules)
+## Phase K-1 — ATS Score Sidebar (static rules)
 
-Branch: `feat/phase-i1-ats-score-sidebar`
+Branch: `feat/phase-k1-ats-score-sidebar`
 
 Pliki do utworzenia:
 - `app/lib/ats-rules.ts` — pure function `(doc: ResumeDocument) => ATSScoreResult`
@@ -63,7 +63,7 @@ UI contract:
 - Mini bars per kategoria pod ringiem
 - Lista issues: label, ścieżka pola YAML, severity dot
 - Klik issue → scroll do linii w YAML
-- Zakładki ATS / Visual (Visual tab — Phase I-2)
+- Zakładki ATS / Visual (Visual tab — Phase K-2)
 - Aktualizacja przy każdym parse YAML (debounce 500ms)
 - Stan disabled gdy brak załadowanego YAML
 
@@ -74,7 +74,7 @@ DoD:
 - Zero regresji w testach edytora
 - `docs/action-plan.md` zaktualizowany
 
-## Phase I-2 — Visual Score tab
+## Phase K-2 — Visual Score tab
 
 Reguły czytelności dla człowieka:
 - długość summary (60–200 słów optimal)
@@ -83,14 +83,14 @@ Reguły czytelności dla człowieka:
 - minimum jedno mierzalne osiągnięcie (liczba lub %) per wpis experience
 - sekcja languages obecna jeśli skonfigurowano wiele locale
 
-## Phase I-3 — AI keyword gap (post Phase H)
+## Phase K-3 — AI keyword gap (post Phase I)
 
 `POST /api/resume/ats-keyword-gap` — przyjmuje YAML + job description,
 zwraca brakujące słowa kluczowe względem treści CV.
 
 Model: Gemini Flash (free tier) lub Groq (Llama 3, free tier).
 Rate limit: 10 req/user/dzień.
-Zależność: Phase H provider setup (preferowana, nie blokująca).
+Zależność: Phase I provider setup (preferowana, nie blokująca).
 
 ## Risk register
 
@@ -99,4 +99,4 @@ Zależność: Phase H provider setup (preferowana, nie blokująca).
 | Score engine dodaje latencję edytora | Debounce parse trigger 500ms |
 | False positives irytują użytkowników | Każda reguła ma czytelny rationale string w UI |
 | AI keyword gap wyciek CV | Explicit user opt-in per request, brak persistent storage |
-| Phase I-3 AI cost overrun | Free-tier model + per-user rate limit |
+| Phase K-3 AI cost overrun | Free-tier model + per-user rate limit |

@@ -2,6 +2,9 @@
 
 Supporting documents for creating and maintaining product phases.
 
+> **Note**: This folder's phase tables/diagrams reflect a historical A–H snapshot.
+> For current phase status (A–M), see [docs/PHASES.md](../PHASES.md).
+
 ---
 
 ## 📚 Quick Navigation

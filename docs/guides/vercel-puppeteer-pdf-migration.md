@@ -1,4 +1,4 @@
-# Phase G: Vercel + Puppeteer PDF Migration Guide
+# Phase H: Vercel + Puppeteer PDF Migration Guide
 
 Operational guide for [ADR 0015](../adr/0015-vercel-puppeteer-pdf-migration.md).
 

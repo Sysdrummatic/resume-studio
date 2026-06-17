@@ -1,4 +1,4 @@
-# Phase F: User Experience & Community
+# Phase G: User Experience & Community
 
 **Status**: ✓ **COMPLETE**  
 **ETA**: Jun–Jul 2026  
@@ -11,7 +11,7 @@
 
 ## Overview
 
-Phase F delivers the user-facing platform features: dashboard for CV management, PDF/ATS export, owner analytics, admin panel enhancements, and the foundation for recruiter access. This phase runs in parallel with Phase E public routes and completes the MVP product experience.
+Phase G delivers the user-facing platform features: dashboard for CV management, PDF/ATS export, owner analytics, admin panel enhancements, and the foundation for recruiter access. This phase runs in parallel with Phase E public routes and completes the MVP product experience.
 
 ### Key Theme
 **From MVP → usable product.** Users can manage, export, and analyze their CVs.
@@ -150,7 +150,7 @@ Phase F delivers the user-facing platform features: dashboard for CV management,
 4. Cannot access draft or private CVs
 5. Cannot modify any CV data
 
-**Future Enhancement**: Bookmarking, saved searches, private notes (Phase I scope).
+**Future Enhancement**: Bookmarking, saved searches, private notes (Phase M scope).
 
 ---
 
@@ -225,7 +225,7 @@ Phase F delivers the user-facing platform features: dashboard for CV management,
 
 **Scenario**: Client-side capability check passes, but RLS policy isn't updated to match.
 
-**Mitigation**: Phase G hardening includes SQL alignment verification. Tests assert RLS behavior.
+**Mitigation**: Phase I hardening includes SQL alignment verification. Tests assert RLS behavior.
 
 ---
 
@@ -240,13 +240,13 @@ Phase F delivers the user-facing platform features: dashboard for CV management,
 - [CV Publication Test Contracts](../guides/cv-publication-test-contracts.md)
 
 ### Execution
-- [action-plan.md § Phase F](../action-plan.md#phase-f---user-panel-and-analytics)
+- [action-plan.md § Phase G](../action-plan.md#phase-g---user-panel-and-analytics)
 
 ---
 
-## Transition to Phase G
+## Transition to Phase H
 
-Phase G (Hardening & QA) includes:
+Phase I (Hardening & QA) includes:
 - Deploy QA for dashboard and export features
 - Privacy and capability system validation
 - Performance testing for analytics at scale
@@ -256,7 +256,7 @@ Phase G (Hardening & QA) includes:
 
 ## Success Criteria
 
-✓ **All Phase F deliverables shipped**:
+✓ **All Phase G deliverables shipped**:
 - User dashboard with CV versions and links
 - PDF export plus the ATS export dropdown (CVasCode / .txt / .yaml)
 - Admin analytics and audit logs
@@ -265,13 +265,13 @@ Phase G (Hardening & QA) includes:
 
 ✓ **Completed 2 weeks ahead of schedule** (2026-05-13)
 
-✓ **Ready to transition to Phase G hardening**
+✓ **Ready to transition to Phase H (PDF Visual Fidelity)**
 
 ---
 
-## Phase F Completion Checklist
+## Phase G Completion Checklist
 
-From [action-plan.md § Phase F](../action-plan.md#phase-f---user-panel-and-analytics):
+From [action-plan.md § Phase G](../action-plan.md#phase-g---user-panel-and-analytics):
 
 - [x] Build user panel for CV and link management
 - [x] Add downloadable PDF export
@@ -288,5 +288,5 @@ From [action-plan.md § Phase F](../action-plan.md#phase-f---user-panel-and-anal
 - [x] PR1–PR6: Role inheritance PRs merged
 - [x] PR6: Tests refactored; full validation green
 
-**Overall**: **100% complete**. All Phase F deliverables shipped; ahead of timeline.
+**Overall**: **100% complete**. All Phase G deliverables shipped; ahead of timeline.
 

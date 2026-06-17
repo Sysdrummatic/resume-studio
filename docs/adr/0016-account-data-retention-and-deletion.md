@@ -9,11 +9,11 @@ retention windows are referenced, not modified, by this ADR)
 
 ## Context
 
-The Privacy Policy (`app/privacy/page.tsx`, Phase G PR1) commits to a 30-day deletion
+The Privacy Policy (`app/privacy/page.tsx`, Phase I PR1) commits to a 30-day deletion
 window and a one-month response time for data subject requests, but the project had no
 written description of (a) what "deletion" actually does to the schema, (b) which tables
 are covered, or (c) the manual operational process for handling these requests. This ADR
-documents the current state and the manual process for Phase G. It does not introduce
+documents the current state and the manual process for Phase I. It does not introduce
 schema changes.
 
 ## Scope
@@ -102,7 +102,7 @@ separate handling is required.
 
 ### Manual process statement
 
-This ADR documents the **current manual process** for Phase G. Self-service account
+This ADR documents the **current manual process** for Phase I. Self-service account
 deletion/export automation remains tracked in
 `docs/guides/archive/phase-i-features-backlog.md` ("Privacy and legal") and is out of
 scope here.
@@ -138,7 +138,7 @@ scope here.
   for handling erasure/access requests without guessing at cascade behavior.
 - The two Known Gaps above are explicitly tracked rather than silently relied upon;
   neither blocks the manual process for ordinary (`user`/`recruiter`) accounts, which is
-  the expected case for Phase G.
+  the expected case for Phase I.
 
 ## Implementation Checklist
 

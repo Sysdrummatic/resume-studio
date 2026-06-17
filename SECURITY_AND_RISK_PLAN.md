@@ -43,9 +43,9 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
   checks and RLS policies can drift out of sync, creating privilege-escalation or
   data-leakage paths.
 - Mitigations: capability-based RBAC implemented (role inheritance PR1-PR5);
-  Phase G includes a dedicated read-only "RBAC capability drift" audit.
+  Phase I includes a dedicated read-only "RBAC capability drift" audit.
 - Residual gaps: audit not yet executed.
-- Tracking: Phase G pre-launch audits (security/RLS contracts; RBAC capability
+- Tracking: Phase I pre-launch audits (security/RLS contracts; RBAC capability
   drift).
 
 ## R03 — ATS Export Data Quality / Leakage
@@ -58,7 +58,7 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
 - Mitigations: comprehensive fix scoped (`ats-export-rules.ts`, export functions,
   three export formats, two new endpoints).
 - Residual gaps: not yet implemented.
-- Tracking: Phase G ATS export correctness audit.
+- Tracking: Phase I ATS export correctness audit.
 
 ## R04 — Infrastructure/Processor Change: PDF Rendering Migration to Vercel
 - Category: Infrastructure / Privacy (new processor)
@@ -73,15 +73,15 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
   established for Netlify/Resend under R01.
 - Tracking: ADR 0014.
 
-## R05 — Future AI Sub-Processors for ATS Scoring (Phase I)
+## R05 — Future AI Sub-Processors for ATS Scoring (Phase K)
 - Category: Privacy (future processor)
 - Status: Deferred (post-launch)
-- Description: Phase I plans AI-based keyword-gap analysis using Gemini Flash or
+- Description: Phase K plans AI-based keyword-gap analysis using Gemini Flash or
   Groq, which would process CV content as a new sub-processor.
 - Mitigations: explicitly deferred; not yet built.
 - Residual gaps: before enabling, repeat processor-compliance-checklist +
   privacy policy update (same pattern as R04).
-- Tracking: Phase I (post-launch).
+- Tracking: Phase K (post-launch).
 
 ## R06 — Account Deletion Cascade Completeness
 - Category: Security / Privacy
@@ -144,6 +144,6 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
 ---
 
 ## Maintenance
-Review this document whenever: a new external processor is introduced, a Phase G
+Review this document whenever: a new external processor is introduced, a Phase I
 audit completes, or a residual gap above is closed. Update the relevant risk's
 "Status" and "Residual gaps", and keep `docs/action-plan.md` cross-referenced.

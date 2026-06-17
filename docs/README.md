@@ -14,11 +14,15 @@ Authoritative guides and architectural decisions for OpenCiVera.
 | **B** | ✓ Complete | Apr 2026 | [phases/phase-b-yaml-data-layer.md](phases/phase-b-yaml-data-layer.md) |
 | **C** | ✓ Complete | May 2026 | [phases/phase-c-auth-rbac-admin.md](phases/phase-c-auth-rbac-admin.md) |
 | **D** | ✓ Complete | May 2026 | [phases/phase-d-editor-canvas.md](phases/phase-d-editor-canvas.md) |
-| **E** | ⬡ 50% | May–Jun | [phases/phase-e-public-surface.md](phases/phase-e-public-surface.md) |
-| **F** | ✓ Complete | May 2026 | [phases/phase-f-ux-community.md](phases/phase-f-ux-community.md) |
-| **G** | ◐ 20% | Jun 2026 | [phases/phase-g-hardening-qa.md](phases/phase-g-hardening-qa.md) |
-| **H** | ◯ Planned | Jul–Sep | [phases/phase-h-ai-ecosystem.md](phases/phase-h-ai-ecosystem.md) |
-| **I** | ✦ Vision | 2027+ | [PHASES.md](PHASES.md#phase-i-professional-identity-platform-vision) |
+| **E** | ⬡ 95% | May–Jun | [phases/phase-e-public-surface.md](phases/phase-e-public-surface.md) |
+| **F** | ◯ Planned | TBD | [phases/phase-f-community-beta-testing.md](phases/phase-f-community-beta-testing.md) |
+| **G** | ✓ Complete | May–Jun 2026 | [phases/phase-g-ux-community.md](phases/phase-g-ux-community.md) |
+| **H** | ◯ Planned | Jun–Jul 2026 | [phases/phase-h-vercel-puppeteer-pdf.md](phases/phase-h-vercel-puppeteer-pdf.md) |
+| **I** | ◐ 60% | Jun 2026 | [phases/phase-i-hardening-qa.md](phases/phase-i-hardening-qa.md) |
+| **J** | ◯ Planned | Q3 2026 | [phases/phase-j-ai-ecosystem.md](phases/phase-j-ai-ecosystem.md) |
+| **K** | ◯ Planned | Post-launch | [guides/phase-k-ats-intelligence-plan.md](guides/phase-k-ats-intelligence-plan.md) |
+| **L** | ◯ Planned | Post-launch | [guides/phase-l-semantic-url-plan.md](guides/phase-l-semantic-url-plan.md) |
+| **M** | ✦ Vision | 2027+ | [PHASES.md](PHASES.md#phase-m-professional-identity-platform-visionfuture) |
 
 ---
 
