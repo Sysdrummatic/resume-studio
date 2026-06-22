@@ -1,6 +1,6 @@
 # Implementation Guides & Resources
 
-Guides organized by category. Each section links back to the relevant phase in [docs/PHASES.md](../PHASES.md).
+Guides organized by category. Each section links back to the relevant phase in [docs/STATUS.md](../STATUS.md).
 
 ---
 
@@ -60,7 +60,7 @@ Historical documentation. Not needed for current development. For reference only
 
 ## Quick Links
 
-- **All Phases**: [docs/PHASES.md](../PHASES.md)
+- **Project Status & Progress**: [docs/STATUS.md](../STATUS.md)
 - **Phase-Specific Guides**:
   - Phase B: [phase-b-yaml-data-layer.md](../phases/phase-b-yaml-data-layer.md)
   - Phase C: [phase-c-auth-rbac-admin.md](../phases/phase-c-auth-rbac-admin.md)
@@ -72,5 +72,4 @@ Historical documentation. Not needed for current development. For reference only
   - Phase I: [phase-i-hardening-qa.md](../phases/phase-i-hardening-qa.md)
   - Phase J: [phase-j-ai-ecosystem.md](../phases/phase-j-ai-ecosystem.md)
 - **Architecture Decisions**: [docs/adr/README.md](../adr/README.md)
-- **Execution Checklist**: [docs/action-plan.md](../action-plan.md)
 
