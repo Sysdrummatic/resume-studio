@@ -86,7 +86,7 @@ export async function signUpWithPassword(
         body: JSON.stringify({
           email,
           password,
-          options: { emailRedirectTo },
+          email_redirect_to: emailRedirectTo,
         }),
         cache: "no-store",
       }),
@@ -107,7 +107,7 @@ export async function resendVerificationEmail(
         body: JSON.stringify({
           type: "signup",
           email,
-          options: { emailRedirectTo },
+          email_redirect_to: emailRedirectTo,
         }),
         cache: "no-store",
       }),
@@ -125,7 +125,7 @@ export async function sendPasswordResetEmail(
       fetch(`${url}/auth/v1/recover`, {
         method: "POST",
         headers: buildHeaders({ contentType: "application/json" }),
-        body: JSON.stringify({ email, options: { redirectTo } }),
+        body: JSON.stringify({ email, redirect_to: redirectTo }),
         cache: "no-store",
       }),
     "Password reset request failed.",
