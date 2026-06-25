@@ -59,7 +59,6 @@ All Phase E architectural contracts are documented:
 - [x] Adjust Landing page to project start
 - [ ] Create first login user profile creator
 - [x] Make a foundation for profiles information
-- [ ] Fix styling in Personal Hub tab
 - [ ] Fix locale creator and workflow
 - [ ] Improve the user experience
 - [ ] Prepare onboarding materials for beta users (how to use editor, publish, share)

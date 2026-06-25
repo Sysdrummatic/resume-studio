@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LandingPageFooter from "./components/footer";
+import RecoveryRedirect from "./components/recovery-redirect";
 import RotatingWord from "./components/rotating-word";
 import ScrollReveal from "./components/scroll-reveal";
 
@@ -39,6 +40,7 @@ const ArrowIcon = () => (
 export default function HomePage() {
   return (
     <div className="lp">
+      <RecoveryRedirect />
       {/* HERO */}
       <section className="lp-hero" aria-labelledby="lp-hero-title">
         <div className="lp-hero__in lp-container">

@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "supabase-prod": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@supabase/mcp-server-supabase@latest", "--project-ref", "${SUPABASE_PROJECT_REF_PROD}"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "supabase-test": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@supabase/mcp-server-supabase@latest", "--project-ref", "${SUPABASE_PROJECT_REF_TEST}"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "netlify": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@netlify/mcp@latest"],
+      "env": {
+        "NETLIFY_TOKEN": "${NETLIFY_TOKEN}"
+      }
+    }
+  }
+}
