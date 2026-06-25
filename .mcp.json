@@ -16,7 +16,7 @@
     },
     "netlify": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "@netlify/mcp-server@latest"],
+      "args": ["/c", "npx", "-y", "@netlify/mcp@latest"],
       "env": {
         "NETLIFY_TOKEN": "${NETLIFY_TOKEN}"
       }
