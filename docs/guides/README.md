@@ -19,8 +19,8 @@ For setting up a local environment or understanding code patterns.
 
 For validating features and deploying to production.
 
-- [CV Publication Test Contracts](testing/cv-publication-test-contracts.md) — Define what "published CV" means (linked from Phase E)
-- [SEO/AEO QA Checklist](testing/seo-aeo-preview-qa-checklist.md) — Metadata and search engine validation (Phase E)
+- [CV Publication Test Contracts](testing/cv-publication-test-contracts.md) — Define what "published CV" means (linked from Phase F)
+- [SEO/AEO QA Checklist](testing/seo-aeo-preview-qa-checklist.md) — Metadata and search engine validation (Phase F)
 - [Deployment QA Checklist](testing/deployment-qa.md) — Pre-launch validation (Phase I)
 
 ---
@@ -29,9 +29,9 @@ For validating features and deploying to production.
 
 Design decisions, contracts, and implementation policies linked to ADRs.
 
-- [Privacy-First Admin Access Policy](policies/privacy-first-admin-access-policy.md) — Role inheritance and data isolation (Phase C/G, ADR 0003)
-- [Publication Analytics & Audit Policy](policies/publication-analytics-audit-policy.md) — View counting and audit trails (Phase G, ADR 0007)
-- [Public Route Compatibility Rollout](policies/public-route-compatibility-rollout.md) — Legacy URL deprecation strategy (Phase E, ADR 0004)
+- [Privacy-First Admin Access Policy](policies/privacy-first-admin-access-policy.md) — Role inheritance and data isolation (Phase C/E, ADR 0003)
+- [Publication Analytics & Audit Policy](policies/publication-analytics-audit-policy.md) — View counting and audit trails (Phase E, ADR 0007)
+- [Public Route Compatibility Rollout](policies/public-route-compatibility-rollout.md) — Legacy URL deprecation strategy (Phase F, ADR 0004)
 - [OpenCV YAML Public Contract Policy](policies/opencv-yaml-public-contract-policy.md) — YAML schema and evolution (Phase B, ADR 0002)
 - [OpenCV Public API & Export Surface](policies/opencv-public-api-export-policy.md) — API contracts (Phase B, ADR 0008)
 
@@ -65,9 +65,9 @@ Historical documentation. Not needed for current development. For reference only
   - Phase B: [phase-b-yaml-data-layer.md](../phases/phase-b-yaml-data-layer.md)
   - Phase C: [phase-c-auth-rbac-admin.md](../phases/phase-c-auth-rbac-admin.md)
   - Phase D: [phase-d-editor-canvas.md](../phases/phase-d-editor-canvas.md)
-  - Phase E: [phase-e-public-surface.md](../phases/phase-e-public-surface.md)
-  - Phase F: [phase-f-community-beta-testing.md](../phases/phase-f-community-beta-testing.md)
-  - Phase G: [phase-g-ux-community.md](../phases/phase-g-ux-community.md)
+  - Phase E: [phase-e-ux-community.md](../phases/phase-e-ux-community.md)
+  - Phase F: [phase-f-public-surface.md](../phases/phase-f-public-surface.md)
+  - Phase G: [phase-g-community-beta-testing.md](../phases/phase-g-community-beta-testing.md)
   - Phase H: [phase-h-vercel-puppeteer-pdf.md](../phases/phase-h-vercel-puppeteer-pdf.md)
   - Phase I: [phase-i-hardening-qa.md](../phases/phase-i-hardening-qa.md)
   - Phase J: [phase-j-ai-ecosystem.md](../phases/phase-j-ai-ecosystem.md)

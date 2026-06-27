@@ -1,4 +1,4 @@
-# Phase K — ATS Intelligence Workstream
+﻿# Phase K — ATS Intelligence Workstream
 
 Status: Planned (post-launch)
 
@@ -72,7 +72,7 @@ DoD:
 - Wszystkie reguły pokryte testami jednostkowymi
 - Czas aktualizacji < 600ms od zmiany YAML
 - Zero regresji w testach edytora
-- `docs/action-plan.md` zaktualizowany
+- `docs/STATUS.md` zaktualizowany
 
 ## Phase K-2 — Visual Score tab
 

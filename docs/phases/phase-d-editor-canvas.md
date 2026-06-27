@@ -1,4 +1,4 @@
-# Phase D: Resume Editor Canvas
+﻿# Phase D: Resume Editor Canvas
 
 **Status**: ✓ **COMPLETE**  
 **ETA**: May 2026  
@@ -248,13 +248,13 @@ revision_number (integer)
 - [YAML Schema Validation](../guides/development/local-development.md#yaml-validation)
 
 ### Execution
-- [action-plan.md § Phase D](../action-plan.md#phase-d---editor-canvas-and-revisioning-complete)
+- [STATUS.md](../STATUS.md)
 
 ---
 
 ## Transition to Phases E & F
 
-Phase D enables editing; Phases E and F add public sharing and user-facing features in parallel.
+Phase D enables editing; Phases E and F add user-facing features and public sharing.
 
 **Phase E & F Dependencies** (all ready):
 - ✓ Editor canvas complete and tested
@@ -282,7 +282,7 @@ Phase D enables editing; Phases E and F add public sharing and user-facing featu
 
 ## Phase D Completion Checklist
 
-From [action-plan.md § Phase D](../action-plan.md#phase-d---editor-canvas-and-revisioning-complete):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [x] Editor route `/master-resume` created and accessible
 - [x] Split-view layout with form and preview implemented

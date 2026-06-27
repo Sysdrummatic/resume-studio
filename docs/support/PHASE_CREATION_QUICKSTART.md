@@ -1,4 +1,4 @@
-# Phase Creation — Quick Reference Card
+﻿# Phase Creation — Quick Reference Card
 
 **TL;DR**: Copy template → Fill sections → Link from PHASES.md → Create guides → Test
 
@@ -24,7 +24,7 @@ cp docs/support/PHASE_TEMPLATE.md docs/phases/phase-X-[name].md
 ✓ Known Risks: 2–4 risks with mitigations
 ✓ Related Documentation: Link to guides, ADRs, action items
 ✓ Success Criteria: 3–5 verifiable criteria
-✓ Completion Checklist: Tasks from action-plan.md
+✓ Completion Checklist: Tasks from STATUS.md
 ✓ Timeline: Table with dates and status
 ```
 
@@ -127,7 +127,7 @@ npm test  # Should show 187 passing
 
 ### Execution Plan Link
 ```markdown
-[action-plan.md § Phase X](../action-plan.md#phase-x---[lowercase-name])
+[STATUS.md](../STATUS.md)
 ```
 
 ### Next Phase Transition
@@ -230,7 +230,7 @@ Phase [X] delivers [core capability]; Phase [X+1] adds [next capability].
 - [Guide Name](../guides/category/guide.md)
 
 ### Execution
-- [action-plan.md § Phase X](../action-plan.md#phase-x-...)
+- [STATUS.md](../STATUS.md)
 
 ---
 
@@ -285,7 +285,7 @@ grep -r "guides/" docs/phases/ | grep -v "guides/policies" | grep -v "guides/tes
 - **Template**: [PHASE_TEMPLATE.md](PHASE_TEMPLATE.md)
 - **Full Guide**: [PHASE_CREATION_GUIDE.md](PHASE_CREATION_GUIDE.md)
 - **Phase Registry**: [../PHASES.md](../PHASES.md)
-- **Completed Example**: [../phases/phase-e-public-surface.md](../phases/phase-e-public-surface.md)
+- **Completed Example**: [../phases/phase-e-ux-community.md](../phases/phase-e-ux-community.md)
 
 ---
 

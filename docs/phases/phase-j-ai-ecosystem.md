@@ -1,4 +1,4 @@
-# Phase J: AI & Ecosystem
+﻿# Phase J: AI & Ecosystem
 
 **Status**: ◯ **PLANNED, NOT STARTED**  
 **ETA**: Jul–Sep 2026 (post-launch)  
@@ -189,7 +189,7 @@ Phase J is a post-core-delivery workstream. After Phase I launches the product, 
 - ADR 0017 (TBD): Third-Party Integration API (to be created)
 
 ### Execution
-- [action-plan.md § Phase J](../action-plan.md#phase-j---ai-extras-post-core-delivery)
+- [STATUS.md](../STATUS.md)
 
 ---
 
