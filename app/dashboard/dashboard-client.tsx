@@ -607,6 +607,12 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
             </Link>
             <span className="dashboard-chip">{publishedPresetCount} published</span>
             <span className="dashboard-chip">{privatePresetCount} private drafts</span>
+            {hasMasterResume && (
+              <span className="dashboard-resume-list__badge">MasterCV Saved</span>
+            )}
+            {hasMasterResume && (
+              <span className="dashboard-chip">Edited {latestMasterUpdate}</span>
+            )}
           </div>
         </div>
       </section>

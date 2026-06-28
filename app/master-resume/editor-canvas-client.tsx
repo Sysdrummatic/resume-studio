@@ -1276,7 +1276,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 {isBusy ? "Saving..." : "Save unpublished"}
               </button>
               <button className="button button--primary" type="button" onClick={() => void publishResume(true)} disabled={isBusy || isLoading}>
-                {isBusy ? "Publishing..." : "Publish and create revision"}
+                {isBusy ? "Saving..." : "Save MasterCV"}
               </button>
             </div>
           </section>
