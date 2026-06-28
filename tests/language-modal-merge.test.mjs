@@ -7,16 +7,15 @@ function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
-test("dashboard links language version count to master resume management", () => {
+test("dashboard shows language version count in master resume section", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
   const styles = read("app/globals.css");
 
-  assert.equal(client.includes("const manageLanguagesHref = \"/master-resume?panel=languages\";"), true);
-  assert.equal(client.includes("dashboard-chip dashboard-chip--link"), true);
-  assert.equal(client.includes("href={manageLanguagesHref}"), true);
+  assert.equal(client.includes("localeSummary"), true);
+  assert.equal(client.includes("formatCountLabel(languageVersions.length, \"language version\")"), true);
   assert.equal(client.includes("LanguageBadgeRail"), false);
   assert.equal(client.includes("AddLanguageModal"), false);
-  assert.equal(styles.includes(".dashboard-chip--link"), true);
+  assert.equal(styles.includes(".dashboard-chip"), true);
 });
 
 test("add language modal form validates and submits to language API", () => {

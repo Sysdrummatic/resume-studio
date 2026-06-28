@@ -430,7 +430,6 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
   const localeSummary = formatCountLabel(languageVersions.length, "language version");
   const presetSummary = formatCountLabel(presets.length, "CV version");
-  const manageLanguagesHref = "/master-resume?panel=languages";
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!masterResume) return;
@@ -605,16 +604,10 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
             {hasMasterResume && (
               <div className="dashboard-source-meta__row">
                 <span className="dashboard-resume-list__badge">MasterCV Saved</span>
+                <span className="dashboard-chip">{localeSummary}</span>
                 <span className="dashboard-chip">Edited {latestMasterUpdate}</span>
               </div>
             )}
-            <div className="dashboard-source-meta__row">
-              <Link className="dashboard-chip dashboard-chip--link" href={manageLanguagesHref}>
-                {localeSummary}
-              </Link>
-              <span className="dashboard-chip">{publishedPresetCount} published</span>
-              <span className="dashboard-chip">{privatePresetCount} private drafts</span>
-            </div>
           </div>
         </div>
       </section>
