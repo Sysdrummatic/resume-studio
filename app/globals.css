@@ -1533,6 +1533,13 @@ a {
 
 .dashboard-source-meta {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.dashboard-source-meta__row {
+  display: flex;
   align-items: center;
   gap: 0.55rem;
   flex-wrap: wrap;

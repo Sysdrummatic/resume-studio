@@ -602,17 +602,19 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
             Start in the master resume when content changes. Create CV versions here only when you need a new public combination of sections, locale, and publish state.
           </p>
           <div className="dashboard-source-meta">
-            <Link className="dashboard-chip dashboard-chip--link" href={manageLanguagesHref}>
-              {localeSummary}
-            </Link>
-            <span className="dashboard-chip">{publishedPresetCount} published</span>
-            <span className="dashboard-chip">{privatePresetCount} private drafts</span>
             {hasMasterResume && (
-              <span className="dashboard-resume-list__badge">MasterCV Saved</span>
+              <div className="dashboard-source-meta__row">
+                <span className="dashboard-resume-list__badge">MasterCV Saved</span>
+                <span className="dashboard-chip">Edited {latestMasterUpdate}</span>
+              </div>
             )}
-            {hasMasterResume && (
-              <span className="dashboard-chip">Edited {latestMasterUpdate}</span>
-            )}
+            <div className="dashboard-source-meta__row">
+              <Link className="dashboard-chip dashboard-chip--link" href={manageLanguagesHref}>
+                {localeSummary}
+              </Link>
+              <span className="dashboard-chip">{publishedPresetCount} published</span>
+              <span className="dashboard-chip">{privatePresetCount} private drafts</span>
+            </div>
           </div>
         </div>
       </section>
