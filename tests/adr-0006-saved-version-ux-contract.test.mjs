@@ -61,5 +61,5 @@ test("editor publish controls keep Saved Version language selection and public-l
   assert.equal(modal.includes("Link state after publish"), true);
   assert.equal(modal.includes("Publish CV Version"), true);
   assert.equal(editor.includes("Unpublish"), true);
-  assert.equal(editor.includes("Publish and create revision"), true);
+  assert.equal(editor.includes("Save MasterCV"), true);
 });
