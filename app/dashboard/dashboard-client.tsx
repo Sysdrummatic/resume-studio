@@ -429,7 +429,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
   const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
   const localeSummary = formatCountLabel(languageVersions.length, "language version");
-  const presetSummary = formatCountLabel(presets.length, "CV version");
+
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!masterResume) return;
@@ -576,7 +576,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           <div className="dashboard-panel__heading stack">
             <div className="product-surface__eyebrow">Source record</div>
             <h2 className="dashboard-panel__title">Master Resume</h2>
-            <p className="dashboard-panel__lead">Updated {latestMasterUpdate}. Use this source to shape {presetSummary} across {localeSummary}.</p>
+            <p className="dashboard-panel__lead">Start in the master resume when content changes. Create CV versions here only when you need a new public combination of sections, locale, and publish state.</p>
           </div>
           <div className="dashboard-panel__toolbar actions-row">
             <Link className="button button--primary" href="/master-resume">
@@ -597,9 +597,6 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
         </div>
 
         <div className="dashboard-source-copy stack">
-          <p className="dashboard-source-note">
-            Start in the master resume when content changes. Create CV versions here only when you need a new public combination of sections, locale, and publish state.
-          </p>
           <div className="dashboard-source-meta">
             {hasMasterResume && (
               <div className="dashboard-source-meta__row">
