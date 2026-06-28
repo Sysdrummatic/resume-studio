@@ -1756,6 +1756,12 @@ a {
   tab-size: 2;
 }
 
+.resume-editor-yaml__error {
+  font-size: var(--font-size-sm);
+  color: var(--portal-danger-text);
+  margin-top: var(--space-xs);
+}
+
 .resume-editor-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2243,6 +2249,24 @@ a {
 
 .dashboard-modal__body--compact {
   width: min(440px, calc(100vw - 2rem));
+}
+
+.dashboard-modal__body.is-editing > label:first-of-type,
+.dashboard-modal__body.is-editing > div:first-of-type + label {
+  outline: 1px solid var(--portal-warning-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 .dashboard-modal__title,

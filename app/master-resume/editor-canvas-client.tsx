@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
@@ -68,7 +68,7 @@ type EditorTab = "yaml" | "human";
 const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
 const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
   { code: "basic", label: "basic" },
-  { code: "empty", label: "pusty" },
+  { code: "empty", label: "empty" },
 ];
 
 function TrashIcon() {
@@ -166,6 +166,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [allowIndexing, setAllowIndexing] = useState(false);
   const [aiGenerated, setAiGenerated] = useState(false);
   const [revisions, setRevisions] = useState<ResumeRevisionItem[]>([]);
+  const [yamlError, setYamlError] = useState<string | null>(null);
   const [presets, setPresets] = useState<ResumePresetRow[]>([]);
   const [isPresetsLoading, setIsPresetsLoading] = useState(true);
   const [presetsError, setPresetsError] = useState("");
@@ -179,6 +180,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   }, [requestedPanel]);
 
   const validation = useMemo(() => validateResumeDocument(resume), [resume]);
+  const isDirty = useMemo(
+    () => yamlPanel !== (documentRow?.yaml_content ?? ""),
+    [yamlPanel, documentRow?.yaml_content],
+  );
   const normalizedNewLanguageCode = useMemo(() => newLanguageCode.trim().toLowerCase().split("-")[0].slice(0, 2), [newLanguageCode]);
   const normalizedNewLanguageShortLabel = useMemo(
     () => (newLanguageShortLabel.trim() || normalizedNewLanguageCode).toUpperCase().slice(0, 2),
@@ -236,12 +241,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
 
   const loadLocaleDocument = useCallback(
-    async (nextLocale: ResumeLocale) => {
+    async (nextLocale: ResumeLocale, signal?: AbortSignal) => {
       setIsLoading(true);
       showToast("Loading YAML editor...");
 
       try {
-        const response = await fetch(`/api/resume/document?locale=${encodeURIComponent(nextLocale)}`);
+        const response = await fetch(`/api/resume/document?locale=${encodeURIComponent(nextLocale)}`, { signal });
+        if (signal?.aborted) return;
         const payload = (await response.json()) as ApiDocumentResponse;
         const loadedActor = payload.actor || null;
 
@@ -274,41 +280,40 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
         setYamlPanel(nextYamlPanel);
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
         showToast(error instanceof Error ? error.message : "Unable to load YAML editor.", "error");
       } finally {
-        setIsLoading(false);
+        if (!signal?.aborted) setIsLoading(false);
       }
     },
     [showToast],
   );
 
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
     let retries = 0;
 
     if (hasYamlRuntime()) {
-      void loadLocaleDocument(locale);
-      return () => {
-        mounted = false;
-      };
+      void loadLocaleDocument(locale, controller.signal);
+      return () => controller.abort();
     }
 
     const timer = window.setInterval(() => {
       retries += 1;
       if (hasYamlRuntime() || retries >= 40) {
         window.clearInterval(timer);
-        if (!mounted) return;
+        if (controller.signal.aborted) return;
         if (!hasYamlRuntime()) {
           showToast("YAML parser is unavailable. Reload the page.", "error");
           setIsLoading(false);
           return;
         }
-        void loadLocaleDocument(locale);
+        void loadLocaleDocument(locale, controller.signal);
       }
     }, 100);
 
     return () => {
-      mounted = false;
+      controller.abort();
       window.clearInterval(timer);
     };
   }, [loadLocaleDocument, locale, showToast]);
@@ -341,6 +346,31 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   useEffect(() => {
     void loadPresets();
   }, [loadPresets]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  const deferredYaml = useDeferredValue(yamlPanel);
+
+  useEffect(() => {
+    if (!deferredYaml || !hasYamlRuntime()) return;
+    try {
+      const parsed = parseYamlToResumeDocument(deferredYaml, actor?.displayName ?? "");
+      const localValidation = validateResumeDocument(parsed);
+      if (localValidation.valid) {
+        setResume(parsed);
+        setYamlError(null);
+      } else {
+        setYamlError(localValidation.errors.join(" "));
+      }
+    } catch (err) {
+      setYamlError(err instanceof Error ? err.message : "Invalid YAML");
+    }
+  }, [deferredYaml, actor?.displayName]);
 
   async function saveLanguageVersion() {
     if (!/^[a-z]{2}$/.test(normalizedNewLanguageCode)) {
@@ -431,15 +461,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
   function handleYamlChange(value: string) {
     setYamlPanel(value);
-    try {
-      const parsed = parseYamlToResumeDocument(value, actor?.displayName || "");
-      const localValidation = validateResumeDocument(parsed);
-      if (localValidation.valid) {
-        setResume(parsed);
-      }
-    } catch {
-      // User is typing, skip auto-sync to form
-    }
   }
 
   function updateResumeFromHuman(nextResume: ResumeDocument) {
@@ -568,6 +589,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
 
   async function resetToTemplate() {
+    if (yamlPanel.trim() && !window.confirm("This will replace your current YAML with the template. Continue?")) {
+      return;
+    }
     try {
       const template = await fetchText(TEMPLATE_PATH);
       setYamlPanel(template);
@@ -812,9 +836,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
       <StatusToast toast={toast} onClose={closeToast} />
       {isLanguageModalOpen ? (
-        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Add language version">
-          <button type="button" className="dashboard-modal__backdrop" onClick={() => setIsLanguageModalOpen(false)} aria-label="Close add language version"></button>
-          <div className="dashboard-modal__body">
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={editingLanguageCode ? `Edit language version ${editingLanguageCode}` : "Add language version"}>
+          <button type="button" className="dashboard-modal__backdrop" onClick={() => setIsLanguageModalOpen(false)} aria-label="Close language version modal"></button>
+          <div className={`dashboard-modal__body${editingLanguageCode ? " is-editing" : ""}`}>
             <div className="section-row">
               <h2>{editingLanguageCode ? "Edit language version" : "Add language version"}</h2>
               <button type="button" className="button button--ghost button--small" onClick={() => setIsLanguageModalOpen(false)}>
@@ -966,11 +990,22 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   spellCheck={false}
                   value={yamlPanel}
                   onChange={(event) => handleYamlChange(event.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Tab") return;
+                    e.preventDefault();
+                    const el = e.currentTarget;
+                    const start = el.selectionStart;
+                    const next = el.value.slice(0, start) + "  " + el.value.slice(el.selectionEnd);
+                    el.value = next;
+                    el.setSelectionRange(start + 2, start + 2);
+                    handleYamlChange(next);
+                  }}
                   disabled={isLoading}
                 />
+                {yamlError && <p className="resume-editor-yaml__error">{yamlError}</p>}
                 <div className="actions-row">
                   <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading}>
-                    Clear template
+                    Load template
                   </button>
                   <button type="button" className="button button--ghost" onClick={exportYamlFile}>
                     Download YAML
@@ -1058,9 +1093,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   </div>
                   {resume.contact.map((item, index) => (
                     <div className="resume-human-editor__row" key={`contact-${index}`}>
-                      <input placeholder="Label" value={item.label} onChange={(event) => updateContact(index, "label", event.target.value)} />
-                      <input placeholder="Value" value={item.value} onChange={(event) => updateContact(index, "value", event.target.value)} />
-                      <input placeholder="Link" value={item.link || ""} onChange={(event) => updateContact(index, "link", event.target.value)} />
+                      <label className="sr-only" htmlFor={`contact-label-${index}`}>Contact label</label>
+                      <input id={`contact-label-${index}`} placeholder="Label" value={item.label} onChange={(event) => updateContact(index, "label", event.target.value)} />
+                      <label className="sr-only" htmlFor={`contact-value-${index}`}>Contact value</label>
+                      <input id={`contact-value-${index}`} placeholder="Value" value={item.value} onChange={(event) => updateContact(index, "value", event.target.value)} />
+                      <label className="sr-only" htmlFor={`contact-link-${index}`}>Contact link</label>
+                      <input id={`contact-link-${index}`} placeholder="Link" value={item.link || ""} onChange={(event) => updateContact(index, "link", event.target.value)} />
                       <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("contact", index)}>
                         Remove
                       </button>
