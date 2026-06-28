@@ -1,8 +1,8 @@
-# Phase H: PDF Visual Fidelity — Vercel + Puppeteer Migration
+﻿# Phase H: PDF Visual Fidelity — Vercel + Puppeteer Migration
 
 **Status**: ◯ **PLANNED, NOT STARTED**  
-**ETA**: Jun–Jul 2026 (after Phase G)  
-**Depends On**: Phase E, G completion  
+**ETA**: Jun–Jul 2026 (after Phase E)  
+**Depends On**: Phase E, F completion  
 
 > Eliminate visual fidelity gap in PDF exports. Migrate deployment platform from Netlify to Vercel and swap PDF rendering engine from @react-pdf/renderer to Puppeteer for pixel-perfect output.
 
@@ -19,7 +19,7 @@ Phase H improves the PDF export experience by switching from a layout-engine-bas
 
 ## Why This Phase?
 
-**Current state (Phase G end)**:
+**Current state (Phase E end)**:
 - PDF exports use @react-pdf/renderer (Yoga layout engine)
 - Yoga cannot render CSS pseudo-elements, Grid, or complex borders
 - Web layout has teal timeline dots (::before), two-column Grid, and shadows
@@ -72,7 +72,7 @@ Before moving infrastructure, wire up the new engine abstraction.
   - [ ] Route never serves private draft content (snapshot-only)
 
 **Timeline**: ~1 week  
-**Blockers**: None (work on Netlify in parallel with Phase G)
+**Blockers**: None (work on Netlify in parallel with Phase E/F)
 
 ---
 
@@ -285,7 +285,7 @@ Trade-off: PDF quality degrades to current react-pdf (visual fidelity gap return
 - [Deployment QA Checklist](../guides/testing/deployment-qa.md) (will be updated for Vercel)
 
 ### Execution
-- [action-plan.md § Phase H](../action-plan.md#phase-h---pdf-visual-fidelity-vercel--puppeteer-migration)
+- [STATUS.md](../STATUS.md)
 
 ---
 
@@ -313,7 +313,7 @@ After Phase H completion:
 
 ## Phase H Status
 
-**Current**: Not started (planned for after Phase G completion)  
-**Next step**: Phase G completion → Phase H kickoff  
+**Current**: Not started (planned for after Phase E completion)  
+**Next step**: Phase E completion → Phase H kickoff  
 **Estimated duration**: ~4–5 weeks (Phase 1–4)  
 **Team**: Backend (engine factory + render route), DevOps (Vercel setup), QA (visual + smoke tests)

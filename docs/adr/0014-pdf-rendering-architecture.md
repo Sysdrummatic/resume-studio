@@ -1,4 +1,4 @@
-# ADR 0014: PDF Rendering Architecture
+﻿# ADR 0014: PDF Rendering Architecture
 
 Status: Accepted
 
@@ -78,5 +78,5 @@ If Netlify Functions cannot handle @react-pdf/renderer due to size limits:
 - [x] isPdfDraftEnabled() server helper
 - [x] BasicResumeDocument updated for DB-driven draft flag
 - [x] ADR 0014 added to docs/adr/README.md
-- [x] docs/action-plan.md updated
+- [x] docs/STATUS.md updated
 - [x] All tests pass

@@ -1,4 +1,4 @@
-# Phase Creation Guide
+﻿# Phase Creation Guide
 
 > How to create a new phase document following OpenCiVera standards.
 
@@ -169,7 +169,7 @@ Organize into logical groups:
 - [Test contracts](../guides/testing/...)
 
 ### Execution
-- [action-plan.md § Phase X](../action-plan.md#phase-x-...)
+- [STATUS.md](../STATUS.md)
 ```
 
 ### Transition to Next Phase
@@ -189,7 +189,7 @@ List concrete, verifiable criteria. Examples:
 
 ### Phase Completion Checklist
 
-Specific tasks from [action-plan.md](action-plan.md). Use checkboxes:
+Specific tasks from [STATUS.md](../STATUS.md). Use checkboxes:
 
 ```markdown
 - [x] Task 1 completed
@@ -325,8 +325,8 @@ For reference, review these completed phases:
 
 - **Phase A**: [phase-a-platform-foundation.md](../phases/phase-a-platform-foundation.md) — Foundational with infrastructure focus
 - **Phase C**: [phase-c-auth-rbac-admin.md](../phases/phase-c-auth-rbac-admin.md) — Complex RBAC model
-- **Phase E**: [phase-e-public-surface.md](../phases/phase-e-public-surface.md) — Large scope with multiple ADRs
-- **Phase F**: [phase-f-ux-community.md](../phases/phase-f-ux-community.md) — Feature-rich with analytics
+- **Phase E**: [phase-e-ux-community.md](../phases/phase-e-ux-community.md) — Feature-rich with analytics and RBAC
+- **Phase F**: [phase-f-public-surface.md](../phases/phase-f-public-surface.md) — Large scope with multiple ADRs
 
 ---
 

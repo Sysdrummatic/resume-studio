@@ -1,8 +1,8 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-06-19
+**Last Updated:** 2026-06-27
 **Current Phase:** I — Hardening, QA & Launch Readiness
-**Overall Progress:** ~70% (A–D, G complete; E 95%; I 60%; F, H, J–M pending)
+**Overall Progress:** ~70% (A–E complete; F 95%; I 60%; G, H, J–M pending)
 
 ---
 
@@ -14,9 +14,9 @@
 | B | YAML Data Layer | ✅ Complete | 100% | Apr 2026 |
 | C | Auth, RBAC & Admin | ✅ Complete | 100% | May 2026 |
 | D | Editor Canvas | ✅ Complete | 100% | May 2026 |
-| E | Public Surface & MVP Launch | ✅ Technical complete, ⚠️ launch prep pending | 95% | May–Jun 2026 |
-| F | Community Beta Testing | ⏳ Planned | 0% | After E launch prep |
-| G | UX & Community | ✅ Complete (delivered early) | 100% | May 2026 |
+| E | UX & Community | ✅ Complete (delivered early) | 100% | May 2026 |
+| F | Public Surface & MVP Launch | ✅ Technical complete, ⚠️ launch prep pending | 95% | May–Jun 2026 |
+| G | Community Beta Testing | ⏳ Planned | 0% | After F launch prep |
 | H | PDF Fidelity — Vercel + Puppeteer | ⏳ Planned | 0% | Jun–Jul 2026 |
 | I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jun 2026 |
 | J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
@@ -29,11 +29,11 @@
 ## Phase Dependency Graph
 
 ```
-A → B → C → D → E ──┬── F (Beta Testing)
-                     ├── G → H (PDF Fidelity)
-                     └── I (Hardening & Launch)
-                             ├── J (AI) → M (Vision)
-                             └── K (ATS) → L (Semantic URL)
+A → B → C → D → E ──┬── F (Public Surface) ── G (Beta Testing)
+                     └── H (PDF Fidelity)
+                             └── I (Hardening & Launch)
+                                     ├── J (AI) → M (Vision)
+                                     └── K (ATS) → L (Semantic URL)
 ```
 
 ---
@@ -65,9 +65,9 @@ A → B → C → D → E ──┬── F (Beta Testing)
 - [ ] Release checklist and rollback playbook prepared
 - [ ] Production smoke test protocol executed
 
-**Also pending (Phase E launch prep):**
+**Also pending (Phase F launch prep):**
 - [ ] Founder's demo CV published as live example
-- [ ] Beta tester recruitment (5 initial testers for Phase F)
+- [ ] Beta tester recruitment (5 initial testers for Phase G)
 
 ---
 
@@ -81,6 +81,6 @@ A → B → C → D → E ──┬── F (Beta Testing)
 | Testing & QA checklists | [`docs/guides/testing/`](guides/testing/) |
 | Policy documents | [`docs/guides/policies/`](guides/policies/) |
 | Future features | [`docs/guides/features/`](guides/features/) |
-| Phase K plan | [`docs/guides/phase-k-ats-intelligence-plan.md`](guides/phase-k-ats-intelligence-plan.md) |
-| Phase L plan | [`docs/guides/phase-l-semantic-url-plan.md`](guides/phase-l-semantic-url-plan.md) |
+| Phase K plan | [`docs/phases/phase-k-ats-intelligence-plan.md`](phases/phase-k-ats-intelligence-plan.md) |
+| Phase L plan | [`docs/phases/phase-l-semantic-url-plan.md`](phases/phase-l-semantic-url-plan.md) |
 | New phase template | [`docs/support/PHASE_TEMPLATE.md`](support/PHASE_TEMPLATE.md) |

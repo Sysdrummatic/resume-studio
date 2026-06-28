@@ -1,8 +1,8 @@
-# Phase F: Community Beta Testing
+﻿# Phase G: Community Beta Testing
 
 **Status**: ◯ **PLANNED, NOT STARTED**
-**ETA**: 4 weeks (post Phase E launch prep)
-**Depends On**: Phase E (Public Surface & MVP Launch) core delivery
+**ETA**: 4 weeks (post Phase F launch prep)
+**Depends On**: Phase F (Public Surface & MVP Launch) core delivery
 
 > Recruit and run a structured beta program with 5 testers over 4 weeks. Collect feedback via Likert-scale sentiment surveys and GitHub Issues labeling. Goal: validate UX, surface bugs, and gather user testimonials before Phase I hardening work concludes.
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Phase F is the first real-world validation of OpenCiVera with people outside the founding team. Five beta testers from the tech-writer community walk through 5–7 core user journeys over two weeks, with feedback gathered continuously via Typeform and a private Slack/Discord channel and triaged into GitHub Issues. The phase ends with a consolidated sentiment report, a categorized bug/feature backlog, and launch-readiness recommendations feeding into Phase G/Phase I (hardening).
+Phase G is the first real-world validation of OpenCiVera with people outside the founding team. Five beta testers from the tech-writer community walk through 5–7 core user journeys over two weeks, with feedback gathered continuously via Typeform and a private Slack/Discord channel and triaged into GitHub Issues. The phase ends with a consolidated sentiment report, a categorized bug/feature backlog, and launch-readiness recommendations feeding into Phase H and Phase I (hardening).
 
 ### Key Theme
 
@@ -146,21 +146,21 @@ After 4 weeks, analyze and categorize all feedback to decide what ships before l
 
 ## Related Documentation
 
-- **Execution**: [action-plan.md § Phase F](../action-plan.md#phase-f---community-beta-testing)
+- **Execution**: [STATUS.md](../STATUS.md)
 - **Test scenario source**: `TEST_SCENARIOS.md`
 - **Beta program docs (created during this phase)**:
   - `docs/guides/beta-testing/BETA_SCENARIOS.md`
   - `docs/guides/beta-testing/RECRUITMENT_MESSAGE.md`
   - `docs/guides/beta-testing/TESTER_README.md`
   - `docs/guides/beta-testing/BASELINE_REPORT.md`
-  - `docs/guides/beta-testing/PHASE_F_REPORT.md`
+  - `docs/guides/beta-testing/PHASE_G_REPORT.md`
 
 ---
 
-## Transition to Phase G
+## Transition to Phase H and I
 
-Findings from Phase F (bug severity, UX friction, testimonials) feed directly into:
-- **Phase G** (User Experience & Community): UX refinements identified by testers
+Findings from Phase G (bug severity, UX friction, testimonials) feed directly into:
+- **Phase H** (PDF Visual Fidelity): PDF quality feedback from testers
 - **Phase I** (Hardening, QA & Launch Readiness): critical bugs become launch blockers; testimonials support launch marketing
 
 ---

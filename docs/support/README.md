@@ -1,9 +1,9 @@
-# Support Documentation
+﻿# Support Documentation
 
 Supporting documents for creating and maintaining product phases.
 
 > **Note**: This folder's phase tables/diagrams reflect a historical A–H snapshot.
-> For current phase status (A–M), see [docs/PHASES.md](../PHASES.md).
+> For current phase status (A–M), see [docs/STATUS.md](../STATUS.md).
 
 ---
 
@@ -43,7 +43,7 @@ docs/
 ├── README.md                          ← Main navigation hub
 ├── PHASES.md                          ← Canonical phase registry (read this first)
 ├── ROADMAP.md                         ← Timeline view
-├── action-plan.md                     ← Execution checklist
+├── STATUS.md                     ← Execution checklist
 │
 ├── phases/                            ← Phase documents (A–H)
 │   ├── phase-a-platform-foundation.md
@@ -122,7 +122,7 @@ npm test
 → Read [IMPROVEMENTS_SUMMARY.md](IMPROVEMENTS_SUMMARY.md)
 
 ### "I need to see an example phase"
-→ Look at [docs/phases/phase-e-public-surface.md](../phases/phase-e-public-surface.md) (most comprehensive)
+→ Look at [docs/phases/phase-e-ux-community.md](../phases/phase-e-ux-community.md) or [phase-f-public-surface.md](../phases/phase-f-public-surface.md) (most comprehensive)
 
 ---
 
@@ -141,7 +141,7 @@ Make sure you have:
 
 **Main Navigation**
 - [docs/README.md](../README.md) — Documentation hub
-- [docs/PHASES.md](../PHASES.md) — Canonical phase registry
+- [docs/STATUS.md](../STATUS.md) — Phase progress and status
 - [docs/guides/README.md](../guides/README.md) — Guides by category
 
 **Phase Documents**
@@ -149,14 +149,13 @@ Make sure you have:
 - [Phase B: YAML Data Layer](../phases/phase-b-yaml-data-layer.md)
 - [Phase C: Auth, RBAC & Admin](../phases/phase-c-auth-rbac-admin.md)
 - [Phase D: Editor Canvas](../phases/phase-d-editor-canvas.md)
-- [Phase E: Public Surface](../phases/phase-e-public-surface.md)
-- [Phase F: UX & Community](../phases/phase-f-ux-community.md)
-- [Phase G: Hardening & QA](../phases/phase-g-hardening-qa.md)
-- [Phase H: AI & Ecosystem](../phases/phase-h-ai-ecosystem.md)
+- [Phase E: UX & Community](../phases/phase-e-ux-community.md)
+- [Phase F: Public Surface](../phases/phase-f-public-surface.md)
+- [Phase G: Community Beta Testing](../phases/phase-g-community-beta-testing.md)
+- [Phase H: PDF Visual Fidelity](../phases/phase-h-vercel-puppeteer-pdf.md)
 
 **Project Documentation**
-- [ROADMAP.md](../ROADMAP.md) — Timeline view
-- [action-plan.md](../action-plan.md) — Execution checklist
+- [STATUS.md](../STATUS.md) — Project status and phase progress
 - [adr/README.md](../adr/README.md) — Architecture decisions
 
 ---

@@ -1,4 +1,4 @@
-# Phase C: Auth, RBAC & Admin
+﻿# Phase C: Auth, RBAC & Admin
 
 **Status**: ✓ **COMPLETE**  
 **ETA**: May 2026  
@@ -235,7 +235,7 @@ canDeleteTarget(actor: Role, target: Role): boolean
 - [Privacy-First Admin Access Policy](../guides/policies/privacy-first-admin-access-policy.md)
 
 ### Execution
-- [action-plan.md § Phase C](../action-plan.md#phase-c---auth-rbac-and-admin-core-complete)
+- [STATUS.md](../STATUS.md)
 
 ---
 
@@ -268,7 +268,7 @@ Phase C secures access; Phase D builds the editor canvas for authenticated users
 
 ## Phase C Completion Checklist
 
-From [action-plan.md § Phase C](../action-plan.md#phase-c---auth-rbac-and-admin-core-complete):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [x] Sign-up flow implemented with email verification
 - [x] Sign-in flow with Supabase Auth working

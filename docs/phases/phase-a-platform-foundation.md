@@ -1,4 +1,4 @@
-# Phase A: Platform Foundation
+﻿# Phase A: Platform Foundation
 
 **Status**: ✓ **COMPLETE**  
 **ETA**: Apr 2026  
@@ -172,7 +172,7 @@ NEXT_PUBLIC_APP_URL=https://...
 ## Related Documentation
 
 ### Execution
-- [action-plan.md § Phase A](../action-plan.md#phase-a---platform-foundation-complete)
+- [STATUS.md](../STATUS.md)
 
 ### Guides
 - [Local Development Setup](../guides/development/local-development.md)
@@ -206,7 +206,7 @@ Phase A establishes the platform; Phase B introduces the data model.
 
 ## Phase A Completion Checklist
 
-From [action-plan.md § Phase A](../action-plan.md#phase-a---platform-foundation-complete):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [x] Next.js app shell initialized with TypeScript
 - [x] Supabase project created and configured

@@ -1,4 +1,4 @@
-# Phase I: Hardening, QA & Launch Readiness
+﻿# Phase I: Hardening, QA & Launch Readiness
 
 **Status**: ◐ **60% IN PROGRESS**  
 **ETA**: Jun 2026 (target: 2026-06-30)  
@@ -335,7 +335,7 @@ Manual QA Checklist
 - [ADR 0010: API Hardening and Resource Protection](../adr/0010-api-hardening-and-resource-protection.md)
 
 ### Execution
-- [action-plan.md § Phase I](../action-plan.md#phase-i---hardening-qa-and-launch-readiness)
+- [STATUS.md](../STATUS.md)
 
 ---
 
@@ -363,7 +363,7 @@ After Phase I launch-readiness gate passes:
 
 ## Phase I Completion Checklist
 
-From [action-plan.md § Phase I](../action-plan.md#phase-i---hardening-qa-and-launch-readiness):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [x] Local CI-equivalent gates are green
 - [ ] Preview deploy QA is complete

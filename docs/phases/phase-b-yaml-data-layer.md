@@ -1,4 +1,4 @@
-# Phase B: YAML Data Layer
+﻿# Phase B: YAML Data Layer
 
 **Status**: ✓ **COMPLETE**  
 **ETA**: Apr–May 2026  
@@ -232,7 +232,7 @@ skills:
 - [YAML Schema Validation](../guides/development/local-development.md#yaml-validation)
 
 ### Execution
-- [action-plan.md § Phase B](../action-plan.md#phase-b---yaml-first-data-layer-complete)
+- [STATUS.md](../STATUS.md)
 
 ---
 
@@ -263,7 +263,7 @@ Phase B establishes the data model; Phase C adds authentication and access contr
 
 ## Phase B Completion Checklist
 
-From [action-plan.md § Phase B](../action-plan.md#phase-b---yaml-first-data-layer-complete):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [x] `resume_documents` is the active source of truth
 - [x] `resume_revisions` is active and queryable

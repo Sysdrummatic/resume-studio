@@ -1,4 +1,4 @@
-# Phase X: [Phase Name]
+﻿# Phase X: [Phase Name]
 
 **Status**: ⬡ **[% COMPLETE]** / ✓ **COMPLETE** / ◯ **PLANNED** / ◐ **IN PROGRESS**  
 **ETA**: [Month Year]  
@@ -153,7 +153,7 @@ id (uuid, pk)
 - [Test contract/checklist](../guides/testing/test-contracts.md)
 
 ### Execution
-- [action-plan.md § Phase X](../action-plan.md#phase-x---[phase-name-lowercase])
+- [STATUS.md](../STATUS.md)
 
 ---
 
@@ -183,7 +183,7 @@ id (uuid, pk)
 
 ## Phase [X] Completion Checklist
 
-From [action-plan.md § Phase X](../action-plan.md#phase-x---[phase-name-lowercase]):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [ ] [Specific deliverable 1 implemented and tested]
 - [ ] [Specific deliverable 2 implemented and tested]

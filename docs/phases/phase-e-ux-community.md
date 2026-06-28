@@ -1,4 +1,4 @@
-# Phase G: User Experience & Community
+﻿# Phase E: User Experience & Community
 
 **Status**: ✓ **COMPLETE**  
 **ETA**: Jun–Jul 2026  
@@ -11,7 +11,7 @@
 
 ## Overview
 
-Phase G delivers the user-facing platform features: dashboard for CV management, PDF/ATS export, owner analytics, admin panel enhancements, and the foundation for recruiter access. This phase runs in parallel with Phase E public routes and completes the MVP product experience.
+Phase E delivers the user-facing platform features: dashboard for CV management, PDF/ATS export, owner analytics, admin panel enhancements, and the foundation for recruiter access. This phase runs in parallel with Phase F public routes and completes the MVP product experience.
 
 ### Key Theme
 **From MVP → usable product.** Users can manage, export, and analyze their CVs.
@@ -240,11 +240,19 @@ Phase G delivers the user-facing platform features: dashboard for CV management,
 - [CV Publication Test Contracts](../guides/cv-publication-test-contracts.md)
 
 ### Execution
-- [action-plan.md § Phase G](../action-plan.md#phase-g---user-panel-and-analytics)
+- [STATUS.md](../STATUS.md)
 
 ---
 
-## Transition to Phase H
+## Transition to Phase F and H
+
+Phase F (Public Surface & MVP Launch) builds on Phase E:
+- Public route SSR/metadata finalization
+- SEO metadata and structured data
+
+Phase H (PDF Visual Fidelity) begins after Phase E:
+- Upgraded PDF rendering (Vercel + Puppeteer)
+- Fidelity improvements over react-pdf baseline
 
 Phase I (Hardening & QA) includes:
 - Deploy QA for dashboard and export features
@@ -256,7 +264,7 @@ Phase I (Hardening & QA) includes:
 
 ## Success Criteria
 
-✓ **All Phase G deliverables shipped**:
+✓ **All Phase E deliverables shipped**:
 - User dashboard with CV versions and links
 - PDF export plus the ATS export dropdown (CVasCode / .txt / .yaml)
 - Admin analytics and audit logs
@@ -265,13 +273,13 @@ Phase I (Hardening & QA) includes:
 
 ✓ **Completed 2 weeks ahead of schedule** (2026-05-13)
 
-✓ **Ready to transition to Phase H (PDF Visual Fidelity)**
+✓ **Ready to transition to Phase F (Public Surface) and Phase H (PDF Visual Fidelity)**
 
 ---
 
-## Phase G Completion Checklist
+## Phase E Completion Checklist
 
-From [action-plan.md § Phase G](../action-plan.md#phase-g---user-panel-and-analytics):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [x] Build user panel for CV and link management
 - [x] Add downloadable PDF export
@@ -288,5 +296,5 @@ From [action-plan.md § Phase G](../action-plan.md#phase-g---user-panel-and-anal
 - [x] PR1–PR6: Role inheritance PRs merged
 - [x] PR6: Tests refactored; full validation green
 
-**Overall**: **100% complete**. All Phase G deliverables shipped; ahead of timeline.
+**Overall**: **100% complete**. All Phase E deliverables shipped; ahead of timeline.
 

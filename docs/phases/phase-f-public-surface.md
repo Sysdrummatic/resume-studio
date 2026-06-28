@@ -1,4 +1,4 @@
-# Phase E: Public Surface & MVP Launch
+﻿# Phase F: Public Surface & MVP Launch
 
 **Status**: ⬡ **60% COMPLETE**  
 **ETA**: May–Jun 2026  
@@ -11,7 +11,7 @@
 
 ## Overview
 
-Phase E implements the public-facing resume surface with full SEO/AEO support, structured data for search engines, and backward compatibility with legacy URL schemes. This is the MVP launch phase — the moment real users can discover and share their CVs publicly.
+Phase F implements the public-facing resume surface with full SEO/AEO support, structured data for search engines, and backward compatibility with legacy URL schemes. This is the MVP launch phase — the moment real users can discover and share their CVs publicly.
 
 ### Key Theme
 **From internal tool → public platform.** Resume data becomes shareable and discoverable.
@@ -39,7 +39,7 @@ Phase E implements the public-facing resume surface with full SEO/AEO support, s
 
 ### Architecture Decision Records
 
-All Phase E architectural contracts are documented:
+All Phase F architectural contracts are documented:
 
 - [ADR 0001: CV Publication Model](../adr/0001-cv-publication-model.md) — database model, publish/unpublish, snapshot immutability
 - [ADR 0004: Public Route Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md) — backward-compatible routing strategy
@@ -195,22 +195,17 @@ All Phase E architectural contracts are documented:
 - [Deployment QA Checklist](../guides/deployment-qa.md)
 
 ### Execution
-- [action-plan.md § Phase E](../action-plan.md#phase-e---public-resume-rendering-and-seqaeo)
+- [STATUS.md](../STATUS.md)
 
 ---
 
-## Transition to Phase F, G & I
-
-### Phase F Dependency
-Phase F (Community Beta Testing) begins once Phase E core delivery is stable — beta testers exercise the public routes and editor end-to-end.
+## Transition to Phase G & I
 
 ### Phase G Dependency
-Phase G (User Experience & Community) depends on Phase E public routes being stable. Both can run in parallel:
-- **Phase E**: Public route SSR/metadata finalization
-- **Phase G**: User dashboard, analytics, audit logging
+Phase G (Community Beta Testing) begins once Phase F core delivery is stable — beta testers exercise the public routes and editor end-to-end.
 
 ### Phase I Dependency
-Phase I (Hardening & QA) begins after Phase E core delivery (2026-05-23). Includes:
+Phase I (Hardening & QA) begins after Phase F core delivery (2026-05-23). Includes:
 - Deploy QA for public routes
 - Legacy compatibility regression tests
 - SEO metadata validation
@@ -219,7 +214,7 @@ Phase I (Hardening & QA) begins after Phase E core delivery (2026-05-23). Includ
 
 ## Success Criteria
 
-✓ **All Phase E deliverables shipped**:
+✓ **All Phase F deliverables shipped**:
 - Public routes with SSR/ISR
 - SEO metadata and structured data
 - Sitemap and robots
@@ -230,13 +225,13 @@ Phase I (Hardening & QA) begins after Phase E core delivery (2026-05-23). Includ
 - Founder's demo CV published (marketing)
 - Beta user onboarding complete
 
-✓ **Ready to transition to Phase F (beta testing) and Phase I (hardening)** once demo CV + beta collection is done
+✓ **Ready to transition to Phase G (beta testing) and Phase I (hardening)** once demo CV + beta collection is done
 
 ---
 
-## Phase E Completion Checklist
+## Phase F Completion Checklist
 
-From [action-plan.md § Phase E](../action-plan.md#phase-e---public-resume-rendering-and-seqaeo):
+Tracked in [STATUS.md](../STATUS.md):
 
 - [x] Apply indexing controls to robots and headers
 - [x] Add canonical URLs and OpenGraph/Twitter metadata
@@ -249,5 +244,5 @@ From [action-plan.md § Phase E](../action-plan.md#phase-e---public-resume-rende
 - [ ] Publish founder's own CV (demo)
 - [ ] Private beta user recruitment (5 users)
 
-**Overall**: **95% complete**. Core delivery shipped (2026-05-23); minor work remains.
+**Overall**: **95% complete**. Core delivery shipped (2026-05-23); minor work remains (Phase F).
 
