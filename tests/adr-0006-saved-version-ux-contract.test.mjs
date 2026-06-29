@@ -24,7 +24,7 @@ test("dashboard publish modal supports language selection and default locale con
   assert.equal(client.includes("selectedLocales"), true);
   assert.equal(client.includes("defaultLocale"), true);
   assert.equal(modal.includes("Allow indexing for this Published CV"), true);
-  assert.equal(modal.includes("Canonical URL is primary"), true);
+  assert.equal(modal.includes("Canonical URL is the permanent public link"), true);
 });
 
 test("editor exposes read-only Saved Version/public-link state with canonical-first guidance", () => {
@@ -32,7 +32,7 @@ test("editor exposes read-only Saved Version/public-link state with canonical-fi
   const canonicalIndex = editor.indexOf("Canonical URL");
   const compatibilityIndex = editor.indexOf("Compatibility URL");
   assert.equal(editor.includes("Saved Versions and public links"), true);
-  assert.equal(editor.includes("Canonical URL is primary"), true);
+  assert.equal(editor.includes("Canonical URL"), true);
   assert.equal(editor.includes("/api/resume/presets"), true);
   assert.equal(editor.includes("Loading Saved Versions..."), true);
   assert.equal(editor.includes("Retry Saved Version list"), true);

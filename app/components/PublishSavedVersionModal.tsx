@@ -127,7 +127,7 @@ export default function PublishSavedVersionModal({
 
         <div className="card stack">
           <strong>Link state after publish</strong>
-          <p className="card-lead">Canonical URL is primary. Legacy /r/[slug] remains compatibility-only.</p>
+          <p className="card-lead">Canonical URL is the permanent public link for this version.</p>
         </div>
 
         {error ? <p className="status status--error">{error}</p> : null}

@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
 
+import { canAccessDraftPdf } from "../lib/rbac";
+import { isAppRole } from "../lib/auth-types";
 import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
@@ -1309,7 +1311,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
           <section className="stack resume-editor-panel">
             <h2>Saved Versions and public links</h2>
-            <p className="card-lead">Canonical URL is primary. Legacy /r/[slug] remains compatibility-only.</p>
+            <p className="card-lead">Publish a Saved Version to get a canonical public URL.</p>
             {isPresetsLoading ? (
               <p className="cv-preview__placeholder">Loading Saved Versions...</p>
             ) : presetsError ? (
@@ -1431,7 +1433,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
               yamlContent={yamlPanel}
               isExpanded={isPreviewExpanded}
               aiGenerated={aiGenerated}
-              draftPdfEnabled={draftPdfEnabled}
+              draftPdfEnabled={draftPdfEnabled && (actor && isAppRole(actor.role) ? canAccessDraftPdf(actor.role) : false)}
               onExpand={() => setIsPreviewExpanded(true)}
               onClose={() => setIsPreviewExpanded(false)}
             />

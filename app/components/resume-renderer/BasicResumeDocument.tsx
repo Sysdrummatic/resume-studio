@@ -64,7 +64,7 @@ export function BasicResumeDocument({
   showChrome = true,
   mode = "preview",
   roleOverride,
-  draftPdfEnabled = true,
+  draftPdfEnabled = false,
   labels,
   isBusy = false,
   scrollContainerRef,
@@ -80,7 +80,7 @@ export function BasicResumeDocument({
   if (exportUrls?.pdfUrl) {
     pdfAction = { label: "PDF", href: exportUrls.pdfUrl };
   } else if (draftPdfEnabled) {
-    pdfAction = { label: "PDF", onClick: () => exportPreviewPdf(resume, locale) };
+    pdfAction = { label: "PDF", onClick: () => { void exportPreviewPdf(resume, locale); } };
   } else {
     pdfAction = { label: "PDF", disabled: true, disabledReason: "Available after publish" };
   }
