@@ -27,39 +27,25 @@ test("dashboard publish modal supports language selection and default locale con
   assert.equal(modal.includes("Canonical URL is the permanent public link"), true);
 });
 
-test("editor exposes read-only Saved Version/public-link state with canonical-first guidance", () => {
+test("Saved Version management is delegated to Dashboard; editor shows only Publish and Revision history", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
-  const canonicalIndex = editor.indexOf("Canonical URL");
-  const compatibilityIndex = editor.indexOf("Compatibility URL");
-  assert.equal(editor.includes("Saved Versions and public links"), true);
-  assert.equal(editor.includes("Canonical URL"), true);
-  assert.equal(editor.includes("/api/resume/presets"), true);
-  assert.equal(editor.includes("Loading Saved Versions..."), true);
-  assert.equal(editor.includes("Retry Saved Version list"), true);
-  assert.equal(editor.includes("preset.canonical_public_path"), true);
-  assert.equal(editor.includes("preset.compatibility_public_path"), true);
-  assert.equal(editor.includes("Canonical URL"), true);
-  assert.equal(editor.includes("Compatibility URL"), true);
-  assert.equal(editor.includes("Open public CV"), true);
-  assert.equal(editor.includes("Copy public URL"), true);
-  assert.equal(editor.includes("hasPublishedCanonicalLink"), true);
-  assert.equal(editor.includes("const hasPublishedCanonicalLink = preset.is_public && Boolean(preset.canonical_public_path);"), true);
-  assert.equal(canonicalIndex >= 0 && compatibilityIndex > canonicalIndex, true);
-  assert.equal(editor.includes("resume_public_links"), false);
-});
+  const dashboard = read("app/dashboard/dashboard-client.tsx");
 
-test("editor publish controls keep Saved Version language selection and public-link wording separate from master resume publishing", () => {
-  const editor = read("app/master-resume/editor-canvas-client.tsx");
-  const modal = read("app/components/PublishSavedVersionModal.tsx");
-  assert.equal(editor.includes("PublishSavedVersionModal"), true);
-  assert.equal(editor.includes("openPublishSavedVersion"), true);
-  assert.equal(editor.includes("publishSavedVersion"), true);
-  assert.equal(editor.includes("unpublishSavedVersion"), true);
-  assert.equal(editor.includes("selectedLocales"), true);
-  assert.equal(editor.includes("defaultLocale"), true);
-  assert.equal(modal.includes("Allow indexing for this Published CV"), true);
-  assert.equal(modal.includes("Link state after publish"), true);
-  assert.equal(modal.includes("Publish CV Version"), true);
-  assert.equal(editor.includes("Unpublish"), true);
+  assert.equal(editor.includes("Saved Versions and public links"), false);
+  assert.equal(editor.includes("PublishSavedVersionModal"), false);
+  assert.equal(editor.includes("openPublishSavedVersion"), false);
+  assert.equal(editor.includes("unpublishSavedVersion"), false);
+  assert.equal(editor.includes("Open public CV"), false);
+  assert.equal(editor.includes("Copy public URL"), false);
+
+  assert.equal(editor.includes("Publish"), true);
+  assert.equal(editor.includes("Revision history"), true);
   assert.equal(editor.includes("Save MasterCV"), true);
+  assert.equal(editor.includes("Rollback"), true);
+
+  assert.equal(dashboard.includes("PublishSavedVersionModal"), true);
+  assert.equal(dashboard.includes("canonical_public_path"), true);
+  assert.equal(dashboard.includes("copyPublicLink"), true);
+  assert.equal(dashboard.includes("Open CV"), true);
+  assert.equal(editor.includes("resume_public_links"), false);
 });

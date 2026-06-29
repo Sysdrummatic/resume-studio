@@ -27,11 +27,10 @@ test("ADR 0001 unpublish runtime uses transactional RPC and keeps Saved Version 
 });
 
 
-test("editor public-link controls stay on owner-scoped preset APIs and do not touch public resolvers directly", () => {
+test("editor does not touch public resolvers or preset-specific publish routes directly", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
 
-  assert.equal(editor.includes("/api/resume/presets/${encodeURIComponent(preset.id)}/publish"), true);
-  assert.equal(editor.includes("/api/resume/presets/${encodeURIComponent(preset.id)}/unpublish"), true);
   assert.equal(editor.includes("resume_public_links"), false);
   assert.equal(editor.includes("fetchPublishedResumePresetBySlug"), false);
+  assert.equal(editor.includes("PublishSavedVersionModal"), false);
 });

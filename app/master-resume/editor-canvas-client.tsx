@@ -3,11 +3,8 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
-import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
-
 import { canAccessDraftPdf } from "../lib/rbac";
 import { isAppRole } from "../lib/auth-types";
-import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
 import type {
@@ -23,7 +20,7 @@ import type {
   ResumeSkill,
   ResumeSummaryItem,
 } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumePresetRow, ResumeUserLocaleVersionRow } from "../lib/resume-server";
+import type { ResumeDocumentRow, ResumeUserLocaleVersionRow } from "../lib/resume-server";
 import { defaultResumeDocument, normalizeResumeDocument, validateResumeDocument } from "../lib/resume-schema";
 
 type ApiDocumentResponse = {
@@ -52,17 +49,6 @@ type ApiLanguagePostResponse = {
   language?: ResumeLanguageMetadata;
 };
 
-type ApiPresetsResponse = {
-  ok?: boolean;
-  error?: string;
-  presets?: ResumePresetRow[];
-};
-
-type PresetApiResponse = {
-  ok?: boolean;
-  error?: string;
-  preset?: ResumePresetRow;
-};
 
 type EditorTab = "yaml" | "human";
 
@@ -168,11 +154,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [aiGenerated, setAiGenerated] = useState(false);
   const [revisions, setRevisions] = useState<ResumeRevisionItem[]>([]);
   const [yamlError, setYamlError] = useState<string | null>(null);
-  const [presets, setPresets] = useState<ResumePresetRow[]>([]);
-  const [isPresetsLoading, setIsPresetsLoading] = useState(true);
-  const [presetsError, setPresetsError] = useState("");
-  const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
-  const [activePresetActionId, setActivePresetActionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (requestedPanel === "languages") {
@@ -190,40 +171,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     () => (newLanguageShortLabel.trim() || normalizedNewLanguageCode).toUpperCase().slice(0, 2),
     [newLanguageShortLabel, normalizedNewLanguageCode],
   );
-  const publishableLocales = useMemo(() => {
-    const next = Array.from(new Set(languageOptions.filter((language) => language.document).map((language) => language.code)));
-    if (documentRow?.locale && !next.includes(documentRow.locale)) {
-      next.unshift(documentRow.locale);
-    }
-    return next;
-  }, [documentRow?.locale, languageOptions]);
-
-  const loadPresets = useCallback(async () => {
-    setIsPresetsLoading(true);
-    setPresetsError("");
-
-    try {
-      const response = await fetch("/api/resume/presets");
-      const payload = (await response.json()) as ApiPresetsResponse;
-      if (!response.ok || payload.error) {
-        const message = payload.error || "Saved Version list could not be loaded.";
-        setPresets([]);
-        setPresetsError(message);
-        showToast(message, "warning");
-        return;
-      }
-
-      setPresets(Array.isArray(payload.presets) ? payload.presets : []);
-    } catch {
-      const message = "Saved Version list could not be loaded.";
-      setPresets([]);
-      setPresetsError(message);
-      showToast(message, "warning");
-    } finally {
-      setIsPresetsLoading(false);
-    }
-  }, [showToast]);
-
   const refreshLanguages = useCallback(async () => {
     const response = await fetch("/api/resume/languages?withDocuments=true");
     const payload = (await response.json()) as ApiLanguagesResponse;
@@ -343,10 +290,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
       mounted = false;
     };
   }, [showToast]);
-
-  useEffect(() => {
-    void loadPresets();
-  }, [loadPresets]);
 
   useEffect(() => {
     if (!isDirty) return;
@@ -620,129 +563,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     showToast(`Downloaded ${fileName}.`);
   }
 
-  function buildAbsolutePublicUrl(publicPath: string) {
-    if (typeof window === "undefined") {
-      return publicPath;
-    }
-    return new URL(publicPath, window.location.origin).toString();
-  }
-
-  function openPublicLink(publicPath: string) {
-    if (typeof window === "undefined") {
-      return;
-    }
-    window.open(buildAbsolutePublicUrl(publicPath), "_blank", "noopener,noreferrer");
-  }
-
-  async function copyPublicLink(publicPath: string) {
-    const absoluteUrl = buildAbsolutePublicUrl(publicPath);
-
-    try {
-      if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
-        throw new Error("Clipboard API unavailable");
-      }
-      await navigator.clipboard.writeText(absoluteUrl);
-      showToast("Canonical public URL copied.");
-    } catch {
-      showToast("Canonical public URL could not be copied.", "error");
-    }
-  }
-
-  function exportText(preset: ResumePresetRow) {
-    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
-    if (!exportUrls) {
-      showToast("Publish this Saved Version before exporting a snapshot.", "warning");
-      return;
-    }
-
-    window.open(exportUrls.textUrl, "_blank");
-    showToast("Preparing published text export...");
-  }
-
-  function exportPdf(preset: ResumePresetRow) {
-    const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
-    if (!exportUrls) {
-      showToast("Publish this Saved Version before exporting a snapshot PDF.", "warning");
-      return;
-    }
-
-    window.open(exportUrls.pdfUrl, "_blank");
-    showToast("Preparing published PDF export...");
-  }
-
-  function openPublishSavedVersion(preset: ResumePresetRow) {
-    const selectedLocales = Array.from(new Set(publishableLocales));
-    if (selectedLocales.length === 0) {
-      showToast("No language versions available for publish.", "error");
-      return;
-    }
-    const nextDefaultLocale = selectedLocales.includes(preset.default_locale) ? preset.default_locale : selectedLocales[0];
-    setPublishDraft({
-      preset,
-      selectedLocales,
-      defaultLocale: nextDefaultLocale,
-      allowIndexing: preset.allow_indexing,
-    });
-  }
-
-  async function publishSavedVersion(payload: {
-    preset: ResumePresetRow;
-    selectedLocales: ResumeLocale[];
-    defaultLocale: ResumeLocale;
-    allowIndexing: boolean;
-  }) {
-    const { preset, selectedLocales, defaultLocale: nextDefaultLocale, allowIndexing: nextAllowIndexing } = payload;
-    setActivePresetActionId(preset.id);
-
-    try {
-      const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/publish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          allowIndexing: nextAllowIndexing,
-          aiGenerated: preset.ai_generated,
-          defaultLocale: nextDefaultLocale,
-          selectedLocales,
-        }),
-      });
-      const result = (await response.json()) as PresetApiResponse;
-      if (!response.ok || result.error || !result.preset) {
-        showToast(result.error || "CV Version publish failed.", "error");
-        return;
-      }
-
-      setPublishDraft(null);
-      await loadPresets();
-      showToast("CV Version published.");
-    } catch {
-      showToast("CV Version publish failed.", "error");
-    } finally {
-      setActivePresetActionId(null);
-    }
-  }
-
-  async function unpublishSavedVersion(preset: ResumePresetRow) {
-    setActivePresetActionId(preset.id);
-
-    try {
-      const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/unpublish`, {
-        method: "POST",
-      });
-      const result = (await response.json()) as PresetApiResponse;
-      if (!response.ok || result.error || !result.preset) {
-        showToast(result.error || "CV Version unpublish failed.", "error");
-        return;
-      }
-
-      await loadPresets();
-      showToast("CV Version unpublished.");
-    } catch {
-      showToast("CV Version unpublish failed.", "error");
-    } finally {
-      setActivePresetActionId(null);
-    }
-  }
-
   async function publishResume(targetIsPublic: boolean) {
     if (!validation.valid) {
       showToast(validation.errors.join(" "), "warning");
@@ -948,7 +768,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         </div>
       ) : null}
 
-      <div className="resume-editor-shell__content">
+      <div className="resume-editor-edit-section">
+        <h2 className="resume-editor-section-heading">Edit your CV</h2>
+        <div className="resume-editor-shell__content">
         <div className="resume-editor-form">
           <section className="stack resume-editor-panel">
             <div className="section-row">
@@ -1257,163 +1079,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
               </div>
             )}
           </section>
-
-          <section className="stack resume-editor-panel">
-            <h2>Publish</h2>
-            <label>
-              Change note
-              <input value={changeNote} onChange={(event) => setChangeNote(event.target.value)} />
-            </label>
-            <label className="checkbox-row">
-              <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
-              Allow indexing
-            </label>
-            <label className="checkbox-row">
-              <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
-              Mark as AI generated
-            </label>
-            <div className="actions-row">
-              <button className="button button--ghost" type="button" onClick={() => void publishResume(false)} disabled={isBusy || isLoading}>
-                {isBusy ? "Saving..." : "Save unpublished"}
-              </button>
-              <button className="button button--primary" type="button" onClick={() => void publishResume(true)} disabled={isBusy || isLoading}>
-                {isBusy ? "Saving..." : "Save MasterCV"}
-              </button>
-            </div>
-          </section>
-
-          <section className="stack resume-editor-panel">
-            <h2>Revision history</h2>
-            {revisions.length === 0 ? (
-              <p className="cv-preview__placeholder">No revisions yet.</p>
-            ) : (
-              <ul className="revision-list">
-                {revisions.map((revision) => (
-                  <li key={revision.id}>
-                    <div>
-                      <strong>Revision #{revision.revision_number}</strong>
-                      <p>{revision.change_note || "No note"}</p>
-                      <small>{new Date(revision.created_at).toLocaleString()}</small>
-                    </div>
-                    <button
-                      type="button"
-                      className="button button--ghost button--small"
-                      onClick={() => void rollbackToRevision(revision.revision_number)}
-                      disabled={isBusy || !documentRow}
-                    >
-                      Rollback
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="stack resume-editor-panel">
-            <h2>Saved Versions and public links</h2>
-            <p className="card-lead">Publish a Saved Version to get a canonical public URL.</p>
-            {isPresetsLoading ? (
-              <p className="cv-preview__placeholder">Loading Saved Versions...</p>
-            ) : presetsError ? (
-              <div className="stack">
-                <p className="status status--error" role="status">
-                  {presetsError}
-                </p>
-                <div className="actions-row">
-                  <button type="button" className="button button--ghost button--small" onClick={() => void loadPresets()}>
-                    Retry Saved Version list
-                  </button>
-                </div>
-              </div>
-            ) : presets.length === 0 ? (
-              <p className="cv-preview__placeholder">No Saved Versions yet.</p>
-            ) : (
-              <ul className="dashboard-resume-list">
-                {presets.map((preset) => {
-                  const hasPublishedCanonicalLink = preset.is_public && Boolean(preset.canonical_public_path);
-                  const isPresetActionPending = activePresetActionId === preset.id;
-
-                  return (
-                    <li key={preset.id}>
-                      <div className="dashboard-resume-list__content">
-                        <strong>{preset.title}</strong>
-                        <p>Updated {new Date(preset.updated_at).toLocaleString()}</p>
-                        <dl className="dashboard-resume-list__links">
-                          {preset.canonical_public_path ? (
-                            <>
-                              <dt>Canonical URL</dt>
-                              <dd>{preset.canonical_public_path}</dd>
-                            </>
-                          ) : null}
-                          {preset.compatibility_public_path ? (
-                            <>
-                              <dt>Compatibility URL</dt>
-                              <dd>{preset.compatibility_public_path}</dd>
-                            </>
-                          ) : null}
-                        </dl>
-                      </div>
-                      <div className="dashboard-resume-list__actions">
-                        <div className="actions-row">
-                          <span className={`dashboard-resume-list__badge ${preset.is_public ? "" : "dashboard-resume-list__badge--private"}`}>
-                            {preset.is_public ? "Published" : "Private"}
-                          </span>
-                          <span className={`dashboard-resume-list__badge ${preset.allow_indexing ? "" : "dashboard-resume-list__badge--private"}`}>
-                            {preset.allow_indexing ? "Indexable" : "Noindex"}
-                          </span>
-                          {hasPublishedCanonicalLink ? (
-                            <>
-                              <button
-                                type="button"
-                                className="button button--ghost button--small"
-                                onClick={() => openPublicLink(preset.canonical_public_path!)}
-                                disabled={isPresetActionPending}
-                              >
-                                Open public CV
-                              </button>
-                              <button
-                                type="button"
-                                className="button button--ghost button--small"
-                                onClick={() => void copyPublicLink(preset.canonical_public_path!)}
-                                disabled={isPresetActionPending}
-                              >
-                                Copy public URL
-                              </button>
-                            </>
-                          ) : null}
-                          {preset.is_public ? (
-                            <button
-                              type="button"
-                              className="button button--ghost button--small"
-                              onClick={() => void unpublishSavedVersion(preset)}
-                              disabled={isPresetActionPending}
-                            >
-                              {isPresetActionPending ? "Unpublishing..." : "Unpublish"}
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className="button button--ghost button--small"
-                              onClick={() => openPublishSavedVersion(preset)}
-                              disabled={isPresetActionPending || publishableLocales.length === 0}
-                            >
-                              Publish
-                            </button>
-                          )}
-                          <button type="button" className="button button--ghost button--small" onClick={() => exportText(preset)}>
-                            ATS (TXT)
-                          </button>
-                          <button type="button" className="button button--ghost button--small" onClick={() => exportPdf(preset)}>
-                            PDF
-                          </button>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
         </div>
 
         <div className="resume-editor-preview">
@@ -1439,21 +1104,59 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
             />
           )}
         </div>
+        </div>
       </div>
 
-      {publishDraft ? (
-        <PublishSavedVersionModal
-          draft={publishDraft}
-          locales={publishableLocales}
-          languageOptions={languageOptions}
-          onClose={() => {
-            if (!activePresetActionId) {
-              setPublishDraft(null);
-            }
-          }}
-          onPublish={publishSavedVersion}
-        />
-      ) : null}
+      <section className="stack resume-editor-panel">
+        <h2>Publish</h2>
+        <label>
+          Change note
+          <input value={changeNote} onChange={(event) => setChangeNote(event.target.value)} />
+        </label>
+        <label className="checkbox-row">
+          <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
+          Allow indexing
+        </label>
+        <label className="checkbox-row">
+          <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
+          Mark as AI generated
+        </label>
+        <div className="actions-row">
+          <button className="button button--ghost" type="button" onClick={() => void publishResume(false)} disabled={isBusy || isLoading}>
+            {isBusy ? "Saving..." : "Save unpublished"}
+          </button>
+          <button className="button button--primary" type="button" onClick={() => void publishResume(true)} disabled={isBusy || isLoading}>
+            {isBusy ? "Saving..." : "Save MasterCV"}
+          </button>
+        </div>
+      </section>
+
+      <section className="stack resume-editor-panel">
+        <h2>Revision history</h2>
+        {revisions.length === 0 ? (
+          <p className="cv-preview__placeholder">No revisions yet.</p>
+        ) : (
+          <ul className="revision-list">
+            {revisions.map((revision) => (
+              <li key={revision.id}>
+                <div>
+                  <strong>Revision #{revision.revision_number}</strong>
+                  <p>{revision.change_note || "No note"}</p>
+                  <small>{new Date(revision.created_at).toLocaleString()}</small>
+                </div>
+                <button
+                  type="button"
+                  className="button button--ghost button--small"
+                  onClick={() => void rollbackToRevision(revision.revision_number)}
+                  disabled={isBusy || !documentRow}
+                >
+                  Rollback
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </section>
   );
 }
