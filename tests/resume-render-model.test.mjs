@@ -71,7 +71,6 @@ test("getResumeHeroRole skips position labeled 'default'", () => {
 test("all CV entry points route through BasicResumeDocument", () => {
   const sample = read("app/resume/resume-view-client.tsx");
   const publicCanonical = read("app/[personSlug]/[publicId]/page.tsx");
-  const publicLegacy = read("app/r/[slug]/page.tsx");
   const userHub = read("app/user/user-client.tsx");
   const dashboard = read("app/dashboard/dashboard-client.tsx");
   const masterResume = read("app/master-resume/resume-live-preview.tsx");
@@ -81,7 +80,6 @@ test("all CV entry points route through BasicResumeDocument", () => {
   assert.equal(sample.includes("import ResumeRenderer"), false, "Sample CV must not import ResumeRenderer directly");
 
   assert.equal(publicCanonical.includes("BasicResumeDocument"), true, "public canonical route must use BasicResumeDocument");
-  assert.equal(publicLegacy.includes("BasicResumeDocument"), true, "public legacy route must use BasicResumeDocument");
 
   assert.equal(userHub.includes("ResumePreviewFrame"), true, "User Hub must use ResumePreviewFrame");
   assert.equal(previewFrame.includes("BasicResumeDocument"), true, "ResumePreviewFrame must wrap BasicResumeDocument");

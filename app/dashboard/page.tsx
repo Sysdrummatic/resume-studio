@@ -32,7 +32,6 @@ export default async function DashboardPage() {
         initialDocuments={ownedDocuments}
         languageOptions={resumeLanguages}
         initialPresets={resumePresets}
-        actorRole={actor.role}
         draftPdfEnabled={draftPdfEnabled}
       />
     </div>

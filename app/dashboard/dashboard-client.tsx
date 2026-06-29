@@ -21,7 +21,6 @@ type Props = {
   initialDocuments: ResumeDocumentRow[];
   languageOptions: ResumeUserLocaleRow[];
   initialPresets: ResumePresetRow[];
-  actorRole: string;
   draftPdfEnabled?: boolean;
 };
 
@@ -335,7 +334,6 @@ function PresetPreviewModal({
   documents,
   languages,
   preset,
-  allowDraftPdf,
   draftPdfEnabled = true,
   onClose,
 }: {
@@ -343,7 +341,6 @@ function PresetPreviewModal({
   documents: ResumeDocumentRow[];
   languages: ResumeUserLocaleRow[];
   preset: ResumePresetRow;
-  allowDraftPdf: boolean;
   draftPdfEnabled?: boolean;
   onClose: () => void;
 }) {
@@ -383,7 +380,6 @@ function PresetPreviewModal({
               mode="public"
               personSlug={publicLink?.personSlug}
               publicId={publicLink?.publicId}
-              allowDraftPdf={allowDraftPdf}
               draftPdfEnabled={draftPdfEnabled}
               scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
             />
@@ -396,7 +392,7 @@ function PresetPreviewModal({
   );
 }
 
-export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets, actorRole, draftPdfEnabled = true }: Props) {
+export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets, draftPdfEnabled = true }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
@@ -734,7 +730,6 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           documents={documents}
           languages={languageVersions}
           preset={previewPreset}
-          allowDraftPdf={actorRole === "admin"}
           draftPdfEnabled={draftPdfEnabled}
           onClose={() => {
             setPreviewPreset(null);

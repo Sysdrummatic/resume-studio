@@ -4,8 +4,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "rea
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
-import { canAccessDraftPdf } from "../lib/rbac";
-import { isAppRole } from "../lib/auth-types";
+
 import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
@@ -1432,7 +1431,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
               yamlContent={yamlPanel}
               isExpanded={isPreviewExpanded}
               aiGenerated={aiGenerated}
-              allowDraftPdf={actor && isAppRole(actor.role) ? canAccessDraftPdf(actor.role) : false}
               draftPdfEnabled={draftPdfEnabled}
               onExpand={() => setIsPreviewExpanded(true)}
               onClose={() => setIsPreviewExpanded(false)}

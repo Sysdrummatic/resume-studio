@@ -26,13 +26,6 @@ test("ADR 0001 unpublish runtime uses transactional RPC and keeps Saved Version 
   assert.equal(server.includes("fetchResumePresetById(accessToken, userId, presetId)"), true);
 });
 
-test("ADR 0001 publication runtime keeps legacy slug compatibility resolver during rollout", () => {
-  const server = read("app/lib/resume-server.ts");
-
-  assert.equal(server.includes("fetchPublishedResumePresetBySlug"), true);
-  assert.equal(server.includes("table: \"resume_presets\""), true);
-  assert.equal(server.includes("fetchSnapshotPublishedResumePresetBySlug"), true);
-});
 
 test("editor public-link controls stay on owner-scoped preset APIs and do not touch public resolvers directly", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");

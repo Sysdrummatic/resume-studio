@@ -37,18 +37,14 @@ test("resume badges support public draft and ai generated states", () => {
 
 test("resume renderers use shared language switcher and badges", () => {
   const sample = read("app/resume/resume-view-client.tsx");
-  const preview = read("app/master-resume/resume-live-preview.tsx");
   const basicResume = read("app/components/resume-renderer/BasicResumeDocument.tsx");
   const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
-  const publicRoute = read("app/r/[slug]/page.tsx");
 
   assert.equal(sample.includes("BasicResumeDocument"), true);
   assert.equal(sample.includes("import ResumeRenderer"), false, "resume-view-client must not import ResumeRenderer directly");
   assert.equal(basicResume.includes("ResumeRenderer"), true);
   assert.equal(renderer.includes("ResumeLanguageSwitcher"), true);
   assert.equal(renderer.includes("ResumeBadges"), true);
-  assert.equal(publicRoute.includes("searchParams"), true);
-  assert.equal(publicRoute.includes("lang"), true);
   assert.equal(basicResume.includes('disabledReason: "Available after publish"'), true);
 });
 

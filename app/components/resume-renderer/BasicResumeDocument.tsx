@@ -18,8 +18,6 @@ type BasicResumeDocumentProps = {
   showChrome?: boolean;
   mode?: "public" | "editor" | "preview";
   roleOverride?: string | null;
-  /** @deprecated Role-based gate kept for compatibility; combine with draftPdfEnabled. */
-  allowDraftPdf?: boolean;
   /** DB-driven feature flag (platform_feature_flags.pdf_draft_enabled), resolved server-side. */
   draftPdfEnabled?: boolean;
   labels?: Partial<ResumeRendererLabels>;
@@ -66,7 +64,6 @@ export function BasicResumeDocument({
   showChrome = true,
   mode = "preview",
   roleOverride,
-  allowDraftPdf = false,
   draftPdfEnabled = true,
   labels,
   isBusy = false,
@@ -82,7 +79,7 @@ export function BasicResumeDocument({
   let pdfAction: ResumeRenderAction | undefined;
   if (exportUrls?.pdfUrl) {
     pdfAction = { label: "PDF", href: exportUrls.pdfUrl };
-  } else if (allowDraftPdf && draftPdfEnabled) {
+  } else if (draftPdfEnabled) {
     pdfAction = { label: "PDF", onClick: () => exportPreviewPdf(resume, locale) };
   } else {
     pdfAction = { label: "PDF", disabled: true, disabledReason: "Available after publish" };

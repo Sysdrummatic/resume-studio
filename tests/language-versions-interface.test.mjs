@@ -77,9 +77,6 @@ test("public language switching only exposes published documents and uses preset
   const migration = read("supabase/migrations/20260506_resume_language_metadata.sql");
 
   assert.equal(server.includes("fetchResumePresetVariants"), true);
-  assert.equal(server.includes("buildImplicitPresetVariants"), true);
-  assert.equal(server.includes("publicVariants"), true);
-  assert.equal(server.includes("languageDocuments.length === 0"), true);
   assert.equal(migration.includes("resume_preset_variants_update_own_or_staff"), true);
   assert.equal(migration.includes("and d.locale = resume_preset_variants.locale"), true);
 });

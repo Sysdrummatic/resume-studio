@@ -32,12 +32,6 @@ test("pdf export route is snapshot-only and returns application/pdf", () => {
   assert.equal(pdfDocument.includes("getResumeHeroRole"), true);
 });
 
-test("CvPdfDocument is the new entry point and CvPdfTemplate re-exports it", () => {
-  const template = read("app/lib/CvPdfTemplate.tsx");
-  const document = read("app/lib/pdf/CvPdfDocument.tsx");
-  assert.equal(template.includes("CvPdfDocument"), true);
-  assert.equal(document.includes("export"), true);
-});
 
 test("PdfTheme interface defines required color, typography, spacing, and layout tokens", () => {
   const theme = read("app/lib/pdf/theme.ts");
@@ -110,10 +104,10 @@ test("isPdfDraftEnabled is exported from pdf-feature-flags", () => {
   assert.equal(flags.includes("isPdfDraftEnabled"), true);
 });
 
-test("BasicResumeDocument gates draft pdf behind the DB-driven flag while keeping the legacy prop", () => {
+test("BasicResumeDocument gates draft pdf behind the DB-driven flag", () => {
   const basicResume = read("app/components/resume-renderer/BasicResumeDocument.tsx");
   assert.equal(basicResume.includes("draftPdfEnabled"), true);
-  assert.equal(basicResume.includes("allowDraftPdf?: boolean;"), true);
+  assert.equal(basicResume.includes("allowDraftPdf"), false);
 });
 
 test("public export helper keeps canonical person slug and public id parsing local to the snapshot path", () => {

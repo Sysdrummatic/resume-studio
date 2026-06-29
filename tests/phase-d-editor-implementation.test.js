@@ -59,8 +59,7 @@ test("phase D client supports summary list defaults in HFE and preview", () => {
   assert.equal(editor.includes("updateSummary"), true);
   assert.equal(editor.includes("setDefaultSummary"), true);
   assert.equal(basicResume.includes("ResumeRenderer"), true);
-  assert.equal(basicResume.includes("allowDraftPdf?: boolean;"), true);
-  assert.equal(editor.includes("allowDraftPdf=") && editor.includes("canAccessDraftPdf"), true);
+
   assert.equal(renderer.includes("getDefaultSummary(resume.summary)"), true);
 });
 

@@ -2,7 +2,7 @@ import React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
-import { CvPdfTemplate } from "../../../../lib/CvPdfTemplate";
+import { CvPdfDocument as CvPdfTemplate } from "../../../../lib/pdf/CvPdfDocument";
 import { buildPdfFilename } from "../../../../lib/pdf/filename";
 import { normalizeResumeDocument } from "../../../../lib/resume-schema";
 import { rateLimit } from "../../../../lib/rate-limit";

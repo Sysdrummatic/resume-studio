@@ -62,11 +62,10 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   assert.equal(client.includes("BasicResumeDocument"), true);
   assert.equal(page.includes("fetchResumeUserLocalesForUser"), true);
   assert.equal(page.includes("initialDocuments={ownedDocuments}"), true);
-  assert.equal(page.includes("actorRole={actor.role}"), true);
+  assert.equal(page.includes("draftPdfEnabled={draftPdfEnabled}"), true);
   assert.equal(client.includes("buildLanguageOptions"), true);
   assert.equal(client.includes("onLanguageSelect={setActiveLocale}"), true);
   assert.equal(client.includes("parseCanonicalPublicPath"), true);
-  assert.equal(client.includes("allowDraftPdf={actorRole === \"admin\"}"), true);
   const basicResumeDoc = read("app/components/resume-renderer/BasicResumeDocument.tsx");
   assert.equal(basicResumeDoc.includes("export function BasicResumeDocument"), true);
   assert.equal(preview.includes("BasicResumeDocument"), true);
