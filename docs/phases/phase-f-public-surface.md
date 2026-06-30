@@ -53,8 +53,8 @@ All Phase F architectural contracts are documented:
 ### Preparing for beta test launch
 
 - [x] Reorganize documentation for better tracking
-- [ ] Create Lukasz Michta's own public CV snapshot
-- [ ] Publish on canonical route (live example for new users)
+- [x] Create Lukasz Michta's own public CV snapshot
+- [x] Publish on canonical route (live example for new users)
 - [ ] Verify SEO metadata renders correctly
 - [x] Adjust Landing page to project start
 - [ ] Create first login user profile creator
