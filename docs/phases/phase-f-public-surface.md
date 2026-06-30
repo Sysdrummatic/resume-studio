@@ -66,16 +66,6 @@ All Phase F architectural contracts are documented:
 **Timeline**: End of May 2026  
 **Owner**: Product team  
 
-### Private Beta User Recruitment
-
-- [ ] Recruit 5 tech writer community members for feedback
-- [ ] Onboard beta users (provide sign-up links, guide to editor)
-- [ ] Collect feedback on publish flow, public link sharing, PDF export
-- [ ] Document learnings in retrospective
-
-**Timeline**: Jun 2026  
-**Owner**: Product team  
-
 ---
 
 ## Implementation Details

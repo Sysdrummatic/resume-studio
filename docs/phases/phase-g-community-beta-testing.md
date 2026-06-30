@@ -16,6 +16,16 @@ Phase G is the first real-world validation of OpenCiVera with people outside the
 
 **From "it works for us" → "it works for real users."** Structured feedback replaces founder intuition as the primary signal for pre-launch priorities.
 
+### Private Beta User Recruitment
+
+- [ ] Recruit 5 tech writer community members for feedback
+- [ ] Onboard beta users (provide sign-up links, guide to editor)
+- [ ] Collect feedback on publish flow, public link sharing, PDF export
+- [ ] Document learnings in retrospective
+
+**Timeline**: Jun 2026  
+**Owner**: Product team  
+
 ---
 
 ## Scope
