@@ -1,12 +1,15 @@
 "use client";
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { canAccessDraftPdf } from "../lib/rbac";
 import { isAppRole } from "../lib/auth-types";
 import ResumeLivePreview from "./resume-live-preview";
 import type { ResumeEditorStyle } from "./resume-live-preview";
+import LocaleTabStrip from "./locale-tab-strip";
+import LanguageVersionModal from "./language-version-modal";
+import { useMultiLocaleResumeDocuments } from "./use-multi-locale-resume-documents";
 import type {
   ResumeContactItem,
   ResumeCourse,
@@ -14,146 +17,64 @@ import type {
   ResumeEducation,
   ResumeExperience,
   ResumeLanguage,
-  ResumeLocale,
   ResumeQrCode,
-  ResumeRevisionItem,
   ResumeSkill,
   ResumeSummaryItem,
 } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumeUserLocaleVersionRow } from "../lib/resume-server";
-import { defaultResumeDocument, normalizeResumeDocument, validateResumeDocument } from "../lib/resume-schema";
-
-type ApiDocumentResponse = {
-  ok?: boolean;
-  error?: string;
-  actor?: {
-    userId: string;
-    displayName: string;
-    role: string;
-  };
-  locale?: ResumeLocale;
-  document?: ResumeDocumentRow;
-  revisions?: ResumeRevisionItem[];
-};
-
-type ResumeLanguageMetadata = ResumeUserLocaleVersionRow;
-
-type ApiLanguagesResponse = {
-  ok?: boolean;
-  error?: string;
-  languages?: ResumeLanguageMetadata[];
-};
-type ApiLanguagePostResponse = {
-  ok?: boolean;
-  error?: string;
-  language?: ResumeLanguageMetadata;
-};
-
+import { defaultResumeDocument } from "../lib/resume-schema";
 
 type EditorTab = "yaml" | "human";
 
-const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
 const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
   { code: "basic", label: "basic" },
   { code: "empty", label: "empty" },
 ];
 
-function TrashIcon() {
-  return (
-    <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v5" />
-      <path d="M14 11v5" />
-    </svg>
-  );
-}
-
-
-function hasYamlRuntime(): boolean {
-  return typeof window !== "undefined" && typeof window.jsyaml?.load === "function" && typeof window.jsyaml?.dump === "function";
-}
-
-function parseYamlToResumeDocument(yamlContent: string, fallbackName: string): ResumeDocument {
-  if (!hasYamlRuntime()) {
-    throw new Error("YAML runtime is not loaded.");
-  }
-  const parsed = window.jsyaml?.load(yamlContent);
-  return normalizeResumeDocument(parsed, fallbackName);
-}
-
-function serializeResumeToYaml(resume: ResumeDocument): string {
-  if (!hasYamlRuntime()) {
-    throw new Error("YAML runtime is not loaded.");
-  }
-  return window.jsyaml!.dump(resume, {
-    lineWidth: 120,
-    noRefs: true,
-    sortKeys: false,
-    quotingType: '"',
-  });
-}
-
-function normalizeYamlForEditor(yamlContent: string, fallbackName: string): { resume: ResumeDocument; yamlContent: string; migrated: boolean } {
-  if (!hasYamlRuntime()) {
-    throw new Error("YAML runtime is not loaded.");
-  }
-
-  const parsed = window.jsyaml?.load(yamlContent);
-  const source = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
-  const resume = normalizeResumeDocument(parsed, fallbackName);
-  const shouldMigrateYaml = !Array.isArray(source.summary);
-
-  return {
-    resume,
-    yamlContent: shouldMigrateYaml ? serializeResumeToYaml(resume) : yamlContent,
-    migrated: shouldMigrateYaml,
-  };
-}
-
-function sortLanguageRows(rows: ResumeLanguageMetadata[]) {
-  return rows.sort((left, right) => (left.sort_order ?? 999) - (right.sort_order ?? 999) || left.code.localeCompare(right.code));
-}
-
-async function fetchText(path: string) {
-  const response = await fetch(path, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error(`Failed to load ${path}`);
-  }
-  return response.text();
-}
-
 export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
   const searchParams = useSearchParams();
   const requestedPanel = searchParams.get("panel");
-  const [locale, setLocale] = useState<ResumeLocale>(searchParams.get("locale") || "en");
-  const [languageOptions, setLanguageOptions] = useState<ResumeLanguageMetadata[]>([
-    { code: "en", label: "English", short_label: "EN", labels: {}, is_default: true, sort_order: 10, created_at: "", updated_at: "", user_id: "", label_override: null, short_label_override: null, document: null },
-  ]);
+
+  const {
+    actor,
+    languageOptions,
+    defaultLocale,
+    activeLocale: locale,
+    buffers,
+    isLoadingAll: isLoading,
+    loadError,
+    loadNotice,
+    dirtyLocales,
+    errorLocales,
+    isAnyDirty,
+    setActiveLocale,
+    updateActiveYaml,
+    updateActiveResume: updateResumeFromHuman,
+    setActiveAllowIndexing,
+    setActiveAiGenerated,
+    resetActiveToTemplate,
+    saveAllDirty,
+    rollbackActiveToRevision,
+    saveLanguageVersion,
+    setDefaultLanguage,
+    deleteLanguageVersion,
+  } = useMultiLocaleResumeDocuments(searchParams.get("locale"));
+
+  const activeBuffer = buffers[locale];
+  const resume = activeBuffer?.resume ?? defaultResumeDocument("");
+  const yamlPanel = activeBuffer?.yamlPanel ?? "";
+  const yamlError = activeBuffer?.yamlError ?? null;
+  const revisions = activeBuffer?.revisions ?? [];
+  const allowIndexing = activeBuffer?.allowIndexing ?? false;
+  const aiGenerated = activeBuffer?.aiGenerated ?? false;
+  const documentRow = activeBuffer?.documentRow ?? null;
+
   const [editorTab, setEditorTab] = useState<EditorTab>("yaml");
   const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>("basic");
-  const [isLoading, setIsLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
-  const [newLanguageCode, setNewLanguageCode] = useState("");
-  const [newLanguageLabel, setNewLanguageLabel] = useState("");
-  const [newLanguageShortLabel, setNewLanguageShortLabel] = useState("");
-  const [isSavingLanguage, setIsSavingLanguage] = useState(false);
-  const [editingLanguageCode, setEditingLanguageCode] = useState<ResumeLocale | null>(null);
-  const [defaultLocale, setDefaultLocale] = useState<ResumeLocale>("en");
-
-  const [actor, setActor] = useState<{ userId: string; displayName: string; role: string } | null>(null);
-  const [documentRow, setDocumentRow] = useState<ResumeDocumentRow | null>(null);
-  const [resume, setResume] = useState<ResumeDocument>(defaultResumeDocument(""));
-  const [yamlPanel, setYamlPanel] = useState("");
   const [changeNote, setChangeNote] = useState("Publish update");
-  const [allowIndexing, setAllowIndexing] = useState(false);
-  const [aiGenerated, setAiGenerated] = useState(false);
-  const [revisions, setRevisions] = useState<ResumeRevisionItem[]>([]);
-  const [yamlError, setYamlError] = useState<string | null>(null);
 
   useEffect(() => {
     if (requestedPanel === "languages") {
@@ -161,259 +82,30 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     }
   }, [requestedPanel]);
 
-  const validation = useMemo(() => validateResumeDocument(resume), [resume]);
-  const isDirty = useMemo(
-    () => yamlPanel !== (documentRow?.yaml_content ?? ""),
-    [yamlPanel, documentRow?.yaml_content],
-  );
-  const normalizedNewLanguageCode = useMemo(() => newLanguageCode.trim().toLowerCase().split("-")[0].slice(0, 2), [newLanguageCode]);
-  const normalizedNewLanguageShortLabel = useMemo(
-    () => (newLanguageShortLabel.trim() || normalizedNewLanguageCode).toUpperCase().slice(0, 2),
-    [newLanguageShortLabel, normalizedNewLanguageCode],
-  );
-  const refreshLanguages = useCallback(async () => {
-    const response = await fetch("/api/resume/languages?withDocuments=true");
-    const payload = (await response.json()) as ApiLanguagesResponse;
-    if (!response.ok || payload.error || !payload.languages?.length) {
-      throw new Error(payload.error || "Language list could not be refreshed.");
-    }
-
-    const sorted = sortLanguageRows(payload.languages);
-    setLanguageOptions(sorted);
-    const nextDefaultLocale = sorted.find((language) => language.is_default)?.code || sorted[0]?.code || "en";
-    setDefaultLocale(nextDefaultLocale);
-    if (!sorted.some((language) => language.code === locale)) {
-      setLocale(nextDefaultLocale);
-    }
-  }, [locale]);
-
-
-  const loadLocaleDocument = useCallback(
-    async (nextLocale: ResumeLocale, signal?: AbortSignal) => {
-      setIsLoading(true);
-      showToast("Loading YAML editor...");
-
-      try {
-        const response = await fetch(`/api/resume/document?locale=${encodeURIComponent(nextLocale)}`, { signal });
-        if (signal?.aborted) return;
-        const payload = (await response.json()) as ApiDocumentResponse;
-        const loadedActor = payload.actor || null;
-
-        if (loadedActor) {
-          setActor(loadedActor);
-        }
-
-        if (payload.document) {
-          setDocumentRow(payload.document);
-          setAllowIndexing(payload.document.allow_indexing);
-          setAiGenerated(payload.document.ai_generated);
-        }
-        setRevisions(payload.revisions || []);
-
-        let nextYamlPanel = payload.document?.yaml_content || "";
-        const nextStatus = payload.document ? "Resume document loaded." : "Template YAML loaded.";
-        if (!nextYamlPanel) {
-          nextYamlPanel = await fetchText(TEMPLATE_PATH);
-        }
-
-        try {
-          const normalized = normalizeYamlForEditor(nextYamlPanel, loadedActor?.displayName || "");
-          nextYamlPanel = normalized.yamlContent;
-          setResume(normalized.resume);
-          showToast(normalized.migrated ? `${nextStatus} Legacy summary migrated to list format.` : nextStatus);
-        } catch (error) {
-          setResume(defaultResumeDocument(loadedActor?.displayName || ""));
-          showToast(`Failed to parse YAML: ${error instanceof Error ? error.message : "unknown error"}`, "error");
-        }
-
-        setYamlPanel(nextYamlPanel);
-      } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") return;
-        showToast(error instanceof Error ? error.message : "Unable to load YAML editor.", "error");
-      } finally {
-        if (!signal?.aborted) setIsLoading(false);
-      }
-    },
-    [showToast],
-  );
+  useEffect(() => {
+    if (loadError) showToast(loadError, "error");
+  }, [loadError, showToast]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    let retries = 0;
+    if (loadNotice) showToast(loadNotice);
+  }, [loadNotice, showToast]);
 
-    if (hasYamlRuntime()) {
-      void loadLocaleDocument(locale, controller.signal);
-      return () => controller.abort();
-    }
+  function handleLocaleSwitch(nextLocale: string) {
+    if (nextLocale === locale || isBusy) return;
+    setActiveLocale(nextLocale);
+  }
 
-    const timer = window.setInterval(() => {
-      retries += 1;
-      if (hasYamlRuntime() || retries >= 40) {
-        window.clearInterval(timer);
-        if (controller.signal.aborted) return;
-        if (!hasYamlRuntime()) {
-          showToast("YAML parser is unavailable. Reload the page.", "error");
-          setIsLoading(false);
-          return;
-        }
-        void loadLocaleDocument(locale, controller.signal);
-      }
-    }, 100);
-
-    return () => {
-      controller.abort();
-      window.clearInterval(timer);
+  useEffect(() => {
+    if (!isAnyDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
     };
-  }, [loadLocaleDocument, locale, showToast]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadLanguages() {
-      try {
-        const response = await fetch("/api/resume/languages?withDocuments=true");
-        const payload = (await response.json()) as ApiLanguagesResponse;
-        if (mounted && payload.languages?.length) {
-          const sorted = sortLanguageRows(payload.languages);
-          setLanguageOptions(sorted);
-          setDefaultLocale(sorted.find((language) => language.is_default)?.code || sorted[0]?.code || "en");
-        }
-      } catch {
-        if (mounted) {
-          showToast("Language list could not be refreshed.", "warning");
-        }
-      }
-    }
-
-    void loadLanguages();
-    return () => {
-      mounted = false;
-    };
-  }, [showToast]);
-
-  useEffect(() => {
-    if (!isDirty) return;
-    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
-
-  const deferredYaml = useDeferredValue(yamlPanel);
-
-  useEffect(() => {
-    if (!deferredYaml || !hasYamlRuntime()) return;
-    try {
-      const parsed = parseYamlToResumeDocument(deferredYaml, actor?.displayName ?? "");
-      const localValidation = validateResumeDocument(parsed);
-      if (localValidation.valid) {
-        setResume(parsed);
-        setYamlError(null);
-      } else {
-        setYamlError(localValidation.errors.join(" "));
-      }
-    } catch (err) {
-      setYamlError(err instanceof Error ? err.message : "Invalid YAML");
-    }
-  }, [deferredYaml, actor?.displayName]);
-
-  async function saveLanguageVersion() {
-    if (!/^[a-z]{2}$/.test(normalizedNewLanguageCode)) {
-      showToast("Use a two-letter language code.", "error");
-      return;
-    }
-    if (!newLanguageLabel.trim()) {
-      showToast("Language name is required.", "error");
-      return;
-    }
-    if (!/^[A-Z]{2}$/.test(normalizedNewLanguageShortLabel)) {
-      showToast("Short label must contain two letters.", "error");
-      return;
-    }
-    if (!editingLanguageCode && languageOptions.some((language) => language.code === normalizedNewLanguageCode)) {
-      showToast("This language already exists.", "error");
-      return;
-    }
-
-    setIsSavingLanguage(true);
-    const response = await fetch("/api/resume/languages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code: normalizedNewLanguageCode,
-        label: newLanguageLabel.trim(),
-        shortLabel: normalizedNewLanguageShortLabel,
-        createDocument: true,
-      }),
-    });
-    const payload = (await response.json()) as ApiLanguagePostResponse;
-    setIsSavingLanguage(false);
-    if (!response.ok || payload.error) {
-      showToast(payload.error || "Language version save failed.", "error");
-      return;
-    }
-    await refreshLanguages();
-    setIsLanguageModalOpen(false);
-    setEditingLanguageCode(null);
-    setNewLanguageCode("");
-    setNewLanguageLabel("");
-    setNewLanguageShortLabel("");
-    setLocale(normalizedNewLanguageCode as ResumeLocale);
-    showToast(editingLanguageCode ? "Language version updated." : "Language version created.");
-  }
-
-  async function setDefaultLanguage(code: ResumeLocale) {
-    const response = await fetch("/api/resume/languages", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, setDefault: true }),
-    });
-    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale };
-    if (!response.ok || payload.error) {
-      showToast(payload.error || "Default language update failed.", "error");
-      return;
-    }
-    await refreshLanguages();
-    setDefaultLocale(payload.defaultLocale || code);
-    showToast("Default language updated.");
-  }
-
-  async function deleteLanguageVersion(code: ResumeLocale) {
-    const response = await fetch("/api/resume/languages", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
-    });
-    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale };
-    if (!response.ok || payload.error) {
-      showToast(payload.error || "Language version delete failed.", "error");
-      return;
-    }
-    await refreshLanguages();
-    if (locale === code) {
-      const fallback = payload.defaultLocale || languageOptions.find((language) => language.code !== code)?.code || "en";
-      setLocale(fallback as ResumeLocale);
-    }
-    showToast("Language version deleted.");
-  }
-
-  function handleLocaleSwitch(nextLocale: ResumeLocale) {
-    if (nextLocale === locale || isBusy) {
-      return;
-    }
-    setLocale(nextLocale);
-  }
+  }, [isAnyDirty]);
 
   function handleYamlChange(value: string) {
-    setYamlPanel(value);
-  }
-
-  function updateResumeFromHuman(nextResume: ResumeDocument) {
-    setResume(nextResume);
-    try {
-      setYamlPanel(serializeResumeToYaml(nextResume));
-    } catch {
-      // Silent catch for auto-sync to YAML
-    }
+    updateActiveYaml(value);
   }
 
   function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name">, value: string) {
@@ -530,18 +222,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     updateResumeFromHuman({ ...resume, courses: next });
   }
 
-
-
   async function resetToTemplate() {
-    if (yamlPanel.trim() && !window.confirm("This will replace your current YAML with the template. Continue?")) {
-      return;
-    }
     try {
-      const template = await fetchText(TEMPLATE_PATH);
-      setYamlPanel(template);
-      const parsed = parseYamlToResumeDocument(template, actor?.displayName || "");
-      setResume(parsed);
-      showToast("Template YAML loaded.");
+      const applied = await resetActiveToTemplate();
+      if (applied) showToast("Template YAML loaded.");
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Template load failed.", "error");
     }
@@ -564,71 +248,40 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   }
 
   async function publishResume(targetIsPublic: boolean) {
-    if (!validation.valid) {
-      showToast(validation.errors.join(" "), "warning");
-      return;
-    }
     setIsBusy(true);
     showToast(targetIsPublic ? "Publishing resume..." : "Saving unpublished version...");
-
-    const response = await fetch("/api/resume/publish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        locale,
-        yamlContent: yamlPanel,
-        title: resume.name ? `${resume.name} - Master resume` : "Master resume",
-        isPublic: targetIsPublic,
-        allowIndexing,
-        aiGenerated,
-        changeNote: targetIsPublic ? (changeNote || "Published update") : (changeNote || "Unpublished save"),
-      }),
-    });
-    const payload = (await response.json()) as ApiDocumentResponse;
-    if (!response.ok || payload.error || !payload.document) {
-      showToast(payload.error || "Operation failed.", "error");
+    try {
+      const result = await saveAllDirty({ targetIsPublic, changeNote });
+      if (result.failed.length === 0) {
+        showToast(
+          targetIsPublic
+            ? `Resume published (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`
+            : `Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`,
+        );
+      } else if (result.succeeded.length === 0) {
+        showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error");
+      } else {
+        showToast(
+          `Saved ${result.succeeded.length}, failed ${result.failed.length}: ${result.failed.map((entry) => entry.message).join(" ")}`,
+          "warning",
+        );
+      }
+    } finally {
       setIsBusy(false);
-      return;
     }
-
-    setDocumentRow(payload.document);
-    setRevisions(payload.revisions || []);
-    showToast(targetIsPublic ? "Resume published. New revision created." : "Unpublished version saved.");
-    setIsBusy(false);
   }
 
   async function rollbackToRevision(revisionNumber: number) {
-    if (!documentRow) return;
     setIsBusy(true);
     showToast(`Rolling back to revision ${revisionNumber}...`);
-
-    const response = await fetch("/api/resume/rollback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        locale,
-        documentId: documentRow.id,
-        revisionNumber,
-      }),
-    });
-    const payload = (await response.json()) as ApiDocumentResponse;
-    if (!response.ok || payload.error || !payload.document) {
-      showToast(payload.error || "Rollback failed.", "error");
-      setIsBusy(false);
-      return;
-    }
-
-    setDocumentRow(payload.document);
-    setRevisions(payload.revisions || []);
-    setYamlPanel(payload.document.yaml_content);
     try {
-      const parsed = parseYamlToResumeDocument(payload.document.yaml_content, actor?.displayName || "");
-      setResume(parsed);
-    } catch {
-      // Should not happen for a saved revision
+      await rollbackActiveToRevision(revisionNumber);
+      showToast(`Rollback complete. Current document now matches revision ${revisionNumber}.`);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Rollback failed.", "error");
+    } finally {
+      setIsBusy(false);
     }
-    setIsBusy(false);
-    showToast(`Rollback complete. Current document now matches revision ${revisionNumber}.`);
   }
 
   return (
@@ -637,136 +290,29 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         <div>
           <h1>Master Resume Editor</h1>
         </div>
-        <div className="resume-editor-shell__locale-switch">
-          {languageOptions.map((language) => (
-            <button
-              key={language.code}
-              type="button"
-              className={`button button--ghost ${locale === language.code ? "is-active" : ""}`}
-              onClick={() => void handleLocaleSwitch(language.code)}
-              disabled={isBusy || isLoading}
-            >
-              {language.short_label}
-            </button>
-          ))}
-          <button type="button" className="button button--ghost" onClick={() => setIsLanguageModalOpen(true)} disabled={isBusy || isLoading} aria-label="Add language version">
-            +
-          </button>
-        </div>
       </header>
 
       <StatusToast toast={toast} onClose={closeToast} />
-      {isLanguageModalOpen ? (
-        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={editingLanguageCode ? `Edit language version ${editingLanguageCode}` : "Add language version"}>
-          <button type="button" className="dashboard-modal__backdrop" onClick={() => setIsLanguageModalOpen(false)} aria-label="Close language version modal"></button>
-          <div className={`dashboard-modal__body${editingLanguageCode ? " is-editing" : ""}`}>
-            <div className="section-row">
-              <h2>{editingLanguageCode ? "Edit language version" : "Add language version"}</h2>
-              <button type="button" className="button button--ghost button--small" onClick={() => setIsLanguageModalOpen(false)}>
-                Close
-              </button>
-            </div>
-            <p className="card-lead">
-              Selected now:{" "}
-              <strong>{languageOptions.find((language) => language.code === locale)?.short_label || locale.toUpperCase()}</strong>
-            </p>
-            <label>
-              Code
-              <input value={newLanguageCode} onChange={(event) => setNewLanguageCode(event.target.value)} placeholder="de" maxLength={8} />
-            </label>
-            <label>
-              Language name
-              <input value={newLanguageLabel} onChange={(event) => setNewLanguageLabel(event.target.value)} placeholder="Deutsch" />
-            </label>
-            <label>
-              Short label
-              <input
-                value={newLanguageShortLabel}
-                onChange={(event) => setNewLanguageShortLabel(event.target.value)}
-                placeholder={normalizedNewLanguageShortLabel || "DE"}
-                maxLength={4}
-              />
-            </label>
-            <section className="stack">
-              <h3>Versions</h3>
-              <p className="card-lead">{languageOptions.length} configured languages</p>
-              <ul className="language-versions__list">
-                {languageOptions.map((language) => (
-                  <li key={language.code}>
-                    <div className="language-versions__identity">
-                      <span>{language.short_label}</span>
-                      <div>
-                        <strong>{language.label}</strong>
-                        <p>{language.code}</p>
-                      </div>
-                    </div>
-                    <div className="language-versions__meta">
-                      {language.code === locale && language.code !== defaultLocale ? (
-                        <span className="dashboard-resume-list__badge">Selected</span>
-                      ) : null}
-                      {language.code === defaultLocale ? <span className="dashboard-resume-list__badge">Default</span> : null}
-                    </div>
-                    <div className="dashboard-resume-list__actions">
-                      <div className="actions-row">
-                        <button
-                          type="button"
-                          className="button button--ghost button--small"
-                          onClick={() => void setDefaultLanguage(language.code)}
-                          disabled={language.code === defaultLocale}
-                        >
-                          Set default
-                        </button>
-                        <button
-                          type="button"
-                          className="button button--ghost button--small"
-                          onClick={() => {
-                            setEditingLanguageCode(language.code);
-                            setNewLanguageCode(language.code);
-                            setNewLanguageLabel(language.label);
-                            setNewLanguageShortLabel(language.short_label);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </div>
-                      <div className="dashboard-resume-list__delete-separator">
-                        <button
-                          type="button"
-                          className="button button--ghost button--small button--icon button--danger"
-                          aria-label={`Delete language version ${language.label}`}
-                          title="Delete language version"
-                          onClick={() => void deleteLanguageVersion(language.code)}
-                        >
-                          <TrashIcon />
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <div className="actions-row">
-              <button type="button" className="button button--primary" onClick={() => void saveLanguageVersion()} disabled={isSavingLanguage}>
-                {isSavingLanguage ? "Saving..." : editingLanguageCode ? "Save changes" : "Create version"}
-              </button>
-              {editingLanguageCode ? (
-                <button
-                  type="button"
-                  className="button button--ghost"
-                  onClick={() => {
-                    setEditingLanguageCode(null);
-                    setNewLanguageCode("");
-                    setNewLanguageLabel("");
-                    setNewLanguageShortLabel("");
-                  }}
-                >
-                  Cancel edit
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <LanguageVersionModal
+        isOpen={isLanguageModalOpen}
+        activeLocale={locale}
+        defaultLocale={defaultLocale}
+        languageOptions={languageOptions}
+        onClose={() => setIsLanguageModalOpen(false)}
+        onSave={async (input, editingCode) => {
+          await saveLanguageVersion(input, editingCode);
+          showToast(editingCode ? "Language version updated." : "Language version created.");
+        }}
+        onSetDefault={async (code) => {
+          await setDefaultLanguage(code);
+          showToast("Default language updated.");
+        }}
+        onDelete={async (code) => {
+          await deleteLanguageVersion(code);
+          showToast("Language version deleted.");
+        }}
+        onError={(message) => showToast(message, "error")}
+      />
 
       <div className="resume-editor-edit-section">
         <h2 className="resume-editor-section-heading">Edit your CV</h2>
@@ -808,6 +354,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
             {editorTab === "yaml" ? (
               <div className="stack">
+                <LocaleTabStrip
+                  variant="yaml"
+                  languageOptions={languageOptions}
+                  activeLocale={locale}
+                  defaultLocale={defaultLocale}
+                  dirtyLocales={dirtyLocales}
+                  errorLocales={errorLocales}
+                  disabled={isBusy || isLoading}
+                  onSelect={handleLocaleSwitch}
+                  onManageLanguages={() => setIsLanguageModalOpen(true)}
+                />
                 <textarea
                   className="resume-editor-yaml"
                   spellCheck={false}
@@ -823,20 +380,36 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                     el.setSelectionRange(start + 2, start + 2);
                     handleYamlChange(next);
                   }}
-                  disabled={isLoading}
+                  disabled={isLoading || isBusy}
                 />
                 {yamlError && <p className="resume-editor-yaml__error">{yamlError}</p>}
                 <div className="actions-row">
-                  <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading}>
+                  <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading || isBusy}>
                     Load template
                   </button>
                   <button type="button" className="button button--ghost" onClick={exportYamlFile}>
                     Download YAML
                   </button>
+                  <button type="button" className="button button--ghost" onClick={() => setIsLanguageModalOpen(true)}>
+                    Languages
+                  </button>
                 </div>
               </div>
             ) : (
               <div className="resume-human-editor">
+                <LocaleTabStrip
+                  variant="human"
+                  languageOptions={languageOptions}
+                  activeLocale={locale}
+                  defaultLocale={defaultLocale}
+                  dirtyLocales={dirtyLocales}
+                  errorLocales={errorLocales}
+                  showManageTrigger
+                  disabled={isBusy || isLoading}
+                  onSelect={handleLocaleSwitch}
+                  onManageLanguages={() => setIsLanguageModalOpen(true)}
+                />
+                <fieldset className="resume-human-editor__fieldset" disabled={isBusy}>
                 <section className="resume-human-editor__section">
                   <h3>Core</h3>
                   <div className="resume-human-editor__grid">
@@ -1076,6 +649,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                     </div>
                   ))}
                 </section>
+                </fieldset>
               </div>
             )}
           </section>
@@ -1114,11 +688,11 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
           <input value={changeNote} onChange={(event) => setChangeNote(event.target.value)} />
         </label>
         <label className="checkbox-row">
-          <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
+          <input type="checkbox" checked={allowIndexing} onChange={(event) => setActiveAllowIndexing(event.target.checked)} />
           Allow indexing
         </label>
         <label className="checkbox-row">
-          <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
+          <input type="checkbox" checked={aiGenerated} onChange={(event) => setActiveAiGenerated(event.target.checked)} />
           Mark as AI generated
         </label>
         <div className="actions-row">
@@ -1160,4 +734,3 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     </section>
   );
 }
-

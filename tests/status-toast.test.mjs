@@ -58,7 +58,7 @@ test("destructive and warning statuses are routed to the expected toast variants
 
   assert.equal(dashboard.includes('showToast("CV Version deleted.", "error")'), true);
   assert.equal(admin.includes('showToast("User deleted.", "error")'), true);
-  assert.equal(editor.includes('showToast("Language list could not be refreshed.", "warning")'), true);
+  assert.equal(editor.includes('showToast(loadError, "error")'), true);
   assert.equal(editor.includes('showToast("Language version deleted.")'), true);
   assert.equal(
     login.includes('const contextualVariant = reason === "account_deleted" ? "success" : contextualMessage ? "warning" : "success";'),

@@ -64,21 +64,23 @@ test("phase D client supports summary list defaults in HFE and preview", () => {
 });
 
 test("phase D client migrates legacy YAML summary while loading editor drafts", () => {
-  const source = read("app/master-resume/editor-canvas-client.tsx");
+  const hook = read("app/master-resume/use-multi-locale-resume-documents.ts");
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
   const schema = read("app/lib/resume-schema.ts");
 
-  assert.equal(source.includes("normalizeYamlForEditor"), true);
-  assert.equal(source.includes("Legacy summary migrated to list format."), true);
+  assert.equal(hook.includes("normalizeYamlForEditor"), true);
+  assert.equal(hook.includes("Legacy summary migrated to list format."), true);
+  assert.equal(editor.includes("showToast(loadNotice)"), true);
   assert.equal(schema.includes("row.default"), true);
 });
 
 test("phase D client keeps loaded YAML in panel and preserves publish status", () => {
-  const source = read("app/master-resume/editor-canvas-client.tsx");
+  const hook = read("app/master-resume/use-multi-locale-resume-documents.ts");
 
-  assert.equal(source.includes("let nextYamlPanel = payload.document?.yaml_content ||"), true);
-  assert.equal(source.includes("setYamlPanel(nextYamlPanel)"), true);
-  assert.equal(source.includes("setAllowIndexing(payload.document.allow_indexing)"), true);
-  assert.equal(source.includes("setAiGenerated(payload.document.ai_generated)"), true);
+  assert.equal(hook.includes("let yamlContent = documentRow?.yaml_content ||"), true);
+  assert.equal(hook.includes("yamlPanel: yamlContent,"), true);
+  assert.equal(hook.includes("allowIndexing: documentRow?.allow_indexing ?? false,"), true);
+  assert.equal(hook.includes("aiGenerated: documentRow?.ai_generated ?? false,"), true);
 });
 
 test("phase D server rejects publish/rollback success when RPC calls fail", () => {
