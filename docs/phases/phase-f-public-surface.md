@@ -55,11 +55,10 @@ All Phase F architectural contracts are documented:
 - [x] Reorganize documentation for better tracking
 - [x] Create Lukasz Michta's own public CV snapshot
 - [x] Publish on canonical route (live example for new users)
-- [ ] Verify SEO metadata renders correctly
 - [x] Adjust Landing page to project start
 - [ ] Create first login user profile creator
 - [x] Make a foundation for profiles information
-- [ ] Fix locale creator and workflow
+- [x] Fix locale creator and workflow
 - [ ] Improve the user experience
 - [ ] Prepare onboarding materials for beta users (how to use editor, publish, share)
 - [ ] Announce private beta sign-ups to tech writer communities

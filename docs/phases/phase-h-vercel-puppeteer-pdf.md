@@ -98,6 +98,10 @@ Move infrastructure to Vercel while keeping PDF engine as react-pdf (fallback).
 - [ ] **Validation on Vercel preview**:
   - [ ] All routes resolve: `/login`, `/dashboard`, `/admin`, `/master-resume`, `/user`
   - [ ] Public CV route `/{person-slug}/{public-id}` renders correctly
+  - [ ] Verify SEO metadata renders correctly (canonical, hreflang, robots, OpenGraph
+        incl. `og:image`, Twitter Card, JSON-LD) — moved from Phase F; as of
+        2026-06-30 `og:image` and Twitter Card tags are still missing from
+        `generateMetadata` in `app/[personSlug]/[publicId]/page.tsx`
   - [ ] Compatibility route `/r/{slug}` redirects to canonical
   - [ ] Legacy `.html` redirects work
   - [ ] Auth flow: signup → verify → signin → signout
