@@ -1127,135 +1127,14 @@ a {
   display: grid;
   gap: 1.25rem;
   margin-inline: auto;
-  align-items: center;
+  margin-top: 10px;
+  align-items: start;
   min-height: calc(100vh - 84px);
 }
 
 .auth-access__card {
-  position: relative;
-  z-index: 1;
   min-width: 0;
   width: 100%;
-}
-
-/* Decorative only (aria-hidden): a large, heavily blurred echo of the sample-CV
-   frame from the landing page, fixed behind the centered card as ambience.
-   Static markup, no data, no network request. */
-.auth-visual {
-  display: none;
-}
-
-@media (min-width: 700px) {
-  .auth-visual {
-    display: flex;
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-}
-
-.auth-visual__frame {
-  width: min(760px, 82vw);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(94, 106, 210, 0.4), transparent 58%),
-    linear-gradient(315deg, rgba(0, 156, 138, 0.32), transparent 58%),
-    var(--portal-card-bg-muted);
-  box-shadow:
-    0 40px 120px rgba(94, 106, 210, 0.28),
-    0 0 160px rgba(0, 156, 138, 0.14);
-  filter: blur(24px);
-  opacity: 0.9;
-}
-
-.auth-visual__chrome {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: 10px var(--space-sm);
-  border-bottom: 1px solid var(--portal-border);
-  background: var(--portal-surface-ghost);
-}
-
-.auth-visual__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--portal-border-hover);
-}
-
-.auth-visual__label {
-  margin-left: var(--space-xs);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.02em;
-  color: var(--portal-foreground-subtle);
-}
-
-.auth-visual__body {
-  padding: var(--space-xl);
-  display: grid;
-  gap: var(--space-md);
-}
-
-.auth-visual__avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--brand-teal), var(--portal-accent));
-  opacity: 0.75;
-}
-
-.auth-visual__bar {
-  height: 11px;
-  border-radius: var(--radius-sm);
-  background: var(--portal-surface-hover);
-}
-
-.auth-visual__bar--title {
-  width: 55%;
-  height: 15px;
-  margin-top: var(--space-sm);
-}
-
-.auth-visual__bar--subtitle {
-  width: 34%;
-  background: var(--portal-border-hover);
-}
-
-.auth-visual__lines {
-  display: grid;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
-}
-
-.auth-visual__lines .auth-visual__bar:nth-child(2) {
-  width: 86%;
-}
-
-.auth-visual__lines .auth-visual__bar:nth-child(3) {
-  width: 70%;
-}
-
-.auth-visual__chips {
-  display: flex;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
-}
-
-.auth-visual__chip {
-  width: 64px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  background: var(--portal-surface-hover);
-}
-
-.auth-visual__chip:first-child {
-  background: color-mix(in oklch, var(--brand-teal) 35%, transparent);
 }
 
 .auth-card__title {
@@ -2610,6 +2489,16 @@ a {
 .resume-preview-frame__scroller {
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+@media (min-width: 900px) {
+  .app-main .auth-access {
+    width: min(460px, 100%);
+  }
+
+  .auth-access__card {
+    position: static;
+  }
 }
 
 @media (min-width: 960px) {
