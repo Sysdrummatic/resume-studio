@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function SampleResumePage() {
   return (
-    <main className="container pb-8">
+    <main className="container pb-8 cv-domain-page">
       <ResumeViewClient />
     </main>
   );

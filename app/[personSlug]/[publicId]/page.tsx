@@ -109,7 +109,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
   const publicResumeJsonLd = buildPublicResumeJsonLd(published, canonicalUrl);
 
   return (
-    <main className="container pb-8 public-resume-route">
+    <main className="container pb-8 public-resume-route cv-domain-page">
       {allowIndexing ? (
         <script
           type="application/ld+json"

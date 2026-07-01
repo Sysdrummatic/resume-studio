@@ -580,6 +580,15 @@ a {
   box-shadow: 0 1px 0 var(--portal-border);
 }
 
+/* CV domain (/resume, /[personSlug]/[publicId]) swaps to a bright, near-white
+   canvas right under the dark sticky header. This deepens the header's own
+   shadow only on those routes so the seam reads as intentional elevation,
+   not a hard cutoff. Scoped via the .cv-domain-page marker on <main>; the CV
+   renderer itself (app/resume/resume.css) is untouched. */
+.app-header:has(~ .app-main .cv-domain-page) {
+  box-shadow: 0 1px 0 var(--portal-border), 0 18px 28px -14px rgba(0, 0, 0, 0.4);
+}
+
 .app-header__inner {
   display: flex;
   align-items: center;
