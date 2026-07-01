@@ -586,6 +586,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                 setIsModalOpen(true);
               }}
               disabled={!hasMasterResume}
+              title={hasMasterResume ? undefined : "Create your master resume first, then come back to add a CV version."}
             >
               Create CV version
             </button>
@@ -620,8 +621,30 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
         </div>
         {presets.length === 0 ? (
           <div className="dashboard-empty-state">
-            <h3>No CV versions yet</h3>
-            <p>Create the first public variant from the master resume, then publish locale-specific output from here.</p>
+            {hasMasterResume ? (
+              <>
+                <h3>No CV versions yet</h3>
+                <p>Create the first public variant from the master resume, then publish locale-specific output from here.</p>
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={() => {
+                    setActivePreset(null);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  Create CV version
+                </button>
+              </>
+            ) : (
+              <>
+                <h3>Start with your master resume</h3>
+                <p>CV versions are published combinations of your master resume. Fill it in first, then come back to create one.</p>
+                <Link className="button button--primary" href="/master-resume">
+                  Edit master resume
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <ul className="dashboard-resume-list">
