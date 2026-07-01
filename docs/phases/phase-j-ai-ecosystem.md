@@ -41,6 +41,7 @@ Phase J is a post-core-delivery workstream. After Phase I launches the product, 
 - [ ] Editor UI with loading state and error handling
 - [ ] "Generated with AI" badge on preview
 - [ ] Tests for unauthorized access, quota exhaustion, schema validation
+- [ ] Create first login user profile creator
 
 **Timeline**: 3–4 weeks (after Phase I)  
 **Implementation Plan**: [docs/guides/ai-demo-resume-generation-plan.md](../guides/features/ai-demo-resume-generation-plan.md)
