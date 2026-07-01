@@ -445,6 +445,32 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
           </p>
         ) : null}
       </section>
+
+      <aside className="auth-visual" aria-hidden="true">
+        <div className="auth-visual__frame">
+          <div className="auth-visual__chrome">
+            <span className="auth-visual__dot" />
+            <span className="auth-visual__dot" />
+            <span className="auth-visual__dot" />
+            <span className="auth-visual__label">yourname.opencivera.app</span>
+          </div>
+          <div className="auth-visual__body">
+            <div className="auth-visual__avatar" />
+            <div className="auth-visual__bar auth-visual__bar--title" />
+            <div className="auth-visual__bar auth-visual__bar--subtitle" />
+            <div className="auth-visual__lines">
+              <div className="auth-visual__bar" />
+              <div className="auth-visual__bar" />
+              <div className="auth-visual__bar" />
+            </div>
+            <div className="auth-visual__chips">
+              <div className="auth-visual__chip" />
+              <div className="auth-visual__chip" />
+              <div className="auth-visual__chip" />
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }
