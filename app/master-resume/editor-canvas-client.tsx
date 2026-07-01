@@ -30,6 +30,20 @@ const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
   { code: "empty", label: "empty" },
 ];
 
+const HFE_SECTION_NAV = [
+  { id: "hfe-core", label: "Core" },
+  { id: "hfe-summary", label: "Summary" },
+  { id: "hfe-contact", label: "Contact" },
+  { id: "hfe-qr-codes", label: "QR codes" },
+  { id: "hfe-skills", label: "Skills" },
+  { id: "hfe-tech-stack", label: "Tech stack" },
+  { id: "hfe-languages", label: "Languages" },
+  { id: "hfe-interests", label: "Interests" },
+  { id: "hfe-experience", label: "Experience" },
+  { id: "hfe-education", label: "Education" },
+  { id: "hfe-courses", label: "Courses" },
+] as const;
+
 export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
   const searchParams = useSearchParams();
   const requestedPanel = searchParams.get("panel");
@@ -75,6 +89,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [changeNote, setChangeNote] = useState("Publish update");
+  // Rarely-used sections start collapsed for a new resume, but stay expanded
+  // once the user has actually put something in them.
+  const [isQrCodesOpen, setIsQrCodesOpen] = useState(() => resume.qr_codes.length > 0);
+  const [isCoursesOpen, setIsCoursesOpen] = useState(() => resume.courses.length > 0);
 
   useEffect(() => {
     if (requestedPanel === "languages") {
@@ -409,8 +427,15 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   onSelect={handleLocaleSwitch}
                   onManageLanguages={() => setIsLanguageModalOpen(true)}
                 />
+                <nav className="resume-human-editor__jumpnav" aria-label="Jump to section">
+                  {HFE_SECTION_NAV.map((section) => (
+                    <a key={section.id} href={`#${section.id}`} className="resume-human-editor__jumpnav-link">
+                      {section.label}
+                    </a>
+                  ))}
+                </nav>
                 <fieldset className="resume-human-editor__fieldset" disabled={isBusy}>
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-core">
                   <h3>Core</h3>
                   <div className="resume-human-editor__grid">
                     <label>
@@ -424,7 +449,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   </div>
                 </section>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-summary">
                   <div className="section-row">
                     <h3>Summary</h3>
                     <button
@@ -480,7 +505,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   })}
                 </section>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-contact">
                   <div className="section-row">
                     <h3>Contact</h3>
                     <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("contact", { label: "", value: "", link: "" })}>
@@ -502,26 +527,35 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   ))}
                 </section>
 
-                <section className="resume-human-editor__section">
-                  <div className="section-row">
+                <details
+                  className="resume-human-editor__section resume-human-editor__section--collapsible"
+                  id="hfe-qr-codes"
+                  open={isQrCodesOpen}
+                  onToggle={(event) => setIsQrCodesOpen(event.currentTarget.open)}
+                >
+                  <summary className="section-row">
                     <h3>QR codes</h3>
-                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("qr_codes", { label: "", image: "", size: 130 })}>
-                      + Add
-                    </button>
-                  </div>
-                  {resume.qr_codes.map((item, index) => (
-                    <div className="resume-human-editor__row" key={`qr-${index}`}>
-                      <input placeholder="Label" value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
-                      <input placeholder="Image path" value={item.image} onChange={(event) => updateQrCode(index, "image", event.target.value)} />
-                      <input type="number" min={1} placeholder="Size" value={item.size} onChange={(event) => updateQrCode(index, "size", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
-                        Remove
+                  </summary>
+                  <div className="resume-human-editor__section-body">
+                    <div className="actions-row">
+                      <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("qr_codes", { label: "", image: "", size: 130 })}>
+                        + Add
                       </button>
                     </div>
-                  ))}
-                </section>
+                    {resume.qr_codes.map((item, index) => (
+                      <div className="resume-human-editor__row" key={`qr-${index}`}>
+                        <input placeholder="Label" value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
+                        <input placeholder="Image path" value={item.image} onChange={(event) => updateQrCode(index, "image", event.target.value)} />
+                        <input type="number" min={1} placeholder="Size" value={item.size} onChange={(event) => updateQrCode(index, "size", event.target.value)} />
+                        <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </details>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-skills">
                   <div className="section-row">
                     <h3>Skills</h3>
                     <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
@@ -539,7 +573,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   ))}
                 </section>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-tech-stack">
                   <div className="section-row">
                     <h3>Tech stack</h3>
                     <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("tech_stack", "")}>
@@ -556,7 +590,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   ))}
                 </section>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-languages">
                   <div className="section-row">
                     <h3>Languages</h3>
                     <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
@@ -575,7 +609,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   ))}
                 </section>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-interests">
                   <div className="section-row">
                     <h3>Interests</h3>
                     <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("interests", "")}>
@@ -592,7 +626,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   ))}
                 </section>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-experience">
                   <div className="section-row">
                     <h3>Experience</h3>
                     <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("experience", { period: "", company: "", role: "", highlights: [] })}>
@@ -612,7 +646,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   ))}
                 </section>
 
-                <section className="resume-human-editor__section">
+                <section className="resume-human-editor__section" id="hfe-education">
                   <div className="section-row">
                     <h3>Education</h3>
                     <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("education", { period: "", school: "", degree: "", detail: "" })}>
@@ -632,23 +666,32 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                   ))}
                 </section>
 
-                <section className="resume-human-editor__section">
-                  <div className="section-row">
+                <details
+                  className="resume-human-editor__section resume-human-editor__section--collapsible"
+                  id="hfe-courses"
+                  open={isCoursesOpen}
+                  onToggle={(event) => setIsCoursesOpen(event.currentTarget.open)}
+                >
+                  <summary className="section-row">
                     <h3>Courses</h3>
-                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
-                      + Add
-                    </button>
-                  </div>
-                  {resume.courses.map((item, index) => (
-                    <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
-                      <input type="number" min={0} placeholder="Year" value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
-                      <input placeholder="Course name" value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
-                        Remove
+                  </summary>
+                  <div className="resume-human-editor__section-body">
+                    <div className="actions-row">
+                      <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
+                        + Add
                       </button>
                     </div>
-                  ))}
-                </section>
+                    {resume.courses.map((item, index) => (
+                      <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
+                        <input type="number" min={0} placeholder="Year" value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
+                        <input placeholder="Course name" value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
+                        <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </details>
                 </fieldset>
               </div>
             )}

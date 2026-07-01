@@ -538,13 +538,14 @@ a {
 .public-view-badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--chip-padding-y) var(--chip-padding-x);
+  padding: calc(var(--chip-padding-y) * 0.7) calc(var(--chip-padding-x) * 0.8);
   border-radius: 999px;
   background: var(--accent-light);
   color: var(--accent-dark);
-  font-size: var(--chip-font-size);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: calc(var(--chip-font-size) - 2px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -1912,11 +1913,65 @@ a {
   border-radius: 16px;
   padding: 1.25rem;
   background: var(--portal-card-bg-muted);
+  scroll-margin-top: 3.25rem;
 }
 
 .resume-human-editor__section h3 {
   margin: 0;
   font-size: 0.95rem;
+}
+
+.resume-human-editor__section--collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+.resume-human-editor__section--collapsible summary {
+  padding: 1.25rem;
+  cursor: pointer;
+  list-style: revert;
+}
+
+.resume-human-editor__section--collapsible summary::marker {
+  color: var(--portal-foreground-muted);
+}
+
+.resume-human-editor__section--collapsible summary h3 {
+  display: inline;
+}
+
+.resume-human-editor__section-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.resume-human-editor__jumpnav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border: 1px solid var(--portal-border);
+  border-radius: 12px;
+  background: var(--portal-bg-elevated);
+}
+
+.resume-human-editor__jumpnav-link {
+  padding: 0.3rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--motion-settle) var(--ease-out-expo), background var(--motion-settle) var(--ease-out-expo);
+}
+
+.resume-human-editor__jumpnav-link:hover,
+.resume-human-editor__jumpnav-link:focus-visible {
+  color: var(--text);
+  background: var(--portal-surface-hover);
 }
 
 .resume-human-editor__grid,
