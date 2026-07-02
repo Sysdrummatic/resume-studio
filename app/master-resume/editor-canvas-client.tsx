@@ -724,7 +724,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         </div>
       </div>
 
-      <section className="stack resume-editor-panel">
+      <section className="card stack resume-editor-panel">
         <h2>Publish</h2>
         <label>
           Change note
@@ -748,7 +748,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         </div>
       </section>
 
-      <section className="stack resume-editor-panel">
+      <section className="card stack resume-editor-panel">
         <h2>Revision history</h2>
         {revisions.length === 0 ? (
           <p className="cv-preview__placeholder">No revisions yet.</p>
