@@ -58,7 +58,7 @@ All Phase F architectural contracts are documented:
 - [x] Adjust Landing page to project start
 - [x] Make a foundation for profiles information
 - [x] Fix locale creator and workflow
-- [ ] Improve the user experience
+- [x] Improve the user experience
 - [ ] Prepare onboarding materials for beta users (how to use editor, publish, share)
 - [ ] Announce private beta sign-ups to tech writer communities
 
