@@ -59,8 +59,6 @@ All Phase F architectural contracts are documented:
 - [x] Make a foundation for profiles information
 - [x] Fix locale creator and workflow
 - [x] Improve the user experience
-- [ ] Prepare onboarding materials for beta users (how to use editor, publish, share)
-- [ ] Announce private beta sign-ups to tech writer communities
 
 **Timeline**: End of May 2026  
 **Owner**: Product team  
