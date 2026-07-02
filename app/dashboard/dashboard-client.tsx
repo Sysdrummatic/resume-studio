@@ -392,6 +392,84 @@ function PresetPreviewModal({
   );
 }
 
+function PresetActionsMenu({
+  preset,
+  onEdit,
+  onTogglePublish,
+  onExportText,
+  onExportPdf,
+  onDelete,
+}: {
+  preset: ResumePresetRow;
+  onEdit: () => void;
+  onTogglePublish: () => void;
+  onExportText: () => void;
+  onExportPdf: () => void;
+  onDelete: () => void;
+}) {
+  const menuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (event.target instanceof Node && menuRef.current?.contains(event.target)) return;
+      if (menuRef.current) menuRef.current.open = false;
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && menuRef.current) menuRef.current.open = false;
+    }
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  function select(action: () => void) {
+    if (menuRef.current) menuRef.current.open = false;
+    action();
+  }
+
+  return (
+    <details className="dashboard-preset-menu" ref={menuRef}>
+      <summary
+        className="button button--ghost button--small button--icon"
+        aria-label={`CV Version settings for ${preset.title}`}
+        title="CV Version settings"
+      >
+        <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </summary>
+      <div className="dashboard-preset-menu__panel" role="menu">
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onEdit)}>
+          Edit
+        </button>
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onTogglePublish)}>
+          {preset.is_public ? "Unpublish" : "Publish"}
+        </button>
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onExportText)}>
+          ATS (TXT)
+        </button>
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onExportPdf)}>
+          PDF
+        </button>
+        <hr className="dashboard-preset-menu__separator" />
+        <button
+          type="button"
+          role="menuitem"
+          className="dashboard-preset-menu__item dashboard-preset-menu__item--danger"
+          aria-label={`Delete CV Version ${preset.title}`}
+          onClick={() => select(onDelete)}
+        >
+          Delete
+        </button>
+      </div>
+    </details>
+  );
+}
+
 export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets, draftPdfEnabled = true }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
@@ -400,6 +478,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
+  const [confirmDeletePreset, setConfirmDeletePreset] = useState<ResumePresetRow | null>(null);
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
   const documents = initialDocuments;
   const languageVersions = languageOptions;
@@ -667,72 +746,71 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                   </span>
                 </div>
                 <div className="dashboard-resume-list__actions">
-                  <div className="dashboard-resume-list__primary-actions">
-                    {preset.is_public ? (
-                      <button type="button" className="button button--primary button--small" onClick={() => setPreviewPreset(preset)}>
-                        Open CV
-                      </button>
-                    ) : (
-                      <button type="button" className="button button--primary button--small" onClick={() => openPublishSavedVersion(preset)}>
-                        Publish
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="button button--ghost button--small"
-                      onClick={() => {
-                        setActivePreset(preset);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      Edit
+                  <button type="button" className="button button--primary button--small" onClick={() => setPreviewPreset(preset)}>
+                    Open CV
+                  </button>
+                  {preset.is_public ? (
+                    <button type="button" className="button button--ghost button--small" onClick={() => copyPublicLink(preset)}>
+                      Copy link
                     </button>
-                  </div>
-                  <div className="dashboard-resume-list__secondary-actions">
-                    {!preset.is_public ? (
-                      <button type="button" className="button button--ghost button--small" onClick={() => setPreviewPreset(preset)}>
-                        Open CV
-                      </button>
-                    ) : null}
-                    {preset.is_public ? (
-                      <button type="button" className="button button--ghost button--small" onClick={() => void unpublishPreset(preset)}>
-                        Unpublish
-                      </button>
-                    ) : null}
-                    {preset.is_public && (
-                      <button type="button" className="button button--ghost button--small" onClick={() => copyPublicLink(preset)}>
-                        Copy link
-                      </button>
-                    )}
-                    <button type="button" className="button button--ghost button--small" onClick={() => exportText(preset)}>
-                      ATS (TXT)
-                    </button>
-                    <button type="button" className="button button--ghost button--small" onClick={() => exportPdf(preset)}>
-                      PDF
-                    </button>
-                    <button
-                      type="button"
-                      className="button button--ghost button--small button--icon button--danger"
-                      aria-label={`Delete CV Version ${preset.title}`}
-                      title="Delete CV Version"
-                      onClick={() => void deletePreset(preset)}
-                      disabled={deletingPresetId === preset.id}
-                    >
-                      <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6h18" />
-                        <path d="M8 6V4h8v2" />
-                        <path d="M19 6l-1 14H6L5 6" />
-                        <path d="M10 11v5" />
-                        <path d="M14 11v5" />
-                      </svg>
-                    </button>
-                  </div>
+                  ) : null}
+                  <PresetActionsMenu
+                    preset={preset}
+                    onEdit={() => {
+                      setActivePreset(preset);
+                      setIsModalOpen(true);
+                    }}
+                    onTogglePublish={() => {
+                      if (preset.is_public) {
+                        void unpublishPreset(preset);
+                      } else {
+                        openPublishSavedVersion(preset);
+                      }
+                    }}
+                    onExportText={() => exportText(preset)}
+                    onExportPdf={() => exportPdf(preset)}
+                    onDelete={() => setConfirmDeletePreset(preset)}
+                  />
                 </div>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      {confirmDeletePreset ? (
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Delete CV Version confirmation">
+          <button
+            type="button"
+            className="dashboard-modal__backdrop"
+            onClick={() => setConfirmDeletePreset(null)}
+            aria-label="Cancel delete"
+          ></button>
+          <div className="dashboard-modal__body dashboard-modal__body--compact">
+            <h2 className="dashboard-modal__title">Delete CV Version</h2>
+            <p className="dashboard-modal__copy">
+              This permanently deletes <strong>{confirmDeletePreset.title}</strong>
+              {confirmDeletePreset.is_public ? " and takes its public link offline" : ""}. This cannot be undone.
+            </p>
+            <div className="dashboard-modal__footer">
+              <button type="button" className="button" onClick={() => setConfirmDeletePreset(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="button button--danger"
+                disabled={deletingPresetId === confirmDeletePreset.id}
+                onClick={() => {
+                  const preset = confirmDeletePreset;
+                  void deletePreset(preset).then(() => setConfirmDeletePreset(null));
+                }}
+              >
+                {deletingPresetId === confirmDeletePreset.id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isModalOpen && masterResume ? (
         <PresetModal

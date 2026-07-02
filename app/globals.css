@@ -1496,6 +1496,9 @@ a {
 
 .dashboard-panel {
   gap: 1.25rem;
+  /* Let the per-row settings dropdown escape the card instead of being clipped
+     by the base .card { overflow: hidden }. */
+  overflow: visible;
 }
 
 .dashboard-panel__header {
@@ -2347,26 +2350,75 @@ a {
   justify-content: flex-end;
   gap: 0.55rem;
   flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 0.1rem;
-  scrollbar-width: thin;
 }
 
-.dashboard-resume-list__primary-actions,
-.dashboard-resume-list__secondary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  flex-wrap: nowrap;
-  flex: 0 0 auto;
+.dashboard-preset-menu {
+  position: relative;
+  flex-shrink: 0;
 }
 
-.dashboard-resume-list__primary-actions {
-  justify-content: flex-end;
+.dashboard-preset-menu summary {
+  list-style: none;
 }
 
-.dashboard-resume-list__secondary-actions {
-  justify-content: flex-end;
+.dashboard-preset-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.dashboard-preset-menu[open] summary {
+  border-color: var(--portal-border-accent);
+  background: var(--portal-control-bg-hover);
+}
+
+.dashboard-preset-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  min-width: 170px;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.45rem;
+  border: 1px solid var(--portal-border);
+  border-radius: 12px;
+  background: var(--portal-panel-bg);
+  box-shadow: var(--shadow-glass);
+  z-index: 1200;
+  backdrop-filter: blur(12px);
+}
+
+.dashboard-preset-menu__item {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dashboard-preset-menu__item:hover,
+.dashboard-preset-menu__item:focus-visible {
+  background: var(--portal-surface-ghost-strong);
+  color: var(--text);
+}
+
+.dashboard-preset-menu__item--danger {
+  color: var(--portal-danger-text);
+}
+
+.dashboard-preset-menu__item--danger:hover,
+.dashboard-preset-menu__item--danger:focus-visible {
+  background: var(--portal-danger-bg);
+  color: var(--portal-danger-text);
+}
+
+.dashboard-preset-menu__separator {
+  margin: 0.3rem 0.2rem;
+  border: 0;
+  border-top: 1px solid var(--portal-border);
 }
 
 .dashboard-modal {
