@@ -1112,6 +1112,42 @@ async function upsertResumePresetVariant(
   });
 }
 
+export async function fetchResumePresetVariantsForUser(userId: string): Promise<ResumePresetVariantRow[]> {
+  const result = await queryTable<ResumePresetVariantRow>({
+    table: "resume_preset_variants",
+    select: RESUME_PRESET_VARIANT_SELECT,
+    useServiceRole: true,
+    query: `user_id=eq.${encodeURIComponent(userId)}&order=locale.asc`,
+  });
+
+  if (!result.data || result.error) {
+    return [];
+  }
+
+  return result.data.map((variant) => ({
+    ...variant,
+    locale: normalizeLocale(variant.locale),
+    selection: normalizeResumePresetSelection(variant.selection),
+    is_default: Boolean(variant.is_default),
+  }));
+}
+
+export async function importResumePresetVariant(
+  accessToken: string,
+  userId: string,
+  preset: ResumePresetRow,
+  localeInput: string,
+  selection: ResumePresetSelection,
+): Promise<boolean> {
+  const locale = normalizeLocale(localeInput);
+  const document = await fetchDocumentByLocale(accessToken, userId, locale);
+  if (!document) {
+    return false;
+  }
+  await upsertResumePresetVariant(accessToken, userId, preset, document, selection);
+  return true;
+}
+
 function buildCanonicalPublicLanguageHref(personSlug: string, publicId: string, locale: ResumeLocale, defaultLocale: ResumeLocale): string {
   const basePath = `/${encodeURIComponent(personSlug)}/${encodeURIComponent(publicId)}`;
   return locale === defaultLocale ? basePath : `${basePath}?lang=${encodeURIComponent(locale)}`;
