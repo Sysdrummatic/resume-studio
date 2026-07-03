@@ -1,9 +1,10 @@
 ﻿# Phase F: Public Surface & MVP Launch
 
-**Status**: ⬡ **60% COMPLETE**  
+**Status**: ✅ **COMPLETE** (closed 2026-07-03)  
 **ETA**: May–Jun 2026  
 **Started**: 2026-05-12  
 **Core Delivered**: 2026-05-23 (PR4 merged)  
+**Closed**: 2026-07-03  
 
 > Making the product ready for real users. Public links, database-backed CV model, PDF export, and first beta testers from the tech writer community.
 
@@ -25,7 +26,7 @@ Phase F implements the public-facing resume surface with full SEO/AEO support, s
 - ✓ **Canonical public route**: `/person-slug/public-id` with SSR/ISR rendering
 - ✓ **Public link management**: Users can publish/unpublish from dashboard
 - ✓ **Immutable snapshots**: Published CVs are frozen at publication time (stored in `resume_revisions`)
-- ✓ **Legacy compatibility route**: `/r/[slug]` redirects or resolves legacy data per [ADR 0004](../adr/0004-public-route-compatibility-policy.md)
+- ✓ **Legacy compatibility route**: `/r/[slug]` delivered per [ADR 0004](../adr/0004-public-route-compatibility-policy.md), then retired pre-launch (commit `e675940`, 2026-06-29; ADR 0004 superseded — no real legacy links existed)
 - ✓ **Multi-language support**: `?lang=<locale>` parameter with `hreflang` metadata for SEO
 
 ### SEO & AEO (Search Engine Optimization)
@@ -42,13 +43,13 @@ Phase F implements the public-facing resume surface with full SEO/AEO support, s
 All Phase F architectural contracts are documented:
 
 - [ADR 0001: CV Publication Model](../adr/0001-cv-publication-model.md) — database model, publish/unpublish, snapshot immutability
-- [ADR 0004: Public Route Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md) — backward-compatible routing strategy
+- [ADR 0004: Public Route Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md) — backward-compatible routing strategy (superseded 2026-07-03; route retired pre-launch)
 - [ADR 0005: SEO/AEO, Structured Data, Sitemap, Robots](../adr/0005-seo-aeo-structured-data-policy.md) — metadata and crawler contracts
 - [ADR 0007: Publication Analytics & Audit Retention](../adr/0007-publication-analytics-and-audit-retention.md) — view counting and audit logs
 
 ---
 
-## Remaining Work (Minor)
+## Launch Prep (Completed)
 
 ### Preparing for beta test launch
 
@@ -77,8 +78,7 @@ All Phase F architectural contracts are documented:
    └─ Triggers POST /api/resume/publish
    └─ Creates immutable snapshot in `resume_revisions`
    └─ Creates row in `resume_public_links` with:
-      - canonical_public_path (person-slug/public-id)
-      - compatibility_public_path (/r/[slug] for legacy)
+      - person_slug + public_id (canonical path segments)
       - snapshot_id (reference to revision)
       - indexed (boolean, defaults to true)
       - enabled_languages (array: EN, PL, ...)
@@ -106,7 +106,7 @@ All Phase F architectural contracts are documented:
 - `app/components/cv-resume-preview.tsx` — public CV render component
 - `app/api/resume/publish` — publish endpoint
 - `app/api/resume/unpublish` — unpublish endpoint
-- `app/(public)/r/[slug]/route.ts` — legacy compatibility resolver
+- `app/(public)/r/[slug]/route.ts` — legacy compatibility resolver (removed 2026-06-29, ADR 0004 superseded)
 - `app/(public)/[person-slug]/[public-id]/route.ts` — canonical public route
 - `app/(public)/[person-slug]/[public-id]/[[...lang]]/page.tsx` — SSR public page
 - `app/lib/resume-server.ts` — snapshot fetching helpers (resolveSnapshotLocales, etc.)
@@ -122,7 +122,7 @@ All Phase F architectural contracts are documented:
 - [x] Unpublish makes route 404/noindex
 - [x] Re-publish creates new snapshot (old snapshot unchanged)
 - [x] Canonical URL renders with correct SEO metadata
-- [x] Legacy `/r/[slug]` resolves or redirects per ADR 0004
+- [x] Legacy `/r/[slug]` resolved or redirected per ADR 0004 (route since retired pre-launch; test obsolete)
 - [x] Multi-language URLs show correct content + `hreflang` tags
 - [x] JSON-LD structured data is valid (check schema.org)
 - [x] Sitemap includes all published links
@@ -148,9 +148,9 @@ All Phase F architectural contracts are documented:
 
 **Scenario**: Recruiter bookmarked `/r/[slug]` before migration. Link stops working after phase launches.
 
-**Mitigation**: `/r/[slug]` continues to resolve for 90 days, then soft-deprecate. Observability tracks legacy traffic.
+**Mitigation**: `/r/[slug]` continued to resolve during Phase F. Resolved pre-launch: production had no real legacy links, so the route was retired (2026-06-29) and ADR 0004 superseded — this risk no longer applies.
 
-**ADR**: [ADR 0004: Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md#deprecation-timeline)
+**ADR**: [ADR 0004: Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md) (superseded)
 
 ### Risk 3: Published Content Can't Be Edited
 
@@ -207,11 +207,11 @@ Phase I (Hardening & QA) begins after Phase F core delivery (2026-05-23). Includ
 - Legacy compatibility
 - Multi-language support
 
-✓ **Remaining work** (minor, non-blocking):
-- Founder's demo CV published (marketing)
-- Beta user onboarding complete
+✓ **Launch prep resolved (2026-07-03)**:
+- Founder's demo CV — approved as done
+- Beta tester recruitment — moved to Phase G (Community Beta Testing), where it belongs
 
-✓ **Ready to transition to Phase G (beta testing) and Phase I (hardening)** once demo CV + beta collection is done
+✓ **Transitioned to Phase G (beta testing) and Phase I (hardening)**
 
 ---
 
@@ -222,13 +222,13 @@ Tracked in [STATUS.md](../STATUS.md):
 - [x] Apply indexing controls to robots and headers
 - [x] Add canonical URLs and OpenGraph/Twitter metadata
 - [x] Add multilingual public CV SEO support with `hreflang`
-- [x] Implement SSR public route `/r/[slug]`
+- [x] Implement SSR public route `/r/[slug]` (since retired pre-launch, ADR 0004 superseded)
 - [x] Add structured data (JSON-LD)
 - [x] Add sitemap and robots configuration
 - [x] Verify compatibility redirects from legacy static routes
 - [x] Write post-PR4 ADR backlog (0001–0007)
-- [ ] Publish founder's own CV (demo)
-- [ ] Private beta user recruitment (5 users)
+- [x] Publish founder's own CV (demo) — approved 2026-07-03
+- ~~Private beta user recruitment (5 users)~~ — moved to Phase G scope
 
-**Overall**: **95% complete**. Core delivery shipped (2026-05-23); minor work remains (Phase F).
+**Overall**: **100% complete — phase closed 2026-07-03**. Core delivery shipped 2026-05-23.
 

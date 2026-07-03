@@ -1,8 +1,8 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-06-27
+**Last Updated:** 2026-07-03
 **Current Phase:** I — Hardening, QA & Launch Readiness
-**Overall Progress:** ~70% (A–E complete; F 95%; I 60%; G, H, J–M pending)
+**Overall Progress:** ~72% (A–F complete; I 60%; G, H, J–M pending)
 
 ---
 
@@ -15,8 +15,8 @@
 | C | Auth, RBAC & Admin | ✅ Complete | 100% | May 2026 |
 | D | Editor Canvas | ✅ Complete | 100% | May 2026 |
 | E | UX & Community | ✅ Complete (delivered early) | 100% | May 2026 |
-| F | Public Surface & MVP Launch | ✅ Technical complete, ⚠️ launch prep pending | 95% | May–Jun 2026 |
-| G | Community Beta Testing | ⏳ Planned | 0% | After F launch prep |
+| F | Public Surface & MVP Launch | ✅ Complete (closed 2026-07-03) | 100% | May–Jun 2026 |
+| G | Community Beta Testing | ⏳ Planned (incl. recruitment of 5 beta testers, moved from F) | 0% | After I |
 | H | PDF Fidelity — Vercel + Puppeteer | ⏳ Planned | 0% | Jun–Jul 2026 |
 | I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jun 2026 |
 | J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
@@ -64,10 +64,6 @@ A → B → C → D → E ──┬── F (Public Surface) ── G (Beta Test
 - [ ] Observability dashboards and alerting configured
 - [ ] Release checklist and rollback playbook prepared
 - [ ] Production smoke test protocol executed
-
-**Also pending (Phase F launch prep):**
-- [ ] Founder's demo CV published as live example
-- [ ] Beta tester recruitment (5 initial testers for Phase G)
 
 ---
 

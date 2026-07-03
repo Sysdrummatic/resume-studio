@@ -91,6 +91,11 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
       type: "profile",
       url: absoluteUrl(canonicalPath),
     },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
   };
 }
 

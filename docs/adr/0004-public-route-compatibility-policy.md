@@ -1,10 +1,24 @@
 # ADR 0004: Public Route Compatibility And Deprecation Policy
 
-Status: Accepted
+Status: Superseded (route retired pre-launch, 2026-07-03)
 
 Date: 2026-05-09
 
 Extends: [ADR 0001](0001-cv-publication-model.md)
+
+## Supersession Note (2026-07-03)
+
+The `/r/[slug]` compatibility route was removed in commit `e675940`
+("feat: removin all legacy elements", 2026-06-29), before public launch.
+The deprecation gates below (telemetry thresholds, 2 release windows,
+communication window) were designed for a post-launch scenario with real
+legacy traffic. Pre-launch, no real legacy `/r/[slug]` links exist in the
+wild (production `resume_public_links` contains only test accounts plus
+one indexed CV published after the canonical route shipped), so the gates
+are vacuously satisfied and the removal is approved as a formal decision:
+**all unused legacy elements are removed before launch; the route will not
+be restored.** `/{person-slug}/{public-id}` is the only public route.
+The rest of this document is retained for historical context.
 
 ## Context
 
