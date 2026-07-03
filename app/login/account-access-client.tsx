@@ -62,11 +62,15 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
       return "Email verification must be completed before access is granted.";
     }
     if (reason === "session") {
-      return "Session could not be restored. Please sign in again.";
+      return "Your session could not be restored. Please sign in again.";
+    }
+    if (reason === "signed-out") {
+      return "Sign in to continue.";
     }
     return "";
   }, [reason, verified]);
-  const contextualVariant = reason === "account_deleted" ? "success" : contextualMessage ? "warning" : "success";
+  const contextualVariant =
+    reason === "account_deleted" || reason === "signed-out" ? "success" : contextualMessage ? "warning" : "success";
   const contextualToast =
     contextualMessage && !isContextualMessageHidden
       ? { id: 0, message: contextualMessage, variant: contextualVariant as "warning" | "success" }

@@ -16,7 +16,6 @@ type Props = {
   yamlContent: string;
   isExpanded: boolean;
   aiGenerated?: boolean;
-  allowDraftPdf?: boolean;
   draftPdfEnabled?: boolean;
   onExpand: () => void;
   onClose: () => void;
@@ -33,7 +32,6 @@ export default function ResumeLivePreview({
   yamlContent,
   isExpanded,
   aiGenerated = false,
-  allowDraftPdf = false,
   draftPdfEnabled = true,
   onExpand,
   onClose,
@@ -93,7 +91,6 @@ export default function ResumeLivePreview({
             aiGenerated={aiGenerated}
             showChrome
             mode="editor"
-            allowDraftPdf={allowDraftPdf}
             draftPdfEnabled={draftPdfEnabled}
             embedded
           />
@@ -116,7 +113,6 @@ export default function ResumeLivePreview({
             aiGenerated={aiGenerated}
             showChrome
             mode="public"
-            allowDraftPdf={allowDraftPdf}
             draftPdfEnabled={draftPdfEnabled}
             scrollContainerRef={modalBodyRef as RefObject<HTMLElement>}
           />

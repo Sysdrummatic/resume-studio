@@ -53,9 +53,15 @@ export async function getCurrentActor(): Promise<SessionActor | null> {
 }
 
 export async function requireAuthenticatedActor(): Promise<SessionActor> {
-  const actor = await getCurrentActor();
+  const cookieStore = await cookies();
+  const { accessToken, refreshToken } = readAuthTokens(cookieStore);
+  const actor = accessToken ? await readActorFromAccessToken(accessToken) : null;
+
   if (!actor) {
-    redirect("/login?reason=session");
+    // A refresh token cookie means the visitor had a session that failed to
+    // restore (proxy.ts refresh attempt failed); no cookies at all means they
+    // simply aren't signed in yet. These need different copy on /login.
+    redirect(refreshToken ? "/login?reason=session" : "/login?reason=signed-out");
   }
 
   if (!actor.emailConfirmed) {

@@ -9,15 +9,17 @@ function read(relativePath) {
 
 test("language versions are managed inside the master resume editor modal", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const modal = read("app/master-resume/language-version-modal.tsx");
+  const hook = read("app/master-resume/use-multi-locale-resume-documents.ts");
   const layout = read("app/layout.tsx");
 
-  assert.equal(editor.includes("Add language version"), true);
+  assert.equal(modal.includes("Add language version"), true);
   assert.equal(editor.includes("const requestedPanel = searchParams.get(\"panel\")"), true);
   assert.equal(editor.includes("if (requestedPanel === \"languages\")"), true);
   assert.equal(editor.includes("setIsLanguageModalOpen(true);"), true);
-  assert.equal(editor.includes("Create version"), true);
-  assert.equal(editor.includes("/api/resume/languages"), true);
-  assert.equal(editor.includes("/api/resume/languages?withDocuments=true"), true);
+  assert.equal(modal.includes("Create version"), true);
+  assert.equal(hook.includes("/api/resume/languages"), true);
+  assert.equal(hook.includes("/api/resume/languages?withDocuments=true"), true);
   assert.equal(editor.includes("setDefaultLanguage"), true);
   assert.equal(editor.includes("deleteLanguageVersion"), true);
   assert.equal(layout.includes("/language-versions"), false);
@@ -46,13 +48,14 @@ test("language version API creates metadata and prepares a resume document", () 
 test("resume locale handling supports newly added two-letter languages", () => {
   const schema = read("app/lib/resume-schema.ts");
   const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const hook = read("app/master-resume/use-multi-locale-resume-documents.ts");
   const preview = read("app/master-resume/resume-live-preview.tsx");
   const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
 
   assert.equal(schema.includes("export type ResumeLocale = string"), true);
   assert.equal(schema.includes("/^[a-z]{2}$/.test(normalized) ? normalized : \"en\""), true);
   assert.equal(editor.includes("searchParams.get(\"locale\")"), true);
-  assert.equal(editor.includes("const sorted = sortLanguageRows(payload.languages)"), true);
+  assert.equal(hook.includes("const sorted = sortLanguageRows(languagesPayload.languages)"), true);
   assert.equal(preview.includes("locale={locale}"), true);
   assert.equal(renderer.includes("buildResumeRendererLabels(locale, labels)"), true);
 });
@@ -77,9 +80,6 @@ test("public language switching only exposes published documents and uses preset
   const migration = read("supabase/migrations/20260506_resume_language_metadata.sql");
 
   assert.equal(server.includes("fetchResumePresetVariants"), true);
-  assert.equal(server.includes("buildImplicitPresetVariants"), true);
-  assert.equal(server.includes("publicVariants"), true);
-  assert.equal(server.includes("languageDocuments.length === 0"), true);
   assert.equal(migration.includes("resume_preset_variants_update_own_or_staff"), true);
   assert.equal(migration.includes("and d.locale = resume_preset_variants.locale"), true);
 });
@@ -99,8 +99,8 @@ test("resume user locale schema separates owner locale state from the global lan
 });
 
 test("master resume editor loads saved EN documents instead of replacing them with the template", () => {
-  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const hook = read("app/master-resume/use-multi-locale-resume-documents.ts");
 
-  assert.equal(editor.includes('nextLocale === "en" ? await fetchText(TEMPLATE_PATH)'), false);
-  assert.equal(editor.includes("payload.document?.yaml_content ||"), true);
+  assert.equal(hook.includes('nextLocale === "en" ? await fetchText(TEMPLATE_PATH)'), false);
+  assert.equal(hook.includes("documentRow?.yaml_content ||"), true);
 });

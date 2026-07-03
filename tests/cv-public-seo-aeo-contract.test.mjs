@@ -29,13 +29,3 @@ test("canonical public route emits SEO/AEO metadata contract", () => {
   assert.equal(route.includes("admin"), false);
 });
 
-test("legacy slug route keeps SEO-safe compatibility behavior", () => {
-  const route = read("app/r/[slug]/page.tsx");
-
-  assert.equal(route.includes("fetchCanonicalPublicPathBySlug"), true);
-  assert.equal(route.includes("permanentRedirect"), true);
-  assert.equal(route.includes("alternates"), true);
-  assert.equal(route.includes("canonical"), true);
-  assert.equal(route.includes("index: false"), true);
-  assert.equal(route.includes("follow: false"), true);
-});

@@ -1,7 +1,7 @@
 import React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { CvPdfTemplate } from "../../../../../lib/CvPdfTemplate";
+import { CvPdfDocument as CvPdfTemplate } from "../../../../../lib/pdf/CvPdfDocument";
 import { buildPdfFilename } from "../../../../../lib/pdf/filename";
 import { isPdfDraftEnabled } from "../../../../../lib/pdf-feature-flags";
 import { normalizeResumeDocument } from "../../../../../lib/resume-schema";

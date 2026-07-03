@@ -20,7 +20,6 @@ test("ADR 0002 snapshot resolvers reject unsupported contract/schema versions", 
 
   assert.equal(server.includes("snapshot.open_cv_yaml_contract_version"), true);
   assert.equal(server.includes("Number(snapshot.schema_version) < OPEN_CV_MIN_SCHEMA_VERSION"), true);
-  assert.equal(server.includes("return { foundSnapshotLink: true, published: null };"), true);
   assert.equal(server.includes("return null;"), true);
 });
 

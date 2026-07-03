@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type {
@@ -21,8 +21,8 @@ type Props = {
   initialDocuments: ResumeDocumentRow[];
   languageOptions: ResumeUserLocaleRow[];
   initialPresets: ResumePresetRow[];
-  actorRole: string;
   draftPdfEnabled?: boolean;
+  dataTransferEnabled?: boolean;
 };
 
 type PresetOptionKey = keyof ResumePresetSelection;
@@ -335,7 +335,6 @@ function PresetPreviewModal({
   documents,
   languages,
   preset,
-  allowDraftPdf,
   draftPdfEnabled = true,
   onClose,
 }: {
@@ -343,7 +342,6 @@ function PresetPreviewModal({
   documents: ResumeDocumentRow[];
   languages: ResumeUserLocaleRow[];
   preset: ResumePresetRow;
-  allowDraftPdf: boolean;
   draftPdfEnabled?: boolean;
   onClose: () => void;
 }) {
@@ -383,7 +381,6 @@ function PresetPreviewModal({
               mode="public"
               personSlug={publicLink?.personSlug}
               publicId={publicLink?.publicId}
-              allowDraftPdf={allowDraftPdf}
               draftPdfEnabled={draftPdfEnabled}
               scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
             />
@@ -396,7 +393,92 @@ function PresetPreviewModal({
   );
 }
 
-export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets, actorRole, draftPdfEnabled = true }: Props) {
+function PresetActionsMenu({
+  preset,
+  onEdit,
+  onTogglePublish,
+  onExportText,
+  onExportPdf,
+  onDelete,
+}: {
+  preset: ResumePresetRow;
+  onEdit: () => void;
+  onTogglePublish: () => void;
+  onExportText: () => void;
+  onExportPdf: () => void;
+  onDelete: () => void;
+}) {
+  const menuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (event.target instanceof Node && menuRef.current?.contains(event.target)) return;
+      if (menuRef.current) menuRef.current.open = false;
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && menuRef.current) menuRef.current.open = false;
+    }
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  function select(action: () => void) {
+    if (menuRef.current) menuRef.current.open = false;
+    action();
+  }
+
+  return (
+    <details className="dashboard-preset-menu" ref={menuRef}>
+      <summary
+        className="button button--ghost button--small button--icon"
+        aria-label={`CV Version settings for ${preset.title}`}
+        title="CV Version settings"
+      >
+        <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </summary>
+      <div className="dashboard-preset-menu__panel" role="menu">
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onEdit)}>
+          Edit
+        </button>
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onTogglePublish)}>
+          {preset.is_public ? "Unpublish" : "Publish"}
+        </button>
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onExportText)}>
+          ATS (TXT)
+        </button>
+        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onExportPdf)}>
+          PDF
+        </button>
+        <hr className="dashboard-preset-menu__separator" />
+        <button
+          type="button"
+          role="menuitem"
+          className="dashboard-preset-menu__item dashboard-preset-menu__item--danger"
+          aria-label={`Delete CV Version ${preset.title}`}
+          onClick={() => select(onDelete)}
+        >
+          Delete
+        </button>
+      </div>
+    </details>
+  );
+}
+
+export default function DashboardClient({
+  masterResume,
+  initialDocuments,
+  languageOptions,
+  initialPresets,
+  draftPdfEnabled = true,
+  dataTransferEnabled = true,
+}: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
@@ -404,7 +486,11 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
+  const [confirmDeletePreset, setConfirmDeletePreset] = useState<ResumePresetRow | null>(null);
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
+  const importFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [pendingImport, setPendingImport] = useState<{ fileName: string; yamlContent: string } | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const documents = initialDocuments;
   const languageVersions = languageOptions;
 
@@ -429,8 +515,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
   const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
   const localeSummary = formatCountLabel(languageVersions.length, "language version");
-  const presetSummary = formatCountLabel(presets.length, "CV version");
-  const manageLanguagesHref = "/master-resume?panel=languages";
+
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!masterResume) return;
@@ -551,6 +636,43 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     showToast("Preparing published PDF export...");
   }
 
+  function exportUserData() {
+    window.open("/api/resume/transfer/export", "_blank");
+    showToast("Preparing data export...");
+  }
+
+  async function handleImportFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    const yamlContent = await file.text();
+    setPendingImport({ fileName: file.name, yamlContent });
+  }
+
+  async function importUserData() {
+    if (!pendingImport) return;
+    setIsImporting(true);
+    try {
+      const response = await fetch("/api/resume/transfer/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ yamlContent: pendingImport.yamlContent }),
+      });
+      const result = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || result.error) {
+        showToast(result.error || "Import failed.", "error");
+        return;
+      }
+      showToast("Data imported. Reloading...");
+      window.location.reload();
+    } catch {
+      showToast("Import failed.", "error");
+    } finally {
+      setIsImporting(false);
+      setPendingImport(null);
+    }
+  }
+
   function openPublishSavedVersion(preset: ResumePresetRow) {
     const selectedLocales = Array.from(new Set(publishableLocales));
     if (selectedLocales.length === 0) {
@@ -577,7 +699,7 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           <div className="dashboard-panel__heading stack">
             <div className="product-surface__eyebrow">Source record</div>
             <h2 className="dashboard-panel__title">Master Resume</h2>
-            <p className="dashboard-panel__lead">Updated {latestMasterUpdate}. Use this source to shape {presetSummary} across {localeSummary}.</p>
+            <p className="dashboard-panel__lead">Start in the master resume when content changes. Create CV versions here only when you need a new public combination of sections, locale, and publish state.</p>
           </div>
           <div className="dashboard-panel__toolbar actions-row">
             <Link className="button button--primary" href="/master-resume">
@@ -591,22 +713,50 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                 setIsModalOpen(true);
               }}
               disabled={!hasMasterResume}
+              title={hasMasterResume ? undefined : "Create your master resume first, then come back to add a CV version."}
             >
               Create CV version
             </button>
+            {dataTransferEnabled ? (
+              <>
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={exportUserData}
+                  disabled={!hasMasterResume}
+                  title={hasMasterResume ? "Download all your CV data as a single YAML file." : "Create your master resume first."}
+                >
+                  Export
+                </button>
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => importFileInputRef.current?.click()}
+                  title="Restore CV data from a previously exported YAML file."
+                >
+                  Import
+                </button>
+                <input
+                  ref={importFileInputRef}
+                  type="file"
+                  accept=".yaml,.yml"
+                  hidden
+                  onChange={(event) => void handleImportFileChange(event)}
+                />
+              </>
+            ) : null}
           </div>
         </div>
 
         <div className="dashboard-source-copy stack">
-          <p className="dashboard-source-note">
-            Start in the master resume when content changes. Create CV versions here only when you need a new public combination of sections, locale, and publish state.
-          </p>
           <div className="dashboard-source-meta">
-            <Link className="dashboard-chip dashboard-chip--link" href={manageLanguagesHref}>
-              {localeSummary}
-            </Link>
-            <span className="dashboard-chip">{publishedPresetCount} published</span>
-            <span className="dashboard-chip">{privatePresetCount} private drafts</span>
+            {hasMasterResume && (
+              <div className="dashboard-source-meta__row">
+                <span className="dashboard-resume-list__badge">MasterCV Saved</span>
+                <span className="dashboard-chip">{localeSummary}</span>
+                <span className="dashboard-chip">Edited {latestMasterUpdate}</span>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -626,8 +776,30 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
         </div>
         {presets.length === 0 ? (
           <div className="dashboard-empty-state">
-            <h3>No CV versions yet</h3>
-            <p>Create the first public variant from the master resume, then publish locale-specific output from here.</p>
+            {hasMasterResume ? (
+              <>
+                <h3>No CV versions yet</h3>
+                <p>Create the first public variant from the master resume, then publish locale-specific output from here.</p>
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={() => {
+                    setActivePreset(null);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  Create CV version
+                </button>
+              </>
+            ) : (
+              <>
+                <h3>Start with your master resume</h3>
+                <p>CV versions are published combinations of your master resume. Fill it in first, then come back to create one.</p>
+                <Link className="button button--primary" href="/master-resume">
+                  Edit master resume
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <ul className="dashboard-resume-list">
@@ -650,72 +822,98 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                   </span>
                 </div>
                 <div className="dashboard-resume-list__actions">
-                  <div className="dashboard-resume-list__primary-actions">
-                    {preset.is_public ? (
-                      <button type="button" className="button button--primary button--small" onClick={() => setPreviewPreset(preset)}>
-                        Open CV
-                      </button>
-                    ) : (
-                      <button type="button" className="button button--primary button--small" onClick={() => openPublishSavedVersion(preset)}>
-                        Publish
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="button button--ghost button--small"
-                      onClick={() => {
-                        setActivePreset(preset);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      Edit
+                  <button type="button" className="button button--primary button--small" onClick={() => setPreviewPreset(preset)}>
+                    Open CV
+                  </button>
+                  {preset.is_public ? (
+                    <button type="button" className="button button--ghost button--small" onClick={() => copyPublicLink(preset)}>
+                      Copy link
                     </button>
-                  </div>
-                  <div className="dashboard-resume-list__secondary-actions">
-                    {!preset.is_public ? (
-                      <button type="button" className="button button--ghost button--small" onClick={() => setPreviewPreset(preset)}>
-                        Open CV
-                      </button>
-                    ) : null}
-                    {preset.is_public ? (
-                      <button type="button" className="button button--ghost button--small" onClick={() => void unpublishPreset(preset)}>
-                        Unpublish
-                      </button>
-                    ) : null}
-                    {preset.is_public && (
-                      <button type="button" className="button button--ghost button--small" onClick={() => copyPublicLink(preset)}>
-                        Copy link
-                      </button>
-                    )}
-                    <button type="button" className="button button--ghost button--small" onClick={() => exportText(preset)}>
-                      ATS (TXT)
-                    </button>
-                    <button type="button" className="button button--ghost button--small" onClick={() => exportPdf(preset)}>
-                      PDF
-                    </button>
-                    <button
-                      type="button"
-                      className="button button--ghost button--small button--icon button--danger"
-                      aria-label={`Delete CV Version ${preset.title}`}
-                      title="Delete CV Version"
-                      onClick={() => void deletePreset(preset)}
-                      disabled={deletingPresetId === preset.id}
-                    >
-                      <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6h18" />
-                        <path d="M8 6V4h8v2" />
-                        <path d="M19 6l-1 14H6L5 6" />
-                        <path d="M10 11v5" />
-                        <path d="M14 11v5" />
-                      </svg>
-                    </button>
-                  </div>
+                  ) : null}
+                  <PresetActionsMenu
+                    preset={preset}
+                    onEdit={() => {
+                      setActivePreset(preset);
+                      setIsModalOpen(true);
+                    }}
+                    onTogglePublish={() => {
+                      if (preset.is_public) {
+                        void unpublishPreset(preset);
+                      } else {
+                        openPublishSavedVersion(preset);
+                      }
+                    }}
+                    onExportText={() => exportText(preset)}
+                    onExportPdf={() => exportPdf(preset)}
+                    onDelete={() => setConfirmDeletePreset(preset)}
+                  />
                 </div>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      {confirmDeletePreset ? (
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Delete CV Version confirmation">
+          <button
+            type="button"
+            className="dashboard-modal__backdrop"
+            onClick={() => setConfirmDeletePreset(null)}
+            aria-label="Cancel delete"
+          ></button>
+          <div className="dashboard-modal__body dashboard-modal__body--compact">
+            <h2 className="dashboard-modal__title">Delete CV Version</h2>
+            <p className="dashboard-modal__copy">
+              This permanently deletes <strong>{confirmDeletePreset.title}</strong>
+              {confirmDeletePreset.is_public ? " and takes its public link offline" : ""}. This cannot be undone.
+            </p>
+            <div className="dashboard-modal__footer">
+              <button type="button" className="button" onClick={() => setConfirmDeletePreset(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="button button--danger"
+                disabled={deletingPresetId === confirmDeletePreset.id}
+                onClick={() => {
+                  const preset = confirmDeletePreset;
+                  void deletePreset(preset).then(() => setConfirmDeletePreset(null));
+                }}
+              >
+                {deletingPresetId === confirmDeletePreset.id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {pendingImport ? (
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Import data confirmation">
+          <button
+            type="button"
+            className="dashboard-modal__backdrop"
+            onClick={() => setPendingImport(null)}
+            aria-label="Cancel import"
+          ></button>
+          <div className="dashboard-modal__body dashboard-modal__body--compact">
+            <h2 className="dashboard-modal__title">Import data</h2>
+            <p className="dashboard-modal__copy">
+              Importing <strong>{pendingImport.fileName}</strong> overwrites your master resume documents and language
+              versions, and replaces all private CV versions. Published CV versions and their public links stay
+              untouched. This cannot be undone.
+            </p>
+            <div className="dashboard-modal__footer">
+              <button type="button" className="button" onClick={() => setPendingImport(null)}>
+                Cancel
+              </button>
+              <button type="button" className="button button--danger" disabled={isImporting} onClick={() => void importUserData()}>
+                {isImporting ? "Importing..." : "Import and replace"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isModalOpen && masterResume ? (
         <PresetModal
@@ -736,7 +934,6 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
           documents={documents}
           languages={languageVersions}
           preset={previewPreset}
-          allowDraftPdf={actorRole === "admin"}
           draftPdfEnabled={draftPdfEnabled}
           onClose={() => {
             setPreviewPreset(null);

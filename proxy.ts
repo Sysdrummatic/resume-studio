@@ -42,9 +42,9 @@ function accessTokenIsFresh(accessToken: string | null): boolean {
   return Date.now() < payload.exp * 1000 - ACCESS_TOKEN_SKEW_MS;
 }
 
-function redirectToLogin(request: NextRequest): NextResponse {
+function redirectToLogin(request: NextRequest, reason: "session" | "signed-out"): NextResponse {
   const loginUrl = new URL("/login", request.url);
-  loginUrl.searchParams.set("reason", "session");
+  loginUrl.searchParams.set("reason", reason);
   return NextResponse.redirect(loginUrl);
 }
 
@@ -72,13 +72,15 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
 
   if (!refreshToken) {
-    return protectedPath ? redirectToLogin(request) : NextResponse.next();
+    // Never had a session on this browser: a neutral prompt, not an alarm.
+    return protectedPath ? redirectToLogin(request, "signed-out") : NextResponse.next();
   }
 
   const refreshResult = await refreshSession(refreshToken);
 
   if (!refreshResult.data || refreshResult.error) {
-    const response = protectedPath ? redirectToLogin(request) : NextResponse.next();
+    // Had a session that failed to restore: the "please sign in again" copy applies here.
+    const response = protectedPath ? redirectToLogin(request, "session") : NextResponse.next();
     clearAuthCookies(response.cookies);
     return response;
   }

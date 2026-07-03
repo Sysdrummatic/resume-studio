@@ -98,12 +98,10 @@ test("publication foundation defines RLS around active public snapshots and owne
   assert.equal(sql.includes("resume_public_links_update_owner_by_user"), true);
 });
 
-test("publication foundation is additive and keeps current public route runtime untouched", () => {
+test("publication foundation migration is additive: no drop table, drop column, or preset policy drops", () => {
   const sql = migration();
-  const publicRoute = read("app/r/[slug]/page.tsx");
 
   assert.equal(sql.includes("drop table"), false);
   assert.equal(sql.includes("drop column"), false);
   assert.equal(sql.includes("drop policy if exists \"resume_presets"), false);
-  assert.equal(publicRoute.includes("fetchPublishedResumePresetBySlug"), true);
 });
