@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type {
@@ -22,6 +22,7 @@ type Props = {
   languageOptions: ResumeUserLocaleRow[];
   initialPresets: ResumePresetRow[];
   draftPdfEnabled?: boolean;
+  dataTransferEnabled?: boolean;
 };
 
 type PresetOptionKey = keyof ResumePresetSelection;
@@ -470,7 +471,14 @@ function PresetActionsMenu({
   );
 }
 
-export default function DashboardClient({ masterResume, initialDocuments, languageOptions, initialPresets, draftPdfEnabled = true }: Props) {
+export default function DashboardClient({
+  masterResume,
+  initialDocuments,
+  languageOptions,
+  initialPresets,
+  draftPdfEnabled = true,
+  dataTransferEnabled = true,
+}: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
@@ -480,6 +488,9 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const [confirmDeletePreset, setConfirmDeletePreset] = useState<ResumePresetRow | null>(null);
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null);
+  const importFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [pendingImport, setPendingImport] = useState<{ fileName: string; yamlContent: string } | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const documents = initialDocuments;
   const languageVersions = languageOptions;
 
@@ -625,6 +636,43 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
     showToast("Preparing published PDF export...");
   }
 
+  function exportUserData() {
+    window.open("/api/resume/transfer/export", "_blank");
+    showToast("Preparing data export...");
+  }
+
+  async function handleImportFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    const yamlContent = await file.text();
+    setPendingImport({ fileName: file.name, yamlContent });
+  }
+
+  async function importUserData() {
+    if (!pendingImport) return;
+    setIsImporting(true);
+    try {
+      const response = await fetch("/api/resume/transfer/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ yamlContent: pendingImport.yamlContent }),
+      });
+      const result = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || result.error) {
+        showToast(result.error || "Import failed.", "error");
+        return;
+      }
+      showToast("Data imported. Reloading...");
+      window.location.reload();
+    } catch {
+      showToast("Import failed.", "error");
+    } finally {
+      setIsImporting(false);
+      setPendingImport(null);
+    }
+  }
+
   function openPublishSavedVersion(preset: ResumePresetRow) {
     const selectedLocales = Array.from(new Set(publishableLocales));
     if (selectedLocales.length === 0) {
@@ -669,6 +717,34 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
             >
               Create CV version
             </button>
+            {dataTransferEnabled ? (
+              <>
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={exportUserData}
+                  disabled={!hasMasterResume}
+                  title={hasMasterResume ? "Download all your CV data as a single YAML file." : "Create your master resume first."}
+                >
+                  Export
+                </button>
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => importFileInputRef.current?.click()}
+                  title="Restore CV data from a previously exported YAML file."
+                >
+                  Import
+                </button>
+                <input
+                  ref={importFileInputRef}
+                  type="file"
+                  accept=".yaml,.yml"
+                  hidden
+                  onChange={(event) => void handleImportFileChange(event)}
+                />
+              </>
+            ) : null}
           </div>
         </div>
 
@@ -806,6 +882,33 @@ export default function DashboardClient({ masterResume, initialDocuments, langua
                 }}
               >
                 {deletingPresetId === confirmDeletePreset.id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {pendingImport ? (
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Import data confirmation">
+          <button
+            type="button"
+            className="dashboard-modal__backdrop"
+            onClick={() => setPendingImport(null)}
+            aria-label="Cancel import"
+          ></button>
+          <div className="dashboard-modal__body dashboard-modal__body--compact">
+            <h2 className="dashboard-modal__title">Import data</h2>
+            <p className="dashboard-modal__copy">
+              Importing <strong>{pendingImport.fileName}</strong> overwrites your master resume documents and language
+              versions, and replaces all private CV versions. Published CV versions and their public links stay
+              untouched. This cannot be undone.
+            </p>
+            <div className="dashboard-modal__footer">
+              <button type="button" className="button" onClick={() => setPendingImport(null)}>
+                Cancel
+              </button>
+              <button type="button" className="button button--danger" disabled={isImporting} onClick={() => void importUserData()}>
+                {isImporting ? "Importing..." : "Import and replace"}
               </button>
             </div>
           </div>

@@ -19,3 +19,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0015: PDF Rendering Migration — Puppeteer on Vercel](0015-vercel-puppeteer-pdf-migration.md)
 - [ADR 0016: Account Data Retention And Deletion](0016-account-data-retention-and-deletion.md)
 - [ADR 0017: Multi-Locale Master Resume Editor Tabs](0017-multi-locale-master-resume-editor-tabs.md)
+- [ADR 0018: User Data Export/Import With Admin Kill Switch](0018-user-data-export-import.md)
