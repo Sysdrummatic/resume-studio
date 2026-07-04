@@ -57,6 +57,8 @@ function ResumeSkeleton() {
 
 export default function LandingSampleCv() {
   const [status, setStatus] = useState<Status>("loading");
+  // Host is only known in the browser; SSR renders the path-only fallback.
+  const [host] = useState(() => (typeof window === "undefined" ? "" : window.location.host));
 
   useEffect(() => {
     if (status !== "loading") return;
@@ -79,7 +81,8 @@ export default function LandingSampleCv() {
             <rect x="3" y="11" width="18" height="11" rx="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          opencvhub.netlify.app/<span className="lp-cv__url-hi">resume</span>
+          <span suppressHydrationWarning>{host ? `${host}/` : "/"}</span>
+          <span className="lp-cv__url-hi">resume</span>
         </div>
         <Link href="/resume" className="lp-cv__ext" aria-label="Open sample resume">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -92,7 +95,7 @@ export default function LandingSampleCv() {
       <div className="lp-cv__wrap">
         {status !== "timed-out" && (
           <iframe
-            src="https://opencvhub.netlify.app/resume"
+            src="/resume"
             className={`lp-cv__iframe${status === "loaded" ? " is-loaded" : ""}`}
             title="Sample public resume — OpenCiVera"
             sandbox="allow-scripts allow-same-origin allow-forms"
