@@ -69,8 +69,6 @@ If `npm test` fails in restricted environments (`spawn EPERM`), run suites direc
 
 ## Documentation
 
-- [Documentation index](docs/README.md) - start here for the canonical guide map
-- [Phase status overview](docs/PHASES.md)
-- [Action plan / execution checklist](docs/action-plan.md)
+- [Project status, roadmap & active sprint](docs/STATUS.md) - start here
+- [Implementation guides index](docs/guides/README.md)
 - [Architecture Decision Records](docs/adr/README.md)
-- [Project roadmap](ROADMAP.md)

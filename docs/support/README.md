@@ -29,46 +29,35 @@ Start with these documents in order:
    - All required sections with placeholders
    - Use as starting point for new phase documents
 
-### Understanding the Documentation System
-
-- **[DOCUMENTATION_ARCHITECTURE.md](DOCUMENTATION_ARCHITECTURE.md)** — Visual guide to how documentation pieces fit together
-- **[IMPROVEMENTS_SUMMARY.md](IMPROVEMENTS_SUMMARY.md)** — Record of recent improvements and changes
-
 ---
 
 ## 📁 Folder Structure
 
 ```
 docs/
-├── README.md                          ← Main navigation hub
-├── PHASES.md                          ← Canonical phase registry (read this first)
-├── ROADMAP.md                         ← Timeline view
-├── STATUS.md                     ← Execution checklist
+├── STATUS.md                          ← Phase status, active sprint, roadmap (read this first)
 │
-├── phases/                            ← Phase documents (A–H)
+├── phases/                            ← Phase documents (A–M)
 │   ├── phase-a-platform-foundation.md
 │   ├── phase-b-yaml-data-layer.md
-│   └─ ... (phase-c through phase-h)
+│   └─ ... (phase-c through phase-l)
 │
 ├── adr/                               ← Architecture Decision Records
 │   ├── README.md
-│   └─ ... (0001–0012 decisions)
+│   └─ ... (0001–0018 decisions)
 │
 ├── guides/                            ← Implementation guides (by category)
 │   ├── README.md
 │   ├── policies/                      (ADR contracts)
 │   ├── testing/                       (QA & test contracts)
 │   ├── development/                   (Setup & patterns)
-│   ├── features/                      (Feature plans)
-│   └── archive/                       (Historical docs)
+│   └── features/                      (Feature plans)
 │
-└── support/                           ← This folder (creation templates & architecture)
+└── support/                           ← This folder (creation templates)
     ├── README.md
     ├── PHASE_CREATION_QUICKSTART.md
     ├── PHASE_CREATION_GUIDE.md
-    ├── PHASE_TEMPLATE.md
-    ├── DOCUMENTATION_ARCHITECTURE.md
-    └── IMPROVEMENTS_SUMMARY.md
+    └── PHASE_TEMPLATE.md
 ```
 
 ---
@@ -87,7 +76,7 @@ cp docs/support/PHASE_TEMPLATE.md docs/phases/phase-x-[name].md
 # 3. Fill using guide as reference
 # (Follow PHASE_CREATION_GUIDE.md section by section)
 
-# 4. Link in PHASES.md and guides/README.md (if needed)
+# 4. Link in STATUS.md and guides/README.md (if needed)
 
 # 5. Verify
 npm test
@@ -102,8 +91,6 @@ npm test
 | **PHASE_CREATION_QUICKSTART.md** | 5-minute quick reference | You're in a hurry |
 | **PHASE_CREATION_GUIDE.md** | Detailed how-to with examples | Creating a new phase |
 | **PHASE_TEMPLATE.md** | Copy-and-fill template | Starting phase document |
-| **DOCUMENTATION_ARCHITECTURE.md** | Visual system overview | Want to understand the system |
-| **IMPROVEMENTS_SUMMARY.md** | Recent changes and what was done | Want to know what improved |
 
 ---
 
@@ -115,11 +102,7 @@ npm test
 → Reference [PHASE_CREATION_GUIDE.md](PHASE_CREATION_GUIDE.md) while filling
 
 ### "I want to understand the documentation system"
-→ Start with [docs/README.md](../README.md)  
-→ Then read [DOCUMENTATION_ARCHITECTURE.md](DOCUMENTATION_ARCHITECTURE.md)
-
-### "What changed in the documentation?"
-→ Read [IMPROVEMENTS_SUMMARY.md](IMPROVEMENTS_SUMMARY.md)
+→ Start with [docs/STATUS.md](../STATUS.md), then [docs/guides/README.md](../guides/README.md)
 
 ### "I need to see an example phase"
 → Look at [docs/phases/phase-e-ux-community.md](../phases/phase-e-ux-community.md) or [phase-f-public-surface.md](../phases/phase-f-public-surface.md) (most comprehensive)
@@ -140,7 +123,6 @@ Make sure you have:
 ## 🔗 Related Resources
 
 **Main Navigation**
-- [docs/README.md](../README.md) — Documentation hub
 - [docs/STATUS.md](../STATUS.md) — Phase progress and status
 - [docs/guides/README.md](../guides/README.md) — Guides by category
 

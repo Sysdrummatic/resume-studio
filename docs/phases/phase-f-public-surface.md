@@ -130,7 +130,7 @@ All Phase F architectural contracts are documented:
 - [x] OpenGraph metadata renders in social previews
 - [x] Twitter Card metadata renders in platform previews
 
-**Evidence**: Test contracts in [cv-publication-test-contracts.md](../guides/cv-publication-test-contracts.md)
+**Evidence**: Test contracts in [cv-publication-test-contracts.md](../guides/testing/cv-publication-test-contracts.md)
 
 ---
 
@@ -173,12 +173,12 @@ All Phase F architectural contracts are documented:
 - [ADR 0007: Publication Analytics & Audit Retention](../adr/0007-publication-analytics-and-audit-retention.md)
 
 ### Test Contracts
-- [CV Publication Test Contracts](../guides/cv-publication-test-contracts.md)
-- [SEO/AEO Preview QA Checklist](../guides/seo-aeo-preview-qa-checklist.md)
+- [CV Publication Test Contracts](../guides/testing/cv-publication-test-contracts.md)
+- [SEO/AEO Preview QA Checklist](../guides/testing/seo-aeo-preview-qa-checklist.md)
 
 ### Guides
-- [Public Route Compatibility Rollout](../guides/public-route-compatibility-rollout.md)
-- [Deployment QA Checklist](../guides/deployment-qa.md)
+- [Public Route Compatibility Rollout](../guides/policies/public-route-compatibility-rollout.md)
+- [Deployment QA Checklist](../guides/testing/deployment-qa.md)
 
 ### Execution
 - [STATUS.md](../STATUS.md)

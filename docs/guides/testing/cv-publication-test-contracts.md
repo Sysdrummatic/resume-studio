@@ -1,6 +1,6 @@
 # CV Publication Test Contracts
 
-This document lists the behavior contracts that must be protected when implementing the CV publication model from [ADR 0001](../adr/0001-cv-publication-model.md).
+This document lists the behavior contracts that must be protected when implementing the CV publication model from [ADR 0001](../../adr/0001-cv-publication-model.md).
 
 These are not all implemented yet. They define the required regression coverage for future backend, frontend, and integration work.
 

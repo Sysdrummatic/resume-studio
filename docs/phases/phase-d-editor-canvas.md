@@ -87,8 +87,8 @@ Phase D delivers the Master Resume Editor—a React-based canvas where authentic
 
 ## Architecture Decision Records
 
-- [ADR 0006: Draft and Publish Semantics](../adr/0006-draft-and-publish-semantics.md) — version control, publication immutability
-- [ADR 0009: Master Resume Document Canonicalization](../adr/0009-master-resume-document-canonicalization.md) — YAML as source of truth
+- [ADR 0001: CV Publication Model](../adr/0001-cv-publication-model.md) — version control, publication immutability
+- [ADR 0002: OpenCV YAML Public Contract](../adr/0002-opencv-yaml-public-contract.md) — YAML as source of truth
 
 ---
 
@@ -241,8 +241,8 @@ revision_number (integer)
 ## Related Documentation
 
 ### Architecture Decisions
-- [ADR 0006: Draft and Publish Semantics](../adr/0006-draft-and-publish-semantics.md)
-- [ADR 0009: Master Resume Document Canonicalization](../adr/0009-master-resume-document-canonicalization.md)
+- [ADR 0001: CV Publication Model](../adr/0001-cv-publication-model.md)
+- [ADR 0002: OpenCV YAML Public Contract](../adr/0002-opencv-yaml-public-contract.md)
 
 ### Guides
 - [YAML Schema Validation](../guides/development/local-development.md#yaml-validation)

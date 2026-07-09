@@ -1,6 +1,6 @@
 # OpenCV YAML Public Contract Policy
 
-This guide operationalizes [ADR 0002](../adr/0002-opencv-yaml-public-contract.md).
+This guide operationalizes [ADR 0002](../../adr/0002-opencv-yaml-public-contract.md).
 
 ## Versioning Rules
 

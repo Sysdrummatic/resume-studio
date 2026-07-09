@@ -1,6 +1,6 @@
 # Privacy-First Admin Access Policy
 
-Implements [ADR 0003](../adr/0003-privacy-first-admin-access.md).
+Implements [ADR 0003](../../adr/0003-privacy-first-admin-access.md).
 
 ## Principles
 
