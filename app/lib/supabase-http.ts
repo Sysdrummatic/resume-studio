@@ -20,7 +20,7 @@ type SupabaseAuthUsersResponse = {
 
 const NETWORK_ERROR_MESSAGE = "Authentication service is temporarily unavailable. Try again.";
 const PROFILE_SELECT =
-  "id,display_name,first_name,last_name,person_slug,name_sync_mode,avatar_url,role,bio,is_active,created_at,updated_at";
+  "id,display_name,first_name,last_name,person_slug,name_sync_mode,avatar_url,role,bio,is_active,is_test_user,is_ocv_staff,created_at,updated_at";
 
 function buildHeaders(
   options: {
@@ -339,6 +339,8 @@ export type PlatformStats = {
   total_resumes: number;
   total_public_links: number;
   total_public_views: number;
+  excluded_test_users: number;
+  excluded_staff_users: number;
 };
 
 export async function fetchPlatformStatsAsService(): Promise<AuthResult<PlatformStats>> {

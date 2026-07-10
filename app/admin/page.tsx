@@ -11,6 +11,8 @@ type UserOverview = {
   displayName: string;
   role: AppRole;
   isActive: boolean;
+  isTestUser: boolean;
+  isOcvStaff: boolean;
   createdAt: string | null;
 };
 
@@ -37,6 +39,8 @@ export default async function AdminPage() {
     displayName: profile.display_name || "",
     role: profile.role,
     isActive: profile.is_active,
+    isTestUser: profile.is_test_user,
+    isOcvStaff: profile.is_ocv_staff,
     createdAt: profile.created_at || null,
   }));
 
@@ -50,6 +54,8 @@ export default async function AdminPage() {
     total_resumes: 0,
     total_public_links: 0,
     total_public_views: 0,
+    excluded_test_users: 0,
+    excluded_staff_users: 0,
   };
 
   const initialStats = canReadAnalytics
@@ -60,6 +66,8 @@ export default async function AdminPage() {
         totalResumes: platformStats.total_resumes,
         totalPublicLinks: platformStats.total_public_links,
         totalPublicViews: platformStats.total_public_views,
+        excludedTestUsers: platformStats.excluded_test_users,
+        excludedStaffUsers: platformStats.excluded_staff_users,
       }
     : {
         totalUsers: initialUsers.length,
@@ -68,6 +76,8 @@ export default async function AdminPage() {
         totalResumes: 0,
         totalPublicLinks: 0,
         totalPublicViews: 0,
+        excludedTestUsers: 0,
+        excludedStaffUsers: 0,
       };
 
   return (

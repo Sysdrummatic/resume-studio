@@ -1,0 +1,95 @@
+# ADR 0019: Test User And OCV Staff Account Flags With Counter Exclusion
+
+Status: Accepted
+
+Date: 2026-07-11
+
+Related: [ADR 0003](0003-privacy-first-admin-access.md) (admin data-access boundaries),
+[ADR 0007](0007-publication-analytics-and-audit-retention.md) (platform analytics and
+audit retention — the stats surface this ADR modifies)
+
+## Context
+
+The platform stats tiles in the Admin panel (`get_admin_platform_stats()`: total users,
+active users, resumes, public links, public views) count every row in `public.profiles`
+and its content tables. Accounts created for QA/testing and accounts belonging to people
+working on the project itself inflate these numbers, so the counters do not reflect the
+real registered-user base. There was no way to mark such accounts or to keep them out of
+the metrics without deleting them.
+
+## Decision
+
+Two independent boolean flags on `public.profiles`, managed from the Admin panel users
+list:
+
+- `is_test_user` — QA/test accounts.
+- `is_ocv_staff` — accounts of people affiliated with the OpenCiVera project.
+
+Both default to `false`, both may be set on the same account. An account with **either**
+flag set is excluded from every platform counter; the excluded totals are reported
+separately so the information is not hidden.
+
+### Why two flags, not an enum
+
+Test and staff are orthogonal categories (a staff member can also run a test account),
+and boolean columns keep the counter predicate trivial
+(`not (is_test_user or is_ocv_staff)`). A `none/test/staff` enum was rejected because it
+forbids the overlap and complicates future flag additions.
+
+### Schema and RPC surface (`supabase/migrations/20260711_profile_test_and_staff_flags.sql`)
+
+- `profiles.is_test_user boolean not null default false`
+- `profiles.is_ocv_staff boolean not null default false`
+- `set_user_flag(target_user_id uuid, flag_name text, flag_value boolean)` — a single
+  `SECURITY DEFINER` setter for both flags. `flag_name` is allowlisted against the two
+  column names (no dynamic SQL). Authorization boundaries mirror `set_user_active`
+  exactly: staff role required; a `manager` may flag only `user`/`recruiter` targets and
+  never their own account. Every effective change is audited via
+  `log_admin_action('user.flag_updated', target, {flag, previous, next})`.
+- `get_staff_user_overview()` — recreated to return both flags.
+- `get_admin_platform_stats()` — recreated so that:
+  - `total_users` / `active_users` filter `profiles` on
+    `not (is_test_user or is_ocv_staff)`;
+  - `total_resumes` joins `resume_documents → profiles` and applies the same predicate;
+  - `total_public_links` / `total_public_views` join
+    `resume_public_links → resume_documents → profiles` and apply the same predicate;
+  - two new columns, `excluded_test_users` and `excluded_staff_users`, report how many
+    accounts carry each flag (an account with both flags appears in both counts).
+
+### Application surface
+
+- `PATCH /api/admin/users/[userId]` accepts optional `isTestUser` / `isOcvStaff`
+  booleans and calls `set_user_flag`; the route's pre-existing manager boundary checks
+  run before any field is processed (defense in depth with the RPC-level checks).
+- `GET /api/admin/users` and the Admin page SSR path surface the flags and the excluded
+  counts (`excludedTestUsers` / `excludedStaffUsers`).
+- `app/admin/admin-users-client.tsx` renders two checkbox columns (`Test user`,
+  `OCV Staff`) with the same disabled rules as the role selector, and the Users stat
+  tile shows a breakdown: `N total (M active) · excluded: X test, Y staff` (the suffix
+  is hidden when both excluded counts are zero).
+
+### Non-goals
+
+- Flags do not change what a flagged account can do — no RBAC, RLS, publishing, or
+  public-rendering behavior depends on them. They are metrics metadata only.
+- Public Views exclusion is implemented but currently inert: nothing increments
+  `resume_public_links.view_count` in the present codebase (see ADR 0007's unimplemented
+  analytics model), so the counter reads 0 regardless of flags. The filter is in place
+  for when view tracking lands.
+
+## Consequences
+
+- Platform counters reflect only real, unaffiliated registered users; QA and project
+  accounts remain fully functional and visible in the users list.
+- Flag changes leave an audit trail (`user.flag_updated` in `admin_audit_logs`),
+  consistent with role and activation changes.
+- Any future counter or analytics query that should exclude these groups must apply the
+  same `not (is_test_user or is_ocv_staff)` predicate — the exclusion lives in
+  `get_admin_platform_stats()`, not in a view, so new queries do not inherit it
+  automatically.
+
+## Test contract
+
+`tests/admin-user-flags.test.mjs` — verifies the migration (columns, guarded setter RPC,
+audit call, counter predicates, excluded counts, overview columns), the PATCH/GET route
+contracts, and the admin client UI markers.
