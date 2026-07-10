@@ -1,6 +1,6 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-07-03
+**Last Updated:** 2026-07-09
 **Current Phase:** I — Hardening, QA & Launch Readiness
 **Overall Progress:** ~72% (A–F complete; I 60%; G, H, J–M pending)
 
@@ -18,7 +18,7 @@
 | F | Public Surface & MVP Launch | ✅ Complete (closed 2026-07-03) | 100% | May–Jun 2026 |
 | G | Community Beta Testing | ⏳ Planned (incl. recruitment of 5 beta testers, moved from F) | 0% | After I |
 | H | PDF Fidelity — Vercel + Puppeteer | ⏳ Planned | 0% | Jun–Jul 2026 |
-| I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jun 2026 |
+| I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jul 2026 |
 | J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
 | K | ATS Intelligence | ⏳ Post-launch | 0% | TBD |
 | L | Semantic Public Link URL | ⏳ Post-launch | 0% | TBD |
@@ -29,11 +29,10 @@
 ## Phase Dependency Graph
 
 ```
-A → B → C → D → E ──┬── F (Public Surface) ── G (Beta Testing)
-                     └── H (PDF Fidelity)
-                             └── I (Hardening & Launch)
-                                     ├── J (AI) → M (Vision)
-                                     └── K (ATS) → L (Semantic URL)
+A → B → C → D → E ──┬── F (Public Surface) ── I (Hardening & Launch) ──┬── G (Beta Testing)
+                     │                                                  ├── J (AI) → M (Vision)
+                     │                                                  └── K (ATS) → L (Semantic URL)
+                     └── H (PDF Fidelity — parallel track, planned)
 ```
 
 ---
@@ -46,9 +45,9 @@ A → B → C → D → E ──┬── F (Public Surface) ── G (Beta Test
 - [x] Self-service account deletion (GDPR Art. 17)
 - [x] Last-admin deletion safeguard (DB trigger + API guard)
 - [x] PDF rendering module (ADR 0014) + draft feature flag
+- [x] Apply `20260610_pdf_feature_flags.sql` to production (verified 2026-07-09: `pdf_draft_enabled` present and enabled)
 
 **Pending — Deploy QA:**
-- [ ] Apply `20260610_pdf_feature_flags.sql` to production (`supabase db push`)
 - [ ] Preview deploy QA complete
 - [ ] Production deploy QA complete
 - [ ] Auth smoke checks (sign-up, sign-in, reset, verify)

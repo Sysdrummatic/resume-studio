@@ -11,7 +11,7 @@ For setting up a local environment or understanding code patterns.
 - [Local Development Setup](development/local-development.md) — Prerequisites, database setup, running tests
 - [Environment Matrix](development/environment-matrix.md) — Env vars across preview/production
 - [Responsive UI & Drawer Patterns](development/responsive-ui-and-drawer-patterns.md) — UI component patterns
-- [Custom Codex Instruction](../guides/codex-custom-instruction.md) — AI-assisted development workflow
+- [Codex Instructions](../../.codex/instructions.md) — AI-assisted development workflow and team discipline
 
 ---
 
@@ -47,14 +47,10 @@ Future features and detailed implementation plans.
 
 ## 📦 Archived Guides
 
-Historical documentation. Not needed for current development. For reference only.
-
-- [Phase I Features Backlog](archive/phase-i-features-backlog.md) — Post-MVP ideas and Phase I vision (2027+)
-- [SaaS Transition Work Plan](archive/saas-transition-work-plan.md) — Historical execution notes (2026-05-09)
-- [Phase C Supabase Schema Setup](archive/phase-c-supabase-schema-setup.md) — Legacy foundation guide
-- [React Frontend Transition Guardrails](archive/react-frontend-transition-plan.md) — Static → Next.js migration notes
-- [Content Update Workflow](archive/content-update-workflow.md) — Retired static site workflow
-- [Supabase UI Setup](archive/supabase-ui-setup.md) — Retired static auth flow
+Historical guides (SaaS transition work plan, legacy schema setup, static-site
+workflows, and others) were removed from the repository in commit `36209ca`
+("docs: Documentation Alignment"). Retrieve them from git history if needed:
+`git show 36209ca^:docs/guides/archive/<file>.md`
 
 ---
 

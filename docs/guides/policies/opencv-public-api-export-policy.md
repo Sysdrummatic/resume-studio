@@ -1,6 +1,6 @@
 # OpenCV Public API Export Policy
 
-Operational guide for [ADR 0008](../adr/0008-opencv-public-api-and-export-surface.md).
+Operational guide for [ADR 0008](../../adr/0008-opencv-public-api-and-export-surface.md).
 
 ## Endpoint
 

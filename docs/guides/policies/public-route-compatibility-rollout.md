@@ -1,6 +1,6 @@
 # Public Route Compatibility Rollout
 
-This guide operationalizes [ADR 0004](../adr/0004-public-route-compatibility-policy.md) for `/r/[slug]` compatibility and deprecation.
+This guide operationalizes [ADR 0004](../../adr/0004-public-route-compatibility-policy.md) for `/r/[slug]` compatibility and deprecation.
 
 ## Canonical Rule
 

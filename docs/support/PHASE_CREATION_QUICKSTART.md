@@ -1,6 +1,6 @@
 ﻿# Phase Creation — Quick Reference Card
 
-**TL;DR**: Copy template → Fill sections → Link from PHASES.md → Create guides → Test
+**TL;DR**: Copy template → Fill sections → Link from STATUS.md → Create guides → Test
 
 ---
 
@@ -28,8 +28,8 @@ cp docs/support/PHASE_TEMPLATE.md docs/phases/phase-X-[name].md
 ✓ Timeline: Table with dates and status
 ```
 
-### 3. Link from PHASES.md
-Add to `docs/PHASES.md` main content area with all sections.
+### 3. Link from STATUS.md
+Add to `docs/STATUS.md` main content area with all sections.
 
 ### 4. Create Supporting Guides (if needed)
 | Need | Location | Naming |
@@ -284,9 +284,9 @@ grep -r "guides/" docs/phases/ | grep -v "guides/policies" | grep -v "guides/tes
 
 - **Template**: [PHASE_TEMPLATE.md](PHASE_TEMPLATE.md)
 - **Full Guide**: [PHASE_CREATION_GUIDE.md](PHASE_CREATION_GUIDE.md)
-- **Phase Registry**: [../PHASES.md](../PHASES.md)
+- **Phase Registry**: [../STATUS.md](../STATUS.md)
 - **Completed Example**: [../phases/phase-e-ux-community.md](../phases/phase-e-ux-community.md)
 
 ---
 
-**Start here → Fill template → Run npm test → Link from PHASES.md → Done! ✅**
+**Start here → Fill template → Run npm test → Link from STATUS.md → Done! ✅**

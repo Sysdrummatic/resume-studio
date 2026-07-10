@@ -122,7 +122,7 @@ Phase E delivers the user-facing platform features: dashboard for CV management,
   - `DELETE /api/resume/presets/{id}/unpublish` — unpublish a version
 - Security: Owner-scoped endpoints; RLS enforces user isolation
 
-**Testing**: [cv-publication-runtime-contract.test.mjs](../guides/cv-publication-test-contracts.md)
+**Testing**: [cv-publication-runtime-contract.test.mjs](../guides/testing/cv-publication-test-contracts.md)
 
 ### Analytics Data Collection
 
@@ -199,7 +199,7 @@ Phase E delivers the user-facing platform features: dashboard for CV management,
 - [x] Role inheritance tests pass (capabilities, not string literals)
 - [x] Privacy-first: audit logs don't expose private content
 
-**Evidence**: Test contracts in [privacy-first-admin-access-contract.test.mjs](../guides/privacy-first-admin-access-policy.md)
+**Evidence**: Test contracts in [privacy-first-admin-access-contract.test.mjs](../guides/policies/privacy-first-admin-access-policy.md)
 
 ---
 
@@ -236,8 +236,8 @@ Phase E delivers the user-facing platform features: dashboard for CV management,
 - [ADR 0007: Publication Analytics & Audit Retention](../adr/0007-publication-analytics-and-audit-retention.md)
 
 ### Test Contracts
-- [Privacy-First Admin Access Policy](../guides/privacy-first-admin-access-policy.md)
-- [CV Publication Test Contracts](../guides/cv-publication-test-contracts.md)
+- [Privacy-First Admin Access Policy](../guides/policies/privacy-first-admin-access-policy.md)
+- [CV Publication Test Contracts](../guides/testing/cv-publication-test-contracts.md)
 
 ### Execution
 - [STATUS.md](../STATUS.md)

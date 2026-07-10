@@ -150,7 +150,7 @@ id (uuid, pk)
 - [Guide name](../guides/[category]/guide-name.md) — [purpose]
 
 ### Testing
-- [Test contract/checklist](../guides/testing/test-contracts.md)
+- [Test contract/checklist](../guides/testing/[test-contract-name].md)
 
 ### Execution
 - [STATUS.md](../STATUS.md)

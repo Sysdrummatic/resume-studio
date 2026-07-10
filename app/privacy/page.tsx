@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
     <main className="container py-8">
       <article className="card stack" style={{ maxWidth: "65ch", marginInline: "auto" }}>
         <Typography variant="h1">Privacy Policy</Typography>
-        <Typography variant="body" muted>Last updated: 2026-06-14</Typography>
+        <Typography variant="body" muted>Last updated: 2026-07-09</Typography>
 
         <Typography variant="h2">1. Who We Are</Typography>
         <Typography variant="body">
@@ -97,6 +97,14 @@ export default function PrivacyPolicyPage() {
               Netlify, Inc., for application hosting. Netlify is based in the United States;
               Netlify&apos;s standard Data Processing Agreement and Standard Contractual Clauses
               apply to any transfer of personal data outside the European Economic Area.
+            </Typography>
+          </li>
+          <li>
+            <Typography as="span" variant="body">
+              Resend, for transactional emails (such as account-deletion confirmation and
+              authentication emails). Resend is based in the United States; Resend&apos;s
+              standard Data Processing Agreement and Standard Contractual Clauses apply to any
+              transfer of personal data outside the European Economic Area.
             </Typography>
           </li>
         </ul>

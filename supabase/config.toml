@@ -195,8 +195,11 @@ password_requirements = ""
 # rp_origins = ["http://127.0.0.1:3000"]
 
 [auth.rate_limit]
+# These values only apply to local dev / CLI-managed projects. Production (hosted Supabase)
+# does not read this file for rate limits — replicate manually in the Dashboard
+# (Project Settings → Auth → Rate Limits).
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+email_sent = 100
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -233,15 +236,17 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# Auth emails go through Resend SMTP (replaces the built-in mailer limited to 2 emails/hour).
+# Locally this only takes effect when RESEND_API_KEY is set; production is configured in the
+# Supabase dashboard (Project Settings → Auth → SMTP) with the same values.
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 587
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "noreply@opencivera.com"
+sender_name = "OpenCiVera"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

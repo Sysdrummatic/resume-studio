@@ -8,7 +8,7 @@
 
 1. Copy [PHASE_TEMPLATE.md](PHASE_TEMPLATE.md) → `docs/phases/phase-[letter]-[name].md`
 2. Fill in section-by-section (see breakdown below)
-3. Link from [../PHASES.md](../PHASES.md) and [../guides/README.md](../guides/README.md)
+3. Link from [../STATUS.md](../STATUS.md) and [../guides/README.md](../guides/README.md)
 4. Create supporting guides as needed (policies, tests, checklists)
 5. Run `npm test` to verify guides are referenced correctly
 
@@ -313,7 +313,7 @@ Before submitting PR:
 - [ ] Success Criteria clearly defined and verifiable
 - [ ] Phase Completion Checklist with [x] marks for done items
 - [ ] Timeline table with dates and status
-- [ ] Linked from [PHASES.md](PHASES.md) and [guides/README.md](guides/README.md)
+- [ ] Linked from [STATUS.md](../STATUS.md) and [guides/README.md](../guides/README.md)
 - [ ] All referenced guides exist and link back
 - [ ] `npm test` passes (no broken guide references)
 
@@ -333,6 +333,6 @@ For reference, review these completed phases:
 ## Questions?
 
 Refer to:
-- [../PHASES.md](../PHASES.md) — Canonical phase registry
+- [../STATUS.md](../STATUS.md) — Canonical phase registry
 - [../guides/README.md](../guides/README.md) — Guide organization and purpose
-- [../README.md](../README.md) — Overall documentation navigation
+- [../guides/README.md](../guides/README.md) — Guides navigation

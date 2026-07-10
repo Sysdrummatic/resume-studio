@@ -2,7 +2,7 @@
 
 Zakres: tylko funkcje w pełni wdrożone (Fazy A–F + role inheritance). Każda rola ma sekcję **A. Techniczne** (RBAC, RLS, granice API, infrastruktura) i **B. Produktowe** (realny flow użytkownika, klik-po-kliku).
 
-Powiązane dokumenty: [Deployment and QA Checklist](deployment-qa.md), [SaaS Transition Work Plan](saas-transition-work-plan.md).
+Powiązane dokumenty: [Deployment and QA Checklist](../testing/deployment-qa.md).
 
 ---
 

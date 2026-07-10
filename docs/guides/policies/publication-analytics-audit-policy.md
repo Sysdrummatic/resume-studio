@@ -1,6 +1,6 @@
 # Publication Analytics And Audit Policy
 
-This guide operationalizes [ADR 0007](../adr/0007-publication-analytics-and-audit-retention.md).
+This guide operationalizes [ADR 0007](../../adr/0007-publication-analytics-and-audit-retention.md).
 
 ## Principles
 

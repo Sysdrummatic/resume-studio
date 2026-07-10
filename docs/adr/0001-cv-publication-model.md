@@ -188,7 +188,7 @@ Negative:
 
 ## Related Test Contracts
 
-See [CV Publication Test Contracts](../guides/cv-publication-test-contracts.md).
+See [CV Publication Test Contracts](../guides/testing/cv-publication-test-contracts.md).
 
 ## Implementation Checklist
 
