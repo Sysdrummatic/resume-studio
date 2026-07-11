@@ -10,6 +10,8 @@ type UserOverview = {
   displayName: string;
   role: string;
   isActive: boolean;
+  isTestUser: boolean;
+  isOcvStaff: boolean;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -27,6 +29,8 @@ export async function GET(): Promise<Response> {
       display_name: string | null;
       role: string;
       is_active: boolean;
+      is_test_user: boolean;
+      is_ocv_staff: boolean;
       created_at: string | null;
       updated_at: string | null;
     }>
@@ -45,6 +49,8 @@ export async function GET(): Promise<Response> {
     displayName: row.display_name || "",
     role: row.role as UserOverview["role"],
     isActive: row.is_active,
+    isTestUser: row.is_test_user,
+    isOcvStaff: row.is_ocv_staff,
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null,
   }));
@@ -60,6 +66,8 @@ export async function GET(): Promise<Response> {
       total_resumes: number;
       total_public_links: number;
       total_public_views: number;
+      excluded_test_users: number;
+      excluded_staff_users: number;
     }>
   >({
     functionName: "get_admin_platform_stats",
@@ -72,6 +80,8 @@ export async function GET(): Promise<Response> {
     total_resumes: 0,
     total_public_links: 0,
     total_public_views: 0,
+    excluded_test_users: 0,
+    excluded_staff_users: 0,
   };
 
   const stats = {
@@ -81,6 +91,8 @@ export async function GET(): Promise<Response> {
     totalResumes: platformStats.total_resumes,
     totalPublicLinks: platformStats.total_public_links,
     totalPublicViews: platformStats.total_public_views,
+    excludedTestUsers: platformStats.excluded_test_users,
+    excludedStaffUsers: platformStats.excluded_staff_users,
   };
 
   return NextResponse.json({

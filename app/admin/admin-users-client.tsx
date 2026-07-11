@@ -11,33 +11,32 @@ type UserOverview = {
   displayName: string;
   role: AppRole;
   isActive: boolean;
+  isTestUser: boolean;
+  isOcvStaff: boolean;
   createdAt: string | null;
+};
+
+type PlatformStatsView = {
+  totalUsers: number;
+  activeUsers: number;
+  inactiveUsers: number;
+  totalResumes: number;
+  totalPublicLinks: number;
+  totalPublicViews: number;
+  excludedTestUsers: number;
+  excludedStaffUsers: number;
 };
 
 type ApiState = {
   users: UserOverview[];
   actorRole: AppRole;
-  stats: {
-    totalUsers: number;
-    activeUsers: number;
-    inactiveUsers: number;
-    totalResumes: number;
-    totalPublicLinks: number;
-    totalPublicViews: number;
-  } | null;
+  stats: PlatformStatsView | null;
 };
 
 type Props = {
   actorRole: AppRole;
   initialUsers: UserOverview[];
-  initialStats: {
-    totalUsers: number;
-    activeUsers: number;
-    inactiveUsers: number;
-    totalResumes: number;
-    totalPublicLinks: number;
-    totalPublicViews: number;
-  };
+  initialStats: PlatformStatsView;
 };
 
 function canRoleBeAssignedByManager(role: AppRole): boolean {
@@ -118,6 +117,24 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     setBusyUserId("");
   }
 
+  async function handleFlagToggle(userId: string, flag: "isTestUser" | "isOcvStaff", nextState: boolean) {
+    setBusyUserId(userId);
+    const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [flag]: nextState }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok || payload.error) {
+      showToast(payload.error || "Flag update failed.", "error");
+      setBusyUserId("");
+      return;
+    }
+    await loadUsers();
+    showToast("User flag updated.");
+    setBusyUserId("");
+  }
+
   async function handleDeleteUser(userId: string) {
     const confirmed = window.confirm("Delete this user account? This operation removes auth access.");
     if (!confirmed) {
@@ -147,7 +164,12 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
         <div className="meta-grid">
           <p>
             <span className="meta-label">Users</span>
-            <span className="meta-value">{state.stats.totalUsers} total ({state.stats.activeUsers} active)</span>
+            <span className="meta-value">
+              {state.stats.totalUsers} total ({state.stats.activeUsers} active)
+              {state.stats.excludedTestUsers + state.stats.excludedStaffUsers > 0
+                ? ` · excluded: ${state.stats.excludedTestUsers} test, ${state.stats.excludedStaffUsers} staff`
+                : ""}
+            </span>
           </p>
           <p>
             <span className="meta-label">Resumes</span>
@@ -172,6 +194,8 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
               <th>Display name</th>
               <th>Role</th>
               <th>Status</th>
+              <th>Test user</th>
+              <th>OCV Staff</th>
               <th>Created</th>
               <th>Actions</th>
             </tr>
@@ -212,6 +236,24 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
                     >
                       {user.isActive ? "Deactivate" : "Activate"}
                     </button>
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label="Test user"
+                      checked={user.isTestUser}
+                      disabled={disableRoleInput}
+                      onChange={(event) => handleFlagToggle(user.id, "isTestUser", event.target.checked)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label="OCV Staff"
+                      checked={user.isOcvStaff}
+                      disabled={disableRoleInput}
+                      onChange={(event) => handleFlagToggle(user.id, "isOcvStaff", event.target.checked)}
+                    />
                   </td>
                   <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}</td>
                   <td>

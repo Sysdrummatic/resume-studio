@@ -9,7 +9,14 @@ import { callRpc, deleteAuthUserAsService, fetchProfileByIdAsService } from "../
 type UpdateUserBody = {
   role?: AppRole;
   isActive?: boolean;
+  isTestUser?: boolean;
+  isOcvStaff?: boolean;
 };
+
+const USER_FLAG_FIELDS = [
+  { bodyKey: "isTestUser", column: "is_test_user" },
+  { bodyKey: "isOcvStaff", column: "is_ocv_staff" },
+] as const;
 
 type RouteContext = {
   params: Promise<{
@@ -103,6 +110,31 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
     }
   }
 
+  for (const { bodyKey, column } of USER_FLAG_FIELDS) {
+    const nextValue = body[bodyKey];
+    if (nextValue === undefined) {
+      continue;
+    }
+    if (typeof nextValue !== "boolean") {
+      return NextResponse.json({ error: `${bodyKey} must be boolean.` }, { status: 400 });
+    }
+    if (nextValue !== targetProfile[column]) {
+      updates.push(
+        callRpc<null>({
+          functionName: "set_user_flag",
+          payload: {
+            target_user_id: userId,
+            flag_name: column,
+            flag_value: nextValue,
+          },
+          accessToken: actorResult.accessToken,
+        }),
+      );
+      metadata[`previous_${column}`] = targetProfile[column];
+      metadata[`next_${column}`] = nextValue;
+    }
+  }
+
   if (updates.length === 0) {
     return NextResponse.json({
       ok: true,
@@ -111,6 +143,8 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
         id: targetProfile.id,
         role: targetProfile.role,
         isActive: targetProfile.is_active,
+        isTestUser: targetProfile.is_test_user,
+        isOcvStaff: targetProfile.is_ocv_staff,
       },
     });
   }
@@ -133,6 +167,8 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
       id: userId,
       role: String(updatedRow.role),
       isActive: Boolean(updatedRow.is_active),
+      isTestUser: Boolean(updatedRow.is_test_user),
+      isOcvStaff: Boolean(updatedRow.is_ocv_staff),
     },
     metadata,
   });
