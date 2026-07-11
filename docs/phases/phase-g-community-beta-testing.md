@@ -24,13 +24,31 @@ tested, deployed to the beta environment, and independently re-verified. Remaini
 security, privacy, resilience, and trust work continues in
 [Phase M](phase-m-security-privacy-trust.md), which may run in parallel with Phase H.
 
-- [ ] **G-P0-01 — Eliminate stored XSS in public CV JSON-LD**
-  - Replace unsafe raw `JSON.stringify` output passed to `dangerouslySetInnerHTML` with
-    a serializer that safely escapes script-breaking characters.
-  - Add regression payloads containing `</script>`, `<`, `>`, `&`, U+2028, and U+2029.
-  - Validate that a malicious published CV cannot execute same-origin JavaScript or call
-    authenticated APIs as a visiting user.
-  - Until deployed, disable indexable JSON-LD output or indexable public beta CVs.
+- [ ] **G-P0-01 — Eliminate stored XSS in public CV JSON-LD** (implemented, awaiting beta deploy + independent E2E re-verification)
+  - Replaced unsafe raw `JSON.stringify` output passed to `dangerouslySetInnerHTML` with
+    `safeJsonLdScript()` (`app/lib/jsonld.ts`), which escapes `<`, `>`, `&`, U+2028, and
+    U+2029 as `\uXXXX` JSON escapes — output remains valid JSON, `</script>` can no longer
+    terminate the containing script element.
+  - Added a URL protocol allowlist (`app/lib/safe-url.ts`, `sanitizeExternalHref()`) for the
+    one other user-controlled `href` in the public CV render path
+    (`resume.contact[].link` in `app/components/resume-renderer/ResumeRenderer.tsx`) —
+    `javascript:`/`data:`/unparsable values render as plain text instead of a link.
+  - Regression tests cover `</script><script>...`, `<`, `>`, `&`, U+2028, U+2029, and the
+    protocol allowlist: `tests/jsonld-safe-serializer.test.mjs`,
+    `tests/safe-url-protocol-allowlist.test.mjs`, `tests/cv-public-publicid-route.test.mjs`.
+  - Manual/E2E verification scenarios:
+    `docs/guides/test-scenarios/stored-xss-public-cv-jsonld/stored-xss-public-cv-jsonld.md`
+    (not yet executed — required before this gate can close).
+  - Added defense-in-depth beyond the P0 scope: a nonce-based CSP (`script-src 'self'
+    'nonce-...' 'strict-dynamic'`) in `proxy.ts`, and server-side detection of
+    script-injection attempts (`app/lib/content-safety.ts`) logged to a dedicated
+    `content_safety_flags` table (migration `20260713_content_safety_flags.sql`, `user_id
+    ... on delete cascade` — deliberately not `admin_audit_logs`, whose `on delete
+    restrict` would block self-service account deletion for a flagged user) and surfaced
+    in `/admin/audit`.
+  - Not done in this pass: the editor-facing inline "this value looks unsafe" validator —
+    deferred to [Phase O](phase-o-opencv-standard.md) (O02) so the ruleset is designed once
+    as part of the OpenCV standard rather than ad hoc in this app.
 
 - [ ] **G-P0-02 — Patch known vulnerable runtime dependencies**
   - Upgrade Next.js from 16.2.3 to a version that fixes the identified proxy/auth bypass
@@ -122,7 +140,7 @@ Stand up the feedback infrastructure: Typeform, GitHub Project board, and a priv
 
 - Typeform: structured feedback form (scenario completion, 1–5 sentiment, open feedback)
 - GitHub Project board: Feedback → Triaged → In Review → Backlog
-- Private Discord/Slack channel for beta testers (async updates, quick questions)
+- Private Discord/Slack channel for beta testers (async updates, quick questions).
 - Pre-create GitHub labels: `sentiment:positive/neutral/negative`, `bug`, `feature-request`, `ux-feedback`, `priority:*`, `beta-tested`
 - Tester-facing README on how to submit feedback
 

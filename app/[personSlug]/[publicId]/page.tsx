@@ -4,6 +4,7 @@ import PrintTrigger from "../../components/print-trigger";
 import { getAppBaseUrl } from "../../lib/env";
 import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
 import type { PublishedResumePreset } from "../../lib/resume-server";
+import { safeJsonLdScript } from "../../lib/jsonld";
 
 type PublicResumeByPublicIdPageProps = {
   params: Promise<{
@@ -119,7 +120,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(publicResumeJsonLd),
+            __html: safeJsonLdScript(publicResumeJsonLd),
           }}
         />
       ) : null}

@@ -8,6 +8,7 @@ import ResumeLanguageSwitcher from "../resume-language-switcher";
 import type { ResumeLanguageOption } from "../resume-language-switcher";
 import type { ResumeDocument, ResumeLocale } from "../../lib/resume-schema";
 import { getDefaultSummary } from "../../lib/resume-schema";
+import { sanitizeExternalHref } from "../../lib/safe-url";
 import {
   buildResumeRenderConfig,
   buildResumeRendererLabels,
@@ -456,24 +457,27 @@ export default function ResumeRenderer({
                 <h2>{rendererLabels.personalInfo}</h2>
               </div>
               <dl className="contact-list">
-                {resume.contact.map((item, index) => (
-                  <div key={`${item.label}-${index}`} className="contact-item">
-                    <dt>{item.label}</dt>
-                    <dd>
-                      {item.link ? (
-                        <a
-                          href={item.link}
-                          target={isExternalLink(item.link) ? "_blank" : undefined}
-                          rel={isExternalLink(item.link) ? "noreferrer noopener" : undefined}
-                        >
-                          {item.value}
-                        </a>
-                      ) : (
-                        item.value
-                      )}
-                    </dd>
-                  </div>
-                ))}
+                {resume.contact.map((item, index) => {
+                  const safeLink = sanitizeExternalHref(item.link);
+                  return (
+                    <div key={`${item.label}-${index}`} className="contact-item">
+                      <dt>{item.label}</dt>
+                      <dd>
+                        {safeLink ? (
+                          <a
+                            href={safeLink}
+                            target={isExternalLink(safeLink) ? "_blank" : undefined}
+                            rel={isExternalLink(safeLink) ? "noreferrer noopener" : undefined}
+                          >
+                            {item.value}
+                          </a>
+                        ) : (
+                          item.value
+                        )}
+                      </dd>
+                    </div>
+                  );
+                })}
               </dl>
             </section>
 
