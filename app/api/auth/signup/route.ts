@@ -3,6 +3,7 @@ import { getAppBaseUrl } from "../../../lib/env";
 import { isDisposableEmailAddress, isValidEmailAddress } from "../../../lib/disposable-email";
 import { signUpWithPassword } from "../../../lib/supabase-http";
 import { normalizeEmail } from "../../../lib/auth-profile";
+import { getAccessRestriction } from "../../../lib/access-restriction";
 
 type SignUpBody = {
   email?: string;
@@ -10,6 +11,11 @@ type SignUpBody = {
 };
 
 export async function POST(request: Request): Promise<Response> {
+  const restriction = await getAccessRestriction();
+  if (restriction.restricted) {
+    return NextResponse.json({ error: restriction.reason }, { status: 403 });
+  }
+
   let body: SignUpBody;
   try {
     body = (await request.json()) as SignUpBody;

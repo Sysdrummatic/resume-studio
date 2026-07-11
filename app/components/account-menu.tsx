@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { FocusEvent, FormEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
-import { canAccessAdminArea } from "../lib/rbac";
+import { canAccessAdminArea, isAdminRole } from "../lib/rbac";
+import BetaTestModeModal from "./beta-test-mode-modal";
 import { UserAvatar } from "./design-system/atoms/UserAvatar";
 
 type Props = {
@@ -36,6 +37,7 @@ function getInitial(email: string): string {
 export default function AccountMenu({ email, displayName, firstName, lastName, avatarUrl, role, isActive, emailConfirmed }: Props) {
   const [isBusy, setIsBusy] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isBetaTestModeOpen, setIsBetaTestModeOpen] = useState(false);
   const [profileFirstName, setProfileFirstName] = useState(firstName);
   const [profileLastName, setProfileLastName] = useState(lastName);
   const [currentDisplayName, setCurrentDisplayName] = useState(displayName);
@@ -87,6 +89,13 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
 
   function openProfileModal() {
     setIsProfileOpen(true);
+    if (menuRef.current) {
+      menuRef.current.open = false;
+    }
+  }
+
+  function openBetaTestModeModal() {
+    setIsBetaTestModeOpen(true);
     if (menuRef.current) {
       menuRef.current.open = false;
     }
@@ -240,6 +249,11 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
             User management
           </Link>
         )}
+        {isAdminRole(role) && (
+          <button type="button" className="account-menu__item" onClick={openBetaTestModeModal}>
+            Beta test mode
+          </button>
+        )}
         <button type="button" className="account-menu__item" disabled>
           Settings
         </button>
@@ -248,6 +262,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
         </button>
       </div>
     </details>
+      {isBetaTestModeOpen && <BetaTestModeModal onClose={() => setIsBetaTestModeOpen(false)} />}
       {isProfileOpen && (
         <div className="profile-modal-overlay" onClick={closeProfileModal}>
           <div

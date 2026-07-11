@@ -12,14 +12,18 @@ function readLayoutSource() {
 test("header renders sign-up and sign-in actions for guests", () => {
   const source = readLayoutSource();
 
-  assert.equal(source.includes('{ href: "/login?mode=signup", label: "Sign up", emphasis: "primary" as const }'), true);
-  assert.equal(source.includes('{ href: "/login?mode=signin", label: "Sign in", emphasis: "secondary" as const }'), true);
+  assert.equal(source.includes('href: "/login?mode=signup"'), true);
+  assert.equal(source.includes('label: "Sign up"'), true);
+  assert.equal(source.includes('emphasis: "primary" as const'), true);
+  assert.equal(source.includes('href: "/login?mode=signin"'), true);
+  assert.equal(source.includes('label: "Sign in"'), true);
+  assert.equal(source.includes('emphasis: "secondary" as const'), true);
   assert.equal(source.includes('{ href: "/login", label: "Login" }'), false);
 });
 
 test("header keeps guest auth actions separate from authenticated navigation items", () => {
   const source = readLayoutSource();
-  const signUpIndex = source.indexOf('{ href: "/login?mode=signup", label: "Sign up", emphasis: "primary" as const }');
+  const signUpIndex = source.indexOf('href: "/login?mode=signup"');
   const sampleCvIndex = source.indexOf('{ href: "/resume", label: "Sample CV" }');
 
   assert.notEqual(signUpIndex, -1);

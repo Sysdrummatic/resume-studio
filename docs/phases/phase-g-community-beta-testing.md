@@ -2,7 +2,7 @@
 
 **Status**: ◯ **PLANNED, NOT STARTED**
 **ETA**: 4 weeks (post Phase F launch prep)
-**Depends On**: Phase F (Public Surface & MVP Launch) core delivery
+**Depends On**: Phase F (Public Surface & MVP Launch) core delivery; all Phase G P0 security gates below must close before external beta access
 
 > Recruit and run a structured beta program with 5 testers over 4 weeks. Collect feedback via Likert-scale sentiment surveys and GitHub Issues labeling. Goal: validate UX, surface bugs, and gather user testimonials before Phase I hardening work concludes.
 
@@ -16,6 +16,63 @@ Phase G is the first real-world validation of OpenCiVera with people outside the
 
 **From "it works for us" → "it works for real users."** Structured feedback replaces founder intuition as the primary signal for pre-launch priorities.
 
+### P0 Security Entry Gate — External Beta Blockers
+
+The July 2026 read-only cybersecurity audit identified the following P0 items. They are
+part of Phase G because no external tester may receive access until every item is fixed,
+tested, deployed to the beta environment, and independently re-verified. Remaining
+security, privacy, resilience, and trust work continues in
+[Phase M](phase-m-security-privacy-trust.md), which may run in parallel with Phase H.
+
+- [ ] **G-P0-01 — Eliminate stored XSS in public CV JSON-LD**
+  - Replace unsafe raw `JSON.stringify` output passed to `dangerouslySetInnerHTML` with
+    a serializer that safely escapes script-breaking characters.
+  - Add regression payloads containing `</script>`, `<`, `>`, `&`, U+2028, and U+2029.
+  - Validate that a malicious published CV cannot execute same-origin JavaScript or call
+    authenticated APIs as a visiting user.
+  - Until deployed, disable indexable JSON-LD output or indexable public beta CVs.
+
+- [ ] **G-P0-02 — Patch known vulnerable runtime dependencies**
+  - Upgrade Next.js from 16.2.3 to a version that fixes the identified proxy/auth bypass
+    and Server Components DoS advisories (minimum audited target: 16.2.6).
+  - Upgrade `js-yaml` from 4.1.1 to a version that fixes repeated-alias quadratic CPU
+    exhaustion (minimum audited target: 4.2.0).
+  - Run `npm audit`, full CI, import/export regression tests, and a crafted YAML resource
+    exhaustion test before beta rollout.
+
+- [ ] **G-P0-03 — Close profile flag privilege-boundary gap**
+  - Prevent ordinary users from changing `is_test_user`, `is_ocv_staff`, or any future
+    privileged profile field through direct PostgREST/profile updates.
+  - Change the profile update guard from a denylist to an explicit allowlist of fields
+    editable by the profile owner.
+  - Add live RLS tests for `user`, `recruiter`, `manager`, and `admin`, including direct
+    REST calls that bypass the Next.js UI.
+
+- [ ] **G-P0-04 — Enforce production Supabase Auth controls at the real boundary**
+  - Verify production settings independently of `supabase/config.toml`: confirmed email,
+    strong password policy, leaked-password protection, refresh-token rotation, secure
+    password change, redirect allowlists, and abuse limits.
+  - Enable CAPTCHA/Turnstile for signup, recovery, and other abuse-prone anonymous flows.
+  - Require MFA/AAL2 for admin and manager accounts and for privileged RLS/RPC operations.
+  - Enforce signup policy in Supabase/Auth Hooks so direct calls to the public Supabase
+    Auth endpoint cannot bypass disposable-email and password rules.
+
+- [ ] **G-P0-05 — Deploy production-grade distributed rate limiting**
+  - Replace the in-memory limiter with a distributed store suitable for serverless
+    deployments.
+  - Cover signin, signup, reset/resend, token refresh, imports, exports, PDF rendering,
+    public API scraping, and destructive/admin actions.
+  - Key limits by trusted client IP, account, action, and risk tier; return `Retry-After`
+    and emit security telemetry without logging personal data or credentials.
+
+**Gate owner**: software_architect + backend_engineer + test_engineer
+
+**Gate decision**: explicit GO/NO-GO recorded in the Phase G baseline report
+
+**Required evidence**: code review, automated regression tests, live preview validation,
+clean dependency audit for high/critical production findings, and documented production
+Supabase configuration review
+
 ### Private Beta User Recruitment
 
 - [ ] Recruit 5 tech writer community members for feedback
@@ -23,8 +80,9 @@ Phase G is the first real-world validation of OpenCiVera with people outside the
 - [ ] Collect feedback on publish flow, public link sharing, PDF export
 - [ ] Document learnings in retrospective
 
-**Timeline**: Jun 2026  
-**Owner**: Product team  
+**Timeline**: Jun 2026
+
+**Owner**: Product team
 
 ---
 
@@ -81,7 +139,8 @@ Founder/QA runs all 7 core scenarios solo before opening to external testers, to
 - Prepare a baseline report (bugs vs. UX friction), prioritized critical vs. nice-to-have
 - Log bugs to GitHub Issues with `bug` + `priority:*` labels
 - Optional: record Loom walkthroughs for the longest/most complex scenarios
-- Confirm the platform is safe for external testers (no data leaks, auth bugs)
+- Confirm all five P0 security entry gates are closed and the platform is safe for
+  external testers (no known data leaks or auth-boundary defects)
 
 **Responsible**: frontend_engineer / founder (execute scenarios, identify bugs), ui_ux_designer (review UX friction)
 
@@ -128,7 +187,7 @@ After 4 weeks, analyze and categorize all feedback to decide what ships before l
 
 **Responsible**: software_architect (bug severity assessment), ui_ux_designer (UX improvement prioritization), founder (pre-launch vs. post-launch decision)
 
-**Output**: `docs/guides/beta-testing/PHASE_F_REPORT.md`
+**Output**: `docs/guides/beta-testing/PHASE_G_REPORT.md`
 
 ---
 
@@ -172,6 +231,8 @@ After 4 weeks, analyze and categorize all feedback to decide what ships before l
 Findings from Phase G (bug severity, UX friction, testimonials) feed directly into:
 - **Phase H** (PDF Visual Fidelity): PDF quality feedback from testers
 - **Phase I** (Hardening, QA & Launch Readiness): critical bugs become launch blockers; testimonials support launch marketing
+- **Phase M** (Security, Privacy & Trust): non-P0 hardening, GDPR operational controls,
+  resilience, monitoring, and assurance; may execute in parallel with Phase H
 
 ---
 
@@ -179,5 +240,6 @@ Findings from Phase G (bug severity, UX friction, testimonials) feed directly in
 
 - 5 confirmed beta testers complete ≥80% of scenarios
 - Average sentiment ≥ 3.5/5 across ≥30 feedback items
+- All five P0 security entry gates closed before external tester onboarding
 - 0 critical security issues found
-- Launch-readiness decision documented in `PHASE_F_REPORT.md`
+- Launch-readiness decision documented in `PHASE_G_REPORT.md`

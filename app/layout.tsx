@@ -8,6 +8,7 @@ import AppLanguageMenu from "./components/app-language-menu";
 import AppThemeSwitch from "./components/app-theme-switch";
 import AccountMenu from "./components/account-menu";
 import { getCurrentActor } from "./lib/auth-server";
+import { getAccessRestriction } from "./lib/access-restriction";
 import { isAdminRole } from "./lib/rbac";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
 import "./globals.css";
@@ -30,6 +31,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const initialTheme = resolveAppTheme(cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME);
   const actor = await getCurrentActor();
   const isAdmin = actor ? isAdminRole(actor.role) : false;
+  const restriction = actor ? { restricted: false, reason: "" } : await getAccessRestriction();
   const navItems = actor
     ? [
         ...(isAdmin ? [{ href: "/user", label: "Personal Hub" }] : []),
@@ -37,8 +39,20 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         { href: "/resume", label: "Sample CV" },
       ]
     : [
-        { href: "/login?mode=signup", label: "Sign up", emphasis: "primary" as const },
-        { href: "/login?mode=signin", label: "Sign in", emphasis: "secondary" as const },
+        {
+          href: "/login?mode=signup",
+          label: "Sign up",
+          emphasis: "primary" as const,
+          disabled: restriction.restricted,
+          disabledReason: restriction.reason,
+        },
+        {
+          href: "/login?mode=signin",
+          label: "Sign in",
+          emphasis: "secondary" as const,
+          disabled: restriction.restricted,
+          disabledReason: restriction.reason,
+        },
       ];
 
   return (

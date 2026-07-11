@@ -1,4 +1,5 @@
 import AccountAccessClient from "./account-access-client";
+import { getAccessRestriction } from "../lib/access-restriction";
 
 type InitialAuthMode = "signin" | "signup" | "reset";
 
@@ -21,6 +22,14 @@ function resolveAuthMode(value?: string): InitialAuthMode {
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const params = await searchParams;
-  return <AccountAccessClient reason={params.reason || ""} verified={params.verified || ""} mode={resolveAuthMode(params.mode)} />;
+  const [params, restriction] = await Promise.all([searchParams, getAccessRestriction()]);
+  return (
+    <AccountAccessClient
+      reason={params.reason || ""}
+      verified={params.verified || ""}
+      mode={resolveAuthMode(params.mode)}
+      restricted={restriction.restricted}
+      restrictionReason={restriction.reason}
+    />
+  );
 }

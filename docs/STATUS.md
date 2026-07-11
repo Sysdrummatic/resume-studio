@@ -1,8 +1,8 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-07-09
+**Last Updated:** 2026-07-11
 **Current Phase:** I — Hardening, QA & Launch Readiness
-**Overall Progress:** ~72% (A–F complete; I 60%; G, H, J–M pending)
+**Overall Progress:** ~72% (A–F complete; I 60%; G, H, J–N pending)
 
 ---
 
@@ -16,24 +16,30 @@
 | D | Editor Canvas | ✅ Complete | 100% | May 2026 |
 | E | UX & Community | ✅ Complete (delivered early) | 100% | May 2026 |
 | F | Public Surface & MVP Launch | ✅ Complete (closed 2026-07-03) | 100% | May–Jun 2026 |
-| G | Community Beta Testing | ⏳ Planned (incl. recruitment of 5 beta testers, moved from F) | 0% | After I |
-| H | PDF Fidelity — Vercel + Puppeteer | ⏳ Planned | 0% | Jun–Jul 2026 |
+| G | Community Beta Testing + P0 Security Entry Gate | ⏳ Planned (P0 closes before external beta) | 0% | P0 before beta; program after I |
+| H | PDF Fidelity — Vercel + Puppeteer | ⏳ Planned (parallel with M) | 0% | Jun–Jul 2026 |
 | I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jul 2026 |
 | J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
 | K | ATS Intelligence | ⏳ Post-launch | 0% | TBD |
 | L | Semantic Public Link URL | ⏳ Post-launch | 0% | TBD |
-| M | Professional Identity Platform | ✦ Vision | 0% | 2027+ |
+| M | Security, Privacy & Trust | ⏳ Planned (parallel with H) | 0% | Jul–Sep 2026 |
+| N | Professional Identity Platform | ✦ Vision | 0% | 2027+ |
 
 ---
 
 ## Phase Dependency Graph
 
 ```
-A → B → C → D → E ──┬── F (Public Surface) ── I (Hardening & Launch) ──┬── G (Beta Testing)
-                     │                                                  ├── J (AI) → M (Vision)
-                     │                                                  └── K (ATS) → L (Semantic URL)
-                     └── H (PDF Fidelity — parallel track, planned)
+A → B → C → D → E ── F (Public Surface) ── I (Hardening & Launch) ── G (P0 Gate + Beta)
+                     ├── H (PDF Fidelity — parallel track) ─────────────┐
+                     └── M (Security, Privacy & Trust — parallel) ──────┤
+                                                                       ├── J (AI) → N (Vision)
+                                                                       └── K (ATS) → L (Semantic URL)
 ```
+
+Phase M can execute alongside Phase H. Its processor, hosting, secret-management,
+security-header, and PDF threat-model gates must close before the Phase H production
+cutover. Phase G external onboarding remains blocked by its five P0 security tasks.
 
 ---
 
@@ -78,4 +84,5 @@ A → B → C → D → E ──┬── F (Public Surface) ── I (Hardening
 | Future features | [`docs/guides/features/`](guides/features/) |
 | Phase K plan | [`docs/phases/phase-k-ats-intelligence-plan.md`](phases/phase-k-ats-intelligence-plan.md) |
 | Phase L plan | [`docs/phases/phase-l-semantic-url-plan.md`](phases/phase-l-semantic-url-plan.md) |
+| Phase M security plan | [`docs/phases/phase-m-security-privacy-trust.md`](phases/phase-m-security-privacy-trust.md) |
 | New phase template | [`docs/support/PHASE_TEMPLATE.md`](support/PHASE_TEMPLATE.md) |
