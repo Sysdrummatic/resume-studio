@@ -21,9 +21,26 @@ type Props = {
   reason: string;
   verified: string;
   mode: InitialAuthMode;
+  restricted?: boolean;
+  restrictionReason?: string;
 };
 
-export default function AccountAccessClient({ reason, verified, mode }: Props) {
+function RestrictedSubmitButton({ label, reason }: { label: string; reason: string }) {
+  return (
+    <span className="nav-tooltip-anchor" tabIndex={0}>
+      <button className="button button--primary" type="submit" disabled aria-disabled="true">
+        {label}
+      </button>
+      {reason ? (
+        <span role="tooltip" className="nav-tooltip">
+          {reason}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+export default function AccountAccessClient({ reason, verified, mode, restricted = false, restrictionReason = "" }: Props) {
   const router = useRouter();
   const [activeMode, setActiveMode] = useState<AuthMode>(mode);
   const { toast, showToast, closeToast } = useStatusToast();
@@ -148,6 +165,9 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
 
   async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (restricted) {
+      return;
+    }
     setIsBusy(true);
     showToast("Signing in...");
 
@@ -181,6 +201,9 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
 
   async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (restricted) {
+      return;
+    }
     setIsBusy(true);
     showToast("Creating account...");
 
@@ -338,9 +361,13 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
               ) : null}
             </div>
             <div className="auth-card__actions">
-              <button className="button button--primary" type="submit" disabled={isBusy}>
-                {isBusy ? "Signing in..." : "Sign in"}
-              </button>
+              {restricted ? (
+                <RestrictedSubmitButton label="Sign in" reason={restrictionReason} />
+              ) : (
+                <button className="button button--primary" type="submit" disabled={isBusy}>
+                  {isBusy ? "Signing in..." : "Sign in"}
+                </button>
+              )}
             </div>
           </form>
         )}
@@ -388,9 +415,13 @@ export default function AccountAccessClient({ reason, verified, mode }: Props) {
               </span>
             </label>
             <div className="auth-card__actions">
-              <button className="button button--primary" type="submit" disabled={isBusy || !signupPolicyAccepted}>
-                {isBusy ? "Creating account..." : "Create account"}
-              </button>
+              {restricted ? (
+                <RestrictedSubmitButton label="Create account" reason={restrictionReason} />
+              ) : (
+                <button className="button button--primary" type="submit" disabled={isBusy || !signupPolicyAccepted}>
+                  {isBusy ? "Creating account..." : "Create account"}
+                </button>
+              )}
             </div>
           </form>
         )}

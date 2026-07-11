@@ -7,7 +7,7 @@ consistency). This document covers risks involving personal data, legal
 exposure, and external processors/dependencies with compliance implications.
 
 Risk IDs (R01, R02, ...) are stable references, used from commits, PRs, and other
-docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
+docs (e.g. `Refs: docs/security/security-and-risk-plan.md R01`).
 
 ## Status legend
 - Open — not yet addressed
@@ -147,3 +147,15 @@ docs (e.g. `Refs: SECURITY_AND_RISK_PLAN.md R01`).
 Review this document whenever: a new external processor is introduced, a Phase I
 audit completes, or a residual gap above is closed. Update the relevant risk's
 "Status" and "Residual gaps", and keep `docs/action-plan.md` cross-referenced.
+
+## Delivery Mapping
+
+- Immediate P0 findings from the July 2026 cybersecurity audit are launch-blocking
+  entry gates in `docs/phases/phase-g-community-beta-testing.md`.
+- All non-P0 remediation, operational assurance, and the open/residual work for
+  R01–R08 are planned in `docs/phases/phase-m-security-privacy-trust.md`.
+- Phase M may execute in parallel with Phase H. Vercel/PDF processor, secret,
+  observability, data-residency, and threat-model gates must close before the Phase H
+  production cutover.
+- The former Phase M long-term Professional Identity Platform vision is now Phase N so
+  that Phase M remains the dedicated Security, Privacy & Trust program.

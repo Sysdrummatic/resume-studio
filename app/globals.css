@@ -709,6 +709,69 @@ a {
   color: var(--portal-on-accent);
 }
 
+.app-nav__action--disabled,
+.app-nav__action--disabled:hover,
+.app-nav__action--disabled:focus-visible {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+.nav-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  outline: none;
+}
+
+.nav-tooltip-anchor:focus-visible {
+  outline: 2px solid var(--portal-focus-ring);
+  outline-offset: 2px;
+}
+
+.nav-tooltip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 12px);
+  width: max-content;
+  max-width: min(260px, calc(100vw - 32px));
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(18, 27, 27, 0.94);
+  color: #f6fbfb;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, -4px) scale(0.98);
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.nav-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  transform: translate(-50%, 50%) rotate(45deg);
+  border-radius: 2px;
+}
+
+.nav-tooltip-anchor:hover .nav-tooltip,
+.nav-tooltip-anchor:focus-visible .nav-tooltip,
+.nav-tooltip-anchor:focus-within .nav-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
 .app-nav a::after {
   content: "";
   position: absolute;

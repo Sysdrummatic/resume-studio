@@ -3,6 +3,7 @@
 **Status**: ◯ **PLANNED, NOT STARTED**  
 **ETA**: Jun–Jul 2026 (after Phase E)  
 **Depends On**: Phase E, F completion  
+**Parallel Track**: [Phase M — Security, Privacy & Trust](phase-m-security-privacy-trust.md)
 
 > Eliminate visual fidelity gap in PDF exports. Migrate deployment platform from Netlify to Vercel and swap PDF rendering engine from @react-pdf/renderer to Puppeteer for pixel-perfect output.
 
@@ -11,6 +12,11 @@
 ## Overview
 
 Phase H improves the PDF export experience by switching from a layout-engine-based renderer (react-pdf) to a browser-based renderer (Puppeteer). This produces PDFs visually identical to the web CV view, including all CSS features: pseudo-elements, CSS Grid, box-shadow, and fluid typography.
+
+Phase H may be implemented in parallel with Phase M. The Vercel processor assessment,
+PDF threat model, signed-render-route review, secret handling, security headers,
+observability, and production data-residency checks defined in Phase M are mandatory
+before the production DNS cutover.
 
 ### Key Theme
 **From pixel-approximation → pixel-perfect.** PDF exports match the web layout exactly. Infrastructure moves from Netlify to Vercel to support larger serverless bundles.
@@ -290,6 +296,7 @@ Trade-off: PDF quality degrades to current react-pdf (visual fidelity gap return
 
 ### Execution
 - [STATUS.md](../STATUS.md)
+- [Phase M: Security, Privacy & Trust](phase-m-security-privacy-trust.md)
 
 ---
 

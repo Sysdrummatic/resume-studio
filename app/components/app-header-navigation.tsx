@@ -8,6 +8,8 @@ type NavItem = {
   href: string;
   label: string;
   emphasis?: "primary" | "secondary";
+  disabled?: boolean;
+  disabledReason?: string;
 };
 
 type Props = {
@@ -33,6 +35,29 @@ function getNavItemClassName(item: NavItem): string | undefined {
   }
 
   return `app-nav__action app-nav__action--${item.emphasis}`;
+}
+
+function renderNavItem(item: NavItem, onNavigate?: () => void) {
+  if (item.disabled) {
+    return (
+      <span key={item.href} className="nav-tooltip-anchor" tabIndex={0}>
+        <span className={`${getNavItemClassName(item) || ""} app-nav__action--disabled`} aria-disabled="true" role="link">
+          {item.label}
+        </span>
+        {item.disabledReason ? (
+          <span role="tooltip" className="nav-tooltip">
+            {item.disabledReason}
+          </span>
+        ) : null}
+      </span>
+    );
+  }
+
+  return (
+    <Link key={item.href} href={item.href} className={getNavItemClassName(item)} onClick={onNavigate}>
+      {item.label}
+    </Link>
+  );
 }
 
 export default function AppHeaderNavigation({
@@ -137,11 +162,7 @@ export default function AppHeaderNavigation({
 
       {!shouldUseCompactMenu && items.length > 0 && (
         <nav className={`app-nav ${forceInlineItems ? "app-nav--actions" : ""}`} aria-label="Primary">
-          {items.map((item) => (
-            <Link key={item.href} href={item.href} className={getNavItemClassName(item)}>
-              {item.label}
-            </Link>
-          ))}
+          {items.map((item) => renderNavItem(item))}
         </nav>
       )}
 
@@ -177,11 +198,7 @@ export default function AppHeaderNavigation({
           </button>
           {isOpen && (
             <nav className="app-nav-menu__panel" id="primary-mobile-menu" aria-label="Primary">
-              {items.map((item) => (
-                <Link key={item.href} href={item.href} className={getNavItemClassName(item)} onClick={() => setIsOpen(false)}>
-                  {item.label}
-                </Link>
-              ))}
+              {items.map((item) => renderNavItem(item, () => setIsOpen(false)))}
             </nav>
           )}
         </div>

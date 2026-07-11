@@ -4,6 +4,8 @@ import { isValidEmailAddress } from "../../../lib/disposable-email";
 import { setAuthCookies } from "../../../lib/auth-cookies";
 import { fetchProfileById, fetchProfileByIdAsService, signInWithPassword, signOut } from "../../../lib/supabase-http";
 import { normalizeEmail } from "../../../lib/auth-profile";
+import { getAccessRestriction } from "../../../lib/access-restriction";
+import { isStaffRole } from "../../../lib/rbac";
 
 type SignInBody = {
   email?: string;
@@ -89,6 +91,15 @@ export async function POST(request: Request): Promise<Response> {
     if (!profileResult.data.is_active) {
       await signOut(session.access_token);
       return NextResponse.json({ error: "Your account is inactive. Contact support." }, { status: 403 });
+    }
+
+    // Beta test mode: staff can always sign in so an admin can lift the restriction.
+    if (!isStaffRole(profileResult.data.role)) {
+      const restriction = await getAccessRestriction();
+      if (restriction.restricted) {
+        await signOut(session.access_token);
+        return NextResponse.json({ error: restriction.reason }, { status: 403 });
+      }
     }
 
     const cookieStore = await cookies();
