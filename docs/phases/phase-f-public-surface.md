@@ -228,8 +228,7 @@ Tracked in [STATUS.md](../STATUS.md):
 - [x] Verify compatibility redirects from legacy static routes
 - [x] Write post-PR4 ADR backlog (0001–0007)
 - [x] Publish founder's own CV (demo) — approved 2026-07-03
-- [ ] Implement Resend as a mail provider
+- [x] Implement Resend as a mail provider
 - ~~Private beta user recruitment (5 users)~~ — moved to Phase G scope
 
 **Overall**: **100% complete — phase closed 2026-07-03**. Core delivery shipped 2026-05-23.
-

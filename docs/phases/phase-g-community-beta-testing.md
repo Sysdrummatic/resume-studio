@@ -1,7 +1,7 @@
 ﻿# Phase G: Community Beta Testing
 
-**Status**: ◯ **PLANNED, NOT STARTED**
-**ETA**: 4 weeks (post Phase F launch prep)
+**Status**: ◯ **STARTED**
+**ETA**: 6 weeks (post Phase F launch prep)
 **Depends On**: Phase F (Public Surface & MVP Launch) core delivery; all Phase G P0 security gates below must close before external beta access
 
 > Recruit and run a structured beta program with 5 testers over 4 weeks. Collect feedback via Likert-scale sentiment surveys and GitHub Issues labeling. Goal: validate UX, surface bugs, and gather user testimonials before Phase I hardening work concludes.
