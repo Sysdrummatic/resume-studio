@@ -12,6 +12,41 @@ import { refreshSession } from "./app/lib/supabase-http";
 const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/user", "/admin"];
 const ACCESS_TOKEN_SKEW_MS = 30_000;
 
+/**
+ * Defense-in-depth CSP, layered on top of (not instead of) escaping vulnerable
+ * output at the source (see app/lib/jsonld.ts, app/lib/safe-url.ts). Uses a
+ * per-request nonce + 'strict-dynamic' so Next.js's own framework scripts (and
+ * next/script tags like /vendor/js-yaml.min.js) keep working while any script
+ * injected without the nonce is blocked outright by the browser.
+ * style-src keeps 'unsafe-inline' because the app uses React inline style
+ * props (e.g. app/components/design-system/atoms/Button.tsx) that CSP has no
+ * practical nonce/hash story for; tightening that is a separate refactor.
+ */
+function buildContentSecurityPolicy(): string {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const isDev = process.env.NODE_ENV === "development";
+  // Next.js dev mode (Fast Refresh, eval-based sourcemaps) requires 'unsafe-eval'.
+  const devEval = isDev ? " 'unsafe-eval'" : "";
+  // Fast Refresh's HMR client connects over ws:/wss: in dev; 'self' does not
+  // reliably cover the WebSocket scheme across browsers (see MDN connect-src).
+  const devConnect = isDev ? " ws: wss:" : "";
+  return `
+    default-src 'self';
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${devEval};
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data:;
+    font-src 'self' data:;
+    connect-src 'self'${devConnect};
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'self';
+    upgrade-insecure-requests;
+  `
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
@@ -67,29 +102,37 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const protectedPath = isProtectedPath(request.nextUrl.pathname);
   const { accessToken, refreshToken } = readAuthTokens(request.cookies);
 
+  const contentSecurityPolicy = buildContentSecurityPolicy();
+  request.headers.set("Content-Security-Policy", contentSecurityPolicy);
+
+  function withCsp(response: NextResponse): NextResponse {
+    response.headers.set("Content-Security-Policy", contentSecurityPolicy);
+    return response;
+  }
+
   if (accessTokenIsFresh(accessToken)) {
-    return NextResponse.next();
+    return withCsp(NextResponse.next({ request }));
   }
 
   if (!refreshToken) {
     // Never had a session on this browser: a neutral prompt, not an alarm.
-    return protectedPath ? redirectToLogin(request, "signed-out") : NextResponse.next();
+    return withCsp(protectedPath ? redirectToLogin(request, "signed-out") : NextResponse.next({ request }));
   }
 
   const refreshResult = await refreshSession(refreshToken);
 
   if (!refreshResult.data || refreshResult.error) {
     // Had a session that failed to restore: the "please sign in again" copy applies here.
-    const response = protectedPath ? redirectToLogin(request, "session") : NextResponse.next();
+    const response = protectedPath ? redirectToLogin(request, "session") : NextResponse.next({ request });
     clearAuthCookies(response.cookies);
-    return response;
+    return withCsp(response);
   }
 
   request.cookies.set(ACCESS_TOKEN_COOKIE, refreshResult.data.access_token);
   request.cookies.set(REFRESH_TOKEN_COOKIE, refreshResult.data.refresh_token);
   const response = NextResponse.next({ request });
   setAuthCookies(response.cookies, refreshResult.data);
-  return response;
+  return withCsp(response);
 }
 
 export const config = {

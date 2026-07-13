@@ -268,6 +268,7 @@ type InsertTableOptions = {
   values: Record<string, unknown> | Record<string, unknown>[];
   accessToken?: string;
   useServiceRole?: boolean;
+  signal?: AbortSignal;
 };
 
 export async function insertTable({
@@ -275,6 +276,7 @@ export async function insertTable({
   values,
   accessToken,
   useServiceRole,
+  signal,
 }: InsertTableOptions): Promise<AuthResult<Record<string, unknown>[]>> {
   const { url } = getSupabasePublicConfig();
   return requestSupabase<Record<string, unknown>[]>(
@@ -289,6 +291,7 @@ export async function insertTable({
         }),
         body: JSON.stringify(values),
         cache: "no-store",
+        signal,
       }),
     "Unable to insert data.",
   );

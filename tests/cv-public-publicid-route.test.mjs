@@ -18,6 +18,12 @@ test("PR3 public route by person slug and public id resolves via Public Link sou
   assert.equal(route.includes("robots"), true);
 });
 
+test("public route JSON-LD uses the context-safe serializer, not raw JSON.stringify, in dangerouslySetInnerHTML", () => {
+  const route = read("app/[personSlug]/[publicId]/page.tsx");
+  assert.equal(route.includes("safeJsonLdScript"), true);
+  assert.equal(/__html:\s*JSON\.stringify/.test(route), false);
+});
+
 test("resume server exposes resolver for canonical public person-slug/public-id URLs", () => {
   const server = read("app/lib/resume-server.ts");
   assert.equal(server.includes("fetchPublishedResumePresetByPublicLink"), true);
