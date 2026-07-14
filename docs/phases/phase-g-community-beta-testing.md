@@ -58,12 +58,12 @@ security, privacy, resilience, and trust work continues in
   - Run `npm audit`, full CI, import/export regression tests, and a crafted YAML resource
     exhaustion test before beta rollout.
 
-- [ ] **G-P0-03 — Close profile flag privilege-boundary gap**
-  - Prevent ordinary users from changing `is_test_user`, `is_ocv_staff`, or any future
+- [x] **G-P0-03 — Close profile flag privilege-boundary gap**
+  - [x] Prevent ordinary users from changing `is_test_user`, `is_ocv_staff`, or any future
     privileged profile field through direct PostgREST/profile updates.
-  - Change the profile update guard from a denylist to an explicit allowlist of fields
+  - [x] Change the profile update guard from a denylist to an explicit allowlist of fields
     editable by the profile owner.
-  - Add live RLS tests for `user`, `recruiter`, `manager`, and `admin`, including direct
+  - [x] Add live RLS tests for `user`, `recruiter`, `manager`, and `admin`, including direct
     REST calls that bypass the Next.js UI.
 
 - [ ] **G-P0-04 — Enforce production Supabase Auth controls at the real boundary**

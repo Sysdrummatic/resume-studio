@@ -52,6 +52,12 @@ Apply via `supabase db push`, which applies files from `supabase/migrations/` in
 23. `supabase/migrations/20260605_fix_guard_profile_update_service_role.sql`
 24. `supabase/migrations/20260605_reassert_profiles_policies_no_recursion.sql`
 25. `supabase/migrations/20260610_pdf_feature_flags.sql`
+26. `supabase/migrations/20260614_prevent_last_admin_deletion.sql`
+27. `supabase/migrations/20260703_user_data_transfer_flag.sql`
+28. `supabase/migrations/20260711_profile_test_and_staff_flags.sql`
+29. `supabase/migrations/20260712_login_restriction_flag.sql`
+30. `supabase/migrations/20260713_content_safety_flags.sql`
+31. `supabase/migrations/20260714_profile_privileged_update_boundary.sql`
 
 ## Tests
 
@@ -60,6 +66,7 @@ Apply via `supabase db push`, which applies files from `supabase/migrations/` in
 - `npm test`
 - `npm run verify` - runs lint, typecheck, and test together
 - `npm run ci` - runs `verify` plus `npm run build`
+- `npm run test:rls` - runs the live four-role PostgREST/RPC matrix against an isolated Supabase project (see `docs/guides/test-scenarios/TEST_SCENARIOS.md`)
 
 If `npm test` fails in restricted environments (`spawn EPERM`), run suites directly, e.g.:
 
