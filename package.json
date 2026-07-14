@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "node --test",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
     "verify": "npm run lint && npm run typecheck && npm run test",
     "phaseb:migrate": "node public/scripts/phase-b/legacy-data-migrator.js",
     "ci": "npm run verify && npm run build"
@@ -21,16 +22,16 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.3",
+    "eslint-config-next": "^16.2.10",
     "prettier": "^3.8.2",
     "typescript": "^6.0.2"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
     "geist": "^1.7.2",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.3.0",
     "lucide-react": "^1.16.0",
-    "next": "^16.2.3",
+    "next": "^16.2.10",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   }
