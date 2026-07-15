@@ -49,12 +49,14 @@ test("migration exposes flags in get_staff_user_overview", () => {
   assert.equal(scoped.includes("p.is_ocv_staff"), true);
 });
 
-test("PATCH route accepts isTestUser/isOcvStaff booleans and calls set_user_flag", () => {
+test("PATCH route applies all privileged fields through one atomic RPC", () => {
   const source = read(patchRoutePath);
 
   assert.equal(source.includes("isTestUser?: boolean"), true);
   assert.equal(source.includes("isOcvStaff?: boolean"), true);
-  assert.equal(source.includes('functionName: "set_user_flag"'), true);
+  assert.equal(source.includes('functionName: "update_user_privileges"'), true);
+  assert.equal(source.includes("Promise.all(updates)"), false);
+  assert.equal(source.includes('functionName: "set_user_flag"'), false);
   assert.equal(source.includes('typeof nextValue !== "boolean"'), true);
 });
 
