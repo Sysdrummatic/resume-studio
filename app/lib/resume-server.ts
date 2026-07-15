@@ -5,6 +5,11 @@ import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-
 import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
+import { applyResumePresetSelection, normalizeResumePresetSelection } from "./preset-selection";
+import type { ResumePresetSelection } from "./preset-selection";
+
+export { normalizeResumePresetSelection };
+export type { ResumePresetSelection };
 
 export type ResumeDocumentRow = {
   id: string;
@@ -93,17 +98,6 @@ export type ResumeUserLocaleInput = {
   code: string;
   label: string;
   shortLabel?: string;
-};
-
-export type ResumePresetSelection = {
-  summary: number[];
-  experience: number[];
-  education: number[];
-  courses: number[];
-  skills: number[];
-  interests: number[];
-  languages: number[];
-  tech_stack: number[];
 };
 
 export type ResumePresetRow = {
@@ -258,19 +252,6 @@ const PROFILE_IDENTITY_SELECT = "id,display_name,first_name,last_name,person_slu
 const PROFILE_SLUG_SELECT = "id,display_name,person_slug";
 const OPEN_CV_PUBLIC_CONTRACT_MAJOR = "1";
 const OPEN_CV_MIN_SCHEMA_VERSION = 1;
-
-const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
-  summary: [],
-  experience: [],
-  education: [],
-  courses: [],
-  skills: [],
-  interests: [],
-  languages: [],
-  tech_stack: [],
-};
-
-const PRESET_SELECTION_KEYS = Object.keys(EMPTY_PRESET_SELECTION) as Array<keyof ResumePresetSelection>;
 
 function yamlText(value: string): string {
   return JSON.stringify(value ?? "");
@@ -947,54 +928,18 @@ export async function fetchResumeLanguageVersionsForUser(userId: string): Promis
   }));
 }
 
-function normalizeIndexList(value: unknown): number[] {
-  if (!Array.isArray(value)) return [];
-  return Array.from(
-    new Set(
-      value
-        .map((item) => Number.parseInt(String(item), 10))
-        .filter((item) => Number.isInteger(item) && item >= 0),
-    ),
-  ).sort((left, right) => left - right);
-}
-
-function selectByIndex<T>(items: T[], indexes: number[]): T[] {
-  return indexes.map((index) => items[index]).filter((item): item is T => item !== undefined);
-}
-
 export function buildResumeDocumentFromPreset(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
   try {
     const masterDocument = normalizeResumeDocument(yaml.load(yamlContent), "");
-    const selectedSummary = selectByIndex(masterDocument.summary, selection.summary).map((summary, index) => ({
-      ...summary,
-      default: index === 0,
-    }));
-
-    return {
-      ...masterDocument,
-      summary: selectedSummary,
-      experience: selectByIndex(masterDocument.experience, selection.experience),
-      education: selectByIndex(masterDocument.education, selection.education),
-      courses: selectByIndex(masterDocument.courses, selection.courses),
-      skills: selectByIndex(masterDocument.skills, selection.skills),
-      interests: selectByIndex(masterDocument.interests, selection.interests),
-      languages: selectByIndex(masterDocument.languages, selection.languages),
-      tech_stack: selectByIndex(masterDocument.tech_stack, selection.tech_stack),
-    };
+    return applyResumePresetSelection(masterDocument, selection);
   } catch {
     return null;
   }
 }
 
-export function normalizeResumePresetSelection(value: unknown): ResumePresetSelection {
-  const source = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-  return PRESET_SELECTION_KEYS.reduce<ResumePresetSelection>(
-    (selection, key) => ({
-      ...selection,
-      [key]: normalizeIndexList(source[key]),
-    }),
-    { ...EMPTY_PRESET_SELECTION },
-  );
+export function buildPublishedExportYamlContent(yamlContent: string, selection: unknown): string | null {
+  const resume = buildResumeDocumentFromPreset(yamlContent, normalizeResumePresetSelection(selection));
+  return resume ? yaml.dump(resume) : null;
 }
 
 export function validateResumePresetSelection(selection: ResumePresetSelection): string[] {
@@ -1411,6 +1356,15 @@ export async function fetchPublishedResumeExportByPublicLink(
 
   const { defaultLocale, allowedLocales, activeLocaleRow } = resolved;
 
+  // ADR 0008: exports must serve the published (selection-filtered) document, never raw master content.
+  const selectedYamlContent = buildPublishedExportYamlContent(
+    activeLocaleRow.yaml_content,
+    activeLocaleRow.selection || snapshot.selection,
+  );
+  if (!selectedYamlContent) {
+    return null;
+  }
+
   return {
     personSlug: link.person_slug,
     publicId: link.public_id,
@@ -1420,7 +1374,7 @@ export async function fetchPublishedResumeExportByPublicLink(
     allowIndexing: Boolean(link.allow_indexing),
     schemaVersion: Number(activeLocaleRow.schema_version) || Number(snapshot.schema_version) || 1,
     openCvYamlContractVersion: snapshot.open_cv_yaml_contract_version,
-    yamlContent: activeLocaleRow.yaml_content,
+    yamlContent: selectedYamlContent,
     canonicalPath: `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`,
   };
 }
