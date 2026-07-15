@@ -3,9 +3,101 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
+import yaml from "js-yaml";
+
+import { normalizeResumeDocument } from "../app/lib/resume-schema.ts";
+import { applyResumePresetSelection, normalizeResumePresetSelection } from "../app/lib/preset-selection.ts";
+
 function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
+
+const masterYamlWithExcludedItems = `
+name: Test Person
+brand_initials: TP
+summary:
+  - position: Frontend Engineer
+    description: Included summary text
+    default: true
+  - position: EXCLUDED-SUMMARY-POSITION
+    description: EXCLUDED-SUMMARY-TEXT
+contact: []
+qr_codes: []
+skills:
+  - name: Included Skill
+    level: 4
+  - name: EXCLUDED-SKILL
+    level: 5
+tech_stack:
+  - Included Tech
+  - EXCLUDED-TECH
+languages: []
+interests:
+  - EXCLUDED-INTEREST
+experience:
+  - period: 2020 - 2024
+    company: Included Corp
+    role: Engineer
+    highlights:
+      - Included highlight
+  - period: 2015 - 2020
+    company: EXCLUDED-CORP
+    role: EXCLUDED-ROLE
+    highlights:
+      - EXCLUDED-HIGHLIGHT
+education: []
+courses:
+  - year: 2021
+    name: Included Course
+`;
+
+const selectionExcludingItems = {
+  summary: [0],
+  experience: [0],
+  education: [],
+  courses: [0],
+  skills: [0],
+  interests: [],
+  languages: [],
+  tech_stack: [0],
+};
+
+test("published export pipeline applies the saved-version selection to exported yaml", () => {
+  const masterDocument = normalizeResumeDocument(yaml.load(masterYamlWithExcludedItems), "");
+  const selected = applyResumePresetSelection(masterDocument, normalizeResumePresetSelection(selectionExcludingItems));
+  const exported = yaml.dump(selected);
+
+  assert.ok(exported, "export yaml must be produced for a valid snapshot");
+  assert.equal(exported.includes("Included Corp"), true);
+  assert.equal(exported.includes("Included Skill"), true);
+  assert.equal(exported.includes("Included Tech"), true);
+  assert.equal(exported.includes("Included summary text"), true);
+  for (const leaked of [
+    "EXCLUDED-SUMMARY-POSITION",
+    "EXCLUDED-SUMMARY-TEXT",
+    "EXCLUDED-SKILL",
+    "EXCLUDED-TECH",
+    "EXCLUDED-INTEREST",
+    "EXCLUDED-CORP",
+    "EXCLUDED-ROLE",
+    "EXCLUDED-HIGHLIGHT",
+  ]) {
+    assert.equal(exported.includes(leaked), false, `${leaked} must not leak into the export`);
+  }
+});
+
+test("published export resolver applies the snapshot selection instead of returning raw master yaml", () => {
+  const server = read("app/lib/resume-server.ts");
+
+  assert.equal(server.includes("yamlContent: activeLocaleRow.yaml_content"), false);
+  assert.equal(server.includes("export function buildPublishedExportYamlContent"), true);
+  const resolver = server.slice(
+    server.indexOf("export async function fetchPublishedResumeExportByPublicLink"),
+    server.indexOf("export async function fetchResumeExportByPresetId"),
+  );
+  assert.equal(resolver.includes("buildPublishedExportYamlContent"), true);
+  assert.equal(resolver.includes("return null"), true);
+});
 
 test("text export route is snapshot-only and rejects preset fallback", () => {
   const route = read("app/api/resume/export/text/route.ts");
