@@ -34,7 +34,7 @@ sprint_7_status:
       - "Docs updated:"
         - "docs/guides/phase-c-auth-rbac-admin.md: added role inheritance and capability-based authorization section"
         - "docs/guides/privacy-first-admin-access-policy.md: clarified recruiter inheritance is capability composition, not content access"
-        - "docs/action-plan.md: already marks all role inheritance PRs complete (verified)"
+        - "docs/STATUS.md: already marks all role inheritance PRs complete (verified)"
       - "Manual QA checklist: admin/manager/recruiter/user role flows validated through test suite"
   validation:
     - "npm.cmd run lint: ✓ pass (zero warnings)"
@@ -61,7 +61,7 @@ sprint_7_status:
     - "SQL target-aware helpers remain unchanged; TS capability system is enforcement point"
   next_steps:
     - "Post-audit cleanup and remaining ADR items (if any)"
-    - "Phase G: Hardening, QA, and launch readiness per action-plan.md"
+    - "Phase G: Hardening, QA, and launch readiness per STATUS.md"
     - "Phase H: AI extras (post-core delivery) if time permits before launch"
 sprint_6_completion:
   agent: frontend_engineer
@@ -145,7 +145,7 @@ plan:
     - "app/language-versions/language-versions-client.tsx"
     - "app/api/resume/languages/route.ts"
     - "app/lib/resume-server.ts"
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
   sequence:
     - step: "Extract reusable language version UI/state from the standalone Language Versions client."
       owner: frontend_engineer
@@ -333,7 +333,7 @@ adr_backlog:
   status: accepted
   source:
     - "docs/adr/0001-cv-publication-model.md"
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
     - "docs/guides/saas-transition-work-plan.md"
     - ".codex/site-map-and-dependencies.md"
   current_rollout:
@@ -572,7 +572,7 @@ post_pr4_plan:
   source_refs:
     - "docs/adr/0001-cv-publication-model.md"
     - "docs/guides/saas-transition-work-plan.md"
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
     - "docs/guides/ai-demo-resume-generation-plan.md"
     - "docs/guides/deployment-qa.md"
   current_state:
@@ -582,10 +582,10 @@ post_pr4_plan:
       - "Transactional publish/unpublish RPC flow is implemented."
       - "Phase A-E are complete per saas-transition-work-plan."
     discrepancies:
-      - "docs/action-plan.md still marks parts of Phase E incomplete while newer roadmap and ADR mark Phase E/public route complete."
+      - "docs/STATUS.md still marks parts of Phase E incomplete while newer roadmap and ADR mark Phase E/public route complete."
   priorities:
     p0:
-      - "Align docs/action-plan.md with PR4 state."
+      - "Align docs/STATUS.md with PR4 state."
       - "Finish release QA evidence for publication/auth/editor/admin smoke flows."
       - "Build user/link management surface needed for operational MVP."
     p1:
@@ -621,7 +621,7 @@ language_modal_merge_plan:
     - ".codex/checklists.md"
     - ".codex/task-checklists.md"
     - "docs/adr/0006-saved-version-language-ux-contract.md"
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
     - "app/dashboard/dashboard-client.tsx"
     - "app/language-versions/language-versions-client.tsx"
     - "app/api/resume/languages/route.ts"
@@ -675,7 +675,7 @@ language_modal_merge_plan:
       cmd: integrate_status_and_docs
       scope:
         - ".codex/state.yaml"
-        - "docs/action-plan.md"
+        - "docs/STATUS.md"
       deliverable: "State/docs updated with completed scope, validation evidence, residual risks, and rollback notes."
   implementation_notes:
     - "Prefer extracting a small dashboard-local LanguageBadgeRail/AddLanguageModal component only if dashboard-client becomes hard to scan."
@@ -943,7 +943,7 @@ role_inheritance_model:
       cmd: "sequence_role_inheritance_rollout"
       scope:
         - ".codex/state.yaml#role_inheritance_model"
-        - "docs/action-plan.md"
+        - "docs/STATUS.md"
       deliverable: "Small PR sequence with owners and rollback gates."
     - owner: backend_engineer
       cmd: "impl_capability_helpers_and_api_guards"
@@ -1020,7 +1020,7 @@ public_link_management_rollout_package:
   status: completed
   prepared_at: "2026-05-12"
   source_refs:
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
     - "docs/guides/deployment-qa.md"
     - "docs/guides/saas-transition-work-plan.md"
     - ".codex/site-map-and-dependencies.md"
@@ -1166,7 +1166,7 @@ public_link_management_rollout_package:
       blocked_by:
         - "PLM-5"
       scope:
-        - "docs/action-plan.md"
+        - "docs/STATUS.md"
         - "docs/guides/deployment-qa.md"
         - "docs/guides/saas-transition-work-plan.md"
         - ".codex/state.yaml"
@@ -1212,7 +1212,7 @@ public_link_management_rollout_package:
       - "Frontend does not edit app/lib/resume-server.ts or API routes except with explicit backend handoff."
       - "Backend does not edit React/CSS files."
       - "Test engineer can edit tests/docs only after implementation scope is known."
-      - "Project manager owns docs/action-plan.md, state.yaml manifest/status, and rollout closeout."
+      - "Project manager owns docs/STATUS.md, state.yaml manifest/status, and rollout closeout."
   release_plan:
     strategy: "Small PR sequence with dashboard fallback preserved throughout."
     checkpoints:
@@ -1305,7 +1305,7 @@ public_link_management_rollout_package:
       note: "Concurrent role-inheritance work may touch resume API guards."
       mitigation: "Sequence backend changes carefully; avoid combining capability migration with link-management UI."
   doc_updates_needed_after_implementation:
-    - file: "docs/action-plan.md"
+    - file: "docs/STATUS.md"
       update: "Mark PLM tickets complete or record follow-up; update Phase D public-link item."
     - file: "docs/guides/deployment-qa.md"
       update: "Replace planned public-link QA with exact shipped manual steps and evidence requirements."
@@ -1369,7 +1369,7 @@ role_inheritance_rollout_package:
     - ".codex/task-checklists.md"
     - "docs/guides/phase-c-auth-rbac-admin.md"
     - "docs/guides/privacy-first-admin-access-policy.md"
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
   preserved_contracts:
     - "profiles.role remains flat: admin, manager, user, recruiter."
     - "user is the base capability set."
@@ -1561,7 +1561,7 @@ role_inheritance_rollout_package:
         changes:
           - "Show User management for admin and manager via shared canAccessAdminArea helper."
     low:
-      - file: "docs/action-plan.md"
+      - file: "docs/STATUS.md"
         owner: project_manager
         changes:
           - "Track rollout sequence, DoD, rollback, and triggers."
@@ -1592,7 +1592,7 @@ role_inheritance_rollout_package:
       - "Admin/user management APIs expose metadata only."
       - "Public CV routes continue to render active snapshot-backed Public Links only."
     documentation:
-      - "docs/action-plan.md and role guides reflect the inherited capability model."
+      - "docs/STATUS.md and role guides reflect the inherited capability model."
       - "Any SQL no-op/migration decision is recorded with rollback notes."
   verification_matrix:
     commands:
@@ -1812,7 +1812,7 @@ public_link_management_editor_plan:
   date: "2026-05-12"
   finalized_at: "2026-05-12"
   source_refs:
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
     - "docs/adr/0001-cv-publication-model.md"
     - "docs/adr/0006-saved-version-language-ux-contract.md"
     - "docs/guides/phase-d-editor-canvas.md"
@@ -1998,7 +1998,7 @@ public_link_management_editor_plan:
       title: "Full verification and docs sync"
       scope:
         - "tests/**"
-        - "docs/action-plan.md"
+        - "docs/STATUS.md"
         - "docs/guides/phase-d-editor-canvas.md"
         - "docs/guides/cv-publication-test-contracts.md"
       work:
@@ -2018,7 +2018,7 @@ public_link_management_editor_plan:
       action: "Finalize boundaries, sequencing, and owner-only contracts."
       file_ownership:
         - ".codex/state.yaml"
-        - "docs/action-plan.md"
+        - "docs/STATUS.md"
       output:
         - "Recommended path is Option A: editor-adjacent Saved Version/Public Link panel."
         - "No RLS, schema, service-role, or public resolver changes."
@@ -2145,7 +2145,7 @@ public_link_management_editor_plan:
         primary:
           - "tests/**"
         docs_evidence:
-          - "docs/action-plan.md"
+          - "docs/STATUS.md"
           - "docs/guides/phase-d-editor-canvas.md"
       commands:
         - "node --test tests/dashboard-presets.test.mjs tests/adr-0006-saved-version-ux-contract.test.mjs"
@@ -2162,7 +2162,7 @@ public_link_management_editor_plan:
       action: "Close rollout evidence and update status/checklists."
       file_ownership:
         primary:
-          - "docs/action-plan.md"
+          - "docs/STATUS.md"
           - "docs/guides/phase-d-editor-canvas.md"
           - ".codex/state.yaml"
       depends_on:
@@ -2316,7 +2316,7 @@ public_link_management_execution_routing:
   source_refs:
     - ".codex/state.yaml#public_link_management_rollout_package"
     - ".codex/state.yaml#public_link_management_editor_plan"
-    - "docs/action-plan.md"
+    - "docs/STATUS.md"
     - "docs/guides/deployment-qa.md"
     - "docs/guides/saas-transition-work-plan.md"
   recommended_path: "Architect Option A: editor-adjacent Saved Version/Public Link panel; read-only first, then publish/unpublish through existing preset APIs."
@@ -2444,7 +2444,7 @@ public_link_management_execution_routing:
       dor:
         - "T5 automated and manual evidence is available."
       dod:
-        - "docs/action-plan.md marks the item complete or records scoped follow-up."
+        - "docs/STATUS.md marks the item complete or records scoped follow-up."
         - "docs/guides/deployment-qa.md and docs/guides/saas-transition-work-plan.md match shipped behavior."
         - ".codex/state.yaml records validation, residual risks, rollback, and next trigger."
       validation:
@@ -2523,7 +2523,7 @@ public_link_management_execution_routing:
     REQ: project_manager
     CMD: select_next_phase_priority
     CTX:
-      ref: "docs/action-plan.md"
+      ref: "docs/STATUS.md"
       scope:
         - "Phase E public resume rendering and SEO/AEO"
         - "Phase F user panel and analytics"

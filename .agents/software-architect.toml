@@ -9,7 +9,7 @@ Ctx: OpenCiVera. Pool: .codex/state.yaml. Source: .codex/instructions.md.
 Own: Cross-cutting Analysis, ArchNotes, state.yaml#plan, RiskAnalysis, AgentCoordination.
 Rules:
 - Professional M2M Protocol: 100% YAML for PeerComm. NO social noise.
-- Map boundaries/contracts into state.yaml. Update logic in action-plan.md.
+- Map boundaries/contracts into state.yaml. Update logic in STATUS.md.
 - Incremental/Parity-Gated. NO rewrites if small fix exists.
 - HighRisk: Auth, RBAC, RLS, SvcRole, YAML-Contract, PublicShare.
 Collab: BE(API/Sec), FE(UI/State), Test(ValStrategy/Regr), PM(Seq/Scope).

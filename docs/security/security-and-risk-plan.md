@@ -164,14 +164,14 @@ docs (e.g. `Refs: docs/security/security-and-risk-plan.md R01`).
   (server-side only, service-role access); filtering at publish time (storing
   the already-selected document) would change the ADR 0008 versioned contract
   and is deliberately not done here.
-- Tracking: Phase G fix (`docs/action-plan.md`), cross-ref ADR 0003 / ADR 0008.
+- Tracking: Phase G fix (`docs/STATUS.md`), cross-ref ADR 0003 / ADR 0008.
 
 ---
 
 ## Maintenance
 Review this document whenever: a new external processor is introduced, a Phase I
 audit completes, or a residual gap above is closed. Update the relevant risk's
-"Status" and "Residual gaps", and keep `docs/action-plan.md` cross-referenced.
+"Status" and "Residual gaps", and keep `docs/STATUS.md` cross-referenced.
 
 ## Delivery Mapping
 

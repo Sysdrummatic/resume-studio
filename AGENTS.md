@@ -43,7 +43,7 @@ LMT: [Constraint1, Constraint2]
 
 ### Shared Context Pool
 - **Stan zadania**: `file://task-checklists.md`.
-- **Logika biznesowa**: `file://docs/action-plan.md`.
+- **Logika biznesowa**: `file://docs/STATUS.md`.
 - **Kontekst techniczny**: `file://site-map-and-dependencies.md`.
 
 ## Walidacja
