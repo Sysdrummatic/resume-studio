@@ -91,7 +91,7 @@ test("disabled export actions use tooltip chrome instead of inline notes", () =>
 });
 
 test("Supabase migration prepares multilingual CV metadata", () => {
-  const migration = read("supabase/migrations/20260506_resume_language_metadata.sql");
+  const migration = read("supabase/migrations/20260506000000_resume_language_metadata.sql");
   const server = read("app/lib/resume-server.ts");
 
   assert.equal(migration.includes("create table if not exists public.resume_languages"), true);

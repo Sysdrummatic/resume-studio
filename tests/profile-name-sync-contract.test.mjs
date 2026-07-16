@@ -8,7 +8,7 @@ function read(relativePath) {
 }
 
 test("profile name sync migration adds structured name fields and sync mode", () => {
-  const sql = read("supabase/migrations/20260603_z_profile_name_sync.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260603010000_z_profile_name_sync.sql").toLowerCase();
 
   assert.equal(sql.includes("add column if not exists first_name text"), true);
   assert.equal(sql.includes("add column if not exists last_name text"), true);
@@ -17,7 +17,7 @@ test("profile name sync migration adds structured name fields and sync mode", ()
 });
 
 test("profile name sync migration keeps person_slug updates explicit", () => {
-  const sql = read("supabase/migrations/20260603_z_profile_name_sync.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260603010000_z_profile_name_sync.sql").toLowerCase();
 
   assert.equal(sql.includes("public.profile_compact_person_slug"), true);
   assert.equal(sql.includes("new.person_slug is distinct from old.person_slug"), true);

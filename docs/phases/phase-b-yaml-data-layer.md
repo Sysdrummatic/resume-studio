@@ -69,7 +69,7 @@ Phase B transforms the data model from generic JSON to a structured YAML-first a
 
 ### Database Changes
 
-- ✓ **Migration file**: `20260410_phase_b_yaml_data_layer.sql`
+- ✓ **Migration file**: `20260410000000_phase_b_yaml_data_layer.sql`
   - Creates `resume_documents` table
   - Creates `resume_revisions` table
   - Creates `resume_public_links` table

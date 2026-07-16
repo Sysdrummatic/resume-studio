@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const migrationPath = path.join(__dirname, "..", "supabase", "migrations", "20260713_content_safety_flags.sql");
+const migrationPath = path.join(__dirname, "..", "supabase", "migrations", "20260713000000_content_safety_flags.sql");
 
 function loadMigration() {
   return fs.readFileSync(migrationPath, "utf8");

@@ -16,7 +16,7 @@ test("ADR 0009 is accepted and implementation checklist is complete", () => {
 });
 
 test("ADR 0009 implementation details in SQL migration", () => {
-  const sql = read("supabase/migrations/20260510_fix_publish_rpc_variant_fallback.sql");
+  const sql = read("supabase/migrations/20260510000000_fix_publish_rpc_variant_fallback.sql");
   
   // Verify Relax Validation (LEFT JOIN)
   assert.equal(sql.includes("left join public.resume_preset_variants rpv"), true);

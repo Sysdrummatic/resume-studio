@@ -16,7 +16,7 @@ test("profile API updates own profile through a narrow RPC instead of direct pro
 });
 
 test("profile update RPC is owner-scoped and allowlists editable profile fields", () => {
-  const sql = read("supabase/migrations/20260603_zz_update_own_profile_rpc.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260603020000_zz_update_own_profile_rpc.sql").toLowerCase();
 
   assert.equal(sql.includes("create or replace function public.update_own_profile"), true);
   assert.equal(sql.includes("actor_id uuid := auth.uid()"), true);

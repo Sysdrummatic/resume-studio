@@ -8,7 +8,7 @@ function read(relativePath) {
 }
 
 test("PR4 migration adds transactional publish/unpublish RPC functions", () => {
-  const sql = read("supabase/migrations/20260509_cv_publication_rpc_atomic.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260509000000_cv_publication_rpc_atomic.sql").toLowerCase();
 
   assert.equal(sql.includes("create or replace function public.publish_resume_saved_version"), true);
   assert.equal(sql.includes("create or replace function public.unpublish_resume_saved_version"), true);
@@ -18,7 +18,7 @@ test("PR4 migration adds transactional publish/unpublish RPC functions", () => {
 });
 
 test("PR4 publish RPC enforces explicit selected locales and default locale membership", () => {
-  const sql = read("supabase/migrations/20260509_cv_publication_rpc_atomic.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260509000000_cv_publication_rpc_atomic.sql").toLowerCase();
 
   assert.equal(sql.includes("at least one selected locale is required for publish"), true);
   assert.equal(sql.includes("default locale must be included in selected locales"), true);
@@ -28,14 +28,14 @@ test("PR4 publish RPC enforces explicit selected locales and default locale memb
 });
 
 test("ADR 0002 publish RPC stamps OpenCV contract version explicitly", () => {
-  const sql = read("supabase/migrations/20260509_cv_publication_rpc_atomic.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260509000000_cv_publication_rpc_atomic.sql").toLowerCase();
 
   assert.equal(sql.includes("open_cv_contract_version constant text := '1'"), true);
   assert.equal(sql.includes("open_cv_yaml_contract_version"), true);
 });
 
 test("PR4 republish semantics keep active public-id and issue a new id only after unpublish", () => {
-  const sql = read("supabase/migrations/20260509_cv_publication_rpc_atomic.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260509000000_cv_publication_rpc_atomic.sql").toLowerCase();
 
   assert.equal(sql.includes("if active_link.id is not null then"), true);
   assert.equal(sql.includes("update public.resume_public_links"), true);
@@ -45,7 +45,7 @@ test("PR4 republish semantics keep active public-id and issue a new id only afte
 });
 
 test("republish after unpublish reactivates revoked public link instead of duplicating canonical URL", () => {
-  const sql = read("supabase/migrations/20260604_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260604000000_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
 
   assert.equal(sql.includes("create or replace function public.publish_resume_saved_version"), true);
   assert.equal(sql.includes("for update"), true);

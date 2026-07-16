@@ -57,7 +57,7 @@ closes, but has no other hard dependency.
 - [x] Self-service account deletion (GDPR Art. 17)
 - [x] Last-admin deletion safeguard (DB trigger + API guard)
 - [x] PDF rendering module (ADR 0014) + draft feature flag
-- [x] Apply `20260610_pdf_feature_flags.sql` to production (verified 2026-07-09: `pdf_draft_enabled` present and enabled)
+- [x] Apply `20260610000000_pdf_feature_flags.sql` to production (verified 2026-07-09: `pdf_draft_enabled` present and enabled)
 
 **Pending — Deploy QA:**
 - [ ] Preview deploy QA complete

@@ -7,7 +7,7 @@ const migrationPath = path.join(
   process.cwd(),
   "supabase",
   "migrations",
-  "20260714_profile_privileged_update_boundary.sql"
+  "20260714000000_profile_privileged_update_boundary.sql"
 );
 
 function migrationSql() {
@@ -281,7 +281,7 @@ test("CI executes the live PostgREST security matrix against local Supabase", ()
 test("profiles guard trigger remains attached to every profile UPDATE", () => {
   const original = fs
     .readFileSync(
-      path.join(process.cwd(), "supabase", "migrations", "20260410_phase_b_yaml_data_layer.sql"),
+      path.join(process.cwd(), "supabase", "migrations", "20260410000000_phase_b_yaml_data_layer.sql"),
       "utf8"
     )
     .toLowerCase();

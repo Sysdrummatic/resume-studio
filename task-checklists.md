@@ -23,7 +23,7 @@ REQ: test_engineer
 CMD: validate_profile_privileged_boundary
 CTX:
   ref: "G-P0-03"
-  scope: [supabase/migrations/20260714_profile_privileged_update_boundary.sql, tests/guard-profile-update-contract.test.mjs, tests/profile-privileged-fields-postgrest.test.mjs]
+  scope: [supabase/migrations/20260714000000_profile_privileged_update_boundary.sql, tests/guard-profile-update-contract.test.mjs, tests/profile-privileged-fields-postgrest.test.mjs]
 LMT: ["lint: pass", "typecheck: pass", "tests: 307 pass / 1 live skip", "ci: pass", "live PostgREST: credentials unavailable"]
 ```
 

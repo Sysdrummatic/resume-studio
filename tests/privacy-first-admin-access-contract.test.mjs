@@ -8,7 +8,7 @@ function read(relativePath) {
 }
 
 test("ADR 0003 migration hardens content tables to owner-only RLS policies", () => {
-  const sql = read("supabase/migrations/20260509_privacy_first_admin_access.sql");
+  const sql = read("supabase/migrations/20260509010000_privacy_first_admin_access.sql");
 
   assert.equal(sql.includes("create policy \"resume_documents_select_owner\""), true);
   assert.equal(sql.includes("create policy \"resume_revisions_select_owner\""), true);

@@ -8,7 +8,7 @@ const migrationPath = path.join(
   "..",
   "supabase",
   "migrations",
-  "20260410_phase_c_auth_rbac_admin.sql",
+  "20260410010000_phase_c_auth_rbac_admin.sql",
 );
 
 function loadMigration() {
