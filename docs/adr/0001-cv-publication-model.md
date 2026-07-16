@@ -23,7 +23,7 @@ This mixes private saved work, public identity, and published content. It also m
 OpenCiVera will use three separate domain concepts for CV publication:
 
 - `Saved Version`: the private, editable CV version owned by a user. This is the product name for the current preset concept. It has no public URL by itself and is never resolved directly by anonymous public routes.
-- `Published CV`: an immutable publish-time snapshot of a Saved Version. It contains validated OpenCV YAML, schema version, selected content, locale data, publish metadata, and the data needed to render the public CV.
+- `Published CV`: an immutable publish-time snapshot of a Saved Version. It contains validated OpenCV YAML, schema version, selected content, locale data, publish metadata, and the data needed to render the public CV. *(Clarification 2026-07-16: the snapshot rows physically store the full Master Resume YAML plus the selection; the selection is applied at read time by the shared resolver, so the publicly served content is always the selected subset — see ADR 0002 clarification and ADR 0008/R09.)*
 - `Public Link`: the public URL identity and publication control record. It owns `person_slug`, `public_id`, active/revoked state, indexing opt-in, canonical URL semantics, view counters, and the pointer to the active Published CV snapshot.
 
 The target public URL shape is:

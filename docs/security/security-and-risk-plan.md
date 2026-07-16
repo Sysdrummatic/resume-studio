@@ -155,10 +155,14 @@ docs (e.g. `Refs: docs/security/security-and-risk-plan.md R01`).
   data is never exposed through public export endpoints") and the ADR 0003
   privacy-first posture.
 - Mitigations: the export resolver now applies the same selection as the web
-  view (`buildPublishedExportYamlContent` → `applyResumePresetSelection` in
-  `app/lib/preset-selection.ts`) before returning YAML, and returns 404 when
-  the snapshot cannot be filtered. Contract tests pin that the resolver never
-  returns raw `yaml_content` (`tests/resume-export-contract.test.mjs`,
+  view (`buildPublishedExportContent` in `app/lib/published-export.ts` →
+  `applyResumeSelectionToRawDocument` in `app/lib/preset-selection.ts`) before
+  returning YAML, and returns 404 when the snapshot cannot be filtered. The
+  helper is pure and executed directly by the contract tests, which also pin
+  that the resolver never returns raw `yaml_content` and that all public
+  export routes (PDF/TXT/ATS YAML) are rate limited and consume the resolver's
+  parsed document instead of re-parsing YAML per request
+  (`tests/resume-export-contract.test.mjs`,
   `tests/adr-0008-opencv-public-api-contract.test.mjs`).
 - Residual gaps: snapshots continue to store full master YAML at rest
   (server-side only, service-role access); filtering at publish time (storing

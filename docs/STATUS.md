@@ -110,8 +110,15 @@ Security risks in [security/security-and-risk-plan.md](security/security-and-ris
   view applied the saved-version selection. PDF, ATS `.txt`, ATS `.yaml`,
   CVasCode, and the public OpenCV API v1 all leaked excluded master content.
 - **Fix:** the export resolver applies the same selection as the web view via
-  `buildPublishedExportYamlContent` (`app/lib/resume-server.ts`), backed by the
-  pure, runtime-tested selection core in `app/lib/preset-selection.ts`.
+  `buildPublishedExportContent` (`app/lib/published-export.ts`, pure and
+  runtime-tested), backed by the selection core in
+  `app/lib/preset-selection.ts`. Selection indexes are raw-domain (the editor
+  builds them against raw parsed YAML arrays), so the public view, dashboard
+  preview, and every export apply the selection on the raw YAML object
+  **before** normalization — one shared code path; schema-unknown extension
+  fields survive the export, invalid selections (out-of-range index,
+  selected-summary count ≠ 1) are rejected with 404, and the resolver also
+  returns the parsed `resume` so export routes never re-parse the snapshot.
 - **Contract:** per ADR 0008, "raw" export means no ATS transformations — the
   saved-version selection is always applied; unselected master content is never
   exposed. See ADR 0008 clarification and risk R09.
