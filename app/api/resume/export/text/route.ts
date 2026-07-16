@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { convertResumeToPlainText } from "../../../../lib/resume-export";
-import { normalizeResumeDocument } from "../../../../lib/resume-schema";
-import yaml from "js-yaml";
+import { rateLimit } from "../../../../lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,14 +20,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "personSlug and publicId are required." }, { status: 400 });
   }
 
+  const ip = req.headers.get("x-forwarded-for") || "anonymous";
+  const rl = rateLimit(`text-export:${ip}`, { interval: 60000, limit: 5 });
+  if (!rl.success) {
+    return NextResponse.json({ error: "Rate limit exceeded." }, { status: 429 });
+  }
+
   const exportData = await fetchPublishedResumeExportByPublicLink(personSlug, publicId, lang);
   if (!exportData) {
     return NextResponse.json({ error: "Published CV snapshot not found." }, { status: 404 });
   }
 
   try {
-    const doc = normalizeResumeDocument(yaml.load(exportData.yamlContent), "");
-    const plainText = convertResumeToPlainText(doc);
+    const plainText = convertResumeToPlainText(exportData.resume);
 
     return new NextResponse(plainText, {
       headers: {

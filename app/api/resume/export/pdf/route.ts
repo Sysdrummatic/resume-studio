@@ -4,9 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { CvPdfDocument as CvPdfTemplate } from "../../../../lib/pdf/CvPdfDocument";
 import { buildPdfFilename } from "../../../../lib/pdf/filename";
-import { normalizeResumeDocument } from "../../../../lib/resume-schema";
 import { rateLimit } from "../../../../lib/rate-limit";
-import yaml from "js-yaml";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +31,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const doc = normalizeResumeDocument(yaml.load(exportData.yamlContent), "");
+    const doc = exportData.resume;
     const pdfBytes = await renderToBuffer(
       React.createElement(CvPdfTemplate, {
         resume: doc,

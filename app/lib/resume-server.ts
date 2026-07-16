@@ -5,10 +5,12 @@ import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-
 import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
-import { applyResumePresetSelection, normalizeResumePresetSelection } from "./preset-selection";
+import { normalizeResumePresetSelection } from "./preset-selection";
 import type { ResumePresetSelection } from "./preset-selection";
+import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
 
 export { normalizeResumePresetSelection };
+export { buildPublishedExportContent };
 export type { ResumePresetSelection };
 
 export type ResumeDocumentRow = {
@@ -227,6 +229,7 @@ export type PublishedResumeExport = {
   schemaVersion: number;
   openCvYamlContractVersion: string;
   yamlContent: string;
+  resume: ResumeDocument;
   canonicalPath: string;
 };
 
@@ -929,17 +932,7 @@ export async function fetchResumeLanguageVersionsForUser(userId: string): Promis
 }
 
 export function buildResumeDocumentFromPreset(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
-  try {
-    const masterDocument = normalizeResumeDocument(yaml.load(yamlContent), "");
-    return applyResumePresetSelection(masterDocument, selection);
-  } catch {
-    return null;
-  }
-}
-
-export function buildPublishedExportYamlContent(yamlContent: string, selection: unknown): string | null {
-  const resume = buildResumeDocumentFromPreset(yamlContent, normalizeResumePresetSelection(selection));
-  return resume ? yaml.dump(resume) : null;
+  return buildPublishedResumeDocument(yamlContent, selection);
 }
 
 export function validateResumePresetSelection(selection: ResumePresetSelection): string[] {
@@ -1357,11 +1350,11 @@ export async function fetchPublishedResumeExportByPublicLink(
   const { defaultLocale, allowedLocales, activeLocaleRow } = resolved;
 
   // ADR 0008: exports must serve the published (selection-filtered) document, never raw master content.
-  const selectedYamlContent = buildPublishedExportYamlContent(
+  const exportContent = buildPublishedExportContent(
     activeLocaleRow.yaml_content,
     activeLocaleRow.selection || snapshot.selection,
   );
-  if (!selectedYamlContent) {
+  if (!exportContent) {
     return null;
   }
 
@@ -1374,7 +1367,8 @@ export async function fetchPublishedResumeExportByPublicLink(
     allowIndexing: Boolean(link.allow_indexing),
     schemaVersion: Number(activeLocaleRow.schema_version) || Number(snapshot.schema_version) || 1,
     openCvYamlContractVersion: snapshot.open_cv_yaml_contract_version,
-    yamlContent: selectedYamlContent,
+    yamlContent: exportContent.yamlContent,
+    resume: exportContent.resume,
     canonicalPath: `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`,
   };
 }
@@ -1390,12 +1384,8 @@ export async function fetchResumeExportByPresetId(
   const document = await fetchDocumentById(accessToken, preset.document_id, userId);
   if (!document) return null;
 
-  const selection = normalizeResumePresetSelection(preset.selection);
-  const doc = buildResumeDocumentFromPreset(document.yaml_content, selection);
-  if (!doc) return null;
-
-  // We serialize it back to YAML for the export route to handle it consistently
-  const yamlContent = yaml.dump(doc);
+  const exportContent = buildPublishedExportContent(document.yaml_content, preset.selection);
+  if (!exportContent) return null;
 
   return {
     personSlug: "user",
@@ -1406,7 +1396,8 @@ export async function fetchResumeExportByPresetId(
     allowIndexing: false,
     schemaVersion: document.schema_version,
     openCvYamlContractVersion: OPEN_CV_PUBLIC_CONTRACT_MAJOR,
-    yamlContent,
+    yamlContent: exportContent.yamlContent,
+    resume: exportContent.resume,
     canonicalPath: preset.canonical_public_path || `/dashboard?preset=${preset.id}`,
   };
 }

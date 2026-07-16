@@ -1,5 +1,3 @@
-import type { ResumeDocument } from "./resume-schema";
-
 export type ResumePresetSelection = {
   summary: number[];
   experience: number[];
@@ -24,15 +22,21 @@ export const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
 
 export const PRESET_SELECTION_KEYS = Object.keys(EMPTY_PRESET_SELECTION) as Array<keyof ResumePresetSelection>;
 
+function toIndex(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isInteger(value) && value >= 0 ? value : null;
+  }
+  if (typeof value === "string" && /^\d+$/.test(value.trim())) {
+    return Number.parseInt(value.trim(), 10);
+  }
+  return null;
+}
+
 function normalizeIndexList(value: unknown): number[] {
   if (!Array.isArray(value)) return [];
-  return Array.from(
-    new Set(
-      value
-        .map((item) => Number.parseInt(String(item), 10))
-        .filter((item) => Number.isInteger(item) && item >= 0),
-    ),
-  ).sort((left, right) => left - right);
+  return Array.from(new Set(value.map(toIndex).filter((item): item is number => item !== null))).sort(
+    (left, right) => left - right,
+  );
 }
 
 function selectByIndex<T>(items: T[], indexes: number[]): T[] {
@@ -50,21 +54,33 @@ export function normalizeResumePresetSelection(value: unknown): ResumePresetSele
   );
 }
 
-export function applyResumePresetSelection(masterDocument: ResumeDocument, selection: ResumePresetSelection): ResumeDocument {
-  const selectedSummary = selectByIndex(masterDocument.summary, selection.summary).map((summary, index) => ({
-    ...summary,
-    default: index === 0,
-  }));
+// Selection indexes are RAW-domain: the editor builds them against the raw
+// parsed YAML arrays (dashboard buildPresetOptions), before any normalization
+// drops empty/invalid records. Every consumer (public view, dashboard preview,
+// all exports) must apply the selection on the raw object and only then
+// normalize — normalizing first shifts the indexes and can expose entries the
+// user never saw as selected. Returns null when the selection cannot be
+// applied faithfully: non-object document, any index out of range, or a
+// selected-summary count other than exactly one (the publish invariant).
+export function applyResumeSelectionToRawDocument(rawDocument: unknown, selection: ResumePresetSelection): Record<string, unknown> | null {
+  if (!rawDocument || typeof rawDocument !== "object" || Array.isArray(rawDocument)) {
+    return null;
+  }
 
-  return {
-    ...masterDocument,
-    summary: selectedSummary,
-    experience: selectByIndex(masterDocument.experience, selection.experience),
-    education: selectByIndex(masterDocument.education, selection.education),
-    courses: selectByIndex(masterDocument.courses, selection.courses),
-    skills: selectByIndex(masterDocument.skills, selection.skills),
-    interests: selectByIndex(masterDocument.interests, selection.interests),
-    languages: selectByIndex(masterDocument.languages, selection.languages),
-    tech_stack: selectByIndex(masterDocument.tech_stack, selection.tech_stack),
-  };
+  const source: Record<string, unknown> = { ...(rawDocument as Record<string, unknown>) };
+  for (const key of PRESET_SELECTION_KEYS) {
+    const items = Array.isArray(source[key]) ? (source[key] as unknown[]) : [];
+    if (selection[key].some((index) => index >= items.length)) {
+      return null;
+    }
+    source[key] = selectByIndex(items, selection[key]);
+  }
+  const selectedSummary = source.summary as unknown[];
+  if (selectedSummary.length !== 1) {
+    return null;
+  }
+  source.summary = selectedSummary.map((item, index) =>
+    item && typeof item === "object" && !Array.isArray(item) ? { ...(item as Record<string, unknown>), default: index === 0 } : item,
+  );
+  return source;
 }
