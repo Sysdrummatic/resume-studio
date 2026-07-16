@@ -230,6 +230,38 @@ test("snapshots whose selection cannot be applied faithfully are rejected", () =
   assert.equal(buildPublishedResumeDocument("{}", emptySelection), null, "the public view path must reject the same snapshots");
 });
 
+test("selected records that normalization would drop are rejected instead of exported inconsistently", () => {
+  const emptySelection = {
+    summary: [],
+    experience: [],
+    education: [],
+    courses: [],
+    skills: [],
+    interests: [],
+    languages: [],
+    tech_stack: [],
+  };
+
+  assert.equal(
+    buildPublishedExportContent("summary:\n  - bad\n", { ...emptySelection, summary: [0] }),
+    null,
+    "a selected non-object summary item must be rejected",
+  );
+  assert.equal(
+    buildPublishedExportContent(
+      "summary:\n  - position: A\n    description: text\nexperience:\n  - {}\n",
+      { ...emptySelection, summary: [0], experience: [0] },
+    ),
+    null,
+    "a selected empty experience record must be rejected",
+  );
+  assert.equal(
+    buildPublishedResumeDocument("summary:\n  - bad\n", { ...emptySelection, summary: [0] }),
+    null,
+    "the public view path must reject dropped selected records the same way",
+  );
+});
+
 test("selection index normalization rejects partially numeric values", () => {
   const selection = normalizeResumePresetSelection({
     experience: ["1junk", "2.9", -1, 1.5, "2", 3],
@@ -247,6 +279,107 @@ test("published export resolver applies the snapshot selection instead of return
   );
   assert.equal(resolver.includes("buildPublishedExportContent"), true);
   assert.equal(resolver.includes("return null"), true);
+});
+
+test("fetchPublishedResumeExportByPublicLink applies the snapshot selection end-to-end (stubbed Supabase)", async (t) => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://stub.supabase.local";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "stub-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "stub-service-role-key";
+  const { fetchPublishedResumeExportByPublicLink } = await import("../app/lib/resume-server.ts");
+
+  const linkRow = {
+    id: "link-1",
+    document_id: "doc-1",
+    user_id: "user-1",
+    preset_id: "preset-1",
+    slug: null,
+    person_slug: "test-person",
+    public_id: "abc123",
+    active_published_cv_id: "cv-1",
+    default_locale: "en",
+    available_locales: ["en"],
+    is_active: true,
+    status: "active",
+    allow_indexing: false,
+    published_at: "2026-07-01T00:00:00Z",
+    revoked_at: null,
+    legacy_slug: null,
+    updated_at: "2026-07-01T00:00:00Z",
+  };
+  const snapshotRow = {
+    id: "cv-1",
+    user_id: "user-1",
+    preset_id: "preset-1",
+    source_document_id: "doc-1",
+    title: "Test CV",
+    schema_version: 1,
+    open_cv_yaml_contract_version: "1",
+    default_locale: "en",
+    published_locales: ["en"],
+    available_locales: ["en"],
+    selection: null,
+    allow_indexing: false,
+    published_at: "2026-07-01T00:00:00Z",
+    created_by: null,
+    created_at: "2026-07-01T00:00:00Z",
+    snapshot_metadata: {},
+  };
+  const localeRow = {
+    id: "loc-1",
+    published_cv_id: "cv-1",
+    user_id: "user-1",
+    locale: "en",
+    source_document_id: "doc-1",
+    source_revision_id: null,
+    source_variant_id: null,
+    title: "Test CV",
+    yaml_content: masterYamlWithInvalidRecords,
+    schema_version: 1,
+    selection: {
+      summary: [0],
+      experience: [2],
+      education: [],
+      courses: [],
+      skills: [],
+      interests: [],
+      languages: [],
+      tech_stack: [],
+    },
+    labels: {},
+    render_data: null,
+    ai_generated: false,
+    created_at: "2026-07-01T00:00:00Z",
+  };
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+    const json = (rows) => new Response(JSON.stringify(rows), { status: 200, headers: { "Content-Type": "application/json" } });
+    if (url.includes("/rest/v1/resume_public_links")) return json([linkRow]);
+    if (url.includes("/rest/v1/resume_published_cv_locales")) return json([localeRow]);
+    if (url.includes("/rest/v1/resume_published_cvs")) return json([snapshotRow]);
+    return json([]);
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const exportData = await fetchPublishedResumeExportByPublicLink("test-person", "abc123");
+  assert.ok(exportData, "resolver must resolve the stubbed snapshot");
+  assert.equal(exportData.personSlug, "test-person");
+  assert.equal(exportData.locale, "en");
+  assert.equal(exportData.canonicalPath, "/test-person/abc123");
+  assert.equal(exportData.yamlContent.includes("PUBLIC-CORP"), true);
+  assert.equal(exportData.yamlContent.includes("PRIVATE-CORP"), false, "resolver must never return unselected master content");
+  assert.equal(exportData.resume.experience.length, 1);
+  assert.equal(exportData.resume.experience[0].company, "PUBLIC-CORP");
+
+  localeRow.selection = { ...localeRow.selection, experience: [9] };
+  assert.equal(
+    await fetchPublishedResumeExportByPublicLink("test-person", "abc123"),
+    null,
+    "resolver must return null (404) when the snapshot selection cannot be applied",
+  );
 });
 
 test("public view and dashboard preview apply the selection on the raw document before normalization", () => {
