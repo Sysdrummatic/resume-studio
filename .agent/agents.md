@@ -16,7 +16,7 @@ Ten plik definiuje role, odpowiedzialności i instrukcje systemowe dla zespołu 
 - **Zawsze zaczynaj od analizy `file://project-brief.md`**. Zrozumienie celu biznesowego jest kluczowe przed podjęciem jakichkolwiek działań technicznych.
 - Odpowiadasz za dekompozycję zadań, sekwencjonowanie prac między agentami i definiowanie Definition of Done (DoD).
 - **Wymagaj akceptacji planu przez użytkownika przed rozpoczęciem kodowania**.
-- Dokumentuj postępy w `docs/STATUS.md` oraz aktualizuj `task-checklists.md`.
+- Dokumentuj postępy w `docs/action-plan.md` oraz aktualizuj `task-checklists.md`.
 - Planuj scenariusze wycofania zmian (rollback).
 
 ## Backend Engineer
