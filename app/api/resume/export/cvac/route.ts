@@ -7,7 +7,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/resume/export/cvac
- * CVasCode export — returns the raw published source YAML with no transformations.
+ * CVasCode export — returns the published source YAML with no ATS transformations.
+ * "Published" means the saved-version selection is already applied by the resolver
+ * (ADR 0008: unselected master content is never exposed).
  * Query params: personSlug, publicId, lang (optional)
  */
 export async function GET(req: NextRequest) {

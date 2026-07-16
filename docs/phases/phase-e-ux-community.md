@@ -50,7 +50,7 @@ Phase E delivers the user-facing platform features: dashboard for CV management,
   - Privacy: PDF export only for CV owner
 
 - ✓ **ATS Export Dropdown**: three published-snapshot export formats behind one menu
-  - **CVasCode** (`.yaml`): raw published source YAML, no transformations
+  - **CVasCode** (`.yaml`): published source YAML with the saved-version selection applied, no ATS transformations (ADR 0008: unselected master content is never exported)
   - **`.txt`**: ATS-cleaned plain text — contact values only, merged `SKILLS`, `Role | Company | MM/YYYY – Present` ordering, `CERTIFICATIONS` label, no ratings/interests/decorations
   - **`.yaml`**: ATS-cleaned YAML — interests removed, skills + tech stack flattened, ratings stripped
   - Clean, parseable output readable by applicant tracking systems
@@ -190,7 +190,7 @@ Phase E delivers the user-facing platform features: dashboard for CV management,
 - [x] PDF export reads snapshot, not draft
 - [x] ATS `.txt` export is plain text, parseable by systems (no ratings, interests, or decorations)
 - [x] ATS `.yaml` export is cleaned (interests removed, skills + tech stack flattened, ratings stripped)
-- [x] CVasCode export returns raw published source YAML untransformed
+- [x] CVasCode export returns the published source YAML (saved-version selection applied) with no ATS transformations
 - [x] New export routes are rate limited (5/60s per IP) and snapshot-only
 - [x] Admin can see analytics widgets (total CVs, active links, views)
 - [x] Audit log shows publish/unpublish/export actions

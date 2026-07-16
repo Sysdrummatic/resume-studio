@@ -93,3 +93,34 @@ closes, but has no other hard dependency.
 | Phase M security plan | [`docs/phases/phase-m-security-privacy-trust.md`](phases/phase-m-security-privacy-trust.md) |
 | Phase O OpenCV standard plan | [`docs/phases/phase-o-opencv-standard.md`](phases/phase-o-opencv-standard.md) |
 | New phase template | [`docs/support/PHASE_TEMPLATE.md`](support/PHASE_TEMPLATE.md) |
+
+---
+
+## Action Log
+
+Cross-referenced fix log for work items tracked outside the phase documents.
+Security risks in [security/security-and-risk-plan.md](security/security-and-risk-plan.md).
+
+### Phase G fixes
+
+#### 2026-07-15 — Published CV export endpoints ignored Saved Version selection (R09)
+
+- **Problem:** `fetchPublishedResumeExportByPublicLink` returned the stored
+  snapshot `yaml_content` (full Master Resume) verbatim, while the public web
+  view applied the saved-version selection. PDF, ATS `.txt`, ATS `.yaml`,
+  CVasCode, and the public OpenCV API v1 all leaked excluded master content.
+- **Fix:** the export resolver applies the same selection as the web view via
+  `buildPublishedExportContent` (`app/lib/published-export.ts`, pure and
+  runtime-tested), backed by the selection core in
+  `app/lib/preset-selection.ts`. Selection indexes are raw-domain (the editor
+  builds them against raw parsed YAML arrays), so the public view, dashboard
+  preview, and every export apply the selection on the raw YAML object
+  **before** normalization — one shared code path; schema-unknown extension
+  fields survive the export, invalid selections (out-of-range index,
+  selected-summary count ≠ 1) are rejected with 404, and the resolver also
+  returns the parsed `resume` so export routes never re-parse the snapshot.
+- **Contract:** per ADR 0008, "raw" export means no ATS transformations — the
+  saved-version selection is always applied; unselected master content is never
+  exposed. See ADR 0008 clarification and risk R09.
+- **Tests:** `tests/resume-export-contract.test.mjs`,
+  `tests/adr-0008-opencv-public-api-contract.test.mjs`.

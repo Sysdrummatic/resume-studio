@@ -3,17 +3,415 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
+import yaml from "js-yaml";
+import { register } from "node:module";
+
+import { normalizeResumePresetSelection } from "../app/lib/preset-selection.ts";
+
+register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+
+const { buildPublishedExportContent, buildPublishedResumeDocument } = await import("../app/lib/published-export.ts");
+
 function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
 }
 
-test("text export route is snapshot-only and rejects preset fallback", () => {
+const masterYamlWithExcludedItems = `
+name: Test Person
+brand_initials: TP
+summary:
+  - position: Frontend Engineer
+    description: Included summary text
+    default: true
+  - position: EXCLUDED-SUMMARY-POSITION
+    description: EXCLUDED-SUMMARY-TEXT
+contact: []
+qr_codes: []
+skills:
+  - name: Included Skill
+    level: 4
+  - name: EXCLUDED-SKILL
+    level: 5
+tech_stack:
+  - Included Tech
+  - EXCLUDED-TECH
+languages: []
+interests:
+  - EXCLUDED-INTEREST
+experience:
+  - period: 2020 - 2024
+    company: Included Corp
+    role: Engineer
+    highlights:
+      - Included highlight
+  - period: 2015 - 2020
+    company: EXCLUDED-CORP
+    role: EXCLUDED-ROLE
+    highlights:
+      - EXCLUDED-HIGHLIGHT
+education: []
+courses:
+  - year: 2021
+    name: Included Course
+`;
+
+const selectionExcludingItems = {
+  summary: [0],
+  experience: [0],
+  education: [],
+  courses: [0],
+  skills: [0],
+  interests: [],
+  languages: [],
+  tech_stack: [0],
+};
+
+test("buildPublishedExportContent applies the saved-version selection to exported yaml and resume", () => {
+  const exportContent = buildPublishedExportContent(masterYamlWithExcludedItems, selectionExcludingItems);
+
+  assert.ok(exportContent, "export content must be produced for a valid snapshot");
+  const exported = exportContent.yamlContent;
+  const resumeJson = JSON.stringify(exportContent.resume);
+  assert.equal(exported.includes("Included Corp"), true);
+  assert.equal(exported.includes("Included Skill"), true);
+  assert.equal(exported.includes("Included Tech"), true);
+  assert.equal(exported.includes("Included summary text"), true);
+  assert.equal(resumeJson.includes("Included Corp"), true);
+  for (const leaked of [
+    "EXCLUDED-SUMMARY-POSITION",
+    "EXCLUDED-SUMMARY-TEXT",
+    "EXCLUDED-SKILL",
+    "EXCLUDED-TECH",
+    "EXCLUDED-INTEREST",
+    "EXCLUDED-CORP",
+    "EXCLUDED-ROLE",
+    "EXCLUDED-HIGHLIGHT",
+  ]) {
+    assert.equal(exported.includes(leaked), false, `${leaked} must not leak into the exported yaml`);
+    assert.equal(resumeJson.includes(leaked), false, `${leaked} must not leak into the parsed resume`);
+  }
+});
+
+test("buildPublishedExportContent preserves extension fields the schema does not know", () => {
+  const masterYamlWithExtensions = `
+name: Test Person
+custom_top_level:
+  vendor: acme
+  note: EXTENSION-TOP-LEVEL
+summary:
+  - position: Frontend Engineer
+    description: Included summary text
+    x_summary_tag: EXTENSION-SUMMARY-FIELD
+  - position: EXCLUDED-SUMMARY-POSITION
+experience:
+  - period: 2020 - 2024
+    company: Included Corp
+    role: Engineer
+    location: EXTENSION-NESTED-FIELD
+    highlights:
+      - Included highlight
+  - period: 2015 - 2020
+    company: EXCLUDED-CORP
+    role: EXCLUDED-ROLE
+`;
+  const exportContent = buildPublishedExportContent(masterYamlWithExtensions, {
+    summary: [0],
+    experience: [0],
+    education: [],
+    courses: [],
+    skills: [],
+    interests: [],
+    languages: [],
+    tech_stack: [],
+  });
+
+  assert.ok(exportContent, "export content must be produced");
+  const exported = exportContent.yamlContent;
+  assert.equal(exported.includes("EXTENSION-TOP-LEVEL"), true, "unknown top-level fields must survive the export");
+  assert.equal(exported.includes("EXTENSION-SUMMARY-FIELD"), true, "unknown fields on selected summary items must survive");
+  assert.equal(exported.includes("EXTENSION-NESTED-FIELD"), true, "unknown fields on selected experience items must survive");
+  assert.equal(exported.includes("EXCLUDED-SUMMARY-POSITION"), false);
+  assert.equal(exported.includes("EXCLUDED-CORP"), false);
+
+  const roundTripped = yaml.load(exported);
+  assert.equal(roundTripped.custom_top_level.note, "EXTENSION-TOP-LEVEL");
+  assert.equal(roundTripped.summary.length, 1);
+  assert.equal(roundTripped.summary[0].default, true, "first selected summary must be marked default");
+  assert.equal(roundTripped.experience.length, 1);
+});
+
+test("buildPublishedExportContent returns null for unparseable or non-object snapshots", () => {
+  assert.equal(buildPublishedExportContent("summary: [unclosed", {}), null);
+  assert.equal(buildPublishedExportContent("- just\n- a\n- list\n", {}), null);
+});
+
+const masterYamlWithInvalidRecords = `
+name: Test Person
+summary:
+  - position: Frontend Engineer
+    description: Included summary text
+experience:
+  - {}
+  - period: 2010 - 2015
+    company: PRIVATE-CORP
+    role: PRIVATE-ROLE
+  - period: 2016 - 2024
+    company: PUBLIC-CORP
+    role: PUBLIC-ROLE
+`;
+
+test("selection indexes are raw-domain: records dropped by normalization do not shift the selection", () => {
+  const selection = {
+    summary: [0],
+    experience: [2],
+    education: [],
+    courses: [],
+    skills: [],
+    interests: [],
+    languages: [],
+    tech_stack: [],
+  };
+  const exportContent = buildPublishedExportContent(masterYamlWithInvalidRecords, selection);
+
+  assert.ok(exportContent, "export content must be produced");
+  assert.equal(exportContent.yamlContent.includes("PUBLIC-CORP"), true);
+  assert.equal(exportContent.yamlContent.includes("PRIVATE-CORP"), false, "raw index 2 must select PUBLIC-CORP, not shift onto PRIVATE-CORP");
+  assert.equal(exportContent.resume.experience.length, 1);
+  assert.equal(exportContent.resume.experience[0].company, "PUBLIC-CORP");
+});
+
+test("public view and export surfaces resolve the same document for the same snapshot and selection", () => {
+  const selection = {
+    summary: [0],
+    experience: [1],
+    education: [],
+    courses: [],
+    skills: [],
+    interests: [],
+    languages: [],
+    tech_stack: [],
+  };
+  const viewResume = buildPublishedResumeDocument(masterYamlWithInvalidRecords, selection);
+  const exportContent = buildPublishedExportContent(masterYamlWithInvalidRecords, selection);
+
+  assert.ok(viewResume && exportContent);
+  assert.deepEqual(viewResume, exportContent.resume, "public view and exports must interpret selection indexes identically");
+  assert.equal(viewResume.experience[0].company, "PRIVATE-CORP");
+});
+
+test("snapshots whose selection cannot be applied faithfully are rejected", () => {
+  const emptySelection = {
+    summary: [],
+    experience: [],
+    education: [],
+    courses: [],
+    skills: [],
+    interests: [],
+    languages: [],
+    tech_stack: [],
+  };
+
+  assert.equal(buildPublishedExportContent("{}", emptySelection), null, "empty document must be rejected");
+  assert.equal(
+    buildPublishedExportContent(masterYamlWithInvalidRecords, { ...emptySelection, summary: [0], experience: [5] }),
+    null,
+    "out-of-range index must be rejected",
+  );
+  assert.equal(
+    buildPublishedExportContent(masterYamlWithInvalidRecords, emptySelection),
+    null,
+    "selection without exactly one summary must be rejected",
+  );
+  assert.equal(
+    buildPublishedExportContent("summary:\n  - position: A\nexperience: not-a-list\n", { ...emptySelection, summary: [0], experience: [0] }),
+    null,
+    "selecting from a wrongly typed section must be rejected",
+  );
+  assert.equal(buildPublishedResumeDocument("{}", emptySelection), null, "the public view path must reject the same snapshots");
+});
+
+test("selected records that normalization would drop are rejected instead of exported inconsistently", () => {
+  const emptySelection = {
+    summary: [],
+    experience: [],
+    education: [],
+    courses: [],
+    skills: [],
+    interests: [],
+    languages: [],
+    tech_stack: [],
+  };
+
+  assert.equal(
+    buildPublishedExportContent("summary:\n  - bad\n", { ...emptySelection, summary: [0] }),
+    null,
+    "a selected non-object summary item must be rejected",
+  );
+  assert.equal(
+    buildPublishedExportContent(
+      "summary:\n  - position: A\n    description: text\nexperience:\n  - {}\n",
+      { ...emptySelection, summary: [0], experience: [0] },
+    ),
+    null,
+    "a selected empty experience record must be rejected",
+  );
+  assert.equal(
+    buildPublishedResumeDocument("summary:\n  - bad\n", { ...emptySelection, summary: [0] }),
+    null,
+    "the public view path must reject dropped selected records the same way",
+  );
+});
+
+test("selection index normalization rejects partially numeric values", () => {
+  const selection = normalizeResumePresetSelection({
+    experience: ["1junk", "2.9", -1, 1.5, "2", 3],
+  });
+  assert.deepEqual(selection.experience, [2, 3]);
+});
+
+test("published export resolver applies the snapshot selection instead of returning raw master yaml", () => {
+  const server = read("app/lib/resume-server.ts");
+
+  assert.equal(server.includes("yamlContent: activeLocaleRow.yaml_content"), false);
+  const resolver = server.slice(
+    server.indexOf("export async function fetchPublishedResumeExportByPublicLink"),
+    server.indexOf("export async function fetchResumeExportByPresetId"),
+  );
+  assert.equal(resolver.includes("buildPublishedExportContent"), true);
+  assert.equal(resolver.includes("return null"), true);
+});
+
+test("fetchPublishedResumeExportByPublicLink applies the snapshot selection end-to-end (stubbed Supabase)", async (t) => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://stub.supabase.local";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "stub-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "stub-service-role-key";
+  const { fetchPublishedResumeExportByPublicLink } = await import("../app/lib/resume-server.ts");
+
+  const linkRow = {
+    id: "link-1",
+    document_id: "doc-1",
+    user_id: "user-1",
+    preset_id: "preset-1",
+    slug: null,
+    person_slug: "test-person",
+    public_id: "abc123",
+    active_published_cv_id: "cv-1",
+    default_locale: "en",
+    available_locales: ["en"],
+    is_active: true,
+    status: "active",
+    allow_indexing: false,
+    published_at: "2026-07-01T00:00:00Z",
+    revoked_at: null,
+    legacy_slug: null,
+    updated_at: "2026-07-01T00:00:00Z",
+  };
+  const snapshotRow = {
+    id: "cv-1",
+    user_id: "user-1",
+    preset_id: "preset-1",
+    source_document_id: "doc-1",
+    title: "Test CV",
+    schema_version: 1,
+    open_cv_yaml_contract_version: "1",
+    default_locale: "en",
+    published_locales: ["en"],
+    available_locales: ["en"],
+    selection: null,
+    allow_indexing: false,
+    published_at: "2026-07-01T00:00:00Z",
+    created_by: null,
+    created_at: "2026-07-01T00:00:00Z",
+    snapshot_metadata: {},
+  };
+  const localeRow = {
+    id: "loc-1",
+    published_cv_id: "cv-1",
+    user_id: "user-1",
+    locale: "en",
+    source_document_id: "doc-1",
+    source_revision_id: null,
+    source_variant_id: null,
+    title: "Test CV",
+    yaml_content: masterYamlWithInvalidRecords,
+    schema_version: 1,
+    selection: {
+      summary: [0],
+      experience: [2],
+      education: [],
+      courses: [],
+      skills: [],
+      interests: [],
+      languages: [],
+      tech_stack: [],
+    },
+    labels: {},
+    render_data: null,
+    ai_generated: false,
+    created_at: "2026-07-01T00:00:00Z",
+  };
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+    const json = (rows) => new Response(JSON.stringify(rows), { status: 200, headers: { "Content-Type": "application/json" } });
+    if (url.includes("/rest/v1/resume_public_links")) return json([linkRow]);
+    if (url.includes("/rest/v1/resume_published_cv_locales")) return json([localeRow]);
+    if (url.includes("/rest/v1/resume_published_cvs")) return json([snapshotRow]);
+    return json([]);
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const exportData = await fetchPublishedResumeExportByPublicLink("test-person", "abc123");
+  assert.ok(exportData, "resolver must resolve the stubbed snapshot");
+  assert.equal(exportData.personSlug, "test-person");
+  assert.equal(exportData.locale, "en");
+  assert.equal(exportData.canonicalPath, "/test-person/abc123");
+  assert.equal(exportData.yamlContent.includes("PUBLIC-CORP"), true);
+  assert.equal(exportData.yamlContent.includes("PRIVATE-CORP"), false, "resolver must never return unselected master content");
+  assert.equal(exportData.resume.experience.length, 1);
+  assert.equal(exportData.resume.experience[0].company, "PUBLIC-CORP");
+
+  localeRow.selection = { ...localeRow.selection, experience: [9] };
+  assert.equal(
+    await fetchPublishedResumeExportByPublicLink("test-person", "abc123"),
+    null,
+    "resolver must return null (404) when the snapshot selection cannot be applied",
+  );
+});
+
+test("public view and dashboard preview apply the selection on the raw document before normalization", () => {
+  const server = read("app/lib/resume-server.ts");
+  const dashboard = read("app/dashboard/dashboard-client.tsx");
+
+  assert.equal(server.includes("buildPublishedResumeDocument(yamlContent, selection)"), true);
+  assert.equal(dashboard.includes("applyResumeSelectionToRawDocument(window.jsyaml.load"), true);
+  assert.equal(dashboard.includes("selectByIndex(masterDocument"), false, "dashboard preview must not select from the normalized document");
+});
+
+test("text export route is snapshot-only, rate limited, and rejects preset fallback", () => {
   const route = read("app/api/resume/export/text/route.ts");
 
   assert.equal(route.includes("fetchPublishedResumeExportByPublicLink"), true);
   assert.equal(route.includes("fetchResumeExportByPresetId"), false);
   assert.equal(route.includes("personSlug and publicId are required"), true);
   assert.equal(route.includes("presetId"), false);
+  assert.equal(route.includes("rateLimit"), true);
+});
+
+test("export routes consume the resolver's parsed resume instead of re-parsing yaml", () => {
+  for (const routePath of [
+    "app/api/resume/export/text/route.ts",
+    "app/api/resume/export/yaml/route.ts",
+    "app/api/resume/export/pdf/route.ts",
+  ]) {
+    const route = read(routePath);
+    assert.equal(route.includes("exportData.resume"), true, `${routePath} must use exportData.resume`);
+    assert.equal(route.includes("normalizeResumeDocument"), false, `${routePath} must not re-normalize the snapshot`);
+    assert.equal(route.includes("yaml.load"), false, `${routePath} must not re-parse the snapshot yaml`);
+  }
 });
 
 test("pdf export route is snapshot-only and returns application/pdf", () => {

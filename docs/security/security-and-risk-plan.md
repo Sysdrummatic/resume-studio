@@ -141,12 +141,41 @@ docs (e.g. `Refs: docs/security/security-and-risk-plan.md R01`).
   deletion.
 - Tracking: `feat/last-admin-safeguard`, cross-ref R06.
 
+## R09 — Unselected Master Resume Content Exposed via Public Export Endpoints
+- Category: Privacy / Data exposure
+- Status: Mitigated
+- Description: the publish RPC stores the full Master Resume YAML in
+  `resume_published_cv_locales.yaml_content` with the saved-version selection
+  stored alongside. The public web view applied the selection at render time,
+  but `fetchPublishedResumeExportByPublicLink` (`app/lib/resume-server.ts`)
+  returned `yaml_content` verbatim, so every export surface — PDF, ATS `.txt`,
+  ATS `.yaml`, CVasCode raw, and the unauthenticated public OpenCV API v1 —
+  served experience entries, skills, and summaries the user had deliberately
+  excluded from the published CV. This violated ADR 0008 ("Draft/master/private
+  data is never exposed through public export endpoints") and the ADR 0003
+  privacy-first posture.
+- Mitigations: the export resolver now applies the same selection as the web
+  view (`buildPublishedExportContent` in `app/lib/published-export.ts` →
+  `applyResumeSelectionToRawDocument` in `app/lib/preset-selection.ts`) before
+  returning YAML, and returns 404 when the snapshot cannot be filtered. The
+  helper is pure and executed directly by the contract tests, which also pin
+  that the resolver never returns raw `yaml_content` and that all public
+  export routes (PDF/TXT/ATS YAML) are rate limited and consume the resolver's
+  parsed document instead of re-parsing YAML per request
+  (`tests/resume-export-contract.test.mjs`,
+  `tests/adr-0008-opencv-public-api-contract.test.mjs`).
+- Residual gaps: snapshots continue to store full master YAML at rest
+  (server-side only, service-role access); filtering at publish time (storing
+  the already-selected document) would change the ADR 0008 versioned contract
+  and is deliberately not done here.
+- Tracking: Phase G fix (`docs/STATUS.md`), cross-ref ADR 0003 / ADR 0008.
+
 ---
 
 ## Maintenance
 Review this document whenever: a new external processor is introduced, a Phase I
 audit completes, or a residual gap above is closed. Update the relevant risk's
-"Status" and "Residual gaps", and keep `docs/action-plan.md` cross-referenced.
+"Status" and "Residual gaps", and keep `docs/STATUS.md` cross-referenced.
 
 ## Delivery Mapping
 

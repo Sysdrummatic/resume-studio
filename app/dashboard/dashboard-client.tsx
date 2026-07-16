@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
+import { applyResumeSelectionToRawDocument } from "../lib/preset-selection";
 import type {
   ResumeDocumentRow,
   ResumePresetRow,
@@ -139,39 +140,16 @@ function normalizeSummarySelection(selection: ResumePresetSelection, options: Pr
   };
 }
 
-function selectByIndex<T>(items: T[], indexes: number[]) {
-  return indexes.map((index) => items[index]).filter((item): item is T => item !== undefined);
-}
-
-function parseResumeYaml(yamlContent: string) {
+// Same raw-domain selection as the public view and exports: the selection
+// indexes point at raw YAML arrays, so apply them before normalization.
+function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
   if (!yamlContent || !window.jsyaml) return null;
   try {
-    return normalizeResumeDocument(window.jsyaml.load(yamlContent), "");
+    const selectedRaw = applyResumeSelectionToRawDocument(window.jsyaml.load(yamlContent), selection);
+    return selectedRaw ? normalizeResumeDocument(selectedRaw, "") : null;
   } catch {
     return null;
   }
-}
-
-function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
-  const masterDocument = parseResumeYaml(yamlContent);
-  if (!masterDocument) return null;
-
-  const selectedSummary = selectByIndex(masterDocument.summary, selection.summary).map((summary, index) => ({
-    ...summary,
-    default: index === 0,
-  }));
-
-  return {
-    ...masterDocument,
-    summary: selectedSummary,
-    experience: selectByIndex(masterDocument.experience, selection.experience),
-    education: selectByIndex(masterDocument.education, selection.education),
-    courses: selectByIndex(masterDocument.courses, selection.courses),
-    skills: selectByIndex(masterDocument.skills, selection.skills),
-    interests: selectByIndex(masterDocument.interests, selection.interests),
-    languages: selectByIndex(masterDocument.languages, selection.languages),
-    tech_stack: selectByIndex(masterDocument.tech_stack, selection.tech_stack),
-  };
 }
 
 function getFallbackLanguageLabel(locale: string): { label: string; shortLabel: string } {

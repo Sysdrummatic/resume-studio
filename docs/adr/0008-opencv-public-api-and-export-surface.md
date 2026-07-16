@@ -49,6 +49,17 @@ The long-term vision includes OpenCV-standard exchange. Public export/API bounda
 - Major version is path-based (`/v1/`).
 - Backward-incompatible changes require new major path (`/v2/`) and migration notes.
 
+## Clarification (2026-07-15)
+
+"Published CV snapshot" means the document as published: snapshot rows store
+the full Master Resume YAML plus the saved-version selection, and every export
+surface (public OpenCV API, PDF, ATS text/YAML, CVasCode) must apply that
+selection before serving content — the same filtering the public web view
+applies. "Raw" (CVasCode) means no ATS transformations, not unselected master
+content. Serving unselected master content through these endpoints violates
+the "Draft/master/private data is never exposed" decision above (risk R09 in
+`docs/security/security-and-risk-plan.md`).
+
 ## Consequences
 
 - Safer foundation for OpenCV ecosystem integrations.
