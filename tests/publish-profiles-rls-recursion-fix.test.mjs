@@ -51,7 +51,7 @@ test("profile update helpers do not pass a user accessToken alongside service ro
 
 test("guard_profile_update detects service_role via request.jwt.claims, not the deprecated GUC", () => {
   const sql = normalize(read(
-    "supabase/migrations/20260605_fix_guard_profile_update_service_role.sql",
+    "supabase/migrations/20260605000000_fix_guard_profile_update_service_role.sql",
   ).toLowerCase());
 
   assert.equal(sql.includes("create or replace function public.guard_profile_update()"), true);
@@ -67,7 +67,7 @@ test("guard_profile_update detects service_role via request.jwt.claims, not the 
 
 test("defensive migration re-asserts non-recursive profiles policies and guards against regressions", () => {
   const sql = normalize(read(
-    "supabase/migrations/20260605_reassert_profiles_policies_no_recursion.sql",
+    "supabase/migrations/20260605010000_reassert_profiles_policies_no_recursion.sql",
   ).toLowerCase());
 
   assert.equal(sql.includes('drop policy if exists "admin_full_profiles" on public.profiles'), true);

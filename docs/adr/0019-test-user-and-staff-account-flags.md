@@ -36,7 +36,7 @@ and boolean columns keep the counter predicate trivial
 (`not (is_test_user or is_ocv_staff)`). A `none/test/staff` enum was rejected because it
 forbids the overlap and complicates future flag additions.
 
-### Schema and RPC surface (`supabase/migrations/20260711_profile_test_and_staff_flags.sql`)
+### Schema and RPC surface (`supabase/migrations/20260711000000_profile_test_and_staff_flags.sql`)
 
 - `profiles.is_test_user boolean not null default false`
 - `profiles.is_ocv_staff boolean not null default false`
@@ -70,7 +70,7 @@ forbids the overlap and complicates future flag additions.
 
 ### Database authorization boundary
 
-Migration `20260714_profile_privileged_update_boundary.sql` makes profile writes fail
+Migration `20260714000000_profile_privileged_update_boundary.sql` makes profile writes fail
 closed at the database boundary:
 
 - direct PostgREST updates by authenticated users have column privileges only for

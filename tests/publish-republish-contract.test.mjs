@@ -19,13 +19,13 @@ function read(rel) {
 
 test("reactivate migration file exists", () => {
   assert.doesNotThrow(
-    () => read("supabase/migrations/20260604_reactivate_revoked_public_link_on_publish.sql"),
+    () => read("supabase/migrations/20260604000000_reactivate_revoked_public_link_on_publish.sql"),
     "Migration file 20260604 must exist",
   );
 });
 
 test("reactivate migration grants execute to authenticated", () => {
-  const sql = read("supabase/migrations/20260604_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260604000000_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
   assert.ok(
     sql.includes("grant execute on function public.publish_resume_saved_version"),
     "Migration must grant execute on publish_resume_saved_version to authenticated",
@@ -33,7 +33,7 @@ test("reactivate migration grants execute to authenticated", () => {
 });
 
 test("reactivate migration: re-publish updates revoked row instead of inserting duplicate", () => {
-  const sql = read("supabase/migrations/20260604_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260604000000_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
 
   // Must look for a revoked link first (whitespace-agnostic check)
   assert.match(
@@ -54,7 +54,7 @@ test("reactivate migration: re-publish updates revoked row instead of inserting 
 });
 
 test("reactivate migration: revoked row is set to active and revoked_at cleared", () => {
-  const sql = read("supabase/migrations/20260604_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260604000000_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
 
   assert.ok(sql.includes("status = 'active'"), "Must set status = 'active'");
   assert.ok(sql.includes("revoked_at = null"), "Must clear revoked_at");
@@ -62,7 +62,7 @@ test("reactivate migration: revoked row is set to active and revoked_at cleared"
 });
 
 test("reactivate migration: preserves public_id from revoked link for URL stability", () => {
-  const sql = read("supabase/migrations/20260604_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260604000000_reactivate_revoked_public_link_on_publish.sql").toLowerCase();
 
   assert.match(
     sql,
@@ -76,7 +76,7 @@ test("reactivate migration: preserves public_id from revoked link for URL stabil
 // ─────────────────────────────────────────────────────────────────────────────
 
 test("unpublish RPC sets resume_presets.is_public = false", () => {
-  const sql = read("supabase/migrations/20260509_cv_publication_rpc_atomic.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260509000000_cv_publication_rpc_atomic.sql").toLowerCase();
 
   assert.ok(
     sql.includes("is_public = false"),
@@ -210,7 +210,7 @@ test("publish route returns 400 for missing selectedLocales", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test("resume_presets owner SELECT policy does not require is_public = true", () => {
-  const sql = read("supabase/migrations/20260509_privacy_first_admin_access.sql").toLowerCase();
+  const sql = read("supabase/migrations/20260509010000_privacy_first_admin_access.sql").toLowerCase();
 
   // Polityka owner powinna używać tylko auth.uid() = user_id
   const ownerSelectMatch = sql.match(

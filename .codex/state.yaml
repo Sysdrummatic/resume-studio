@@ -26,7 +26,7 @@ sprint_7_status:
       - "Decision: Existing SQL target-aware helpers (is_admin_user, is_manager_user, is_staff_user) are sufficient"
       - "Rationale: TS capability system is the authoritative enforcement point; SQL helpers remain backward-compatible"
       - "No forward-only migration required; profiles.role remains flat enum"
-      - "Owner-only resume RLS from 20260509_privacy_first_admin_access.sql unchanged"
+      - "Owner-only resume RLS from 20260509010000_privacy_first_admin_access.sql unchanged"
       - "Future: SQL capability predicates can be added if needed, but not blocking current implementation"
     - "PR6: Full Verification & Docs — ✓ COMPLETE"
       - "Validation run: lint ✓ pass, typecheck ✓ pass, test ✓ 178 pass (12 role-inheritance tests)"
@@ -805,9 +805,9 @@ role_inheritance_model:
         - "Admin page/client duplicate role checks instead of using shared permissions."
     database:
       files:
-        - "supabase/migrations/20260410_phase_b_yaml_data_layer.sql"
-        - "supabase/migrations/20260410_phase_c_auth_rbac_admin.sql"
-        - "supabase/migrations/20260509_privacy_first_admin_access.sql"
+        - "supabase/migrations/20260410000000_phase_b_yaml_data_layer.sql"
+        - "supabase/migrations/20260410010000_phase_c_auth_rbac_admin.sql"
+        - "supabase/migrations/20260509010000_privacy_first_admin_access.sql"
       current_issue:
         - "SQL helpers are flat-role predicates: is_admin_user, is_manager_user, is_staff_user."
         - "Privacy hardening keeps resume content owner-only; inheritance must not reintroduce staff content access."
@@ -988,7 +988,7 @@ role_inheritance_model:
       - "Add app/lib/rbac tests for inheritance expansion, capability checks, target-aware role assignment, and delete decisions."
       - "Add/adjust API contract tests for admin users routes to use capability helpers while still excluding recruiter from admin access."
       - "Add resume/language guard tests confirming user-equivalent owner behavior for recruiter if parity is adopted."
-      - "Add migration/source contract tests ensuring owner-only resume RLS remains in 20260509_privacy_first_admin_access.sql."
+      - "Add migration/source contract tests ensuring owner-only resume RLS remains in 20260509010000_privacy_first_admin_access.sql."
       - "Add UI source/behavior test confirming account menu exposes User management to admin and manager only."
     default_validation:
       - "npm.cmd run lint"
@@ -1472,7 +1472,7 @@ role_inheritance_rollout_package:
       deliverable: "Either forward-only has_role/has_capability SQL helper migration or documented no-op decision that existing target-aware SQL helpers are sufficient."
       gates:
         - "No destructive migration."
-        - "Owner-only resume RLS from 20260509_privacy_first_admin_access.sql remains unchanged."
+        - "Owner-only resume RLS from 20260509010000_privacy_first_admin_access.sql remains unchanged."
       rollback: "If migration is added, revert with a forward rollback migration that drops only new helper functions; no data rollback."
     - order: 6
       id: "PR6"

@@ -62,12 +62,12 @@ Netlify keeps permanent redirects from historical `.html` URLs such as `/login.h
 
 Apply SQL migrations in order:
 
-1. `supabase/migrations/20260405_phase_c_foundation.sql`
-2. `supabase/migrations/20260405_phase_c_completion.sql`
-3. `supabase/migrations/20260406_fix_profiles_policy_recursion.sql` (if required)
-4. `supabase/migrations/20260409_phase_d_yaml_template_iteration.sql`
-5. `supabase/migrations/20260410_phase_b_yaml_data_layer.sql`
-6. `supabase/migrations/20260410_phase_c_auth_rbac_admin.sql`
+1. `supabase/migrations/20260405000000_phase_c_foundation.sql`
+2. `supabase/migrations/20260405010000_z_phase_c_completion.sql`
+3. `supabase/migrations/20260406000000_fix_profiles_policy_recursion.sql` (if required)
+4. `supabase/migrations/20260409000000_phase_d_yaml_template_iteration.sql`
+5. `supabase/migrations/20260410000000_phase_b_yaml_data_layer.sql`
+6. `supabase/migrations/20260410010000_phase_c_auth_rbac_admin.sql`
 
 ## Validation
 

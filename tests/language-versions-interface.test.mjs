@@ -77,7 +77,7 @@ test("preset APIs preserve dynamic default locales instead of forcing EN or PL",
 
 test("public language switching only exposes published documents and uses preset variants", () => {
   const server = read("app/lib/resume-server.ts");
-  const migration = read("supabase/migrations/20260506_resume_language_metadata.sql");
+  const migration = read("supabase/migrations/20260506000000_resume_language_metadata.sql");
 
   assert.equal(server.includes("fetchResumePresetVariants"), true);
   assert.equal(migration.includes("resume_preset_variants_update_own_or_staff"), true);
@@ -85,7 +85,7 @@ test("public language switching only exposes published documents and uses preset
 });
 
 test("resume user locale schema separates owner locale state from the global language catalog", () => {
-  const migration = read("supabase/migrations/20260603_resume_user_locales.sql");
+  const migration = read("supabase/migrations/20260603000000_resume_user_locales.sql");
   const server = read("app/lib/resume-server.ts");
 
   assert.equal(migration.includes("create table if not exists public.resume_user_locales"), true);

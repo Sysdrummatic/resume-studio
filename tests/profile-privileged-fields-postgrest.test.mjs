@@ -80,7 +80,7 @@ async function patchProfile(actor, targetId, body) {
   return request(`/rest/v1/profiles?id=eq.${targetId}`, {
     token: actor.accessToken,
     method: "PATCH",
-    prefer: "return=minimal",
+    prefer: "return=representation",
     body
   });
 }
@@ -122,9 +122,14 @@ async function callRpcAsService(functionName, body) {
 
 async function expectDenied(operation, message) {
   const result = await operation;
+  // RLS can deny a PATCH either with an error (WITH CHECK / trigger) or by
+  // filtering the row out entirely, which PostgREST reports as success with
+  // zero affected rows. Both are denials; follow-up assertions verify the
+  // data is unchanged.
+  const filteredToNoRows = Array.isArray(result.data) && result.data.length === 0;
   assert.equal(
-    result.response.ok,
-    false,
+    !result.response.ok || filteredToNoRows,
+    true,
     `${message}: unexpectedly returned ${result.response.status}`
   );
 }

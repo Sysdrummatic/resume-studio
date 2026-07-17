@@ -131,7 +131,7 @@ docs (e.g. `Refs: docs/security/security-and-risk-plan.md R01`).
   account deletion (`DELETE /api/user/account`, R06) or via the admin-panel
   flow (an admin deleting another admin account, permitted by
   `can_delete_user_account`).
-- Mitigations: `supabase/migrations/20260614_prevent_last_admin_deletion.sql`
+- Mitigations: `supabase/migrations/20260614000000_prevent_last_admin_deletion.sql`
   adds a `BEFORE DELETE` trigger on `public.profiles`
   (`prevent_last_admin_deletion()` / `is_last_admin()`) that raises an
   exception if the row being deleted is the last `admin` — a path-independent

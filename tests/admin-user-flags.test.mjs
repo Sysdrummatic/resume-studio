@@ -7,7 +7,7 @@ const migrationPath = path.join(
   process.cwd(),
   "supabase",
   "migrations",
-  "20260711_profile_test_and_staff_flags.sql",
+  "20260711000000_profile_test_and_staff_flags.sql",
 );
 const patchRoutePath = path.join(process.cwd(), "app", "api", "admin", "users", "[userId]", "route.ts");
 const listRoutePath = path.join(process.cwd(), "app", "api", "admin", "users", "route.ts");

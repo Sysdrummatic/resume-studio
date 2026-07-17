@@ -73,7 +73,7 @@ the account exists. There is no automatic expiry or inactivity-based purge.
 
 **Avatars**: `profiles.avatar_url` stores a `data:image/...` base64 data URI directly in
 the row (enforced by `update_own_profile`, see
-`supabase/migrations/20260603_zz_update_own_profile_rpc.sql`). There is no separate
+`supabase/migrations/20260603020000_zz_update_own_profile_rpc.sql`). There is no separate
 Supabase Storage object to clean up; the avatar is removed together with the `profiles`
 row.
 

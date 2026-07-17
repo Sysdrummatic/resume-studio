@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-const migrationPath = path.join(process.cwd(), "supabase", "migrations", "20260712_login_restriction_flag.sql");
+const migrationPath = path.join(process.cwd(), "supabase", "migrations", "20260712000000_login_restriction_flag.sql");
 const libPath = path.join(process.cwd(), "app", "lib", "access-restriction.ts");
 const adminRoutePath = path.join(process.cwd(), "app", "api", "admin", "access-restriction", "route.ts");
 const signinRoutePath = path.join(process.cwd(), "app", "api", "auth", "signin", "route.ts");

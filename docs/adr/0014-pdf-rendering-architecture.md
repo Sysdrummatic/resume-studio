@@ -41,7 +41,7 @@ page-break control, and hardcoded styles disconnected from the design token syst
    segment. Polish diacritics (including `ł`) are transliterated.
 
 7. **Draft PDF feature flag**: `platform_feature_flags` table in Supabase
-   (`20260610_pdf_feature_flags.sql`), admin-controlled via RLS, read server-side through
+   (`20260610000000_pdf_feature_flags.sql`), admin-controlled via RLS, read server-side through
    `isPdfDraftEnabled()` (`app/lib/pdf-feature-flags.ts`). Default: enabled. Fail-open on
    read errors (UX convenience, not a security boundary — auth/role checks remain the gate).
    Future admin panel will expose a toggle UI.

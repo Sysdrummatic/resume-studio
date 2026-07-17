@@ -348,7 +348,7 @@ audytowane RPC.
 
 Sekcja dotyczy Danger Zone w modalu **Profile** (avatar → Profile → "Usuń konto i wszystkie dane"),
 `DELETE /api/user/account` oraz path-independent triggera `prevent_last_admin_deletion()`
-(`supabase/migrations/20260614_prevent_last_admin_deletion.sql`).
+(`supabase/migrations/20260614000000_prevent_last_admin_deletion.sql`).
 
 ⚠️ **Operacje w tej sekcji są nieodwracalne** (kaskadowe usunięcie `auth.users` + wszystkich danych CV,
 ADR 0016). Używaj **dodatkowych kont-śmietników**, nie kont 1–4 z sekcji 0 — z wyjątkiem T-D2/T-D3/P-D3,

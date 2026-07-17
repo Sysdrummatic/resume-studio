@@ -42,7 +42,7 @@ security, privacy, resilience, and trust work continues in
   - Added defense-in-depth beyond the P0 scope: a nonce-based CSP (`script-src 'self'
     'nonce-...' 'strict-dynamic'`) in `proxy.ts`, and server-side detection of
     script-injection attempts (`app/lib/content-safety.ts`) logged to a dedicated
-    `content_safety_flags` table (migration `20260713_content_safety_flags.sql`, `user_id
+    `content_safety_flags` table (migration `20260713000000_content_safety_flags.sql`, `user_id
     ... on delete cascade` — deliberately not `admin_audit_logs`, whose `on delete
     restrict` would block self-service account deletion for a flagged user) and surfaced
     in `/admin/audit`.

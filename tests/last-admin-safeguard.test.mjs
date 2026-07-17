@@ -7,7 +7,7 @@ const migrationPath = path.join(
   process.cwd(),
   "supabase",
   "migrations",
-  "20260614_prevent_last_admin_deletion.sql",
+  "20260614000000_prevent_last_admin_deletion.sql",
 );
 const routePath = path.join(process.cwd(), "app", "api", "user", "account", "route.ts");
 

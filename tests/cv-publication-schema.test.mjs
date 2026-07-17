@@ -7,7 +7,7 @@ const migrationPath = path.join(
   process.cwd(),
   "supabase",
   "migrations",
-  "20260508_cv_publication_foundation.sql",
+  "20260508000000_cv_publication_foundation.sql",
 );
 
 function read(relativePath) {
@@ -62,7 +62,7 @@ test("publication foundation migration adds person slugs and immutable snapshot 
 
 test("publication foundation extends resume_public_links without removing legacy preset slugs", () => {
   const sql = migration();
-  const presetMigration = read("supabase/migrations/20260505_resume_presets.sql");
+  const presetMigration = read("supabase/migrations/20260505000000_resume_presets.sql");
 
   assert.equal(presetMigration.includes("slug text unique"), true);
   assert.equal(sql.includes("alter table public.resume_public_links"), true);

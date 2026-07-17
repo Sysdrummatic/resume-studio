@@ -4,7 +4,7 @@
 -- Symptom addressed: "infinite recursion detected in policy for relation \"profiles\""
 -- raised during CV publish (refreshProfilePersonSlugForPublish UPDATE on profiles).
 --
--- Root cause of recursion: legacy inline policies (20260405_phase_c_foundation.sql)
+-- Root cause of recursion: legacy inline policies (20260405000000_phase_c_foundation.sql)
 -- referenced public.profiles inside their own USING/WITH CHECK. The 20260406 fix moved
 -- admin checks to the SECURITY DEFINER helper public.is_admin_user(); this migration makes
 -- that state idempotent and also re-asserts the own-row and manager policies via the
