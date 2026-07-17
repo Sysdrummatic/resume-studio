@@ -292,11 +292,63 @@ Identyczne jak P-U1–P-U11 dla własnego CV admina, plus dodatkowo:
 
 ---
 
-## 5. Konto i bezpieczeństwo — usuwanie konta (self-service, GDPR Art. 17)
+## 5. Granica uprzywilejowanych pól profilu (bezpośredni PostgREST)
+
+Automatyczny scenariusz jest w
+`tests/profile-privileged-fields-postgrest.test.mjs`. Uruchamiaj go wyłącznie przeciwko
+lokalnemu lub jednorazowemu projektowi Supabase:
+
+```powershell
+$env:SUPABASE_RLS_TEST_URL = "http://127.0.0.1:54321"
+$env:SUPABASE_RLS_TEST_ANON_KEY = "<local-anon-key>"
+$env:SUPABASE_RLS_TEST_SERVICE_ROLE_KEY = "<local-service-role-key>"
+npm.cmd run test:rls
+```
+
+Dla zdalnego, dedykowanego projektu testowego wymagane jest dodatkowo
+`SUPABASE_RLS_TEST_ALLOW_REMOTE=true`. Test tworzy unikalne konta, usuwa własne logi
+audytu i konta w `finally`; nie wolno kierować go do produkcji.
+
+**T-PF1 — Owner allowlist (`user` i `recruiter`)**
+
+1. Dla obu ról wyślij bezpośredni `PATCH /rest/v1/profiles?id=eq.<self>` osobno dla
+   `role`, `is_active`, `is_test_user` i `is_ocv_staff`.
+2. Potwierdź odmowę oraz brak zmiany wartości w bazie.
+3. Wyślij PATCH własnego `bio` i potwierdź sukces.
+4. Dla każdej z czterech ról wyślij PATCH bezpiecznego pola, np. `bio`, na profilu
+   innego użytkownika. Potwierdź odmowę, brak zmiany celu i brak wpisu audytu.
+
+**T-PF2 — Granice managera**
+
+1. Potwierdź odmowę bezpośredniej zmiany własnych pól uprzywilejowanych.
+2. Potwierdź odmowę bezpośredniego PATCH oraz RPC wobec celu `manager` i `admin`.
+3. Potwierdź sukces `set_user_flag` wobec różnych celów `user` i `recruiter`.
+
+**T-PF3 — Zatwierdzone operacje admina i audyt**
+
+1. Potwierdź, że bezpośredni PATCH pól uprzywilejowanych admina jest odrzucony.
+2. Wykonaj przez pojedyncze RPC zmianę roli, aktywności oraz obu typów flag na
+   zatwierdzonych celach, a następnie potwierdź atomowy zapis wszystkich pól.
+3. Dla każdej efektywnej zmiany potwierdź dokładnie odpowiadający wpis w
+   `admin_audit_logs`, zawierający aktora, cel oraz poprzednią i nową wartość.
+4. Potwierdź odmowę pojedynczych RPC oraz atomowego `update_user_privileges`
+   wywołanych jako `service_role`.
+5. Potwierdź odmowę i brak audytu dla nieprawidłowej roli, wartości `NULL` statusu,
+   nieznanej flagi, wartości `NULL` flagi oraz nieistniejącego celu.
+6. Potwierdź, że próba atomowej promocji celu `user`/`recruiter` przez managera do
+   `manager` lub `admin` wycofuje również pozostałe pola żądania i nie tworzy audytu.
+
+Oczekiwany rezultat: żadna z czterech ról nie może zmienić pola uprzywilejowanego przez
+bezpośredni PATCH. Uprawnienia managera i admina działają wyłącznie przez chronione,
+audytowane RPC.
+
+---
+
+## 6. Konto i bezpieczeństwo — usuwanie konta (self-service, GDPR Art. 17)
 
 Sekcja dotyczy Danger Zone w modalu **Profile** (avatar → Profile → "Usuń konto i wszystkie dane"),
 `DELETE /api/user/account` oraz path-independent triggera `prevent_last_admin_deletion()`
-(`supabase/migrations/20260614_prevent_last_admin_deletion.sql`).
+(`supabase/migrations/20260614000000_prevent_last_admin_deletion.sql`).
 
 ⚠️ **Operacje w tej sekcji są nieodwracalne** (kaskadowe usunięcie `auth.users` + wszystkich danych CV,
 ADR 0016). Używaj **dodatkowych kont-śmietników**, nie kont 1–4 z sekcji 0 — z wyjątkiem T-D2/T-D3/P-D3,
@@ -385,5 +437,6 @@ Oczekiwany rezultat: usunięcie się powodzi (konto 1 nie jest `last_admin`), re
 | Eksporty ATS/PDF | pełny | smoke | smoke | + draft PDF |
 | `/admin` dostęp i zarządzanie | brak (test odmowy) | brak (test odmowy) | ograniczone (user/recruiter) | pełne (wszystkie role) |
 | Audit logs | – | – | read | read + weryfikacja wpisów |
+| Uprzywilejowane pola profilu (direct PATCH / RPC) | deny / deny | deny / deny | deny / ograniczone RPC | deny / pełne RPC |
 | RLS / `resume.content.read_other` | test izolacji | test izolacji | test izolacji | test izolacji (incl. self) |
 | Self-service usuwanie konta (Danger Zone) | pełny (P-D1) | smoke (P-D2) | smoke (P-D2) | + last-admin safeguard (T-D2–T-D4, P-D3) |

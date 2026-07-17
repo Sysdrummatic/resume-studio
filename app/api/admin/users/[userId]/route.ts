@@ -62,7 +62,7 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
   }
 
   const metadata: Record<string, unknown> = {};
-  const updates: Array<Promise<{ error: string | null }>> = [];
+  let hasChanges = false;
 
   if (body.role !== undefined) {
     if (!isAppRole(body.role)) {
@@ -75,16 +75,7 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
     }
 
     if (body.role !== targetProfile.role) {
-      updates.push(
-        callRpc<null>({
-          functionName: "set_user_role",
-          payload: {
-            target_user_id: userId,
-            next_role: body.role,
-          },
-          accessToken: actorResult.accessToken,
-        }),
-      );
+      hasChanges = true;
       metadata.previousRole = targetProfile.role;
       metadata.nextRole = body.role;
     }
@@ -95,16 +86,7 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
       return NextResponse.json({ error: "isActive must be boolean." }, { status: 400 });
     }
     if (body.isActive !== targetProfile.is_active) {
-      updates.push(
-        callRpc<null>({
-          functionName: "set_user_active",
-          payload: {
-            target_user_id: userId,
-            target_is_active: body.isActive,
-          },
-          accessToken: actorResult.accessToken,
-        }),
-      );
+      hasChanges = true;
       metadata.previousIsActive = targetProfile.is_active;
       metadata.nextIsActive = body.isActive;
     }
@@ -119,23 +101,13 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
       return NextResponse.json({ error: `${bodyKey} must be boolean.` }, { status: 400 });
     }
     if (nextValue !== targetProfile[column]) {
-      updates.push(
-        callRpc<null>({
-          functionName: "set_user_flag",
-          payload: {
-            target_user_id: userId,
-            flag_name: column,
-            flag_value: nextValue,
-          },
-          accessToken: actorResult.accessToken,
-        }),
-      );
+      hasChanges = true;
       metadata[`previous_${column}`] = targetProfile[column];
       metadata[`next_${column}`] = nextValue;
     }
   }
 
-  if (updates.length === 0) {
+  if (!hasChanges) {
     return NextResponse.json({
       ok: true,
       message: "No changes applied.",
@@ -149,10 +121,19 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
     });
   }
 
-  const execution = await Promise.all(updates);
-  const firstError = execution.find((result) => result.error)?.error;
-  if (firstError) {
-    return NextResponse.json({ error: firstError }, { status: 403 });
+  const updateResult = await callRpc<null>({
+    functionName: "update_user_privileges",
+    payload: {
+      target_user_id: userId,
+      next_role: body.role ?? null,
+      target_is_active: body.isActive ?? null,
+      target_is_test_user: body.isTestUser ?? null,
+      target_is_ocv_staff: body.isOcvStaff ?? null,
+    },
+    accessToken: actorResult.accessToken,
+  });
+  if (updateResult.error) {
+    return NextResponse.json({ error: updateResult.error }, { status: 403 });
   }
 
   const updatedProfileResult = await fetchProfileByIdAsService(userId);

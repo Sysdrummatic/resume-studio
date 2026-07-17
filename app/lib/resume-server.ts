@@ -5,6 +5,13 @@ import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-
 import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
+import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
+import type { ResumePresetSelection } from "./preset-selection";
+import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
+
+export { normalizeResumePresetSelection };
+export { buildPublishedExportContent };
+export type { ResumePresetSelection };
 
 export type ResumeDocumentRow = {
   id: string;
@@ -93,17 +100,6 @@ export type ResumeUserLocaleInput = {
   code: string;
   label: string;
   shortLabel?: string;
-};
-
-export type ResumePresetSelection = {
-  summary: number[];
-  experience: number[];
-  education: number[];
-  courses: number[];
-  skills: number[];
-  interests: number[];
-  languages: number[];
-  tech_stack: number[];
 };
 
 export type ResumePresetRow = {
@@ -233,6 +229,7 @@ export type PublishedResumeExport = {
   schemaVersion: number;
   openCvYamlContractVersion: string;
   yamlContent: string;
+  resume: ResumeDocument;
   canonicalPath: string;
 };
 
@@ -258,19 +255,6 @@ const PROFILE_IDENTITY_SELECT = "id,display_name,first_name,last_name,person_slu
 const PROFILE_SLUG_SELECT = "id,display_name,person_slug";
 const OPEN_CV_PUBLIC_CONTRACT_MAJOR = "1";
 const OPEN_CV_MIN_SCHEMA_VERSION = 1;
-
-const EMPTY_PRESET_SELECTION: ResumePresetSelection = {
-  summary: [],
-  experience: [],
-  education: [],
-  courses: [],
-  skills: [],
-  interests: [],
-  languages: [],
-  tech_stack: [],
-};
-
-const PRESET_SELECTION_KEYS = Object.keys(EMPTY_PRESET_SELECTION) as Array<keyof ResumePresetSelection>;
 
 function yamlText(value: string): string {
   return JSON.stringify(value ?? "");
@@ -947,54 +931,8 @@ export async function fetchResumeLanguageVersionsForUser(userId: string): Promis
   }));
 }
 
-function normalizeIndexList(value: unknown): number[] {
-  if (!Array.isArray(value)) return [];
-  return Array.from(
-    new Set(
-      value
-        .map((item) => Number.parseInt(String(item), 10))
-        .filter((item) => Number.isInteger(item) && item >= 0),
-    ),
-  ).sort((left, right) => left - right);
-}
-
-function selectByIndex<T>(items: T[], indexes: number[]): T[] {
-  return indexes.map((index) => items[index]).filter((item): item is T => item !== undefined);
-}
-
 export function buildResumeDocumentFromPreset(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
-  try {
-    const masterDocument = normalizeResumeDocument(yaml.load(yamlContent), "");
-    const selectedSummary = selectByIndex(masterDocument.summary, selection.summary).map((summary, index) => ({
-      ...summary,
-      default: index === 0,
-    }));
-
-    return {
-      ...masterDocument,
-      summary: selectedSummary,
-      experience: selectByIndex(masterDocument.experience, selection.experience),
-      education: selectByIndex(masterDocument.education, selection.education),
-      courses: selectByIndex(masterDocument.courses, selection.courses),
-      skills: selectByIndex(masterDocument.skills, selection.skills),
-      interests: selectByIndex(masterDocument.interests, selection.interests),
-      languages: selectByIndex(masterDocument.languages, selection.languages),
-      tech_stack: selectByIndex(masterDocument.tech_stack, selection.tech_stack),
-    };
-  } catch {
-    return null;
-  }
-}
-
-export function normalizeResumePresetSelection(value: unknown): ResumePresetSelection {
-  const source = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-  return PRESET_SELECTION_KEYS.reduce<ResumePresetSelection>(
-    (selection, key) => ({
-      ...selection,
-      [key]: normalizeIndexList(source[key]),
-    }),
-    { ...EMPTY_PRESET_SELECTION },
-  );
+  return buildPublishedResumeDocument(yamlContent, selection);
 }
 
 export function validateResumePresetSelection(selection: ResumePresetSelection): string[] {
@@ -1093,7 +1031,7 @@ async function upsertResumePresetVariant(
   };
 
   if (existing) {
-    await updateTable({
+    const updateResult = await updateTable({
       table: "resume_preset_variants",
       accessToken,
       query: `id=eq.${encodeURIComponent(existing.id)}&user_id=eq.${encodeURIComponent(userId)}`,
@@ -1102,14 +1040,26 @@ async function upsertResumePresetVariant(
         updated_at: new Date().toISOString(),
       },
     });
+    if (updateResult.error) {
+      throw new Error(`[presetVariant:locale=${locale}:operation=update] ${updateResult.error} (status=${updateResult.status})`);
+    }
+    if (!updateResult.data?.[0]) {
+      throw new Error(`[presetVariant:locale=${locale}:operation=update] update returned no rows (status=${updateResult.status})`);
+    }
     return;
   }
 
-  await insertTable({
+  const insertResult = await insertTable({
     table: "resume_preset_variants",
     accessToken,
     values,
   });
+  if (insertResult.error) {
+    throw new Error(`[presetVariant:locale=${locale}:operation=insert] ${insertResult.error} (status=${insertResult.status})`);
+  }
+  if (!insertResult.data?.[0]) {
+    throw new Error(`[presetVariant:locale=${locale}:operation=insert] insert returned no rows (status=${insertResult.status})`);
+  }
 }
 
 export async function fetchResumePresetVariantsForUser(userId: string): Promise<ResumePresetVariantRow[]> {
@@ -1254,22 +1204,26 @@ async function resolveSnapshotLocales(
     .map((row) => ({
       ...row,
       locale: normalizeLocale(row.locale),
-      selection: normalizeResumePresetSelection(row.selection),
+      selection: normalizeResumePresetSelection(row.selection || snapshot.selection),
     }))
-    .filter((row) => allowedLocales.has(row.locale));
+    .filter((row) => allowedLocales.has(row.locale))
+    .filter((row) => Boolean(buildResumeDocumentFromPreset(row.yaml_content, row.selection)));
   if (localeRows.length === 0) {
     return null;
   }
 
+  const renderableLocales = new Set(localeRows.map((row) => row.locale));
+  const effectiveDefaultLocale = renderableLocales.has(defaultLocale) ? defaultLocale : localeRows[0].locale;
+
   const activeLocaleRow =
     localeRows.find((row) => row.locale === requestedLocale) ||
-    localeRows.find((row) => row.locale === defaultLocale) ||
+    localeRows.find((row) => row.locale === effectiveDefaultLocale) ||
     localeRows[0];
 
   return {
-    defaultLocale,
+    defaultLocale: effectiveDefaultLocale,
     requestedLocale,
-    allowedLocales,
+    allowedLocales: renderableLocales,
     localeRows,
     activeLocaleRow,
   };
@@ -1362,8 +1316,8 @@ export async function fetchPublishedResumePresetByPublicLink(
     personSlug: link.person_slug || personSlug,
     publicId: link.public_id || publicId,
     allowIndexing: Boolean(link.allow_indexing),
-    defaultLocale: normalizeLocale(link.default_locale || published.document.locale),
-    availableLocales: normalizeLocales(link.available_locales || [], normalizeLocale(link.default_locale || published.document.locale)),
+    defaultLocale: published.preset.default_locale,
+    availableLocales: published.languages.map((language) => language.code),
     legacySlug: link.legacy_slug || link.slug || null,
   };
 }
@@ -1411,6 +1365,15 @@ export async function fetchPublishedResumeExportByPublicLink(
 
   const { defaultLocale, allowedLocales, activeLocaleRow } = resolved;
 
+  // ADR 0008: exports must serve the published (selection-filtered) document, never raw master content.
+  const exportContent = buildPublishedExportContent(
+    activeLocaleRow.yaml_content,
+    activeLocaleRow.selection || snapshot.selection,
+  );
+  if (!exportContent) {
+    return null;
+  }
+
   return {
     personSlug: link.person_slug,
     publicId: link.public_id,
@@ -1420,7 +1383,8 @@ export async function fetchPublishedResumeExportByPublicLink(
     allowIndexing: Boolean(link.allow_indexing),
     schemaVersion: Number(activeLocaleRow.schema_version) || Number(snapshot.schema_version) || 1,
     openCvYamlContractVersion: snapshot.open_cv_yaml_contract_version,
-    yamlContent: activeLocaleRow.yaml_content,
+    yamlContent: exportContent.yamlContent,
+    resume: exportContent.resume,
     canonicalPath: `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`,
   };
 }
@@ -1436,12 +1400,8 @@ export async function fetchResumeExportByPresetId(
   const document = await fetchDocumentById(accessToken, preset.document_id, userId);
   if (!document) return null;
 
-  const selection = normalizeResumePresetSelection(preset.selection);
-  const doc = buildResumeDocumentFromPreset(document.yaml_content, selection);
-  if (!doc) return null;
-
-  // We serialize it back to YAML for the export route to handle it consistently
-  const yamlContent = yaml.dump(doc);
+  const exportContent = buildPublishedExportContent(document.yaml_content, preset.selection);
+  if (!exportContent) return null;
 
   return {
     personSlug: "user",
@@ -1452,7 +1412,8 @@ export async function fetchResumeExportByPresetId(
     allowIndexing: false,
     schemaVersion: document.schema_version,
     openCvYamlContractVersion: OPEN_CV_PUBLIC_CONTRACT_MAJOR,
-    yamlContent,
+    yamlContent: exportContent.yamlContent,
+    resume: exportContent.resume,
     canonicalPath: preset.canonical_public_path || `/dashboard?preset=${preset.id}`,
   };
 }
@@ -1699,6 +1660,32 @@ export async function publishResumePreset(
   const requestedDefaultLocale = normalizeLocale(payload.defaultLocale || existingPreset.default_locale || baseDocument.locale);
   if (!explicitLocales.includes(requestedDefaultLocale)) throw new Error(`[publish:step=defaultLocale] ${requestedDefaultLocale} not in ${explicitLocales.join(",")}`);
 
+  // The snapshot RPC copies coalesce(variant.selection, preset.selection) per
+  // locale (ADR 0009). The base selection is indexed against the default-locale
+  // document, so on a locale document with fewer entries it can never be
+  // applied and the public route 404s for that language. Materialize a variant
+  // for every selected locale with the selection clamped to that locale's
+  // document. Publishing is fail-closed: a successful response means every
+  // explicitly selected locale was included in the snapshot.
+  const documentByLocale = new Map(documents.map((document) => [normalizeLocale(document.locale), document]));
+  const variants = await fetchResumePresetVariants(existingPreset.id);
+  for (const locale of explicitLocales) {
+    const localeDocument = documentByLocale.get(locale);
+    let effectiveSelection: ResumePresetSelection | null = null;
+    if (localeDocument) {
+      const sourceSelection = variants.find((variant) => variant.locale === locale)?.selection || existingPreset.selection;
+      try {
+        effectiveSelection = clampResumeSelectionToRawDocument(yaml.load(localeDocument.yaml_content), sourceSelection);
+      } catch {
+        effectiveSelection = null;
+      }
+    }
+    if (!effectiveSelection) {
+      throw new Error(`[publish:step=localeSelection] selection cannot be applied to ${locale} document`);
+    }
+    await upsertResumePresetVariant(accessToken, userId, existingPreset, localeDocument!, effectiveSelection);
+  }
+
   const rpcResult = await callRpc<string>({
     functionName: "publish_resume_saved_version",
     payload: {
@@ -1731,6 +1718,25 @@ export async function unpublishResumePreset(accessToken: string, userId: string,
 }
 
 export async function deleteResumePreset(accessToken: string, userId: string, presetId: string): Promise<boolean> {
+  // Deleting the preset sets resume_public_links.preset_id to null, which
+  // would leave an active public link that can never be unpublished again.
+  // Revoke it first via the unpublish RPC.
+  const activeLink = await queryTable<ResumePublicLinkRow>({
+    table: "resume_public_links",
+    select: "id",
+    useServiceRole: true,
+    query:
+      `user_id=eq.${encodeURIComponent(userId)}` +
+      `&preset_id=eq.${encodeURIComponent(presetId)}` +
+      "&status=eq.active&is_active=eq.true&limit=1",
+  });
+  if (activeLink.data?.length) {
+    const unpublished = await unpublishResumePreset(accessToken, userId, presetId);
+    if (!unpublished) {
+      return false;
+    }
+  }
+
   const result = await deleteTable({
     table: "resume_presets",
     accessToken,

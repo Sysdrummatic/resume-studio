@@ -42,7 +42,7 @@ security, privacy, resilience, and trust work continues in
   - Added defense-in-depth beyond the P0 scope: a nonce-based CSP (`script-src 'self'
     'nonce-...' 'strict-dynamic'`) in `proxy.ts`, and server-side detection of
     script-injection attempts (`app/lib/content-safety.ts`) logged to a dedicated
-    `content_safety_flags` table (migration `20260713_content_safety_flags.sql`, `user_id
+    `content_safety_flags` table (migration `20260713000000_content_safety_flags.sql`, `user_id
     ... on delete cascade` — deliberately not `admin_audit_logs`, whose `on delete
     restrict` would block self-service account deletion for a flagged user) and surfaced
     in `/admin/audit`.
@@ -58,12 +58,12 @@ security, privacy, resilience, and trust work continues in
   - Run `npm audit`, full CI, import/export regression tests, and a crafted YAML resource
     exhaustion test before beta rollout.
 
-- [ ] **G-P0-03 — Close profile flag privilege-boundary gap**
-  - Prevent ordinary users from changing `is_test_user`, `is_ocv_staff`, or any future
+- [x] **G-P0-03 — Close profile flag privilege-boundary gap**
+  - [x] Prevent ordinary users from changing `is_test_user`, `is_ocv_staff`, or any future
     privileged profile field through direct PostgREST/profile updates.
-  - Change the profile update guard from a denylist to an explicit allowlist of fields
+  - [x] Change the profile update guard from a denylist to an explicit allowlist of fields
     editable by the profile owner.
-  - Add live RLS tests for `user`, `recruiter`, `manager`, and `admin`, including direct
+  - [x] Add live RLS tests for `user`, `recruiter`, `manager`, and `admin`, including direct
     REST calls that bypass the Next.js UI.
 
 - [ ] **G-P0-04 — Enforce production Supabase Auth controls at the real boundary**

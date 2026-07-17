@@ -50,7 +50,7 @@ platform-wide at any time. When disabled, users must not see the buttons.
    failure mode, not an input one.
 5. **Feature flag `user_data_transfer_enabled`.** A new row in the existing
    `platform_feature_flags` table (migration
-   `20260703_user_data_transfer_flag.sql`), read by
+   `20260703000000_user_data_transfer_flag.sql`), read by
    `isUserDataTransferEnabled()` in `app/lib/platform-feature-flags.ts`
    (generic `isFeatureFlagEnabled(key)` reader — the `pdf_draft_enabled`
    pattern from ADR 0014). The flag is checked in two independent places:
@@ -83,7 +83,7 @@ platform-wide at any time. When disabled, users must not see the buttons.
 
 ## Implementation Checklist
 
-- [x] Migration `supabase/migrations/20260703_user_data_transfer_flag.sql`
+- [x] Migration `supabase/migrations/20260703000000_user_data_transfer_flag.sql`
 - [x] `app/lib/platform-feature-flags.ts` (`isUserDataTransferEnabled`)
 - [x] `app/lib/user-data-transfer.ts` (bundle build/parse contract)
 - [x] `GET /api/resume/transfer/export`, `POST /api/resume/transfer/import`

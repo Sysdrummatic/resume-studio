@@ -21,9 +21,9 @@ test("dashboard separates master resume from preset configurations", () => {
 
 test("resume presets are stored as lightweight selection config", () => {
   const server = read("app/lib/resume-server.ts");
-  const migration = read("supabase/migrations/20260505_resume_presets.sql");
+  const migration = read("supabase/migrations/20260505000000_resume_presets.sql");
 
-  assert.equal(server.includes("export type ResumePresetSelection"), true);
+  assert.equal(server.includes("export type { ResumePresetSelection }"), true);
   assert.equal(server.includes("saveResumePreset"), true);
   assert.equal(server.includes("publishResumePreset"), true);
   assert.equal(migration.includes("create table if not exists public.resume_presets"), true);

@@ -158,22 +158,22 @@ This document explains **what happens in the project**, how the individual pages
 
 ### Migrations (order and intent)
 Source: `README.md` + files in `supabase/migrations/`.
-- `20260405_phase_c_foundation.sql`
+- `20260405000000_phase_c_foundation.sql`
   - foundation: base tables (e.g. `profiles`), triggers, baseline RLS.
   - the `handle_new_auth_user()` trigger creates a profile when a row is inserted into `auth.users`.
-- `20260410_phase_b_yaml_data_layer.sql`
+- `20260410000000_phase_b_yaml_data_layer.sql`
   - YAML-first: documents, revisions, public links, legacy JSON -> YAML backfill, role-aware RLS.
   - RBAC helpers: `current_user_role()`, `is_staff_user()`, etc.
-- `20260410_phase_c_auth_rbac_admin.sql`
+- `20260410010000_phase_c_auth_rbac_admin.sql`
   - admin RPC + audit:
     - `log_admin_action`, `set_user_role`, `set_user_active`, `get_staff_user_overview`, `can_delete_user_account`.
-- `20260409_phase_d_yaml_template_iteration.sql`
+- `20260409000000_phase_d_yaml_template_iteration.sql`
   - editor iteration built around YAML templates.
-- `20260508_cv_publication_foundation.sql`
+- `20260508000000_cv_publication_foundation.sql`
   - publication schema foundation (`resume_published_cvs`, `resume_published_cv_locales`, public-link coupling, RLS for published snapshots).
-- `20260509_cv_publication_rpc_atomic.sql`
+- `20260509000000_cv_publication_rpc_atomic.sql`
   - atomic publish/unpublish RPCs for saved versions and public link activation.
-- `20260510_fix_publish_rpc_variant_fallback.sql`
+- `20260510000000_fix_publish_rpc_variant_fallback.sql`
   - ADR 0009 fix: publish no longer requires explicit variant rows for every locale.
   - locale snapshots use variant selection when available, otherwise fallback to base preset selection.
   - preserves descriptive SQL exceptions for publish diagnostics.

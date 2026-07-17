@@ -13,6 +13,16 @@ ADR 0001 establishes that public CV rendering must read immutable publish-time s
 ## Decision
 
 - Public OpenCV YAML is emitted only at publish time from Saved Version selection.
+
+> **Clarification (2026-07-16):** in the current implementation the snapshot
+> rows (`resume_published_cv_locales.yaml_content`) physically store the full
+> Master Resume YAML with the saved-version selection stored alongside; the
+> selection is applied deterministically at read time by the shared resolver
+> (`buildPublishedExportContent`/`buildPublishedResumeDocument`,
+> `app/lib/published-export.ts`). The **emitted public contract** is therefore
+> the selected content only — storage layout is an internal detail. See ADR
+> 0008 and risk R09 in `docs/security/security-and-risk-plan.md` (including
+> the residual note on storing full master YAML at rest).
 - Each Published CV snapshot stores explicit `schema_version` and contract version.
 - Historical snapshots are immutable and are never silently rewritten after schema updates.
 - Any migration of historical snapshots requires explicit migration logic and test coverage.

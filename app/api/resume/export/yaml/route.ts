@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { convertResumeToAtsYaml } from "../../../../lib/resume-export";
-import { normalizeResumeDocument } from "../../../../lib/resume-schema";
 import { rateLimit } from "../../../../lib/rate-limit";
-import yaml from "js-yaml";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +32,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const doc = normalizeResumeDocument(yaml.load(exportData.yamlContent), "");
-    const atsYaml = convertResumeToAtsYaml(doc, exportData.locale);
+    const atsYaml = convertResumeToAtsYaml(exportData.resume, exportData.locale);
 
     return new NextResponse(atsYaml, {
       headers: {

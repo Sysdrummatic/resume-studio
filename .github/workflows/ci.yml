@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies
+        run: npm run audit:prod
+
       - name: Lint
         run: npm run lint
 
@@ -33,3 +36,39 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  database-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: 2.105.0
+          github-token: ${{ github.token }}
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Test PostgREST profile security boundary
+        shell: bash
+        run: |
+          set -a
+          eval "$(supabase status -o env \
+            --override-name api.url=SUPABASE_RLS_TEST_URL \
+            --override-name auth.anon_key=SUPABASE_RLS_TEST_ANON_KEY \
+            --override-name auth.service_role_key=SUPABASE_RLS_TEST_SERVICE_ROLE_KEY)"
+          set +a
+          npm run test:rls
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup

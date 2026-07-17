@@ -3,6 +3,11 @@ import yaml from "js-yaml";
 export const USER_DATA_BUNDLE_FORMAT = "opencivera-user-data";
 export const USER_DATA_BUNDLE_VERSION = 1;
 export const USER_DATA_BUNDLE_MAX_BYTES = 1_000_000;
+// Bundles are small, hand-authored data exports; a legitimate one never needs
+// YAML merge keys at all. Caps js-yaml's merge-key expansion (CVE-backed
+// quadratic-complexity DoS via repeated aliases, GHSA-h67p-54hq-rp68) far
+// below its own default of 10000.
+const USER_DATA_BUNDLE_MAX_MERGE_KEYS = 50;
 
 export type UserDataBundleLanguage = {
   code: string;
@@ -85,7 +90,8 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
 
   let parsed: unknown;
   try {
-    parsed = yaml.load(yamlText);
+    // @types/js-yaml 4.0.x predates js-yaml 4.3.0's maxTotalMergeKeys loader option.
+    parsed = yaml.load(yamlText, { maxTotalMergeKeys: USER_DATA_BUNDLE_MAX_MERGE_KEYS } as yaml.LoadOptions);
   } catch {
     return { error: "Import file is not valid YAML." };
   }

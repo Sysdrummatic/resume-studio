@@ -127,6 +127,21 @@ test("parseUserDataBundle rejects duplicate language codes", () => {
   assert.match(result.error, /duplicate locale codes/);
 });
 
+test("parseUserDataBundle rejects a merge-key bomb (CVE GHSA-h67p-54hq-rp68)", () => {
+  // The advisory's shape: one anchor with K keys, referenced R times in a
+  // single merge list (`<<: [*base, *base, ...]`). Source text is O(K+R),
+  // but js-yaml re-copies all K keys on every alias, so total merge work is
+  // O(K*R) — quadratic in document size when K and R scale together.
+  const keyCount = 10;
+  const repeatCount = 10; // K*R = 100, comfortably over the 50-key cap below.
+  const baseKeys = Array.from({ length: keyCount }, (_, i) => `k${i}: ${i}`).join(", ");
+  const repeatedAlias = Array.from({ length: repeatCount }, () => "*base").join(", ");
+  const bomb = `base: &base { ${baseKeys} }\nroot: { <<: [${repeatedAlias}] }\n`;
+
+  const result = parseUserDataBundle(`format: ${USER_DATA_BUNDLE_FORMAT}\nversion: 1\n${bomb}`);
+  assert.match(result.error, /not valid YAML/);
+});
+
 test("parseUserDataBundle requires at least one language and one document", () => {
   assert.match(parseUserDataBundle(buildUserDataBundleYaml({ ...sampleInput, languages: [] })).error, /at least one language/);
   assert.match(parseUserDataBundle(buildUserDataBundleYaml({ ...sampleInput, documents: [] })).error, /at least one document/);

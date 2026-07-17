@@ -34,5 +34,14 @@ test("resume server exposes public export resolver with locale fallback", () => 
   assert.equal(server.includes("fetchActivePublicLinkByPersonAndPublicId"), true);
   assert.equal(server.includes("allowedLocales"), true);
   assert.equal(server.includes("activeLocaleRow"), true);
-  assert.equal(server.includes("yamlContent: activeLocaleRow.yaml_content"), true);
+});
+
+test("public export resolver never serves unselected master content (ADR 0008: master data is never exposed)", () => {
+  const server = read("app/lib/resume-server.ts");
+  assert.equal(server.includes("yamlContent: activeLocaleRow.yaml_content"), false);
+  assert.equal(server.includes("buildPublishedExportContent"), true);
+
+  const publishedExport = read("app/lib/published-export.ts");
+  assert.equal(publishedExport.includes("export function buildPublishedExportContent"), true);
+  assert.equal(publishedExport.includes("applyResumeSelectionToRawDocument"), true);
 });
