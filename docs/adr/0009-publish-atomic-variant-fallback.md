@@ -43,3 +43,30 @@ entries relative to the user's selection — it never exposes unselected content
 (ADR 0008). The dashboard preset preview applies the same clamp. Snapshots
 published before this change must be republished to repair their locale rows.
 Test contract: `tests/preset-selection-locale-clamp.test.mjs`.
+
+Follow-up refinements (same date):
+
+- **Plain-text summary support.** Legacy documents store `summary` as a YAML
+  string; `normalizeSummaryItems` renders that as one default summary entry,
+  so `clampResumeSelectionToRawDocument` and
+  `applyResumeSelectionToRawDocument` treat it as a virtual one-element array
+  (apply keeps the string verbatim). Without this, publishing any preset whose
+  language versions use the legacy shape failed outright.
+- **Skip instead of abort.** A selected locale whose document is missing or
+  can never render (no summary at all) is skipped from
+  `input_selected_locales` with a server-side warning instead of failing the
+  whole publish; only the default locale is mandatory, because the canonical
+  link must render. Pre-clamp behavior for such locales was a guaranteed
+  public 404, so omitting them is strictly better.
+- **Preset delete vs. immutable snapshots.** Deleting an ever-published preset
+  fires `ON DELETE SET NULL` updates against `resume_published_cvs.preset_id`
+  and (via the `resume_preset_variants` cascade)
+  `resume_published_cv_locales.source_variant_id`, which the
+  `prevent_published_cv_mutation` trigger rejected — such presets could never
+  be deleted. Migration
+  `20260717000000_allow_snapshot_source_detach.sql` permits updates that only
+  null source-pointer columns (`preset_id`, `source_variant_id`,
+  `source_document_id`, `source_revision_id`, `created_by`); all other
+  snapshot mutations remain rejected. `deleteResumePreset` additionally
+  revokes an active public link (via the unpublish RPC) before deleting, so a
+  live link can never be orphaned with `preset_id = null`.

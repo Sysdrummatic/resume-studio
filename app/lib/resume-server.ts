@@ -1649,21 +1649,34 @@ export async function publishResumePreset(
   // document, so on a locale document with fewer entries it can never be
   // applied and the public route 404s for that language. Materialize a variant
   // for every selected locale with the selection clamped to that locale's
-  // document, so the snapshot always stores an applicable selection.
+  // document, so the snapshot always stores an applicable selection. A locale
+  // whose document is missing or can never render (no summary at all) is
+  // skipped instead of failing the whole publish — before this the snapshot
+  // for such a locale was a guaranteed public 404 anyway. Only the default
+  // locale is mandatory: the canonical link must render.
   const documentByLocale = new Map(documents.map((document) => [normalizeLocale(document.locale), document]));
   const variants = await fetchResumePresetVariants(existingPreset.id);
+  const publishableLocales: ResumeLocale[] = [];
   for (const locale of explicitLocales) {
     const localeDocument = documentByLocale.get(locale);
-    if (!localeDocument) throw new Error(`[publish:step=localeSelection] no resume document for locale ${locale}`);
-    const sourceSelection = variants.find((variant) => variant.locale === locale)?.selection || existingPreset.selection;
     let effectiveSelection: ResumePresetSelection | null = null;
-    try {
-      effectiveSelection = clampResumeSelectionToRawDocument(yaml.load(localeDocument.yaml_content), sourceSelection);
-    } catch {
-      effectiveSelection = null;
+    if (localeDocument) {
+      const sourceSelection = variants.find((variant) => variant.locale === locale)?.selection || existingPreset.selection;
+      try {
+        effectiveSelection = clampResumeSelectionToRawDocument(yaml.load(localeDocument.yaml_content), sourceSelection);
+      } catch {
+        effectiveSelection = null;
+      }
     }
-    if (!effectiveSelection) throw new Error(`[publish:step=localeSelection] selection cannot be applied to the ${locale} document`);
-    await upsertResumePresetVariant(accessToken, userId, existingPreset, localeDocument, effectiveSelection);
+    if (!effectiveSelection) {
+      if (locale === requestedDefaultLocale) {
+        throw new Error(`[publish:step=localeSelection] selection cannot be applied to the default (${locale}) document`);
+      }
+      console.warn(`[publish] skipping locale ${locale}: selection cannot be applied to its document`);
+      continue;
+    }
+    await upsertResumePresetVariant(accessToken, userId, existingPreset, localeDocument!, effectiveSelection);
+    publishableLocales.push(locale);
   }
 
   const rpcResult = await callRpc<string>({
@@ -1673,7 +1686,7 @@ export async function publishResumePreset(
       input_allow_indexing: payload.allowIndexing,
       input_ai_generated: Boolean(payload.aiGenerated || existingPreset.ai_generated),
       input_default_locale: requestedDefaultLocale,
-      input_selected_locales: explicitLocales,
+      input_selected_locales: publishableLocales,
     },
     accessToken,
   });
@@ -1698,6 +1711,25 @@ export async function unpublishResumePreset(accessToken: string, userId: string,
 }
 
 export async function deleteResumePreset(accessToken: string, userId: string, presetId: string): Promise<boolean> {
+  // Deleting the preset sets resume_public_links.preset_id to null, which
+  // would leave an active public link that can never be unpublished again.
+  // Revoke it first via the unpublish RPC.
+  const activeLink = await queryTable<ResumePublicLinkRow>({
+    table: "resume_public_links",
+    select: "id",
+    useServiceRole: true,
+    query:
+      `user_id=eq.${encodeURIComponent(userId)}` +
+      `&preset_id=eq.${encodeURIComponent(presetId)}` +
+      "&status=eq.active&is_active=eq.true&limit=1",
+  });
+  if (activeLink.data?.length) {
+    const unpublished = await unpublishResumePreset(accessToken, userId, presetId);
+    if (!unpublished) {
+      return false;
+    }
+  }
+
   const result = await deleteTable({
     table: "resume_presets",
     accessToken,

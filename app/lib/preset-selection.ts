@@ -54,6 +54,16 @@ export function normalizeResumePresetSelection(value: unknown): ResumePresetSele
   );
 }
 
+// Legacy documents store summary as plain text (normalizeSummaryItems renders
+// it as one default summary entry), so the selection domain treats it as a
+// virtual one-element array instead of zero items.
+function rawSelectionItems(source: Record<string, unknown>, key: keyof ResumePresetSelection): unknown[] {
+  const value = source[key];
+  if (Array.isArray(value)) return value;
+  if (key === "summary" && typeof value === "string" && value.trim()) return [value];
+  return [];
+}
+
 function defaultSummaryIndex(items: unknown[]): number {
   const index = items.findIndex((item) => {
     const row = item && typeof item === "object" && !Array.isArray(item) ? (item as Record<string, unknown>) : {};
@@ -81,11 +91,11 @@ export function clampResumeSelectionToRawDocument(
   const source = rawDocument as Record<string, unknown>;
   const clamped: ResumePresetSelection = { ...EMPTY_PRESET_SELECTION };
   for (const key of PRESET_SELECTION_KEYS) {
-    const items = Array.isArray(source[key]) ? (source[key] as unknown[]) : [];
+    const items = rawSelectionItems(source, key);
     clamped[key] = selection[key].filter((index) => index < items.length);
   }
   if (clamped.summary.length !== 1) {
-    const summaryItems = Array.isArray(source.summary) ? (source.summary as unknown[]) : [];
+    const summaryItems = rawSelectionItems(source, "summary");
     if (summaryItems.length === 0) {
       return null;
     }
@@ -108,19 +118,30 @@ export function applyResumeSelectionToRawDocument(rawDocument: unknown, selectio
   }
 
   const source: Record<string, unknown> = { ...(rawDocument as Record<string, unknown>) };
+  const summaryIsPlainText = !Array.isArray(source.summary) && rawSelectionItems(source, "summary").length === 1;
   for (const key of PRESET_SELECTION_KEYS) {
-    const items = Array.isArray(source[key]) ? (source[key] as unknown[]) : [];
+    const items = rawSelectionItems(source, key);
     if (selection[key].some((index) => index >= items.length)) {
       return null;
     }
+    if (key === "summary" && summaryIsPlainText) {
+      // Keep the plain-text summary verbatim; normalization renders it as the
+      // single default summary entry.
+      if (selection.summary.length !== 1) {
+        return null;
+      }
+      continue;
+    }
     source[key] = selectByIndex(items, selection[key]);
   }
-  const selectedSummary = source.summary as unknown[];
-  if (selectedSummary.length !== 1) {
-    return null;
+  if (!summaryIsPlainText) {
+    const selectedSummary = source.summary as unknown[];
+    if (selectedSummary.length !== 1) {
+      return null;
+    }
+    source.summary = selectedSummary.map((item, index) =>
+      item && typeof item === "object" && !Array.isArray(item) ? { ...(item as Record<string, unknown>), default: index === 0 } : item,
+    );
   }
-  source.summary = selectedSummary.map((item, index) =>
-    item && typeof item === "object" && !Array.isArray(item) ? { ...(item as Record<string, unknown>), default: index === 0 } : item,
-  );
   return source;
 }
