@@ -387,7 +387,13 @@ test("public view and dashboard preview apply the selection on the raw document 
   const dashboard = read("app/dashboard/dashboard-client.tsx");
 
   assert.equal(server.includes("buildPublishedResumeDocument(yamlContent, selection)"), true);
-  assert.equal(dashboard.includes("applyResumeSelectionToRawDocument(window.jsyaml.load"), true);
+  assert.equal(dashboard.includes("const rawDocument = window.jsyaml.load(yamlContent)"), true);
+  assert.equal(dashboard.includes("applyResumeSelectionToRawDocument(rawDocument"), true);
+  assert.equal(
+    dashboard.includes("clampResumeSelectionToRawDocument(rawDocument, selection)"),
+    true,
+    "dashboard preview must clamp the base selection to the previewed locale document",
+  );
   assert.equal(dashboard.includes("selectByIndex(masterDocument"), false, "dashboard preview must not select from the normalized document");
 });
 

@@ -5,7 +5,7 @@ import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-
 import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
-import { normalizeResumePresetSelection } from "./preset-selection";
+import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
 import type { ResumePresetSelection } from "./preset-selection";
 import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
 
@@ -1643,6 +1643,28 @@ export async function publishResumePreset(
   if (explicitLocales.length === 0) throw new Error("[publish:step=locales] selectedLocales empty after normalization");
   const requestedDefaultLocale = normalizeLocale(payload.defaultLocale || existingPreset.default_locale || baseDocument.locale);
   if (!explicitLocales.includes(requestedDefaultLocale)) throw new Error(`[publish:step=defaultLocale] ${requestedDefaultLocale} not in ${explicitLocales.join(",")}`);
+
+  // The snapshot RPC copies coalesce(variant.selection, preset.selection) per
+  // locale (ADR 0009). The base selection is indexed against the default-locale
+  // document, so on a locale document with fewer entries it can never be
+  // applied and the public route 404s for that language. Materialize a variant
+  // for every selected locale with the selection clamped to that locale's
+  // document, so the snapshot always stores an applicable selection.
+  const documentByLocale = new Map(documents.map((document) => [normalizeLocale(document.locale), document]));
+  const variants = await fetchResumePresetVariants(existingPreset.id);
+  for (const locale of explicitLocales) {
+    const localeDocument = documentByLocale.get(locale);
+    if (!localeDocument) throw new Error(`[publish:step=localeSelection] no resume document for locale ${locale}`);
+    const sourceSelection = variants.find((variant) => variant.locale === locale)?.selection || existingPreset.selection;
+    let effectiveSelection: ResumePresetSelection | null = null;
+    try {
+      effectiveSelection = clampResumeSelectionToRawDocument(yaml.load(localeDocument.yaml_content), sourceSelection);
+    } catch {
+      effectiveSelection = null;
+    }
+    if (!effectiveSelection) throw new Error(`[publish:step=localeSelection] selection cannot be applied to the ${locale} document`);
+    await upsertResumePresetVariant(accessToken, userId, existingPreset, localeDocument, effectiveSelection);
+  }
 
   const rpcResult = await callRpc<string>({
     functionName: "publish_resume_saved_version",

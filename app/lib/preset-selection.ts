@@ -54,6 +54,46 @@ export function normalizeResumePresetSelection(value: unknown): ResumePresetSele
   );
 }
 
+function defaultSummaryIndex(items: unknown[]): number {
+  const index = items.findIndex((item) => {
+    const row = item && typeof item === "object" && !Array.isArray(item) ? (item as Record<string, unknown>) : {};
+    return row.default === true || (typeof row.default === "string" && row.default.toLowerCase() === "true");
+  });
+  return index >= 0 ? index : 0;
+}
+
+// Selection indexes are built against one specific document, so a selection
+// created on the default-locale document can point past the end of another
+// locale's arrays. Clamping keeps only the indexes that exist in the target
+// document — it can drop selected entries but never add unselected ones
+// (ADR 0008) — and falls back to the document's default summary when the
+// selected summary does not exist. Returns null when the document is not an
+// object or has no summary entries to satisfy the exactly-one-summary
+// publish invariant.
+export function clampResumeSelectionToRawDocument(
+  rawDocument: unknown,
+  selection: ResumePresetSelection,
+): ResumePresetSelection | null {
+  if (!rawDocument || typeof rawDocument !== "object" || Array.isArray(rawDocument)) {
+    return null;
+  }
+
+  const source = rawDocument as Record<string, unknown>;
+  const clamped: ResumePresetSelection = { ...EMPTY_PRESET_SELECTION };
+  for (const key of PRESET_SELECTION_KEYS) {
+    const items = Array.isArray(source[key]) ? (source[key] as unknown[]) : [];
+    clamped[key] = selection[key].filter((index) => index < items.length);
+  }
+  if (clamped.summary.length !== 1) {
+    const summaryItems = Array.isArray(source.summary) ? (source.summary as unknown[]) : [];
+    if (summaryItems.length === 0) {
+      return null;
+    }
+    clamped.summary = [defaultSummaryIndex(summaryItems)];
+  }
+  return clamped;
+}
+
 // Selection indexes are RAW-domain: the editor builds them against the raw
 // parsed YAML arrays (dashboard buildPresetOptions), before any normalization
 // drops empty/invalid records. Every consumer (public view, dashboard preview,

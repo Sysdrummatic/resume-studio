@@ -23,3 +23,23 @@ The root cause was identified in the `publish_resume_saved_version` RPC function
 - [x] Relax validation in `publish_resume_saved_version` RPC to allow missing variants.
 - [x] Implement fallback logic to base selection in `resume_published_cv_locales` snapshot.
 - [x] Propagate descriptive PostgreSQL exceptions through `publishResumePreset` and the API route.
+
+## Amendment (2026-07-17): Clamp the fallback selection per locale
+
+The base-selection fallback assumed every locale document mirrors the
+default-locale array shapes. When a locale document has fewer entries (e.g. a
+freshly created language version), the snapshot stored a selection with
+out-of-range indexes that `applyResumeSelectionToRawDocument` can never apply,
+so the public route returned 404 for that language and the dashboard preview
+showed a render error.
+
+`publishResumePreset` now materializes a `resume_preset_variants` row for
+every selected locale before invoking the RPC, using
+`clampResumeSelectionToRawDocument` (`app/lib/preset-selection.ts`): the
+effective selection (existing variant, else base) is filtered to indexes that
+exist in that locale's document, with a fallback to that document's default
+summary when the selected summary is out of range. Clamping only ever removes
+entries relative to the user's selection — it never exposes unselected content
+(ADR 0008). The dashboard preset preview applies the same clamp. Snapshots
+published before this change must be republished to repair their locale rows.
+Test contract: `tests/preset-selection-locale-clamp.test.mjs`.
