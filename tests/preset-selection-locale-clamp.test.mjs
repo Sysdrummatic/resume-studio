@@ -132,16 +132,16 @@ test("publish materializes a clamped per-locale variant before the snapshot RPC"
   );
 });
 
-test("publish skips a non-default locale that cannot render instead of failing the whole publish", () => {
+test("publish fails closed when any explicitly selected locale cannot render", () => {
   const server = read("app/lib/resume-server.ts");
   const publishBody = server.slice(server.indexOf("export async function publishResumePreset"));
 
-  assert.equal(publishBody.includes("input_selected_locales: publishableLocales"), true);
-  assert.equal(publishBody.includes("skipping locale"), true);
+  assert.equal(publishBody.includes("input_selected_locales: explicitLocales"), true);
+  assert.equal(publishBody.includes("skipping locale"), false);
   assert.equal(
-    publishBody.includes("selection cannot be applied to the default"),
+    publishBody.includes("selection cannot be applied to ${locale} document"),
     true,
-    "only the default locale may abort the publish — the canonical link must render",
+    "every explicitly selected locale must either publish or abort with an actionable error",
   );
 });
 

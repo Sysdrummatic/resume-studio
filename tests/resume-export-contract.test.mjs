@@ -382,6 +382,163 @@ test("fetchPublishedResumeExportByPublicLink applies the snapshot selection end-
   );
 });
 
+test("public link hides invalid locales but preserves selectable legacy locales", async (t) => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://stub.supabase.local";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "stub-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "stub-service-role-key";
+  const { fetchPublishedResumeExportByPublicLink, fetchPublishedResumePresetByPublicLink } =
+    await import("../app/lib/resume-server.ts");
+
+  const linkRow = {
+    id: "link-multilingual", document_id: "doc-en", user_id: "user-1", preset_id: "preset-1", slug: null,
+    person_slug: "test-person", public_id: "multilingual", active_published_cv_id: "cv-multilingual",
+    default_locale: "en", available_locales: ["en", "es", "pl"], is_active: true, status: "active",
+    allow_indexing: false, published_at: "2026-07-01T00:00:00Z", revoked_at: null, legacy_slug: null,
+    updated_at: "2026-07-01T00:00:00Z",
+  };
+  const snapshotRow = {
+    id: "cv-multilingual", user_id: "user-1", preset_id: "preset-1", source_document_id: "doc-en",
+    title: "Test CV", schema_version: 1, open_cv_yaml_contract_version: "1", default_locale: "en",
+    published_locales: ["en", "es", "pl"], available_locales: ["en", "es", "pl"], selection: null,
+    allow_indexing: false, published_at: "2026-07-01T00:00:00Z", created_by: null,
+    created_at: "2026-07-01T00:00:00Z", snapshot_metadata: {},
+  };
+  const selection = {
+    summary: [0], experience: [2], education: [], courses: [], skills: [], interests: [], languages: [], tech_stack: [],
+  };
+  const localeRows = [
+    {
+      id: "loc-en", published_cv_id: "cv-multilingual", user_id: "user-1", locale: "en",
+      source_document_id: "doc-en", source_revision_id: null, source_variant_id: null, title: "English CV",
+      yaml_content: masterYamlWithInvalidRecords, schema_version: 1, selection, labels: {}, render_data: null,
+      ai_generated: false, created_at: "2026-07-01T00:00:00Z",
+    },
+    {
+      id: "loc-es", published_cv_id: "cv-multilingual", user_id: "user-1", locale: "es",
+      source_document_id: "doc-es", source_revision_id: null, source_variant_id: null, title: "Spanish CV",
+      yaml_content: "name: Ariana Holt\nsummary: Soy una Product Scientist creativa.\nexperience: []\neducation: []\ncourses: []\nskills: []\ninterests: []\nlanguages: []\ntech_stack: []\n",
+      schema_version: 1, selection: { ...selection, experience: [] }, labels: {}, render_data: null,
+      ai_generated: false, created_at: "2026-07-01T00:00:00Z",
+    },
+    {
+      id: "loc-pl", published_cv_id: "cv-multilingual", user_id: "user-1", locale: "pl",
+      source_document_id: "doc-pl", source_revision_id: null, source_variant_id: null, title: "Polish CV",
+      yaml_content: masterYamlWithInvalidRecords, schema_version: 1, selection: { ...selection, summary: [9] },
+      labels: {}, render_data: null, ai_generated: false, created_at: "2026-07-01T00:00:00Z",
+    },
+  ];
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+    const json = (rows) => new Response(JSON.stringify(rows), { status: 200, headers: { "Content-Type": "application/json" } });
+    if (url.includes("/rest/v1/resume_public_links")) return json([linkRow]);
+    if (url.includes("/rest/v1/resume_published_cv_locales")) return json(localeRows);
+    if (url.includes("/rest/v1/resume_published_cvs")) return json([snapshotRow]);
+    return json([]);
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const publicRoute = await fetchPublishedResumePresetByPublicLink("test-person", "multilingual", "pl");
+  assert.ok(publicRoute, "a broken optional locale must not turn a valid public link into a 404");
+  assert.equal(publicRoute.published.document.locale, "en");
+  assert.deepEqual(publicRoute.published.languages.map(({ code }) => code), ["en", "es"]);
+  assert.deepEqual(publicRoute.availableLocales, ["en", "es"]);
+
+  const publicExport = await fetchPublishedResumeExportByPublicLink("test-person", "multilingual", "pl");
+  assert.ok(publicExport, "public exports must use the same safe locale fallback as the page");
+  assert.equal(publicExport.locale, "en");
+  assert.deepEqual(publicExport.availableLocales, ["en", "es"]);
+
+  const spanishRoute = await fetchPublishedResumePresetByPublicLink("test-person", "multilingual", "es");
+  assert.ok(spanishRoute, "a valid legacy locale must remain selectable");
+  assert.equal(spanishRoute.published.document.locale, "es");
+  assert.equal(spanishRoute.published.resume.summary[0].description, "Soy una Product Scientist creativa.");
+
+  linkRow.default_locale = "pl";
+  snapshotRow.default_locale = "pl";
+  const canonicalRoute = await fetchPublishedResumePresetByPublicLink("test-person", "multilingual");
+  assert.ok(canonicalRoute, "an invalid stored default must fall back to a renderable locale");
+  assert.equal(canonicalRoute.defaultLocale, "en");
+  assert.equal(canonicalRoute.published.document.locale, "en");
+});
+
+test("published content treats a legacy plain-text summary as one selected record", () => {
+  const legacyYaml = `
+name: Ariana Holt
+summary: Soy una Product Scientist creativa.
+experience: []
+education: []
+courses: []
+skills: []
+interests: []
+languages: []
+tech_stack: []
+`;
+  const selection = normalizeResumePresetSelection({ summary: [0] });
+
+  const resume = buildPublishedResumeDocument(legacyYaml, selection);
+  const exported = buildPublishedExportContent(legacyYaml, selection);
+
+  assert.ok(resume, "legacy text summary must remain renderable on the public route");
+  assert.equal(resume.summary.length, 1);
+  assert.equal(resume.summary[0].description, "Soy una Product Scientist creativa.");
+  assert.ok(exported, "public exports must accept the same legacy summary shape");
+});
+
+test("variant import surfaces failed database writes instead of reporting success", async (t) => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://stub.supabase.local";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "stub-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "stub-service-role-key";
+  const { importResumePresetVariant } = await import("../app/lib/resume-server.ts");
+  const selection = {
+    summary: [0], experience: [], education: [], courses: [], skills: [], interests: [], languages: [], tech_stack: [],
+  };
+  const preset = {
+    id: "preset-1", document_id: "doc-en", user_id: "user-1", title: "Test preset", selection,
+    is_public: false, allow_indexing: false, ai_generated: false, default_locale: "en", slug: null,
+    published_at: null, created_at: "2026-07-01T00:00:00Z", updated_at: "2026-07-01T00:00:00Z",
+  };
+  const document = {
+    id: "doc-pl", user_id: "user-1", locale: "pl", title: "Polish resume",
+    yaml_content: "name: Test Person\nsummary:\n  - position: Test\n    description: Test\n", schema_version: 1,
+    is_public: false, allow_indexing: false, ai_generated: false, updated_at: "2026-07-01T00:00:00Z",
+  };
+  const originalFetch = globalThis.fetch;
+  let hasExistingVariant = false;
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+    if (url.includes("/rest/v1/resume_documents")) return json([document]);
+    if (url.includes("/rest/v1/resume_preset_variants") && init?.method === "POST") {
+      return json({ message: "variant rejected" }, 403);
+    }
+    if (url.includes("/rest/v1/resume_preset_variants") && init?.method === "PATCH") {
+      return json({ message: "variant update rejected" }, 409);
+    }
+    if (url.includes("/rest/v1/resume_preset_variants")) {
+      return json(hasExistingVariant ? [{ id: "variant-pl", locale: "pl", selection, is_default: false }] : []);
+    }
+    return json([]);
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  await assert.rejects(
+    importResumePresetVariant("access-token", "user-1", preset, "pl", selection),
+    /\[presetVariant:locale=pl:operation=insert\].*variant rejected/,
+  );
+
+  hasExistingVariant = true;
+  await assert.rejects(
+    importResumePresetVariant("access-token", "user-1", preset, "pl", selection),
+    /\[presetVariant:locale=pl:operation=update\].*variant update rejected/,
+  );
+});
+
 test("public view and dashboard preview apply the selection on the raw document before normalization", () => {
   const server = read("app/lib/resume-server.ts");
   const dashboard = read("app/dashboard/dashboard-client.tsx");

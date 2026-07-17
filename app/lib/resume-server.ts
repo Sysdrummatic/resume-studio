@@ -1031,7 +1031,7 @@ async function upsertResumePresetVariant(
   };
 
   if (existing) {
-    await updateTable({
+    const updateResult = await updateTable({
       table: "resume_preset_variants",
       accessToken,
       query: `id=eq.${encodeURIComponent(existing.id)}&user_id=eq.${encodeURIComponent(userId)}`,
@@ -1040,14 +1040,26 @@ async function upsertResumePresetVariant(
         updated_at: new Date().toISOString(),
       },
     });
+    if (updateResult.error) {
+      throw new Error(`[presetVariant:locale=${locale}:operation=update] ${updateResult.error} (status=${updateResult.status})`);
+    }
+    if (!updateResult.data?.[0]) {
+      throw new Error(`[presetVariant:locale=${locale}:operation=update] update returned no rows (status=${updateResult.status})`);
+    }
     return;
   }
 
-  await insertTable({
+  const insertResult = await insertTable({
     table: "resume_preset_variants",
     accessToken,
     values,
   });
+  if (insertResult.error) {
+    throw new Error(`[presetVariant:locale=${locale}:operation=insert] ${insertResult.error} (status=${insertResult.status})`);
+  }
+  if (!insertResult.data?.[0]) {
+    throw new Error(`[presetVariant:locale=${locale}:operation=insert] insert returned no rows (status=${insertResult.status})`);
+  }
 }
 
 export async function fetchResumePresetVariantsForUser(userId: string): Promise<ResumePresetVariantRow[]> {
@@ -1192,22 +1204,26 @@ async function resolveSnapshotLocales(
     .map((row) => ({
       ...row,
       locale: normalizeLocale(row.locale),
-      selection: normalizeResumePresetSelection(row.selection),
+      selection: normalizeResumePresetSelection(row.selection || snapshot.selection),
     }))
-    .filter((row) => allowedLocales.has(row.locale));
+    .filter((row) => allowedLocales.has(row.locale))
+    .filter((row) => Boolean(buildResumeDocumentFromPreset(row.yaml_content, row.selection)));
   if (localeRows.length === 0) {
     return null;
   }
 
+  const renderableLocales = new Set(localeRows.map((row) => row.locale));
+  const effectiveDefaultLocale = renderableLocales.has(defaultLocale) ? defaultLocale : localeRows[0].locale;
+
   const activeLocaleRow =
     localeRows.find((row) => row.locale === requestedLocale) ||
-    localeRows.find((row) => row.locale === defaultLocale) ||
+    localeRows.find((row) => row.locale === effectiveDefaultLocale) ||
     localeRows[0];
 
   return {
-    defaultLocale,
+    defaultLocale: effectiveDefaultLocale,
     requestedLocale,
-    allowedLocales,
+    allowedLocales: renderableLocales,
     localeRows,
     activeLocaleRow,
   };
@@ -1300,8 +1316,8 @@ export async function fetchPublishedResumePresetByPublicLink(
     personSlug: link.person_slug || personSlug,
     publicId: link.public_id || publicId,
     allowIndexing: Boolean(link.allow_indexing),
-    defaultLocale: normalizeLocale(link.default_locale || published.document.locale),
-    availableLocales: normalizeLocales(link.available_locales || [], normalizeLocale(link.default_locale || published.document.locale)),
+    defaultLocale: published.preset.default_locale,
+    availableLocales: published.languages.map((language) => language.code),
     legacySlug: link.legacy_slug || link.slug || null,
   };
 }
@@ -1649,14 +1665,10 @@ export async function publishResumePreset(
   // document, so on a locale document with fewer entries it can never be
   // applied and the public route 404s for that language. Materialize a variant
   // for every selected locale with the selection clamped to that locale's
-  // document, so the snapshot always stores an applicable selection. A locale
-  // whose document is missing or can never render (no summary at all) is
-  // skipped instead of failing the whole publish — before this the snapshot
-  // for such a locale was a guaranteed public 404 anyway. Only the default
-  // locale is mandatory: the canonical link must render.
+  // document. Publishing is fail-closed: a successful response means every
+  // explicitly selected locale was included in the snapshot.
   const documentByLocale = new Map(documents.map((document) => [normalizeLocale(document.locale), document]));
   const variants = await fetchResumePresetVariants(existingPreset.id);
-  const publishableLocales: ResumeLocale[] = [];
   for (const locale of explicitLocales) {
     const localeDocument = documentByLocale.get(locale);
     let effectiveSelection: ResumePresetSelection | null = null;
@@ -1669,14 +1681,9 @@ export async function publishResumePreset(
       }
     }
     if (!effectiveSelection) {
-      if (locale === requestedDefaultLocale) {
-        throw new Error(`[publish:step=localeSelection] selection cannot be applied to the default (${locale}) document`);
-      }
-      console.warn(`[publish] skipping locale ${locale}: selection cannot be applied to its document`);
-      continue;
+      throw new Error(`[publish:step=localeSelection] selection cannot be applied to ${locale} document`);
     }
     await upsertResumePresetVariant(accessToken, userId, existingPreset, localeDocument!, effectiveSelection);
-    publishableLocales.push(locale);
   }
 
   const rpcResult = await callRpc<string>({
@@ -1686,7 +1693,7 @@ export async function publishResumePreset(
       input_allow_indexing: payload.allowIndexing,
       input_ai_generated: Boolean(payload.aiGenerated || existingPreset.ai_generated),
       input_default_locale: requestedDefaultLocale,
-      input_selected_locales: publishableLocales,
+      input_selected_locales: explicitLocales,
     },
     accessToken,
   });

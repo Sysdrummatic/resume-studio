@@ -50,14 +50,24 @@ Follow-up refinements (same date):
   string; `normalizeSummaryItems` renders that as one default summary entry,
   so `clampResumeSelectionToRawDocument` and
   `applyResumeSelectionToRawDocument` treat it as a virtual one-element array
-  (apply keeps the string verbatim). Without this, publishing any preset whose
-  language versions use the legacy shape failed outright.
-- **Skip instead of abort.** A selected locale whose document is missing or
-  can never render (no summary at all) is skipped from
-  `input_selected_locales` with a server-side warning instead of failing the
-  whole publish; only the default locale is mandatory, because the canonical
-  link must render. Pre-clamp behavior for such locales was a guaranteed
-  public 404, so omitting them is strictly better.
+  (apply keeps the string verbatim). The public snapshot fidelity check also
+  counts this shape as one selected record. Without this, publishing or reading
+  any language version using the legacy shape failed outright or hid that
+  language from the public switcher.
+- **Fail closed for selected locales.** Every locale explicitly selected by
+  the user must produce a renderable variant before the snapshot RPC runs.
+  Missing or invalid locale documents abort publication with a locale-specific
+  error; a successful response therefore guarantees that no selected language
+  was silently omitted.
+- **Verify variant writes.** Insert and update results for
+  `resume_preset_variants` are checked before publication continues. Database,
+  RLS, constraint, and zero-row failures abort the operation instead of letting
+  the RPC copy a stale selection into a new snapshot.
+- **Harden existing public snapshots.** The public page and export resolver
+  validate locale rows before choosing a language. Invalid rows are excluded
+  from language switching and the resolver falls back to a renderable default
+  locale instead of returning 404. Republish the saved version to restore an
+  excluded language with a newly clamped immutable snapshot.
 - **Preset delete vs. immutable snapshots.** Deleting an ever-published preset
   fires `ON DELETE SET NULL` updates against `resume_published_cvs.preset_id`
   and (via the `resume_preset_variants` cascade)

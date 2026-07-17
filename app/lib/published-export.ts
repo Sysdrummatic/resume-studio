@@ -13,6 +13,13 @@ type SelectedPublishedDocument = {
   resume: ResumeDocument;
 };
 
+function selectedRecordCount(key: (typeof PRESET_SELECTION_KEYS)[number], value: unknown): number | null {
+  if (key === "summary" && typeof value === "string") {
+    return value.trim() ? 1 : null;
+  }
+  return Array.isArray(value) ? value.length : null;
+}
+
 // ADR 0008 / R09: snapshots store the full Master Resume, so the public view
 // and every export surface must go through these helpers. The selection is
 // applied on the RAW parsed object (single index domain — see
@@ -32,7 +39,8 @@ function selectPublishedDocument(yamlContent: string, selection: unknown): Selec
     // schema drops (empty experience row, non-object summary) would make the
     // rendered document diverge from the exported raw yaml — reject instead.
     for (const key of PRESET_SELECTION_KEYS) {
-      if (resume[key].length !== (selectedRaw[key] as unknown[]).length) {
+      const rawRecordCount = selectedRecordCount(key, selectedRaw[key]);
+      if (rawRecordCount === null || resume[key].length !== rawRecordCount) {
         return null;
       }
     }
