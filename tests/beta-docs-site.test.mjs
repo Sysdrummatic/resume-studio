@@ -10,6 +10,7 @@ const { canViewTestScenarios, BETA_TEST_SCENARIOS_FLAG_KEY } = await import("../
 const { renderMarkdownToHtml } = await import("../app/lib/docs/markdown.ts");
 const { listDocs, getDoc, isDocCategory } = await import("../app/lib/docs/content.ts");
 
+const accessPath = path.join(process.cwd(), "app", "lib", "docs", "access.ts");
 const indexRoutePath = path.join(process.cwd(), "app", "docs", "page.tsx");
 const docRoutePath = path.join(process.cwd(), "app", "docs", "[category]", "[slug]", "page.tsx");
 const layoutPath = path.join(process.cwd(), "app", "layout.tsx");
@@ -18,19 +19,48 @@ function read(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-test("canViewTestScenarios truth table: isTestUser AND flag must both hold", async () => {
+test("canViewTestScenarios truth table: isTestUser AND flag must both hold for non-admins", async () => {
   const flagOn = async () => true;
   const flagOff = async () => false;
 
-  assert.equal(await canViewTestScenarios({ isTestUser: true }, flagOn), true);
-  assert.equal(await canViewTestScenarios({ isTestUser: true }, flagOff), false);
-  assert.equal(await canViewTestScenarios({ isTestUser: false }, flagOn), false);
-  assert.equal(await canViewTestScenarios({ isTestUser: false }, flagOff), false);
+  assert.equal(await canViewTestScenarios({ role: "user", isTestUser: true }, flagOn), true);
+  assert.equal(await canViewTestScenarios({ role: "user", isTestUser: true }, flagOff), false);
+  assert.equal(await canViewTestScenarios({ role: "user", isTestUser: false }, flagOn), false);
+  assert.equal(await canViewTestScenarios({ role: "user", isTestUser: false }, flagOff), false);
+});
+
+test("canViewTestScenarios grants admin unconditionally without reading the flag", async () => {
+  let flagRead = false;
+  const flagSpy = async () => {
+    flagRead = true;
+    return false;
+  };
+
+  assert.equal(await canViewTestScenarios({ role: "admin", isTestUser: false }, flagSpy), true);
+  assert.equal(flagRead, false);
+  assert.equal(await canViewTestScenarios({ role: "admin", isTestUser: true }, flagSpy), true);
+  assert.equal(flagRead, false);
+});
+
+test("manager keeps the non-admin rule unchanged", async () => {
+  const flagOn = async () => true;
+  const flagOff = async () => false;
+
+  assert.equal(await canViewTestScenarios({ role: "manager", isTestUser: true }, flagOn), true);
+  assert.equal(await canViewTestScenarios({ role: "manager", isTestUser: true }, flagOff), false);
+  assert.equal(await canViewTestScenarios({ role: "manager", isTestUser: false }, flagOn), false);
+});
+
+test("access helper reuses isAdminRole from rbac, not a raw string comparison", () => {
+  const source = read(accessPath);
+
+  assert.equal(source.includes('import { isAdminRole } from "../rbac"'), true);
+  assert.equal(source.includes('=== "admin"'), false);
 });
 
 test("canViewTestScenarios reads the beta_test_scenarios_visible flag key", async () => {
   let requestedKey = null;
-  await canViewTestScenarios({ isTestUser: true }, async (key) => {
+  await canViewTestScenarios({ role: "user", isTestUser: true }, async (key) => {
     requestedKey = key;
     return true;
   });
@@ -41,7 +71,7 @@ test("canViewTestScenarios reads the beta_test_scenarios_visible flag key", asyn
 
 test("canViewTestScenarios does not consult the flag for non-test users", async () => {
   let flagRead = false;
-  await canViewTestScenarios({ isTestUser: false }, async () => {
+  await canViewTestScenarios({ role: "user", isTestUser: false }, async () => {
     flagRead = true;
     return true;
   });
