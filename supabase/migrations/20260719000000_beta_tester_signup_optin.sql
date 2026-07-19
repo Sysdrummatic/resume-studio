@@ -18,7 +18,9 @@ declare
     btrim(substr(coalesce(new.raw_user_meta_data ->> 'full_name', ''), length(split_part(coalesce(new.raw_user_meta_data ->> 'full_name', ''), ' ', 1)) + 1)),
     ''
   );
-  signup_beta_opt_in boolean := (new.raw_user_meta_data ->> 'wants_beta_test_user') = 'true';
+  -- coalesce: users created without the opt-in key (direct Auth API, tests,
+  -- invites) yield NULL from ->>, which must become false, not a NOT NULL violation.
+  signup_beta_opt_in boolean := coalesce((new.raw_user_meta_data ->> 'wants_beta_test_user') = 'true', false);
 begin
   insert into public.profiles (id, display_name, first_name, last_name, name_sync_mode, is_test_user)
   values (new.id, raw_display_name, parsed_first_name, parsed_last_name, 'auto', signup_beta_opt_in)

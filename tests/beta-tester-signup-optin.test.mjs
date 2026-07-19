@@ -70,3 +70,14 @@ test("migration sets is_test_user from signup metadata on profile insert only", 
   assert.equal(/insert into public\.profiles \([^)]*is_test_user/.test(source), true);
   assert.equal(source.includes("update public.profiles"), false);
 });
+
+test("migration is null-safe when signup metadata lacks the opt-in key", () => {
+  const source = read(migrationPath);
+
+  // Without coalesce, NULL ->> comparison yields NULL and violates the
+  // is_test_user NOT NULL constraint for every non-form signup (CI RLS suite).
+  assert.equal(
+    source.includes("coalesce((new.raw_user_meta_data ->> 'wants_beta_test_user') = 'true', false)"),
+    true,
+  );
+});
