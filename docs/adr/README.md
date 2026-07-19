@@ -22,3 +22,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0018: User Data Export/Import With Admin Kill Switch](0018-user-data-export-import.md)
 - [ADR 0019: Test User And OCV Staff Account Flags With Counter Exclusion](0019-test-user-and-staff-account-flags.md)
 - [ADR 0020: Test User Flag Gates Beta Docs Access](0020-test-user-flag-gates-beta-docs-access.md)
+- [ADR 0021: Admin Full Docs Visibility](0021-admin-full-docs-visibility.md)

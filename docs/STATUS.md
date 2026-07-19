@@ -117,8 +117,19 @@ Security risks in [security/security-and-risk-plan.md](security/security-and-ris
   on the route (`notFound()`), nav visibility is UX only.
 - **Contract:** ADR 0020 (extends ADR 0019, supersedes its "metrics metadata
   only" non-goal for `is_test_user` docs visibility).
+- **Follow-up (same day):** admins now see all docs sections unconditionally —
+  `canViewTestScenarios()` short-circuits on `isAdminRole(actor.role)` before the
+  test-user/flag checks; managers keep the ADR 0020 rule (ADR 0021, extends
+  ADR 0020). The docs site also gained a Mintlify-inspired shell
+  (`app/components/docs-layout.tsx`): persistent grouped sidebar on every
+  `/docs*` page, category eyebrow above the doc title, and a right-rail
+  "On this page" H2/H3 outline (`renderMarkdownWithOutline()` emits matching
+  heading `id`s), collapsing below the shared 980px breakpoint exported from
+  `app-header-navigation.tsx`. `/docs` index is now a welcome panel, not
+  category cards.
 - **Tests:** `tests/beta-tester-signup-optin.test.mjs`,
-  `tests/beta-docs-feature-flag.test.mjs`, `tests/beta-docs-site.test.mjs`.
+  `tests/beta-docs-feature-flag.test.mjs`, `tests/beta-docs-site.test.mjs`,
+  `tests/docs-layout.test.mjs`.
 
 #### 2026-07-15 — Published CV export endpoints ignored Saved Version selection (R09)
 
