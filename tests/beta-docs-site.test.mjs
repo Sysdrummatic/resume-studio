@@ -133,8 +133,9 @@ test("doc route 404s unknown categories and gates test-scenarios server-side", (
   assert.equal(source.includes("requireAuthenticatedActor"), true);
   assert.equal(source.includes("notFound()"), true);
   assert.equal(source.includes("isDocCategory(category)"), true);
-  assert.equal(/category === "test-scenarios" && !\(await canViewTestScenarios\(actor\)\)/.test(source), true);
-  assert.equal(source.includes("renderMarkdownToHtml"), true);
+  assert.equal(source.includes("canViewTestScenarios(actor)"), true);
+  assert.equal(/category === "test-scenarios" && !showTestScenarios/.test(source), true);
+  assert.equal(source.includes("renderMarkdownWithOutline"), true);
 });
 
 test("authenticated header navigation links to /docs", () => {

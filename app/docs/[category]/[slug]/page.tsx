@@ -1,17 +1,11 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Typography } from "../../../components/design-system/atoms/Typography";
+import DocsLayout from "../../../components/docs-layout";
 import { requireAuthenticatedActor } from "../../../lib/auth-server";
 import { canViewTestScenarios } from "../../../lib/docs/access";
-import { getDoc, isDocCategory, listDocs, type DocCategory } from "../../../lib/docs/content";
-import { renderMarkdownToHtml } from "../../../lib/docs/markdown";
+import { DOC_CATEGORY_TITLES, getDoc, isDocCategory, listDocNavGroups } from "../../../lib/docs/content";
+import { renderMarkdownWithOutline } from "../../../lib/docs/markdown";
 
 export const dynamic = "force-dynamic";
-
-const CATEGORY_TITLES: Record<DocCategory, string> = {
-  tutorials: "Tutorials",
-  "test-scenarios": "Test Scenarios",
-};
 
 type DocPageProps = {
   params: Promise<{
@@ -28,8 +22,10 @@ export default async function DocPage({ params }: DocPageProps) {
     notFound();
   }
 
+  const showTestScenarios = await canViewTestScenarios(actor);
+
   // Server-side gate: nav visibility is UX only, this notFound() is the boundary.
-  if (category === "test-scenarios" && !(await canViewTestScenarios(actor))) {
+  if (category === "test-scenarios" && !showTestScenarios) {
     notFound();
   }
 
@@ -38,31 +34,14 @@ export default async function DocPage({ params }: DocPageProps) {
     notFound();
   }
 
-  const siblings = listDocs(category);
+  const { html, headings } = renderMarkdownWithOutline(doc.markdown);
 
   return (
-    <div className="docs-layout">
-      <aside className="card stack docs-layout__sidebar">
-        <Typography variant="caption" muted>
-          {CATEGORY_TITLES[category]}
-        </Typography>
-        <nav className="stack" aria-label="Documents in this category">
-          {siblings.map((entry) => (
-            <Link
-              key={entry.slug}
-              href={`/docs/${category}/${entry.slug}`}
-              className="auth-card__link"
-              aria-current={entry.slug === slug ? "page" : undefined}
-            >
-              {entry.title}
-            </Link>
-          ))}
-        </nav>
-        <Link href="/docs" className="auth-card__link">
-          All docs
-        </Link>
-      </aside>
-      <article className="card stack" dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(doc.markdown) }} />
-    </div>
+    <DocsLayout groups={listDocNavGroups(showTestScenarios)} activeHref={`/docs/${category}/${slug}`} toc={headings}>
+      <article className="card stack">
+        <span className="product-surface__eyebrow">{DOC_CATEGORY_TITLES[category]}</span>
+        <div dangerouslySetInnerHTML={{ __html: html }} />
+      </article>
+    </DocsLayout>
   );
 }

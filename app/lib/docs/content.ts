@@ -4,6 +4,17 @@ import path from "node:path";
 export const DOC_CATEGORIES = ["tutorials", "test-scenarios"] as const;
 export type DocCategory = (typeof DOC_CATEGORIES)[number];
 
+export const DOC_CATEGORY_TITLES: Record<DocCategory, string> = {
+  tutorials: "Tutorials",
+  "test-scenarios": "Test Scenarios",
+};
+
+export type DocNavGroup = {
+  key: DocCategory;
+  title: string;
+  items: Array<{ href: string; title: string }>;
+};
+
 export type DocEntry = {
   slug: string;
   category: DocCategory;
@@ -63,6 +74,18 @@ export function getDoc(category: DocCategory, slug: string): DocEntry | null {
     updatedAt: fields.updatedAt || null,
     markdown: body,
   };
+}
+
+export function listDocNavGroups(includeTestScenarios: boolean): DocNavGroup[] {
+  const categories: DocCategory[] = includeTestScenarios ? [...DOC_CATEGORIES] : ["tutorials"];
+  return categories.map((category) => ({
+    key: category,
+    title: DOC_CATEGORY_TITLES[category],
+    items: listDocs(category).map((doc) => ({
+      href: `/docs/${category}/${doc.slug}`,
+      title: doc.title,
+    })),
+  }));
 }
 
 export function listDocs(category: DocCategory): DocEntry[] {
