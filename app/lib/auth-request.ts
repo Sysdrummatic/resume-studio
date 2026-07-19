@@ -51,6 +51,7 @@ async function buildActor(accessToken: string): Promise<RequestAuthResult> {
     role: profileResult.data.role,
     bio: profileResult.data.bio,
     isActive: profileResult.data.is_active,
+    isTestUser: profileResult.data.is_test_user === true,
     accessToken,
   };
 

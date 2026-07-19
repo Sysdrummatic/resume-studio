@@ -1143,6 +1143,34 @@ a {
   gap: 1rem;
 }
 
+.docs-index {
+  max-width: 60rem;
+  margin-inline: auto;
+}
+
+.docs-index__list {
+  gap: 0.5rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.docs-layout {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .docs-layout {
+    grid-template-columns: 16rem minmax(0, 1fr);
+  }
+
+  .docs-layout__sidebar {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;

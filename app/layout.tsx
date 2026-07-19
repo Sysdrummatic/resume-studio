@@ -37,6 +37,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         ...(isAdmin ? [{ href: "/user", label: "Personal Hub" }] : []),
         { href: "/dashboard", label: "Dashboard" },
         { href: "/resume", label: "Sample CV" },
+        { href: "/docs", label: "Docs" },
       ]
     : [
         {

@@ -72,6 +72,7 @@ export type SessionActor = {
   role: AppRole;
   bio: string | null;
   isActive: boolean;
+  isTestUser: boolean;
   accessToken: string;
 };
 
