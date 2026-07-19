@@ -76,6 +76,7 @@ export async function signUpWithPassword(
   email: string,
   password: string,
   emailRedirectTo: string,
+  wantsBetaTestUser: boolean,
 ): Promise<AuthResult<SupabaseSessionResponse>> {
   const { url } = getSupabasePublicConfig();
   return requestSupabase<SupabaseSessionResponse>(
@@ -87,6 +88,7 @@ export async function signUpWithPassword(
           email,
           password,
           email_redirect_to: emailRedirectTo,
+          data: { wants_beta_test_user: wantsBetaTestUser },
         }),
         cache: "no-store",
       }),

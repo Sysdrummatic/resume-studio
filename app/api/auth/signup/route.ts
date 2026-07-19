@@ -8,6 +8,7 @@ import { getAccessRestriction } from "../../../lib/access-restriction";
 type SignUpBody = {
   email?: string;
   password?: string;
+  wantsBetaTestUser?: boolean;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -25,6 +26,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const email = normalizeEmail(body.email);
   const password = typeof body.password === "string" ? body.password : "";
+  const wantsBetaTestUser = body.wantsBetaTestUser === true;
 
   if (!isValidEmailAddress(email)) {
     return NextResponse.json({ error: "Provide a valid email address." }, { status: 400 });
@@ -43,7 +45,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const emailRedirectTo = `${getAppBaseUrl()}/login?verified=1`;
-  const signUpResult = await signUpWithPassword(email, password, emailRedirectTo);
+  const signUpResult = await signUpWithPassword(email, password, emailRedirectTo, wantsBetaTestUser);
   if (!signUpResult.data || signUpResult.error) {
     return NextResponse.json(
       { error: signUpResult.error || "Sign up failed." },
