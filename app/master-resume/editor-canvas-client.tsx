@@ -11,7 +11,6 @@ import LocaleTabStrip from "./locale-tab-strip";
 import LanguageVersionModal from "./language-version-modal";
 import { useMultiLocaleResumeDocuments } from "./use-multi-locale-resume-documents";
 import type {
-  ResumeContactItem,
   ResumeCourse,
   ResumeDocument,
   ResumeEducation,
@@ -28,6 +27,14 @@ type EditorTab = "yaml" | "human";
 const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
   { code: "basic", label: "basic" },
   { code: "empty", label: "empty" },
+];
+
+const CONTACT_FIELDS: Array<{ label: string; hasLink: boolean }> = [
+  { label: "Location", hasLink: false },
+  { label: "Phone", hasLink: true },
+  { label: "E-mail", hasLink: true },
+  { label: "LinkedIn", hasLink: true },
+  { label: "Portfolio", hasLink: true },
 ];
 
 const HFE_SECTION_NAV = [
@@ -149,7 +156,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     });
   }
 
-  function addArrayItem(field: "contact", item: ResumeContactItem): void;
   function addArrayItem(field: "summary", item: ResumeSummaryItem): void;
   function addArrayItem(field: "qr_codes", item: ResumeQrCode): void;
   function addArrayItem(field: "skills", item: ResumeSkill): void;
@@ -177,9 +183,11 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     } as ResumeDocument);
   }
 
-  function updateContact(index: number, key: keyof ResumeContactItem, value: string) {
-    const next = [...resume.contact];
-    next[index] = { ...next[index], [key]: value };
+  function updateContactField(label: string, key: "value" | "link", value: string) {
+    const exists = resume.contact.some((item) => item.label === label);
+    const next = exists
+      ? resume.contact.map((item) => (item.label === label ? { ...item, [key]: value } : item))
+      : [...resume.contact, { label, value: "", link: "", [key]: value }];
     updateResumeFromHuman({ ...resume, contact: next });
   }
 
@@ -508,23 +516,23 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 <section className="resume-human-editor__section" id="hfe-contact">
                   <div className="section-row">
                     <h3>Contact</h3>
-                    <button type="button" className="button button--ghost button--small" onClick={() => addArrayItem("contact", { label: "", value: "", link: "" })}>
-                      + Add
-                    </button>
                   </div>
-                  {resume.contact.map((item, index) => (
-                    <div className="resume-human-editor__row" key={`contact-${index}`}>
-                      <label className="sr-only" htmlFor={`contact-label-${index}`}>Contact label</label>
-                      <input id={`contact-label-${index}`} placeholder="Label" value={item.label} onChange={(event) => updateContact(index, "label", event.target.value)} />
-                      <label className="sr-only" htmlFor={`contact-value-${index}`}>Contact value</label>
-                      <input id={`contact-value-${index}`} placeholder="Value" value={item.value} onChange={(event) => updateContact(index, "value", event.target.value)} />
-                      <label className="sr-only" htmlFor={`contact-link-${index}`}>Contact link</label>
-                      <input id={`contact-link-${index}`} placeholder="Link" value={item.link || ""} onChange={(event) => updateContact(index, "link", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("contact", index)}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
+                  {CONTACT_FIELDS.map(({ label, hasLink }) => {
+                    const item = resume.contact.find((entry) => entry.label === label) ?? { label, value: "", link: "" };
+                    return (
+                      <div className="resume-human-editor__row" key={`contact-${label}`}>
+                        <span className="resume-human-editor__row-label">{label}</span>
+                        <label className="sr-only" htmlFor={`contact-value-${label}`}>{label} value</label>
+                        <input id={`contact-value-${label}`} placeholder="Value" value={item.value} onChange={(event) => updateContactField(label, "value", event.target.value)} />
+                        {hasLink && (
+                          <>
+                            <label className="sr-only" htmlFor={`contact-link-${label}`}>{label} link</label>
+                            <input id={`contact-link-${label}`} placeholder="Link" value={item.link || ""} onChange={(event) => updateContactField(label, "link", event.target.value)} />
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </section>
 
                 <details

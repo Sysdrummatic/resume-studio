@@ -115,6 +115,13 @@ function buildBuffer(
 
   if (!yamlContent) {
     resume = defaultResumeDocument(fallbackName);
+    if (hasYamlRuntime()) {
+      try {
+        yamlContent = serializeResumeToYaml(resume);
+      } catch {
+        // Leave yamlContent empty; the Form view still has the default resume state.
+      }
+    }
   } else if (!hasYamlRuntime()) {
     resume = defaultResumeDocument(fallbackName);
     yamlError = "YAML runtime is not loaded.";

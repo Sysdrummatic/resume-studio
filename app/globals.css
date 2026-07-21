@@ -2152,6 +2152,11 @@ a {
   grid-template-columns: minmax(160px, 1fr) auto;
 }
 
+.resume-human-editor__row-label {
+  font-weight: 600;
+  align-self: center;
+}
+
 .resume-human-editor__card {
   border: 1px solid var(--border);
   border-radius: 10px;

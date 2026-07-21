@@ -124,16 +124,22 @@ export function defaultResumeDocument(name = ""): ResumeDocument {
   return {
     brand_initials: initialsFromName(safeName),
     name: safeName,
-    summary: [],
-    contact: [],
+    summary: [{ position: "", description: "", default: true }],
+    contact: [
+      { label: "Location", value: "" },
+      { label: "Phone", value: "", link: "" },
+      { label: "E-mail", value: "", link: "" },
+      { label: "LinkedIn", value: "", link: "" },
+      { label: "Portfolio", value: "", link: "" },
+    ],
     qr_codes: [],
-    skills: [],
-    tech_stack: [],
-    languages: [],
-    interests: [],
-    experience: [],
-    education: [],
-    courses: [],
+    skills: [{ name: "", level: 3 }],
+    tech_stack: [""],
+    languages: [{ name: "", level_text: "", level: 3 }],
+    interests: [""],
+    experience: [{ period: "", company: "", role: "", highlights: [""] }],
+    education: [{ period: "", school: "", degree: "", detail: "" }],
+    courses: [{ year: 0, name: "" }],
   };
 }
 

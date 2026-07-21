@@ -1,0 +1,94 @@
+brand_initials: "ST"
+name: "Steeve Tatums"
+summary: |
+  Jeg er en resultatorientert salgssjef med bakgrunn fra produksjon og industri, noe som gir meg en sjelden evne
+  til å snakke både kundenes og produksjonsgulvets språk. De siste ti årene har jeg bygget og ledet salgsteam
+  for industrielle og tekniske produkter, og lukket avtaler som krever dyp prosessforståelse. Jeg omsetter
+  produksjonskunnskap til tillit hos kunder og forutsigbar omsetning for virksomheten.
+contact:
+  - label: Sted
+    value: "Bergen, Norge"
+  - label: Telefon
+    value: +47 400 12 345
+    link: tel:+4740012345
+  - label: E-post
+    value: steeve.tatums@example.com
+    link: mailto:steeve.tatums@example.com
+  - label: LinkedIn
+    value: linkedin.com/in/steevetatums
+    link: https://www.linkedin.com/in/steevetatums
+  - label: Portefølje
+    value: steevetatums.dev
+    link: https://steevetatums.dev
+qr_codes:
+  - label: Personlig nettside
+    image: images/qrs/qr.png
+    size: 130
+skills:
+  - name: Ledelse av salgsteam
+    level: 5
+  - name: Nøkkelkundehåndtering
+    level: 4
+  - name: Produksjonsplanlegging
+    level: 4
+tech_stack:
+  - Salesforce
+  - HubSpot
+  - SAP
+  - Excel
+  - Power BI
+  - Lean Manufacturing
+  - ERP-systemer
+  - Slack
+languages:
+  - name: Norsk
+    level_text: Morsmål
+    level: 5
+  - name: Engelsk
+    level_text: Profesjonelt nivå
+    level: 4
+interests:
+  - Trearbeid
+  - Seiling
+  - Motorsport
+  - Veiledning av unge salgstalenter
+experience:
+  - period: "2021-05 – nå"
+    company: Nordic Industrial Supply AS
+    role: Salgssjef
+    highlights:
+      - Økte regional omsetning med 35 % ved å tilpasse salgsmål til reell produksjonskapasitet
+      - Bygget og ledet et team på 8 kundeansvarlige innen industri- og produksjonskunder
+      - Forhandlet langsiktige leveranseavtaler med over 20 nøkkelkunder, og økte kundelojaliteten til 96 %
+  - period: "2017-02 – 2021-04"
+    company: Fjordline Manufacturing AS
+    role: Produksjonsleder
+    highlights:
+      - Ansvarlig for daglig produksjonsplanlegging for en produksjonslinje med 40 ansatte
+      - Reduserte nedetid med 22 % gjennom prosessoptimalisering og forebyggende vedlikeholdsplanlegging
+      - Fungerte som nøkkelkontakt mellom produksjon og salg, og oversatte kapasitet til leveringsløfter
+  - period: "2013-08 – 2017-01"
+    company: Vestland Components AS
+    role: Produksjonsoperatør / teamleder
+    highlights:
+      - Forfremmet til teamleder etter to år på grunn av jevn kvalitet og produksjon over mål
+      - Lærte opp nye operatører i utstyrshåndtering og kvalitetskontrollrutiner
+      - Bidro til et kontinuerlig forbedringsinitiativ som reduserte materialsvinn med 15 %
+education:
+  - period: "2011-08 – 2013-06"
+    school: Norges Handelshøyskole (NHH), bachelor i bedriftsøkonomi
+    detail: "Fordypning: Salgs- og markedsledelse"
+  - period: "2008-08 – 2011-06"
+    school: Bergen tekniske fagskole, fagbrev i produksjonsteknikk
+    detail: "Spesialisering i produksjonsprosesser"
+courses:
+  - year: 2024
+    name: Strategisk nøkkelkundehåndtering – Miller Heiman Group
+  - year: 2022
+    name: Forhandlingsteknikk – Karrass
+  - year: 2020
+    name: Lean produksjonsledelse – Sopra Steria Academy
+  - year: 2018
+    name: Avanserte salgsteknikker – Mercuri International
+  - year: 2016
+    name: Kvalitetsledelse i produksjon – Bureau Veritas

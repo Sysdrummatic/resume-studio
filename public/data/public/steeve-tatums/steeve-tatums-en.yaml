@@ -1,0 +1,98 @@
+brand_initials: "ST"
+name: "Steeve Tatums"
+summary: 
+  - position: "Sales Manager"
+    description: >-
+      I am a results-driven Sales Manager with a background in production and manufacturing, giving me a rare
+      ability to speak both the language of customers and the language of the shop floor. Over the past ten years
+      I have built and led sales teams for industrial and technical products, closing deals that require deep 
+      process understanding. I turn production know-how into trust with clients and predictable revenue for
+      the business.
+    default: true
+contact:
+  - label: Location
+    value: "Bergen, Norway"
+  - label: Phone
+    value: +47 400 12 345
+    link: tel:+4740012345
+  - label: E-mail
+    value: steeve.tatums@example.com
+    link: mailto:steeve.tatums@example.com
+  - label: LinkedIn
+    value: linkedin.com/in/steevetatums
+    link: https://www.linkedin.com/in/steevetatums
+  - label: Portfolio
+    value: steevetatums.dev
+    link: https://steevetatums.dev
+qr_codes:
+  - label: Personal Site
+    image: images/qrs/qr.png
+    size: 130
+skills:
+  - name: Sales Team Leadership
+    level: 5
+  - name: Key Account Management
+    level: 4
+  - name: Production Planning
+    level: 4
+tech_stack:
+  - Salesforce
+  - HubSpot
+  - SAP
+  - Excel
+  - Power BI
+  - Lean Manufacturing
+  - ERP Systems
+  - Slack
+languages:
+  - name: Norwegian
+    level_text: Native
+    level: 5
+  - name: English
+    level_text: Professional
+    level: 4
+interests:
+  - Woodworking
+  - Sailing
+  - Motorsport
+  - Mentoring young sales talent
+experience:
+  - period: "2021-05 – now"
+    company: Nordic Industrial Supply AS
+    role: Sales Manager
+    highlights:
+      - Grew regional revenue by 35% by aligning sales targets with real production capacity
+      - Built and led a team of 8 account managers covering industrial and manufacturing clients
+      - Negotiated long-term supply contracts with 20+ key accounts, improving retention to 96%
+  - period: "2017-02 – 2021-04"
+    company: Fjordline Manufacturing AS
+    role: Production Supervisor
+    highlights:
+      - Managed daily production planning for a 40-person manufacturing line
+      - Reduced downtime by 22% through process optimization and preventive maintenance scheduling
+      - Acted as key liaison between production and sales, translating capacity into delivery commitments
+  - period: "2013-08 – 2017-01"
+    company: Vestland Components AS
+    role: Production Operator / Team Lead
+    highlights:
+      - Promoted to team lead after two years for consistent quality and output above target
+      - Trained new operators on equipment handling and quality control procedures
+      - Contributed to a continuous-improvement initiative that cut material waste by 15%
+education:
+  - period: "2011-08 – 2013-06"
+    school: Norwegian School of Economics (NHH), Bachelor of Business Administration
+    detail: "Focus: Sales and Marketing Management"
+  - period: "2008-08 – 2011-06"
+    school: Bergen Technical College, Vocational Diploma in Production Engineering
+    detail: "Specialization in Manufacturing Processes"
+courses:
+  - year: 2024
+    name: Strategic Key Account Management – Miller Heiman Group
+  - year: 2022
+    name: Negotiation Mastery – Karrass
+  - year: 2020
+    name: Lean Production Leadership – Sopra Steria Academy
+  - year: 2018
+    name: Advanced Sales Techniques – Mercuri International
+  - year: 2016
+    name: Quality Management in Manufacturing – Bureau Veritas
