@@ -281,7 +281,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
               </div>
               <form className="profile-modal__form" onSubmit={handleProfileSubmit}>
                 <label className="profile-modal__field">
-                  <span>Imie</span>
+                  <span>First name</span>
                   <input
                     value={profileFirstName}
                     onChange={(event) => setProfileFirstName(event.target.value)}
@@ -290,7 +290,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
                   />
                 </label>
                 <label className="profile-modal__field">
-                  <span>Nazwisko</span>
+                  <span>Last name</span>
                   <input
                     value={profileLastName}
                     onChange={(event) => setProfileLastName(event.target.value)}

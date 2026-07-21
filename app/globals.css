@@ -1143,6 +1143,94 @@ a {
   gap: 1rem;
 }
 
+.docs-shell {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.docs-shell:not(.docs-shell--compact) {
+  grid-template-columns: 15rem minmax(0, 1fr) auto;
+}
+
+.docs-shell__sidebar,
+.docs-shell__rail {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.docs-shell__rail {
+  width: 13rem;
+}
+
+.docs-shell__mobile-nav {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.docs-shell__nav {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.docs-shell__group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.docs-shell__group-title {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.docs-shell__nav-link {
+  position: relative;
+  width: fit-content;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 160ms ease-out;
+}
+
+.docs-shell__nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.15rem;
+  height: 1px;
+  background: rgba(94, 106, 210, 0.4);
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+.docs-shell__nav-link:hover,
+.docs-shell__nav-link--active {
+  color: var(--text);
+}
+
+.docs-shell__nav-link:hover::after,
+.docs-shell__nav-link:focus-visible::after,
+.docs-shell__nav-link--active::after {
+  opacity: 1;
+}
+
+.docs-shell__toc {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docs-shell__toc-item--nested {
+  padding-left: 0.85rem;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -2062,6 +2150,11 @@ a {
 
 .resume-human-editor__row--single {
   grid-template-columns: minmax(160px, 1fr) auto;
+}
+
+.resume-human-editor__row-label {
+  font-weight: 600;
+  align-self: center;
 }
 
 .resume-human-editor__card {

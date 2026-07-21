@@ -53,6 +53,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupPolicyAccepted, setSignupPolicyAccepted] = useState(false);
+  const [signupBetaOptIn, setSignupBetaOptIn] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [recoveryToken, setRecoveryToken] = useState("");
@@ -213,6 +214,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
       const payload = await postJson("/api/auth/signup", {
         email,
         password: signupPassword,
+        wantsBetaTestUser: signupBetaOptIn,
       });
 
       if (payload.error) {
@@ -224,6 +226,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
       setPendingVerificationEmail(email);
       setSigninEmail(email);
       setSignupPolicyAccepted(false);
+      setSignupBetaOptIn(false);
       setMode("signin");
     } catch {
       showToast("Unexpected sign-up error. Try again.", "error");
@@ -394,6 +397,14 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
                 minLength={10}
                 required
               />
+            </label>
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={signupBetaOptIn}
+                onChange={(event) => setSignupBetaOptIn(event.target.checked)}
+              />
+              <span>I&apos;m joining as a beta-tester</span>
             </label>
             <label className="checkbox-row">
               <input

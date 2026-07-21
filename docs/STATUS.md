@@ -103,6 +103,34 @@ Security risks in [security/security-and-risk-plan.md](security/security-and-ris
 
 ### Phase G fixes
 
+#### 2026-07-19 — Beta-tester opt-in at signup + role-gated docs site (ADR 0020)
+
+- **What:** Sign-up gained an optional "I'm joining as a beta-tester" checkbox
+  that sets `profiles.is_test_user` at profile INSERT time only
+  (`20260719000000_beta_tester_signup_optin.sql`; the `profiles_guard_update`
+  boundary fires on UPDATE only, so the INSERT path is unaffected and post-signup
+  changes stay admin-only). A new in-app docs site at `/docs` renders
+  git-committed Markdown from `content/docs/`: Tutorials for all authenticated
+  users, Test Scenarios only when `canViewTestScenarios(actor)` holds
+  (`is_test_user` + the `beta_test_scenarios_visible` feature flag, seeded by
+  `20260719010000_beta_test_scenarios_flag.sql`). Access is enforced server-side
+  on the route (`notFound()`), nav visibility is UX only.
+- **Contract:** ADR 0020 (extends ADR 0019, supersedes its "metrics metadata
+  only" non-goal for `is_test_user` docs visibility).
+- **Follow-up (same day):** admins now see all docs sections unconditionally —
+  `canViewTestScenarios()` short-circuits on `isAdminRole(actor.role)` before the
+  test-user/flag checks; managers keep the ADR 0020 rule (ADR 0021, extends
+  ADR 0020). The docs site also gained a Mintlify-inspired shell
+  (`app/components/docs-layout.tsx`): persistent grouped sidebar on every
+  `/docs*` page, category eyebrow above the doc title, and a right-rail
+  "On this page" H2/H3 outline (`renderMarkdownWithOutline()` emits matching
+  heading `id`s), collapsing below the shared 980px breakpoint exported from
+  `app-header-navigation.tsx`. `/docs` index is now a welcome panel, not
+  category cards.
+- **Tests:** `tests/beta-tester-signup-optin.test.mjs`,
+  `tests/beta-docs-feature-flag.test.mjs`, `tests/beta-docs-site.test.mjs`,
+  `tests/docs-layout.test.mjs`.
+
 #### 2026-07-15 — Published CV export endpoints ignored Saved Version selection (R09)
 
 - **Problem:** `fetchPublishedResumeExportByPublicLink` returned the stored

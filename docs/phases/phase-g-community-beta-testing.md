@@ -93,6 +93,8 @@ Supabase configuration review
 
 ### Private Beta User Recruitment
 
+- [x] Beta-tester opt-in at signup (`is_test_user` self-service, INSERT-time only — ADR 0020)
+- [x] Role-gated in-app docs site (`/docs`: Tutorials for all, Test Scenarios for beta testers behind `beta_test_scenarios_visible` — ADR 0020)
 - [ ] Recruit 5 tech writer community members for feedback
 - [ ] Onboard beta users (provide sign-up links, guide to editor)
 - [ ] Collect feedback on publish flow, public link sharing, PDF export

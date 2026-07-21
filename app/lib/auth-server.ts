@@ -33,6 +33,7 @@ async function readActorFromAccessToken(accessToken: string): Promise<SessionAct
     role: profileResult.data.role,
     bio: profileResult.data.bio,
     isActive: profileResult.data.is_active,
+    isTestUser: profileResult.data.is_test_user === true,
     accessToken,
   };
 }

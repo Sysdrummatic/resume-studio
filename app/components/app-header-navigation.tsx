@@ -23,7 +23,7 @@ type Props = {
 const MENU_AUTO_CLOSE_DELAY_MS = 1000;
 const HEADER_MENU_OPEN_EVENT = "app-header-menu-open";
 const NAVIGATION_MENU_NAME = "navigation";
-const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";
+export const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";
 
 function announceHeaderMenuOpen(menuName: string) {
   document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
