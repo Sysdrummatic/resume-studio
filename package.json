@@ -27,6 +27,9 @@
     "prettier": "^3.8.2",
     "typescript": "^6.0.2"
   },
+  "overrides": {
+    "sharp": "^0.35.3"
+  },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
     "geist": "^1.7.2",

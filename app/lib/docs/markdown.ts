@@ -1,4 +1,4 @@
-import { marked } from "marked";
+import { marked, type Tokens } from "marked";
 
 export type DocHeading = {
   depth: 2 | 3;
@@ -27,6 +27,43 @@ function slugifyHeading(text: string): string {
 // Marked instance if async rendering is ever introduced.
 let outline: DocHeading[] = [];
 let slugCounts = new Map<string, number>();
+
+const CALLOUT_TYPES = new Set(["info", "warning", "tip", "danger"]);
+
+type AdmonitionToken = Tokens.Generic & {
+  type: "admonition";
+  calloutType: string;
+  tokens: Tokens.Generic[];
+};
+
+// Docs-only callout syntax: ":::warning\nbody\n:::" renders as a styled box.
+// Not CommonMark — a small marked block extension, scoped to content/docs
+// authoring, not the resume/CV rendering path.
+marked.use({
+  extensions: [
+    {
+      name: "admonition",
+      level: "block",
+      start(src: string) {
+        return src.match(/^:::\w+/m)?.index;
+      },
+      tokenizer(src: string) {
+        const match = /^:::(\w+)[ \t]*\n([\s\S]*?)\n:::(?:\n+|$)/.exec(src);
+        if (!match) {
+          return undefined;
+        }
+        const calloutType = CALLOUT_TYPES.has(match[1]) ? match[1] : "info";
+        const token: AdmonitionToken = { type: "admonition", raw: match[0], calloutType, tokens: [] };
+        this.lexer.blockTokens(match[2].trim(), token.tokens);
+        return token;
+      },
+      renderer(generic: Tokens.Generic) {
+        const token = generic as AdmonitionToken;
+        return `<div class="docs-callout docs-callout--${token.calloutType}">${this.parser.parse(token.tokens)}</div>\n`;
+      },
+    },
+  ],
+});
 
 // Content is founder-authored and repo-committed, but raw HTML pass-through is
 // still disabled (defense in depth before dangerouslySetInnerHTML — same spirit

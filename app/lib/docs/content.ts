@@ -55,7 +55,7 @@ export function getDoc(category: DocCategory, slug: string): DocEntry | null {
     return null;
   }
 
-  const filePath = path.join(CONTENT_ROOT, category, `${slug}.md`);
+  const filePath = path.join(CONTENT_ROOT, category, slug, `${slug}.md`);
   let source: string;
   try {
     source = fs.readFileSync(filePath, "utf8");
@@ -76,6 +76,23 @@ export function getDoc(category: DocCategory, slug: string): DocEntry | null {
   };
 }
 
+export function getOverviewDoc(): { title: string; description: string; markdown: string } | null {
+  const filePath = path.join(CONTENT_ROOT, "docs-overview.md");
+  let source: string;
+  try {
+    source = fs.readFileSync(filePath, "utf8");
+  } catch {
+    return null;
+  }
+
+  const { fields, body } = parseFrontmatter(source);
+  return {
+    title: fields.title || "Docs",
+    description: fields.description || "",
+    markdown: body,
+  };
+}
+
 export function listDocNavGroups(includeTestScenarios: boolean): DocNavGroup[] {
   const categories: DocCategory[] = includeTestScenarios ? [...DOC_CATEGORIES] : ["tutorials"];
   return categories.map((category) => ({
@@ -89,16 +106,18 @@ export function listDocNavGroups(includeTestScenarios: boolean): DocNavGroup[] {
 }
 
 export function listDocs(category: DocCategory): DocEntry[] {
-  let fileNames: string[];
+  let slugs: string[];
   try {
-    fileNames = fs.readdirSync(path.join(CONTENT_ROOT, category));
+    slugs = fs
+      .readdirSync(path.join(CONTENT_ROOT, category), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
   } catch {
     return [];
   }
 
-  return fileNames
-    .filter((fileName) => fileName.endsWith(".md"))
-    .map((fileName) => getDoc(category, fileName.slice(0, -3)))
+  return slugs
+    .map((slug) => getDoc(category, slug))
     .filter((doc): doc is DocEntry => doc !== null)
     .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 }
