@@ -1153,6 +1153,14 @@ a {
   grid-template-columns: 15rem minmax(0, 1fr) auto;
 }
 
+@media (min-width: 600px) {
+  /* .app-main drops its top padding at this breakpoint (relies on each page's
+     own hero spacing); docs pages have none, so restore it here. */
+  .docs-shell {
+    padding-top: 1.5rem;
+  }
+}
+
 .docs-shell__sidebar,
 .docs-shell__rail {
   position: sticky;
@@ -1229,6 +1237,63 @@ a {
 
 .docs-shell__toc-item--nested {
   padding-left: 0.85rem;
+}
+
+.docs-shell__content a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.docs-shell__content a:hover,
+.docs-shell__content a:focus-visible {
+  color: var(--accent);
+}
+
+.docs-callout {
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+  border: 1px solid;
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+.docs-callout > :first-child {
+  margin-top: 0;
+}
+
+.docs-callout > :last-child {
+  margin-bottom: 0;
+}
+
+.docs-callout--info {
+  background: var(--portal-info-bg);
+  border-color: var(--portal-info-border);
+  color: var(--portal-info-text);
+}
+
+.docs-callout--warning {
+  background: var(--portal-warning-bg);
+  border-color: var(--portal-warning-border);
+  color: var(--portal-warning-text);
+}
+
+.docs-callout--tip {
+  background: var(--portal-success-bg);
+  border-color: var(--portal-success-border);
+  color: var(--portal-success-text);
+}
+
+.docs-callout--danger {
+  background: var(--portal-danger-bg);
+  border-color: var(--portal-danger-border);
+  color: var(--portal-danger-text);
+}
+
+.docs-shell__content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
 }
 
 .card-header {

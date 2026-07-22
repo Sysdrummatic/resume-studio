@@ -38,6 +38,11 @@ export default function DocsLayout({ groups, activeHref, toc = [], children }: P
 
   const sidebarNav = (
     <nav className="docs-shell__nav" aria-label="Docs">
+      {activeHref !== "/docs" ? (
+        <Link href="/docs" className="docs-shell__nav-link" onClick={() => setIsMenuOpen(false)}>
+          ← All docs
+        </Link>
+      ) : null}
       {groups.map((group) => (
         <div key={group.key} className="docs-shell__group">
           <span className="docs-shell__group-title">{group.title}</span>
