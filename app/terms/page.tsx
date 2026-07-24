@@ -14,7 +14,7 @@ export default function TermsOfServicePage() {
     <main className="container py-8">
       <article className="card stack" style={{ maxWidth: "65ch", marginInline: "auto" }}>
         <Typography variant="h1">Terms of Service</Typography>
-        <Typography variant="body" muted>Last updated: 2026-06-14</Typography>
+        <Typography variant="body" muted>Last updated: 2026-07-24</Typography>
 
         <Typography variant="h2">1. About These Terms</Typography>
         <Typography variant="body">
@@ -140,7 +140,7 @@ export default function TermsOfServicePage() {
 
         <Typography variant="h2">13. Contact</Typography>
         <Typography variant="body">
-          Questions about these Terms can be sent to opencvproject@proton.me.
+          Questions about these Terms can be sent to support@opencivera.com.
         </Typography>
       </article>
     </main>

@@ -46,7 +46,7 @@ the account exists. There is no automatic expiry or inactivity-based purge.
 
 1. **Request received.** A verified request (access, rectification, erasure, restriction,
    or portability) arrives via the contact channel published in the Privacy Policy
-   (`opencvproject@proton.me`).
+   (`privacy@opencivera.com`).
 2. **30-day grace period.** From the point the request is confirmed, a 30-day grace
    period applies before execution — matching the Privacy Policy's "Data Retention"
    section (Section 5).
