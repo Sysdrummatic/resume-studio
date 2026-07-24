@@ -1,7 +1,7 @@
 # Runbook: Data subject request (access / rectification / erasure / portability)
 
 Use this runbook when a privacy-related request arrives via the contact channel
-published in the Privacy Policy (`opencvproject@proton.me`). See
+published in the Privacy Policy (`privacy@opencivera.com`). See
 [ADR 0016](../../docs/adr/0016-account-data-retention-and-deletion.md) for the
 underlying retention/deletion model and Known Gaps.
 

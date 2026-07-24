@@ -14,12 +14,12 @@ export default function PrivacyPolicyPage() {
     <main className="container py-8">
       <article className="card stack" style={{ maxWidth: "65ch", marginInline: "auto" }}>
         <Typography variant="h1">Privacy Policy</Typography>
-        <Typography variant="body" muted>Last updated: 2026-07-09</Typography>
+        <Typography variant="body" muted>Last updated: 2026-07-24</Typography>
 
         <Typography variant="h2">1. Who We Are</Typography>
         <Typography variant="body">
           OpenCiVera (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) is operated by Łukasz Michta. For any
-          questions about this policy or your personal data, contact us at opencvproject@proton.me.
+          questions about this policy or your personal data, contact us at privacy@opencivera.com.
         </Typography>
 
         <Typography variant="h2">2. What Data We Collect</Typography>
@@ -50,6 +50,13 @@ export default function PrivacyPolicyPage() {
               Usage data: aggregated view counts for your published CV links, and
               administrative audit logs used for security purposes (account actions with
               timestamps).
+            </Typography>
+          </li>
+          <li>
+            <Typography as="span" variant="body">
+              Security scanning: saved CV content is automatically scanned for signs of
+              malicious script injection; if flagged, a hash of the matching fragment (not
+              the raw content) plus a rule identifier is logged for staff review.
             </Typography>
           </li>
         </ul>
@@ -167,7 +174,7 @@ export default function PrivacyPolicyPage() {
           </li>
         </ul>
         <Typography variant="body">
-          To exercise any of these rights, contact us at opencvproject@proton.me. We will
+          To exercise any of these rights, contact us at privacy@opencivera.com. We will
           respond within one month, as required by law.
         </Typography>
 
@@ -200,7 +207,7 @@ export default function PrivacyPolicyPage() {
 
         <Typography variant="h2">11. Contact</Typography>
         <Typography variant="body">
-          For privacy-related questions or requests, contact: opencvproject@proton.me
+          For privacy-related questions or requests, contact: privacy@opencivera.com
         </Typography>
       </article>
     </main>
