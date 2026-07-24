@@ -24,12 +24,13 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.10",
+    "eslint-config-next": "^16.2.11",
     "prettier": "^3.8.2",
     "typescript": "^6.0.2"
   },
   "overrides": {
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "postcss": "^8.5.23"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
@@ -37,7 +38,7 @@
     "js-yaml": "^4.3.0",
     "lucide-react": "^1.16.0",
     "marked": "^18.0.6",
-    "next": "^16.2.10",
+    "next": "^16.2.11",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   }
