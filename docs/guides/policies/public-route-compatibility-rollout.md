@@ -1,5 +1,11 @@
 # Public Route Compatibility Rollout
 
+**Status: Superseded — the `/r/[slug]` compatibility route was removed pre-launch**
+(commit `e675940`, 2026-06-29; see [ADR 0004](../../adr/0004-public-route-compatibility-policy.md)'s
+Supersession Note). No redirect or compatibility rendering exists today;
+`/{person-slug}/{public-id}` is the only public route. The rest of this guide
+describes the pre-removal design and is retained for historical context only.
+
 This guide operationalizes [ADR 0004](../../adr/0004-public-route-compatibility-policy.md) for `/r/[slug]` compatibility and deprecation.
 
 ## Canonical Rule

@@ -33,7 +33,7 @@ Use this checklist for preview and production validation.
    - publish creates a revision,
    - rollback restores selected revision.
 6. Public-link management:
-   - published CV Versions show canonical `/{person-slug}/{public-id}` before compatibility `/r/[slug]`,
+   - published CV Versions show the canonical `/{person-slug}/{public-id}` link,
    - private CV Versions do not expose copyable public URLs,
    - copy/open actions target the canonical public URL,
    - editor Public Link panel can publish a Saved Version with selected languages, default locale, and indexing,
@@ -44,12 +44,5 @@ Use this checklist for preview and production validation.
 ## Post-deploy
 
 - [ ] Validate Netlify deploy serves latest build.
-- [ ] Confirm legacy redirects (`*.html`) still resolve.
-- [ ] Run smoke checks for `/login`, `/dashboard`, `/admin`, `/master-resume`, `/{person-slug}/{public-id}`, `/r/{slug}`.
+- [ ] Run smoke checks for `/login`, `/dashboard`, `/admin`, `/master-resume`, `/{person-slug}/{public-id}`.
 - [ ] Capture screenshots/PDF evidence for release notes if needed.
-
-## Future React rollout QA
-
-- [ ] Route parity checks between static and migrated pages.
-- [ ] Hydration/runtime console error checks in preview.
-- [ ] Component-level regression checks for migrated flows.

@@ -86,7 +86,7 @@ test("preset row shows Open CV first, Copy link when published, and a settings m
   assert.equal(styles.includes(".dashboard-preset-menu__panel"), true);
 });
 
-test("dashboard exposes canonical and compatibility link management; editor shows only Publish and Revision", () => {
+test("dashboard exposes canonical link management only; editor shows only Publish and Revision", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const server = read("app/lib/resume-server.ts");
@@ -105,7 +105,6 @@ test("dashboard exposes canonical and compatibility link management; editor show
   assert.equal(editor.includes("Copy public URL"), false);
   assert.equal(editor.includes("resume_public_links"), false);
   assert.equal(server.includes("canonical_public_path"), true);
-  assert.equal(server.includes("compatibility_public_path"), true);
 });
 
 test("snapshot exports use canonical public paths only for dashboard and editor flows", () => {
