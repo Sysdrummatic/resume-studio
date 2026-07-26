@@ -66,7 +66,6 @@ closes, but has no other hard dependency.
 - [ ] Protected route smoke checks
 - [ ] Admin panel and audit smoke checks
 - [ ] Editor publish / rollback smoke checks
-- [ ] Legacy redirect verification (`*.html` routes)
 
 **Pending — Release:**
 - [ ] E2E regression suite for critical paths

@@ -117,7 +117,6 @@ export type ResumePresetRow = {
   created_at: string;
   updated_at: string;
   canonical_public_path?: string | null;
-  compatibility_public_path?: string | null;
 };
 
 export type ResumePresetVariantRow = {
@@ -216,7 +215,6 @@ export type PublishedResumePublicRoute = {
   allowIndexing: boolean;
   defaultLocale: ResumeLocale;
   availableLocales: ResumeLocale[];
-  legacySlug: string | null;
 };
 
 export type PublishedResumeExport = {
@@ -981,12 +979,10 @@ export async function fetchResumePresetsForUser(userId: string): Promise<ResumeP
     const link = linkByPresetId.get(preset.id);
     const canonicalPublicPath =
       link?.person_slug && link?.public_id ? `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}` : null;
-    const compatibilityPublicPath = link?.legacy_slug || preset.slug ? `/r/${encodeURIComponent(link?.legacy_slug || preset.slug || "")}` : null;
     return {
       ...preset,
       selection: normalizeResumePresetSelection(preset.selection),
       canonical_public_path: canonicalPublicPath,
-      compatibility_public_path: compatibilityPublicPath,
     };
   });
 }
@@ -1318,7 +1314,6 @@ export async function fetchPublishedResumePresetByPublicLink(
     allowIndexing: Boolean(link.allow_indexing),
     defaultLocale: published.preset.default_locale,
     availableLocales: published.languages.map((language) => language.code),
-    legacySlug: link.legacy_slug || link.slug || null,
   };
 }
 
@@ -1615,10 +1610,6 @@ async function fetchResumePresetById(accessToken: string, userId: string, preset
     canonical_public_path:
       link?.person_slug && link?.public_id
         ? `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`
-        : null,
-    compatibility_public_path:
-      link?.legacy_slug || preset.slug
-        ? `/r/${encodeURIComponent(link?.legacy_slug || preset.slug || "")}`
         : null,
   };
 }
