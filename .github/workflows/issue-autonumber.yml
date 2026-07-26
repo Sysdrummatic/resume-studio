@@ -1,0 +1,23 @@
+name: Issue Auto-Number
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  prefix-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prefix issue title with its number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUM: ${{ github.event.issue.number }}
+          CURRENT_TITLE: ${{ github.event.issue.title }}
+        run: |
+          if [[ "$CURRENT_TITLE" != "[#$ISSUE_NUM]"* ]]; then
+            gh issue edit "$ISSUE_NUM" --title "[#$ISSUE_NUM] $CURRENT_TITLE"
+          fi
