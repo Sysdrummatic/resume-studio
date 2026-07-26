@@ -43,6 +43,9 @@ images/qrs/portal.png
 .claude/
 CLAUDE.md
 
+# Codex CLI configuration
+.codex/
+
 .impeccable/
 
 public/data/private/
