@@ -591,20 +591,6 @@ export async function upsertResumeUserLocale(
   return nextLocales.find((locale) => locale.code === normalized.code) || null;
 }
 
-export async function disableResumeLanguage(codeInput: string): Promise<boolean> {
-  const code = normalizeLocale(codeInput);
-  const updated = await updateTable({
-    table: "resume_languages",
-    useServiceRole: true,
-    query: `code=eq.${encodeURIComponent(code)}`,
-    values: {
-      is_enabled: false,
-      updated_at: new Date().toISOString(),
-    },
-  });
-  return Boolean(updated.data && !updated.error && updated.data.length > 0);
-}
-
 export async function deleteResumeUserLocale(
   accessToken: string,
   userId: string,
