@@ -1,8 +1,5 @@
 import path from "path";
-import type { ReactElement } from "react";
-import { Font, renderToBuffer } from "@react-pdf/renderer";
-import type { DocumentProps } from "@react-pdf/renderer";
-import type { PdfEngine } from "./engine";
+import { Font } from "@react-pdf/renderer";
 
 const FONT_SOURCE = path.join(process.cwd(), "public/fonts/SpaceGrotesk-VariableFont_wght.ttf");
 
@@ -23,10 +20,3 @@ export function registerPdfFonts(): void {
 }
 
 registerPdfFonts();
-
-export const reactPdfEngine: PdfEngine = {
-  async render(document) {
-    registerPdfFonts();
-    return renderToBuffer(document as ReactElement<DocumentProps>);
-  },
-};

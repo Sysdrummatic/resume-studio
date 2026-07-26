@@ -603,13 +603,6 @@ test("PdfTheme interface defines required color, typography, spacing, and layout
   assert.equal(theme.includes("mainColumnFlex"), true);
 });
 
-test("PdfEngine interface provides render method abstraction", () => {
-  const engine = read("app/lib/pdf/engine.ts");
-  assert.equal(engine.includes("PdfEngine"), true);
-  assert.equal(engine.includes("render"), true);
-  assert.equal(engine.includes("PdfRenderOptions"), true);
-});
-
 test("react-pdf engine registers Space Grotesk for normal and bold weights", () => {
   const engine = read("app/lib/pdf/engine-react-pdf.ts");
   assert.equal(engine.includes("Font.register"), true);

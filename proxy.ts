@@ -57,9 +57,7 @@ function decodeJwtPayload(token: string): { exp?: number } | null {
     return null;
   }
   try {
-    const base64 = segments[1].replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-    return JSON.parse(atob(padded)) as { exp?: number };
+    return JSON.parse(Buffer.from(segments[1], "base64url").toString("utf8")) as { exp?: number };
   } catch {
     return null;
   }
