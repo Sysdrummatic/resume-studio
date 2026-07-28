@@ -3,11 +3,47 @@
 **Date:** 2026-07-28
 **Scope:** `@media print` behaviour of `/{personSlug}/{publicId}` (the public CV route)
 **Method:** `scripts/dev/print-css-audit.mjs` — Playwright Chromium, `emulateMedia({ media: 'print' })`, real `page.pdf({ format: 'A4', printBackground: true })`
-**Status:** Diagnostic only. **No CSS or component code was changed.** Fixes are a separate follow-up task.
+**Status:** **Resolved 2026-07-28.** All findings below are fixed and re-verified;
+each carries a **Resolved** note. The original diagnosis is kept intact for the
+record — nothing in §1–§2 was rewritten to match the fix.
+Contract coverage: `tests/print-css-contract.test.mjs` (9 assertions).
 
 > This audit covers the browser print path (`window.print()` / Ctrl+P), which is
 > entirely separate from the `@react-pdf/renderer` export pipeline in
 > `app/lib/pdf/` (ADR 0014). Nothing here affects `/api/resume/export/pdf`.
+
+---
+
+## 0. Resolution summary
+
+Both `@media print` blocks and the dead top-level `@page` were consolidated into
+a single canonical block in `app/resume/resume.css`. Every conflict was settled
+deliberately in favour of the value that was already winning, so no intentional
+visual change was smuggled in alongside the fixes.
+
+| Finding | Severity | Status |
+|---|---|---|
+| Page 1 almost entirely blank | P1 | **Resolved** |
+| Black frame on every page | P1 | **Resolved** |
+| Portal gradients bleed into print | P2 | **Resolved** |
+| Section headers orphaned | P2 | **Resolved** |
+| Timeline entries split mid-entry | P2 | **Resolved** |
+| Card borders vs. block A intent | P3 | **Resolved** (kept the winning value) |
+| `@page` margin — dead 16mm/12mm rule | P3 | **Resolved** (dead rule deleted, 1cm kept) |
+| `.timeline::before` dead background | — | **Resolved** (deleted) |
+| `.contact-list` dead `grid-template-columns` | — | **Resolved** (deleted) |
+| `.language-switcher` misnamed selector | — | **Resolved** (deleted) |
+
+Both fixtures now print in **3 pages instead of 4**, and the rendered PDF dropped
+from **5.2 MB to 0.2 MB** once the fixed-position gradient layers stopped painting.
+
+### Evidence — after the fix
+
+| | |
+|---|---|
+| ![Page 1 with content restored](assets/print-css-audit/after-page-1-content-restored.png) | **Page 1, content restored.** Previously the hero alone on ~90% whitespace. |
+| ![No black frame, no gradient](assets/print-css-audit/after-no-black-frame-no-gradient.png) | **No black frame, no gradient bleed.** This page previously carried both. |
+| ![No orphaned headers](assets/print-css-audit/after-no-orphaned-headers.png) | **No orphaned headers.** "Skills" and "Languages" previously stranded at a page bottom. |
 
 ---
 
@@ -60,6 +96,14 @@ Two rules are provably inert on this route:
    real class is `resume-language-switcher`, which block B hides at L1682. Harmless
    duplication, but it means block A's hide list is not self-sufficient.
 
+> **Resolved.** All three deleted. The consolidated block keeps one hide list
+> containing the correct `.resume-language-switcher`, keeps
+> `.timeline::before { display: none }` without the inert background, and drops
+> the `.contact-list` grid rule entirely. Personal Info still renders as
+> multi-column rows in print — that was always the actual behaviour, since the
+> rule never applied; making it single-column would be a new design change, not
+> a fix, so it was not attempted.
+
 ---
 
 ## 2. Findings, ordered by severity
@@ -104,6 +148,14 @@ is the one element with **no** `break-inside` protection.
 `app/resume/resume.css:1`). Neither print block resets `min-height`, so the
 document floor is a full viewport height regardless of content.
 
+> **Resolved.** The blanket `break-after: avoid-page` rule was deleted.
+> `break-inside: avoid` is now applied only where mid-element splitting is the
+> real concern — `.card`, `.timeline-item`, and list entries. `.section`
+> deliberately gets **no** break-inside rule: a whole-section rule pushes any
+> section taller than the remaining space onto the next page, which by itself
+> still left case B's page 1 ~60% empty. Page 1 now fills with content and both
+> fixtures print in 3 pages instead of 4.
+
 ---
 
 ### P1 — Every printed page has a black border
@@ -122,6 +174,13 @@ set. Both print blocks reset `body { background: #ffffff }`
 colorway." That claim is **not currently true** — the colour tokens are forced
 light, but the colour *scheme* is not.
 
+> **Resolved.** `color-scheme: light !important` added to `:root` in the print
+> block. The `!important` is load-bearing and was found by re-verification, not
+> guessed: `app/globals.css:15` declares the dark scheme on `:root` at equal
+> specificity and is bundled *after* `resume.css`, so the first attempt without
+> `!important` measured `colorScheme: "dark"` and the black frame survived.
+> `DESIGN.md` updated — the claim now holds and is marked verified.
+
 ---
 
 ### P2 — Decorative portal gradients bleed into the CV print output
@@ -137,6 +196,12 @@ it. Measured: `body::before display=block`, `position=fixed`.
 This is a portal decoration painting over the CV domain, which contradicts the
 separation asserted in ADR 0011/0012 and `DESIGN.md:152`.
 
+> **Resolved.** `body::before, body::after { display: none !important }` in the
+> print block. `body::after` (the grid overlay from the same decorative layer)
+> was hidden alongside the ambient gradients — it is the same class of leak and
+> the audit had simply not caught it. This is also what cut the rendered PDF
+> from 5.2 MB to 0.2 MB.
+
 ---
 
 ### P2 — Section headers orphan at page boundaries
@@ -148,6 +213,11 @@ page 4 (case A). "Skills" does the same on page 3 of case B.
 `break-after: auto`, `break-inside: auto`. No rule in either print block targets
 `.section-title` for pagination; the only `.section-title` print rule is
 `margin-bottom: 10px` (`app/resume/resume.css:1607–1609`).
+
+> **Resolved.** `.section-title` gains `break-after: avoid` (plus the legacy
+> `page-break-after` alias) and `break-inside: avoid`. This is the one place
+> `break-after: avoid` is correct — binding a header to the content that
+> follows it, rather than gluing every element to its neighbour.
 
 ---
 
@@ -161,6 +231,11 @@ period label sits at the bottom of page 2, its institution card on page 3.
 `.section` and `.card` — `.timeline-item` is absent from it, and appears instead
 in the `break-after` list at L1660. Same root cause as P1.
 
+> **Resolved.** `.timeline-item` now carries `break-inside: avoid` /
+> `page-break-inside: avoid` and no longer carries `break-after: avoid`.
+> Employer and education entries stay whole; where a section spans a page
+> boundary the break now falls cleanly between entries.
+
 ---
 
 ### P3 — Card borders reintroduced against block A's intent
@@ -173,6 +248,11 @@ block B then adds `border: 1px solid #eeeeee !important` (L1715–1720). Whether
 this is wanted is a design call — flagging it as an unresolved disagreement
 between the two blocks, not as objectively wrong.
 
+> **Resolved as a deliberate decision, not a visual change.** The border was
+> already winning and the audit did not call it wrong, so it is kept and now
+> stated once explicitly instead of emerging from source order. If the flat,
+> borderless treatment is preferred, that is a design change to make on purpose.
+
 ---
 
 ### P3 — `@page` margin is effectively 1cm, not the documented 16mm/12mm
@@ -183,6 +263,10 @@ at L1517–1519 never takes effect in print.
 **Believed cause:** `@page { margin: 1cm }` inside block B (L1671–1674) overrides
 it. 1cm is on the tight side for a CV — but this is a judgement call, and the
 dead 16mm/12mm rule is the real defect.
+
+> **Resolved.** The dead top-level `@page` rule is deleted; exactly one `@page`
+> remains, inside the print block, keeping the `1cm` margin that was already in
+> effect. Widening it is a deliberate design change, left for whoever wants it.
 
 ---
 
@@ -212,6 +296,19 @@ Verified by measurement, not assumption:
 - **No console errors** during any render.
 - **Locale parity** — `?lang=no` produced identical pagination and styling to
   `?lang=en`, so none of these issues are locale-specific.
+
+### Re-verified after the fix (2026-07-28)
+
+Every item above was re-measured against the consolidated block and **all still
+hold** — nothing that worked was traded away for the pagination fixes:
+
+- Chrome suppression: all six probed selectors still measure `display: none`.
+- `.layout` still computes to `display: block` — single-column collapse intact.
+- Heading font still resolves to `"Space Grotesk", Inter, system-ui, …`.
+- Teal accents, section dots, and `.timeline-item__content` card fills unchanged.
+- Timeline axis and period dots still suppressed by design.
+- Zero console errors; `?lang=no` still paginates identically to `?lang=en`
+  (3 pages each).
 
 ---
 
@@ -285,17 +382,34 @@ anything under `app/`, so it cannot reach a deployed function bundle.
 
 ---
 
-## 6. Suggested fix order (not performed)
+## 6. Fix order (performed 2026-07-28)
 
-1. Replace `break-after: avoid-page` with `break-inside: avoid` at
-   `app/resume/resume.css:1660–1667`, and add `.timeline-item` to the
-   `break-inside` list — addresses P1 pagination and P2 mid-entry splits together.
-2. Reset `color-scheme: light` on `:root` inside a print block — addresses the black frame.
-3. Hide `body::before` in print — addresses the gradient bleed.
-4. Add `break-after: avoid` to `.section-title` **only** — the correct use of that
-   property: keep a header with the content that follows it.
-5. Reset `min-height` on `.resume-view-page` / `.resume` in print.
-6. Decide whether the two print blocks should be merged, and settle the card-border
-   and `@page` margin disagreements deliberately rather than by source order.
+All items below are done except where noted. The line references in §1–§2 point
+at the **pre-fix** file and no longer resolve — the print CSS is now a single
+block near the end of `app/resume/resume.css`.
 
-Each should be re-verified by re-running the script and comparing page counts.
+1. ✅ Replaced the blanket `break-after: avoid-page` with targeted
+   `break-inside: avoid` on `.card`, `.timeline-item`, and list entries.
+2. ✅ Reset `color-scheme: light` on `:root` — needed `!important`, see the P1 note.
+3. ✅ Hid `body::before` (and `body::after`) in print.
+4. ✅ Added `break-after: avoid` to `.section-title` only.
+5. ⬜ **Not done — turned out to be unnecessary.** The `min-height: 1024px` on
+   `.resume-view-page` / `.resume` was listed as a contributing factor, but with
+   the break rules corrected, page 1 fills normally and both fixtures dropped to
+   3 pages without touching it. Resetting it would have been a change with no
+   observable effect, so it was left alone. Worth revisiting only if a genuinely
+   short CV ever renders with unexplained trailing space.
+6. ✅ Merged the two print blocks; card-border and `@page` margin settled
+   explicitly in favour of the values that were already winning.
+
+### Guardrails
+
+`tests/print-css-contract.test.mjs` pins the structural invariants: one print
+block, one `@page`, correct `.timeline-item` break properties, `.section-title`
+orphan protection, the `color-scheme` reset, the hidden ambient layer, and the
+absence of each dead selector. It is string-matching over the CSS source, so it
+catches regressions cheaply but proves nothing about rendering — **re-run
+`scripts/dev/print-css-audit.mjs` and look at the pages** after any print CSS
+change. Note that the assertions match literal declaration text, so a CSS
+*comment* quoting a forbidden declaration will trip them; this happened twice
+during the fix and is intended strictness, not a bug.

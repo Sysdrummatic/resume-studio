@@ -148,8 +148,9 @@ Card:       #ffffff
 Border:     #e3e6e8
 ```
 
-**Print override**: forces `background: #ffffff`, `color: #000000`.  
-Never inherits portal theme. Isolated in `app/resume/resume.css`.
+**Print override**: forces `background: #ffffff`, `color: #000000`, and
+`color-scheme: light`. Never inherits portal theme. Isolated in the single
+`@media print` block in `app/resume/resume.css`.
 
 ### CV — Dark (optional colorway)
 
@@ -157,6 +158,10 @@ Same layout and typography as CV Light.
 Uses portal palette as surface colors.  
 Gated by a class or data attribute on the resume container, not the portal theme switch.  
 `@media print` forces light variant regardless of active colorway.  
+Verified 2026-07-28: this now holds. It previously did not — the colour tokens
+were forced light but `color-scheme` stayed dark, so Chromium framed every
+printed sheet in black. Enforced by `color-scheme: light !important` on `:root`
+in the print block; see [print CSS audit findings](docs/guides/print-css-audit-findings.md).  
 Additive — does not modify existing CV light styles.
 
 ---

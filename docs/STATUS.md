@@ -103,6 +103,35 @@ Security risks in [security/security-and-risk-plan.md](security/security-and-ris
 
 ### Phase G fixes
 
+#### 2026-07-28 — Print CSS fixes for the public CV route (audit follow-up)
+
+- **What:** Consolidated the two conflicting `@media print` blocks in
+  `app/resume/resume.css` into one canonical block and fixed every defect from
+  the audit below. Conflicts were settled in favour of the value already winning,
+  so no unintended visual change rode along.
+- **Fixes:** blanket `break-after: avoid-page` replaced with targeted
+  `break-inside: avoid` on cards, timeline entries, and list items (page 1 no
+  longer near-blank; `.section` deliberately gets none, so tall sections flow
+  instead of jumping a page); `.section-title` orphan protection;
+  `color-scheme: light !important` on `:root` (the `!important` is required —
+  `app/globals.css:15` declares the dark scheme at equal specificity and bundles
+  later); `body::before`/`::after` portal decoration hidden; dead top-level
+  `@page`, `.language-switcher`, `.contact-list` grid rule, and
+  `.timeline::before` background deleted.
+- **Result:** both fixtures print in 3 pages instead of 4; rendered PDF 5.2 MB →
+  0.2 MB. Everything the audit confirmed working (chrome suppression, Space
+  Grotesk, accent colours, single-column collapse, axis suppression) re-verified
+  intact.
+- **Coverage:** `tests/print-css-contract.test.mjs` (9 assertions). Structural
+  only — re-run `scripts/dev/print-css-audit.mjs` and inspect pages after any
+  print CSS change.
+- **Docs:** [guides/print-css-audit-findings.md](guides/print-css-audit-findings.md)
+  (each finding marked Resolved, with after-fix screenshots); `DESIGN.md` print
+  override claim corrected and marked verified.
+- **Not done:** the `min-height: 1024px` reset listed as a contributing factor
+  proved unnecessary once the break rules were correct; left untouched rather
+  than adding a no-op rule.
+
 #### 2026-07-28 — Print CSS audit of the public CV route (diagnostic only)
 
 - **What:** Audited the browser print path (`window.print()` via
