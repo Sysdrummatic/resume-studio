@@ -1617,6 +1617,13 @@ img {
     border: 1px solid #eeeeee !important;
     border-radius: 0;
     box-shadow: none !important;
+  }
+
+  /* Cards stay whole; sections deliberately do not. A whole-section
+     break-inside: avoid pushes any section taller than the remaining space
+     onto the next page, leaving large gaps. Its entries and title are
+     protected individually instead. */
+  .card {
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -1625,8 +1632,14 @@ img {
     margin-top: 26px;
   }
 
+  /* Orphan protection: a section header must never be the last thing on a page.
+     This is the one place break-after: avoid is correct — it binds the header
+     to the content that follows it. */
   .section-title {
     margin-bottom: 10px;
+    break-after: avoid;
+    page-break-after: avoid;
+    break-inside: avoid;
   }
 
   .summary-text {
@@ -1645,6 +1658,8 @@ img {
   .timeline-item {
     grid-template-columns: minmax(80px, 120px) 1fr;
     gap: 10px;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .timeline-item__period {
@@ -1678,12 +1693,13 @@ img {
     print-color-adjust: exact;
   }
 
-  .timeline-item,
+  /* Keep individual list entries whole. Deliberately break-inside only: the
+     removed blanket avoid-page rule applied to every section, card, and list
+     item asked the fragmenter to keep the whole document on one page, which
+     Chromium resolved by pushing all content off page 1. */
   .course-list li,
-  .item-list li,
-  .section,
-  .card {
-    break-after: avoid-page;
-    page-break-after: avoid;
+  .item-list li {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
