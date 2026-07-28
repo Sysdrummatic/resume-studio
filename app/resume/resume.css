@@ -1527,6 +1527,13 @@ img {
   }
 
   :root {
+    /* Without this the dark scheme survives into print and Chromium paints the
+       page canvas — everything outside the body box — dark, framing every sheet
+       in black. Forcing the colour tokens light is not enough.
+       !important is required because globals.css declares the dark scheme on
+       :root at equal specificity and is bundled after this file, so it would
+       otherwise win. Verified with scripts/dev/print-css-audit.mjs. */
+    color-scheme: light !important;
     --bg: #ffffff;
     --card-bg: #ffffff;
     --border: #c9cdcf;
@@ -1539,6 +1546,13 @@ img {
     color: #000000 !important;
     font-size: 10.5pt;
     line-height: 1.5;
+  }
+
+  /* Portal decoration layers (--portal-body-ambient gradients and the grid
+     overlay) are fixed-position and bleed onto printed pages. */
+  body::before,
+  body::after {
+    display: none !important;
   }
 
   a {
