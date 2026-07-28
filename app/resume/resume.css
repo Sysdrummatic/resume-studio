@@ -1514,12 +1514,18 @@ img {
   padding: 6px 14px;
 }
 
-@page {
-  margin: 16mm 12mm;
-}
-
-/* Print layout adjustments */
+/* Print layout adjustments.
+   Single canonical print block — the previous split into two blocks meant the
+   later one silently won every conflict. Values kept here are the ones that
+   were already winning, so the printed output is unchanged except where the
+   print CSS audit identified a defect.
+   See docs/guides/print-css-audit-findings.md. */
 @media print {
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+
   :root {
     --bg: #ffffff;
     --card-bg: #ffffff;
@@ -1529,8 +1535,8 @@ img {
   }
 
   body {
-    background: #ffffff;
-    color: #000000;
+    background: #ffffff !important;
+    color: #000000 !important;
     font-size: 10.5pt;
     line-height: 1.5;
   }
@@ -1540,24 +1546,7 @@ img {
     text-decoration: none;
   }
 
-  .resume {
-    max-width: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .hero {
-    position: static;
-    padding: 0 0 14px;
-    margin-bottom: 18px;
-    gap: 10px;
-  }
-
-  .hero::before,
-  .hero--scrolled::before {
-    display: none;
-  }
-
+  .app-header,
   .hero__actions,
   .hero__export-group,
   .hero__export-tooltip-anchor,
@@ -1567,7 +1556,7 @@ img {
   .hero__logout-button,
   .resume-badges,
   .public-view-badge,
-  .language-switcher,
+  .resume-language-switcher,
   .download-section,
   .admin-access,
   .admin-config,
@@ -1575,6 +1564,37 @@ img {
   .error-banner,
   .qr-list {
     display: none !important;
+  }
+
+  .resume-view-page {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .resume {
+    width: 100% !important;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .hero {
+    position: static !important;
+    margin-inline: 0 !important;
+    padding: 0 0 14px;
+    padding-inline: 0 !important;
+    margin-bottom: 1.5cm !important;
+    background: #ffffff !important;
+    gap: 10px;
+  }
+
+  .hero::before,
+  .hero--scrolled::before {
+    display: none;
   }
 
   .layout {
@@ -1594,8 +1614,9 @@ img {
   .card {
     background: transparent;
     padding: 0;
+    border: 1px solid #eeeeee !important;
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: none !important;
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -1606,6 +1627,10 @@ img {
 
   .section-title {
     margin-bottom: 10px;
+  }
+
+  .summary-text {
+    text-align: left !important;
   }
 
   .timeline {
@@ -1628,10 +1653,6 @@ img {
 
   .timeline-item__period::before {
     content: none;
-  }
-
-  .contact-list {
-    grid-template-columns: 1fr;
   }
 
   .pill-list li,
@@ -1664,66 +1685,5 @@ img {
   .card {
     break-after: avoid-page;
     page-break-after: avoid;
-  }
-}
-
-@media print {
-  @page {
-    margin: 1cm;
-    size: auto;
-  }
-
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .app-header,
-  .resume-language-switcher,
-  .hero__actions,
-  .hero__export-group,
-  .hero__export-tooltip-anchor,
-  .hero__export-tooltip,
-  .hero__export-button,
-  .hero__login-button {
-    display: none !important;
-  }
-
-  .resume-view-page {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-  }
-
-  .resume {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    box-shadow: none !important;
-  }
-
-  .hero {
-    position: static !important;
-    margin-inline: 0 !important;
-    padding-inline: 0 !important;
-    margin-bottom: 1.5cm !important;
-    background: #ffffff !important;
-  }
-
-  .section,
-  .card {
-    box-shadow: none !important;
-    border: 1px solid #eeeeee !important;
-    break-inside: avoid;
-  }
-
-  .summary-text {
-    text-align: left !important;
-  }
-
-  .timeline::before {
-    background: #eeeeee !important;
   }
 }
