@@ -87,6 +87,7 @@ closes, but has no other hard dependency.
 | Testing & QA checklists | [`docs/guides/testing/`](guides/testing/) |
 | Policy documents | [`docs/guides/policies/`](guides/policies/) |
 | Future features | [`docs/guides/features/`](guides/features/) |
+| Print CSS audit findings | [`docs/guides/print-css-audit-findings.md`](guides/print-css-audit-findings.md) |
 | Phase K plan | [`docs/phases/phase-k-ats-intelligence-plan.md`](phases/phase-k-ats-intelligence-plan.md) |
 | Phase L plan | [`docs/phases/phase-l-semantic-url-plan.md`](phases/phase-l-semantic-url-plan.md) |
 | Phase M security plan | [`docs/phases/phase-m-security-privacy-trust.md`](phases/phase-m-security-privacy-trust.md) |
@@ -101,6 +102,23 @@ Cross-referenced fix log for work items tracked outside the phase documents.
 Security risks in [security/security-and-risk-plan.md](security/security-and-risk-plan.md).
 
 ### Phase G fixes
+
+#### 2026-07-28 — Print CSS audit of the public CV route (diagnostic only)
+
+- **What:** Audited the browser print path (`window.print()` via
+  `app/components/print-trigger.tsx`) for `/{personSlug}/{publicId}` using a new
+  dev-only tool, `scripts/dev/print-css-audit.mjs` (Playwright, devDependency;
+  never bundled). Rendered real A4 PDFs with print media emulated across two
+  fixtures and three locales.
+- **Outcome:** **No code changed** — findings only. Two P1 defects found: every
+  CV wastes page 1 (`break-after: avoid-page` at `app/resume/resume.css:1660–1667`
+  is almost certainly a typo for `break-inside: avoid`), and every page carries a
+  black frame because `color-scheme: dark` is never reset for print. Plus gradient
+  bleed from `body::before`, orphaned section headers, mid-entry timeline splits,
+  and two confirmed-dead rules.
+- **Findings:** [guides/print-css-audit-findings.md](guides/print-css-audit-findings.md)
+- **Follow-up:** Fixes are a separate task; suggested order is in §6 of the findings doc.
+  Unrelated to the `@react-pdf/renderer` export pipeline (ADR 0014).
 
 #### 2026-07-19 — Beta-tester opt-in at signup + role-gated docs site (ADR 0020)
 
