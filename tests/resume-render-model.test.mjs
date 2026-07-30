@@ -87,3 +87,29 @@ test("all CV entry points route through BasicResumeDocument", () => {
   assert.equal(dashboard.includes("BasicResumeDocument"), true, "Dashboard modal must use BasicResumeDocument");
   assert.equal(masterResume.includes("BasicResumeDocument"), true, "Master Resume preview must use BasicResumeDocument");
 });
+
+test("splitContactValueForWrapping offers breaks before the @ and after each /", () => {
+  /*
+   * Long e-mail and profile URLs used to wrap wherever the sidebar ran out of
+   * room. The pieces are joined with <wbr>, so they only take effect when the
+   * value does not fit — and, unlike a zero-width space, nothing is added to the
+   * string itself. That matters because the same values reach the PDF's text
+   * layer, which is where ATS parsers read an address from.
+   *
+   * The split expression is lifted from the source so this cannot pass against
+   * a rule the renderer no longer uses.
+   */
+  const source = read("app/components/resume-renderer/build-resume-render-model.ts");
+  // `(?:\\.|[^/])*` so the escaped slash inside the pattern does not end it.
+  const pattern = source.match(/\.split\(\/((?:\\.|[^/])*)\/\)/)[1];
+  const split = (value) => value.split(new RegExp(pattern)).filter((part) => part.length > 0);
+
+  assert.deepEqual(split("ariana.holt@example.com"), ["ariana.holt", "@example.com"]);
+  assert.deepEqual(split("linkedin.com/in/arianaholt"), ["linkedin.com/", "in/", "arianaholt"]);
+
+  // Values with no break point stay whole, and no split may alter the text.
+  for (const value of ["Portland, OR", "+1 555 204 1130", "linkedin.com/in/arianaholt"]) {
+    assert.equal(split(value).join(""), value);
+  }
+  assert.deepEqual(split("Portland, OR"), ["Portland, OR"]);
+});

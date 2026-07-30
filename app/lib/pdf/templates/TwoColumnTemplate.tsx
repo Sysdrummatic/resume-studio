@@ -31,17 +31,20 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
       style={{
         flexDirection: "column",
         backgroundColor: theme.colors.pageBg,
-        paddingTop: theme.layout.pageMarginTop,
-        paddingBottom: theme.layout.pageMarginBottom,
-        paddingHorizontal: theme.layout.pageMarginHorizontal,
+        padding: theme.layout.pageMargin,
         fontFamily: theme.typography.fontFamily,
+        // .resume-view-page's inherited base. lineHeight is deliberately not
+        // set here: react-pdf ignores an inherited one when measuring a Text's
+        // box, which silently overlaps stacked text. Each Text sets its own.
+        fontSize: theme.typography.sizes.base,
+        fontWeight: theme.typography.weights.regular,
         color: theme.colors.text,
       }}
     >
       <PdfHeader resume={resume} heroRole={heroRole} theme={theme} />
 
       <View style={{ flexDirection: "row", gap: theme.layout.columnGap }}>
-        <View style={{ flex: theme.layout.mainColumnFlex, flexDirection: "column", gap: theme.spacing.md }}>
+        <View style={{ flex: theme.layout.mainColumnFlex, flexDirection: "column", gap: theme.layout.sectionGap }}>
           {defaultSummary?.description ? (
             <PdfSummary summary={defaultSummary} title={labels.summary} theme={theme} />
           ) : null}
@@ -56,7 +59,7 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
           ) : null}
         </View>
 
-        <View style={{ flex: theme.layout.sideColumnFlex, flexDirection: "column", gap: theme.spacing.md }}>
+        <View style={{ flex: theme.layout.sideColumnFlex, flexDirection: "column", gap: theme.layout.sectionGap }}>
           {resume.contact.length > 0 ? (
             <PdfPersonalInfo contact={resume.contact} title={labels.personalInfo} theme={theme} />
           ) : null}

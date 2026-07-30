@@ -2,6 +2,7 @@ import React from "react";
 import { Text, View } from "@react-pdf/renderer";
 import type { ResumeDocument } from "../../resume-schema";
 import type { PdfTheme } from "../theme";
+import { PdfCircle } from "../primitives";
 
 type PdfHeaderProps = {
   resume: ResumeDocument;
@@ -9,32 +10,68 @@ type PdfHeaderProps = {
   theme: PdfTheme;
 };
 
+// Mirrors .hero / .hero__title / .logo-circle / .hero__identity. The export
+// chrome (.hero__actions) has no PDF counterpart, as in @media print.
 export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
+  const { components, spacing, typography } = theme;
+
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: theme.spacing.xl }}>
-      <View
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: theme.radii.full,
-          backgroundColor: theme.colors.accent,
-          justifyContent: "center",
-          alignItems: "center",
-          marginRight: theme.spacing.lg,
-        }}
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.spaceMd,
+        marginBottom: spacing.spaceXl,
+      }}
+    >
+      <PdfCircle
+        size={components.logoSize}
+        color={theme.colors.accent}
+        theme={theme}
+        style={{ justifyContent: "center", alignItems: "center" }}
       >
-        {/* Logo font: web uses 'Homemade Apple' (handwritten). PDF uses SpaceGrotesk Bold. */}
-        {/* Embed Homemade Apple separately if brand consistency requires it. */}
-        <Text style={{ color: theme.colors.white, fontSize: theme.typography.sizes.xl, fontWeight: 700 }}>
+        {/* .logo-circle asks for 'Homemade Apple' first, but that family has no
+            @font-face and is not vendored, so the web already falls back to
+            Space Grotesk. The PDF matches by using the same fallback. */}
+        <Text
+          style={{
+            color: theme.colors.white,
+            fontSize: typography.sizes.logo,
+            // Natural, not 1.6: the circle centres this Text, and react-pdf
+            // hangs all leading below the glyphs, so a 1.6 box put the initials
+            // 3.2pt above the middle. At the natural height the box is the
+            // glyphs, and the circle's own centring is correct. No padding is
+            // needed here — nothing depends on this Text's height.
+            lineHeight: typography.lineHeightNatural,
+            fontWeight: typography.weights.bold,
+          }}
+        >
           {resume.brand_initials || "CV"}
         </Text>
-      </View>
-      <View style={{ flexDirection: "column" }}>
-        <Text style={{ fontSize: theme.typography.sizes.hero, fontWeight: 700, color: theme.colors.text }}>
+      </PdfCircle>
+      <View style={{ flexDirection: "column", gap: spacing.space2xs }}>
+        <Text
+          style={{
+            fontSize: typography.sizes.xl,
+            // .hero__title h1 — the heading leading, which is what closed the
+            // gap to the role below.
+            lineHeight: typography.lineHeightHeading,
+            fontWeight: typography.weights.bold,
+            color: theme.colors.text,
+          }}
+        >
           {resume.name}
         </Text>
         {heroRole ? (
-          <Text style={{ fontSize: theme.typography.sizes.body, color: theme.colors.muted, marginTop: theme.spacing.xs }}>
+          <Text
+            style={{
+              // --role-font-size, which used to happen to equal sizes.base.
+              fontSize: typography.sizes.role,
+              lineHeight: typography.lineHeight,
+              fontWeight: typography.weights.medium,
+              color: theme.colors.muted,
+            }}
+          >
             {heroRole}
           </Text>
         ) : null}

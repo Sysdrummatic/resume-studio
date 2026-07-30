@@ -79,6 +79,21 @@ const DEFAULT_RENDERER_LABELS: ResumeRendererLabels = {
   atsUnavailable: "Available after publish",
 };
 
+/**
+ * Splits a contact value at the points a reader expects a long address to wrap:
+ * before the `@` of an e-mail, and after each `/` of a URL. The caller joins the
+ * pieces with `<wbr>`, so the browser only uses them when the value does not fit.
+ *
+ * Deliberately returns pieces rather than inserting a zero-width space: a ZWSP
+ * would survive into the PDF's text layer, and that layer is what ATS parsers
+ * read an e-mail address out of.
+ */
+export function splitContactValueForWrapping(value: string): string[] {
+  return value
+    .split(/(?=@)|(?<=\/)/)
+    .filter((part) => part.length > 0);
+}
+
 export function buildResumeRendererLabels(
   locale: ResumeLocale,
   overrides: Partial<ResumeRendererLabels> = {},

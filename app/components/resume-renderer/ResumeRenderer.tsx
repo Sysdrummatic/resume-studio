@@ -13,6 +13,7 @@ import {
   buildResumeRenderConfig,
   buildResumeRendererLabels,
   getResumeHeroRole,
+  splitContactValueForWrapping,
   type ResumeRenderAction,
   type ResumeRenderMode,
   type ResumeRendererLabels,
@@ -422,6 +423,7 @@ export default function ResumeRenderer({
                       <div className="timeline-item__period">{item.period}</div>
                       <div className="timeline-item__content">
                         <h3>{item.school || "School"}</h3>
+                        {item.degree ? <p className="timeline-item__subheading">{item.degree}</p> : null}
                         {item.detail ? <p className="timeline-item__detail">{item.detail}</p> : null}
                       </div>
                     </div>
@@ -459,6 +461,14 @@ export default function ResumeRenderer({
               <dl className="contact-list">
                 {resume.contact.map((item, index) => {
                   const safeLink = sanitizeExternalHref(item.link);
+                  // <wbr> only offers a break; the value stays one string when
+                  // it fits, and copies without stray characters when it does not.
+                  const value = splitContactValueForWrapping(item.value).map((part, partIndex) => (
+                    <span key={partIndex}>
+                      {partIndex > 0 ? <wbr /> : null}
+                      {part}
+                    </span>
+                  ));
                   return (
                     <div key={`${item.label}-${index}`} className="contact-item">
                       <dt>{item.label}</dt>
@@ -469,10 +479,10 @@ export default function ResumeRenderer({
                             target={isExternalLink(safeLink) ? "_blank" : undefined}
                             rel={isExternalLink(safeLink) ? "noreferrer noopener" : undefined}
                           >
-                            {item.value}
+                            {value}
                           </a>
                         ) : (
-                          item.value
+                          value
                         )}
                       </dd>
                     </div>

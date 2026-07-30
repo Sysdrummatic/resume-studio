@@ -10,7 +10,7 @@ type PdfInterestsProps = {
 
 export function PdfInterests({ interests, title, theme }: PdfInterestsProps) {
   return (
-    <PdfSectionCard title={title} theme={theme}>
+    <PdfSectionCard title={title} theme={theme} sidebar>
       <PdfPillList items={interests} theme={theme} />
     </PdfSectionCard>
   );

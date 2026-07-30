@@ -636,12 +636,21 @@ test("experience section keeps each employer block unsplit across pages", () => 
   assert.equal(primitives.includes("wrap={false}"), true);
 });
 
-test("pdf theme carries timeline and course background tokens from resume.css", () => {
+test("pdf theme carries only colour tokens resume.css actually renders", () => {
   const theme = read("app/lib/pdf/theme.ts");
-  assert.equal(theme.includes("timelineItemBg"), true);
-  assert.equal(theme.includes("courseItemBg"), true);
+  const primitives = read("app/lib/pdf/primitives.tsx");
+
   assert.equal(theme.includes("accentDark"), true);
-  assert.equal(theme.includes("#f0f7f6"), true);
+  // .timeline-item__content and .timeline--courses .timeline-item__content are
+  // both `background: var(--bg)`, so one token covers every timeline block.
+  assert.equal(theme.includes('pageBg: "#f6f8f8"'), true);
+  assert.equal(primitives.includes("backgroundColor: theme.colors.pageBg"), true);
+
+  // The dedicated timeline/course tokens described a .course-list component the
+  // renderer no longer uses; #f0f7f6 appears nowhere on the page.
+  assert.equal(theme.includes("timelineItemBg"), false);
+  assert.equal(theme.includes("courseItemBg"), false);
+  assert.equal(theme.includes("#f0f7f6"), false);
 });
 
 test("platform_feature_flags migration defines pdf_draft_enabled key", () => {
