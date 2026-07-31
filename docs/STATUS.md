@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-07-11
 **Current Phase:** I — Hardening, QA & Launch Readiness
-**Overall Progress:** ~72% (A–F complete; I 60%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; H, J–N pending)
+**Overall Progress:** ~72% (A–F complete; I 60%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; J–O pending)
 
 ---
 
@@ -17,12 +17,11 @@
 | E | UX & Community | ✅ Complete (delivered early) | 100% | May 2026 |
 | F | Public Surface & MVP Launch | ✅ Complete (closed 2026-07-03) | 100% | May–Jun 2026 |
 | G | Community Beta Testing + P0 Security Entry Gate | ⏳ Planned (P0: 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E) | 5% | P0 before beta; program after I |
-| H | PDF Fidelity — Vercel + Puppeteer | ⏳ Planned (parallel with M) | 0% | Jun–Jul 2026 |
 | I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jul 2026 |
 | J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
 | K | ATS Intelligence | ⏳ Post-launch | 0% | TBD |
 | L | Semantic Public Link URL | ⏳ Post-launch | 0% | TBD |
-| M | Security, Privacy & Trust | ⏳ Planned (parallel with H) | 0% | Jul–Sep 2026 |
+| M | Security, Privacy & Trust | ⏳ Planned | 0% | Jul–Sep 2026 |
 | N | Professional Identity Platform | ✦ Vision | 0% | 2027+ |
 | O | OpenCV Format Standard & Specification | ⏳ Planned | 0% | TBD (post-G) |
 
@@ -32,15 +31,14 @@
 
 ```
 A → B → C → D → E ── F (Public Surface) ── I (Hardening & Launch) ── G (P0 Gate + Beta)
-                     ├── H (PDF Fidelity — parallel track) ─────────────┐
-                     └── M (Security, Privacy & Trust — parallel) ──────┤
+                     └── M (Security, Privacy & Trust — parallel) ──────┐
                                                                        ├── J (AI) → N (Vision)
                                                                        └── K (ATS) → L (Semantic URL)
 ```
 
-Phase M can execute alongside Phase H. Its processor, hosting, secret-management,
-security-header, and PDF threat-model gates must close before the Phase H production
-cutover. Phase G external onboarding remains blocked by its five P0 security tasks.
+Phase M's processor, hosting, secret-management, security-header and PDF threat-model
+gates must close before launch. Phase G external onboarding remains blocked by its five
+P0 security tasks.
 
 Phase O is independent of the A→N chain — it extracts the OpenCV YAML format into a
 standalone, externally versioned specification (analogous to OpenAPI), with
@@ -87,6 +85,7 @@ closes, but has no other hard dependency.
 | Testing & QA checklists | [`docs/guides/testing/`](guides/testing/) |
 | Policy documents | [`docs/guides/policies/`](guides/policies/) |
 | Future features | [`docs/guides/features/`](guides/features/) |
+| Print CSS audit findings | [`docs/guides/print-css-audit-findings.md`](guides/print-css-audit-findings.md) |
 | Phase K plan | [`docs/phases/phase-k-ats-intelligence-plan.md`](phases/phase-k-ats-intelligence-plan.md) |
 | Phase L plan | [`docs/phases/phase-l-semantic-url-plan.md`](phases/phase-l-semantic-url-plan.md) |
 | Phase M security plan | [`docs/phases/phase-m-security-privacy-trust.md`](phases/phase-m-security-privacy-trust.md) |
@@ -101,6 +100,52 @@ Cross-referenced fix log for work items tracked outside the phase documents.
 Security risks in [security/security-and-risk-plan.md](security/security-and-risk-plan.md).
 
 ### Phase G fixes
+
+#### 2026-07-28 — Print CSS fixes for the public CV route (audit follow-up)
+
+- **What:** Consolidated the two conflicting `@media print` blocks in
+  `app/resume/resume.css` into one canonical block and fixed every defect from
+  the audit below. Conflicts were settled in favour of the value already winning,
+  so no unintended visual change rode along.
+- **Fixes:** blanket `break-after: avoid-page` replaced with targeted
+  `break-inside: avoid` on cards, timeline entries, and list items (page 1 no
+  longer near-blank; `.section` deliberately gets none, so tall sections flow
+  instead of jumping a page); `.section-title` orphan protection;
+  `color-scheme: light !important` on `:root` (the `!important` is required —
+  `app/globals.css:15` declares the dark scheme at equal specificity and bundles
+  later); `body::before`/`::after` portal decoration hidden; dead top-level
+  `@page`, `.language-switcher`, `.contact-list` grid rule, and
+  `.timeline::before` background deleted.
+- **Result:** both fixtures print in 3 pages instead of 4; rendered PDF 5.2 MB →
+  0.2 MB. Everything the audit confirmed working (chrome suppression, Space
+  Grotesk, accent colours, single-column collapse, axis suppression) re-verified
+  intact.
+- **Coverage:** `tests/print-css-contract.test.mjs` (9 assertions). Structural
+  only — re-run `scripts/dev/print-css-audit.mjs` and inspect pages after any
+  print CSS change.
+- **Docs:** [guides/print-css-audit-findings.md](guides/print-css-audit-findings.md)
+  (each finding marked Resolved, with after-fix screenshots); `DESIGN.md` print
+  override claim corrected and marked verified.
+- **Not done:** the `min-height: 1024px` reset listed as a contributing factor
+  proved unnecessary once the break rules were correct; left untouched rather
+  than adding a no-op rule.
+
+#### 2026-07-28 — Print CSS audit of the public CV route (diagnostic only)
+
+- **What:** Audited the browser print path (`window.print()` via
+  `app/components/print-trigger.tsx`) for `/{personSlug}/{publicId}` using a new
+  dev-only tool, `scripts/dev/print-css-audit.mjs` (Playwright, devDependency;
+  never bundled). Rendered real A4 PDFs with print media emulated across two
+  fixtures and three locales.
+- **Outcome:** **No code changed** — findings only. Two P1 defects found: every
+  CV wastes page 1 (`break-after: avoid-page` at `app/resume/resume.css:1660–1667`
+  is almost certainly a typo for `break-inside: avoid`), and every page carries a
+  black frame because `color-scheme: dark` is never reset for print. Plus gradient
+  bleed from `body::before`, orphaned section headers, mid-entry timeline splits,
+  and two confirmed-dead rules.
+- **Findings:** [guides/print-css-audit-findings.md](guides/print-css-audit-findings.md)
+- **Follow-up:** Fixes are a separate task; suggested order is in §6 of the findings doc.
+  Unrelated to the `@react-pdf/renderer` export pipeline (ADR 0014).
 
 #### 2026-07-19 — Beta-tester opt-in at signup + role-gated docs site (ADR 0020)
 

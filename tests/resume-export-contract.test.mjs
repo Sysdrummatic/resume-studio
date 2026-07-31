@@ -630,18 +630,38 @@ test("pdf preview route uses buildPdfFilename and respects the draft pdf feature
 });
 
 test("experience section keeps each employer block unsplit across pages", () => {
+  /*
+   * This used to search the whole of primitives.tsx for any `wrap={false}` and
+   * passed on the title wrapper, long after the entry itself had moved to
+   * `wrap={allowSplit}`. It has to read the entry's own prop.
+   */
   const experience = read("app/lib/pdf/sections/PdfExperience.tsx");
-  const primitives = read("app/lib/pdf/primitives.tsx");
   assert.equal(experience.includes("PdfTimelineItem"), true);
-  assert.equal(primitives.includes("wrap={false}"), true);
+
+  const timelineItem = read("app/lib/pdf/primitives.tsx").match(
+    /export function PdfTimelineItem[\s\S]*?\n(?=type |export function )/,
+  )[0];
+
+  // The row that holds the whole entry, and nothing else.
+  assert.match(timelineItem, /<View wrap=\{allowSplit\} style=\{\{ flexDirection: "row" \}\}/);
+  assert.match(timelineItem, /allowSplit = false/, "an entry must default to staying whole");
 });
 
-test("pdf theme carries timeline and course background tokens from resume.css", () => {
+test("pdf theme carries only colour tokens resume.css actually renders", () => {
   const theme = read("app/lib/pdf/theme.ts");
-  assert.equal(theme.includes("timelineItemBg"), true);
-  assert.equal(theme.includes("courseItemBg"), true);
+  const primitives = read("app/lib/pdf/primitives.tsx");
+
   assert.equal(theme.includes("accentDark"), true);
-  assert.equal(theme.includes("#f0f7f6"), true);
+  // .timeline-item__content and .timeline--courses .timeline-item__content are
+  // both `background: var(--bg)`, so one token covers every timeline block.
+  assert.equal(theme.includes('pageBg: "#f6f8f8"'), true);
+  assert.equal(primitives.includes("backgroundColor: theme.colors.pageBg"), true);
+
+  // The dedicated timeline/course tokens described a .course-list component the
+  // renderer no longer uses; #f0f7f6 appears nowhere on the page.
+  assert.equal(theme.includes("timelineItemBg"), false);
+  assert.equal(theme.includes("courseItemBg"), false);
+  assert.equal(theme.includes("#f0f7f6"), false);
 });
 
 test("platform_feature_flags migration defines pdf_draft_enabled key", () => {

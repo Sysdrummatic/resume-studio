@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { CvPdfDocument as CvPdfTemplate } from "../../../../../lib/pdf/CvPdfDocument";
 import { buildPdfFilename } from "../../../../../lib/pdf/filename";
+import { loadPdfFonts } from "../../../../../lib/pdf/engine-react-pdf";
 import { isPdfDraftEnabled } from "../../../../../lib/pdf-feature-flags";
 import { normalizeResumeDocument } from "../../../../../lib/resume-schema";
 import { requireRequestActor } from "../../../../../lib/auth-request";
@@ -35,6 +36,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const doc = normalizeResumeDocument(body.resume, "");
     const locale = typeof body.locale === "string" ? body.locale : "en";
+
+    // Metrics have to be readable before render: pagination measures text to
+
+    // decide what may be kept whole. See app/lib/pdf/metrics.ts.
+
+    await loadPdfFonts();
+
 
     const pdfBytes = await renderToBuffer(
       React.createElement(CvPdfTemplate, {

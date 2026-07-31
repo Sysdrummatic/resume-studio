@@ -2,7 +2,7 @@
 
 **Status**: ◯ **PLANNED, NOT STARTED**
 
-**ETA**: 6–8 weeks; may execute in parallel with Phase H
+**ETA**: 6–8 weeks
 
 **Depends On**: Phase G P0 security entry gates for external beta; individual workstreams may start earlier
 
@@ -21,9 +21,9 @@ project security register. P0 vulnerabilities remain launch-blocking work in
 [Phase G](phase-g-community-beta-testing.md); Phase M builds the durable controls needed
 after those immediate defects are closed.
 
-Phase M is deliberately independent of PDF visual-fidelity implementation and may run
-in parallel with [Phase H](phase-h-vercel-puppeteer-pdf.md). Changes that affect hosting,
-PDF processing, data residency, or processors must be coordinated across both phases.
+Phase M is independent of PDF work. PDF rendering happens in-process on Netlify and adds
+no processor — see [ADR 0015](../adr/0015-vercel-puppeteer-pdf-migration.md). Any future
+change to hosting, PDF processing, data residency or processors re-opens the gates below.
 
 ### Key Theme
 
@@ -33,19 +33,15 @@ tested response or recovery path.
 
 ---
 
-## Scheduling With Phase H
+## Workstream Notes
 
-| Phase M workstream | Parallel with Phase H | Coordination point |
-| --- | --- | --- |
-| Least privilege, RLS/RBAC, CSRF, API hardening | Yes | Re-test after hosting cutover |
-| Logging, monitoring, incident response, backup recovery | Yes | Configure for both Netlify and Vercel during transition |
-| Vercel processor/DPA/SCC assessment | Yes, jointly | Must close before Phase H production DNS cutover |
-| CSP and security headers | Yes | Validate against Puppeteer render route and Vercel config |
-| PDF privacy/threat model | Yes, jointly | Signed render tokens, snapshot-only data, no SSRF/private draft exposure |
-| AI processor governance | Yes | Becomes a hard gate before Phase J/K AI processing |
-
-Phase H may ship only when its Phase M processor, secret-management, logging, and
-security-header dependencies are complete. Phase M does not wait for visual PDF work.
+| Phase M workstream | Note |
+| --- | --- |
+| Least privilege, RLS/RBAC, CSRF, API hardening | Re-test after any hosting change |
+| Logging, monitoring, incident response, backup recovery | Configure for Netlify |
+| CSP and security headers | Validate against netlify.toml and proxy.ts |
+| PDF privacy/threat model | Snapshot-only data; rendering never leaves the process |
+| AI processor governance | Becomes a hard gate before Phase J/K AI processing |
 
 ---
 
@@ -200,9 +196,6 @@ owners, lessons learned, and tracked remediation actions.
 - [ ] Confirm Supabase DPA acceptance and exact production region in organization settings.
 - [ ] Re-verify Netlify and Resend DPA/SCC/TIA status and document sub-processor change
   monitoring.
-- [ ] Before Phase H production cutover, assess Vercel DPA, SCC/TIA, region, logs, backups,
-  support access, and PDF/CV data handling; update the processor checklist and privacy
-  policy.
 - [ ] Before Phase J/K AI work, perform a separate DPIA and processor assessment covering
   model training/retention, prompts, CV content, data residency, opt-in/opt-out, human
   review, deletion, and automated-decision limitations.
@@ -308,7 +301,7 @@ verified provider settings, and a documented residual-risk decision.
 | R01 | M08–M09 | Processor/legal/locale/DSR residual gaps closed |
 | R02 | M01–M03 | Live four-role RLS/RBAC matrix passes and service-role scope is minimized |
 | R03 | M05 | ATS exports pass minimization and leakage fixtures |
-| R04 | M08 with Phase H | Vercel assessment and disclosures complete before production cutover |
+| R04 | closed | Rejected in ADR 0015; no processor added, nothing to assess |
 | R05 | M08 before J/K | AI DPIA and processor gate complete before any personal data is sent |
 | R06 | M03, M06, M09 | Audit deletion and staff-erasure procedures work end-to-end |
 | R07 | M11 plus founder actions | Domain/legal/trademark actions have owners and recorded decisions |
@@ -390,7 +383,6 @@ Additional required evidence:
 
 - [Security and Risk Plan](../security/security-and-risk-plan.md)
 - [Phase G: Community Beta Testing](phase-g-community-beta-testing.md)
-- [Phase H: PDF Visual Fidelity](phase-h-vercel-puppeteer-pdf.md)
 - [Phase I: Hardening, QA & Launch Readiness](phase-i-hardening-qa.md)
 - [Processor Compliance Checklist](../guides/processor-compliance-checklist.md)
 - [Privacy-First Admin Access Policy](../guides/policies/privacy-first-admin-access-policy.md)

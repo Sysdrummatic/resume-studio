@@ -10,7 +10,7 @@
 
 ## Overview
 
-Phase G is the first real-world validation of OpenCiVera with people outside the founding team. Five beta testers from the tech-writer community walk through 5–7 core user journeys over two weeks, with feedback gathered continuously via Typeform and a private Slack/Discord channel and triaged into GitHub Issues. The phase ends with a consolidated sentiment report, a categorized bug/feature backlog, and launch-readiness recommendations feeding into Phase H and Phase I (hardening).
+Phase G is the first real-world validation of OpenCiVera with people outside the founding team. Five beta testers from the tech-writer community walk through 5–7 core user journeys over two weeks, with feedback gathered continuously via Typeform and a private Slack/Discord channel and triaged into GitHub Issues. The phase ends with a consolidated sentiment report, a categorized bug/feature backlog, and launch-readiness recommendations feeding into Phase I (hardening).
 
 ### Key Theme
 
@@ -22,7 +22,7 @@ The July 2026 read-only cybersecurity audit identified the following P0 items. T
 part of Phase G because no external tester may receive access until every item is fixed,
 tested, deployed to the beta environment, and independently re-verified. Remaining
 security, privacy, resilience, and trust work continues in
-[Phase M](phase-m-security-privacy-trust.md), which may run in parallel with Phase H.
+[Phase M](phase-m-security-privacy-trust.md).
 
 - [ ] **G-P0-01 — Eliminate stored XSS in public CV JSON-LD** (implemented, awaiting beta deploy + independent E2E re-verification)
   - Replaced unsafe raw `JSON.stringify` output passed to `dangerouslySetInnerHTML` with
@@ -246,13 +246,12 @@ After 4 weeks, analyze and categorize all feedback to decide what ships before l
 
 ---
 
-## Transition to Phase H and I
+## Transition to Phase I
 
 Findings from Phase G (bug severity, UX friction, testimonials) feed directly into:
-- **Phase H** (PDF Visual Fidelity): PDF quality feedback from testers
 - **Phase I** (Hardening, QA & Launch Readiness): critical bugs become launch blockers; testimonials support launch marketing
 - **Phase M** (Security, Privacy & Trust): non-P0 hardening, GDPR operational controls,
-  resilience, monitoring, and assurance; may execute in parallel with Phase H
+  resilience, monitoring, and assurance
 
 ---
 

@@ -134,7 +134,6 @@ Make sure you have:
 - [Phase E: UX & Community](../phases/phase-e-ux-community.md)
 - [Phase F: Public Surface](../phases/phase-f-public-surface.md)
 - [Phase G: Community Beta Testing](../phases/phase-g-community-beta-testing.md)
-- [Phase H: PDF Visual Fidelity](../phases/phase-h-vercel-puppeteer-pdf.md)
 
 **Project Documentation**
 - [STATUS.md](../STATUS.md) — Project status and phase progress

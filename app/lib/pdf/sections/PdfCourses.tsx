@@ -1,8 +1,8 @@
 import React from "react";
-import { Text, View } from "@react-pdf/renderer";
 import type { ResumeCourse } from "../../resume-schema";
 import type { PdfTheme } from "../theme";
-import { PdfSectionCard } from "../primitives";
+import { PdfSectionCard, PdfTimelineBlocks, PdfTimelineItem } from "../primitives";
+import { planTimelineSection, type PdfTimelineBlock } from "../pagination";
 
 type PdfCoursesProps = {
   courses: ResumeCourse[];
@@ -10,34 +10,41 @@ type PdfCoursesProps = {
   theme: PdfTheme;
 };
 
-// Mirrors the web .course-list tiles: tinted rounded row with year column + name.
+// Mirrors .timeline--courses: the same timeline as experience and education,
+// with the year as the period and a regular-weight course name.
+// (This previously copied .course-list, a stylesheet rule the renderer stopped
+// using — hence the tinted tiles that appeared in the PDF but never on the page.)
+function courseBlocks(course: ResumeCourse, theme: PdfTheme): PdfTimelineBlock[] {
+  return [
+    {
+      text: course.name,
+      fontSize: theme.typography.sizes.md,
+      fontWeight: theme.typography.weights.regular,
+    },
+  ];
+}
+
 export function PdfCourses({ courses, title, theme }: PdfCoursesProps) {
+  const entries = courses.map((course) => courseBlocks(course, theme));
+  const pagination = planTimelineSection(theme, entries);
+
   return (
-    <PdfSectionCard title={title} theme={theme} wrap>
+    <PdfSectionCard
+      title={title}
+      theme={theme}
+      wrap
+      keepTitleWithFirstChild={pagination.keepTitleWithFirstEntry}
+    >
       {courses.map((course, index) => (
-        <View
+        <PdfTimelineItem
           key={index}
-          wrap={false}
-          style={{
-            flexDirection: "row",
-            backgroundColor: theme.colors.courseItemBg,
-            borderRadius: theme.radii.md,
-            padding: theme.spacing.sm,
-            marginBottom: index === courses.length - 1 ? 0 : 6,
-          }}
+          period={course.year > 0 ? String(course.year) : ""}
+          isLast={index === courses.length - 1}
+          theme={theme}
+          allowSplit={pagination.allowSplit[index]}
         >
-          <Text
-            style={{
-              width: 44,
-              fontSize: theme.typography.sizes.sm,
-              fontWeight: 700,
-              color: theme.colors.accentDark,
-            }}
-          >
-            {course.year > 0 ? String(course.year) : ""}
-          </Text>
-          <Text style={{ flex: 1, fontSize: theme.typography.sizes.sm, color: theme.colors.text }}>{course.name}</Text>
-        </View>
+          <PdfTimelineBlocks blocks={entries[index]} theme={theme} />
+        </PdfTimelineItem>
       ))}
     </PdfSectionCard>
   );

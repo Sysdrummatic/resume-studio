@@ -18,16 +18,35 @@
   --radius-lg: 18px;
   --shadow-soft: 0 0 25px rgba(0, 0, 0, 0.05);
   --shadow-float: 0 6px 16px rgba(0, 0, 0, 0.12);
+  /* rem, never vw. The shell is capped at --resume-max-width, so a
+     viewport-coupled type scale resized text inside a container that never
+     moved: section headings ran 25.8px at a 1024px viewport and 28px from
+     1300px up, over an identical column. The PDF has no viewport and could not
+     match either. rem keeps the scale responsive to the reader's own font size,
+     which is what mattered. --font-size-base keeps its clamp — it carries no vw
+     term, and the bounds only guard an unusual root size. */
   --font-size-base: clamp(15px, 1rem, 18px);
-  --font-size-sm: clamp(0.9rem, 0.85rem + 0.2vw, 1rem);
-  --font-size-md: clamp(1rem, 0.95rem + 0.3vw, 1.1rem);
-  --font-size-lg: clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem);
+  --font-size-sm: 1rem;
+  --font-size-md: 1.1rem;
+  --font-size-lg: 1.75rem;
+  /* Sidebar headings, two-column only. The sidebar leaves 158.5px for heading
+     text (200.5px of card minus the 30px dot and its 12px gap) and a single
+     word cannot wrap: "Zainteresowania" measures 227px at --font-size-lg and
+     punched 68px through the card's right padding, which is why those sections
+     looked like they had a left margin and no right one. 18px is the largest
+     step at which every heading word in every locale fits. */
+  --font-size-lg-sidebar: 1.125rem;
+  /* Headings only. 1.6 is body leading; on a wrapped heading it opened a 28.8px
+     gap between the two lines. */
+  --line-height-heading: 1.15;
+  /* Stacked label/value pairs, where body leading reads as a gap. */
+  --line-height-tight: 1.25;
   /* Fixed header name size (no fluid scaling). */
   --font-size-xl: 32px;
   /* Fixed header supporting sizes (no fluid scaling). */
   --logo-size: 72px;
   --logo-font-size: 24px;
-  --role-font-size: 14px;
+  --role-font-size: 16px;
   --chip-font-size: 13px;
   --chip-padding-y: 6px;
   --chip-padding-x: 12px;
@@ -36,8 +55,23 @@
   --timeline-axis-offset: 16px;
   --timeline-dot-size: 12px;
   --timeline-content-gap: 20px;
-  /* Width knobs: CV background and header background use the same box. */
-  --resume-max-width: 1100px;
+  /* Width knobs: CV background and header background use the same box.
+
+     --resume-max-width is derived, not designed. The PDF export scales this
+     layout onto A4 by a single factor (PX_TO_PT in app/lib/pdf/theme.ts), and
+     `factor = usable A4 width / layout width` allows only one of the two to be
+     declared. PX_TO_PT is the declared one, so:
+
+       (595.28pt - 2 x 28.3465pt) / 0.625  = 861.7392px   layout box
+       861.7392px + 2 x var(--space-lg)    = 901.7392px   shell
+
+     It used to read 1100px, which implies a factor of 0.508 — so type was
+     scaled by 0.625 and the column holding it by 0.508, and every line in the
+     PDF broke about 20% early. The value is spelled out to the digit on
+     purpose: it is a result, not a round number someone picked. Change it only
+     by changing PX_TO_PT; tests/pdf-web-style-parity.test.mjs fails if the two
+     stop agreeing. */
+  --resume-max-width: 901.7392px;
   --resume-shell-width: calc(100% - 1rem);
 
   font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -94,7 +128,7 @@
     --font-size-xl: 36px;
     --logo-size: 80px;
     --logo-font-size: 26px;
-    --role-font-size: 15px;
+    --role-font-size: 18px;
     --chip-font-size: 14px;
     --chip-padding-x: 14px;
     --timeline-axis-offset: 18px;
@@ -107,7 +141,7 @@
     --font-size-xl: 40px;
     --logo-size: 92px;
     --logo-font-size: 30px;
-    --role-font-size: 16px;
+    --role-font-size: 20px;
     --chip-padding-y: 7px;
     --timeline-axis-offset: 14px;
     --timeline-dot-size: 14px;
@@ -120,6 +154,9 @@
     --font-size-xl: 44px;
     --logo-size: 96px;
     --logo-font-size: 32px;
+    /* Half the name, at every step of the ladder. It used to top out at 16px
+       against a 44px name — 0.36 — which read as a caption rather than a role. */
+    --role-font-size: 22px;
     --chip-font-size: 15px;
     --chip-padding-x: 16px;
     --timeline-axis-offset: 14px;
@@ -495,16 +532,26 @@ img {
   justify-content: center;
   font-size: var(--logo-font-size);
   font-family: 'Homemade Apple', 'Space Grotesk', sans-serif;
-  font-weight: 600;
+  /* 700, not 600: Space Grotesk ships no 600 static instance, and the PDF
+     export cannot instance the variable axis. Restricting the CV to weights
+     that exist as files (400/500/700) is what lets the two surfaces match.
+     See app/lib/pdf/engine-react-pdf.ts. */
+  font-weight: 700;
 }
 
 .hero__title h1 {
   font-size: var(--font-size-xl);
   margin: 0;
+  /* Body leading on a 44px name left 7.1px of empty space below its descenders
+     before the role even started. */
+  line-height: var(--line-height-heading);
 }
 
 .hero__title p {
-  margin: 4px 0 0;
+  /* 0, not 4px: .hero__identity already separates the two with its own gap, and
+     the margin stacked on top of it. Name and role sat ~17.7px apart; they now
+     sit ~4.8px apart. */
+  margin: 0;
   color: var(--muted);
   font-weight: 500;
   font-size: var(--role-font-size);
@@ -528,7 +575,25 @@ img {
 .section-title h3 {
   margin: 0;
   font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
   letter-spacing: var(--heading-letter-spacing);
+  /* A flex item defaults to min-width: auto, so the h2 refuses to shrink below
+     its longest word and overflows the card instead. Both are needed: min-width
+     lets it shrink, overflow-wrap lets a word that is still too wide break
+     rather than escape the padding. */
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* Sidebar headings shrink only where the column is narrow. Below 1024px the
+   layout is a single full-width column and every heading gets --font-size-lg,
+   so the two layouts never show two different heading scales at once. */
+@media (min-width: 1024px) {
+
+  .sidebar .section-title h2,
+  .sidebar .section-title h3 {
+    font-size: var(--font-size-lg-sidebar);
+  }
 }
 
 .section-dot {
@@ -550,7 +615,12 @@ img {
 
 @media (min-width: 1024px) {
   .layout {
-    grid-template-columns: minmax(0, 2.5fr) minmax(260px, 1fr);
+    /* minmax(0, 1fr), not minmax(260px, 1fr): at the derived shell width the
+       sidebar resolves to 240.5px, so a 260px floor would win and silently bend
+       the ratio to 2.24:1 — which the PDF, laid out from the fr values, could
+       not reproduce. The floor existed to stop the sidebar collapsing while the
+       shell was fluid; the shell is fixed now, so it only does harm. */
+    grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr);
     gap: var(--space-lg);
   }
 }
@@ -682,7 +752,8 @@ img {
 }
 
 .timeline-item__period {
-  font-weight: 600;
+  /* 700: see .logo-circle — the CV uses only weights Space Grotesk ships. */
+  font-weight: 700;
   color: var(--muted);
   position: relative;
   display: flex;
@@ -756,28 +827,6 @@ img {
   gap: 6px;
 }
 
-.course-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.course-list li {
-  display: grid;
-  grid-template-columns: 70px 1fr;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #f0f7f6;
-}
-
-.course-year {
-  font-weight: 600;
-  color: var(--accent-dark);
-}
-
 .contact-list {
   display: flex;
   flex-wrap: wrap;
@@ -792,6 +841,11 @@ img {
   align-items: baseline;
   gap: 12px;
   min-width: 0;
+  /* Body leading put ~6.9px of white between a label and its value once the
+     pair stacks. The gap property is only 2px of that; the rest is half-leading
+     above and below. Tightening the leading here takes it to ~1.6px without
+     touching the gap. */
+  line-height: var(--line-height-tight);
 }
 
 @media (min-width: 1024px) {
@@ -807,7 +861,8 @@ img {
 }
 
 .contact-list dt {
-  font-weight: 600;
+  /* 700: see .logo-circle — the CV uses only weights Space Grotesk ships. */
+  font-weight: 700;
   color: var(--muted);
   margin: 0;
   flex-shrink: 0;
@@ -909,8 +964,15 @@ img {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  font-weight: 600;
-  line-height: 1.25;
+  /* 700: see .logo-circle — the CV uses only weights Space Grotesk ships. */
+  font-weight: 700;
+  line-height: var(--line-height-tight);
+}
+
+/* Skills read as a plain list, not as emphasised entries. Languages keep the
+   bold label, where it separates the language from its level note. */
+.resume-section--skills .meter-item__label {
+  font-weight: 400;
 }
 
 .meter-item__note {
@@ -1247,14 +1309,8 @@ img {
 
 
 @media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-panel__section--layout {
-    grid-template-columns: 1fr;
-  }
-
+  /* `.layout { grid-template-columns: 1fr }` used to sit here. The two-column
+     rule only starts at 1024px, so below it the base 1fr already applies. */
   .hero {
     flex-direction: column;
     align-items: flex-start;
@@ -1280,7 +1336,10 @@ img {
 
 @media (max-width: 520px) {
   .resume {
-    padding: 20px;
+    /* padding-top stays 0. The shorthand used to set it to 20px, which offset
+       the sticky hero by 20px on exactly the screens where sticky matters most
+       — see the base .resume rule. */
+    padding: 0 20px 20px;
   }
 
   .hero {
@@ -1514,13 +1573,26 @@ img {
   padding: 6px 14px;
 }
 
-@page {
-  margin: 16mm 12mm;
-}
-
-/* Print layout adjustments */
+/* Print layout adjustments.
+   Single canonical print block — the previous split into two blocks meant the
+   later one silently won every conflict. Values kept here are the ones that
+   were already winning, so the printed output is unchanged except where the
+   print CSS audit identified a defect.
+   See docs/guides/print-css-audit-findings.md. */
 @media print {
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+
   :root {
+    /* Without this the dark scheme survives into print and Chromium paints the
+       page canvas — everything outside the body box — dark, framing every sheet
+       in black. Forcing the colour tokens light is not enough.
+       !important is required because globals.css declares the dark scheme on
+       :root at equal specificity and is bundled after this file, so it would
+       otherwise win. Verified with scripts/dev/print-css-audit.mjs. */
+    color-scheme: light !important;
     --bg: #ffffff;
     --card-bg: #ffffff;
     --border: #c9cdcf;
@@ -1529,10 +1601,17 @@ img {
   }
 
   body {
-    background: #ffffff;
-    color: #000000;
+    background: #ffffff !important;
+    color: #000000 !important;
     font-size: 10.5pt;
     line-height: 1.5;
+  }
+
+  /* Portal decoration layers (--portal-body-ambient gradients and the grid
+     overlay) are fixed-position and bleed onto printed pages. */
+  body::before,
+  body::after {
+    display: none !important;
   }
 
   a {
@@ -1540,24 +1619,7 @@ img {
     text-decoration: none;
   }
 
-  .resume {
-    max-width: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .hero {
-    position: static;
-    padding: 0 0 14px;
-    margin-bottom: 18px;
-    gap: 10px;
-  }
-
-  .hero::before,
-  .hero--scrolled::before {
-    display: none;
-  }
-
+  .app-header,
   .hero__actions,
   .hero__export-group,
   .hero__export-tooltip-anchor,
@@ -1567,7 +1629,7 @@ img {
   .hero__logout-button,
   .resume-badges,
   .public-view-badge,
-  .language-switcher,
+  .resume-language-switcher,
   .download-section,
   .admin-access,
   .admin-config,
@@ -1575,6 +1637,37 @@ img {
   .error-banner,
   .qr-list {
     display: none !important;
+  }
+
+  .resume-view-page {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .resume {
+    width: 100% !important;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .hero {
+    position: static !important;
+    margin-inline: 0 !important;
+    padding: 0 0 14px;
+    padding-inline: 0 !important;
+    margin-bottom: 1.5cm !important;
+    background: #ffffff !important;
+    gap: 10px;
+  }
+
+  .hero::before,
+  .hero--scrolled::before {
+    display: none;
   }
 
   .layout {
@@ -1594,8 +1687,16 @@ img {
   .card {
     background: transparent;
     padding: 0;
+    border: 1px solid #eeeeee !important;
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: none !important;
+  }
+
+  /* Cards stay whole; sections deliberately do not. A whole-section
+     break-inside: avoid pushes any section taller than the remaining space
+     onto the next page, leaving large gaps. Its entries and title are
+     protected individually instead. */
+  .card {
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -1604,8 +1705,18 @@ img {
     margin-top: 26px;
   }
 
+  /* Orphan protection: a section header must never be the last thing on a page.
+     This is the one place break-after: avoid is correct — it binds the header
+     to the content that follows it. */
   .section-title {
     margin-bottom: 10px;
+    break-after: avoid;
+    page-break-after: avoid;
+    break-inside: avoid;
+  }
+
+  .summary-text {
+    text-align: left !important;
   }
 
   .timeline {
@@ -1617,9 +1728,14 @@ img {
     display: none;
   }
 
+  /* `grid-template-columns: minmax(80px, 120px) 1fr` used to sit here and never
+     applied: .timeline-item computes to `display: flex; flex-direction: column`
+     and print does not change that, so entries print as a stacked period over
+     content — not as a two-column period/content grid. */
   .timeline-item {
-    grid-template-columns: minmax(80px, 120px) 1fr;
     gap: 10px;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .timeline-item__period {
@@ -1630,12 +1746,7 @@ img {
     content: none;
   }
 
-  .contact-list {
-    grid-template-columns: 1fr;
-  }
-
   .pill-list li,
-  .course-list li,
   .qr-card,
   .admin-section-option,
   .admin-detail-item,
@@ -1651,79 +1762,17 @@ img {
   .card,
   .timeline,
   .timeline-item,
-  .item-list,
-  .course-list {
+  .item-list {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  .timeline-item,
-  .course-list li,
-  .item-list li,
-  .section,
-  .card {
-    break-after: avoid-page;
-    page-break-after: avoid;
-  }
-}
-
-@media print {
-  @page {
-    margin: 1cm;
-    size: auto;
-  }
-
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .app-header,
-  .resume-language-switcher,
-  .hero__actions,
-  .hero__export-group,
-  .hero__export-tooltip-anchor,
-  .hero__export-tooltip,
-  .hero__export-button,
-  .hero__login-button {
-    display: none !important;
-  }
-
-  .resume-view-page {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-  }
-
-  .resume {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    box-shadow: none !important;
-  }
-
-  .hero {
-    position: static !important;
-    margin-inline: 0 !important;
-    padding-inline: 0 !important;
-    margin-bottom: 1.5cm !important;
-    background: #ffffff !important;
-  }
-
-  .section,
-  .card {
-    box-shadow: none !important;
-    border: 1px solid #eeeeee !important;
+  /* Keep individual list entries whole. Deliberately break-inside only: the
+     removed blanket avoid-page rule applied to every section, card, and list
+     item asked the fragmenter to keep the whole document on one page, which
+     Chromium resolved by pushing all content off page 1. */
+  .item-list li {
     break-inside: avoid;
-  }
-
-  .summary-text {
-    text-align: left !important;
-  }
-
-  .timeline::before {
-    background: #eeeeee !important;
+    page-break-inside: avoid;
   }
 }
