@@ -4,6 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { CvPdfDocument as CvPdfTemplate } from "../../../../lib/pdf/CvPdfDocument";
 import { buildPdfFilename } from "../../../../lib/pdf/filename";
+import { loadPdfFonts } from "../../../../lib/pdf/engine-react-pdf";
 import { rateLimit } from "../../../../lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const doc = exportData.resume;
+    // Metrics have to be readable before render: pagination measures text to
+    // decide what may be kept whole. See app/lib/pdf/metrics.ts.
+    await loadPdfFonts();
+
     const pdfBytes = await renderToBuffer(
       React.createElement(CvPdfTemplate, {
         resume: doc,

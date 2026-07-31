@@ -250,10 +250,6 @@ Phase F (Public Surface & MVP Launch) builds on Phase E:
 - Public route SSR/metadata finalization
 - SEO metadata and structured data
 
-Phase H (PDF Visual Fidelity) begins after Phase E:
-- Upgraded PDF rendering (Vercel + Puppeteer)
-- Fidelity improvements over react-pdf baseline
-
 Phase I (Hardening & QA) includes:
 - Deploy QA for dashboard and export features
 - Privacy and capability system validation
@@ -273,7 +269,7 @@ Phase I (Hardening & QA) includes:
 
 ✓ **Completed 2 weeks ahead of schedule** (2026-05-13)
 
-✓ **Ready to transition to Phase F (Public Surface) and Phase H (PDF Visual Fidelity)**
+✓ **Ready to transition to Phase F (Public Surface)**
 
 ---
 

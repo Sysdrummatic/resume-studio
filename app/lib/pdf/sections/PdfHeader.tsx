@@ -49,7 +49,11 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
           {resume.brand_initials || "CV"}
         </Text>
       </PdfCircle>
-      <View style={{ flexDirection: "column", gap: spacing.space2xs }}>
+      {/* flex + minWidth, or a long name and role run past the right margin —
+          a flex item defaults to min-width: auto and refuses to shrink below
+          its longest line. .hero__identity carries `min-width: 0` for the same
+          reason. */}
+      <View style={{ flexDirection: "column", gap: spacing.space2xs, flex: 1, minWidth: 0 }}>
         <Text
           style={{
             fontSize: typography.sizes.xl,

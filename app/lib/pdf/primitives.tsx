@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, View } from "@react-pdf/renderer";
 import { centeringPadding, opticalCentringMargin, type PdfTheme } from "./theme";
+import { BULLET, type PdfTimelineBlock } from "./pagination";
 
 type PdfCircleProps = {
   size: number;
@@ -231,6 +232,75 @@ export function PdfTimelineItem({
         </View>
       </View>
     </View>
+  );
+}
+
+type PdfTimelineBlocksProps = {
+  blocks: PdfTimelineBlock[];
+  theme: PdfTheme;
+};
+
+/**
+ * The contents of a timeline entry, drawn from the same array ./pagination
+ * measures.
+ *
+ * Every experience, education and course entry used to inline its own JSX, so
+ * the margins here and the heights over there were two independent descriptions
+ * of one thing — and the estimator's copy left the margins out entirely. Blocks
+ * that render nothing are dropped rather than drawn empty, which is what
+ * Education's optional degree and detail relied on.
+ */
+export function PdfTimelineBlocks({ blocks, theme }: PdfTimelineBlocksProps) {
+  const { typography } = theme;
+
+  return (
+    <>
+      {blocks.map((block, index) => {
+        if (!block.text) return null;
+
+        const text = (
+          <Text
+            style={{
+              fontSize: block.fontSize,
+              fontWeight: block.fontWeight ?? typography.weights.regular,
+              color: block.color ?? theme.colors.text,
+              lineHeight: typography.lineHeight,
+              ...(block.bullet
+                ? { flex: 1 }
+                : { marginTop: block.marginTop, marginBottom: block.marginBottom }),
+            }}
+          >
+            {block.text}
+          </Text>
+        );
+
+        if (!block.bullet) return React.cloneElement(text, { key: index });
+
+        return (
+          <View
+            key={index}
+            style={{
+              flexDirection: "row",
+              paddingLeft: theme.components.listIndent,
+              marginTop: block.marginTop,
+              marginBottom: block.marginBottom,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: block.fontSize,
+                color: block.color ?? theme.colors.text,
+                lineHeight: typography.lineHeight,
+                marginRight: theme.components.listItemGap,
+              }}
+            >
+              {BULLET}
+            </Text>
+            {text}
+          </View>
+        );
+      })}
+    </>
   );
 }
 

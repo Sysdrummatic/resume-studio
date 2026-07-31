@@ -124,7 +124,12 @@ async function main() {
       return `${styles.display} / grid-template-columns: ${styles.gridTemplateColumns}`;
     });
 
-    const stem = `${label}-${personSlug}-${publicId}${lang ? `-${lang}` : ""}`;
+    // Slugified, because every part of this comes from argv and path.join()
+    // happily follows a `../` out of tmp/print-audit.
+    const stem = `${label}-${personSlug}-${publicId}${lang ? `-${lang}` : ""}`
+      .replace(/[^a-zA-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 120) || "audit";
 
     const pdf = await page.pdf({
       path: path.join(OUTPUT_DIR, `${stem}.pdf`),

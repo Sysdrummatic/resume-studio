@@ -54,4 +54,27 @@ export function registerPdfFonts(): void {
   fontsRegistered = true;
 }
 
+let fontsLoaded: Promise<void> | null = null;
+
+/**
+ * Parses the registered files so their metrics are readable before layout.
+ *
+ * `Font.register` only records a path; `Font.getFont(...).data` stays null until
+ * something loads it, and react-pdf does that after the component tree has been
+ * rendered. app/lib/pdf/metrics.ts needs the metrics *during* render — it is how
+ * pagination decides what may be kept whole — so the export routes await this
+ * first. Idempotent, and the underlying store caches.
+ */
+export function loadPdfFonts(): Promise<void> {
+  registerPdfFonts();
+
+  fontsLoaded ??= Promise.all(
+    FONT_WEIGHT_SOURCES.map(({ fontWeight }) =>
+      Font.load({ fontFamily: "SpaceGrotesk", fontWeight, fontStyle: "normal" }),
+    ),
+  ).then(() => undefined);
+
+  return fontsLoaded;
+}
+
 registerPdfFonts();

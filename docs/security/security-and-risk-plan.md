@@ -62,16 +62,18 @@ docs (e.g. `Refs: docs/security/security-and-risk-plan.md R01`).
 
 ## R04 — Infrastructure/Processor Change: PDF Rendering Migration to Vercel
 - Category: Infrastructure / Privacy (new processor)
-- Status: Deferred (planned)
-- Description: PDF export migration from `@react-pdf/renderer` to
-  Puppeteer-on-Vercel (ADR 0014) introduces Vercel as a new infrastructure
+- Status: Closed (2026-07-31) — the change that would have created the risk was
+  rejected.
+- Description: a proposed move of PDF export from `@react-pdf/renderer` to
+  Puppeteer-on-Vercel would have introduced Vercel as a new infrastructure
   provider processing personal data (CV content) for PDF generation.
-- Mitigations: ADR 0014 + migration guide already written.
-- Residual gaps: when executed, must (a) add Vercel to
-  `processor-compliance-checklist.md`, (b) update `app/privacy/page.tsx` Section
-  4 + "Last updated", (c) verify Vercel's DPA/SCC status — same pattern
-  established for Netlify/Resend under R01.
-- Tracking: ADR 0014.
+- Outcome: rejected in [ADR 0015](../adr/0015-vercel-puppeteer-pdf-migration.md).
+  PDF rendering stays in-process on Netlify, so no processor is added, no DPA or
+  SCC assessment is owed, and `app/privacy/page.tsx` Section 4 needs no entry.
+- Reopen if: an engine change is ever proposed that renders CV content off-box.
+  The obligations above — checklist row, privacy-policy Section 4 and "Last
+  updated", DPA/SCC verification — are the same pattern R01 established for
+  Netlify and Resend.
 
 ## R05 — Future AI Sub-Processors for ATS Scoring (Phase K)
 - Category: Privacy (future processor)
@@ -183,8 +185,7 @@ audit completes, or a residual gap above is closed. Update the relevant risk's
   entry gates in `docs/phases/phase-g-community-beta-testing.md`.
 - All non-P0 remediation, operational assurance, and the open/residual work for
   R01–R08 are planned in `docs/phases/phase-m-security-privacy-trust.md`.
-- Phase M may execute in parallel with Phase H. Vercel/PDF processor, secret,
-  observability, data-residency, and threat-model gates must close before the Phase H
-  production cutover.
+- Phase M's secret, observability, data-residency and threat-model gates must close
+  before launch. The PDF processor gate closed with R04: rendering stays in-process.
 - The former Phase M long-term Professional Identity Platform vision is now Phase N so
   that Phase M remains the dedicated Security, Privacy & Trust program.

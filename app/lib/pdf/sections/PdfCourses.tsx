@@ -1,9 +1,8 @@
 import React from "react";
-import { Text } from "@react-pdf/renderer";
 import type { ResumeCourse } from "../../resume-schema";
 import type { PdfTheme } from "../theme";
-import { PdfSectionCard, PdfTimelineItem } from "../primitives";
-import { planTimelineSection } from "../pagination";
+import { PdfSectionCard, PdfTimelineBlocks, PdfTimelineItem } from "../primitives";
+import { planTimelineSection, type PdfTimelineBlock } from "../pagination";
 
 type PdfCoursesProps = {
   courses: ResumeCourse[];
@@ -15,11 +14,19 @@ type PdfCoursesProps = {
 // with the year as the period and a regular-weight course name.
 // (This previously copied .course-list, a stylesheet rule the renderer stopped
 // using — hence the tinted tiles that appeared in the PDF but never on the page.)
+function courseBlocks(course: ResumeCourse, theme: PdfTheme): PdfTimelineBlock[] {
+  return [
+    {
+      text: course.name,
+      fontSize: theme.typography.sizes.md,
+      fontWeight: theme.typography.weights.regular,
+    },
+  ];
+}
+
 export function PdfCourses({ courses, title, theme }: PdfCoursesProps) {
-  const pagination = planTimelineSection(
-    theme,
-    courses.map((course) => [course.name]),
-  );
+  const entries = courses.map((course) => courseBlocks(course, theme));
+  const pagination = planTimelineSection(theme, entries);
 
   return (
     <PdfSectionCard
@@ -36,16 +43,7 @@ export function PdfCourses({ courses, title, theme }: PdfCoursesProps) {
           theme={theme}
           allowSplit={pagination.allowSplit[index]}
         >
-          <Text
-            style={{
-              fontSize: theme.typography.sizes.md,
-              lineHeight: theme.typography.lineHeight,
-              fontWeight: theme.typography.weights.regular,
-              color: theme.colors.text,
-            }}
-          >
-            {course.name}
-          </Text>
+          <PdfTimelineBlocks blocks={entries[index]} theme={theme} />
         </PdfTimelineItem>
       ))}
     </PdfSectionCard>

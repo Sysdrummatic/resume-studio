@@ -1728,8 +1728,11 @@ img {
     display: none;
   }
 
+  /* `grid-template-columns: minmax(80px, 120px) 1fr` used to sit here and never
+     applied: .timeline-item computes to `display: flex; flex-direction: column`
+     and print does not change that, so entries print as a stacked period over
+     content — not as a two-column period/content grid. */
   .timeline-item {
-    grid-template-columns: minmax(80px, 120px) 1fr;
     gap: 10px;
     break-inside: avoid;
     page-break-inside: avoid;

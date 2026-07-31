@@ -540,3 +540,47 @@ test("a section title never stays behind alone when its first entry moves on", a
   const total = (pages) => pages.reduce((sum, page) => sum + page.runs, 0);
   assert.equal(total(bound), total(stranded), "binding must not drop or duplicate any line");
 });
+
+test("a long name and role wrap inside the header instead of running off the page", async () => {
+  /*
+   * The identity column is a flex item, so it defaults to min-width: auto and
+   * refuses to shrink below its longest line — the role rendered at 500pt in a
+   * 468.6pt column and simply crossed the right margin. .hero__identity carries
+   * `min-width: 0` on the web for the same reason.
+   */
+  const logo = 60;
+  const gap = 10;
+  const available = A4.width - 2 * A4.margin - logo - gap;
+
+  const name = "Aleksandra Katarzyna Wisniewska-Kowalczyk";
+  const role = "Principal Software Engineer, Distributed Systems and Platform Architecture";
+
+  async function lineCount(identityStyle) {
+    const buffer = await renderA4(
+      React.createElement(
+        View,
+        { style: { flexDirection: "row", alignItems: "center", gap } },
+        circle(logo, "#009c8a", { minWidth: logo }),
+        React.createElement(
+          View,
+          { key: "identity", style: { flexDirection: "column", gap: 2.5, ...identityStyle } },
+          text(27.5, { lineHeight: 1.15 }, name),
+          text(13.75, { lineHeight: 1.6 }, role),
+        ),
+      ),
+    );
+
+    return a4Pages(buffer)[0].runs;
+  }
+
+  // Both strings are wider than the column, so a column that can shrink has to
+  // produce more lines than one that cannot.
+  const unshrinkable = await lineCount({});
+  const shrinkable = await lineCount({ flex: 1, minWidth: 0 });
+
+  assert.ok(
+    shrinkable > unshrinkable,
+    `expected extra wrapped lines once the column may shrink, got ${shrinkable} against ${unshrinkable} ` +
+      `in ${available.toFixed(0)}pt`,
+  );
+});

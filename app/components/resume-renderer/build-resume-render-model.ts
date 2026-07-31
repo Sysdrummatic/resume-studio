@@ -86,7 +86,10 @@ const DEFAULT_RENDERER_LABELS: ResumeRendererLabels = {
  *
  * Deliberately returns pieces rather than inserting a zero-width space: a ZWSP
  * would survive into the PDF's text layer, and that layer is what ATS parsers
- * read an e-mail address out of.
+ * read an e-mail address out of. On the web `.contact-list dd` adds
+ * `overflow-wrap: break-word`, so a piece too wide even for its own line still
+ * breaks rather than escaping the card; the PDF has its own fallback in
+ * app/lib/pdf/metrics.ts.
  */
 export function splitContactValueForWrapping(value: string): string[] {
   return value

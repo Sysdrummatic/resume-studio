@@ -28,7 +28,7 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
   - `npm.cmd run build` — full Next.js build
 
 - [ ] **Preview deploy QA**:
-  - Vercel preview builds triggered automatically
+  - Netlify Deploy Previews triggered automatically
   - Smoke test suite runs on preview URL
   - Manual QA on preview before production push
 
@@ -149,7 +149,7 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
 
 - [ ] **Secret management**:
   - No secrets in environment files
-  - Vercel secrets correctly configured
+  - Netlify environment variables correctly configured
   - Database passwords not in logs
   - API keys rotated if exposed
 
@@ -222,7 +222,7 @@ Integration Tests (Node test runner)
 ├─ Auth flow end-to-end
 └─ Publish/rollback workflows
 
-E2E Tests (Playwright/Puppeteer)
+E2E Tests (Playwright)
 ├─ Sign-up → CV edit → publish
 ├─ Admin user management
 ├─ Recruiter access patterns
@@ -263,7 +263,7 @@ Manual QA Checklist
 
 **Mitigation**: 
 - Pre-deploy checklist verifies all env vars
-- Vercel deploy preview runs before production
+- Netlify Deploy Preview runs before production
 - Rollback to previous deploy if critical issue
 
 ### Risk 2: RLS Policies Don't Match Code Logic
@@ -280,7 +280,7 @@ Manual QA Checklist
 **Scenario**: Old `.html` URLs stop working after platform migration or DNS change.
 
 **Mitigation**:
-- vercel.json has explicit redirect rules
+- netlify.toml has explicit redirect rules
 - Pre-deploy testing verifies old URLs
 - Rollback plan includes redirect config
 

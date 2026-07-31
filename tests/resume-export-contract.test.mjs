@@ -630,10 +630,21 @@ test("pdf preview route uses buildPdfFilename and respects the draft pdf feature
 });
 
 test("experience section keeps each employer block unsplit across pages", () => {
+  /*
+   * This used to search the whole of primitives.tsx for any `wrap={false}` and
+   * passed on the title wrapper, long after the entry itself had moved to
+   * `wrap={allowSplit}`. It has to read the entry's own prop.
+   */
   const experience = read("app/lib/pdf/sections/PdfExperience.tsx");
-  const primitives = read("app/lib/pdf/primitives.tsx");
   assert.equal(experience.includes("PdfTimelineItem"), true);
-  assert.equal(primitives.includes("wrap={false}"), true);
+
+  const timelineItem = read("app/lib/pdf/primitives.tsx").match(
+    /export function PdfTimelineItem[\s\S]*?\n(?=type |export function )/,
+  )[0];
+
+  // The row that holds the whole entry, and nothing else.
+  assert.match(timelineItem, /<View wrap=\{allowSplit\} style=\{\{ flexDirection: "row" \}\}/);
+  assert.match(timelineItem, /allowSplit = false/, "an entry must default to staying whole");
 });
 
 test("pdf theme carries only colour tokens resume.css actually renders", () => {

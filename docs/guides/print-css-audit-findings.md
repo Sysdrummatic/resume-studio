@@ -291,8 +291,14 @@ Verified by measurement, not assumption:
   light-grey fill. The `print-color-adjust: exact` list at L1647–1658 works.
 - **Timeline axis suppression is deliberate and clean** — `.timeline::before`
   hidden, `.timeline-item__period::before` dot removed (L1629–1631), period text
-  unindented (L1625–1627). Entries read as a clean two-column period/content grid.
+  unindented (L1625–1627). Entries read as a clean period-over-content stack.
   Timeline dots and axis lines are *absent by design*, not broken.
+  *(Correction, 2026-07-31: this bullet originally said "two-column
+  period/content grid". It never was one. `.timeline-item` computes to
+  `display: flex; flex-direction: column` and the print block did not change
+  that, so the `grid-template-columns` it declared was inert — the same dead-rule
+  class as the `.contact-list` finding above. The declaration has since been
+  deleted; the printed layout is unchanged, because it never applied.)*
 - **No console errors** during any render.
 - **Locale parity** — `?lang=no` produced identical pagination and styling to
   `?lang=en`, so none of these issues are locale-specific.

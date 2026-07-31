@@ -73,7 +73,12 @@ test("print block no longer references the dead .language-switcher selector", ()
 test("print block resets color-scheme to light for the whole printed page", () => {
   const rootRule = printBlock.match(/:root\s*\{[^}]*\}/);
   assert.notEqual(rootRule, null, "print block must contain a :root rule");
-  assert.equal(/color-scheme:\s*light/.test(rootRule[0]), true);
+
+  // `!important` is the whole point: globals.css declares the dark scheme on
+  // :root at equal specificity and is bundled later, so without it the dark
+  // canvas returns and every sheet prints framed in black. Matching only
+  // `color-scheme: light` let that regression through.
+  assert.equal(/color-scheme:\s*light\s*!important/.test(rootRule[0]), true);
 });
 
 test("print block hides the portal ambient background layer", () => {
@@ -85,9 +90,11 @@ test("print block hides the portal ambient background layer", () => {
   assert.equal(printBlock.includes("body::after"), true);
 });
 
-test("print block drops the dead grid-template-columns rule on a flex container", () => {
-  // .contact-list computes to display:flex, so grid-template-columns never applied.
+test("print block drops the dead grid-template-columns rules on flex containers", () => {
+  // Both compute to display:flex and print does not change that, so
+  // grid-template-columns never applied on either.
   assert.equal(/\.contact-list\s*\{[^}]*grid-template-columns/.test(printBlock), false);
+  assert.equal(/\.timeline-item\s*\{[^}]*grid-template-columns/.test(printBlock), false);
 });
 
 test("print block drops the dead background on the hidden timeline axis", () => {

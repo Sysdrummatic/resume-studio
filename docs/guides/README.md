@@ -64,7 +64,6 @@ workflows, and others) were removed from the repository in commit `36209ca`
   - Phase E: [phase-e-ux-community.md](../phases/phase-e-ux-community.md)
   - Phase F: [phase-f-public-surface.md](../phases/phase-f-public-surface.md)
   - Phase G: [phase-g-community-beta-testing.md](../phases/phase-g-community-beta-testing.md)
-  - Phase H: [phase-h-vercel-puppeteer-pdf.md](../phases/phase-h-vercel-puppeteer-pdf.md)
   - Phase I: [phase-i-hardening-qa.md](../phases/phase-i-hardening-qa.md)
   - Phase J: [phase-j-ai-ecosystem.md](../phases/phase-j-ai-ecosystem.md)
 - **Architecture Decisions**: [docs/adr/README.md](../adr/README.md)

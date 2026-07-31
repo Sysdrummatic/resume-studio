@@ -356,8 +356,10 @@ test("contact pairs stack, because the sidebar card is always a narrow container
   const stackedGapPx = Number(narrow[1].match(/gap:\s*(\d+)px/)[1]);
   assert.equal(themePt("components", "contactLabelGap"), stackedGapPx);
 
-  const personalInfo = read("app/lib/pdf/sections/PdfPersonalInfo.tsx");
-  assert.match(personalInfo, /flexDirection: "column", alignItems: "flex-start"/);
+  const personalInfo = stripComments(read("app/lib/pdf/sections/PdfPersonalInfo.tsx"));
+  const row = personalInfo.match(/contact\.map\(\(item, index\) => \([\s\S]*?\}\}/)[0];
+  assert.match(row, /flexDirection: "column"/);
+  assert.match(row, /alignItems: "flex-start"/);
 });
 
 test("text centred against a sibling compensates react-pdf's leading", () => {
@@ -416,6 +418,19 @@ test("the timeline dot draws its ring as a circle, never a border", () => {
   // The ring is a card-coloured circle with the accent dot nested inside it.
   assert.match(timelineItem, /<PdfCircle[\s\S]*?color=\{theme\.colors\.cardBg\}/);
   assert.match(timelineItem, /<PdfCircle[\s\S]*?color=\{theme\.colors\.accent\}[\s\S]*?\/>\s*<\/PdfCircle>/);
+});
+
+test("the hero identity column can shrink, as .hero__identity does", () => {
+  // A flex item defaults to min-width: auto, so a long name or role refuses to
+  // wrap and crosses the right margin instead. The web sets `min-width: 0` on
+  // .hero__identity for exactly this.
+  const identity = PUBLIC_VIEW_CSS.match(/\n\.hero__identity\s*\{([^}]*)\}/)[1];
+  assert.match(identity, /min-width:\s*0/);
+
+  const header = stripComments(read("app/lib/pdf/sections/PdfHeader.tsx"));
+  const column = header.match(/<View style=\{\{ flexDirection: "column"[^}]*\}\}/)[0];
+  assert.match(column, /minWidth: 0/);
+  assert.match(column, /flex: 1/);
 });
 
 test("every circle the web pins with flex-shrink goes through PdfCircle", () => {
