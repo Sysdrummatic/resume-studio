@@ -41,9 +41,9 @@ images/qrs/linkedin.png
 images/qrs/portal.png
 .next/
 
-# Claude Code configuration
-.claude/
-CLAUDE.md
+# Claude Code configuration (local-only overrides)
+.claude/settings.local.json
+CLAUDE.local.md
 
 # Codex CLI configuration
 .codex/

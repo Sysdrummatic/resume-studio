@@ -55,42 +55,7 @@ When changes affect related areas, validate:
 
 ## Git workflow (branches + commits)
 
-### Branching rule (mandatory)
-
-- Every new task starts on a fresh branch when the current branch is `master` or `main`.
-- Branches should be short-lived and scoped to a single goal.
-
-### Branch naming
-
-Use a conventional prefix + short kebab-case description:
-- `feat/<area>-<change>` (new functionality)
-- `fix/<area>-<bug>` (bug fix)
-- `refactor/<area>-<change>` (no behavior change intended)
-- `docs/<topic>` (documentation-only)
-- `chore/<topic>` (tooling/cleanup)
-
-Examples:
-- `feat/public-resume-seo`
-- `fix/auth-session-refresh`
-- `docs/codex-git-workflow`
-
-### Commit messages
-
-Use Conventional Commits (imperative, present tense):
-- `feat: <what>`
-- `fix: <what>`
-- `refactor: <what>`
-- `docs: <what>`
-- `test: <what>`
-- `chore: <what>`
-
-Examples:
-- `docs: add prompt template and git rules`
-- `fix: enforce email verification on signin`
-
-Rule of thumb:
-- Keep commits atomic (one logical change).
-- Do not mix refactors with behavior changes in one commit.
+See `docs/guides/development/git-workflow.md` for the branching rule, branch naming convention, and commit message convention (canonical source, shared with Claude Code via `CLAUDE.md`).
 
 ## Docs to consult (authoritative)
 - `README.md`
