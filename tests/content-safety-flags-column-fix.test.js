@@ -18,6 +18,21 @@ test("content_safety_flags column drift fix renames matched_snippet back to matc
   assert.equal(sql.includes("rename column matched_snippet to match_hash"), true);
 });
 
+test("the rename is conditional, not a bare ALTER, so it's safe on a fresh database", () => {
+  // Regression test for a real CI failure: a database built fresh from the
+  // full migration history never has `matched_snippet` — the original
+  // 20260713000000 migration already creates `match_hash` directly. Only
+  // prod/test drifted via some out-of-band change outside the migration
+  // history. An unconditional `rename column` fails with "column
+  // matched_snippet does not exist" on any environment built from these
+  // migrations alone (confirmed by the database-security CI job).
+  const sql = fs.readFileSync(migrationPath, "utf8");
+
+  assert.equal(/do\s+\$\$/i.test(sql), true);
+  assert.equal(/information_schema\.columns/i.test(sql), true);
+  assert.equal(/if\s+exists\s*\(/i.test(sql), true);
+});
+
 test("write path (content-safety-audit.ts) and read path (admin/audit page) agree on match_hash", () => {
   const writePath = fs.readFileSync(
     path.join(__dirname, "..", "app", "lib", "content-safety-audit.ts"),
