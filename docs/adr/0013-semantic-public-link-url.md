@@ -4,7 +4,7 @@ Status: Planned
 
 Date: 2026-06-09
 
-Extends: [ADR 0001](0001-cv-publication-model.md), [ADR 0004](0004-public-route-compatibility-policy.md)
+Extends: [ADR 0001](0001-cv-publication-model.md)
 
 ## Context
 
@@ -13,10 +13,9 @@ slug such as `arianaholt-a1b2c3d4` with no hyphen between first and last name. T
 shared and does not communicate the role a published Saved Version targets.
 
 [ADR 0001](0001-cv-publication-model.md) established the Saved Version / Published CV / Public Link
-model and the `/{person-slug}/{public-id}` shape. [ADR 0004](0004-public-route-compatibility-policy.md)
-established that canonical URLs are the SEO source of truth and that legacy routes must redirect rather
-than break. This ADR refines the canonical URL contract to a semantic, snapshot-stable shape while
-preserving those guarantees.
+model and the `/{person-slug}/{public-id}` shape, with canonical URLs as the SEO source of truth. This
+ADR refines the canonical URL contract to a semantic, snapshot-stable shape while preserving that
+guarantee.
 
 ## Decision
 

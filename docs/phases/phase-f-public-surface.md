@@ -12,7 +12,7 @@
 
 ## Overview
 
-Phase F implements the public-facing resume surface with full SEO/AEO support, structured data for search engines, and backward compatibility with legacy URL schemes. This is the MVP launch phase — the moment real users can discover and share their CVs publicly.
+Phase F implements the public-facing resume surface with full SEO/AEO support and structured data for search engines. This is the MVP launch phase — the moment real users can discover and share their CVs publicly.
 
 ### Key Theme
 **From internal tool → public platform.** Resume data becomes shareable and discoverable.
@@ -26,7 +26,6 @@ Phase F implements the public-facing resume surface with full SEO/AEO support, s
 - ✓ **Canonical public route**: `/person-slug/public-id` with SSR/ISR rendering
 - ✓ **Public link management**: Users can publish/unpublish from dashboard
 - ✓ **Immutable snapshots**: Published CVs are frozen at publication time (stored in `resume_revisions`)
-- ✓ **Legacy compatibility route**: `/r/[slug]` delivered per [ADR 0004](../adr/0004-public-route-compatibility-policy.md), then retired pre-launch (commit `e675940`, 2026-06-29; ADR 0004 superseded — no real legacy links existed)
 - ✓ **Multi-language support**: `?lang=<locale>` parameter with `hreflang` metadata for SEO
 
 ### SEO & AEO (Search Engine Optimization)
@@ -43,7 +42,6 @@ Phase F implements the public-facing resume surface with full SEO/AEO support, s
 All Phase F architectural contracts are documented:
 
 - [ADR 0001: CV Publication Model](../adr/0001-cv-publication-model.md) — database model, publish/unpublish, snapshot immutability
-- [ADR 0004: Public Route Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md) — backward-compatible routing strategy (superseded 2026-07-03; route retired pre-launch)
 - [ADR 0005: SEO/AEO, Structured Data, Sitemap, Robots](../adr/0005-seo-aeo-structured-data-policy.md) — metadata and crawler contracts
 - [ADR 0007: Publication Analytics & Audit Retention](../adr/0007-publication-analytics-and-audit-retention.md) — view counting and audit logs
 
@@ -106,7 +104,6 @@ All Phase F architectural contracts are documented:
 - `app/components/cv-resume-preview.tsx` — public CV render component
 - `app/api/resume/publish` — publish endpoint
 - `app/api/resume/unpublish` — unpublish endpoint
-- `app/(public)/r/[slug]/route.ts` — legacy compatibility resolver (removed 2026-06-29, ADR 0004 superseded)
 - `app/(public)/[person-slug]/[public-id]/route.ts` — canonical public route
 - `app/(public)/[person-slug]/[public-id]/[[...lang]]/page.tsx` — SSR public page
 - `app/lib/resume-server.ts` — snapshot fetching helpers (resolveSnapshotLocales, etc.)
@@ -122,7 +119,6 @@ All Phase F architectural contracts are documented:
 - [x] Unpublish makes route 404/noindex
 - [x] Re-publish creates new snapshot (old snapshot unchanged)
 - [x] Canonical URL renders with correct SEO metadata
-- [x] Legacy `/r/[slug]` resolved or redirected per ADR 0004 (route since retired pre-launch; test obsolete)
 - [x] Multi-language URLs show correct content + `hreflang` tags
 - [x] JSON-LD structured data is valid (check schema.org)
 - [x] Sitemap includes all published links
@@ -144,15 +140,7 @@ All Phase F architectural contracts are documented:
 
 **ADR**: [ADR 0005: SEO Policy](../adr/0005-seo-aeo-structured-data-policy.md#old-metadata-stale-after-edit)
 
-### Risk 2: Legacy Link Traffic Doesn't Migrate
-
-**Scenario**: Recruiter bookmarked `/r/[slug]` before migration. Link stops working after phase launches.
-
-**Mitigation**: `/r/[slug]` continued to resolve during Phase F. Resolved pre-launch: production had no real legacy links, so the route was retired (2026-06-29) and ADR 0004 superseded — this risk no longer applies.
-
-**ADR**: [ADR 0004: Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md) (superseded)
-
-### Risk 3: Published Content Can't Be Edited
+### Risk 2: Published Content Can't Be Edited
 
 **Scenario**: User accidentally publishes, wants to add another section.
 
@@ -168,7 +156,6 @@ All Phase F architectural contracts are documented:
 
 ### Architecture Decisions
 - [ADR 0001: CV Publication Model](../adr/0001-cv-publication-model.md)
-- [ADR 0004: Public Route Compatibility & Deprecation](../adr/0004-public-route-compatibility-policy.md)
 - [ADR 0005: SEO/AEO, Structured Data, Sitemap, Robots](../adr/0005-seo-aeo-structured-data-policy.md)
 - [ADR 0007: Publication Analytics & Audit Retention](../adr/0007-publication-analytics-and-audit-retention.md)
 
@@ -177,7 +164,6 @@ All Phase F architectural contracts are documented:
 - [SEO/AEO Preview QA Checklist](../guides/testing/seo-aeo-preview-qa-checklist.md)
 
 ### Guides
-- [Public Route Compatibility Rollout](../guides/policies/public-route-compatibility-rollout.md)
 - [Deployment QA Checklist](../guides/testing/deployment-qa.md)
 
 ### Execution
@@ -193,7 +179,6 @@ Phase G (Community Beta Testing) begins once Phase F core delivery is stable —
 ### Phase I Dependency
 Phase I (Hardening & QA) begins after Phase F core delivery (2026-05-23). Includes:
 - Deploy QA for public routes
-- Legacy compatibility regression tests
 - SEO metadata validation
 
 ---
@@ -204,7 +189,6 @@ Phase I (Hardening & QA) begins after Phase F core delivery (2026-05-23). Includ
 - Public routes with SSR/ISR
 - SEO metadata and structured data
 - Sitemap and robots
-- Legacy compatibility
 - Multi-language support
 
 ✓ **Launch prep resolved (2026-07-03)**:
@@ -222,7 +206,7 @@ Tracked in [STATUS.md](../STATUS.md):
 - [x] Apply indexing controls to robots and headers
 - [x] Add canonical URLs and OpenGraph/Twitter metadata
 - [x] Add multilingual public CV SEO support with `hreflang`
-- [x] Implement SSR public route `/r/[slug]` (since retired pre-launch, ADR 0004 superseded)
+- [x] Implement SSR canonical public route `/{person-slug}/{public-id}`
 - [x] Add structured data (JSON-LD)
 - [x] Add sitemap and robots configuration
 - [x] Verify compatibility redirects from legacy static routes

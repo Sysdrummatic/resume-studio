@@ -31,7 +31,6 @@ Design decisions, contracts, and implementation policies linked to ADRs.
 
 - [Privacy-First Admin Access Policy](policies/privacy-first-admin-access-policy.md) — Role inheritance and data isolation (Phase C/E, ADR 0003)
 - [Publication Analytics & Audit Policy](policies/publication-analytics-audit-policy.md) — View counting and audit trails (Phase E, ADR 0007)
-- [Public Route Compatibility Rollout](policies/public-route-compatibility-rollout.md) — Legacy URL deprecation strategy (Phase F, ADR 0004)
 - [OpenCV YAML Public Contract Policy](policies/opencv-yaml-public-contract-policy.md) — YAML schema and evolution (Phase B, ADR 0002)
 - [OpenCV Public API & Export Surface](policies/opencv-public-api-export-policy.md) — API contracts (Phase B, ADR 0008)
 

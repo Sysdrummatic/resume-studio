@@ -22,8 +22,3 @@ Use this checklist before shipping public CV SEO/AEO changes.
 - [ ] JSON-LD is emitted only for active/indexable public pages.
 - [ ] JSON-LD includes snapshot-safe fields only.
 - [ ] JSON-LD does not expose draft/private/admin-only fields.
-
-## Compatibility Safety
-
-- [ ] `/r/[slug]` never appears as canonical URL.
-- [ ] `/r/[slug]` behavior remains compatibility-only and covered by regression tests.

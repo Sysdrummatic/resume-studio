@@ -21,7 +21,7 @@ This repository contains the React/Next.js OpenCiVera codebase. The former stati
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
 4. Start: `npm run dev`
-5. Open the React routes, for example `/`, `/resume`, `/login`, `/dashboard`, `/user`, `/admin`, `/master-resume`, `/privacy`, canonical public `/{person-slug}/{public-id}`, or compatibility `/r/{slug}`.
+5. Open the React routes, for example `/`, `/resume`, `/login`, `/dashboard`, `/user`, `/admin`, `/master-resume`, `/privacy`, or canonical public `/{person-slug}/{public-id}`.
 
 ## Database migrations
 

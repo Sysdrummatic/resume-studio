@@ -272,7 +272,7 @@ Tracked in [STATUS.md](../STATUS.md):
 - [x] Legacy JSON to YAML migration logic exists
 - [x] RLS rules for the active role model exist (foundation)
 - [x] Phase B tests pass in the current repo
-- [x] Next.js consumption of YAML via API working (`/r/[slug]`)
+- [x] Next.js consumption of YAML via API working
 - [x] Migration completed without data loss
 
 **Overall**: ✓ **100% COMPLETE**

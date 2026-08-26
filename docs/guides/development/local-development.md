@@ -52,7 +52,7 @@ npm run dev
 - `/admin` - protected admin/manager panel
 - `/master-resume` - canvas editor (Phase D)
 - `/resume` - public sample CV
-- `/r/{slug}` - published preset CV
+- `/{person-slug}/{public-id}` - canonical published CV
 
 ## Compatibility Redirects
 
