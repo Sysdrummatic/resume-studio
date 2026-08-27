@@ -506,7 +506,8 @@ execute `buildPublishedExportContent` directly:
 - **Netlify:** Build config + Next.js plugin only; the legacy `.html` redirects were removed with the static app (`tests/legacy-static-cleanup.test.mjs`)
 
 **Privacy Policy Page:** Public, indexable route at `app/privacy/page.tsx`
-(English only, docs/security/security-and-risk-plan.md R01). Linked from the homepage footer
+(English only, `docs/security/security-and-risk-plan.md` R01 — moved to the private
+`OpenCiVera-Project` repo). Linked from the homepage footer
 (`app/components/footer.tsx`), the Personal Hub "Policies" section
 (`app/user/user-client.tsx`), and the sign-up form
 (`app/login/account-access-client.tsx`). Listed as a static entry in
@@ -541,9 +542,9 @@ PRs: (1) the `user.deleted` audit entry is silently dropped because
 `writeAdminAuditLog` runs after the cascading delete and violates the
 `target_user_id` FK — `app/api/admin/users/[userId]/route.ts`; (2) staff accounts
 (`actor_user_id` on any audit row) cannot be deleted due to `ON DELETE RESTRICT`.
-Operational steps live in `.codex/runbooks/data-subject-request.md`; sub-processor
-status in `docs/guides/processor-compliance-checklist.md`. Test contract:
-`tests/docs-data-retention.test.mjs`.
+Operational steps and sub-processor status live in the private `OpenCiVera-Project`
+repo (`.codex/runbooks/data-subject-request.md`, `docs/guides/processor-compliance-checklist.md`).
+Test contract: `tests/docs-data-retention.test.mjs`.
 
 **Self-Service Account Deletion (GDPR Art. 17):** `DELETE /api/user/account`
 (`app/api/user/account/route.ts`) deletes the authenticated caller's own account via
@@ -568,7 +569,8 @@ when either var is unset; never throws. `.env.example` documents both vars as
 present-but-empty. Enabling requires only setting the two env vars (no code change).
 `app/privacy/page.tsx` Section 5 now distinguishes immediate self-service deletion
 from the 30-day manual/admin-mediated path; `.codex/runbooks/data-subject-request.md`
-and `docs/guides/processor-compliance-checklist.md` updated accordingly. Test
+and `docs/guides/processor-compliance-checklist.md` (private `OpenCiVera-Project`
+repo) updated accordingly. Test
 contracts: `tests/account-deletion.test.mjs`, `tests/email-feature-flag.test.mjs`.
 **Known limitation (not yet fixed):** `requireRequestActor()` imposes no role
 restriction, so an admin/manager can call this route on their own account; if that
@@ -605,8 +607,8 @@ admin to delete another admin) and `DELETE /api/user/account`
 step, and returns `409 { error: "last_admin" | "only_account", message }` — the
 Profile modal Danger Zone (`app/components/account-menu.tsx`) shows that message
 inline without clearing the session or redirecting. Documented in
-`docs/security/security-and-risk-plan.md` (R08, cross-ref R06). Test
-contract: `tests/last-admin-safeguard.test.mjs`.
+`docs/security/security-and-risk-plan.md` (private `OpenCiVera-Project` repo; R08,
+cross-ref R06). Test contract: `tests/last-admin-safeguard.test.mjs`.
 
 **Public CV Stored-XSS Remediation (Phase G G-P0-01):** The public CV route
 (`app/[personSlug]/[publicId]/page.tsx`) previously rendered JSON-LD via
@@ -640,8 +642,9 @@ designed once as part of the OpenCV standard rather than ad hoc in this app. Tes
 contracts: `tests/jsonld-safe-serializer.test.mjs`,
 `tests/safe-url-protocol-allowlist.test.mjs`, `tests/content-safety-detector.test.mjs`,
 `tests/content-safety-flags-migration.test.js`. Manual/E2E scenarios:
-`docs/guides/test-scenarios/stored-xss-public-cv-jsonld/stored-xss-public-cv-jsonld.md`. See
-[Phase G](docs/phases/phase-g-community-beta-testing.md) G-P0-01.
+the manual/E2E scenario in the private `OpenCiVera-Project` repo
+(`docs/guides/test-scenarios/stored-xss-public-cv-jsonld/stored-xss-public-cv-jsonld.md`).
+See [Phase G](docs/phases/phase-g-community-beta-testing.md) G-P0-01.
 
 **Dependency Security Gate:** `js-yaml` pinned to `^4.3.0` (not the 5.x rewrite —
 breaking schema/API changes across every `yaml.load`/`dump` call site for no
