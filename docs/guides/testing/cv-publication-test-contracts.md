@@ -154,14 +154,6 @@ Historical Published CV snapshots do not change when the private YAML schema or 
 
 Schema migrations for historical snapshots must be explicit and test-covered.
 
-## Compatibility Contract
-
-Existing `/r/[slug]` links remain supported during migration.
-
-The compatibility route either resolves the legacy public content or redirects to `/{person-slug}/{public-id}` according to the rollout stage.
-
-Compatibility behavior must be tested before `/r/[slug]` is deprecated.
-
 ## Minimum Validation Commands
 
 Run these before merging implementation work related to CV publication:

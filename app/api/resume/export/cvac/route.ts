@@ -23,9 +23,12 @@ export async function GET(req: NextRequest) {
   }
 
   const ip = req.headers.get("x-forwarded-for") || "anonymous";
-  const rl = rateLimit(`cvac-export:${ip}`, { interval: 60000, limit: 5 });
+  const rl = await rateLimit(`cvac-export:${ip}`, { interval: 60000, limit: 5 });
   if (!rl.success) {
-    return NextResponse.json({ error: "Rate limit exceeded." }, { status: 429 });
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
+    );
   }
 
   const exportData = await fetchPublishedResumeExportByPublicLink(personSlug, publicId, lang);

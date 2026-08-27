@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { updateUserPassword } from "../../../lib/supabase-http";
+import { NEW_PASSWORD_MIN_LENGTH } from "../../../lib/auth-policy";
 
 type UpdatePasswordBody = {
   accessToken?: string;
@@ -21,8 +22,11 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Missing recovery token." }, { status: 400 });
   }
 
-  if (password.length < 10) {
-    return NextResponse.json({ error: "Use a password with at least 10 characters." }, { status: 400 });
+  if (password.length < NEW_PASSWORD_MIN_LENGTH) {
+    return NextResponse.json(
+      { error: `Use a password with at least ${NEW_PASSWORD_MIN_LENGTH} characters.` },
+      { status: 400 },
+    );
   }
 
   const result = await updateUserPassword(accessToken, password);

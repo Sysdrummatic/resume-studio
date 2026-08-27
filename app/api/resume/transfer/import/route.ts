@@ -15,6 +15,7 @@ import {
 } from "../../../../lib/resume-server";
 import { parseUserDataBundle } from "../../../../lib/user-data-transfer";
 import { callRpc } from "../../../../lib/supabase-http";
+import { flagSuspiciousResumeContent } from "../../../../lib/content-safety-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -114,6 +115,13 @@ export async function POST(request: Request): Promise<Response> {
         { status: 500 },
       );
     }
+
+    await flagSuspiciousResumeContent(document.yaml_content, {
+      userId,
+      documentId: saved.document.id,
+      locale: document.locale,
+      source: "resume_import_save",
+    });
   }
 
   // Replace private CV versions; published ones keep their links and snapshots.
