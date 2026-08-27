@@ -59,6 +59,13 @@ export type ResumeDocument = {
   experience: ResumeExperience[];
   education: ResumeEducation[];
   courses: ResumeCourse[];
+  /**
+   * Free text, rendered verbatim as a small footer on the CV. Common on the
+   * Polish job market, usually left empty for English CVs — the editor offers
+   * a one-click standard PL wording, but this is not an enum: a cleared value
+   * must stay cleared, never re-defaulted on reload.
+   */
+  gdpr_clause: string;
 };
 
 export type ResumeRevisionItem = {
@@ -85,6 +92,7 @@ export const RESUME_REQUIRED_KEYS: Array<keyof ResumeDocument> = [
   "experience",
   "education",
   "courses",
+  "gdpr_clause",
 ];
 
 function asObject(value: unknown): Record<string, unknown> {
@@ -140,6 +148,7 @@ export function defaultResumeDocument(name = ""): ResumeDocument {
     experience: [{ period: "", company: "", role: "", highlights: [""] }],
     education: [{ period: "", school: "", degree: "", detail: "" }],
     courses: [{ year: 0, name: "" }],
+    gdpr_clause: "",
   };
 }
 
@@ -247,6 +256,7 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
         };
       })
       .filter((row) => row.name),
+    gdpr_clause: asText(source.gdpr_clause),
   };
 }
 

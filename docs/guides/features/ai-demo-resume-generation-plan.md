@@ -2,7 +2,7 @@
 
 This is a planned workstream layered on top of the existing editor.
 
-It is not a core phase from the product roadmap. Phase F covers public resume rendering, SEO/AEO, and `/r/[slug]` compatibility work. This workstream is slated for Phase J (AI & Ecosystem).
+It is not a core phase from the product roadmap. Phase F covers public resume rendering and SEO/AEO. This workstream is slated for Phase J (AI & Ecosystem).
 
 This document defines the implementation plan for adding an AI-assisted demo CV generator to the React editor on `/master-resume`.
 

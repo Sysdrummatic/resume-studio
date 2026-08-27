@@ -93,7 +93,12 @@ matrix and is required by CI for security-sensitive migrations.
 - [ ] Add request Content-Type and body-size limits before JSON/YAML parsing.
 - [ ] Introduce typed schemas and strict unknown-field rejection for API payloads.
 - [ ] Require recent authentication and MFA/AAL2 for role/status changes, staff deletion,
-  full data export/import, account deletion, and security-setting changes.
+  full data export/import, account deletion, and security-setting changes. Confirmed live
+  on prod (2026-08-26, via the Supabase Management API): both
+  `security_update_password_require_reauthentication` and
+  `security_update_password_require_current_password` are `false` — a password change
+  currently needs neither a recent login nor the current password. Deferred out of
+  [G-P0-04](phase-g-community-beta-testing.md).
 - [ ] Prefer host-only `__Host-` auth cookies; remove broad cookie-domain scope unless a
   reviewed cross-subdomain requirement exists.
 - [ ] Standardize generic client errors and server-side correlation IDs; never return raw
@@ -101,6 +106,33 @@ matrix and is required by CI for security-sensitive migrations.
 - [ ] Add safe URL-scheme allowlists for CV contact links and future remote image fields.
 - [ ] Threat-model account recovery, refresh rotation, session revocation, concurrent
   refresh, and inactive-account behavior.
+- [ ] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
+  [G-P0-05](phase-g-community-beta-testing.md)) to token refresh, account deletion, and
+  destructive/admin actions — deliberately deferred out of Phase G's beta-admission gate
+  as lower practical risk for a handful of known, invited testers than the auth/export
+  surface G-P0-05 already covers. Ref: [#120](https://github.com/Sysdrummatic/plm-resume/issues/120).
+- [ ] Add a `before_user_created` Supabase Auth Hook enforcing disposable-email and
+  password rules at the DB boundary — confirmed live (`hook_before_user_created_enabled:
+  false`) that a direct call to Supabase's public `/auth/v1/signup` currently bypasses
+  every app-level check in `app/api/auth/signup/route.ts`. Deferred out of
+  [G-P0-04](phase-g-community-beta-testing.md) as lower practical risk when signup is
+  gated to a handful of invited testers.
+- [ ] Implement app-side MFA/AAL2 enforcement (an `assert_staff_aal2`-equivalent check in
+  every privileged RPC/route, plus `SessionActor.aal`) for admin/manager accounts.
+  **Not blocked on infrastructure or plan tier** — confirmed live on prod that
+  `mfa_totp_enroll_enabled`/`mfa_totp_verify_enabled` are already `true`; this is purely
+  the missing app-side enforcement code. Deferred out of G-P0-04 for the same reason as
+  the Auth Hook above.
+- [ ] Wire CAPTCHA into signup/recovery. Confirmed live on prod:
+  `security_captcha_enabled: false`, `security_captcha_provider: hcaptcha` (already the
+  default provider — no secret configured yet, and no Turnstile assumption anywhere in
+  the live config despite other docs referencing Turnstile). Needs a provider/cost
+  decision before implementation. Deferred out of G-P0-04.
+- [ ] Enable `password_hibp_enabled` (leaked-password protection via
+  HaveIBeenPwned k-anonymity check) on prod and test. Attempted 2026-08-26 via the
+  Management API and rejected: `402 "Configuring leaked password protection via
+  HaveIBeenPwned.org is available on Pro Plans and up."` — needs a Supabase plan-tier
+  upgrade decision, not code. Deferred out of G-P0-04.
 
 **Definition of Done**: critical state changes reject cross-origin, stale-session, and
 insufficient-AAL requests; malformed/oversized payloads are rejected before expensive
@@ -138,6 +170,12 @@ CSP violations are monitored without breaking public CV, auth, export, or PDF fl
 - [ ] Verify all public/export resolvers are snapshot-only and cannot fall back to current
   drafts or mutable presets.
 - [ ] Add abuse controls and cost budgets for PDF and bulk exports.
+- [ ] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
+  [G-P0-05](phase-g-community-beta-testing.md)) to user data import
+  (`/api/resume/transfer/import`) and public OpenCV API read endpoints — deliberately
+  deferred out of Phase G's beta-admission gate as lower practical risk for a handful of
+  known, invited testers than the auth/export surface G-P0-05 already covers. Ref:
+  [#120](https://github.com/Sysdrummatic/plm-resume/issues/120).
 
 **Definition of Done**: failed import/admin operations roll back fully; unpublish meets
 the documented revocation SLA; export fixtures prove data minimization.

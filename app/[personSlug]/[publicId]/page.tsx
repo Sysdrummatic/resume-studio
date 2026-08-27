@@ -134,6 +134,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         personSlug={canonicalPersonSlug}
         publicId={canonicalPublicId}
         mode="public"
+        cvStyle={published.cvStyle}
       />
     </main>
   );

@@ -564,6 +564,16 @@ img {
   color: var(--text);
 }
 
+.gdpr-clause {
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
 .section-title {
   display: flex;
   align-items: center;
@@ -1775,4 +1785,91 @@ img {
     break-inside: avoid;
     page-break-inside: avoid;
   }
+}
+
+/* ── CV STYLE VARIANTS ────────────────────────────────────────────────────
+   User-selectable text size / density / detail toggles (app/lib/resume-style.ts).
+
+   Scaling a token by itself is impossible: `--x: calc(var(--x) * k)` is a
+   cycle even on a descendant, because the var() names the property being
+   defined on that same element, so it computes to guaranteed-invalid. The
+   tokens are therefore first mirrored into `*-base` aliases on the root, and
+   the variants derive from those aliases instead. No base literal is restated,
+   so the canonical block stays the single source `pdf-web-style-parity` reads,
+   and the PDF scales by the same factors from resume-style.ts.
+
+   Declared after `.resume-editor-basic` so the parity test's PUBLIC_VIEW_CSS
+   slice never sees them, and so the aliases capture whichever base won the
+   cascade — public view or editor canvas. */
+
+.resume-view-page {
+  --font-size-base-scaled: var(--font-size-base);
+  --font-size-sm-base: var(--font-size-sm);
+  --font-size-md-base: var(--font-size-md);
+  --font-size-lg-base: var(--font-size-lg);
+  --font-size-lg-sidebar-base: var(--font-size-lg-sidebar);
+  --font-size-xl-base: var(--font-size-xl);
+  --role-font-size-base: var(--role-font-size);
+  --chip-font-size-base: var(--chip-font-size);
+  --space-2xs-base: var(--space-2xs);
+  --space-xs-base: var(--space-xs);
+  --space-sm-base: var(--space-sm);
+  --space-md-base: var(--space-md);
+  --space-lg-base: var(--space-lg);
+  --space-xl-base: var(--space-xl);
+}
+
+.resume[data-cv-text-size="small"] {
+  --font-size-base: calc(var(--font-size-base-scaled) * 0.92);
+  --font-size-sm: calc(var(--font-size-sm-base) * 0.92);
+  --font-size-md: calc(var(--font-size-md-base) * 0.92);
+  --font-size-lg: calc(var(--font-size-lg-base) * 0.92);
+  --font-size-lg-sidebar: calc(var(--font-size-lg-sidebar-base) * 0.92);
+  --font-size-xl: calc(var(--font-size-xl-base) * 0.92);
+  --role-font-size: calc(var(--role-font-size-base) * 0.92);
+  --chip-font-size: calc(var(--chip-font-size-base) * 0.92);
+}
+
+.resume[data-cv-text-size="large"] {
+  --font-size-base: calc(var(--font-size-base-scaled) * 1.1);
+  --font-size-sm: calc(var(--font-size-sm-base) * 1.1);
+  --font-size-md: calc(var(--font-size-md-base) * 1.1);
+  --font-size-lg: calc(var(--font-size-lg-base) * 1.1);
+  --font-size-lg-sidebar: calc(var(--font-size-lg-sidebar-base) * 1.1);
+  --font-size-xl: calc(var(--font-size-xl-base) * 1.1);
+  --role-font-size: calc(var(--role-font-size-base) * 1.1);
+  --chip-font-size: calc(var(--chip-font-size-base) * 1.1);
+}
+
+.resume[data-cv-density="compact"] {
+  --space-2xs: calc(var(--space-2xs-base) * 0.82);
+  --space-xs: calc(var(--space-xs-base) * 0.82);
+  --space-sm: calc(var(--space-sm-base) * 0.82);
+  --space-md: calc(var(--space-md-base) * 0.82);
+  --space-lg: calc(var(--space-lg-base) * 0.82);
+  --space-xl: calc(var(--space-xl-base) * 0.82);
+}
+
+.resume[data-cv-density="relaxed"] {
+  --space-2xs: calc(var(--space-2xs-base) * 1.18);
+  --space-xs: calc(var(--space-xs-base) * 1.18);
+  --space-sm: calc(var(--space-sm-base) * 1.18);
+  --space-md: calc(var(--space-md-base) * 1.18);
+  --space-lg: calc(var(--space-lg-base) * 1.18);
+  --space-xl: calc(var(--space-xl-base) * 1.18);
+}
+
+/* Section dividers are drawn by default, so only the opt-out needs a rule. */
+.resume[data-cv-dividers="off"] .section__header,
+.resume[data-cv-dividers="off"] .card__header {
+  border-bottom-color: transparent;
+}
+
+.resume[data-cv-header-photo="off"] .logo-circle {
+  display: none;
+}
+
+.resume[data-cv-live-qr="off"] .qr-codes,
+.resume[data-cv-live-qr="off"] .qr-code {
+  display: none;
 }

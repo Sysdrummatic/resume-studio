@@ -8,6 +8,7 @@ import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode,
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
 import type { ResumePresetSelection } from "./preset-selection";
 import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
+import { normalizeResumeStyle, type ResumeStyleSettings } from "./resume-style";
 
 export { normalizeResumePresetSelection };
 export { buildPublishedExportContent };
@@ -24,6 +25,8 @@ export type ResumeDocumentRow = {
   allow_indexing: boolean;
   ai_generated: boolean;
   updated_at: string;
+  /** Raw jsonb; run through normalizeResumeStyle() before rendering. */
+  style_settings?: unknown;
 };
 
 type ResumeRevisionRow = {
@@ -165,6 +168,7 @@ type ResumePublishedCvLocaleRow = {
   labels: Record<string, unknown>;
   render_data: Record<string, unknown> | null;
   ai_generated: boolean;
+  style_settings?: unknown;
   created_at: string;
 };
 
@@ -200,6 +204,8 @@ export type PublishedResumePreset = {
   preset: ResumePresetRow;
   document: ResumeDocumentRow;
   resume: ResumeDocument;
+  /** Frozen at publish time; see 20260901020000_publish_rpc_carries_style_settings.sql. */
+  cvStyle: ResumeStyleSettings;
   languages: Array<{
     code: ResumeLocale;
     label: string;
@@ -228,6 +234,7 @@ export type PublishedResumeExport = {
   openCvYamlContractVersion: string;
   yamlContent: string;
   resume: ResumeDocument;
+  cvStyle: ResumeStyleSettings;
   canonicalPath: string;
 };
 
@@ -239,14 +246,14 @@ const FALLBACK_LANGUAGE_LABELS: Record<string, { label: string; shortLabel: stri
 const RESUME_LANGUAGE_SELECT = "code,label,short_label,labels,is_enabled,sort_order,created_at,updated_at";
 const RESUME_USER_LOCALE_SELECT =
   "user_id,locale,label_override,short_label_override,is_default,sort_order,created_at,updated_at";
-const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,ai_generated,updated_at";
+const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,ai_generated,updated_at,style_settings";
 const RESUME_PRESET_SELECT =
   "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at";
 const RESUME_PRESET_VARIANT_SELECT = "id,preset_id,document_id,user_id,locale,selection,is_default,created_at,updated_at";
 const RESUME_PUBLISHED_CV_SELECT =
   "id,user_id,preset_id,source_document_id,title,schema_version,open_cv_yaml_contract_version,default_locale,published_locales,available_locales,selection,allow_indexing,published_at,created_by,created_at,snapshot_metadata";
 const RESUME_PUBLISHED_CV_LOCALE_SELECT =
-  "id,published_cv_id,user_id,locale,source_document_id,source_revision_id,source_variant_id,title,yaml_content,schema_version,selection,labels,render_data,ai_generated,created_at";
+  "id,published_cv_id,user_id,locale,source_document_id,source_revision_id,source_variant_id,title,yaml_content,schema_version,selection,labels,render_data,ai_generated,style_settings,created_at";
 const RESUME_PUBLIC_LINK_SELECT =
   "id,document_id,user_id,preset_id,slug,person_slug,public_id,active_published_cv_id,default_locale,available_locales,is_active,status,allow_indexing,published_at,revoked_at,legacy_slug,updated_at";
 const PROFILE_IDENTITY_SELECT = "id,display_name,first_name,last_name,person_slug,name_sync_mode";
@@ -658,6 +665,7 @@ export function buildDefaultResumeYaml(name: string): string {
     "experience: []",
     "education: []",
     "courses: []",
+    `gdpr_clause: ${yamlText("")}`,
   ].join("\n");
 }
 
@@ -813,6 +821,31 @@ async function fetchRevisions(accessToken: string, documentId: string): Promise<
     created_at: row.created_at,
     created_by: row.created_by,
   }));
+}
+
+/**
+ * Reads one revision's stored YAML so the editor can preview a past snapshot
+ * without rolling back. Kept out of `fetchRevisions` on purpose: that list
+ * returns up to 40 rows and embedding every snapshot's YAML would bloat every
+ * document load. RLS (`resume_revisions_select_owner`) scopes the read to the
+ * owning document, so the caller's own token is enough — no service role.
+ */
+export async function fetchResumeRevisionYaml(
+  accessToken: string,
+  documentId: string,
+  revisionNumber: number,
+): Promise<string | null> {
+  const result = await queryTable<{ yaml_content: string }>({
+    table: "resume_revisions",
+    select: "yaml_content",
+    accessToken,
+    query: `document_id=eq.${encodeURIComponent(documentId)}&revision_number=eq.${encodeURIComponent(String(revisionNumber))}&limit=1`,
+  });
+
+  if (result.error || !result.data || result.data.length === 0) {
+    return null;
+  }
+  return result.data[0].yaml_content;
 }
 
 export async function fetchResumeDocumentsForUser(userId: string): Promise<ResumeDocumentRow[]> {
@@ -1261,6 +1294,7 @@ async function fetchPublishedResumeBySnapshotLink(
     preset,
     document,
     resume,
+    cvStyle: normalizeResumeStyle(activeLocaleRow.style_settings),
     languages: localeRows.map((row) => ({
       code: row.locale,
       label: languageLabels.get(row.locale)?.label || getFallbackLanguageLabel(row.locale).label,
@@ -1359,6 +1393,8 @@ export async function fetchPublishedResumeExportByPublicLink(
     personSlug: link.person_slug,
     publicId: link.public_id,
     locale: activeLocaleRow.locale,
+    // Frozen at publish time, never read live from the document.
+    cvStyle: normalizeResumeStyle(activeLocaleRow.style_settings),
     defaultLocale,
     availableLocales: Array.from(allowedLocales),
     allowIndexing: Boolean(link.allow_indexing),
@@ -1388,6 +1424,7 @@ export async function fetchResumeExportByPresetId(
     personSlug: "user",
     publicId: preset.id,
     locale: preset.default_locale,
+    cvStyle: normalizeResumeStyle(document.style_settings),
     defaultLocale: preset.default_locale,
     availableLocales: [preset.default_locale],
     allowIndexing: false,
@@ -1748,6 +1785,7 @@ export async function publishResumeDocument(
     isPublic: boolean;
     allowIndexing: boolean;
     aiGenerated?: boolean;
+    styleSettings?: unknown;
     changeNote: string;
   },
 ): Promise<ResumeDocumentPayload | null> {
@@ -1768,6 +1806,7 @@ export async function publishResumeDocument(
         is_public: payload.isPublic,
         allow_indexing: payload.allowIndexing,
         ai_generated: Boolean(payload.aiGenerated),
+        style_settings: normalizeResumeStyle(payload.styleSettings),
         created_by: userId,
       },
     });
@@ -1786,6 +1825,7 @@ export async function publishResumeDocument(
         is_public: payload.isPublic,
         allow_indexing: payload.allowIndexing,
         ai_generated: Boolean(payload.aiGenerated),
+        style_settings: normalizeResumeStyle(payload.styleSettings),
         updated_at: new Date().toISOString(),
       },
     });

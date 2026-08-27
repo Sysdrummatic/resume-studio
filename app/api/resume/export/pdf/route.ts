@@ -6,6 +6,8 @@ import { CvPdfDocument as CvPdfTemplate } from "../../../../lib/pdf/CvPdfDocumen
 import { buildPdfFilename } from "../../../../lib/pdf/filename";
 import { loadPdfFonts } from "../../../../lib/pdf/engine-react-pdf";
 import { rateLimit } from "../../../../lib/rate-limit";
+import { applyResumeStyleToTheme } from "../../../../lib/resume-style";
+import { cvBasicDotTheme } from "../../../../lib/pdf/theme";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +23,12 @@ export async function GET(req: NextRequest) {
 
   // Rate limit by IP or personSlug (to prevent scraping)
   const ip = req.headers.get("x-forwarded-for") || "anonymous";
-  const rl = rateLimit(`pdf-export:${ip}`, { interval: 60000, limit: 5 });
+  const rl = await rateLimit(`pdf-export:${ip}`, { interval: 60000, limit: 5 });
   if (!rl.success) {
-    return NextResponse.json({ error: "Rate limit exceeded." }, { status: 429 });
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
+    );
   }
 
   const exportData = await fetchPublishedResumeExportByPublicLink(personSlug, publicId, lang);
@@ -43,6 +48,8 @@ export async function GET(req: NextRequest) {
         title: exportData.personSlug,
         locale: exportData.locale,
         publicId,
+        // Same factors resume.css applies, so the PDF stays the web design scaled.
+        theme: applyResumeStyleToTheme(cvBasicDotTheme, exportData.cvStyle),
       }),
     );
 

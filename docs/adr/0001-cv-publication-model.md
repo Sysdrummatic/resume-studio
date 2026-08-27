@@ -13,7 +13,6 @@ The current implementation already supports parts of this flow, but the domain m
 - `resume_documents` stores editable YAML content.
 - `resume_revisions` stores document revision history.
 - `resume_presets` currently represents a tailored CV configuration, but also carries public URL state such as `slug`, `is_public`, and `allow_indexing`.
-- `app/r/[slug]/page.tsx` renders public CVs through `resume_presets.slug`.
 - `resume_public_links` exists in the older YAML-first data model, but is not the current source of truth for the Next.js public route.
 
 This mixes private saved work, public identity, and published content. It also makes unpublish/republish, SEO/AEO, privacy, language handling, and OpenCV YAML versioning harder to reason about.
@@ -33,8 +32,6 @@ The target public URL shape is:
 ```
 
 `person-slug` comes from the user's profile. `public-id` is generated on publish. `?lang=<locale>` selects a published language variant for that public link.
-
-The existing `/r/[slug]` route becomes a compatibility route during migration. It must not remain the canonical public URL model.
 
 ## Domain Model
 
@@ -138,10 +135,8 @@ The migration should be additive and reversible:
 2. Add `profiles.person_slug`.
 3. Backfill active/public existing presets into Public Links and Published CV snapshots.
 4. Add the new public route `/{person-slug}/{public-id}`.
-5. Keep `/r/[slug]` as compatibility resolver.
-6. Move dashboard copy/link display from "preset" to "Saved Version" and from `/r/[slug]` to the new public URL.
-7. After validation and indexing stabilization, redirect `/r/[slug]` to the new URL.
-8. Mark `resume_presets.slug` as legacy/deprecated, then remove only in a later dedicated migration if still needed.
+5. Move dashboard copy/link display from "preset" to "Saved Version" and the new public URL.
+6. Mark `resume_presets.slug` as legacy/deprecated, then remove only in a later dedicated migration if still needed.
 
 Rollback should be possible by keeping old columns and route compatibility during the first implementation phases.
 
@@ -154,10 +149,6 @@ Rejected because it mixes private saved configuration with public publication id
 ### Use `resume_documents.is_public` as publication
 
 Rejected because `resume_documents` are editable Master CV language documents. Public rendering from live drafts risks accidental disclosure and publication drift.
-
-### Only expand `/r/[slug]`
-
-Rejected because route changes alone do not separate Saved Version, Published CV snapshot, and Public Link responsibilities.
 
 ## Consequences
 
@@ -173,7 +164,6 @@ Positive:
 Negative:
 
 - Requires additive schema work and migration.
-- Requires compatibility handling for existing `/r/[slug]` links.
 - Increases storage due to snapshots.
 - Requires stronger behavior tests than current source-text smoke tests.
 
@@ -201,9 +191,7 @@ See [CV Publication Test Contracts](../guides/testing/cv-publication-test-contra
 - [x] PR3 (partial): Canonical public route `/{person-slug}/{public-id}` added in Next.js.
 - [x] PR3 (partial): Canonical public route metadata includes robots + canonical + language alternates.
 - [x] PR3: Dashboard should show canonical `/{person-slug}/{public-id}` as the primary share link after publish.
-- [x] PR3: Keep `/r/[slug]` visible only as compatibility link in UI and docs.
 - [x] PR3: Add UI/API tests confirming canonical link is preferred in dashboard flows.
-- [x] PR3: Add compatibility behavior for legacy `/r/[slug]` route (redirect or strict compatibility contract per rollout decision).
 - [x] PR3: Final SEO/AEO verification for canonical/hreflang/indexing behavior on public pages.
 - [x] PR4: Introduce transactional publish/unpublish RPC flow to ensure atomicity across snapshot + link state changes.
 - [x] PR4: Enforce explicit selected language set for Published CV snapshots (avoid accidental draft-language exposure).

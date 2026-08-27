@@ -37,7 +37,6 @@ test("ADR 0001 documents the publication domain model and test contracts", () =>
     "SEO And Indexing Contract",
     "Authorization Contract",
     "RLS And Service Role Contract",
-    "Compatibility Contract",
   ]) {
     assert.equal(contracts.includes(`## ${heading}`), true);
   }

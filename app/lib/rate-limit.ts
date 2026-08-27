@@ -1,29 +1,49 @@
 /**
- * Simple in-memory rate limiter for development/local testing.
- * NOTE: In serverless/distributed environments (Vercel, Netlify), 
- * this should be replaced with a Redis-backed solution (e.g., Upstash).
+ * Distributed rate limiter backed by Postgres (see migration
+ * 20260825000000_distributed_rate_limiting.sql). Every serverless instance
+ * shares the same counter via an atomic RPC — replaces the previous
+ * in-process Map, which reset on every cold start and never coordinated
+ * across instances.
  */
 
-const rateLimitMap = new Map<string, { count: number; reset: number }>();
+import { callRpc } from "./supabase-http";
 
 export type RateLimitOptions = {
   interval: number; // ms
   limit: number;
 };
 
-export function rateLimit(key: string, options: RateLimitOptions) {
-  const now = Date.now();
-  const record = rateLimitMap.get(key);
+export type RateLimitResult = {
+  success: boolean;
+  count: number;
+  reset: number; // epoch ms
+};
 
-  if (!record || now > record.reset) {
-    rateLimitMap.set(key, { count: 1, reset: now + options.interval });
-    return { success: true, count: 1, reset: now + options.interval };
+type CheckRateLimitRow = {
+  allowed: boolean;
+  count: number;
+  reset_at: string;
+};
+
+export async function rateLimit(key: string, options: RateLimitOptions): Promise<RateLimitResult> {
+  const result = await callRpc<CheckRateLimitRow[]>({
+    functionName: "check_rate_limit",
+    payload: { p_key: key, p_interval_ms: options.interval, p_limit: options.limit },
+    useServiceRole: true,
+  });
+
+  const row = result.data?.[0];
+  if (!row) {
+    // ponytail: fail OPEN. A Postgres/network hiccup here shouldn't take down
+    // signin or exports for every user — Supabase Auth and app-level
+    // validation remain the primary defenses on the endpoints that use this.
+    console.error("[rate-limit] check_rate_limit RPC failed, failing open:", result.error);
+    return { success: true, count: 0, reset: Date.now() + options.interval };
   }
 
-  if (record.count >= options.limit) {
-    return { success: false, count: record.count, reset: record.reset };
-  }
-
-  record.count += 1;
-  return { success: true, count: record.count, reset: record.reset };
+  return {
+    success: row.allowed,
+    count: row.count,
+    reset: new Date(row.reset_at).getTime(),
+  };
 }

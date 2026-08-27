@@ -118,8 +118,7 @@ Master Resume (Draft) ──publish──> Saved Version (Snapshot)
 - Rollback restores previous snapshot, not Master Resume
 
 ### 4. Public URL Routing
-- **Canonical:** `/{person-slug}/{public-id}` (from `resume_public_links`), the only public route
-- **Compatibility:** `/r/{slug}` retired pre-launch (ADR 0004 superseded, 2026-07-03) — no redirect exists, `.html` entry points and their Netlify redirects were removed with the legacy app
+- **Canonical:** `/{person-slug}/{public-id}` (from `resume_public_links`), the only public route — `.html` entry points and their Netlify redirects were removed with the legacy app
 
 ### 5. Change Discipline (From .codex/instructions.md)
 
@@ -423,6 +422,17 @@ Show only: [Diffs/changes/new code, not explanations]
 
 **Phase tracking lives in [docs/STATUS.md](docs/STATUS.md)** — the single source of truth for phase status, progress table, active sprint items, and links to all phase documentation.
 
+**Checklist convention:** task checkboxes in phase docs and similar tracked-task
+markdown files use three states, not the plain two-state GitHub default:
+- `[ ]` — not done, still open
+- `[x]` — done/completed
+- `[/]` — deliberately skipped/dropped (a conscious decision not to do it, not an
+  oversight — e.g. the "Private Beta User Recruitment" section in
+  `docs/phases/phase-g-community-beta-testing.md`)
+
+Treat `[/]` items as settled, closed decisions — don't raise them, suggest resuming
+them, or count them as outstanding work.
+
 **When a phase task completes:**
 1. Update the relevant section in `docs/STATUS.md` (status, % complete, active sprint checklist).
 2. Update the corresponding `docs/phases/phase-X-*.md` (or `docs/guides/phase-X-*.md`) guide with implementation details.
@@ -493,7 +503,6 @@ execute `buildPublishedExportContent` directly:
 
 **Routing Model:**
 - **Canonical:** `/{person-slug}/{public-id}` (primary, from `resume_public_links`), the only public route
-- **Compatibility:** `/r/{slug}` retired pre-launch (ADR 0004 superseded, 2026-07-03) — no redirect remains
 - **Netlify:** Build config + Next.js plugin only; the legacy `.html` redirects were removed with the static app (`tests/legacy-static-cleanup.test.mjs`)
 
 **Privacy Policy Page:** Public, indexable route at `app/privacy/page.tsx`
@@ -719,38 +728,44 @@ those source-pointer columns; snapshot content (`yaml_content`, `selection`,
 `locale`, `title`, ...) stays immutable. Test contracts:
 `tests/preset-selection-locale-clamp.test.mjs`, `tests/cv-publication-schema.test.mjs`.
 
-**Auth Boundary Hardening (G-P0-04, 2026-07-18):** Signup policy is enforced
-**inside the database** via the `before_user_created` Auth Hook
-(`public.hook_before_user_created`, migration
-`20260718000000_auth_signup_policy_and_staff_mfa.sql`): login-restriction flag
-+ `blocked_signup_email_domains` denylist apply even to direct Supabase Auth
-API calls. The Disify external verifier is **disabled by default** (processor
-governance M08) — `app/lib/disposable-email.ts` uses a local
-`DISPOSABLE_EMAIL_DOMAINS` list kept in parity with the DB seed (contract test
-enforces parity); `DISPOSABLE_EMAIL_CHECK_URL` re-enables an external verifier
-only after processor assessment + privacy disclosure. **MFA/AAL2 for staff** is
-enforced at the DB boundary: `public.assert_staff_aal2()` runs first in every
-privileged RPC (`set_user_role`, `set_user_active`, `set_user_flag`,
-`update_user_privileges`, `can_delete_user_account`) — staff with a verified
-`auth.mfa_factors` row must present `aal=aal2` (always on); the
-`staff_mfa_required` platform flag (seeded `false`) additionally makes MFA
-mandatory for all staff once TOTP enrollment is done. `SessionActor.aal`
-(decoded in `app/lib/auth-request.ts`) mirrors this app-side; the service-role
-access-restriction toggle (`app/api/admin/access-restriction/route.ts`) checks
-it explicitly because service-role writes bypass the DB gate. `/api/auth/*`
-routes: per-IP in-memory rate limits (`getClientKey`/`rateLimitResponse`,
-G-P0-05 tracks the distributed replacement), enumeration-safe generic
-responses for signup/reset/resend, min password length 12
-(`app/lib/auth-policy.ts`, mirrored in `supabase/config.toml`), and Turnstile
-captcha pass-through (`withCaptcha` in `supabase-http.ts`; widget gated on
-`NEXT_PUBLIC_TURNSTILE_SITE_KEY` — never enable GoTrue captcha without it).
-`supabase/config.toml` is **local-only**: production controls require manual
-dashboard verification via
-`docs/security/supabase-production-auth-checklist.md` (21 controls, all
-unverified until ticked). Test contracts: `tests/auth-security-config.test.mjs`,
-`tests/auth-signup-policy-hook.test.mjs`, `tests/staff-mfa-aal2-boundary.test.mjs`,
-`tests/auth-endpoint-hardening.test.mjs`; live probes (env-gated):
-`tests/integration/direct-supabase-auth.test.mjs`.
+**Auth Boundary Hardening (G-P0-04) — corrected 2026-08-26:** this section
+previously described a `before_user_created` Auth Hook, DB-level
+`assert_staff_aal2()` MFA enforcement, per-IP rate limiting, and Turnstile
+CAPTCHA as shipped 2026-07-18. **None of it existed** — no such migration,
+function, or test file was ever in the repo; it was fabricated documentation.
+What's actually true as of 2026-08-26:
+- **Password policy**: `NEW_PASSWORD_MIN_LENGTH = 10` in `app/lib/auth-policy.ts`,
+  used by `signup`/`update-password`. `signin`'s pre-flight check stays at `< 8`
+  deliberately (checks an *existing* password before auth, not a new one — see
+  the comment in `app/api/auth/signin/route.ts`). `supabase/config.toml`'s
+  `minimum_password_length` and the live `password_min_length` on both `prod`
+  and `test` (set directly via the Supabase Management API, since
+  `config.toml` only governs local dev and had drifted — confirmed 6 on both
+  live projects vs. the app's already-enforced 10) all now agree on 10.
+- **Rate limiting**: see [G-P0-05](docs/phases/phase-g-community-beta-testing.md)
+  — a real distributed, Postgres-backed limiter (`app/lib/rate-limit.ts`,
+  `check_rate_limit()` RPC), not the `getClientKey`/`rateLimitResponse`
+  in-memory helpers this section used to claim; those never existed.
+- **Still genuinely missing**, deferred to
+  [Phase M](docs/phases/phase-m-security-privacy-trust.md) M03/M08 as
+  lower-risk for a beta gated to a handful of invited testers: the
+  `before_user_created` Auth Hook (`hook_before_user_created_enabled: false`
+  live on prod), app-side MFA/AAL2 enforcement (Supabase-side TOTP is already
+  enabled on prod — `mfa_totp_enroll_enabled`/`verify_enabled: true` — this is
+  purely missing app code), CAPTCHA (`security_captcha_enabled: false`,
+  provider defaults to `hcaptcha` live, not Turnstile as previously assumed;
+  no secret configured), and `password_hibp_enabled` (leaked-password
+  protection — attempted via the Management API, rejected with `402`: Pro
+  plan required).
+- The Disify external verifier is **enabled by default** —
+  `app/lib/disposable-email.ts`'s `isDisposableEmailAddress()` calls
+  `https://www.disify.com/api/email` unless `DISPOSABLE_EMAIL_CHECK_URL` is
+  overridden. No local `DISPOSABLE_EMAIL_DOMAINS` list exists. Tracked in
+  Phase M M08, not fixed yet.
+- `docs/security/supabase-production-auth-checklist.md` does not exist.
+  Superseded by querying the live Management API directly when this section
+  was corrected — faster and can't drift from reality the way a static
+  checklist can.
 
 ---
 

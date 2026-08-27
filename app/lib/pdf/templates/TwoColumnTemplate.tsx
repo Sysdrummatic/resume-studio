@@ -1,5 +1,5 @@
 import React from "react";
-import { Page, View } from "@react-pdf/renderer";
+import { Page, Text, View } from "@react-pdf/renderer";
 import type { ResumeDocument } from "../../resume-schema";
 import { getDefaultSummary } from "../../resume-schema";
 import type { ResumeRendererLabels } from "../../../components/resume-renderer/build-resume-render-model";
@@ -77,6 +77,20 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
           ) : null}
         </View>
       </View>
+
+      {resume.gdpr_clause ? (
+        <Text
+          style={{
+            marginTop: theme.layout.sectionGap,
+            textAlign: "center",
+            fontSize: theme.typography.sizes.note,
+            lineHeight: theme.typography.lineHeightTight,
+            color: theme.colors.muted,
+          }}
+        >
+          {resume.gdpr_clause}
+        </Text>
+      ) : null}
     </Page>
   );
 }

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Rate limit check (e.g. 10 previews per minute per user)
-  const rl = rateLimit(`pdf-preview:${actorResult.actor.userId}`, { interval: 60000, limit: 10 });
+  const rl = await rateLimit(`pdf-preview:${actorResult.actor.userId}`, { interval: 60000, limit: 10 });
   if (!rl.success) {
     return NextResponse.json(
       { error: "Too many requests. Please wait a minute." }, 

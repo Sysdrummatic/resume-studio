@@ -3,6 +3,7 @@ import { requireRequestActor } from "../../../lib/auth-request";
 import { publishResumeDocument } from "../../../lib/resume-server";
 import { normalizeLocale } from "../../../lib/resume-schema";
 import { callRpc } from "../../../lib/supabase-http";
+import { flagSuspiciousResumeContent } from "../../../lib/content-safety-audit";
 
 type PublishBody = {
   locale?: string;
@@ -11,6 +12,7 @@ type PublishBody = {
   isPublic?: boolean;
   allowIndexing?: boolean;
   aiGenerated?: boolean;
+  styleSettings?: unknown;
   changeNote?: string;
 };
 
@@ -49,12 +51,20 @@ export async function POST(request: Request): Promise<Response> {
     isPublic: typeof body.isPublic === "boolean" ? body.isPublic : true,
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
     aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
+    styleSettings: body.styleSettings,
     changeNote: String(body.changeNote || "Publish"),
   });
 
   if (!payload) {
     return NextResponse.json({ error: "Publish failed." }, { status: 500 });
   }
+
+  await flagSuspiciousResumeContent(yamlContent, {
+    userId: actorResult.actor.userId,
+    documentId: payload.document.id,
+    locale,
+    source: "resume_publish_save",
+  });
 
   return NextResponse.json({
     ok: true,

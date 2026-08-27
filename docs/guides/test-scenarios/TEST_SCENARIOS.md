@@ -119,7 +119,7 @@ Oczekiwany rezultat: API ignoruje/odrzuca jakikolwiek "target user id" — wynik
 4. Zapisz → sprawdź zmianę badge na **Published** + **Indexable**.
 5. Sprawdź, że pojawiły się przyciski **Open public CV** i **Copy public URL**.
 6. Kliknij **Copy public URL** → sprawdź feedback (toast/sukces).
-7. Kliknij **Open public CV** → w nowej karcie powinien otworzyć się **canonical URL** w formacie `/{person-slug}/{public-id}` (nie `/r/[slug]`).
+7. Kliknij **Open public CV** → w nowej karcie powinien otworzyć się **canonical URL** w formacie `/{person-slug}/{public-id}`.
 8. Na opublikowanej stronie sprawdź: dane zgodne z opublikowaną rewizją, dostępny **language switcher** EN/PL, meta `index,follow` (widok źródła strony lub devtools → `<meta name="robots">`).
 
 **P-U7 — Niezmienność snapshotu po publikacji**
@@ -148,12 +148,6 @@ Oczekiwany rezultat: publiczna strona wciąż pokazuje **starą** (opublikowaną
 1. Na `/dashboard` kliknij **Open CV** na karcie Saved Version → otwiera się **PresetPreviewModal** z podglądem.
 2. Kliknij **Edit** → otwiera się **PresetModal** (edycja metadanych wersji) → zmień nazwę/tytuł → zapisz.
 3. Kliknij ikonę kosza (**Delete CV Version**) na innej (testowej) Saved Version → potwierdź w oknie `window.confirm` → sprawdź usunięcie z listy.
-
-**P-U11 — Trasa kompatybilności**
-
-1. Jeśli masz starszy link `/r/{slug}` (z migracji), otwórz go.
-
-Oczekiwany rezultat: redirect do canonical `/{person-slug}/{public-id}`, bez błędów 404.
 
 ---
 

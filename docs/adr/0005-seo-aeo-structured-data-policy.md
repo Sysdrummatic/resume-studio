@@ -21,7 +21,6 @@ Public CV pages require stable indexing rules and machine-readable metadata alig
 - Sitemap includes only active and indexable Public Links.
 - Structured data (JSON-LD) is emitted only for active public pages and snapshot-safe fields.
 - `robots.txt` references the canonical sitemap endpoint.
-- Compatibility `/r/[slug]` remains non-canonical and must never become sitemap source-of-truth.
 
 ## Consequences
 
