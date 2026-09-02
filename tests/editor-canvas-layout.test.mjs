@@ -27,8 +27,8 @@ test("editor canvas is a three-column grid with a full-height sidebar", () => {
   const layout = styles.slice(styles.indexOf("@media (min-width: 761px)"));
   // Two columns before the preview column appears, three after.
   assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\);/);
-  assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\) 296px;/);
-  assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\) 340px;/);
+  assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\) 360px;/);
+  assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\) 420px;/);
 });
 
 test("section navigation groups sections and numbers only the basics", () => {

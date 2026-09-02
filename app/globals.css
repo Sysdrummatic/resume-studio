@@ -2012,6 +2012,23 @@ a {
   padding: 9px 11px;
 }
 
+.resume-editor-shell .import-review-list {
+  border-color: var(--ed-line-2);
+  background: var(--ed-work);
+}
+
+.resume-editor-shell .import-review-list li {
+  color: var(--ed-t1);
+}
+
+.resume-editor-shell .import-review-list__value {
+  color: var(--ed-t3);
+}
+
+.resume-editor-shell .import-review-warnings {
+  color: var(--ed-warn);
+}
+
 .resume-editor-shell .dashboard-modal__body input:focus {
   border-color: var(--ed-accent);
   box-shadow: 0 0 0 3px var(--ed-accent-bg);
@@ -2227,6 +2244,32 @@ a {
   border-radius: var(--ed-radius);
   padding: 10px 12px;
   font-size: 12.5px;
+}
+
+/* Matches the mockup's ".imp" panel — plain card chrome, not a warning. */
+.resume-editor-import-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--ed-line);
+  border-radius: var(--ed-radius);
+  background: var(--ed-card);
+  padding: 13px 15px;
+  margin-bottom: 6px;
+}
+
+.resume-editor-import-banner b {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ed-t1);
+  margin-bottom: 1px;
+}
+
+.resume-editor-import-banner span {
+  font-size: 12px;
+  color: var(--ed-t2);
 }
 
 /* Three-column editor canvas: sidebar spans the full height (toolbar row
@@ -3653,6 +3696,40 @@ a {
 
 .dashboard-modal__body--compact {
   width: min(440px, calc(100vw - 2rem));
+}
+
+.import-review-list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--portal-surface-ghost);
+}
+
+.import-review-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.import-review-list__value {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.import-review-warnings {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--portal-warning-text);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .dashboard-modal__body.is-editing > label:first-of-type,

@@ -10,6 +10,9 @@ import type { ResumeEditorStyle } from "./resume-live-preview";
 import LocaleTabStrip from "./locale-tab-strip";
 import LanguageVersionModal from "./language-version-modal";
 import SaveVersionModal from "./save-version-modal";
+import ImportCvBanner from "./import-cv-banner";
+import ImportReviewModal from "./import-review-modal";
+import type { ResumeImportResult } from "../lib/resume-import/parse-resume-file";
 import EditorSectionNav, { type EditorNavGroup } from "./editor-section-nav";
 import { computeResumeCompletion } from "./resume-completion";
 import {
@@ -258,6 +261,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isSaveVersionModalOpen, setIsSaveVersionModalOpen] = useState(false);
   const [changeNote, setChangeNote] = useState("Publish update");
+  const [isImporting, setIsImporting] = useState(false);
+  const [isApplyingImport, setIsApplyingImport] = useState(false);
+  const [importResult, setImportResult] = useState<ResumeImportResult | null>(null);
+  const [importFilename, setImportFilename] = useState("");
   // The one open entry card, keyed "<field>:<index>". Opening a card closes its
   // siblings (exclusive accordion), and a freshly added entry opens itself.
   const [openEntryKey, setOpenEntryKey] = useState<string | null>(null);
@@ -527,6 +534,35 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     updateResumeFromHuman({ ...resume, gdpr_clause: value });
   }
 
+  async function handleImportFile(file: File) {
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/resume/import-file", { method: "POST", body: formData });
+      const payload = await response.json();
+      if (!response.ok) {
+        showToast(payload.error || "Could not read this file.", "error");
+        return;
+      }
+      setImportResult(payload as ResumeImportResult);
+      setImportFilename(file.name);
+    } catch {
+      showToast("Import failed. Check your connection and try again.", "error");
+    } finally {
+      setIsImporting(false);
+    }
+  }
+
+  function applyImportResult() {
+    if (!importResult) return;
+    setIsApplyingImport(true);
+    updateResumeFromHuman({ ...resume, ...importResult.resume });
+    setIsApplyingImport(false);
+    setImportResult(null);
+    showToast(`Imported content from ${importFilename}.`);
+  }
+
   async function resetToTemplate() {
     try {
       const applied = await resetActiveToTemplate();
@@ -637,6 +673,14 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         onConfirm={() => {
           void publishResume(true).then(() => setIsSaveVersionModalOpen(false));
         }}
+      />
+      <ImportReviewModal
+        isOpen={importResult !== null}
+        filename={importFilename}
+        result={importResult}
+        isApplying={isApplyingImport}
+        onConfirm={applyImportResult}
+        onClose={() => setImportResult(null)}
       />
 
       <div className="resume-editor-layout">
@@ -773,6 +817,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
               </div>
             </div>
           ) : null}
+
+          {editorTab === "human" ? <ImportCvBanner isBusy={isImporting} onFileSelected={(file) => void handleImportFile(file)} /> : null}
 
           <header className="resume-editor-workspace__header">
             <h2>
