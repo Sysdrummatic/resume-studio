@@ -2323,7 +2323,7 @@ a {
 
 @media (min-width: 1021px) {
   .resume-editor-layout {
-    grid-template-columns: 246px minmax(0, 1fr) 360px;
+    grid-template-columns: 246px minmax(0, 1fr) 540px;
   }
 
   .resume-editor-toolbar {
@@ -2338,7 +2338,7 @@ a {
 
 @media (min-width: 1241px) {
   .resume-editor-layout {
-    grid-template-columns: 246px minmax(0, 1fr) 420px;
+    grid-template-columns: 246px minmax(0, 1fr) 630px;
   }
 }
 
@@ -2766,7 +2766,7 @@ a {
     top: 0;
     right: 0;
     bottom: 0;
-    width: min(380px, 100vw);
+    width: min(570px, 100vw);
     z-index: 1400;
     overflow-y: auto;
     border-top: 0;
