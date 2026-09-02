@@ -678,6 +678,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         isOpen={importResult !== null}
         filename={importFilename}
         result={importResult}
+        currentName={resume.name}
         isApplying={isApplyingImport}
         onConfirm={applyImportResult}
         onClose={() => setImportResult(null)}
