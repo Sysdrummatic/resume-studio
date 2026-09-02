@@ -31,7 +31,7 @@ function hasText(value: string | null | undefined): boolean {
 function isSectionComplete(id: string, resume: ResumeDocument): boolean {
   switch (id) {
     case "personal":
-      return hasText(resume.name) && resume.contact.some((item) => hasText(item.value));
+      return (hasText(resume.first_name) || hasText(resume.family_name)) && resume.contact.some((item) => hasText(item.value));
     case "summary":
       return resume.summary.some((item) => hasText(item.position) && hasText(item.description));
     case "experience":

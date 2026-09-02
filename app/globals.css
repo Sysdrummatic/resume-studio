@@ -3078,6 +3078,12 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+/* Forces the same two-column width as a paired row even with one field, so a
+   lone field (e.g. Location) doesn't stretch to the full row width. */
+.resume-human-editor__grid--half {
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+}
+
 .resume-human-editor__row {
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   align-items: end;

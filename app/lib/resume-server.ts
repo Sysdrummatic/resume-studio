@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
-import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
+import { PREVIEW_LABELS, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
@@ -645,9 +645,11 @@ export function buildDefaultResumeYaml(name: string): string {
   }
 
   const safeName = String(name || "New User").trim() || "New User";
+  const { firstName, lastName } = splitProfileName(safeName);
   return [
     `brand_initials: ${yamlText("")}`,
-    `name: ${yamlText(safeName)}`,
+    `first_name: ${yamlText(firstName)}`,
+    `family_name: ${yamlText(lastName)}`,
     `role: ${yamlText("")}`,
     "summary:",
     `  - position: ${yamlText("")}`,
@@ -666,12 +668,34 @@ export function buildDefaultResumeYaml(name: string): string {
   ].join("\n");
 }
 
-function extractResumeNameFromYaml(yamlContent: string): string {
+/**
+ * A document saved before the first/family name split (only a legacy `name`
+ * key, no touch since) submits that same raw text verbatim on save — the
+ * client only re-serializes through the current schema shape when the human
+ * form is actually edited. Upgrading here, at the write boundary, means any
+ * save (Human editor, YAML editor untouched, draft, or a stale client)
+ * self-heals instead of failing RESUME_REQUIRED_KEYS validation.
+ */
+export function upgradeLegacyResumeYamlContent(yamlContent: string): string {
   try {
     const parsed = yaml.load(yamlContent);
-    return normalizeResumeDocument(parsed).name.trim();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return yamlContent;
+    const migrated = migrateLegacyResumeYamlFields(parsed as Record<string, unknown>);
+    if (migrated === parsed) return yamlContent;
+    return yaml.dump(migrated, { indent: 2 });
   } catch {
-    return "";
+    return yamlContent;
+  }
+}
+
+function extractResumeNamePartsFromYaml(yamlContent: string): { firstName: string; lastName: string } | null {
+  try {
+    const parsed = yaml.load(yamlContent);
+    const doc = normalizeResumeDocument(parsed);
+    if (!doc.first_name && !doc.family_name) return null;
+    return { firstName: doc.first_name, lastName: doc.family_name };
+  } catch {
+    return null;
   }
 }
 
@@ -709,8 +733,8 @@ async function syncProfileNameFromResumeYaml(
   yamlContent: string,
   options: { updatePersonSlug?: boolean } = {},
 ): Promise<boolean> {
-  const resumeName = extractResumeNameFromYaml(yamlContent);
-  if (!resumeName) {
+  const parts = extractResumeNamePartsFromYaml(yamlContent);
+  if (!parts) {
     return true;
   }
 
@@ -719,8 +743,7 @@ async function syncProfileNameFromResumeYaml(
     return true;
   }
 
-  const parts = splitProfileName(resumeName);
-  const displayName = buildProfileDisplayName(parts.firstName, parts.lastName, resumeName);
+  const displayName = buildProfileDisplayName(parts.firstName, parts.lastName, "");
   const values: Record<string, string | null> = {
     first_name: parts.firstName,
     last_name: parts.lastName,

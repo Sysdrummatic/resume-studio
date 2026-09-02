@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { register } from "node:module";
 
-import { mergeImportedResume } from "../app/lib/resume-import/merge-imported-resume.ts";
-import { defaultResumeDocument } from "../app/lib/resume-schema.ts";
+register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+
+const { mergeImportedResume } = await import("../app/lib/resume-import/merge-imported-resume.ts");
+const { defaultResumeDocument } = await import("../app/lib/resume-schema.ts");
 
 test("appends experience/education/skills/etc. instead of replacing them", () => {
   const current = {
@@ -33,11 +36,13 @@ test("drops a fresh draft's blank placeholder rows before appending", () => {
 });
 
 test("fills the name only when the draft doesn't already have one", () => {
-  const withName = mergeImportedResume(defaultResumeDocument("Ariana Holt"), { name: "Steeve Tatums" });
-  assert.equal(withName.name, "Ariana Holt");
+  const withName = mergeImportedResume(defaultResumeDocument("Ariana Holt"), { first_name: "Steeve", family_name: "Tatums" });
+  assert.equal(withName.first_name, "Ariana");
+  assert.equal(withName.family_name, "Holt");
 
-  const withoutName = mergeImportedResume(defaultResumeDocument(""), { name: "Steeve Tatums" });
-  assert.equal(withoutName.name, "Steeve Tatums");
+  const withoutName = mergeImportedResume(defaultResumeDocument(""), { first_name: "Steeve", family_name: "Tatums" });
+  assert.equal(withoutName.first_name, "Steeve");
+  assert.equal(withoutName.family_name, "Tatums");
 });
 
 test("contact: fills a label only when it isn't already set, per label", () => {
@@ -85,5 +90,6 @@ test("fields not present in the import are left completely untouched", () => {
   const merged = mergeImportedResume(current, { experience: [{ period: "", company: "Acme", role: "", highlights: [] }] });
 
   assert.deepEqual(merged.interests, ["Chess"]);
-  assert.equal(merged.name, "Ariana Holt");
+  assert.equal(merged.first_name, "Ariana");
+  assert.equal(merged.family_name, "Holt");
 });

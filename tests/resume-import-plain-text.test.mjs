@@ -73,7 +73,8 @@ Spanish (B2)
 
   const result = parsePlainTextResume(text, "pdf");
 
-  assert.equal(result.resume.name, "John Smith");
+  assert.equal(result.resume.first_name, "John");
+  assert.equal(result.resume.family_name, "Smith");
   assert.equal(result.resume.contact?.some((item) => item.label === "E-mail" && item.value === "john.smith@example.com"), true);
   assert.equal(result.resume.contact?.some((item) => item.label === "LinkedIn"), true);
   assert.match(result.resume.summary?.[0].description ?? "", /distributed systems/);

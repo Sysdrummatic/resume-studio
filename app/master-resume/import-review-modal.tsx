@@ -29,7 +29,6 @@ export function hasNameMismatch(currentName: string, parsedName: string): boolea
 }
 
 const SECTION_LABELS: Array<{ key: keyof NonNullable<ResumeImportResult["resume"]>; label: string }> = [
-  { key: "name", label: "Name" },
   { key: "contact", label: "Contact details" },
   { key: "summary", label: "Summary" },
   { key: "experience", label: "Experience" },
@@ -41,7 +40,6 @@ const SECTION_LABELS: Array<{ key: keyof NonNullable<ResumeImportResult["resume"
 ];
 
 function describeField(key: string, value: unknown): string {
-  if (key === "name") return String(value);
   if (Array.isArray(value)) return `${value.length} ${value.length === 1 ? "entry" : "entries"} found`;
   return "Found";
 }
@@ -54,10 +52,17 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
 
   if (!isOpen || !result) return null;
 
-  const fields = SECTION_LABELS.filter(({ key }) => result.resume[key] !== undefined);
-  const skippedFields = SECTION_LABELS.filter(({ key }) => result.resume[key] === undefined);
+  const parsedName = [result.resume.first_name, result.resume.family_name].filter(Boolean).join(" ");
+  const nameLabel = { key: "__name" as const, label: "Name" };
+  const fields = [
+    ...(parsedName ? [nameLabel] : []),
+    ...SECTION_LABELS.filter(({ key }) => result.resume[key] !== undefined),
+  ];
+  const skippedFields = [
+    ...(parsedName ? [] : [nameLabel]),
+    ...SECTION_LABELS.filter(({ key }) => result.resume[key] === undefined),
+  ];
 
-  const parsedName = typeof result.resume.name === "string" ? result.resume.name : "";
   const nameMismatch = hasNameMismatch(currentName, parsedName);
   const canApply = fields.length > 0 && (!nameMismatch || acknowledgedMismatch);
 
@@ -76,7 +81,9 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
             {fields.map(({ key, label }) => (
               <li key={key}>
                 <span>{label}</span>
-                <span className="import-review-list__value">{describeField(key, result.resume[key])}</span>
+                <span className="import-review-list__value">
+                  {key === "__name" ? parsedName : describeField(key, result.resume[key as keyof NonNullable<ResumeImportResult["resume"]>])}
+                </span>
               </li>
             ))}
           </ul>

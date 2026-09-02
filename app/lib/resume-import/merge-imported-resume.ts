@@ -81,7 +81,8 @@ function mergeCourses(current: ResumeCourse[], imported: ResumeCourse[]): Resume
 export function mergeImportedResume(current: ResumeDocument, imported: ImportedResumeSections): ResumeDocument {
   const next: ResumeDocument = { ...current };
 
-  if (imported.name && isBlank(current.name)) next.name = imported.name;
+  if (imported.first_name && isBlank(current.first_name)) next.first_name = imported.first_name;
+  if (imported.family_name && isBlank(current.family_name)) next.family_name = imported.family_name;
   if (imported.brand_initials && isBlank(current.brand_initials)) next.brand_initials = imported.brand_initials;
   if (imported.gdpr_clause && isBlank(current.gdpr_clause)) next.gdpr_clause = imported.gdpr_clause;
 

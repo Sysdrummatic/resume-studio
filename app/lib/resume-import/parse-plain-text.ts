@@ -9,6 +9,7 @@ import type {
 import { ATS_SECTION_HEADERS } from "../ats-export-rules";
 import type { ImportedResumeSections, ResumeImportResult } from "./types";
 import { extractDateRange, guessLevelFromText, isBulletLine, splitBlankLineBlocks, splitHeadingPair, stripBullet } from "./text-blocks";
+import { splitProfileName } from "../profile-name";
 
 type SectionKey = "summary" | "experience" | "education" | "skills" | "courses" | "languages" | "interests";
 
@@ -249,7 +250,11 @@ function buildResult(sourceKind: ResumeImportResult["sourceKind"], preamble: str
   const resume: ImportedResumeSections = {};
 
   const name = guessName(preamble);
-  if (name) resume.name = name;
+  if (name) {
+    const { firstName, lastName } = splitProfileName(name);
+    resume.first_name = firstName;
+    resume.family_name = lastName;
+  }
 
   const contact = extractContact(preamble);
   if (contact.length > 0) resume.contact = contact;

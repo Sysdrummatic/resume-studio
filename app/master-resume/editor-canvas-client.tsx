@@ -51,7 +51,7 @@ import type {
   ResumeSkill,
   ResumeSummaryItem,
 } from "../lib/resume-schema";
-import { defaultResumeDocument } from "../lib/resume-schema";
+import { defaultResumeDocument, initialsFromNameParts, resumeFullName } from "../lib/resume-schema";
 
 type EditorTab = "yaml" | "human";
 
@@ -75,6 +75,10 @@ const CONTACT_FIELDS: Array<{ label: string; linkKind?: ContactLinkKind }> = [
   { label: "LinkedIn", linkKind: "url" },
   { label: "Portfolio", linkKind: "url" },
 ];
+
+// Location is rendered separately (half-width, matching the name fields);
+// Phone/E-mail and LinkedIn/Portfolio pair up on one row each.
+const CONTACT_FIELD_ROWS: string[][] = [["Phone", "E-mail"], ["LinkedIn", "Portfolio"]];
 
 // The link is derived from the value, never typed by the user: a phone
 // number becomes a `tel:` URI, an email a `mailto:` one, a bare domain gets
@@ -261,6 +265,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [isApplyingImport, setIsApplyingImport] = useState(false);
   const [importResult, setImportResult] = useState<ResumeImportResult | null>(null);
   const [importFilename, setImportFilename] = useState("");
+  // Brand initials have no manual input anymore, only this toggle: checked
+  // (the default) keeps them in sync with the name; unchecking freezes the
+  // last computed value. Session-only, not persisted to the document.
+  const [autoBrandInitials, setAutoBrandInitials] = useState(true);
   // The one open entry card, keyed "<field>:<index>". Opening a card closes its
   // siblings (exclusive accordion), and a freshly added entry opens itself.
   const [openEntryKey, setOpenEntryKey] = useState<string | null>(null);
@@ -419,9 +427,18 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     updateActiveYaml(value);
   }
 
-  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name">, value: string) {
+  function updateTextField(field: keyof Pick<ResumeDocument, "first_name" | "family_name">, value: string) {
     updateResumeFromHuman({ ...resume, [field]: value });
   }
+
+  useEffect(() => {
+    if (!autoBrandInitials) return;
+    const nextInitials = initialsFromNameParts(resume.first_name, resume.family_name);
+    if (nextInitials !== resume.brand_initials) {
+      updateResumeFromHuman({ ...resume, brand_initials: nextInitials });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoBrandInitials, resume.first_name, resume.family_name]);
 
   function updateSummary(index: number, key: keyof ResumeSummaryItem, value: string | boolean) {
     const next = [...resume.summary];
@@ -698,7 +715,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         isOpen={importResult !== null}
         filename={importFilename}
         result={importResult}
-        currentName={resume.name}
+        currentName={resumeFullName(resume)}
         isApplying={isApplyingImport}
         onConfirm={applyImportResult}
         onClose={() => setImportResult(null)}
@@ -898,29 +915,50 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 <section className="resume-human-editor__section">
                   <div className="resume-human-editor__grid">
                     <label>
-                      Brand initials
-                      <input value={resume.brand_initials} onChange={(event) => updateTextField("brand_initials", event.target.value)} />
+                      First name
+                      <input value={resume.first_name} onChange={(event) => updateTextField("first_name", event.target.value)} />
                     </label>
                     <label>
-                      Name
-                      <input value={resume.name} onChange={(event) => updateTextField("name", event.target.value)} />
+                      Family name
+                      <input value={resume.family_name} onChange={(event) => updateTextField("family_name", event.target.value)} />
                     </label>
                   </div>
-                  {CONTACT_FIELDS.map(({ label, linkKind }) => {
-                    const item = resume.contact.find((entry) => entry.label === label) ?? { label, value: "", link: "" };
-                    return (
-                      <div className="resume-human-editor__row" key={`contact-${label}`}>
-                        <span className="resume-human-editor__row-label">{label}</span>
-                        <label className="sr-only" htmlFor={`contact-value-${label}`}>{label}</label>
-                        <input
-                          id={`contact-value-${label}`}
-                          placeholder={label}
-                          value={item.value}
-                          onChange={(event) => updateContactValue(label, linkKind, event.target.value)}
-                        />
-                      </div>
-                    );
-                  })}
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={autoBrandInitials}
+                      onChange={(event) => setAutoBrandInitials(event.target.checked)}
+                    />
+                    Auto-generate brand initials
+                  </label>
+                  <div className="resume-human-editor__grid resume-human-editor__grid--half">
+                    <label>
+                      Location
+                      <input
+                        placeholder="Location"
+                        value={resume.contact.find((entry) => entry.label === "Location")?.value ?? ""}
+                        onChange={(event) => updateContactValue("Location", undefined, event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  {CONTACT_FIELD_ROWS.map((rowLabels) => (
+                    <div className="resume-human-editor__grid" key={`contact-row-${rowLabels.join("-")}`}>
+                      {rowLabels.map((label) => {
+                        const linkKind = CONTACT_FIELDS.find((field) => field.label === label)?.linkKind;
+                        const item = resume.contact.find((entry) => entry.label === label) ?? { label, value: "", link: "" };
+                        return (
+                          <label key={`contact-${label}`}>
+                            {label}
+                            <input
+                              placeholder={label}
+                              value={item.value}
+                              onChange={(event) => updateContactValue(label, linkKind, event.target.value)}
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </section>
                 )}
 

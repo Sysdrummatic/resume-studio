@@ -5,6 +5,7 @@ import { DEFAULT_RESUME_STYLE, normalizeResumeStyle, type ResumeStyleSettings } 
 import {
   defaultResumeDocument,
   normalizeResumeDocument,
+  resumeFullName,
   validateResumeDocument,
   type ResumeDocument,
   type ResumeLocale,
@@ -370,7 +371,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             body: JSON.stringify({
               locale: code,
               yamlContent: snapshot,
-              title: buffer.resume.name ? `${buffer.resume.name} - Master resume` : "Master resume",
+              title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Master resume` : "Master resume",
               styleSettings: buffer.cvStyle,
               changeNote: changeNote || "Saved update",
             }),

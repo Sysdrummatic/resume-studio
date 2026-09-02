@@ -11,6 +11,7 @@ import {
 } from "../resume-schema";
 import type { ImportedResumeSections, ResumeImportResult } from "./types";
 import { guessLevelFromText } from "./text-blocks";
+import { splitProfileName } from "../profile-name";
 
 // Mirrors the merge-key-bomb defence already used for the account-transfer
 // YAML importer (GHSA-h67p-54hq-rp68) — see app/lib/user-data-transfer.ts.
@@ -139,7 +140,11 @@ function mapJsonResume(source: Record<string, unknown>): ResumeImportResult {
   const resume: ImportedResumeSections = {};
 
   const name = pickText(basics, ["name"]);
-  if (name) resume.name = name;
+  if (name) {
+    const { firstName, lastName } = splitProfileName(name);
+    resume.first_name = firstName;
+    resume.family_name = lastName;
+  }
 
   const contact = mapJsonResumeContact(basics);
   if (contact.length > 0) resume.contact = contact;
@@ -176,6 +181,8 @@ function mapJsonResume(source: Record<string, unknown>): ResumeImportResult {
 
 const KEY_ALIASES = {
   name: ["name", "full_name", "fullname", "fullName"],
+  firstName: ["first_name", "firstname", "firstName", "given_name"],
+  familyName: ["family_name", "familyname", "familyName", "last_name", "lastname", "lastName", "surname"],
   email: ["email", "e-mail", "mail"],
   phone: ["phone", "telephone", "mobile"],
   linkedin: ["linkedin", "linkedin_url"],
@@ -269,8 +276,19 @@ function parseGenericYamlCv(source: Record<string, unknown>): ResumeImportResult
   const resume: ImportedResumeSections = {};
   const warnings = ["This YAML did not match a known CV schema — fields were matched by common key names on a best-effort basis."];
 
-  const name = asText(findKeyCaseInsensitive(source, KEY_ALIASES.name));
-  if (name) resume.name = name;
+  const explicitFirstName = asText(findKeyCaseInsensitive(source, KEY_ALIASES.firstName));
+  const explicitFamilyName = asText(findKeyCaseInsensitive(source, KEY_ALIASES.familyName));
+  if (explicitFirstName || explicitFamilyName) {
+    resume.first_name = explicitFirstName;
+    resume.family_name = explicitFamilyName;
+  } else {
+    const name = asText(findKeyCaseInsensitive(source, KEY_ALIASES.name));
+    if (name) {
+      const { firstName, lastName } = splitProfileName(name);
+      resume.first_name = firstName;
+      resume.family_name = lastName;
+    }
+  }
 
   const contact = mapGenericContact(source);
   if (contact.length > 0) resume.contact = contact;

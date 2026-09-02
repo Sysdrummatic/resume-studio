@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, View } from "@react-pdf/renderer";
-import type { ResumeDocument } from "../../resume-schema";
+import { resumeFullName, type ResumeDocument } from "../../resume-schema";
 import type { PdfTheme } from "../theme";
 import { PdfCircle } from "../primitives";
 
@@ -64,7 +64,7 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
             color: theme.colors.text,
           }}
         >
-          {resume.name}
+          {resumeFullName(resume)}
         </Text>
         {heroRole ? (
           <Text

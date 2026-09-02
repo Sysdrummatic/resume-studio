@@ -5,10 +5,9 @@ import path from "node:path";
 import yaml from "js-yaml";
 import { register } from "node:module";
 
-import { normalizeResumeDocument } from "../app/lib/resume-schema.ts";
-
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
+const { normalizeResumeDocument } = await import("../app/lib/resume-schema.ts");
 const { convertResumeToPlainText, convertResumeToAtsYaml, getRawYamlSource } = await import(
   "../app/lib/resume-export.ts"
 );
@@ -112,7 +111,8 @@ test("ats yaml strips interests, skill levels, and summary position noise", () =
 test("ats yaml preserves the rest of the document structure", () => {
   const parsed = yaml.load(convertResumeToAtsYaml(doc, "en"));
 
-  assert.equal(parsed.name, "Ariana Holt");
+  assert.equal(parsed.first_name, "Ariana");
+  assert.equal(parsed.family_name, "Holt");
   assert.equal(parsed.brand_initials, "AH");
   assert.equal(Array.isArray(parsed.experience), true);
   assert.equal(Array.isArray(parsed.education), true);

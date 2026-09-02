@@ -9,7 +9,8 @@ const { parseYamlCv } = await import("../app/lib/resume-import/parse-yaml-cv.ts"
 test("recognises OpenCiVera's own schema and normalizes it losslessly", () => {
   const yamlText = `
 brand_initials: "JD"
-name: "Jane Doe"
+first_name: "Jane"
+family_name: "Doe"
 summary:
   - position: "Engineer"
     description: "Builds things."
@@ -40,7 +41,8 @@ gdpr_clause: ""
 
   const result = parseYamlCv(yamlText);
   assert.equal(result.sourceKind, "yaml");
-  assert.equal(result.resume.name, "Jane Doe");
+  assert.equal(result.resume.first_name, "Jane");
+  assert.equal(result.resume.family_name, "Doe");
   assert.equal(result.resume.experience?.[0].company, "Acme");
   assert.equal(result.warnings.length, 0);
 });
@@ -80,7 +82,8 @@ languages:
 `;
 
   const result = parseYamlCv(yamlText);
-  assert.equal(result.resume.name, "John Smith");
+  assert.equal(result.resume.first_name, "John");
+  assert.equal(result.resume.family_name, "Smith");
   assert.equal(result.resume.contact?.some((item) => item.label === "E-mail" && item.value === "john@example.com"), true);
   assert.equal(result.resume.contact?.some((item) => item.label === "LinkedIn"), true);
   assert.equal(result.resume.experience?.[0].company, "Globex");
@@ -107,7 +110,8 @@ skills:
 `;
 
   const result = parseYamlCv(yamlText);
-  assert.equal(result.resume.name, "Alex Doe");
+  assert.equal(result.resume.first_name, "Alex");
+  assert.equal(result.resume.family_name, "Doe");
   assert.equal(result.resume.contact?.[0].label, "E-mail");
   assert.equal(result.resume.experience?.[0].company, "Foo Corp");
   assert.equal(result.resume.experience?.[0].role, "Consultant");
