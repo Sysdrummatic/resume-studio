@@ -3444,7 +3444,8 @@ a {
   background: var(--ed-teal-bg);
 }
 
-.revision-list li[data-viewing="true"] {
+.revision-list li[data-viewing="true"],
+.revision-list li[data-unsaved="true"] {
   border-color: var(--ed-warn-border);
   background: var(--ed-warn-bg);
 }
@@ -3462,6 +3463,10 @@ a {
   text-transform: uppercase;
   font-weight: 600;
   color: var(--ed-teal);
+}
+
+.revision-list__tag--unsaved {
+  color: var(--ed-warn);
 }
 
 .revision-list p,

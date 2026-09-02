@@ -207,6 +207,14 @@ function writeLocalDraft(locale: string, draft: LocalDraft): void {
   }
 }
 
+function clearLocalDraft(locale: string): void {
+  try {
+    window.localStorage.removeItem(localDraftStorageKey(locale));
+  } catch {
+    // Best-effort only.
+  }
+}
+
 export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
   const searchParams = useSearchParams();
   const requestedPanel = searchParams.get("panel");
@@ -336,6 +344,16 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
   useEffect(() => {
     if (isLoading || !activeBuffer) return;
+    // yamlPanel also changes once when the buffer is first populated from the
+    // server — that isn't an edit, so only persist (and only show "Draft
+    // saved") once the panel actually diverges from what's saved. Once it
+    // stops diverging (e.g. right after Save MasterCV), drop the stale local
+    // copy instead of leaving it to resurface as a false "unsaved draft".
+    if (yamlPanel === activeBuffer.savedYamlContent) {
+      clearLocalDraft(locale);
+      setLastLocalSaveAt(null);
+      return;
+    }
     const timer = window.setTimeout(() => {
       writeLocalDraft(locale, { yamlContent: yamlPanel, savedAt: Date.now() });
       setLastLocalSaveAt(Date.now());
@@ -349,6 +367,24 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     setRestorableDraft(null);
     showToast("Local draft restored.");
   }
+
+  // The explicit "discard" action for the unsaved-draft entry (banner and
+  // History list): unlike restoreLocalDraft, this is destructive on purpose —
+  // it drops the local copy AND reverts the open editor to the last saved
+  // version, undoing any edits made in this session too.
+  function discardLocalDraft() {
+    clearLocalDraft(locale);
+    setRestorableDraft(null);
+    if (activeBuffer) updateActiveYaml(activeBuffer.savedYamlContent);
+    showToast("Unsaved changes discarded.");
+  }
+
+  // True both right after a reload (a stale local draft was found) and while
+  // actively editing in this same session (dirtyLocales already tracks
+  // yamlPanel !== savedYamlContent) — either way there's local-only content
+  // to surface as the "unsaved draft" entry in the History list.
+  const hasUnsavedDraft = restorableDraft !== null || dirtyLocales.includes(locale);
+  const unsavedDraftSavedAt = restorableDraft?.savedAt ?? lastLocalSaveAt;
 
   useEffect(() => {
     if (requestedPanel === "languages") {
@@ -733,7 +769,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
               onManageLanguages={() => setIsLanguageModalOpen(true)}
             />
             {lastLocalSaveAt ? (
-              <span className="resume-editor-draft-indicator">
+              <span
+                className="resume-editor-draft-indicator"
+                title="Saved in this browser only, not on our servers — click Save MasterCV to save it for real."
+              >
                 <span className="resume-editor-draft-indicator__dot" aria-hidden="true" />
                 Draft saved locally {formatClockTime(lastLocalSaveAt)}
               </span>
@@ -813,8 +852,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 <button type="button" className="button button--ghost button--small" onClick={restoreLocalDraft}>
                   Restore
                 </button>
-                <button type="button" className="button button--ghost button--small" onClick={() => setRestorableDraft(null)}>
-                  Dismiss
+                <button type="button" className="button button--ghost button--small" onClick={discardLocalDraft}>
+                  Delete
                 </button>
               </div>
             </div>
@@ -1353,10 +1392,32 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
             ) : (
               <div className="resume-editor-side-panel__history">
                 <h2>Revision history</h2>
-                {revisions.length === 0 ? (
+                {revisions.length === 0 && !hasUnsavedDraft ? (
                   <p className="cv-preview__placeholder">No revisions yet.</p>
                 ) : (
                   <ul className="revision-list">
+                    {hasUnsavedDraft ? (
+                      <li data-unsaved="true">
+                        <div className="revision-list__meta">
+                          <div className="revision-list__top">
+                            <strong>Unsaved draft</strong>
+                            <span className="revision-list__tag revision-list__tag--unsaved">unsaved</span>
+                          </div>
+                          <p>Saved only in this browser — not yet part of your revision history.</p>
+                          <small>{unsavedDraftSavedAt ? formatClockTime(unsavedDraftSavedAt) : "just now"}</small>
+                        </div>
+                        <div className="actions-row">
+                          {restorableDraft ? (
+                            <button type="button" className="button button--ghost button--small" onClick={restoreLocalDraft}>
+                              Restore
+                            </button>
+                          ) : null}
+                          <button type="button" className="button button--danger button--small" onClick={discardLocalDraft}>
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    ) : null}
                     {revisions.map((revision, index) => {
                       // Revisions come back newest-first, so index 0 is what the
                       // saved document currently matches — nothing to preview or
