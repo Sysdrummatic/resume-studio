@@ -38,3 +38,24 @@ test("YAML CV parsing guards against the merge-key-bomb class of attack (GHSA-h6
   const module = read("app/lib/resume-import/parse-yaml-cv.ts");
   assert.match(module, /maxTotalMergeKeys/);
 });
+
+test("pdf.js worker is pointed at a real file instead of relying on its Node fake-worker fallback", () => {
+  // Regression: with no explicit workerSrc, pdf-parse's pdfjs-dist dependency
+  // falls back to a Node "fake worker" whose own dynamic import of the
+  // worker module hangs forever under Next's dev server (Turbopack) — even
+  // with pdf-parse/pdfjs-dist marked serverExternalPackages. import.meta
+  // .resolve looks like the natural fix but Turbopack's server runtime
+  // doesn't implement it ("{import.meta}.resolve is not a function"), so
+  // this must stay a process.cwd()-based node_modules path, not that API.
+  const extractText = read("app/lib/resume-import/extract-text.ts");
+  const nextConfig = read("next.config.ts");
+
+  assert.match(extractText, /PDFParse\.setWorker\(/);
+  assert.match(extractText, /process\.cwd\(\)/);
+  // The comment explains why import.meta.resolve was rejected — only the
+  // call syntax (not that explanatory mention) must be absent from the code.
+  assert.equal(extractText.includes("import.meta.resolve("), false);
+  assert.match(nextConfig, /serverExternalPackages/);
+  assert.match(nextConfig, /"pdf-parse"/);
+  assert.match(nextConfig, /"pdfjs-dist"/);
+});
