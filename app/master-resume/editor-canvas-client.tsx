@@ -13,6 +13,7 @@ import SaveVersionModal from "./save-version-modal";
 import ImportCvBanner from "./import-cv-banner";
 import ImportReviewModal from "./import-review-modal";
 import type { ResumeImportResult } from "../lib/resume-import/parse-resume-file";
+import { mergeImportedResume } from "../lib/resume-import/merge-imported-resume";
 import EditorSectionNav, { type EditorNavGroup } from "./editor-section-nav";
 import { computeResumeCompletion } from "./resume-completion";
 import {
@@ -557,10 +558,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   function applyImportResult() {
     if (!importResult) return;
     setIsApplyingImport(true);
-    updateResumeFromHuman({ ...resume, ...importResult.resume });
+    updateResumeFromHuman(mergeImportedResume(resume, importResult.resume));
     setIsApplyingImport(false);
     setImportResult(null);
-    showToast(`Imported content from ${importFilename}.`);
+    showToast(`Added content from ${importFilename}.`);
   }
 
   async function resetToTemplate() {

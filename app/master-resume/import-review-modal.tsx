@@ -67,8 +67,8 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
       <div className="dashboard-modal__body">
         <h2>Review import</h2>
         <p className="card-lead">
-          Parsed <strong>{filename}</strong>. Only the sections below were found — everything else in your current
-          draft stays untouched. Check this over before it replaces those sections.
+          Parsed <strong>{filename}</strong>. Only the sections below were found — they&apos;ll be added to what&apos;s
+          already in your draft. Nothing you&apos;ve already entered is removed or replaced.
         </p>
 
         {fields.length > 0 ? (
@@ -101,8 +101,9 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
         {nameMismatch ? (
           <div className="import-review-mismatch">
             <p>
-              This file is for <strong>{parsedName}</strong>, but the current draft is for <strong>{currentName}</strong>.
-              Applying it will overwrite {currentName}&apos;s data.
+              This file looks like it&apos;s for <strong>{parsedName}</strong>, but the current draft is for{" "}
+              <strong>{currentName}</strong>. Adding it will mix {parsedName}&apos;s experience, education, and other
+              details into {currentName}&apos;s draft.
             </p>
             <label className="checkbox-row">
               <input
@@ -110,7 +111,7 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
                 checked={acknowledgedMismatch}
                 onChange={(event) => setAcknowledgedMismatch(event.target.checked)}
               />
-              Apply anyway and overwrite {currentName}&apos;s data
+              Add anyway, even though the names don&apos;t match
             </label>
           </div>
         ) : null}
@@ -125,7 +126,7 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
             onClick={onConfirm}
             disabled={isApplying || !canApply}
           >
-            {isApplying ? "Applying..." : "Apply to draft"}
+            {isApplying ? "Adding..." : "Add to draft"}
           </button>
         </div>
       </div>
