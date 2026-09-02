@@ -9,9 +9,6 @@ type DraftBody = {
   locale?: string;
   yamlContent?: string;
   title?: string;
-  isPublic?: boolean;
-  allowIndexing?: boolean;
-  aiGenerated?: boolean;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -46,9 +43,6 @@ export async function POST(request: Request): Promise<Response> {
   const payload = await saveResumeDraftDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
     yamlContent,
     title: String(body.title || "Master resume draft"),
-    isPublic: false,
-    allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
-    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
   });
 
   if (!payload) {

@@ -102,10 +102,7 @@ type EditorSection = {
   label: string;
   /** Shown under the workspace heading — what this section is for. */
   hint: string;
-  /**
-   * Top-level YAML key the sidebar jumps to in YAML mode. Omitted for
-   * `publishing`, whose fields are document metadata columns, not YAML.
-   */
+  /** Top-level YAML key the sidebar jumps to in YAML mode. */
   yamlKey?: string;
   countField?: CountableField;
 };
@@ -140,12 +137,6 @@ const EDITOR_SECTION_GROUPS: Array<{ label: string; numbered?: boolean; sections
       { id: "tech-stack", label: "Tech stack", hint: "Technologies and tools you work with.", yamlKey: "tech_stack", countField: "tech_stack" },
       { id: "qr-codes", label: "QR codes", hint: "Links encoded as QR codes in the printed version.", yamlKey: "qr_codes", countField: "qr_codes" },
       { id: "gdpr", label: "GDPR clause", hint: "Common on the Polish job market, usually left empty for English CVs.", yamlKey: "gdpr_clause" },
-    ],
-  },
-  {
-    label: "Document",
-    sections: [
-      { id: "publishing", label: "Publishing", hint: "Settings for the whole record, not a single section." },
     ],
   },
 ];
@@ -234,8 +225,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     setActiveLocale,
     updateActiveYaml,
     updateActiveResume: updateResumeFromHuman,
-    setActiveAllowIndexing,
-    setActiveAiGenerated,
     setActiveCvStyle,
     resetActiveToTemplate,
     saveAllDirty,
@@ -251,8 +240,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const yamlPanel = activeBuffer?.yamlPanel ?? "";
   const yamlError = activeBuffer?.yamlError ?? null;
   const revisions = activeBuffer?.revisions ?? [];
-  const allowIndexing = activeBuffer?.allowIndexing ?? false;
-  const aiGenerated = activeBuffer?.aiGenerated ?? false;
   // Style lives on the document buffer, so it survives a reload and is saved
   // with the rest of the document rather than only living in this component.
   const cvStyle = activeBuffer?.cvStyle ?? DEFAULT_RESUME_STYLE;
@@ -625,17 +612,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     showToast(`Downloaded ${fileName}.`);
   }
 
-  async function publishResume(targetIsPublic: boolean) {
+  async function publishResume() {
     setIsBusy(true);
-    showToast(targetIsPublic ? "Publishing resume..." : "Saving unpublished version...");
+    showToast("Saving...");
     try {
-      const result = await saveAllDirty({ targetIsPublic, changeNote });
+      const result = await saveAllDirty({ changeNote });
       if (result.failed.length === 0) {
-        showToast(
-          targetIsPublic
-            ? `Resume published (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`
-            : `Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`,
-        );
+        showToast(`Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`);
       } else if (result.succeeded.length === 0) {
         showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error");
       } else {
@@ -708,7 +691,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         onChangeNote={setChangeNote}
         onClose={() => setIsSaveVersionModalOpen(false)}
         onConfirm={() => {
-          void publishResume(true).then(() => setIsSaveVersionModalOpen(false));
+          void publishResume().then(() => setIsSaveVersionModalOpen(false));
         }}
       />
       <ImportReviewModal
@@ -1203,26 +1186,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 </section>
                 )}
 
-                {activeSectionId === "publishing" && (
-                <section className="resume-human-editor__section">
-                  <label className="checkbox-row">
-                    <input type="checkbox" checked={allowIndexing} onChange={(event) => setActiveAllowIndexing(event.target.checked)} />
-                    Allow indexing
-                  </label>
-                  <label className="checkbox-row">
-                    <input type="checkbox" checked={aiGenerated} onChange={(event) => setActiveAiGenerated(event.target.checked)} />
-                    Mark as AI generated
-                  </label>
-                  <p className="resume-editor-hint">
-                    The draft saves in your browser and creates no history entry. Publish a version deliberately with Save MasterCV.
-                  </p>
-                  <div className="actions-row">
-                    <button className="button button--ghost" type="button" onClick={() => void publishResume(false)} disabled={isBusy || isLoading}>
-                      {isBusy ? "Saving..." : "Save unpublished"}
-                    </button>
-                  </div>
-                </section>
-                )}
                 </fieldset>
               </div>
             )}
@@ -1316,7 +1279,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                     styleCode={selectedStyle}
                     yamlContent={previewedRevision ? previewedRevision.yamlContent : yamlPanel}
                     isExpanded={isPreviewExpanded}
-                    aiGenerated={aiGenerated}
                     draftPdfEnabled={draftPdfEnabled && (actor && isAppRole(actor.role) ? canAccessDraftPdf(actor.role) : false)}
                     cvStyle={cvStyle}
                     onExpand={() => setIsPreviewExpanded(true)}

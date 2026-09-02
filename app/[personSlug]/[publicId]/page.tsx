@@ -130,7 +130,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         resume={published.resume}
         languages={published.languages}
         status="public"
-        aiGenerated={published.preset.ai_generated || published.document.ai_generated}
+        aiGenerated={published.preset.ai_generated}
         personSlug={canonicalPersonSlug}
         publicId={canonicalPublicId}
         mode="public"

@@ -9,9 +9,6 @@ type PublishBody = {
   locale?: string;
   yamlContent?: string;
   title?: string;
-  isPublic?: boolean;
-  allowIndexing?: boolean;
-  aiGenerated?: boolean;
   styleSettings?: unknown;
   changeNote?: string;
 };
@@ -48,9 +45,6 @@ export async function POST(request: Request): Promise<Response> {
   const payload = await publishResumeDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
     yamlContent,
     title: String(body.title || "Master resume"),
-    isPublic: typeof body.isPublic === "boolean" ? body.isPublic : true,
-    allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
-    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
     styleSettings: body.styleSettings,
     changeNote: String(body.changeNote || "Publish"),
   });

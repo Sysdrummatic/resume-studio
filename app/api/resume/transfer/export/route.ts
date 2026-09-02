@@ -56,7 +56,6 @@ export async function GET(): Promise<Response> {
     documents: documents.map((document) => ({
       locale: document.locale,
       title: document.title,
-      ai_generated: document.ai_generated,
       yaml_content: document.yaml_content,
     })),
     cv_versions: presets.map((preset) => ({

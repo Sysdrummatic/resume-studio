@@ -21,9 +21,6 @@ export type ResumeDocumentRow = {
   title: string;
   yaml_content: string;
   schema_version: number;
-  is_public: boolean;
-  allow_indexing: boolean;
-  ai_generated: boolean;
   updated_at: string;
   /** Raw jsonb; run through normalizeResumeStyle() before rendering. */
   style_settings?: unknown;
@@ -246,7 +243,7 @@ const FALLBACK_LANGUAGE_LABELS: Record<string, { label: string; shortLabel: stri
 const RESUME_LANGUAGE_SELECT = "code,label,short_label,labels,is_enabled,sort_order,created_at,updated_at";
 const RESUME_USER_LOCALE_SELECT =
   "user_id,locale,label_override,short_label_override,is_default,sort_order,created_at,updated_at";
-const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,ai_generated,updated_at,style_settings";
+const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,updated_at,style_settings";
 const RESUME_PRESET_SELECT =
   "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at";
 const RESUME_PRESET_VARIANT_SELECT = "id,preset_id,document_id,user_id,locale,selection,is_default,created_at,updated_at";
@@ -881,9 +878,6 @@ async function ensureResumeDocumentRecord(
         title: "Master resume",
         yaml_content: buildDefaultResumeYaml(fallbackName),
         schema_version: 1,
-        is_public: false,
-        allow_indexing: false,
-        ai_generated: false,
         created_by: userId,
       },
     });
@@ -1139,7 +1133,6 @@ async function fetchActivePublicLinkByPersonAndPublicId(
 
 function publishedLocaleToDocument(
   row: ResumePublishedCvLocaleRow,
-  link: ResumePublicLinkRow,
   snapshot: ResumePublishedCvRow,
 ): ResumeDocumentRow {
   return {
@@ -1149,9 +1142,6 @@ function publishedLocaleToDocument(
     title: row.title || snapshot.title,
     yaml_content: row.yaml_content,
     schema_version: Number(row.schema_version) || Number(snapshot.schema_version) || 1,
-    is_public: true,
-    allow_indexing: Boolean(link.allow_indexing),
-    ai_generated: Boolean(row.ai_generated),
     updated_at: row.created_at || snapshot.published_at,
   };
 }
@@ -1286,7 +1276,7 @@ async function fetchPublishedResumeBySnapshotLink(
   }
 
   const languageLabels = link.user_id ? await fetchResumeUserLocaleMapForUser(link.user_id) : new Map();
-  const document = publishedLocaleToDocument(activeLocaleRow, link, snapshot);
+  const document = publishedLocaleToDocument(activeLocaleRow, snapshot);
   const normalizedSlug = link.slug || link.legacy_slug || "";
   const preset = buildPublishedSnapshotPreset(link, snapshot, activeLocaleRow, defaultLocale, normalizedSlug);
 
@@ -1782,9 +1772,6 @@ export async function publishResumeDocument(
   payload: {
     yamlContent: string;
     title: string;
-    isPublic: boolean;
-    allowIndexing: boolean;
-    aiGenerated?: boolean;
     styleSettings?: unknown;
     changeNote: string;
   },
@@ -1803,9 +1790,6 @@ export async function publishResumeDocument(
         title,
         yaml_content: payload.yamlContent,
         schema_version: 1,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         style_settings: normalizeResumeStyle(payload.styleSettings),
         created_by: userId,
       },
@@ -1822,9 +1806,6 @@ export async function publishResumeDocument(
       values: {
         title,
         yaml_content: payload.yamlContent,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         style_settings: normalizeResumeStyle(payload.styleSettings),
         updated_at: new Date().toISOString(),
       },
@@ -1872,9 +1853,6 @@ export async function saveResumeDraftDocument(
   payload: {
     yamlContent: string;
     title: string;
-    isPublic: boolean;
-    allowIndexing: boolean;
-    aiGenerated?: boolean;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
@@ -1891,9 +1869,6 @@ export async function saveResumeDraftDocument(
         title,
         yaml_content: payload.yamlContent,
         schema_version: 1,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         created_by: userId,
       },
     });
@@ -1909,9 +1884,6 @@ export async function saveResumeDraftDocument(
       values: {
         title,
         yaml_content: payload.yamlContent,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         updated_at: new Date().toISOString(),
       },
     });

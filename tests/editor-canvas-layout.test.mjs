@@ -37,7 +37,9 @@ test("section navigation groups sections and numbers only the basics", () => {
 
   assert.equal(editor.includes('label: "Basics"'), true);
   assert.equal(editor.includes('label: "Optional"'), true);
-  assert.equal(editor.includes('label: "Document"'), true);
+  // The Publishing tab (and its "Document" nav group) was removed: Master CV is
+  // never published or indexed directly, only a CV Version is.
+  assert.equal(editor.includes('label: "Document"'), false);
   assert.equal(editor.includes("numbered: true"), true);
   // One source of truth drives the sidebar, the workspace heading and the YAML jumps.
   assert.equal(editor.includes("const EDITOR_SECTIONS: EditorSection[] = EDITOR_SECTION_GROUPS.flatMap"), true);
@@ -54,8 +56,8 @@ test("toolbar carries language, mode toggle and the primary save action", () => 
   assert.equal(toolbar.includes("Human-friendly Editor"), true);
   assert.equal(toolbar.includes("YAML Editor"), true);
   assert.equal(toolbar.includes("Save MasterCV"), true);
-  // Publishing toggles moved into their own nav section; the toolbar keeps only
-  // the deliberate commit action.
+  // Master CV is never published or indexed directly, so the Publishing tab
+  // (and its toggles) was removed entirely, not just relocated.
   assert.equal(toolbar.includes("Allow indexing"), false);
 });
 

@@ -24,8 +24,6 @@ export type LocaleBuffer = {
   savedYamlContent: string;
   yamlError: string | null;
   revisions: ResumeRevisionItem[];
-  allowIndexing: boolean;
-  aiGenerated: boolean;
   cvStyle: ResumeStyleSettings;
   saveError: string | null;
   /** True when the initial document fetch for this locale failed — never save over it. */
@@ -148,8 +146,6 @@ function buildBuffer(
       savedYamlContent: yamlContent,
       yamlError,
       revisions,
-      allowIndexing: documentRow?.allow_indexing ?? false,
-      aiGenerated: documentRow?.ai_generated ?? false,
       cvStyle: normalizeResumeStyle(documentRow?.style_settings),
       saveError: null,
       loadFailed: false,
@@ -167,8 +163,6 @@ function buildFailedBuffer(locale: ResumeLocale, message: string, fallbackName: 
     savedYamlContent: "",
     yamlError: null,
     revisions: [],
-    allowIndexing: false,
-    aiGenerated: false,
     cvStyle: { ...DEFAULT_RESUME_STYLE },
     saveError: message,
     loadFailed: true,
@@ -349,21 +343,13 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     return true;
   }, [activeLocale, buffers, actor?.displayName, patchBuffer]);
 
-  const setActiveAllowIndexing = useCallback(
-    (value: boolean) => patchBuffer(activeLocale, { allowIndexing: value }),
-    [activeLocale, patchBuffer],
-  );
-  const setActiveAiGenerated = useCallback(
-    (value: boolean) => patchBuffer(activeLocale, { aiGenerated: value }),
-    [activeLocale, patchBuffer],
-  );
   const setActiveCvStyle = useCallback(
     (value: ResumeStyleSettings) => patchBuffer(activeLocale, { cvStyle: value }),
     [activeLocale, patchBuffer],
   );
 
   const saveAllDirty = useCallback(
-    async ({ targetIsPublic, changeNote }: { targetIsPublic: boolean; changeNote: string }): Promise<SaveAllResult> => {
+    async ({ changeNote }: { changeNote: string }): Promise<SaveAllResult> => {
       const targets = Array.from(new Set([activeLocale, ...dirtyLocales]));
       const result: SaveAllResult = { succeeded: [], failed: [] };
 
@@ -385,11 +371,8 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
               locale: code,
               yamlContent: snapshot,
               title: buffer.resume.name ? `${buffer.resume.name} - Master resume` : "Master resume",
-              isPublic: targetIsPublic,
-              allowIndexing: buffer.allowIndexing,
-              aiGenerated: buffer.aiGenerated,
               styleSettings: buffer.cvStyle,
-              changeNote: changeNote || (targetIsPublic ? "Published update" : "Unpublished save"),
+              changeNote: changeNote || "Saved update",
             }),
           });
           const payload = (await response.json()) as ApiDocumentResponse;
@@ -566,8 +549,6 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     setActiveLocale,
     updateActiveYaml,
     updateActiveResume,
-    setActiveAllowIndexing,
-    setActiveAiGenerated,
     setActiveCvStyle,
     resetActiveToTemplate,
     saveAllDirty,
