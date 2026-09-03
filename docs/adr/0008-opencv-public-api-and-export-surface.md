@@ -58,7 +58,7 @@ selection before serving content — the same filtering the public web view
 applies. "Raw" (CVasCode) means no ATS transformations, not unselected master
 content. Serving unselected master content through these endpoints violates
 the "Draft/master/private data is never exposed" decision above (risk R09 in
-`docs/security/security-and-risk-plan.md`).
+`docs/security/security-and-risk-plan.md`, private `OpenCiVera-Project` repo).
 
 ## Consequences
 
