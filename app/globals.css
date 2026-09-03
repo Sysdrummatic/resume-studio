@@ -2280,7 +2280,7 @@ a {
 
 @media (min-width: 1021px) {
   .resume-editor-layout {
-    grid-template-columns: 246px minmax(0, 1fr) 360px;
+    grid-template-columns: 246px minmax(0, 1fr) 296px;
   }
 
   .resume-editor-toolbar {
@@ -2295,7 +2295,7 @@ a {
 
 @media (min-width: 1241px) {
   .resume-editor-layout {
-    grid-template-columns: 246px minmax(0, 1fr) 420px;
+    grid-template-columns: 246px minmax(0, 1fr) 340px;
   }
 }
 
