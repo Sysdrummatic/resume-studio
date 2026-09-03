@@ -4,8 +4,6 @@ import type {
   ResumeDocument,
   ResumeEducation,
   ResumeExperience,
-  ResumeLanguage,
-  ResumeSkill,
   ResumeSummaryItem,
 } from "../resume-schema";
 import type { ImportedResumeSections } from "./types";
@@ -51,14 +49,7 @@ function mergeEducation(current: ResumeEducation[], imported: ResumeEducation[])
   return [...kept, ...imported];
 }
 
-function mergeSkills(current: ResumeSkill[], imported: ResumeSkill[]): ResumeSkill[] {
-  const kept = dropBlank(current, (item) => isBlank(item.name));
-  const existing = new Set(kept.map((item) => item.name.trim().toLowerCase()));
-  const additions = imported.filter((item) => !isBlank(item.name) && !existing.has(item.name.trim().toLowerCase()));
-  return [...kept, ...additions];
-}
-
-function mergeLanguages(current: ResumeLanguage[], imported: ResumeLanguage[]): ResumeLanguage[] {
+function mergeByName<T extends { name: string }>(current: T[], imported: T[]): T[] {
   const kept = dropBlank(current, (item) => isBlank(item.name));
   const existing = new Set(kept.map((item) => item.name.trim().toLowerCase()));
   const additions = imported.filter((item) => !isBlank(item.name) && !existing.has(item.name.trim().toLowerCase()));
@@ -90,8 +81,8 @@ export function mergeImportedResume(current: ResumeDocument, imported: ImportedR
   if (imported.summary) next.summary = mergeSummary(current.summary, imported.summary);
   if (imported.experience) next.experience = mergeExperience(current.experience, imported.experience);
   if (imported.education) next.education = mergeEducation(current.education, imported.education);
-  if (imported.skills) next.skills = mergeSkills(current.skills, imported.skills);
-  if (imported.languages) next.languages = mergeLanguages(current.languages, imported.languages);
+  if (imported.skills) next.skills = mergeByName(current.skills, imported.skills);
+  if (imported.languages) next.languages = mergeByName(current.languages, imported.languages);
   if (imported.courses) next.courses = mergeCourses(current.courses, imported.courses);
   if (imported.interests) next.interests = mergeStringList(current.interests, imported.interests);
   if (imported.tech_stack) next.tech_stack = mergeStringList(current.tech_stack, imported.tech_stack);

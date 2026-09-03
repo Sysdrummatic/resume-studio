@@ -166,12 +166,17 @@ function parseEducationBody(body: string): ResumeEducation[] {
   return entries.filter((item) => item.school || item.degree);
 }
 
-function parseSkillsBody(body: string): ResumeSkill[] {
+/** Skills/interests are usually a comma list or one item per line, optionally
+ * bulleted — never both structures in the same body, so splitting on comma
+ * only when one is present avoids breaking a "JavaScript, TypeScript" line
+ * into single words when the body is actually newline-separated. */
+function splitCommaOrLineTokens(body: string): string[] {
   const tokens = body.includes(",") ? body.split(",") : body.split("\n");
-  return tokens
-    .map((token) => token.replace(/^[-*••]\s*/, "").trim())
-    .filter(Boolean)
-    .map((name) => ({ name, level: 3 }));
+  return tokens.map((token) => token.replace(/^[-*••]\s*/, "").trim()).filter(Boolean);
+}
+
+function parseSkillsBody(body: string): ResumeSkill[] {
+  return splitCommaOrLineTokens(body).map((name) => ({ name, level: 3 }));
 }
 
 function parseCoursesBody(body: string): ResumeCourse[] {
@@ -201,8 +206,7 @@ function parseLanguagesBody(body: string): ResumeLanguage[] {
 }
 
 function parseInterestsBody(body: string): string[] {
-  const tokens = body.includes(",") ? body.split(",") : body.split("\n");
-  return tokens.map((token) => token.replace(/^[-*••]\s*/, "").trim()).filter(Boolean);
+  return splitCommaOrLineTokens(body);
 }
 
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.-]+/;

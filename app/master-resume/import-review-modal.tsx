@@ -10,7 +10,6 @@ type ImportReviewModalProps = {
   /** The draft's current name, to guard against overwriting one person's
    * draft with another person's parsed CV (see nameMismatch below). */
   currentName: string;
-  isApplying: boolean;
   onConfirm: () => void;
   onClose: () => void;
 };
@@ -39,7 +38,7 @@ const SECTION_LABELS: Array<{ key: keyof NonNullable<ResumeImportResult["resume"
   { key: "interests", label: "Interests" },
 ];
 
-function describeField(key: string, value: unknown): string {
+function describeField(value: unknown): string {
   if (Array.isArray(value)) return `${value.length} ${value.length === 1 ? "entry" : "entries"} found`;
   return "Found";
 }
@@ -47,7 +46,7 @@ function describeField(key: string, value: unknown): string {
 // Best-effort extraction, always shown for review before it touches the
 // draft: parsing PDF/DOCX/plain-text CVs is heuristic, never guaranteed
 // correct, so nothing here is applied until the user confirms it.
-export default function ImportReviewModal({ isOpen, filename, result, currentName, isApplying, onConfirm, onClose }: ImportReviewModalProps) {
+export default function ImportReviewModal({ isOpen, filename, result, currentName, onConfirm, onClose }: ImportReviewModalProps) {
   const [acknowledgedMismatch, setAcknowledgedMismatch] = useState(false);
 
   if (!isOpen || !result) return null;
@@ -68,7 +67,7 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
 
   return (
     <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Review imported CV">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close import review" disabled={isApplying}></button>
+      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close import review"></button>
       <div className="dashboard-modal__body">
         <h2>Review import</h2>
         <p className="card-lead">
@@ -82,7 +81,7 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
               <li key={key}>
                 <span>{label}</span>
                 <span className="import-review-list__value">
-                  {key === "__name" ? parsedName : describeField(key, result.resume[key as keyof NonNullable<ResumeImportResult["resume"]>])}
+                  {key === "__name" ? parsedName : describeField(result.resume[key as keyof NonNullable<ResumeImportResult["resume"]>])}
                 </span>
               </li>
             ))}
@@ -124,16 +123,16 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
         ) : null}
 
         <div className="actions-row">
-          <button type="button" className="button button--ghost" onClick={onClose} disabled={isApplying}>
+          <button type="button" className="button button--ghost" onClick={onClose}>
             Cancel
           </button>
           <button
             type="button"
             className={`button ${nameMismatch ? "button--danger" : "button--primary"}`}
             onClick={onConfirm}
-            disabled={isApplying || !canApply}
+            disabled={!canApply}
           >
-            {isApplying ? "Adding..." : "Add to draft"}
+            Add to draft
           </button>
         </div>
       </div>

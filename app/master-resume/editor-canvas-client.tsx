@@ -262,7 +262,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [isSaveVersionModalOpen, setIsSaveVersionModalOpen] = useState(false);
   const [changeNote, setChangeNote] = useState("Publish update");
   const [isImporting, setIsImporting] = useState(false);
-  const [isApplyingImport, setIsApplyingImport] = useState(false);
   const [importResult, setImportResult] = useState<ResumeImportResult | null>(null);
   const [importFilename, setImportFilename] = useState("");
   // Brand initials have no manual input anymore, only this toggle: checked
@@ -597,9 +596,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
   function applyImportResult() {
     if (!importResult) return;
-    setIsApplyingImport(true);
     updateResumeFromHuman(mergeImportedResume(resume, importResult.resume));
-    setIsApplyingImport(false);
     setImportResult(null);
     showToast(`Added content from ${importFilename}.`);
   }
@@ -716,7 +713,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         filename={importFilename}
         result={importResult}
         currentName={resumeFullName(resume)}
-        isApplying={isApplyingImport}
         onConfirm={applyImportResult}
         onClose={() => setImportResult(null)}
       />
