@@ -9,6 +9,7 @@ import type { ResumeLanguageOption } from "../resume-language-switcher";
 import type { ResumeDocument, ResumeLocale } from "../../lib/resume-schema";
 import { getDefaultSummary } from "../../lib/resume-schema";
 import { sanitizeExternalHref } from "../../lib/safe-url";
+import { DEFAULT_RESUME_STYLE, resumeStyleDataAttributes, type ResumeStyleSettings } from "../../lib/resume-style";
 import {
   buildResumeRenderConfig,
   buildResumeRendererLabels,
@@ -40,6 +41,7 @@ type Props = {
   };
   scrollContainerRef?: React.RefObject<HTMLElement>;
   embedded?: boolean;
+  cvStyle?: ResumeStyleSettings;
 };
 
 function renderMeter(level: number) {
@@ -208,6 +210,7 @@ export default function ResumeRenderer({
   actions,
   scrollContainerRef,
   embedded = false,
+  cvStyle = DEFAULT_RESUME_STYLE,
 }: Props) {
   const rendererLabels = buildResumeRendererLabels(locale, labels);
   const config = buildResumeRenderConfig({
@@ -309,7 +312,11 @@ export default function ResumeRenderer({
     <div className={rootClassName} ref={rootRef}>
       <StatusToast toast={toast} onClose={closeToast} />
 
-      <div className="resume">
+      {/* Style variants scale the token values inherited from the root above.
+          They must sit on a descendant: `--x: calc(var(--x) * k)` on the same
+          element is a cycle, on a child it reads the inherited value. That keeps
+          resume.css's base block the single value the PDF parity test reads. */}
+      <div className="resume" {...resumeStyleDataAttributes(cvStyle)}>
         <header className={`hero ${heroDocked ? "hero--scrolled" : ""}`}>
           <div className="hero__title">
             <div className="logo-circle">{resume.brand_initials || "CV"}</div>
@@ -559,6 +566,8 @@ export default function ResumeRenderer({
             ) : null}
           </aside>
         </main>
+
+        {resume.gdpr_clause ? <p className="gdpr-clause">{resume.gdpr_clause}</p> : null}
       </div>
     </div>
   );

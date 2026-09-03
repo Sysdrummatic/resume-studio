@@ -12,6 +12,7 @@ type PublishBody = {
   isPublic?: boolean;
   allowIndexing?: boolean;
   aiGenerated?: boolean;
+  styleSettings?: unknown;
   changeNote?: string;
 };
 
@@ -50,6 +51,7 @@ export async function POST(request: Request): Promise<Response> {
     isPublic: typeof body.isPublic === "boolean" ? body.isPublic : true,
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
     aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
+    styleSettings: body.styleSettings,
     changeNote: String(body.changeNote || "Publish"),
   });
 

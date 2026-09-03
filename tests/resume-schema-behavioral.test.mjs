@@ -120,4 +120,14 @@ test("defaultResumeDocument creates template with required fields", () => {
   assert(Array.isArray(doc.summary));
   assert(Array.isArray(doc.experience));
   assert(Array.isArray(doc.skills));
+  assert.equal(doc.gdpr_clause, "");
+});
+
+test("normalizeResumeDocument round-trips gdpr_clause without re-defaulting an explicit empty value", () => {
+  const withClause = normalizeResumeDocument({ name: "Test", gdpr_clause: "Custom wording" });
+  assert.equal(withClause.gdpr_clause, "Custom wording");
+
+  // A user who deliberately cleared the clause must not have it resurrected.
+  const cleared = normalizeResumeDocument({ name: "Test", gdpr_clause: "" });
+  assert.equal(cleared.gdpr_clause, "");
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { DEFAULT_RESUME_STYLE, normalizeResumeStyle, type ResumeStyleSettings } from "../lib/resume-style";
 import {
   defaultResumeDocument,
   normalizeResumeDocument,
@@ -25,6 +26,7 @@ export type LocaleBuffer = {
   revisions: ResumeRevisionItem[];
   allowIndexing: boolean;
   aiGenerated: boolean;
+  cvStyle: ResumeStyleSettings;
   saveError: string | null;
   /** True when the initial document fetch for this locale failed — never save over it. */
   loadFailed: boolean;
@@ -148,6 +150,7 @@ function buildBuffer(
       revisions,
       allowIndexing: documentRow?.allow_indexing ?? false,
       aiGenerated: documentRow?.ai_generated ?? false,
+      cvStyle: normalizeResumeStyle(documentRow?.style_settings),
       saveError: null,
       loadFailed: false,
     },
@@ -166,6 +169,7 @@ function buildFailedBuffer(locale: ResumeLocale, message: string, fallbackName: 
     revisions: [],
     allowIndexing: false,
     aiGenerated: false,
+    cvStyle: { ...DEFAULT_RESUME_STYLE },
     saveError: message,
     loadFailed: true,
   };
@@ -353,6 +357,10 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     (value: boolean) => patchBuffer(activeLocale, { aiGenerated: value }),
     [activeLocale, patchBuffer],
   );
+  const setActiveCvStyle = useCallback(
+    (value: ResumeStyleSettings) => patchBuffer(activeLocale, { cvStyle: value }),
+    [activeLocale, patchBuffer],
+  );
 
   const saveAllDirty = useCallback(
     async ({ targetIsPublic, changeNote }: { targetIsPublic: boolean; changeNote: string }): Promise<SaveAllResult> => {
@@ -380,6 +388,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
               isPublic: targetIsPublic,
               allowIndexing: buffer.allowIndexing,
               aiGenerated: buffer.aiGenerated,
+              styleSettings: buffer.cvStyle,
               changeNote: changeNote || (targetIsPublic ? "Published update" : "Unpublished save"),
             }),
           });
@@ -443,6 +452,33 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       patchBuffer(targetLocale, (existing) => (existing.yamlPanel === snapshot ? buffer : {}));
     },
     [activeLocale, buffers, actor?.displayName, patchBuffer],
+  );
+
+  /**
+   * Reads a past revision's snapshot for preview only — it never touches the
+   * active buffer, so viewing history cannot disturb unsaved edits.
+   */
+  const loadRevisionSnapshot = useCallback(
+    async (revisionNumber: number): Promise<{ resume: ResumeDocument; yamlContent: string }> => {
+      const current = buffers[activeLocale];
+      if (!current?.documentRow) {
+        throw new Error("This language version has no saved document yet.");
+      }
+      const query = new URLSearchParams({
+        documentId: current.documentRow.id,
+        revisionNumber: String(revisionNumber),
+      });
+      const response = await fetch(`/api/resume/revisions?${query.toString()}`);
+      const payload = (await response.json()) as { error?: string; yamlContent?: string };
+      if (!response.ok || payload.error || typeof payload.yamlContent !== "string") {
+        throw new Error(payload.error || "Revision load failed.");
+      }
+      return {
+        resume: parseYamlToResumeDocument(payload.yamlContent, actor?.displayName ?? ""),
+        yamlContent: payload.yamlContent,
+      };
+    },
+    [activeLocale, buffers, actor?.displayName],
   );
 
   const saveLanguageVersion = useCallback(
@@ -532,9 +568,11 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     updateActiveResume,
     setActiveAllowIndexing,
     setActiveAiGenerated,
+    setActiveCvStyle,
     resetActiveToTemplate,
     saveAllDirty,
     rollbackActiveToRevision,
+    loadRevisionSnapshot,
     saveLanguageVersion,
     setDefaultLanguage,
     deleteLanguageVersion,

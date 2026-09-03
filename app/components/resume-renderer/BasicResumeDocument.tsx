@@ -5,6 +5,7 @@ import type { ResumeLanguageOption } from "../resume-language-switcher";
 import ResumeRenderer from "./ResumeRenderer";
 import { buildPublishedResumeExportUrls } from "../../lib/resume-export";
 import type { ResumeRenderAction, ResumeRendererLabels } from "./build-resume-render-model";
+import type { ResumeStyleSettings } from "../../lib/resume-style";
 
 type BasicResumeDocumentProps = {
   locale: ResumeLocale;
@@ -24,6 +25,7 @@ type BasicResumeDocumentProps = {
   isBusy?: boolean;
   scrollContainerRef?: React.RefObject<HTMLElement>;
   embedded?: boolean;
+  cvStyle?: ResumeStyleSettings;
 };
 
 const LANGUAGE_LABELS: Record<string, string> = {
@@ -69,6 +71,7 @@ export function BasicResumeDocument({
   isBusy = false,
   scrollContainerRef,
   embedded = false,
+  cvStyle,
 }: BasicResumeDocumentProps) {
   const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] || locale.toUpperCase() }];
   const exportUrls =
@@ -123,6 +126,7 @@ export function BasicResumeDocument({
       }}
       scrollContainerRef={scrollContainerRef}
       embedded={embedded}
+      cvStyle={cvStyle}
     />
   );
 }

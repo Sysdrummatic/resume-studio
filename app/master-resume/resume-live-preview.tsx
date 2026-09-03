@@ -5,6 +5,8 @@ import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 
+import { DEFAULT_RESUME_STYLE, type ResumeStyleSettings } from "../lib/resume-style";
+
 export type ResumeEditorStyle = "basic" | "empty";
 
 type Props = {
@@ -17,6 +19,7 @@ type Props = {
   isExpanded: boolean;
   aiGenerated?: boolean;
   draftPdfEnabled?: boolean;
+  cvStyle?: ResumeStyleSettings;
   onExpand: () => void;
   onClose: () => void;
 };
@@ -33,6 +36,7 @@ export default function ResumeLivePreview({
   isExpanded,
   aiGenerated = false,
   draftPdfEnabled = true,
+  cvStyle = DEFAULT_RESUME_STYLE,
   onExpand,
   onClose,
 }: Props) {
@@ -57,7 +61,14 @@ export default function ResumeLivePreview({
 
     function updateScale() {
       if (!frame) return;
-      setScale(frame.clientWidth / BASIC_PREVIEW_WIDTH);
+      const next = frame.clientWidth / BASIC_PREVIEW_WIDTH;
+      // `clientWidth` excludes the scrollbar, and zooming changes the content's
+      // height — so a naive update can oscillate: bigger zoom shows a
+      // scrollbar, the narrower box shrinks the zoom, the scrollbar goes away,
+      // and round it goes. `scrollbar-gutter: stable` on the frame removes the
+      // width flip; ignoring sub-pixel deltas stops any residual feedback from
+      // becoming a render loop.
+      setScale((current) => (Math.abs(current - next) < 0.001 ? current : next));
     }
 
     updateScale();
@@ -92,6 +103,7 @@ export default function ResumeLivePreview({
             showChrome
             mode="editor"
             draftPdfEnabled={draftPdfEnabled}
+            cvStyle={cvStyle}
             embedded
           />
         </div>
@@ -114,6 +126,7 @@ export default function ResumeLivePreview({
             showChrome
             mode="public"
             draftPdfEnabled={draftPdfEnabled}
+            cvStyle={cvStyle}
             scrollContainerRef={modalBodyRef as RefObject<HTMLElement>}
           />
           </div>
