@@ -38,7 +38,8 @@ security, privacy, resilience, and trust work continues in
     protocol allowlist: `tests/jsonld-safe-serializer.test.mjs`,
     `tests/safe-url-protocol-allowlist.test.mjs`, `tests/cv-public-publicid-route.test.mjs`.
   - [x] **Manual/E2E verification executed** 2026-08-26 against the `test` Supabase project
-    (`docs/guides/test-scenarios/stored-xss-public-cv-jsonld/stored-xss-public-cv-jsonld.md`),
+    (scenario doc in private `OpenCiVera-Project` repo:
+    `docs/guides/test-scenarios/stored-xss-public-cv-jsonld/stored-xss-public-cv-jsonld.md`),
     published a real CV with the attack payloads via the actual editor UI, then verified
     against the live public page in a separate browser tab:
     - [x] Scenario 1 (`</script><script>...`): `window.__xss_fired` is `undefined`, no
@@ -243,7 +244,7 @@ security, privacy, resilience, and trust work continues in
   - JavaScript execution in the render context is moot: PDF export uses
     `@react-pdf/renderer`, which has no browser engine or script execution — see
     ADR 0015.
-  - Ref: `docs/security/security-and-risk-plan.md` R06.
+  - Ref: `docs/security/security-and-risk-plan.md` R06 (private `OpenCiVera-Project` repo).
 
 **Gate owner**: software_architect + backend_engineer + test_engineer
 

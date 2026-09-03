@@ -6,7 +6,7 @@
 
 **Depends On**: Phase G P0 security entry gates for external beta; individual workstreams may start earlier
 
-**Source of Truth**: [Security and Risk Plan](../security/security-and-risk-plan.md)
+**Source of Truth**: Security and Risk Plan (`docs/security/security-and-risk-plan.md` in the private `OpenCiVera-Project` repo)
 
 > Move OpenCiVera from feature-level security controls to an evidence-backed security,
 > privacy, resilience, and trust program suitable for processing personal CV data.
@@ -419,10 +419,10 @@ Additional required evidence:
 
 ## Related Documentation
 
-- [Security and Risk Plan](../security/security-and-risk-plan.md)
+- Security and Risk Plan (private `OpenCiVera-Project` repo: `docs/security/security-and-risk-plan.md`)
 - [Phase G: Community Beta Testing](phase-g-community-beta-testing.md)
 - [Phase I: Hardening, QA & Launch Readiness](phase-i-hardening-qa.md)
-- [Processor Compliance Checklist](../guides/processor-compliance-checklist.md)
+- Processor Compliance Checklist (private `OpenCiVera-Project` repo: `docs/guides/processor-compliance-checklist.md`)
 - [Privacy-First Admin Access Policy](../guides/policies/privacy-first-admin-access-policy.md)
 - [ADR 0010: API Hardening and Resource Protection](../adr/0010-api-hardening-and-resource-protection.md)
 - [ADR 0016: Account Data Retention and Deletion](../adr/0016-account-data-retention-and-deletion.md)

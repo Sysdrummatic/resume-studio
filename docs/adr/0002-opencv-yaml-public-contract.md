@@ -21,8 +21,9 @@ ADR 0001 establishes that public CV rendering must read immutable publish-time s
 > (`buildPublishedExportContent`/`buildPublishedResumeDocument`,
 > `app/lib/published-export.ts`). The **emitted public contract** is therefore
 > the selected content only — storage layout is an internal detail. See ADR
-> 0008 and risk R09 in `docs/security/security-and-risk-plan.md` (including
-> the residual note on storing full master YAML at rest).
+> 0008 and risk R09 in `docs/security/security-and-risk-plan.md` (private
+> `OpenCiVera-Project` repo; including the residual note on storing full master
+> YAML at rest).
 - Each Published CV snapshot stores explicit `schema_version` and contract version.
 - Historical snapshots are immutable and are never silently rewritten after schema updates.
 - Any migration of historical snapshots requires explicit migration logic and test coverage.
