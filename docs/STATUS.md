@@ -97,7 +97,7 @@ closes, but has no other hard dependency.
 ## Action Log
 
 Cross-referenced fix log for work items tracked outside the phase documents.
-Security risks in [security/security-and-risk-plan.md](security/security-and-risk-plan.md).
+Security risks tracked in `docs/security/security-and-risk-plan.md` in the private `OpenCiVera-Project` repo.
 
 ### Phase G fixes
 
