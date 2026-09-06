@@ -2012,17 +2012,32 @@ a {
   padding: 9px 11px;
 }
 
-.resume-editor-shell .import-review-list {
+.resume-editor-shell .import-review-row,
+.resume-editor-shell .import-review-section {
   border-color: var(--ed-line-2);
   background: var(--ed-work);
 }
 
-.resume-editor-shell .import-review-list li {
+.resume-editor-shell .import-review-row,
+.resume-editor-shell .import-review-section__summary,
+.resume-editor-shell .import-review-section__item-title {
   color: var(--ed-t1);
+}
+
+.resume-editor-shell .import-review-section__items {
+  border-color: var(--ed-line-2);
 }
 
 .resume-editor-shell .import-review-list__value {
   color: var(--ed-t3);
+}
+
+.resume-editor-shell .import-review-section__summary::after {
+  border-color: var(--ed-t3);
+}
+
+.resume-editor-shell .import-review-section[open] > .import-review-section__summary::after {
+  border-color: var(--ed-accent);
 }
 
 .resume-editor-shell .import-review-warnings {
@@ -3711,20 +3726,21 @@ a {
 
 .import-review-list {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.5rem;
   margin: 0;
-  padding: 0.75rem 0.9rem;
+  padding: 0;
   list-style: none;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--portal-surface-ghost);
 }
 
-.import-review-list li {
+.import-review-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--portal-surface-ghost);
   font-size: 13px;
   color: var(--text);
 }
@@ -3733,6 +3749,73 @@ a {
   color: var(--muted);
   font-size: 12.5px;
   white-space: nowrap;
+}
+
+/* A section is a <details> so expanding it costs nothing but CSS — no JS
+   height animation, no measuring, just the browser's own toggle. */
+.import-review-section {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--portal-surface-ghost);
+  overflow: hidden;
+}
+
+.import-review-section__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.import-review-section__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Chevron drawn as a rotated border corner, same technique the human
+   editor's own collapsible cards use — one element, no icon asset. */
+.import-review-section__summary::after {
+  content: "";
+  margin-left: auto;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform 0.15s ease;
+}
+
+.import-review-section[open] > .import-review-section__summary::after {
+  transform: rotate(-135deg) translate(-1px, -1px);
+}
+
+.import-review-section__label {
+  font-weight: 500;
+}
+
+.import-review-section__items {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.65rem 0.9rem 0.75rem;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.import-review-section__item-label {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.import-review-section__item-title {
+  font-size: 12.5px;
+  color: var(--text);
 }
 
 .import-review-warnings {

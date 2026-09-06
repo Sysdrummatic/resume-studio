@@ -8,7 +8,15 @@ import type {
 } from "../resume-schema";
 import { ATS_SECTION_HEADERS } from "../ats-export-rules";
 import type { ImportedResumeSections, ResumeImportResult } from "./types";
-import { extractDateRange, guessLevelFromText, isBulletLine, splitBlankLineBlocks, splitHeadingPair, stripBullet } from "./text-blocks";
+import {
+  extractDateRange,
+  guessLevelFromText,
+  isBulletLine,
+  looksLikeProficiencyLabel,
+  splitBlankLineBlocks,
+  splitHeadingPair,
+  stripBullet,
+} from "./text-blocks";
 import { splitProfileName } from "../profile-name";
 
 type SectionKey = "summary" | "experience" | "education" | "skills" | "courses" | "languages" | "interests";
@@ -169,7 +177,8 @@ function parseEducationBody(body: string): ResumeEducation[] {
 /** Skills/interests are usually a comma list or one item per line, optionally
  * bulleted — never both structures in the same body, so splitting on comma
  * only when one is present avoids breaking a "JavaScript, TypeScript" line
- * into single words when the body is actually newline-separated. */
+ * into single words when the body is actually newline-separated. A stray
+ * page-footer line (see extract-text.ts) is already gone by this point. */
 function splitCommaOrLineTokens(body: string): string[] {
   const tokens = body.includes(",") ? body.split(",") : body.split("\n");
   return tokens.map((token) => token.replace(/^[-*••]\s*/, "").trim()).filter(Boolean);
@@ -179,30 +188,64 @@ function parseSkillsBody(body: string): ResumeSkill[] {
   return splitCommaOrLineTokens(body).map((name) => ({ name, level: 3 }));
 }
 
+const BARE_YEAR = /^\d{4}$/;
+
+// Some CV templates put a course's year and its name/institution on separate
+// lines (year first) rather than "Name | Year" on one — a bare 4-digit line
+// is held as the year for whichever course name follows, instead of becoming
+// its own, empty-named entry.
 function parseCoursesBody(body: string): ResumeCourse[] {
-  return body
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [name, yearText] = line.split(" | ").map((part) => part.trim());
-      const year = Number.parseInt(yearText || "", 10);
-      return { name: name || line, year: Number.isFinite(year) ? year : 0 };
-    });
+  const entries: ResumeCourse[] = [];
+  let pendingYear = 0;
+
+  for (const rawLine of body.split("\n")) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (BARE_YEAR.test(line)) {
+      pendingYear = Number.parseInt(line, 10);
+      continue;
+    }
+
+    const [name, yearText] = line.split(" | ").map((part) => part.trim());
+    const year = Number.parseInt(yearText || "", 10);
+    entries.push({ name: name || line, year: Number.isFinite(year) ? year : pendingYear });
+    pendingYear = 0;
+  }
+
+  return entries;
 }
 
+// Same idea as courses: some templates put a language's name and its
+// proficiency on separate lines rather than "Name - Level" on one. A line
+// that's nothing but a known proficiency word is folded into the previous
+// name-only entry instead of becoming a language of its own.
 function parseLanguagesBody(body: string): ResumeLanguage[] {
-  return body
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const match = line.match(/^(.+?)\s*[(–-]\s*([^)]+?)\)?\s*$/);
-      const name = (match ? match[1] : line).trim();
-      const level_text = match ? match[2].trim() : "";
-      return { name, level_text, level: guessLevelFromText(level_text) };
-    })
-    .filter((item) => item.name);
+  const entries: ResumeLanguage[] = [];
+
+  for (const rawLine of body.split("\n")) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    const match = line.match(/^(.+?)\s*[(–-]\s*([^)]+?)\)?\s*$/);
+    if (match) {
+      const name = match[1].trim();
+      const level_text = match[2].trim();
+      entries.push({ name, level_text, level: guessLevelFromText(level_text) });
+      continue;
+    }
+
+    const previous = entries[entries.length - 1];
+    if (previous && !previous.level_text && looksLikeProficiencyLabel(line)) {
+      previous.level_text = line;
+      previous.level = guessLevelFromText(line);
+      continue;
+    }
+
+    entries.push({ name: line, level_text: "", level: guessLevelFromText("") });
+  }
+
+  return entries.filter((item) => item.name);
 }
 
 function parseInterestsBody(body: string): string[] {

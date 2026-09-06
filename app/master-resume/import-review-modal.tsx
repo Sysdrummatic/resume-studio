@@ -2,6 +2,16 @@
 
 import { useState } from "react";
 import type { ResumeImportResult } from "../lib/resume-import/parse-resume-file";
+import type {
+  ResumeContactItem,
+  ResumeCourse,
+  ResumeEducation,
+  ResumeExperience,
+  ResumeLanguage,
+  ResumeSkill,
+  ResumeSummaryItem,
+} from "../lib/resume-schema";
+import type { ImportedResumeSections } from "../lib/resume-import/types";
 
 type ImportReviewModalProps = {
   isOpen: boolean;
@@ -10,7 +20,7 @@ type ImportReviewModalProps = {
   /** The draft's current name, to guard against overwriting one person's
    * draft with another person's parsed CV (see nameMismatch below). */
   currentName: string;
-  onConfirm: () => void;
+  onConfirm: (selected: ImportedResumeSections) => void;
   onClose: () => void;
 };
 
@@ -27,7 +37,14 @@ export function hasNameMismatch(currentName: string, parsedName: string): boolea
   return Boolean(currentName.trim()) && Boolean(parsedName.trim()) && normalizeName(currentName) !== normalizeName(parsedName);
 }
 
-const SECTION_LABELS: Array<{ key: keyof NonNullable<ResumeImportResult["resume"]>; label: string }> = [
+// Every one of these is a list on ResumeDocument — the only sections that can
+// be expanded into individually-checkable entries. Scalar fields (name,
+// brand_initials, gdpr_clause) have nothing to expand, and mergeImportedResume
+// already only fills those when the draft's own value is blank, so they're
+// reviewed but not selectable.
+type SectionKey = "contact" | "summary" | "experience" | "education" | "skills" | "languages" | "courses" | "interests";
+
+const SECTION_LABELS: Array<{ key: SectionKey; label: string }> = [
   { key: "contact", label: "Contact details" },
   { key: "summary", label: "Summary" },
   { key: "experience", label: "Experience" },
@@ -38,9 +55,85 @@ const SECTION_LABELS: Array<{ key: keyof NonNullable<ResumeImportResult["resume"
   { key: "interests", label: "Interests" },
 ];
 
-function describeField(value: unknown): string {
-  if (Array.isArray(value)) return `${value.length} ${value.length === 1 ? "entry" : "entries"} found`;
-  return "Found";
+/** One boolean per parsed entry in that section, in the same order. Everything
+ * starts checked — reviewing and deselecting a few entries is less friction
+ * than opting every entry back in. */
+type ImportSelection = Partial<Record<SectionKey, boolean[]>>;
+
+// A native-schema round trip fills in every field via normalizeResumeDocument,
+// including an empty array for a section the source file simply doesn't
+// have — checking `.length > 0` (not just "is the key present") is what
+// keeps an empty section from being reviewed as a pointless, expandable but
+// empty "0 of 0 selected" row.
+export function isSectionFound(resume: ImportedResumeSections, key: SectionKey): boolean {
+  return (resume[key]?.length ?? 0) > 0;
+}
+
+function buildDefaultSelection(resume: ImportedResumeSections): ImportSelection {
+  const selection: ImportSelection = {};
+  for (const { key } of SECTION_LABELS) {
+    const items = resume[key];
+    if (items) selection[key] = items.map(() => true);
+  }
+  return selection;
+}
+
+/** Keeps only the checked entries of each list section; every other field
+ * (scalars, and any list the user never touched) passes through unchanged. */
+export function filterSelectedImportSections(resume: ImportedResumeSections, selection: ImportSelection): ImportedResumeSections {
+  const next: ImportedResumeSections = { ...resume };
+  for (const { key } of SECTION_LABELS) {
+    const items = resume[key];
+    const flags = selection[key];
+    if (!items || !flags) continue;
+    (next as Record<SectionKey, unknown[]>)[key] = items.filter((_, index) => flags[index]);
+  }
+  return next;
+}
+
+function joinMeta(parts: Array<string | number | null | undefined>): string {
+  return parts.filter((part) => part !== undefined && part !== null && part !== "").join(" · ");
+}
+
+// One line per entry shape, mirroring the card title/meta split the human
+// editor already uses for these same record types.
+function describeImportItem(key: SectionKey, item: unknown): { title: string; meta: string } {
+  switch (key) {
+    case "experience": {
+      const entry = item as ResumeExperience;
+      return { title: entry.role || "Untitled role", meta: joinMeta([entry.company, entry.period]) };
+    }
+    case "education": {
+      const entry = item as ResumeEducation;
+      return { title: entry.degree || "Untitled degree", meta: joinMeta([entry.school, entry.period]) };
+    }
+    case "skills": {
+      const entry = item as ResumeSkill;
+      return { title: entry.name || "Untitled skill", meta: "" };
+    }
+    case "languages": {
+      // Proficiency isn't shown here — checking the language still carries its
+      // whole record (level included) into the draft, this is display-only.
+      const entry = item as ResumeLanguage;
+      return { title: entry.name || "Untitled language", meta: "" };
+    }
+    case "courses": {
+      // Same as languages: the year still travels with the course when
+      // checked, it's just not shown as a separate meta line here.
+      const entry = item as ResumeCourse;
+      return { title: entry.name || "Untitled course", meta: "" };
+    }
+    case "contact": {
+      const entry = item as ResumeContactItem;
+      return { title: entry.label, meta: entry.value };
+    }
+    case "summary": {
+      const entry = item as ResumeSummaryItem;
+      return { title: entry.position || "Untitled summary", meta: entry.default ? "Default" : "" };
+    }
+    case "interests":
+      return { title: String(item), meta: "" };
+  }
 }
 
 // Best-effort extraction, always shown for review before it touches the
@@ -48,22 +141,45 @@ function describeField(value: unknown): string {
 // correct, so nothing here is applied until the user confirms it.
 export default function ImportReviewModal({ isOpen, filename, result, currentName, onConfirm, onClose }: ImportReviewModalProps) {
   const [acknowledgedMismatch, setAcknowledgedMismatch] = useState(false);
+  const [selection, setSelection] = useState<ImportSelection>({});
+  const [reviewedResult, setReviewedResult] = useState<ResumeImportResult | null>(null);
+
+  // A fresh parse means fresh review state — otherwise a mismatch
+  // acknowledgement or deselected entries from a previous file would silently
+  // carry over into the next one. Adjusting state during render (the pattern
+  // React recommends over an effect for this) avoids an extra render with
+  // stale selection before it catches up.
+  if (result !== reviewedResult) {
+    setReviewedResult(result);
+    setSelection(result ? buildDefaultSelection(result.resume) : {});
+    setAcknowledgedMismatch(false);
+  }
 
   if (!isOpen || !result) return null;
 
   const parsedName = [result.resume.first_name, result.resume.family_name].filter(Boolean).join(" ");
-  const nameLabel = { key: "__name" as const, label: "Name" };
-  const fields = [
-    ...(parsedName ? [nameLabel] : []),
-    ...SECTION_LABELS.filter(({ key }) => result.resume[key] !== undefined),
-  ];
-  const skippedFields = [
-    ...(parsedName ? [] : [nameLabel]),
-    ...SECTION_LABELS.filter(({ key }) => result.resume[key] === undefined),
+  const sections = SECTION_LABELS.filter(({ key }) => isSectionFound(result.resume, key));
+  const hasAnyField = Boolean(parsedName) || sections.length > 0;
+  const skippedLabels = [
+    ...(parsedName ? [] : ["Name"]),
+    ...SECTION_LABELS.filter(({ key }) => !isSectionFound(result.resume, key)).map(({ label }) => label),
   ];
 
   const nameMismatch = hasNameMismatch(currentName, parsedName);
-  const canApply = fields.length > 0 && (!nameMismatch || acknowledgedMismatch);
+  const hasSelectedContent = Boolean(parsedName) || sections.some(({ key }) => (selection[key] || []).some(Boolean));
+  const canApply = hasAnyField && hasSelectedContent && (!nameMismatch || acknowledgedMismatch);
+
+  function toggleItem(key: SectionKey, index: number, checked: boolean) {
+    setSelection((current) => {
+      const flags = [...(current[key] ?? [])];
+      flags[index] = checked;
+      return { ...current, [key]: flags };
+    });
+  }
+
+  function handleConfirm() {
+    onConfirm(filterSelectedImportSections(result!.resume, selection));
+  }
 
   return (
     <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Review imported CV">
@@ -71,29 +187,63 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
       <div className="dashboard-modal__body">
         <h2>Review import</h2>
         <p className="card-lead">
-          Parsed <strong>{filename}</strong>. Only the sections below were found — they&apos;ll be added to what&apos;s
-          already in your draft. Nothing you&apos;ve already entered is removed or replaced.
+          Parsed <strong>{filename}</strong>. Expand a section to pick which entries to add — nothing you&apos;ve
+          already entered is removed or replaced.
         </p>
 
-        {fields.length > 0 ? (
+        {hasAnyField ? (
           <ul className="import-review-list">
-            {fields.map(({ key, label }) => (
-              <li key={key}>
-                <span>{label}</span>
-                <span className="import-review-list__value">
-                  {key === "__name" ? parsedName : describeField(result.resume[key as keyof NonNullable<ResumeImportResult["resume"]>])}
-                </span>
+            {parsedName ? (
+              <li className="import-review-row">
+                <span>Name</span>
+                <span className="import-review-list__value">{parsedName}</span>
               </li>
-            ))}
+            ) : null}
+            {sections.map(({ key, label }) => {
+              const items = result.resume[key] ?? [];
+              const flags = selection[key] ?? [];
+              const selectedCount = flags.filter(Boolean).length;
+
+              return (
+                <li key={key}>
+                  <details className="import-review-section">
+                    <summary className="import-review-section__summary">
+                      <span className="import-review-section__label">{label}</span>
+                      <span className="import-review-list__value">
+                        {selectedCount} of {items.length} selected
+                      </span>
+                    </summary>
+                    <ul className="import-review-section__items">
+                      {items.map((item, index) => {
+                        const { title, meta } = describeImportItem(key, item);
+                        return (
+                          <li key={index}>
+                            <label className="checkbox-row">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(flags[index])}
+                                onChange={(event) => toggleItem(key, index, event.target.checked)}
+                              />
+                              <span className="import-review-section__item-label">
+                                <span className="import-review-section__item-title">{title}</span>
+                                {meta ? <span className="import-review-list__value">{meta}</span> : null}
+                              </span>
+                            </label>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="resume-editor-hint">Nothing usable was found in this file.</p>
         )}
 
-        {skippedFields.length > 0 && fields.length > 0 ? (
-          <p className="resume-editor-hint">
-            Not found, left as-is: {skippedFields.map(({ label }) => label).join(", ")}.
-          </p>
+        {skippedLabels.length > 0 && hasAnyField ? (
+          <p className="resume-editor-hint">Not found, left as-is: {skippedLabels.join(", ")}.</p>
         ) : null}
 
         {result.warnings.length > 0 ? (
@@ -129,7 +279,7 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
           <button
             type="button"
             className={`button ${nameMismatch ? "button--danger" : "button--primary"}`}
-            onClick={onConfirm}
+            onClick={handleConfirm}
             disabled={!canApply}
           >
             Add to draft

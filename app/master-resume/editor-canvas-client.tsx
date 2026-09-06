@@ -12,7 +12,7 @@ import LanguageVersionModal from "./language-version-modal";
 import SaveVersionModal from "./save-version-modal";
 import ImportCvBanner from "./import-cv-banner";
 import ImportReviewModal from "./import-review-modal";
-import type { ResumeImportResult } from "../lib/resume-import/parse-resume-file";
+import type { ImportedResumeSections, ResumeImportResult } from "../lib/resume-import/parse-resume-file";
 import { mergeImportedResume } from "../lib/resume-import/merge-imported-resume";
 import EditorSectionNav, { type EditorNavGroup } from "./editor-section-nav";
 import { computeResumeCompletion } from "./resume-completion";
@@ -594,9 +594,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     }
   }
 
-  function applyImportResult() {
-    if (!importResult) return;
-    updateResumeFromHuman(mergeImportedResume(resume, importResult.resume));
+  function applyImportResult(selected: ImportedResumeSections) {
+    updateResumeFromHuman(mergeImportedResume(resume, selected));
     setImportResult(null);
     showToast(`Added content from ${importFilename}.`);
   }

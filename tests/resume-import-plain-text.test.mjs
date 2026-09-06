@@ -136,3 +136,38 @@ test("empty or unreadable text produces a warning, not a crash", () => {
   assert.deepEqual(result.resume, {});
   assert.match(result.warnings[0], /no readable text/);
 });
+
+// Some CV templates put a course's year and name/institution on separate
+// lines (year first) instead of "Name | Year" on one.
+test("a course's year on its own line is paired with the course name that follows", () => {
+  const result = parsePlainTextResume(
+    "COURSES\n2024\nStrategic Key Account Management – Miller Heiman Group\n2022\nNegotiation Mastery – Karrass",
+    "pdf",
+  );
+
+  assert.deepEqual(result.resume.courses, [
+    { name: "Strategic Key Account Management – Miller Heiman Group", year: 2024 },
+    { name: "Negotiation Mastery – Karrass", year: 2022 },
+  ]);
+});
+
+test("a course with no year line still parses, just without one", () => {
+  const result = parsePlainTextResume("COURSES\nOn-the-job training", "pdf");
+  assert.deepEqual(result.resume.courses, [{ name: "On-the-job training", year: 0 }]);
+});
+
+// Some CV templates put a language's name and its proficiency on separate
+// lines instead of "Name - Level" on one.
+test("a language's proficiency on its own line is paired with the name that precedes it", () => {
+  const result = parsePlainTextResume("LANGUAGES\nNorwegian\nNative\nEnglish\nProfessional", "pdf");
+
+  assert.deepEqual(result.resume.languages, [
+    { name: "Norwegian", level_text: "Native", level: 5 },
+    { name: "English", level_text: "Professional", level: 3 },
+  ]);
+});
+
+test("a language with no recognisable proficiency line still parses, just without one", () => {
+  const result = parsePlainTextResume("LANGUAGES\nFrench", "pdf");
+  assert.deepEqual(result.resume.languages, [{ name: "French", level_text: "", level: 3 }]);
+});

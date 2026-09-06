@@ -64,3 +64,25 @@ export function guessLevelFromText(text: string): number {
   }
   return 3;
 }
+
+/** True only when `text` actually matches one of the known proficiency
+ * keywords above — unlike guessLevelFromText, this never falls back to a
+ * default, so it can tell "this line IS a level" apart from "this line has
+ * no recognisable level" (used to recognise a language's level sitting on
+ * its own line rather than as "Name - Level" on one). */
+export function looksLikeProficiencyLabel(text: string): boolean {
+  return LEVEL_KEYWORDS.some(([pattern]) => pattern.test(text));
+}
+
+// Requires an explicit "page"/"of"/"/" marker — a bare number alone is
+// deliberately NOT matched, since some CVs put a bare year on its own line
+// as real content (see parseCoursesBody), and there's no way to tell that
+// apart from a footer without the marker.
+const PAGE_FOOTER_LINE = /^[\s\-–—.]*(page\s+\d{1,4}(\s*(of|\/)\s*\d{1,4})?|\d{1,4}\s*(of|\/)\s*\d{1,4})[\s\-–—.]*$/i;
+
+/** True for a whole line that's nothing but a page marker ("Page 1 of 2",
+ * "-- 2 of 2 --", "1/2", ...) — the kind of footer pdf-parse/mammoth leave
+ * glued into the extracted text with no page-break marker of their own. */
+export function isPageFooterLine(line: string): boolean {
+  return PAGE_FOOTER_LINE.test(line.trim());
+}

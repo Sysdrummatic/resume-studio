@@ -2,6 +2,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
+import { isPageFooterLine } from "./text-blocks";
 
 /** Raw text is capped before it ever reaches the heuristic parser, independent
  * of the upload size cap in the route — a PDF/DOCX can compress a huge amount
@@ -25,11 +26,22 @@ function capText(text: string): string {
   return text.length > EXTRACTED_TEXT_MAX_CHARS ? text.slice(0, EXTRACTED_TEXT_MAX_CHARS) : text;
 }
 
+// pdf-parse/mammoth concatenate every page's text with no page-break marker,
+// so a page footer ("Page 1 of 2", "-- 2 of 2 --", ...) can land between any
+// two sections on a multi-page CV, not just at the very end of the document —
+// stripped here, once, so no section-specific parser has to guard against it.
+function stripPageFooterLines(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => !isPageFooterLine(line))
+    .join("\n");
+}
+
 export async function extractPdfText(buffer: Buffer): Promise<string> {
   const parser = new PDFParse({ data: buffer });
   try {
     const result = await parser.getText();
-    return capText(result.text);
+    return capText(stripPageFooterLines(result.text));
   } finally {
     await parser.destroy();
   }
@@ -37,5 +49,5 @@ export async function extractPdfText(buffer: Buffer): Promise<string> {
 
 export async function extractDocxText(buffer: Buffer): Promise<string> {
   const result = await mammoth.extractRawText({ buffer });
-  return capText(result.value);
+  return capText(stripPageFooterLines(result.value));
 }
