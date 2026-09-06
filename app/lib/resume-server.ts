@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
-import { PREVIEW_LABELS, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
+import { PREVIEW_LABELS, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
@@ -21,9 +21,6 @@ export type ResumeDocumentRow = {
   title: string;
   yaml_content: string;
   schema_version: number;
-  is_public: boolean;
-  allow_indexing: boolean;
-  ai_generated: boolean;
   updated_at: string;
   /** Raw jsonb; run through normalizeResumeStyle() before rendering. */
   style_settings?: unknown;
@@ -246,7 +243,7 @@ const FALLBACK_LANGUAGE_LABELS: Record<string, { label: string; shortLabel: stri
 const RESUME_LANGUAGE_SELECT = "code,label,short_label,labels,is_enabled,sort_order,created_at,updated_at";
 const RESUME_USER_LOCALE_SELECT =
   "user_id,locale,label_override,short_label_override,is_default,sort_order,created_at,updated_at";
-const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,is_public,allow_indexing,ai_generated,updated_at,style_settings";
+const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,updated_at,style_settings";
 const RESUME_PRESET_SELECT =
   "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at";
 const RESUME_PRESET_VARIANT_SELECT = "id,preset_id,document_id,user_id,locale,selection,is_default,created_at,updated_at";
@@ -648,9 +645,11 @@ export function buildDefaultResumeYaml(name: string): string {
   }
 
   const safeName = String(name || "New User").trim() || "New User";
+  const { firstName, lastName } = splitProfileName(safeName);
   return [
     `brand_initials: ${yamlText("")}`,
-    `name: ${yamlText(safeName)}`,
+    `first_name: ${yamlText(firstName)}`,
+    `family_name: ${yamlText(lastName)}`,
     `role: ${yamlText("")}`,
     "summary:",
     `  - position: ${yamlText("")}`,
@@ -669,12 +668,34 @@ export function buildDefaultResumeYaml(name: string): string {
   ].join("\n");
 }
 
-function extractResumeNameFromYaml(yamlContent: string): string {
+/**
+ * A document saved before the first/family name split (only a legacy `name`
+ * key, no touch since) submits that same raw text verbatim on save — the
+ * client only re-serializes through the current schema shape when the human
+ * form is actually edited. Upgrading here, at the write boundary, means any
+ * save (Human editor, YAML editor untouched, draft, or a stale client)
+ * self-heals instead of failing RESUME_REQUIRED_KEYS validation.
+ */
+export function upgradeLegacyResumeYamlContent(yamlContent: string): string {
   try {
     const parsed = yaml.load(yamlContent);
-    return normalizeResumeDocument(parsed).name.trim();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return yamlContent;
+    const migrated = migrateLegacyResumeYamlFields(parsed as Record<string, unknown>);
+    if (migrated === parsed) return yamlContent;
+    return yaml.dump(migrated, { indent: 2 });
   } catch {
-    return "";
+    return yamlContent;
+  }
+}
+
+function extractResumeNamePartsFromYaml(yamlContent: string): { firstName: string; lastName: string } | null {
+  try {
+    const parsed = yaml.load(yamlContent);
+    const doc = normalizeResumeDocument(parsed);
+    if (!doc.first_name && !doc.family_name) return null;
+    return { firstName: doc.first_name, lastName: doc.family_name };
+  } catch {
+    return null;
   }
 }
 
@@ -712,8 +733,8 @@ async function syncProfileNameFromResumeYaml(
   yamlContent: string,
   options: { updatePersonSlug?: boolean } = {},
 ): Promise<boolean> {
-  const resumeName = extractResumeNameFromYaml(yamlContent);
-  if (!resumeName) {
+  const parts = extractResumeNamePartsFromYaml(yamlContent);
+  if (!parts) {
     return true;
   }
 
@@ -722,8 +743,7 @@ async function syncProfileNameFromResumeYaml(
     return true;
   }
 
-  const parts = splitProfileName(resumeName);
-  const displayName = buildProfileDisplayName(parts.firstName, parts.lastName, resumeName);
+  const displayName = buildProfileDisplayName(parts.firstName, parts.lastName, "");
   const values: Record<string, string | null> = {
     first_name: parts.firstName,
     last_name: parts.lastName,
@@ -881,9 +901,6 @@ async function ensureResumeDocumentRecord(
         title: "Master resume",
         yaml_content: buildDefaultResumeYaml(fallbackName),
         schema_version: 1,
-        is_public: false,
-        allow_indexing: false,
-        ai_generated: false,
         created_by: userId,
       },
     });
@@ -1139,7 +1156,6 @@ async function fetchActivePublicLinkByPersonAndPublicId(
 
 function publishedLocaleToDocument(
   row: ResumePublishedCvLocaleRow,
-  link: ResumePublicLinkRow,
   snapshot: ResumePublishedCvRow,
 ): ResumeDocumentRow {
   return {
@@ -1149,9 +1165,6 @@ function publishedLocaleToDocument(
     title: row.title || snapshot.title,
     yaml_content: row.yaml_content,
     schema_version: Number(row.schema_version) || Number(snapshot.schema_version) || 1,
-    is_public: true,
-    allow_indexing: Boolean(link.allow_indexing),
-    ai_generated: Boolean(row.ai_generated),
     updated_at: row.created_at || snapshot.published_at,
   };
 }
@@ -1286,7 +1299,7 @@ async function fetchPublishedResumeBySnapshotLink(
   }
 
   const languageLabels = link.user_id ? await fetchResumeUserLocaleMapForUser(link.user_id) : new Map();
-  const document = publishedLocaleToDocument(activeLocaleRow, link, snapshot);
+  const document = publishedLocaleToDocument(activeLocaleRow, snapshot);
   const normalizedSlug = link.slug || link.legacy_slug || "";
   const preset = buildPublishedSnapshotPreset(link, snapshot, activeLocaleRow, defaultLocale, normalizedSlug);
 
@@ -1782,9 +1795,6 @@ export async function publishResumeDocument(
   payload: {
     yamlContent: string;
     title: string;
-    isPublic: boolean;
-    allowIndexing: boolean;
-    aiGenerated?: boolean;
     styleSettings?: unknown;
     changeNote: string;
   },
@@ -1803,9 +1813,6 @@ export async function publishResumeDocument(
         title,
         yaml_content: payload.yamlContent,
         schema_version: 1,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         style_settings: normalizeResumeStyle(payload.styleSettings),
         created_by: userId,
       },
@@ -1822,9 +1829,6 @@ export async function publishResumeDocument(
       values: {
         title,
         yaml_content: payload.yamlContent,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         style_settings: normalizeResumeStyle(payload.styleSettings),
         updated_at: new Date().toISOString(),
       },
@@ -1872,9 +1876,6 @@ export async function saveResumeDraftDocument(
   payload: {
     yamlContent: string;
     title: string;
-    isPublic: boolean;
-    allowIndexing: boolean;
-    aiGenerated?: boolean;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
@@ -1891,9 +1892,6 @@ export async function saveResumeDraftDocument(
         title,
         yaml_content: payload.yamlContent,
         schema_version: 1,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         created_by: userId,
       },
     });
@@ -1909,9 +1907,6 @@ export async function saveResumeDraftDocument(
       values: {
         title,
         yaml_content: payload.yamlContent,
-        is_public: payload.isPublic,
-        allow_indexing: payload.allowIndexing,
-        ai_generated: Boolean(payload.aiGenerated),
         updated_at: new Date().toISOString(),
       },
     });

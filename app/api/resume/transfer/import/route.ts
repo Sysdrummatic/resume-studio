@@ -105,9 +105,6 @@ export async function POST(request: Request): Promise<Response> {
     const saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
       yamlContent: document.yaml_content,
       title: document.title,
-      isPublic: false,
-      allowIndexing: false,
-      aiGenerated: document.ai_generated,
     });
     if (!saved) {
       return NextResponse.json(

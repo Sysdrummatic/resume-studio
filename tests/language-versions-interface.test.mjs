@@ -42,7 +42,6 @@ test("language version API creates metadata and prepares a resume document", () 
   assert.equal(server.includes("validateResumeUserLocaleInput"), true);
   assert.equal(server.includes("bootstrapResumeUserLocales"), true);
   assert.equal(server.includes("const updated = await updateTable"), true);
-  assert.equal(server.includes("is_public: false"), true);
 });
 
 test("resume locale handling supports newly added two-letter languages", () => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Document } from "@react-pdf/renderer";
-import type { ResumeDocument } from "../resume-schema";
+import { resumeFullName, type ResumeDocument } from "../resume-schema";
 import {
   buildResumeRendererLabels,
   getResumeHeroRole,
@@ -22,11 +22,12 @@ type CvPdfDocumentProps = {
 export const CvPdfDocument = ({ resume, locale = "en", publicId, theme = cvBasicDotTheme, title }: CvPdfDocumentProps) => {
   const labels = buildResumeRendererLabels(locale);
   const heroRole = getResumeHeroRole(resume);
+  const fullName = resumeFullName(resume);
 
   return (
     <Document
-      title={title || resume.name || "Resume"}
-      author={resume.name || undefined}
+      title={title || fullName || "Resume"}
+      author={fullName || undefined}
       subject={publicId ? `opencivera/${publicId}` : undefined}
     >
       <TwoColumnTemplate resume={resume} labels={labels} heroRole={heroRole} theme={theme} />

@@ -74,13 +74,15 @@ test("phase D client migrates legacy YAML summary while loading editor drafts", 
   assert.equal(schema.includes("row.default"), true);
 });
 
-test("phase D client keeps loaded YAML in panel and preserves publish status", () => {
+test("phase D client keeps loaded YAML in panel", () => {
   const hook = read("app/master-resume/use-multi-locale-resume-documents.ts");
 
   assert.equal(hook.includes("let yamlContent = documentRow?.yaml_content ||"), true);
   assert.equal(hook.includes("yamlPanel: yamlContent,"), true);
-  assert.equal(hook.includes("allowIndexing: documentRow?.allow_indexing ?? false,"), true);
-  assert.equal(hook.includes("aiGenerated: documentRow?.ai_generated ?? false,"), true);
+  // Master CV is never published or indexed directly, so the buffer carries no
+  // publish-status fields.
+  assert.equal(hook.includes("allowIndexing:"), false);
+  assert.equal(hook.includes("aiGenerated:"), false);
 });
 
 test("phase D server rejects publish/rollback success when RPC calls fail", () => {

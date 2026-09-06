@@ -2,9 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { register } from "node:module";
 
-import { computeResumeCompletion } from "../app/master-resume/resume-completion.ts";
-import { defaultResumeDocument, normalizeResumeDocument } from "../app/lib/resume-schema.ts";
+register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+
+const { computeResumeCompletion } = await import("../app/master-resume/resume-completion.ts");
+const { defaultResumeDocument, normalizeResumeDocument } = await import("../app/lib/resume-schema.ts");
 
 function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");

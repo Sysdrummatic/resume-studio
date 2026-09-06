@@ -7,7 +7,7 @@ import ResumeBadges from "../resume-badges";
 import ResumeLanguageSwitcher from "../resume-language-switcher";
 import type { ResumeLanguageOption } from "../resume-language-switcher";
 import type { ResumeDocument, ResumeLocale } from "../../lib/resume-schema";
-import { getDefaultSummary } from "../../lib/resume-schema";
+import { getDefaultSummary, resumeFullName } from "../../lib/resume-schema";
 import { sanitizeExternalHref } from "../../lib/safe-url";
 import { DEFAULT_RESUME_STYLE, resumeStyleDataAttributes, type ResumeStyleSettings } from "../../lib/resume-style";
 import {
@@ -321,7 +321,7 @@ export default function ResumeRenderer({
           <div className="hero__title">
             <div className="logo-circle">{resume.brand_initials || "CV"}</div>
             <div className="hero__identity">
-              <h1>{resume.name || "Your Name"}</h1>
+              <h1>{resumeFullName(resume) || "Your Name"}</h1>
               {role ? <p>{role}</p> : null}
             </div>
           </div>

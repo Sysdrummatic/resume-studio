@@ -20,7 +20,6 @@ export type UserDataBundleLanguage = {
 export type UserDataBundleDocument = {
   locale: string;
   title: string;
-  ai_generated: boolean;
   yaml_content: string;
 };
 
@@ -149,7 +148,6 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
     documents.push({
       locale,
       title: nonEmptyString(row.title) || "Master resume",
-      ai_generated: row.ai_generated === true,
       yaml_content: yamlContent,
     });
   }

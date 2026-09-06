@@ -1,5 +1,6 @@
 brand_initials: ""
-name: ""
+first_name: ""
+family_name: ""
 
 summary:
   - position: ""

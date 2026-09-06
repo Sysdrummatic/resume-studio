@@ -2012,6 +2012,38 @@ a {
   padding: 9px 11px;
 }
 
+.resume-editor-shell .import-review-row,
+.resume-editor-shell .import-review-section {
+  border-color: var(--ed-line-2);
+  background: var(--ed-work);
+}
+
+.resume-editor-shell .import-review-row,
+.resume-editor-shell .import-review-section__summary,
+.resume-editor-shell .import-review-section__item-title {
+  color: var(--ed-t1);
+}
+
+.resume-editor-shell .import-review-section__items {
+  border-color: var(--ed-line-2);
+}
+
+.resume-editor-shell .import-review-list__value {
+  color: var(--ed-t3);
+}
+
+.resume-editor-shell .import-review-section__summary::after {
+  border-color: var(--ed-t3);
+}
+
+.resume-editor-shell .import-review-section[open] > .import-review-section__summary::after {
+  border-color: var(--ed-accent);
+}
+
+.resume-editor-shell .import-review-warnings {
+  color: var(--ed-warn);
+}
+
 .resume-editor-shell .dashboard-modal__body input:focus {
   border-color: var(--ed-accent);
   box-shadow: 0 0 0 3px var(--ed-accent-bg);
@@ -2229,6 +2261,32 @@ a {
   font-size: 12.5px;
 }
 
+/* Matches the mockup's ".imp" panel — plain card chrome, not a warning. */
+.resume-editor-import-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--ed-line);
+  border-radius: var(--ed-radius);
+  background: var(--ed-card);
+  padding: 13px 15px;
+  margin-bottom: 6px;
+}
+
+.resume-editor-import-banner b {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ed-t1);
+  margin-bottom: 1px;
+}
+
+.resume-editor-import-banner span {
+  font-size: 12px;
+  color: var(--ed-t2);
+}
+
 /* Three-column editor canvas: sidebar spans the full height (toolbar row
    included), the toolbar spans workspace + side panel. Mirrors the approved
    editor mockup. Below 1100px it linearises into a single column. */
@@ -2280,7 +2338,7 @@ a {
 
 @media (min-width: 1021px) {
   .resume-editor-layout {
-    grid-template-columns: 246px minmax(0, 1fr) 296px;
+    grid-template-columns: 246px minmax(0, 1fr) 540px;
   }
 
   .resume-editor-toolbar {
@@ -2295,7 +2353,7 @@ a {
 
 @media (min-width: 1241px) {
   .resume-editor-layout {
-    grid-template-columns: 246px minmax(0, 1fr) 340px;
+    grid-template-columns: 246px minmax(0, 1fr) 630px;
   }
 }
 
@@ -2723,7 +2781,7 @@ a {
     top: 0;
     right: 0;
     bottom: 0;
-    width: min(380px, 100vw);
+    width: min(570px, 100vw);
     z-index: 1400;
     overflow-y: auto;
     border-top: 0;
@@ -3033,6 +3091,12 @@ a {
 
 .resume-human-editor__grid {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+/* Forces the same two-column width as a paired row even with one field, so a
+   lone field (e.g. Location) doesn't stretch to the full row width. */
+.resume-human-editor__grid--half {
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
 }
 
 .resume-human-editor__row {
@@ -3401,7 +3465,8 @@ a {
   background: var(--ed-teal-bg);
 }
 
-.revision-list li[data-viewing="true"] {
+.revision-list li[data-viewing="true"],
+.revision-list li[data-unsaved="true"] {
   border-color: var(--ed-warn-border);
   background: var(--ed-warn-bg);
 }
@@ -3419,6 +3484,10 @@ a {
   text-transform: uppercase;
   font-weight: 600;
   color: var(--ed-teal);
+}
+
+.revision-list__tag--unsaved {
+  color: var(--ed-warn);
 }
 
 .revision-list p,
@@ -3653,6 +3722,128 @@ a {
 
 .dashboard-modal__body--compact {
   width: min(440px, calc(100vw - 2rem));
+}
+
+.import-review-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.import-review-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--portal-surface-ghost);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.import-review-list__value {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* A section is a <details> so expanding it costs nothing but CSS — no JS
+   height animation, no measuring, just the browser's own toggle. */
+.import-review-section {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--portal-surface-ghost);
+  overflow: hidden;
+}
+
+.import-review-section__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.import-review-section__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Chevron drawn as a rotated border corner, same technique the human
+   editor's own collapsible cards use — one element, no icon asset. */
+.import-review-section__summary::after {
+  content: "";
+  margin-left: auto;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform 0.15s ease;
+}
+
+.import-review-section[open] > .import-review-section__summary::after {
+  transform: rotate(-135deg) translate(-1px, -1px);
+}
+
+.import-review-section__label {
+  font-weight: 500;
+}
+
+.import-review-section__items {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.65rem 0.9rem 0.75rem;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.import-review-section__item-label {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.import-review-section__item-title {
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.import-review-warnings {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--portal-warning-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.import-review-mismatch {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-bg);
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.import-review-mismatch p {
+  margin: 0;
+  color: var(--portal-danger-text);
+}
+
+.import-review-mismatch .checkbox-row {
+  color: var(--portal-danger-text);
 }
 
 .dashboard-modal__body.is-editing > label:first-of-type,

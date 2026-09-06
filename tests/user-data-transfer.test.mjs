@@ -14,8 +14,8 @@ const sampleInput = {
     { code: "pl", label: "Polski", short_label: "PL", is_default: false, sort_order: 1 },
   ],
   documents: [
-    { locale: "en", title: "Master resume", ai_generated: false, yaml_content: "meta:\n  name: Test User\n" },
-    { locale: "pl", title: "Master resume PL", ai_generated: false, yaml_content: "meta:\n  name: Test User\n" },
+    { locale: "en", title: "Master resume", yaml_content: "meta:\n  name: Test User\n" },
+    { locale: "pl", title: "Master resume PL", yaml_content: "meta:\n  name: Test User\n" },
   ],
   cv_versions: [
     {

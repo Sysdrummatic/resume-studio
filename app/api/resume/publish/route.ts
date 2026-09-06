@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { publishResumeDocument } from "../../../lib/resume-server";
+import { publishResumeDocument, upgradeLegacyResumeYamlContent } from "../../../lib/resume-server";
 import { normalizeLocale } from "../../../lib/resume-schema";
 import { callRpc } from "../../../lib/supabase-http";
 import { flagSuspiciousResumeContent } from "../../../lib/content-safety-audit";
@@ -9,9 +9,6 @@ type PublishBody = {
   locale?: string;
   yamlContent?: string;
   title?: string;
-  isPublic?: boolean;
-  allowIndexing?: boolean;
-  aiGenerated?: boolean;
   styleSettings?: unknown;
   changeNote?: string;
 };
@@ -30,10 +27,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const locale = normalizeLocale(body.locale);
-  const yamlContent = String(body.yamlContent || "").trim();
-  if (!yamlContent) {
+  const submittedYamlContent = String(body.yamlContent || "").trim();
+  if (!submittedYamlContent) {
     return NextResponse.json({ error: "YAML payload is required." }, { status: 400 });
   }
+  const yamlContent = upgradeLegacyResumeYamlContent(submittedYamlContent);
 
   const yamlValidation = await callRpc<boolean>({
     functionName: "validate_resume_document_yaml",
@@ -48,9 +46,6 @@ export async function POST(request: Request): Promise<Response> {
   const payload = await publishResumeDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
     yamlContent,
     title: String(body.title || "Master resume"),
-    isPublic: typeof body.isPublic === "boolean" ? body.isPublic : true,
-    allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
-    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
     styleSettings: body.styleSettings,
     changeNote: String(body.changeNote || "Publish"),
   });
