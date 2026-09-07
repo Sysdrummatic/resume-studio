@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import OnboardingClient from "../onboarding/onboarding-client";
+import { firstCvSelection, ONBOARDING_SECTIONS, type OnboardingState } from "../lib/resume-onboarding";
+import { applyResumeSelectionToRawDocument } from "../lib/preset-selection";
+import { normalizeResumeDocument } from "../lib/resume-schema";
+import { onboardingEditorText } from "../onboarding/editor-copy";
+import type { OnboardingTestRun } from "../lib/onboarding-test";
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { canAccessDraftPdf } from "../lib/rbac";
@@ -211,7 +217,10 @@ function clearLocalDraft(locale: string): void {
   }
 }
 
-export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
+export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding, testRun }: { draftPdfEnabled?: boolean; onboarding?: OnboardingState; testRun?: OnboardingTestRun } = {}) {
+  const [onboardingLanguage, setOnboardingLanguage] = useState<"en" | "pl">(onboarding?.ui_language ?? "en");
+  const [onboardingImported, setOnboardingImported] = useState(onboarding?.imported ?? false);
+  const editorText = (text: string) => onboardingEditorText(text, onboarding ? onboardingLanguage : "en");
   const searchParams = useSearchParams();
   const requestedPanel = searchParams.get("panel");
 
@@ -238,7 +247,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     saveLanguageVersion,
     setDefaultLanguage,
     deleteLanguageVersion,
-  } = useMultiLocaleResumeDocuments(searchParams.get("locale"));
+  } = useMultiLocaleResumeDocuments(onboarding?.locale ?? searchParams.get("locale"), testRun);
 
   const activeBuffer = buffers[locale];
   const resume = activeBuffer?.resume ?? defaultResumeDocument("");
@@ -286,7 +295,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   } | null>(null);
 
   const [sidePanelTab, setSidePanelTab] = useState<"preview" | "history" | "style">("preview");
-  const [activeSectionId, setActiveSectionId] = useState<string>(EDITOR_SECTIONS[0].id);
+  const [activeSectionId, setActiveSectionId] = useState<string>(onboarding ? ONBOARDING_SECTIONS[onboarding.step - 2] ?? "personal" : EDITOR_SECTIONS[0].id);
   // Below 1020px the side panel leaves the grid and opens as a slide-over.
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const yamlTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -330,17 +339,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const previousDraftDirty = useRef<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (isLoading || !activeBuffer) return;
+    if (onboarding || isLoading || !activeBuffer) return;
     const draft = readLocalDraft(locale);
     setRestorableDraft(draft && draft.yamlContent !== activeBuffer.yamlPanel ? draft : null);
     setLastLocalSaveAt(null);
     // Runs once per locale switch, comparing against the buffer as it was
     // freshly loaded/selected — not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale, isLoading]);
+  }, [locale, isLoading, onboarding]);
 
   useEffect(() => {
-    if (isLoading || !activeBuffer) return;
+    if (onboarding || isLoading || !activeBuffer) return;
     const wasDirty = previousDraftDirty.current[locale] ?? false;
     previousDraftDirty.current[locale] = yamlPanel !== activeBuffer.savedYamlContent;
     if (yamlPanel === activeBuffer.savedYamlContent) {
@@ -364,7 +373,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
       setLastLocalSaveAt(Date.now());
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [locale, yamlPanel, isLoading, activeBuffer]);
+  }, [locale, yamlPanel, isLoading, activeBuffer, onboarding]);
 
   function restoreLocalDraft() {
     if (!restorableDraft) return;
@@ -628,7 +637,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     }
     updateResumeFromHuman(next);
     setImportResult(null);
-    showToast(`Added content from ${importFilename}.`);
+    setOnboardingImported(true);
+    showToast(onboarding && onboardingLanguage === "pl" ? `Dodano dane z pliku ${importFilename}.` : `Added content from ${importFilename}.`);
   }
 
   async function resetToTemplate() {
@@ -705,6 +715,374 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     }
   }
 
+  const humanEditor = (
+              <div className="resume-human-editor">
+                <fieldset className="resume-human-editor__fieldset" disabled={isBusy}>
+                {activeSectionId === "personal" && (
+                <section className="resume-human-editor__section">
+                  <div className="resume-human-editor__grid">
+                    <label>
+                      {editorText("First name")}
+                      <input value={resume.first_name} onChange={(event) => updateTextField("first_name", event.target.value)} />
+                    </label>
+                    <label>
+                      {editorText("Family name")}
+                      <input value={resume.family_name} onChange={(event) => updateTextField("family_name", event.target.value)} />
+                    </label>
+                  </div>
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={autoBrandInitials}
+                      onChange={(event) => toggleAutoBrandInitials(event.target.checked)}
+                    />
+                    {editorText("Auto-generate brand initials")}
+                  </label>
+                  <div className="resume-human-editor__grid resume-human-editor__grid--half">
+                    <label>
+                      {editorText("Location")}
+                      <input
+                        aria-label={editorText("Location")} placeholder={editorText("Location")}
+                        value={resume.contact.find((entry) => entry.label === "Location")?.value ?? ""}
+                        onChange={(event) => updateContactValue("Location", undefined, event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  {CONTACT_FIELD_ROWS.map((rowLabels) => (
+                    <div className="resume-human-editor__grid" key={`contact-row-${rowLabels.join("-")}`}>
+                      {rowLabels.map((label) => {
+                        const linkKind = CONTACT_FIELDS.find((field) => field.label === label)?.linkKind;
+                        const item = resume.contact.find((entry) => entry.label === label) ?? { label, value: "", link: "" };
+                        return (
+                          <label key={`contact-${label}`}>
+                            {editorText(label)}
+                            <input
+                              placeholder={editorText(label)}
+                              value={item.value}
+                              onChange={(event) => updateContactValue(label, linkKind, event.target.value)}
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </section>
+                )}
+
+                {activeSectionId === "summary" && (
+                <section className="resume-human-editor__section">
+                  {resume.summary.map((item, index) => {
+                    const defaultSummaryIndexes = resume.summary
+                      .map((summaryItem, summaryIndex) => (summaryItem.default ? summaryIndex : -1))
+                      .filter((summaryIndex) => summaryIndex >= 0);
+                    const selectedDefaultIndex = defaultSummaryIndexes.length === 1 ? defaultSummaryIndexes[0] : -1;
+                    const anotherDefaultSelected = selectedDefaultIndex >= 0 && selectedDefaultIndex !== index;
+                    return (
+                      <details
+                        className={`resume-human-editor__card resume-human-editor__card--collapsible ${anotherDefaultSelected ? "resume-human-editor__card--muted" : ""}`}
+                        open={isEntryOpen("summary", index)}
+                        onToggle={(event) => handleEntryToggle("summary", index, event.currentTarget.open)}
+                        key={`summary-${index}`}
+                      >
+                        <summary>
+                          <span className="resume-human-editor__card-title">{item.position || editorText("Untitled summary")}</span>
+                          <span className="resume-human-editor__card-meta">{cardMeta([item.default ? editorText("Default") : null])}</span>
+                        </summary>
+                        <div className="resume-human-editor__card-body">
+                          <label>
+                            {editorText("Position")}
+                            <input
+                              aria-label={editorText("Position")} placeholder={editorText("Position")}
+                              value={item.position}
+                              onChange={(event) => updateSummary(index, "position", event.target.value)}
+                            />
+                          </label>
+                          <label>
+                            {editorText("Description")}
+                            <textarea
+                              rows={4}
+                              aria-label={editorText("Summary description")} placeholder={editorText("Summary description")}
+                              value={item.description}
+                              onChange={(event) => updateSummary(index, "description", event.target.value)}
+                            />
+                          </label>
+                          <label className="checkbox-row">
+                            <input
+                              type="checkbox"
+                              checked={selectedDefaultIndex === index}
+                              disabled={!item.default && anotherDefaultSelected}
+                              onChange={(event) => setDefaultSummary(index, event.target.checked)}
+                            />
+                            {editorText("Default summary")}
+                          </label>
+                          <div className="resume-human-editor__card-actions">
+                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("summary", index)}>
+                              {editorText("Remove entry")}
+                            </button>
+                          </div>
+                        </div>
+                      </details>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    className="resume-human-editor__add"
+                    onClick={() => addArrayItem("summary", { position: "", description: "", default: resume.summary.length === 0 })}
+                  >
+                    {editorText("+ Add summary")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "qr-codes" && (
+                <section className="resume-human-editor__section">
+                  {resume.qr_codes.map((item, index) => (
+                    <div className="resume-human-editor__row" key={`qr-${index}`}>
+                      <input aria-label={editorText("Label")} placeholder={editorText("Label")} value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
+                      <input aria-label={editorText("Image path")} placeholder={editorText("Image path")} value={item.image} onChange={(event) => updateQrCode(index, "image", event.target.value)} />
+                      <input type="number" min={1} aria-label={editorText("Size")} placeholder={editorText("Size")} value={item.size} onChange={(event) => updateQrCode(index, "size", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
+                        {editorText("Remove")}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("qr_codes", { label: "", image: "", size: 130 })}>
+                    {editorText("+ Add QR code")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "skills" && (
+                <section className="resume-human-editor__section">
+                  {resume.skills.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--compact" key={`skill-${index}`}>
+                      <input aria-label={editorText("Skill")} placeholder={editorText("Skill")} value={item.name} onChange={(event) => updateSkill(index, "name", event.target.value)} />
+                      <input type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateSkill(index, "level", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("skills", index)}>
+                        {editorText("Remove")}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
+                    {editorText("+ Add skill")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "tech-stack" && (
+                <section className="resume-human-editor__section">
+                  {resume.tech_stack.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--single" key={`tech-${index}`}>
+                      <input aria-label={editorText("Technology")} placeholder={editorText("Technology")} value={item} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("tech_stack", index)}>
+                        {editorText("Remove")}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("tech_stack", "")}>
+                    {editorText("+ Add technology")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "languages" && (
+                <section className="resume-human-editor__section">
+                  {resume.languages.map((item, index) => (
+                    <div className="resume-human-editor__row" key={`language-${index}`}>
+                      <input aria-label={editorText("Language")} placeholder={editorText("Language")} value={item.name} onChange={(event) => updateLanguage(index, "name", event.target.value)} />
+                      <input aria-label={editorText("Level text")} placeholder={editorText("Level text")} value={item.level_text} onChange={(event) => updateLanguage(index, "level_text", event.target.value)} />
+                      <input type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateLanguage(index, "level", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("languages", index)}>
+                        {editorText("Remove")}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
+                    {editorText("+ Add language")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "interests" && (
+                <section className="resume-human-editor__section">
+                  {resume.interests.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--single" key={`interest-${index}`}>
+                      <input aria-label={editorText("Interest")} placeholder={editorText("Interest")} value={item} onChange={(event) => updateStringList("interests", index, event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("interests", index)}>
+                        {editorText("Remove")}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("interests", "")}>
+                    {editorText("+ Add interest")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "experience" && (
+                <section className="resume-human-editor__section">
+                  {resume.experience.map((item, index) => (
+                    <details
+                      className="resume-human-editor__card resume-human-editor__card--collapsible"
+                      open={isEntryOpen("experience", index)}
+                      onToggle={(event) => handleEntryToggle("experience", index, event.currentTarget.open)}
+                      key={`experience-${index}`}
+                    >
+                      <summary>
+                        <span className="resume-human-editor__card-title">{item.role || editorText("Untitled role")}</span>
+                        <span className="resume-human-editor__card-meta">{cardMeta([item.company, item.period])}</span>
+                      </summary>
+                      <div className="resume-human-editor__card-body">
+                        <input aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
+                        <input aria-label={editorText("Company")} placeholder={editorText("Company")} value={item.company} onChange={(event) => updateExperience(index, "company", event.target.value)} />
+                        <input aria-label={editorText("Role")} placeholder={editorText("Role")} value={item.role} onChange={(event) => updateExperience(index, "role", event.target.value)} />
+                        <textarea rows={3} aria-label={editorText("Highlights, one per line")} placeholder={editorText("Highlights, one per line")} value={item.highlights.join("\n")} onChange={(event) => updateExperience(index, "highlights", event.target.value)} />
+                        <div className="resume-human-editor__card-actions">
+                          <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("experience", index)}>
+                            {editorText("Remove entry")}
+                          </button>
+                        </div>
+                      </div>
+                    </details>
+                  ))}
+                  <button
+                    type="button"
+                    className="resume-human-editor__add"
+                    onClick={() => addArrayItem("experience", { period: "", company: "", role: "", highlights: [] })}
+                  >
+                    {editorText("+ Add position")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "education" && (
+                <section className="resume-human-editor__section">
+                  {resume.education.map((item, index) => (
+                    <details
+                      className="resume-human-editor__card resume-human-editor__card--collapsible"
+                      open={isEntryOpen("education", index)}
+                      onToggle={(event) => handleEntryToggle("education", index, event.currentTarget.open)}
+                      key={`education-${index}`}
+                    >
+                      <summary>
+                        <span className="resume-human-editor__card-title">{item.school || editorText("Untitled school")}</span>
+                        <span className="resume-human-editor__card-meta">{cardMeta([item.degree, item.period])}</span>
+                      </summary>
+                      <div className="resume-human-editor__card-body">
+                        <input aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateEducation(index, "period", event.target.value)} />
+                        <input aria-label={editorText("School")} placeholder={editorText("School")} value={item.school} onChange={(event) => updateEducation(index, "school", event.target.value)} />
+                        <input aria-label={editorText("Degree")} placeholder={editorText("Degree")} value={item.degree} onChange={(event) => updateEducation(index, "degree", event.target.value)} />
+                        <textarea rows={2} aria-label={editorText("Detail")} placeholder={editorText("Detail")} value={item.detail} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
+                        <div className="resume-human-editor__card-actions">
+                          <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("education", index)}>
+                            {editorText("Remove entry")}
+                          </button>
+                        </div>
+                      </div>
+                    </details>
+                  ))}
+                  <button
+                    type="button"
+                    className="resume-human-editor__add"
+                    onClick={() => addArrayItem("education", { period: "", school: "", degree: "", detail: "" })}
+                  >
+                    {editorText("+ Add education")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "courses" && (
+                <section className="resume-human-editor__section">
+                  {resume.courses.map((item, index) => (
+                    <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
+                      <input type="number" min={0} aria-label={editorText("Year")} placeholder={editorText("Year")} value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
+                      <input aria-label={editorText("Course name")} placeholder={editorText("Course name")} value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
+                        {editorText("Remove")}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
+                    {editorText("+ Add course")}
+                  </button>
+                </section>
+                )}
+
+                {activeSectionId === "gdpr" && (
+                <section className="resume-human-editor__section">
+                  <label>
+                    {editorText("Clause text")}
+                    <textarea
+                      rows={4}
+                      aria-label={editorText("No clause")} placeholder={editorText("No clause")}
+                      value={resume.gdpr_clause}
+                      onChange={(event) => updateGdprClause(event.target.value)}
+                    />
+                  </label>
+                  <div className="actions-row">
+                    <button type="button" className="button button--ghost button--small" onClick={() => updateGdprClause(STANDARD_GDPR_CLAUSE)}>
+                      {editorText("Use standard PL wording")}
+                    </button>
+                    <button type="button" className="button button--ghost button--small" onClick={() => updateGdprClause("")}>
+                      {editorText("Clear")}
+                    </button>
+                  </div>
+                  <p className="resume-editor-hint">{editorText("Rendered as a small footer on the CV. Leave empty to omit it.")}</p>
+                </section>
+                )}
+
+                </fieldset>
+              </div>
+  );
+  const importReview = (
+      <ImportReviewModal
+        language={onboarding ? onboardingLanguage : "en"}
+        isOpen={importResult !== null}
+        filename={importFilename}
+        result={importResult}
+        currentName={resumeFullName(resume)}
+        onConfirm={applyImportResult}
+        onClose={() => setImportResult(null)}
+      />
+  );
+  if (onboarding) {
+    const previewResume = normalizeResumeDocument(applyResumeSelectionToRawDocument(resume, firstCvSelection(resume)) ?? resume, "");
+    return <>
+      <StatusToast toast={toast} onClose={closeToast} />
+      {importReview}
+      <OnboardingClient initialState={onboarding} testRunId={testRun?.id} uiLanguage={onboardingLanguage} onUiLanguage={setOnboardingLanguage}
+        locale={locale} languages={languageOptions} loading={isLoading}
+        loadError={Boolean(loadError || activeBuffer?.loadFailed || yamlError)} importing={isImporting}
+        imported={onboardingImported} resume={resume} onSection={handleSectionNavSelect}
+        onLocale={async (code) => {
+          if (code === locale) return;
+          if (isAnyDirty) {
+            const saved = await saveAllDirty({ changeNote: "First CV guide" });
+            if (saved.failed.length) throw new Error("Save failed");
+          }
+          if (languageOptions.some((language) => language.code === code)) setActiveLocale(code);
+          else await saveLanguageVersion({ code, label: code === "pl" ? "Polski" : "English", shortLabel: code.toUpperCase() }, null);
+          await setDefaultLanguage(code);
+          setOnboardingImported(false);
+        }}
+        onSave={async () => {
+          if (!activeBuffer || activeBuffer.loadFailed || isLoading || yamlError) throw new Error("CV unavailable");
+          if (!isAnyDirty) return;
+          setIsBusy(true);
+          try {
+            const saved = await saveAllDirty({ changeNote: "First CV guide" });
+            if (saved.failed.length) throw new Error("Save failed");
+          } finally { setIsBusy(false); }
+        }}
+        form={humanEditor}
+        preview={<ResumeLivePreview locale={locale} resume={previewResume} styleCode="basic" yamlContent={yamlPanel}
+          isExpanded={isPreviewExpanded} draftPdfEnabled={false} cvStyle={cvStyle}
+          onExpand={() => setIsPreviewExpanded(true)} onClose={() => setIsPreviewExpanded(false)} />}
+        importControl={<ImportCvBanner language={onboardingLanguage} isBusy={isImporting} onFileSelected={(file) => void handleImportFile(file)} />}
+      />
+    </>;
+  }
+
   return (
     <section className="resume-editor-shell wide-shell-page">
       <StatusToast toast={toast} onClose={closeToast} />
@@ -738,14 +1116,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
           void publishResume().then(() => setIsSaveVersionModalOpen(false));
         }}
       />
-      <ImportReviewModal
-        isOpen={importResult !== null}
-        filename={importFilename}
-        result={importResult}
-        currentName={resumeFullName(resume)}
-        onConfirm={applyImportResult}
-        onClose={() => setImportResult(null)}
-      />
+      {importReview}
 
       <div className="resume-editor-layout">
         <aside className="resume-editor-sidebar">
@@ -935,323 +1306,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 </div>
               </div>
             ) : (
-              <div className="resume-human-editor">
-                <fieldset className="resume-human-editor__fieldset" disabled={isBusy}>
-                {activeSectionId === "personal" && (
-                <section className="resume-human-editor__section">
-                  <div className="resume-human-editor__grid">
-                    <label>
-                      First name
-                      <input value={resume.first_name} onChange={(event) => updateTextField("first_name", event.target.value)} />
-                    </label>
-                    <label>
-                      Family name
-                      <input value={resume.family_name} onChange={(event) => updateTextField("family_name", event.target.value)} />
-                    </label>
-                  </div>
-                  <label className="checkbox-row">
-                    <input
-                      type="checkbox"
-                      checked={autoBrandInitials}
-                      onChange={(event) => toggleAutoBrandInitials(event.target.checked)}
-                    />
-                    Auto-generate brand initials
-                  </label>
-                  <div className="resume-human-editor__grid resume-human-editor__grid--half">
-                    <label>
-                      Location
-                      <input
-                        placeholder="Location"
-                        value={resume.contact.find((entry) => entry.label === "Location")?.value ?? ""}
-                        onChange={(event) => updateContactValue("Location", undefined, event.target.value)}
-                      />
-                    </label>
-                  </div>
-                  {CONTACT_FIELD_ROWS.map((rowLabels) => (
-                    <div className="resume-human-editor__grid" key={`contact-row-${rowLabels.join("-")}`}>
-                      {rowLabels.map((label) => {
-                        const linkKind = CONTACT_FIELDS.find((field) => field.label === label)?.linkKind;
-                        const item = resume.contact.find((entry) => entry.label === label) ?? { label, value: "", link: "" };
-                        return (
-                          <label key={`contact-${label}`}>
-                            {label}
-                            <input
-                              placeholder={label}
-                              value={item.value}
-                              onChange={(event) => updateContactValue(label, linkKind, event.target.value)}
-                            />
-                          </label>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </section>
-                )}
-
-                {activeSectionId === "summary" && (
-                <section className="resume-human-editor__section">
-                  {resume.summary.map((item, index) => {
-                    const defaultSummaryIndexes = resume.summary
-                      .map((summaryItem, summaryIndex) => (summaryItem.default ? summaryIndex : -1))
-                      .filter((summaryIndex) => summaryIndex >= 0);
-                    const selectedDefaultIndex = defaultSummaryIndexes.length === 1 ? defaultSummaryIndexes[0] : -1;
-                    const anotherDefaultSelected = selectedDefaultIndex >= 0 && selectedDefaultIndex !== index;
-                    return (
-                      <details
-                        className={`resume-human-editor__card resume-human-editor__card--collapsible ${anotherDefaultSelected ? "resume-human-editor__card--muted" : ""}`}
-                        open={isEntryOpen("summary", index)}
-                        onToggle={(event) => handleEntryToggle("summary", index, event.currentTarget.open)}
-                        key={`summary-${index}`}
-                      >
-                        <summary>
-                          <span className="resume-human-editor__card-title">{item.position || "Untitled summary"}</span>
-                          <span className="resume-human-editor__card-meta">{cardMeta([item.default ? "Default" : null])}</span>
-                        </summary>
-                        <div className="resume-human-editor__card-body">
-                          <label>
-                            Position
-                            <input
-                              placeholder="Position"
-                              value={item.position}
-                              onChange={(event) => updateSummary(index, "position", event.target.value)}
-                            />
-                          </label>
-                          <label>
-                            Description
-                            <textarea
-                              rows={4}
-                              placeholder="Summary description"
-                              value={item.description}
-                              onChange={(event) => updateSummary(index, "description", event.target.value)}
-                            />
-                          </label>
-                          <label className="checkbox-row">
-                            <input
-                              type="checkbox"
-                              checked={selectedDefaultIndex === index}
-                              disabled={!item.default && anotherDefaultSelected}
-                              onChange={(event) => setDefaultSummary(index, event.target.checked)}
-                            />
-                            Default summary
-                          </label>
-                          <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("summary", index)}>
-                              Remove entry
-                            </button>
-                          </div>
-                        </div>
-                      </details>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    className="resume-human-editor__add"
-                    onClick={() => addArrayItem("summary", { position: "", description: "", default: resume.summary.length === 0 })}
-                  >
-                    + Add summary
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "qr-codes" && (
-                <section className="resume-human-editor__section">
-                  {resume.qr_codes.map((item, index) => (
-                    <div className="resume-human-editor__row" key={`qr-${index}`}>
-                      <input placeholder="Label" value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
-                      <input placeholder="Image path" value={item.image} onChange={(event) => updateQrCode(index, "image", event.target.value)} />
-                      <input type="number" min={1} placeholder="Size" value={item.size} onChange={(event) => updateQrCode(index, "size", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("qr_codes", { label: "", image: "", size: 130 })}>
-                    + Add QR code
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "skills" && (
-                <section className="resume-human-editor__section">
-                  {resume.skills.map((item, index) => (
-                    <div className="resume-human-editor__row resume-human-editor__row--compact" key={`skill-${index}`}>
-                      <input placeholder="Skill" value={item.name} onChange={(event) => updateSkill(index, "name", event.target.value)} />
-                      <input type="number" min={1} max={5} placeholder="Level" value={item.level} onChange={(event) => updateSkill(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("skills", index)}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
-                    + Add skill
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "tech-stack" && (
-                <section className="resume-human-editor__section">
-                  {resume.tech_stack.map((item, index) => (
-                    <div className="resume-human-editor__row resume-human-editor__row--single" key={`tech-${index}`}>
-                      <input placeholder="Technology" value={item} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("tech_stack", index)}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("tech_stack", "")}>
-                    + Add technology
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "languages" && (
-                <section className="resume-human-editor__section">
-                  {resume.languages.map((item, index) => (
-                    <div className="resume-human-editor__row" key={`language-${index}`}>
-                      <input placeholder="Language" value={item.name} onChange={(event) => updateLanguage(index, "name", event.target.value)} />
-                      <input placeholder="Level text" value={item.level_text} onChange={(event) => updateLanguage(index, "level_text", event.target.value)} />
-                      <input type="number" min={1} max={5} placeholder="Level" value={item.level} onChange={(event) => updateLanguage(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("languages", index)}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
-                    + Add language
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "interests" && (
-                <section className="resume-human-editor__section">
-                  {resume.interests.map((item, index) => (
-                    <div className="resume-human-editor__row resume-human-editor__row--single" key={`interest-${index}`}>
-                      <input placeholder="Interest" value={item} onChange={(event) => updateStringList("interests", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("interests", index)}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("interests", "")}>
-                    + Add interest
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "experience" && (
-                <section className="resume-human-editor__section">
-                  {resume.experience.map((item, index) => (
-                    <details
-                      className="resume-human-editor__card resume-human-editor__card--collapsible"
-                      open={isEntryOpen("experience", index)}
-                      onToggle={(event) => handleEntryToggle("experience", index, event.currentTarget.open)}
-                      key={`experience-${index}`}
-                    >
-                      <summary>
-                        <span className="resume-human-editor__card-title">{item.role || "Untitled role"}</span>
-                        <span className="resume-human-editor__card-meta">{cardMeta([item.company, item.period])}</span>
-                      </summary>
-                      <div className="resume-human-editor__card-body">
-                        <input placeholder="Period" value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
-                        <input placeholder="Company" value={item.company} onChange={(event) => updateExperience(index, "company", event.target.value)} />
-                        <input placeholder="Role" value={item.role} onChange={(event) => updateExperience(index, "role", event.target.value)} />
-                        <textarea rows={3} placeholder="Highlights, one per line" value={item.highlights.join("\n")} onChange={(event) => updateExperience(index, "highlights", event.target.value)} />
-                        <div className="resume-human-editor__card-actions">
-                          <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("experience", index)}>
-                            Remove entry
-                          </button>
-                        </div>
-                      </div>
-                    </details>
-                  ))}
-                  <button
-                    type="button"
-                    className="resume-human-editor__add"
-                    onClick={() => addArrayItem("experience", { period: "", company: "", role: "", highlights: [] })}
-                  >
-                    + Add position
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "education" && (
-                <section className="resume-human-editor__section">
-                  {resume.education.map((item, index) => (
-                    <details
-                      className="resume-human-editor__card resume-human-editor__card--collapsible"
-                      open={isEntryOpen("education", index)}
-                      onToggle={(event) => handleEntryToggle("education", index, event.currentTarget.open)}
-                      key={`education-${index}`}
-                    >
-                      <summary>
-                        <span className="resume-human-editor__card-title">{item.school || "Untitled school"}</span>
-                        <span className="resume-human-editor__card-meta">{cardMeta([item.degree, item.period])}</span>
-                      </summary>
-                      <div className="resume-human-editor__card-body">
-                        <input placeholder="Period" value={item.period} onChange={(event) => updateEducation(index, "period", event.target.value)} />
-                        <input placeholder="School" value={item.school} onChange={(event) => updateEducation(index, "school", event.target.value)} />
-                        <input placeholder="Degree" value={item.degree} onChange={(event) => updateEducation(index, "degree", event.target.value)} />
-                        <textarea rows={2} placeholder="Detail" value={item.detail} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
-                        <div className="resume-human-editor__card-actions">
-                          <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("education", index)}>
-                            Remove entry
-                          </button>
-                        </div>
-                      </div>
-                    </details>
-                  ))}
-                  <button
-                    type="button"
-                    className="resume-human-editor__add"
-                    onClick={() => addArrayItem("education", { period: "", school: "", degree: "", detail: "" })}
-                  >
-                    + Add education
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "courses" && (
-                <section className="resume-human-editor__section">
-                  {resume.courses.map((item, index) => (
-                    <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
-                      <input type="number" min={0} placeholder="Year" value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
-                      <input placeholder="Course name" value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
-                    + Add course
-                  </button>
-                </section>
-                )}
-
-                {activeSectionId === "gdpr" && (
-                <section className="resume-human-editor__section">
-                  <label>
-                    Clause text
-                    <textarea
-                      rows={4}
-                      placeholder="No clause"
-                      value={resume.gdpr_clause}
-                      onChange={(event) => updateGdprClause(event.target.value)}
-                    />
-                  </label>
-                  <div className="actions-row">
-                    <button type="button" className="button button--ghost button--small" onClick={() => updateGdprClause(STANDARD_GDPR_CLAUSE)}>
-                      Use standard PL wording
-                    </button>
-                    <button type="button" className="button button--ghost button--small" onClick={() => updateGdprClause("")}>
-                      Clear
-                    </button>
-                  </div>
-                  <p className="resume-editor-hint">Rendered as a small footer on the CV. Leave empty to omit it.</p>
-                </section>
-                )}
-
-                </fieldset>
-              </div>
+              humanEditor
             )}
         </main>
 

@@ -121,7 +121,7 @@ export default function PublishSavedVersionModal({
         </label>
 
         <label className="checkbox-row">
-          <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
+          <input type="checkbox" checked={allowIndexing} disabled={Boolean(draft.preset.onboarding_test_run_id)} onChange={(event) => setAllowIndexing(event.target.checked)} />
           Allow indexing for this Published CV
         </label>
 

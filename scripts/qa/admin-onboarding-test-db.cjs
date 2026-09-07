@@ -1,0 +1,95 @@
+// Run with PGLITE_MODULE_PATH pointing to a separately installed @electric-sql/pglite.
+const fs = require("node:fs");
+const assert = require("node:assert/strict");
+const { PGlite } = require(process.env.PGLITE_MODULE_PATH || "@electric-sql/pglite");
+
+(async () => {
+  const db = new PGlite();
+  await db.exec(`
+    create role anon; create role authenticated; create role service_role bypassrls;
+    create schema auth;
+    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+    create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
+    create table public.profiles(id uuid primary key references auth.users(id) on delete cascade,role text,is_active boolean,person_slug text);
+    create table public.resume_documents(id uuid primary key default gen_random_uuid(),user_id uuid references public.profiles(id) on delete cascade,locale text,yaml_content text,created_at timestamptz default now());
+    create table public.resume_presets(id uuid primary key default gen_random_uuid(),document_id uuid references public.resume_documents(id) on delete cascade,user_id uuid references public.profiles(id) on delete cascade,title text,selection jsonb,default_locale text,is_public boolean,allow_indexing boolean,slug text,published_at timestamptz);
+    create table public.resume_preset_variants(id uuid primary key,preset_id uuid,document_id uuid,user_id uuid,locale text,selection jsonb);
+    create table public.resume_published_cvs(id uuid primary key default gen_random_uuid(),user_id uuid references public.profiles(id) on delete cascade,preset_id uuid references public.resume_presets(id) on delete set null,source_document_id uuid,title text,schema_version int,open_cv_yaml_contract_version text,default_locale text,published_locales text[],available_locales text[],selection jsonb,allow_indexing boolean,created_by uuid,snapshot_metadata jsonb);
+    create table public.resume_published_cv_locales(id uuid primary key default gen_random_uuid(),published_cv_id uuid references public.resume_published_cvs(id) on delete cascade,user_id uuid,locale text,title text,yaml_content text,schema_version int,selection jsonb,labels jsonb,ai_generated boolean,style_settings jsonb);
+    create table public.resume_public_links(id uuid primary key default gen_random_uuid(),document_id uuid,user_id uuid references public.profiles(id) on delete cascade,preset_id uuid references public.resume_presets(id) on delete set null,slug text,legacy_slug text,person_slug text,public_id text,active_published_cv_id uuid,default_locale text,available_locales text[],allow_indexing boolean,is_active boolean,status text,published_at timestamptz,revoked_at timestamptz,updated_at timestamptz default now());
+    create table public.admin_audit_logs(actor_user_id uuid,action text,target_user_id uuid,metadata jsonb);
+    create function public.touch_updated_at() returns trigger language plpgsql as $$begin new.updated_at=now(); return new; end;$$;
+    create function public.generate_public_id() returns text language sql as $$select substr(replace(gen_random_uuid()::text,'-',''),1,12)$$;
+    create function public.validate_resume_document_yaml(text) returns boolean language sql as $$select length($1)>0$$;
+    grant usage on schema public,auth to authenticated,anon;
+    grant select on public.profiles, public.resume_documents, public.resume_presets to authenticated;
+    grant insert,update on public.resume_presets to authenticated;
+  `);
+  await db.exec(fs.readFileSync("supabase/migrations/20260907010000_admin_onboarding_tests.sql", "utf8"));
+  const ids = [1, 2, 3, 4, 5, 6, 7].map(n => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`);
+  const roles = ["admin", "manager", "user", "recruiter", "admin", "admin", "admin"];
+  for (let i = 0; i < ids.length; i++) {
+    await db.query("insert into auth.users values($1,$2)", [ids[i], i === 5 ? null : new Date()]);
+    await db.query("insert into public.profiles values($1,$2,$3,'existing-person')", [ids[i], roles[i], i !== 4]);
+    await db.query("insert into public.resume_documents(user_id,locale,yaml_content) values($1,'en','ORIGINAL MASTER')", [ids[i]]);
+  }
+  const login = async id => { await db.exec("reset role;set role authenticated"); await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id]); };
+  const configure = async (action, expected = null) => (await db.query("select * from public.configure_onboarding_test($1,$2)", [action, expected])).rows[0];
+  for (const id of ids.slice(1, 6)) {
+    await login(id);
+    await assert.rejects(configure("start"), /administrator required/);
+    await assert.rejects(db.query("select public.save_onboarding_test($1)", [ids[0]]), /administrator required/);
+    await assert.rejects(db.query("select public.finish_onboarding_test($1,true)", [ids[0]]), /administrator required/);
+  }
+  await login(ids[0]);
+  const armed = await configure("arm"); assert.equal(armed.auto_start, true);
+  const started = await configure("start"); assert.equal(started.id, armed.id);
+  await login(ids[6]);
+  assert.equal((await db.query("select count(*)::int n from public.resume_onboarding_test_runs")).rows[0].n, 0);
+  await assert.rejects(db.query("select public.save_onboarding_test($1)", [started.id]), /Test not found/);
+  await assert.rejects(db.query("select public.finish_onboarding_test($1,true)", [started.id]), /Test not found/);
+  await login(ids[0]);
+  const progress = { status: "active", step: 14, locale: "pl", method: "import", ui_language: "pl", imported: true };
+  await db.query("select public.save_onboarding_test($1,$2,'pl','TEST CV ONLY',$3)", [started.id, progress, { summary: [0], experience: [] }]);
+  await assert.rejects(db.query("select public.save_onboarding_test($1)", [ids[2]]), /Test not found/);
+  const finish = async () => (await db.query("select public.finish_onboarding_test($1,true) as result", [started.id])).rows[0].result;
+  const result = await finish(); assert.match(result.publicPath, /^\/existing-person\//);
+  assert.deepEqual(await finish(), result);
+  await db.exec("reset role");
+  assert.equal((await db.query("select count(*)::int n from public.resume_presets")).rows[0].n, 1);
+  assert.equal((await db.query("select count(*)::int n from public.resume_published_cvs")).rows[0].n, 1);
+  assert.equal((await db.query("select yaml_content from public.resume_published_cv_locales")).rows[0].yaml_content, "TEST CV ONLY");
+  assert.equal((await db.query("select count(*)::int n from public.resume_documents where yaml_content <> 'ORIGINAL MASTER'")).rows[0].n, 0);
+  assert.equal((await db.query("select count(*)::int n from public.profiles where person_slug <> 'existing-person'")).rows[0].n, 0);
+  const presetId = (await db.query("select id from public.resume_presets")).rows[0].id;
+  await db.query("update public.resume_public_links set is_active=false,status='inactive' where preset_id=$1", [presetId]);
+  await db.query("update public.resume_presets set is_public=false where id=$1", [presetId]);
+  await db.query("update public.profiles set person_slug='changed-person' where id=$1", [ids[0]]);
+  await login(ids[0]);
+  const republished = (await db.query("select public.finish_onboarding_test($1,true,true) as result", [started.id])).rows[0].result;
+  assert.equal(republished.publicPath, result.publicPath);
+  await db.exec("reset role");
+  assert.equal((await db.query("select is_active from public.resume_public_links where preset_id=$1", [presetId])).rows[0].is_active, true);
+  assert.equal((await db.query("select person_slug from public.profiles where id=$1", [ids[0]])).rows[0].person_slug, "changed-person");
+  assert.equal((await db.query("select count(*)::int n from public.resume_presets")).rows[0].n, 1);
+  assert.equal((await db.query("select count(*)::int n from public.resume_published_cv_locales where yaml_content <> 'TEST CV ONLY'")).rows[0].n, 0);
+  await login(ids[0]);
+  await assert.rejects(db.query("update public.resume_presets set title='changed' where id=$1", [presetId]), /managed through onboarding/);
+  await assert.rejects(db.query("select public.publish_resume_saved_version($1,false,false,'pl',array['pl'])", [presetId]), /dedicated onboarding/);
+  const next = await configure("start"); assert.notEqual(next.id, started.id); assert.deepEqual(next.drafts, {});
+  const paused = await configure("disarm", next.id); assert.equal(paused.auto_start, false);
+  const restarted = await configure("restart", next.id); assert.notEqual(restarted.id, next.id);
+  await assert.rejects(configure("restart", next.id), /Test changed/);
+  await db.query("select public.finish_onboarding_test($1,false)", [restarted.id]);
+  await db.exec("reset role");
+  assert.equal((await db.query("select count(*)::int n from public.resume_presets")).rows[0].n, 1);
+  assert.ok((await db.query("select count(*)::int n from public.admin_audit_logs")).rows[0].n >= 6);
+  await db.exec("set role anon");
+  await assert.rejects(db.query("select * from public.resume_onboarding_test_runs"));
+  await assert.rejects(configure("start"));
+  await db.exec("reset role");
+  await db.query("delete from auth.users where id=$1", [ids[0]]);
+  assert.equal((await db.query("select count(*)::int n from public.resume_onboarding_test_runs")).rows[0].n, 0);
+  await db.close();
+  console.log("PASS: migration, admin/verified/active boundaries, own-run writes, repeated publication, preserved Master CV/profile, restart, consent, audit, account cascade.");
+})().catch(error => { console.error(error.message); process.exitCode = 1; });

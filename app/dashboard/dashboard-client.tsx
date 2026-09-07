@@ -427,9 +427,9 @@ function PresetActionsMenu({
         </svg>
       </summary>
       <div className="dashboard-preset-menu__panel" role="menu">
-        <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onEdit)}>
+        {!preset.onboarding_test_run_id ? <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onEdit)}>
           Edit
-        </button>
+        </button> : null}
         <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onTogglePublish)}>
           {preset.is_public ? "Unpublish" : "Publish"}
         </button>
@@ -657,6 +657,10 @@ export default function DashboardClient({
   }
 
   function openPublishSavedVersion(preset: ResumePresetRow) {
+    if (preset.onboarding_test_run_id) {
+      setPublishDraft({ preset, selectedLocales: [preset.default_locale], defaultLocale: preset.default_locale, allowIndexing: false });
+      return;
+    }
     const selectedLocales = Array.from(new Set(publishableLocales));
     if (selectedLocales.length === 0) {
       showToast("No language versions available for publish.", "error");
@@ -805,9 +809,9 @@ export default function DashboardClient({
                   </span>
                 </div>
                 <div className="dashboard-resume-list__actions">
-                  <button type="button" className="button button--primary button--small" onClick={() => setPreviewPreset(preset)}>
+                  {preset.onboarding_test_run_id ? <Link className="button button--primary button--small" href={preset.canonical_public_path || `/onboarding/test-cv/${preset.onboarding_test_run_id}`} target="_blank" rel="noopener noreferrer">Open test CV</Link> : <button type="button" className="button button--primary button--small" onClick={() => setPreviewPreset(preset)}>
                     Open CV
-                  </button>
+                  </button>}
                   {preset.is_public ? (
                     <button type="button" className="button button--ghost button--small" onClick={() => copyPublicLink(preset)}>
                       Copy link
@@ -927,7 +931,7 @@ export default function DashboardClient({
       {publishDraft ? (
         <PublishSavedVersionModal
           draft={publishDraft}
-          locales={Array.from(new Set(publishableLocales))}
+          locales={publishDraft.preset.onboarding_test_run_id ? [publishDraft.preset.default_locale] : Array.from(new Set(publishableLocales))}
           languageOptions={languageVersions}
           onClose={() => setPublishDraft(null)}
           onPublish={publishPreset}

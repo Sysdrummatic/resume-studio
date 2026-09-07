@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { fetchOnboardingTest, onboardingTestRpc } from "./onboarding-test-server";
 import path from "node:path";
 import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
@@ -103,6 +104,7 @@ export type ResumeUserLocaleInput = {
 };
 
 export type ResumePresetRow = {
+  onboarding_test_run_id?: string | null;
   id: string;
   document_id: string;
   user_id: string;
@@ -245,7 +247,7 @@ const RESUME_USER_LOCALE_SELECT =
   "user_id,locale,label_override,short_label_override,is_default,sort_order,created_at,updated_at";
 const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,updated_at,style_settings";
 const RESUME_PRESET_SELECT =
-  "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at";
+  "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at,onboarding_test_run_id";
 const RESUME_PRESET_VARIANT_SELECT = "id,preset_id,document_id,user_id,locale,selection,is_default,created_at,updated_at";
 const RESUME_PUBLISHED_CV_SELECT =
   "id,user_id,preset_id,source_document_id,title,schema_version,open_cv_yaml_contract_version,default_locale,published_locales,available_locales,selection,allow_indexing,published_at,created_by,created_at,snapshot_metadata";
@@ -1430,7 +1432,13 @@ export async function fetchResumeExportByPresetId(
   const preset = await fetchResumePresetById(accessToken, userId, presetId);
   if (!preset) return null;
 
-  const document = await fetchDocumentById(accessToken, preset.document_id, userId);
+  const testRun = preset.onboarding_test_run_id ? await fetchOnboardingTest(accessToken, userId, preset.onboarding_test_run_id) : null;
+  if (preset.onboarding_test_run_id && !testRun) return null;
+  const document = testRun
+    ? testRun.drafts[preset.default_locale]
+      ? { yaml_content: testRun.drafts[preset.default_locale], style_settings: {}, schema_version: 1 }
+      : null
+    : await fetchDocumentById(accessToken, preset.document_id, userId);
   if (!document) return null;
 
   const exportContent = buildPublishedExportContent(document.yaml_content, preset.selection);
@@ -1570,6 +1578,7 @@ export async function saveResumePreset(
     defaultLocale?: ResumeLocale;
   },
 ): Promise<ResumePresetRow | null> {
+  if (payload.presetId && (await fetchResumePresetById(accessToken, userId, payload.presetId))?.onboarding_test_run_id) return null;
   const document = await fetchDocumentById(accessToken, payload.documentId, userId);
   if (!document) {
     return null;
@@ -1671,6 +1680,13 @@ export async function publishResumePreset(
 ): Promise<ResumePresetRow | null> {
   const existingPreset = await fetchResumePresetById(accessToken, userId, presetId);
   if (!existingPreset) throw new Error("[publish:step=fetchPreset] preset not found or access denied");
+  if (existingPreset.onboarding_test_run_id) {
+    if (payload.allowIndexing || payload.selectedLocales.length !== 1 || payload.selectedLocales[0] !== existingPreset.default_locale) {
+      throw new Error("Test CV publication uses its saved language with indexing disabled.");
+    }
+    await onboardingTestRpc(accessToken, "finish_onboarding_test", { input_run_id: existingPreset.onboarding_test_run_id, input_publish: true, input_republish: true });
+    return fetchResumePresetById(accessToken, userId, presetId);
+  }
 
   const documents = await fetchResumeDocumentsForUser(userId);
   const documentById = new Map(documents.map((document) => [document.id, document]));

@@ -9,7 +9,7 @@ import {
 } from "./app/lib/auth-cookies";
 import { refreshSession } from "./app/lib/supabase-http";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/user", "/admin"];
+const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/onboarding", "/settings", "/user", "/admin"];
 const ACCESS_TOKEN_SKEW_MS = 30_000;
 
 /**

@@ -58,7 +58,7 @@ export async function GET(): Promise<Response> {
       title: document.title,
       yaml_content: document.yaml_content,
     })),
-    cv_versions: presets.map((preset) => ({
+    cv_versions: presets.filter((preset) => !preset.onboarding_test_run_id).map((preset) => ({
       title: preset.title,
       default_locale: preset.default_locale,
       allow_indexing: preset.allow_indexing,

@@ -64,7 +64,8 @@ test("the unsaved-draft entry is surfaced in the History list, styled as unsaved
 });
 
 test("the restore banner's second action deletes the draft, not just hides the banner", () => {
-  const bannerSection = editor.slice(editor.indexOf("resume-editor-restore-banner"), editor.indexOf("<ImportCvBanner"));
+  const bannerStart = editor.indexOf("resume-editor-restore-banner");
+  const bannerSection = editor.slice(bannerStart, editor.indexOf("<ImportCvBanner", bannerStart));
   assert.match(bannerSection, /onClick=\{discardLocalDraft\}/);
   assert.equal(/onClick=\{\(\) => setRestorableDraft\(null\)\}/.test(bannerSection), false);
 });
