@@ -12,6 +12,7 @@ import LanguageVersionModal from "./language-version-modal";
 import SaveVersionModal from "./save-version-modal";
 import ImportCvBanner from "./import-cv-banner";
 import ImportReviewModal from "./import-review-modal";
+import { shouldClearLocalDraft } from "./local-draft-policy";
 import type { ImportedResumeSections, ResumeImportResult } from "../lib/resume-import/parse-resume-file";
 import { mergeImportedResume } from "../lib/resume-import/merge-imported-resume";
 import EditorSectionNav, { type EditorNavGroup } from "./editor-section-nav";
@@ -264,9 +265,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<ResumeImportResult | null>(null);
   const [importFilename, setImportFilename] = useState("");
+  const importControllerRef = useRef<AbortController | null>(null);
   // Brand initials have no manual input anymore, only this toggle: checked
   // (the default) keeps them in sync with the name; unchecking freezes the
-  // last computed value. Session-only, not persisted to the document.
+  // last computed value. Only explicit edits update existing branding.
   const [autoBrandInitials, setAutoBrandInitials] = useState(true);
   // The one open entry card, keyed "<field>:<index>". Opening a card closes its
   // siblings (exclusive accordion), and a freshly added entry opens itself.
@@ -325,6 +327,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   // dedicated draft-only save endpoint if that's ever needed.
   const [lastLocalSaveAt, setLastLocalSaveAt] = useState<number | null>(null);
   const [restorableDraft, setRestorableDraft] = useState<LocalDraft | null>(null);
+  const previousDraftDirty = useRef<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isLoading || !activeBuffer) return;
@@ -338,13 +341,21 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
   useEffect(() => {
     if (isLoading || !activeBuffer) return;
-    // yamlPanel also changes once when the buffer is first populated from the
-    // server — that isn't an edit, so only persist (and only show "Draft
-    // saved") once the panel actually diverges from what's saved. Once it
-    // stops diverging (e.g. right after Save MasterCV), drop the stale local
-    // copy instead of leaving it to resurface as a false "unsaved draft".
+    const wasDirty = previousDraftDirty.current[locale] ?? false;
+    previousDraftDirty.current[locale] = yamlPanel !== activeBuffer.savedYamlContent;
     if (yamlPanel === activeBuffer.savedYamlContent) {
-      clearLocalDraft(locale);
+      // Loading a saved buffer must preserve an older recovery draft until
+      // the user restores/discards it. Clear only a saved copy or an actual
+      // transition back to clean after saving/reverting this locale.
+      if (shouldClearLocalDraft({
+        yamlContent: yamlPanel,
+        savedYamlContent: activeBuffer.savedYamlContent,
+        storedYamlContent: readLocalDraft(locale)?.yamlContent,
+        wasDirty,
+      })) {
+        clearLocalDraft(locale);
+        setRestorableDraft(null);
+      }
       setLastLocalSaveAt(null);
       return;
     }
@@ -427,17 +438,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   }
 
   function updateTextField(field: keyof Pick<ResumeDocument, "first_name" | "family_name">, value: string) {
-    updateResumeFromHuman({ ...resume, [field]: value });
+    const next = { ...resume, [field]: value };
+    if (autoBrandInitials) next.brand_initials = initialsFromNameParts(next.first_name, next.family_name);
+    updateResumeFromHuman(next);
   }
 
-  useEffect(() => {
-    if (!autoBrandInitials) return;
-    const nextInitials = initialsFromNameParts(resume.first_name, resume.family_name);
-    if (nextInitials !== resume.brand_initials) {
-      updateResumeFromHuman({ ...resume, brand_initials: nextInitials });
+  function toggleAutoBrandInitials(enabled: boolean) {
+    setAutoBrandInitials(enabled);
+    if (enabled) {
+      updateResumeFromHuman({ ...resume, brand_initials: initialsFromNameParts(resume.first_name, resume.family_name) });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoBrandInitials, resume.first_name, resume.family_name]);
+  }
 
   function updateSummary(index: number, key: keyof ResumeSummaryItem, value: string | boolean) {
     const next = [...resume.summary];
@@ -574,13 +585,26 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     updateResumeFromHuman({ ...resume, gdpr_clause: value });
   }
 
+  useEffect(() => {
+    setImportResult(null);
+    setIsImporting(false);
+    return () => {
+      importControllerRef.current?.abort();
+      importControllerRef.current = null;
+    };
+  }, [locale]);
+
   async function handleImportFile(file: File) {
+    importControllerRef.current?.abort();
+    const controller = new AbortController();
+    importControllerRef.current = controller;
     setIsImporting(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const response = await fetch("/api/resume/import-file", { method: "POST", body: formData });
+      const response = await fetch("/api/resume/import-file", { method: "POST", body: formData, signal: controller.signal });
       const payload = await response.json();
+      if (controller.signal.aborted) return;
       if (!response.ok) {
         showToast(payload.error || "Could not read this file.", "error");
         return;
@@ -588,14 +612,21 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
       setImportResult(payload as ResumeImportResult);
       setImportFilename(file.name);
     } catch {
-      showToast("Import failed. Check your connection and try again.", "error");
+      if (!controller.signal.aborted) showToast("Import failed. Check your connection and try again.", "error");
     } finally {
-      setIsImporting(false);
+      if (importControllerRef.current === controller) {
+        importControllerRef.current = null;
+        setIsImporting(false);
+      }
     }
   }
 
   function applyImportResult(selected: ImportedResumeSections) {
-    updateResumeFromHuman(mergeImportedResume(resume, selected));
+    const next = mergeImportedResume(resume, selected);
+    if (autoBrandInitials && (next.first_name !== resume.first_name || next.family_name !== resume.family_name)) {
+      next.brand_initials = initialsFromNameParts(next.first_name, next.family_name);
+    }
+    updateResumeFromHuman(next);
     setImportResult(null);
     showToast(`Added content from ${importFilename}.`);
   }
@@ -922,7 +953,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                     <input
                       type="checkbox"
                       checked={autoBrandInitials}
-                      onChange={(event) => setAutoBrandInitials(event.target.checked)}
+                      onChange={(event) => toggleAutoBrandInitials(event.target.checked)}
                     />
                     Auto-generate brand initials
                   </label>

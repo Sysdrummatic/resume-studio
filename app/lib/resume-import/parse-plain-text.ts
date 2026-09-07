@@ -333,12 +333,6 @@ export function parsePlainTextResume(rawText: string, sourceKind: "pdf" | "docx"
     return { sourceKind, resume: {}, warnings: ["The file had no readable text."] };
   }
 
-  const atsSplit = splitIntoSections(text, (line) => ATS_HEADER_TO_SECTION[line.trim()] ?? null);
-  const isAtsRoundTrip = Object.keys(atsSplit.sections).length >= 2;
-  if (isAtsRoundTrip) {
-    return buildResult(sourceKind, atsSplit.preamble, atsSplit.sections, []);
-  }
-
-  const genericSplit = splitIntoSections(text, findGenericSectionKey);
-  return buildResult(sourceKind, genericSplit.preamble, genericSplit.sections, []);
+  const split = splitIntoSections(text, (line) => ATS_HEADER_TO_SECTION[line.trim()] ?? findGenericSectionKey(line));
+  return buildResult(sourceKind, split.preamble, split.sections, []);
 }

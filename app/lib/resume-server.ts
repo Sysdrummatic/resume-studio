@@ -677,8 +677,11 @@ export function buildDefaultResumeYaml(name: string): string {
  * self-heals instead of failing RESUME_REQUIRED_KEYS validation.
  */
 export function upgradeLegacyResumeYamlContent(yamlContent: string): string {
+  // Match the database validator's limit before parsing untrusted YAML locally.
+  if (yamlContent.length > 250_000) return yamlContent;
   try {
-    const parsed = yaml.load(yamlContent);
+    // The loader option is supported by js-yaml but missing from its types.
+    const parsed = yaml.load(yamlContent, { maxTotalMergeKeys: 50 } as yaml.LoadOptions);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return yamlContent;
     const migrated = migrateLegacyResumeYamlFields(parsed as Record<string, unknown>);
     if (migrated === parsed) return yamlContent;

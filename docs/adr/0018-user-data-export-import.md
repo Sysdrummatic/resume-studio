@@ -70,6 +70,12 @@ platform-wide at any time. When disabled, users must not see the buttons.
 
 ## Consequences
 
+- Legacy version 1 bundles with a single `name` field remain importable.
+  Import upgrades each document to `first_name`/`family_name` before validation
+  and writes the same upgraded YAML. Database validation also accepts complete
+  legacy documents so historical revision rollback and metadata updates keep
+  working without rewriting saved history; incomplete split names are rejected.
+
 - Users get a portable, human-readable backup of everything they authored;
   restore is one file upload.
 - Import is destructive for private CV versions by design; the confirmation

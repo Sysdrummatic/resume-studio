@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { rateLimit } from "../../../lib/rate-limit";
 import { detectSourceKind, parseResumeFile } from "../../../lib/resume-import/parse-resume-file";
+import { readUploadFormData, UploadTooLargeError } from "../../../lib/resume-import/read-upload";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 // The text pulled out of it is capped again, much lower, before parsing
 // (EXTRACTED_TEXT_MAX_CHARS) — the two caps guard different things.
 const IMPORT_FILE_MAX_BYTES = 8 * 1024 * 1024;
+const IMPORT_REQUEST_MAX_BYTES = IMPORT_FILE_MAX_BYTES + 64 * 1024;
 
 /**
  * POST /api/resume/import-file
@@ -34,8 +36,11 @@ export async function POST(request: Request): Promise<Response> {
 
   let formData: FormData;
   try {
-    formData = await request.formData();
-  } catch {
+    formData = await readUploadFormData(request, IMPORT_REQUEST_MAX_BYTES);
+  } catch (error) {
+    if (error instanceof UploadTooLargeError) {
+      return NextResponse.json({ error: "Upload is too large (max 8 MB file)." }, { status: 413 });
+    }
     return NextResponse.json({ error: "Expected a multipart/form-data upload." }, { status: 400 });
   }
 
@@ -59,14 +64,13 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-
   try {
+    const buffer = Buffer.from(await file.arrayBuffer());
     const result = await parseResumeFile(buffer, sourceKind);
     return NextResponse.json({ ok: true, ...result, filename: file.name });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { error: error instanceof Error ? `Could not read this file: ${error.message}` : "Could not read this file." },
+      { error: "Could not read this file. Check that it is a valid, unencrypted PDF, DOCX, YAML, or TXT file." },
       { status: 422 },
     );
   }

@@ -46,7 +46,8 @@ function pickText(source: Record<string, unknown>, aliases: string[]): string {
 
 function looksLikeOpenCiVeraSchema(source: Record<string, unknown>): boolean {
   const matches = RESUME_REQUIRED_KEYS.filter((key) => key in source).length;
-  return matches >= 4;
+  const hasNativeField = ["brand_initials", "qr_codes", "tech_stack", "gdpr_clause"].some((key) => Object.hasOwn(source, key));
+  return hasNativeField && matches >= 4;
 }
 
 // --- JSON Resume (https://jsonresume.org/schema/) -------------------------
@@ -54,7 +55,7 @@ function looksLikeOpenCiVeraSchema(source: Record<string, unknown>): boolean {
 // hallmark is a `basics` object plus top-level `work`/`education` arrays.
 
 function looksLikeJsonResume(source: Record<string, unknown>): boolean {
-  return asObject(source.basics) !== null || Array.isArray(source.work) || Array.isArray(source.education);
+  return asObject(source.basics) !== null || Array.isArray(source.work);
 }
 
 function mapJsonResumeWork(items: unknown[]): ResumeExperience[] {
@@ -331,12 +332,25 @@ export function parseYamlCv(rawYaml: string): ResumeImportResult {
     return { sourceKind: "yaml", resume: {}, warnings: ["This YAML file does not contain a CV record."] };
   }
 
-  if (looksLikeOpenCiVeraSchema(source)) {
-    return { sourceKind: "yaml", resume: normalizeResumeDocument(source), warnings: [] };
-  }
-
   if (looksLikeJsonResume(source)) {
     return mapJsonResume(source);
+  }
+
+  if (looksLikeOpenCiVeraSchema(source)) {
+    const normalized = normalizeResumeDocument(source);
+    const resume: ImportedResumeSections = Object.fromEntries(
+      Object.entries(normalized).filter(([key]) => Object.hasOwn(source, key)),
+    );
+    if (!asText(source.first_name) && !asText(source.family_name)) {
+      delete resume.first_name;
+      delete resume.family_name;
+      if (asText(source.name)) {
+        const { firstName, lastName } = splitProfileName(asText(source.name));
+        resume.first_name = firstName;
+        resume.family_name = lastName;
+      }
+    }
+    return { sourceKind: "yaml", resume, warnings: [] };
   }
 
   return parseGenericYamlCv(source);

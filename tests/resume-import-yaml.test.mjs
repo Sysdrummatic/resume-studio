@@ -6,6 +6,48 @@ register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
 const { parseYamlCv } = await import("../app/lib/resume-import/parse-yaml-cv.ts");
 
+test("JSON Resume detection wins over section names shared with the native schema", () => {
+  const result = parseYamlCv(`
+basics:
+  name: Jane Doe
+  email: jane@example.com
+work:
+  - name: Acme
+    position: Engineer
+education: []
+skills: []
+languages: []
+interests: []
+`);
+  assert.equal(result.resume.first_name, "Jane");
+  assert.equal(result.resume.experience[0].company, "Acme");
+  assert.equal(result.resume.contact[0].value, "jane@example.com");
+});
+
+test("generic CVs with education keep their top-level identity and experience", () => {
+  const result = parseYamlCv(`
+full_name: Jane Doe
+email: jane@example.com
+experience:
+  - employer: Acme
+    role: Engineer
+education:
+  - school: University
+    degree: BSc
+`);
+  assert.equal(result.resume.first_name, "Jane");
+  assert.equal(result.resume.experience[0].company, "Acme");
+  assert.equal(result.resume.education[0].school, "University");
+});
+
+test("partial native imports never invent identity or sections absent from the file", () => {
+  const result = parseYamlCv("brand_initials: ''\nsummary: []\nskills: [Go]\ntech_stack: [Node.js]\n");
+  assert.equal(result.resume.first_name, undefined);
+  assert.equal(result.resume.family_name, undefined);
+  assert.equal(result.resume.experience, undefined);
+  assert.deepEqual(result.resume.skills, [{ name: "Go", level: 3 }]);
+});
+
 test("recognises OpenCiVera's own schema and normalizes it losslessly", () => {
   const yamlText = `
 brand_initials: "JD"

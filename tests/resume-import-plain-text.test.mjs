@@ -8,6 +8,23 @@ const { parsePlainTextResume } = await import("../app/lib/resume-import/parse-pl
 const { convertResumeToPlainText } = await import("../app/lib/resume-export.ts");
 const { defaultResumeDocument } = await import("../app/lib/resume-schema.ts");
 
+test("mixed generic and uppercase headings retain every recognised section", () => {
+  const result = parsePlainTextResume(`Jane Doe
+SUMMARY
+Builds software.
+EXPERIENCE
+Engineer at Acme 2020 - Present
+SKILLS
+Go
+Interests
+Chess
+`, "txt");
+  assert.equal(result.resume.experience[0].company, "Acme");
+  assert.equal(result.resume.summary[0].description, "Builds software.");
+  assert.deepEqual(result.resume.skills.map((item) => item.name), ["Go"]);
+  assert.deepEqual(result.resume.interests, ["Chess"]);
+});
+
 test("round-trips our own ATS .txt export losslessly (high-confidence path)", () => {
   const original = {
     ...defaultResumeDocument("Jane Doe"),

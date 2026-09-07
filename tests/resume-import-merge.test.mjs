@@ -7,6 +7,38 @@ register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { mergeImportedResume } = await import("../app/lib/resume-import/merge-imported-resume.ts");
 const { defaultResumeDocument } = await import("../app/lib/resume-schema.ts");
 
+test("imported contact fills the existing placeholder used by the editor", () => {
+  const merged = mergeImportedResume(defaultResumeDocument("Jane Doe"), {
+    contact: [{ label: "E-mail", value: "jane@example.com" }],
+  });
+  assert.equal(merged.contact.find((item) => item.label === "E-mail").value, "jane@example.com");
+  assert.equal(merged.contact.filter((item) => item.label === "E-mail").length, 1);
+});
+
+test("import preserves partially entered periods and course years", () => {
+  const current = {
+    ...defaultResumeDocument("Jane Doe"),
+    experience: [{ period: "2020", company: "", role: "", highlights: [] }],
+    education: [{ period: "2019", school: "", degree: "", detail: "" }],
+    courses: [{ year: 2024, name: "" }],
+  };
+  const merged = mergeImportedResume(current, { experience: [], education: [], courses: [] });
+  assert.deepEqual(merged.experience, current.experience);
+  assert.deepEqual(merged.education, current.education);
+  assert.deepEqual(merged.courses, current.courses);
+});
+
+test("an imported default summary retains its flag regardless of its position", () => {
+  const merged = mergeImportedResume(defaultResumeDocument("Jane Doe"), {
+    summary: [
+      { position: "Alternate", description: "Alternative", default: false },
+      { position: "Engineer", description: "Main", default: true },
+    ],
+  });
+  assert.equal(merged.summary[1].default, true);
+  assert.equal(merged.summary.filter((item) => item.default).length, 1);
+});
+
 test("appends experience/education/skills/etc. instead of replacing them", () => {
   const current = {
     ...defaultResumeDocument("Ariana Holt"),

@@ -17,18 +17,27 @@ function dropBlank<T>(items: T[], isEmpty: (item: T) => boolean): T[] {
 }
 
 function mergeContact(current: ResumeContactItem[], imported: ResumeContactItem[]): ResumeContactItem[] {
-  const filledLabels = new Set(current.filter((item) => !isBlank(item.value)).map((item) => item.label));
-  const additions = imported.filter((item) => !isBlank(item.value) && !filledLabels.has(item.label));
-  return [...current, ...additions];
+  const next = [...current];
+  for (const item of imported) {
+    if (isBlank(item.value)) continue;
+    const index = next.findIndex((entry) => entry.label === item.label);
+    if (index === -1) next.push(item);
+    else if (isBlank(next[index].value)) next[index] = { ...item };
+  }
+  return next;
 }
 
 function mergeSummary(current: ResumeSummaryItem[], imported: ResumeSummaryItem[]): ResumeSummaryItem[] {
   const kept = dropBlank(current, (item) => isBlank(item.position) && isBlank(item.description));
-  const hasDefault = kept.some((item) => item.default);
+  let hasDefault = kept.some((item) => item.default);
   // A fresh draft has no default summary yet, so the first imported entry
   // may keep it; any import into a draft that already has one must not —
   // multiple defaults is a state getDefaultSummary() treats as "none set".
-  const additions = imported.map((item, index) => ({ ...item, default: item.default && !hasDefault && index === 0 }));
+  const additions = imported.map((item) => {
+    const isDefault = item.default && !hasDefault;
+    if (isDefault) hasDefault = true;
+    return { ...item, default: isDefault };
+  });
   return [...kept, ...additions];
 }
 
@@ -40,12 +49,12 @@ function mergeStringList(current: string[], imported: string[]): string[] {
 }
 
 function mergeExperience(current: ResumeExperience[], imported: ResumeExperience[]): ResumeExperience[] {
-  const kept = dropBlank(current, (item) => isBlank(item.company) && isBlank(item.role) && item.highlights.every(isBlank));
+  const kept = dropBlank(current, (item) => isBlank(item.period) && isBlank(item.company) && isBlank(item.role) && item.highlights.every(isBlank));
   return [...kept, ...imported];
 }
 
 function mergeEducation(current: ResumeEducation[], imported: ResumeEducation[]): ResumeEducation[] {
-  const kept = dropBlank(current, (item) => isBlank(item.school) && isBlank(item.degree) && isBlank(item.detail));
+  const kept = dropBlank(current, (item) => isBlank(item.period) && isBlank(item.school) && isBlank(item.degree) && isBlank(item.detail));
   return [...kept, ...imported];
 }
 
@@ -57,7 +66,7 @@ function mergeByName<T extends { name: string }>(current: T[], imported: T[]): T
 }
 
 function mergeCourses(current: ResumeCourse[], imported: ResumeCourse[]): ResumeCourse[] {
-  const kept = dropBlank(current, (item) => isBlank(item.name));
+  const kept = dropBlank(current, (item) => isBlank(item.name) && !item.year);
   return [...kept, ...imported];
 }
 

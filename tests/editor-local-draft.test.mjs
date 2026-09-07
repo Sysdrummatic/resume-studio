@@ -2,6 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { register } from "node:module";
+
+register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+const { shouldClearLocalDraft } = await import("../app/master-resume/local-draft-policy.ts");
 
 function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
@@ -9,13 +13,39 @@ function read(relativePath) {
 
 const editor = read("app/master-resume/editor-canvas-client.tsx");
 
-test("the local-draft write effect skips a false-positive save on initial load", () => {
-  // Regression: yamlPanel also changes once when the buffer is first
-  // populated from the server, which isn't an edit — writing (and showing
-  // "Draft saved") must only happen once the panel actually diverges from
-  // what's saved, and the stale local copy must be cleared once it no
-  // longer diverges (e.g. right after Save MasterCV).
-  assert.match(editor, /if \(yamlPanel === activeBuffer\.savedYamlContent\) \{\s*clearLocalDraft\(locale\);/);
+test("loading the saved document repeatedly preserves a distinct recovery draft", () => {
+  let storedYamlContent = "unsaved experience";
+  for (let reload = 0; reload < 2; reload += 1) {
+    if (shouldClearLocalDraft({ yamlContent: "saved", savedYamlContent: "saved", storedYamlContent, wasDirty: false })) {
+      storedYamlContent = undefined;
+    }
+  }
+  assert.equal(storedYamlContent, "unsaved experience");
+});
+
+test("saving or reverting a dirty document clears its local draft", () => {
+  assert.equal(shouldClearLocalDraft({
+    yamlContent: "saved", savedYamlContent: "saved", storedYamlContent: "previous edits", wasDirty: true,
+  }), true);
+});
+
+test("a redundant saved copy can be cleared on initial load", () => {
+  assert.equal(shouldClearLocalDraft({
+    yamlContent: "saved", savedYamlContent: "saved", storedYamlContent: "saved", wasDirty: false,
+  }), true);
+});
+
+test("edits made during a save keep their recovery copy", () => {
+  assert.equal(shouldClearLocalDraft({
+    yamlContent: "new edits", savedYamlContent: "saved", storedYamlContent: "new edits", wasDirty: true,
+  }), false);
+});
+
+test("switching to a clean locale preserves its recovery draft", () => {
+  const previousDirtyByLocale = { en: true, pl: false };
+  assert.equal(shouldClearLocalDraft({
+    yamlContent: "saved PL", savedYamlContent: "saved PL", storedYamlContent: "unsaved PL", wasDirty: previousDirtyByLocale.pl,
+  }), false);
 });
 
 test("discarding the local draft reverts the open editor to the last saved version", () => {
