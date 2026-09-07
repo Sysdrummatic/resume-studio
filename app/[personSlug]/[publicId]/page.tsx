@@ -5,6 +5,7 @@ import { getAppBaseUrl } from "../../lib/env";
 import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
 import type { PublishedResumePreset } from "../../lib/resume-server";
 import { safeJsonLdScript } from "../../lib/jsonld";
+import { resumeFullName } from "../../lib/resume-schema";
 
 type PublicResumeByPublicIdPageProps = {
   params: Promise<{
@@ -29,7 +30,7 @@ function compactJsonLd<T extends Record<string, unknown>>(value: T): T {
 
 function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl: string) {
   const defaultSummary = published.resume.summary.find((summary) => summary.default);
-  const displayName = published.resume.name || published.preset.title;
+  const displayName = resumeFullName(published.resume) || published.preset.title;
 
   return {
     "@context": "https://schema.org",
@@ -68,7 +69,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
   }
 
   const { published, allowIndexing, personSlug: canonicalPersonSlug, publicId: canonicalPublicId } = publishedRoute;
-  const title = `${published.resume.name || published.preset.title} | OpenCiVera`;
+  const title = `${resumeFullName(published.resume) || published.preset.title} | OpenCiVera`;
   const description = published.resume.summary.find((s) => s.default)?.position || published.preset.title;
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const languageMap = Object.fromEntries(
@@ -130,7 +131,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         resume={published.resume}
         languages={published.languages}
         status="public"
-        aiGenerated={published.preset.ai_generated || published.document.ai_generated}
+        aiGenerated={published.preset.ai_generated}
         personSlug={canonicalPersonSlug}
         publicId={canonicalPublicId}
         mode="public"

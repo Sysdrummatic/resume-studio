@@ -47,7 +47,7 @@ link, then shows how to add a second language version.
 6. When you're done, scroll down, add a change note, and click **Save
    MasterCV**.
 
-   ![Save MasterCV dialog with change note and Allow indexing / Mark as AI generated options](/docs/tutorials/publishing-your-first-cv/resources/07-save-mastercv-modal.png)
+   ![Save MasterCV dialog with change note field](/docs/tutorials/publishing-your-first-cv/resources/07-save-mastercv-modal.png)
 
 7. Your Master Resume is the single source of truth — you will never publish
    it directly. Instead, you publish selected snapshots of it as CV versions.

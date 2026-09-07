@@ -10,6 +10,11 @@ import type { ResumeEditorStyle } from "./resume-live-preview";
 import LocaleTabStrip from "./locale-tab-strip";
 import LanguageVersionModal from "./language-version-modal";
 import SaveVersionModal from "./save-version-modal";
+import ImportCvBanner from "./import-cv-banner";
+import ImportReviewModal from "./import-review-modal";
+import { shouldClearLocalDraft } from "./local-draft-policy";
+import type { ImportedResumeSections, ResumeImportResult } from "../lib/resume-import/parse-resume-file";
+import { mergeImportedResume } from "../lib/resume-import/merge-imported-resume";
 import EditorSectionNav, { type EditorNavGroup } from "./editor-section-nav";
 import { computeResumeCompletion } from "./resume-completion";
 import {
@@ -47,7 +52,7 @@ import type {
   ResumeSkill,
   ResumeSummaryItem,
 } from "../lib/resume-schema";
-import { defaultResumeDocument } from "../lib/resume-schema";
+import { defaultResumeDocument, initialsFromNameParts, resumeFullName } from "../lib/resume-schema";
 
 type EditorTab = "yaml" | "human";
 
@@ -71,6 +76,10 @@ const CONTACT_FIELDS: Array<{ label: string; linkKind?: ContactLinkKind }> = [
   { label: "LinkedIn", linkKind: "url" },
   { label: "Portfolio", linkKind: "url" },
 ];
+
+// Location is rendered separately (half-width, matching the name fields);
+// Phone/E-mail and LinkedIn/Portfolio pair up on one row each.
+const CONTACT_FIELD_ROWS: string[][] = [["Phone", "E-mail"], ["LinkedIn", "Portfolio"]];
 
 // The link is derived from the value, never typed by the user: a phone
 // number becomes a `tel:` URI, an email a `mailto:` one, a bare domain gets
@@ -98,10 +107,7 @@ type EditorSection = {
   label: string;
   /** Shown under the workspace heading — what this section is for. */
   hint: string;
-  /**
-   * Top-level YAML key the sidebar jumps to in YAML mode. Omitted for
-   * `publishing`, whose fields are document metadata columns, not YAML.
-   */
+  /** Top-level YAML key the sidebar jumps to in YAML mode. */
   yamlKey?: string;
   countField?: CountableField;
 };
@@ -136,12 +142,6 @@ const EDITOR_SECTION_GROUPS: Array<{ label: string; numbered?: boolean; sections
       { id: "tech-stack", label: "Tech stack", hint: "Technologies and tools you work with.", yamlKey: "tech_stack", countField: "tech_stack" },
       { id: "qr-codes", label: "QR codes", hint: "Links encoded as QR codes in the printed version.", yamlKey: "qr_codes", countField: "qr_codes" },
       { id: "gdpr", label: "GDPR clause", hint: "Common on the Polish job market, usually left empty for English CVs.", yamlKey: "gdpr_clause" },
-    ],
-  },
-  {
-    label: "Document",
-    sections: [
-      { id: "publishing", label: "Publishing", hint: "Settings for the whole record, not a single section." },
     ],
   },
 ];
@@ -203,6 +203,14 @@ function writeLocalDraft(locale: string, draft: LocalDraft): void {
   }
 }
 
+function clearLocalDraft(locale: string): void {
+  try {
+    window.localStorage.removeItem(localDraftStorageKey(locale));
+  } catch {
+    // Best-effort only.
+  }
+}
+
 export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPdfEnabled?: boolean } = {}) {
   const searchParams = useSearchParams();
   const requestedPanel = searchParams.get("panel");
@@ -222,8 +230,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     setActiveLocale,
     updateActiveYaml,
     updateActiveResume: updateResumeFromHuman,
-    setActiveAllowIndexing,
-    setActiveAiGenerated,
     setActiveCvStyle,
     resetActiveToTemplate,
     saveAllDirty,
@@ -239,8 +245,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const yamlPanel = activeBuffer?.yamlPanel ?? "";
   const yamlError = activeBuffer?.yamlError ?? null;
   const revisions = activeBuffer?.revisions ?? [];
-  const allowIndexing = activeBuffer?.allowIndexing ?? false;
-  const aiGenerated = activeBuffer?.aiGenerated ?? false;
   // Style lives on the document buffer, so it survives a reload and is saved
   // with the rest of the document rather than only living in this component.
   const cvStyle = activeBuffer?.cvStyle ?? DEFAULT_RESUME_STYLE;
@@ -258,6 +262,14 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isSaveVersionModalOpen, setIsSaveVersionModalOpen] = useState(false);
   const [changeNote, setChangeNote] = useState("Publish update");
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ResumeImportResult | null>(null);
+  const [importFilename, setImportFilename] = useState("");
+  const importControllerRef = useRef<AbortController | null>(null);
+  // Brand initials have no manual input anymore, only this toggle: checked
+  // (the default) keeps them in sync with the name; unchecking freezes the
+  // last computed value. Only explicit edits update existing branding.
+  const [autoBrandInitials, setAutoBrandInitials] = useState(true);
   // The one open entry card, keyed "<field>:<index>". Opening a card closes its
   // siblings (exclusive accordion), and a freshly added entry opens itself.
   const [openEntryKey, setOpenEntryKey] = useState<string | null>(null);
@@ -315,6 +327,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
   // dedicated draft-only save endpoint if that's ever needed.
   const [lastLocalSaveAt, setLastLocalSaveAt] = useState<number | null>(null);
   const [restorableDraft, setRestorableDraft] = useState<LocalDraft | null>(null);
+  const previousDraftDirty = useRef<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isLoading || !activeBuffer) return;
@@ -328,6 +341,24 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
 
   useEffect(() => {
     if (isLoading || !activeBuffer) return;
+    const wasDirty = previousDraftDirty.current[locale] ?? false;
+    previousDraftDirty.current[locale] = yamlPanel !== activeBuffer.savedYamlContent;
+    if (yamlPanel === activeBuffer.savedYamlContent) {
+      // Loading a saved buffer must preserve an older recovery draft until
+      // the user restores/discards it. Clear only a saved copy or an actual
+      // transition back to clean after saving/reverting this locale.
+      if (shouldClearLocalDraft({
+        yamlContent: yamlPanel,
+        savedYamlContent: activeBuffer.savedYamlContent,
+        storedYamlContent: readLocalDraft(locale)?.yamlContent,
+        wasDirty,
+      })) {
+        clearLocalDraft(locale);
+        setRestorableDraft(null);
+      }
+      setLastLocalSaveAt(null);
+      return;
+    }
     const timer = window.setTimeout(() => {
       writeLocalDraft(locale, { yamlContent: yamlPanel, savedAt: Date.now() });
       setLastLocalSaveAt(Date.now());
@@ -341,6 +372,24 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     setRestorableDraft(null);
     showToast("Local draft restored.");
   }
+
+  // The explicit "discard" action for the unsaved-draft entry (banner and
+  // History list): unlike restoreLocalDraft, this is destructive on purpose —
+  // it drops the local copy AND reverts the open editor to the last saved
+  // version, undoing any edits made in this session too.
+  function discardLocalDraft() {
+    clearLocalDraft(locale);
+    setRestorableDraft(null);
+    if (activeBuffer) updateActiveYaml(activeBuffer.savedYamlContent);
+    showToast("Unsaved changes discarded.");
+  }
+
+  // True both right after a reload (a stale local draft was found) and while
+  // actively editing in this same session (dirtyLocales already tracks
+  // yamlPanel !== savedYamlContent) — either way there's local-only content
+  // to surface as the "unsaved draft" entry in the History list.
+  const hasUnsavedDraft = restorableDraft !== null || dirtyLocales.includes(locale);
+  const unsavedDraftSavedAt = restorableDraft?.savedAt ?? lastLocalSaveAt;
 
   useEffect(() => {
     if (requestedPanel === "languages") {
@@ -388,8 +437,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     updateActiveYaml(value);
   }
 
-  function updateTextField(field: keyof Pick<ResumeDocument, "brand_initials" | "name">, value: string) {
-    updateResumeFromHuman({ ...resume, [field]: value });
+  function updateTextField(field: keyof Pick<ResumeDocument, "first_name" | "family_name">, value: string) {
+    const next = { ...resume, [field]: value };
+    if (autoBrandInitials) next.brand_initials = initialsFromNameParts(next.first_name, next.family_name);
+    updateResumeFromHuman(next);
+  }
+
+  function toggleAutoBrandInitials(enabled: boolean) {
+    setAutoBrandInitials(enabled);
+    if (enabled) {
+      updateResumeFromHuman({ ...resume, brand_initials: initialsFromNameParts(resume.first_name, resume.family_name) });
+    }
   }
 
   function updateSummary(index: number, key: keyof ResumeSummaryItem, value: string | boolean) {
@@ -527,6 +585,52 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     updateResumeFromHuman({ ...resume, gdpr_clause: value });
   }
 
+  useEffect(() => {
+    setImportResult(null);
+    setIsImporting(false);
+    return () => {
+      importControllerRef.current?.abort();
+      importControllerRef.current = null;
+    };
+  }, [locale]);
+
+  async function handleImportFile(file: File) {
+    importControllerRef.current?.abort();
+    const controller = new AbortController();
+    importControllerRef.current = controller;
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/resume/import-file", { method: "POST", body: formData, signal: controller.signal });
+      const payload = await response.json();
+      if (controller.signal.aborted) return;
+      if (!response.ok) {
+        showToast(payload.error || "Could not read this file.", "error");
+        return;
+      }
+      setImportResult(payload as ResumeImportResult);
+      setImportFilename(file.name);
+    } catch {
+      if (!controller.signal.aborted) showToast("Import failed. Check your connection and try again.", "error");
+    } finally {
+      if (importControllerRef.current === controller) {
+        importControllerRef.current = null;
+        setIsImporting(false);
+      }
+    }
+  }
+
+  function applyImportResult(selected: ImportedResumeSections) {
+    const next = mergeImportedResume(resume, selected);
+    if (autoBrandInitials && (next.first_name !== resume.first_name || next.family_name !== resume.family_name)) {
+      next.brand_initials = initialsFromNameParts(next.first_name, next.family_name);
+    }
+    updateResumeFromHuman(next);
+    setImportResult(null);
+    showToast(`Added content from ${importFilename}.`);
+  }
+
   async function resetToTemplate() {
     try {
       const applied = await resetActiveToTemplate();
@@ -552,17 +656,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
     showToast(`Downloaded ${fileName}.`);
   }
 
-  async function publishResume(targetIsPublic: boolean) {
+  async function publishResume() {
     setIsBusy(true);
-    showToast(targetIsPublic ? "Publishing resume..." : "Saving unpublished version...");
+    showToast("Saving...");
     try {
-      const result = await saveAllDirty({ targetIsPublic, changeNote });
+      const result = await saveAllDirty({ changeNote });
       if (result.failed.length === 0) {
-        showToast(
-          targetIsPublic
-            ? `Resume published (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`
-            : `Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`,
-        );
+        showToast(`Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`);
       } else if (result.succeeded.length === 0) {
         showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error");
       } else {
@@ -635,8 +735,16 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
         onChangeNote={setChangeNote}
         onClose={() => setIsSaveVersionModalOpen(false)}
         onConfirm={() => {
-          void publishResume(true).then(() => setIsSaveVersionModalOpen(false));
+          void publishResume().then(() => setIsSaveVersionModalOpen(false));
         }}
+      />
+      <ImportReviewModal
+        isOpen={importResult !== null}
+        filename={importFilename}
+        result={importResult}
+        currentName={resumeFullName(resume)}
+        onConfirm={applyImportResult}
+        onClose={() => setImportResult(null)}
       />
 
       <div className="resume-editor-layout">
@@ -687,7 +795,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
               onManageLanguages={() => setIsLanguageModalOpen(true)}
             />
             {lastLocalSaveAt ? (
-              <span className="resume-editor-draft-indicator">
+              <span
+                className="resume-editor-draft-indicator"
+                title="Saved in this browser only, not on our servers — click Save MasterCV to save it for real."
+              >
                 <span className="resume-editor-draft-indicator__dot" aria-hidden="true" />
                 Draft saved locally {formatClockTime(lastLocalSaveAt)}
               </span>
@@ -767,12 +878,14 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 <button type="button" className="button button--ghost button--small" onClick={restoreLocalDraft}>
                   Restore
                 </button>
-                <button type="button" className="button button--ghost button--small" onClick={() => setRestorableDraft(null)}>
-                  Dismiss
+                <button type="button" className="button button--ghost button--small" onClick={discardLocalDraft}>
+                  Delete
                 </button>
               </div>
             </div>
           ) : null}
+
+          {editorTab === "human" ? <ImportCvBanner isBusy={isImporting} onFileSelected={(file) => void handleImportFile(file)} /> : null}
 
           <header className="resume-editor-workspace__header">
             <h2>
@@ -828,29 +941,50 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 <section className="resume-human-editor__section">
                   <div className="resume-human-editor__grid">
                     <label>
-                      Brand initials
-                      <input value={resume.brand_initials} onChange={(event) => updateTextField("brand_initials", event.target.value)} />
+                      First name
+                      <input value={resume.first_name} onChange={(event) => updateTextField("first_name", event.target.value)} />
                     </label>
                     <label>
-                      Name
-                      <input value={resume.name} onChange={(event) => updateTextField("name", event.target.value)} />
+                      Family name
+                      <input value={resume.family_name} onChange={(event) => updateTextField("family_name", event.target.value)} />
                     </label>
                   </div>
-                  {CONTACT_FIELDS.map(({ label, linkKind }) => {
-                    const item = resume.contact.find((entry) => entry.label === label) ?? { label, value: "", link: "" };
-                    return (
-                      <div className="resume-human-editor__row" key={`contact-${label}`}>
-                        <span className="resume-human-editor__row-label">{label}</span>
-                        <label className="sr-only" htmlFor={`contact-value-${label}`}>{label}</label>
-                        <input
-                          id={`contact-value-${label}`}
-                          placeholder={label}
-                          value={item.value}
-                          onChange={(event) => updateContactValue(label, linkKind, event.target.value)}
-                        />
-                      </div>
-                    );
-                  })}
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={autoBrandInitials}
+                      onChange={(event) => toggleAutoBrandInitials(event.target.checked)}
+                    />
+                    Auto-generate brand initials
+                  </label>
+                  <div className="resume-human-editor__grid resume-human-editor__grid--half">
+                    <label>
+                      Location
+                      <input
+                        placeholder="Location"
+                        value={resume.contact.find((entry) => entry.label === "Location")?.value ?? ""}
+                        onChange={(event) => updateContactValue("Location", undefined, event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  {CONTACT_FIELD_ROWS.map((rowLabels) => (
+                    <div className="resume-human-editor__grid" key={`contact-row-${rowLabels.join("-")}`}>
+                      {rowLabels.map((label) => {
+                        const linkKind = CONTACT_FIELDS.find((field) => field.label === label)?.linkKind;
+                        const item = resume.contact.find((entry) => entry.label === label) ?? { label, value: "", link: "" };
+                        return (
+                          <label key={`contact-${label}`}>
+                            {label}
+                            <input
+                              placeholder={label}
+                              value={item.value}
+                              onChange={(event) => updateContactValue(label, linkKind, event.target.value)}
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </section>
                 )}
 
@@ -1116,26 +1250,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                 </section>
                 )}
 
-                {activeSectionId === "publishing" && (
-                <section className="resume-human-editor__section">
-                  <label className="checkbox-row">
-                    <input type="checkbox" checked={allowIndexing} onChange={(event) => setActiveAllowIndexing(event.target.checked)} />
-                    Allow indexing
-                  </label>
-                  <label className="checkbox-row">
-                    <input type="checkbox" checked={aiGenerated} onChange={(event) => setActiveAiGenerated(event.target.checked)} />
-                    Mark as AI generated
-                  </label>
-                  <p className="resume-editor-hint">
-                    The draft saves in your browser and creates no history entry. Publish a version deliberately with Save MasterCV.
-                  </p>
-                  <div className="actions-row">
-                    <button className="button button--ghost" type="button" onClick={() => void publishResume(false)} disabled={isBusy || isLoading}>
-                      {isBusy ? "Saving..." : "Save unpublished"}
-                    </button>
-                  </div>
-                </section>
-                )}
                 </fieldset>
               </div>
             )}
@@ -1229,7 +1343,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
                     styleCode={selectedStyle}
                     yamlContent={previewedRevision ? previewedRevision.yamlContent : yamlPanel}
                     isExpanded={isPreviewExpanded}
-                    aiGenerated={aiGenerated}
                     draftPdfEnabled={draftPdfEnabled && (actor && isAppRole(actor.role) ? canAccessDraftPdf(actor.role) : false)}
                     cvStyle={cvStyle}
                     onExpand={() => setIsPreviewExpanded(true)}
@@ -1305,10 +1418,32 @@ export default function EditorCanvasClient({ draftPdfEnabled = true }: { draftPd
             ) : (
               <div className="resume-editor-side-panel__history">
                 <h2>Revision history</h2>
-                {revisions.length === 0 ? (
+                {revisions.length === 0 && !hasUnsavedDraft ? (
                   <p className="cv-preview__placeholder">No revisions yet.</p>
                 ) : (
                   <ul className="revision-list">
+                    {hasUnsavedDraft ? (
+                      <li data-unsaved="true">
+                        <div className="revision-list__meta">
+                          <div className="revision-list__top">
+                            <strong>Unsaved draft</strong>
+                            <span className="revision-list__tag revision-list__tag--unsaved">unsaved</span>
+                          </div>
+                          <p>Saved only in this browser — not yet part of your revision history.</p>
+                          <small>{unsavedDraftSavedAt ? formatClockTime(unsavedDraftSavedAt) : "just now"}</small>
+                        </div>
+                        <div className="actions-row">
+                          {restorableDraft ? (
+                            <button type="button" className="button button--ghost button--small" onClick={restoreLocalDraft}>
+                              Restore
+                            </button>
+                          ) : null}
+                          <button type="button" className="button button--danger button--small" onClick={discardLocalDraft}>
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    ) : null}
                     {revisions.map((revision, index) => {
                       // Revisions come back newest-first, so index 0 is what the
                       // saved document currently matches — nothing to preview or

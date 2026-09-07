@@ -36,7 +36,8 @@ test('Sample CV Data Integrity', async (t) => {
       const content = fs.readFileSync(fullPath, 'utf8');
       
       // Podstawowe sprawdzenie czy to YAML i czy ma kluczowe dane
-      assert.ok(content.includes('name:'), `Resume ${relPath} missing "name" field`);
+      assert.ok(content.includes('first_name:'), `Resume ${relPath} missing "first_name" field`);
+      assert.ok(content.includes('family_name:'), `Resume ${relPath} missing "family_name" field`);
       assert.ok(content.includes('brand_initials:'), `Resume ${relPath} missing "brand_initials" field`);
     });
   }

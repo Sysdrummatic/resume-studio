@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import type { ResumeDocument } from "./resume-schema";
+import { resumeFullName, type ResumeDocument } from "./resume-schema";
 import {
   ATS_DATE_OPEN_END,
   ATS_PERIOD_OPEN_TOKENS,
@@ -130,7 +130,7 @@ export function buildPublishedResumeExportUrls(
 export function convertResumeToPlainText(doc: ResumeDocument): string {
   const sections: string[] = [];
 
-  const header: string[] = [doc.name.toUpperCase()];
+  const header: string[] = [resumeFullName(doc).toUpperCase()];
   const contactLine = doc.contact.map((item) => item.value).filter(Boolean).join(" | ");
   if (contactLine) {
     header.push(contactLine);

@@ -1,3 +1,5 @@
+import { splitProfileName } from "./profile-name";
+
 export type ResumeContactItem = {
   label: string;
   value: string;
@@ -48,7 +50,8 @@ export type ResumeCourse = {
 
 export type ResumeDocument = {
   brand_initials: string;
-  name: string;
+  first_name: string;
+  family_name: string;
   summary: ResumeSummaryItem[];
   contact: ResumeContactItem[];
   qr_codes: ResumeQrCode[];
@@ -80,7 +83,8 @@ export type ResumeLocale = string;
 
 export const RESUME_REQUIRED_KEYS: Array<keyof ResumeDocument> = [
   "brand_initials",
-  "name",
+  "first_name",
+  "family_name",
 
   "summary",
   "contact",
@@ -116,22 +120,25 @@ function clampLevel(value: unknown, fallback = 3): number {
   return Math.max(1, Math.min(5, asInt(value, fallback)));
 }
 
-function initialsFromName(name: string): string {
-  const words = asText(name)
-    .split(/\s+/)
-    .map((word) => word.replace(/[^a-zA-Z]/g, ""))
-    .filter(Boolean);
-
-  if (words.length === 0) return "";
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return `${words[0][0]}${words[1][0]}`.toUpperCase();
+// Initials come from the first letter of the first name and the first letter
+// of the first word of the family name, so a compound surname ("Kowalska
+// Nowak") only ever contributes its first term.
+export function initialsFromNameParts(firstName: string, familyName: string): string {
+  const letters = (value: string) => asText(value).replace(/[^a-zA-Z]/g, "");
+  const firstInitial = letters(firstName).slice(0, 1);
+  const familyFirstWord = asText(familyName).split(/\s+/).filter(Boolean)[0] || "";
+  const familyInitial = letters(familyFirstWord).slice(0, 1);
+  if (firstInitial && familyInitial) return `${firstInitial}${familyInitial}`.toUpperCase();
+  if (firstInitial) return letters(firstName).slice(0, 2).toUpperCase();
+  return familyInitial.toUpperCase();
 }
 
-export function defaultResumeDocument(name = ""): ResumeDocument {
-  const safeName = asText(name);
+export function defaultResumeDocument(fullName = ""): ResumeDocument {
+  const { firstName, lastName } = splitProfileName(fullName);
   return {
-    brand_initials: initialsFromName(safeName),
-    name: safeName,
+    brand_initials: initialsFromNameParts(firstName, lastName),
+    first_name: firstName,
+    family_name: lastName,
     summary: [{ position: "", description: "", default: true }],
     contact: [
       { label: "Location", value: "" },
@@ -152,6 +159,31 @@ export function defaultResumeDocument(name = ""): ResumeDocument {
   };
 }
 
+export function resumeFullName(doc: Pick<ResumeDocument, "first_name" | "family_name">): string {
+  return [doc.first_name, doc.family_name].map(asText).filter(Boolean).join(" ");
+}
+
+/**
+ * Upgrades a raw, still-parsed YAML object that predates the first/family
+ * name split (only a legacy `name` key) into the new shape, in place of the
+ * `name` key — preserving every other field verbatim, including anything the
+ * schema doesn't know about. Used at write time (publish/draft) so a
+ * never-resaved legacy document doesn't fail RESUME_REQUIRED_KEYS validation
+ * the first time its owner saves again; normalizeResumeDocument() covers the
+ * read path the same way for in-memory use.
+ */
+export function migrateLegacyResumeYamlFields(source: Record<string, unknown>): Record<string, unknown> {
+  if (typeof source.first_name === "string" || typeof source.family_name === "string") {
+    return source;
+  }
+  if (typeof source.name !== "string") {
+    return source;
+  }
+  const { firstName, lastName } = splitProfileName(source.name);
+  const rest = Object.fromEntries(Object.entries(source).filter(([key]) => key !== "name"));
+  return { ...rest, first_name: firstName, family_name: lastName };
+}
+
 export function normalizeLocale(value: unknown): ResumeLocale {
   const normalized = String(value ?? "en")
     .trim()
@@ -164,10 +196,25 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
   const source = asObject(value);
   const fallback = defaultResumeDocument(fallbackName);
 
-  const name = asText(source.name) || fallback.name || "New User";
+  let firstName = asText(source.first_name);
+  let familyName = asText(source.family_name);
+  if (!firstName && !familyName && typeof source.name === "string") {
+    // Legacy documents predating the first/family name split carried a
+    // single `name` field — best-effort split it on first read so old data
+    // keeps working without a backfill migration.
+    const legacy = splitProfileName(source.name);
+    firstName = legacy.firstName;
+    familyName = legacy.lastName;
+  }
+  if (!firstName && !familyName) {
+    firstName = fallback.first_name || "New User";
+    familyName = fallback.family_name;
+  }
+
   return {
-    brand_initials: asText(source.brand_initials) || initialsFromName(name),
-    name,
+    brand_initials: asText(source.brand_initials) || initialsFromNameParts(firstName, familyName),
+    first_name: firstName,
+    family_name: familyName,
     summary: normalizeSummaryItems(source.summary),
     contact: asArray(source.contact)
       .map((item) => {
@@ -321,8 +368,8 @@ export function validateResumeDocument(value: unknown): { valid: boolean; errors
     }
   });
 
-  if (!asText(source.name)) {
-    errors.push('Field "name" must not be empty.');
+  if (!asText(source.first_name) && !asText(source.family_name)) {
+    errors.push('Field "first_name" or "family_name" must not be empty.');
   }
 
   asArray(source.summary).forEach((item, index) => {

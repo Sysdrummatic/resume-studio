@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { saveResumeDraftDocument } from "../../../lib/resume-server";
+import { saveResumeDraftDocument, upgradeLegacyResumeYamlContent } from "../../../lib/resume-server";
 import { normalizeLocale } from "../../../lib/resume-schema";
 import { callRpc } from "../../../lib/supabase-http";
 import { flagSuspiciousResumeContent } from "../../../lib/content-safety-audit";
@@ -9,9 +9,6 @@ type DraftBody = {
   locale?: string;
   yamlContent?: string;
   title?: string;
-  isPublic?: boolean;
-  allowIndexing?: boolean;
-  aiGenerated?: boolean;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -28,10 +25,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const locale = normalizeLocale(body.locale);
-  const yamlContent = String(body.yamlContent || "").trim();
-  if (!yamlContent) {
+  const submittedYamlContent = String(body.yamlContent || "").trim();
+  if (!submittedYamlContent) {
     return NextResponse.json({ error: "YAML payload is required." }, { status: 400 });
   }
+  const yamlContent = upgradeLegacyResumeYamlContent(submittedYamlContent);
 
   const yamlValidation = await callRpc<boolean>({
     functionName: "validate_resume_document_yaml",
@@ -46,9 +44,6 @@ export async function POST(request: Request): Promise<Response> {
   const payload = await saveResumeDraftDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
     yamlContent,
     title: String(body.title || "Master resume draft"),
-    isPublic: false,
-    allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
-    aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,
   });
 
   if (!payload) {

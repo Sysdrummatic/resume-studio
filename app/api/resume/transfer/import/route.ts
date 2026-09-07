@@ -11,6 +11,7 @@ import {
   saveResumeDraftDocument,
   saveResumePreset,
   upsertResumeUserLocale,
+  upgradeLegacyResumeYamlContent,
   validateResumePresetSelection,
 } from "../../../../lib/resume-server";
 import { parseUserDataBundle } from "../../../../lib/user-data-transfer";
@@ -53,7 +54,13 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.bundle) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-  const bundle = parsed.bundle;
+  const bundle = {
+    ...parsed.bundle,
+    documents: parsed.bundle.documents.map((document) => ({
+      ...document,
+      yaml_content: upgradeLegacyResumeYamlContent(document.yaml_content),
+    })),
+  };
 
   const accessToken = actorResult.accessToken;
   const userId = actorResult.actor.userId;
@@ -105,9 +112,6 @@ export async function POST(request: Request): Promise<Response> {
     const saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
       yamlContent: document.yaml_content,
       title: document.title,
-      isPublic: false,
-      allowIndexing: false,
-      aiGenerated: document.ai_generated,
     });
     if (!saved) {
       return NextResponse.json(

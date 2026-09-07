@@ -5,7 +5,7 @@ import { CvPdfDocument as CvPdfTemplate } from "../../../../../lib/pdf/CvPdfDocu
 import { buildPdfFilename } from "../../../../../lib/pdf/filename";
 import { loadPdfFonts } from "../../../../../lib/pdf/engine-react-pdf";
 import { isPdfDraftEnabled } from "../../../../../lib/pdf-feature-flags";
-import { normalizeResumeDocument } from "../../../../../lib/resume-schema";
+import { normalizeResumeDocument, resumeFullName } from "../../../../../lib/resume-schema";
 import { requireRequestActor } from "../../../../../lib/auth-request";
 import { rateLimit } from "../../../../../lib/rate-limit";
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const pdfBytes = await renderToBuffer(
       React.createElement(CvPdfTemplate, {
         resume: doc,
-        title: doc.name || "Resume",
+        title: resumeFullName(doc) || "Resume",
         locale,
       })
     );
