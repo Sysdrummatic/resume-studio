@@ -12,6 +12,7 @@ import {
   type ResumeRevisionItem,
 } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumeUserLocaleVersionRow } from "../lib/resume-server";
+import type { OnboardingTestRun } from "../lib/onboarding-test";
 
 const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
 
@@ -176,7 +177,7 @@ function buildFailedBuffer(locale: ResumeLocale, message: string, fallbackName: 
  * never discards unsaved edits in another locale. Mirrors the publish/rollback/
  * language-CRUD API contracts in app/api/resume/{document,languages,publish,rollback}.
  */
-export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null) {
+export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null, testRun?: OnboardingTestRun) {
   const [actor, setActor] = useState<Actor | null>(null);
   const [languageOptions, setLanguageOptions] = useState<ResumeLanguageMetadata[]>([]);
   const [defaultLocale, setDefaultLocale] = useState<ResumeLocale>("en");
@@ -210,6 +211,22 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       }
 
       try {
+        if (testRun) {
+          const sorted = ["en", "pl"].map((code) => ({ code, label: code === "pl" ? "Polski" : "English", short_label: code.toUpperCase(),
+            is_default: code === testRun.locale, sort_order: code === "en" ? 0 : 1, labels: {}, user_id: "", created_at: "", updated_at: "",
+            label_override: null, short_label_override: null, document: null }));
+          const nextBuffers: Record<string, LocaleBuffer> = {};
+          for (const language of sorted) {
+            const content = testRun.drafts[language.code];
+            const document = content ? { id: testRun.id, user_id: "", locale: language.code, title: "Test onboardingu", yaml_content: content, schema_version: 1, updated_at: "" } : null;
+            nextBuffers[language.code] = buildBuffer(language.code, document, [], "").buffer;
+          }
+          setLanguageOptions(sorted);
+          setDefaultLocale(testRun.locale);
+          setActiveLocale(testRun.locale);
+          setBuffers(nextBuffers);
+          return;
+        }
         const languagesResponse = await fetch("/api/resume/languages?withDocuments=true", { signal: controller.signal });
         const languagesPayload = (await languagesResponse.json()) as ApiLanguagesResponse;
         if (!languagesResponse.ok || languagesPayload.error || !languagesPayload.languages?.length) {
@@ -305,6 +322,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
   const deferredYaml = useDeferredValue(activeYamlPanel);
 
   useEffect(() => {
+    if (testRun) return;
     if (!deferredYaml || !hasYamlRuntime()) return;
     try {
       const parsed = parseYamlToResumeDocument(deferredYaml, actor?.displayName ?? "");
@@ -321,7 +339,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
         buffer.yamlPanel !== deferredYaml ? {} : { yamlError: error instanceof Error ? error.message : "Invalid YAML" },
       );
     }
-  }, [deferredYaml, activeLocale, actor?.displayName, patchBuffer]);
+  }, [deferredYaml, activeLocale, actor?.displayName, patchBuffer, testRun]);
 
   const dirtyLocales = useMemo(
     () => Object.values(buffers).filter((buffer) => buffer.yamlPanel !== buffer.savedYamlContent).map((buffer) => buffer.locale),
@@ -365,6 +383,16 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
           if (!validation.valid) throw new Error(`${code}: ${validation.errors.join(" ")}`);
 
           const snapshot = buffer.yamlPanel;
+          if (testRun) {
+            const response = await fetch(`/api/admin/onboarding-test/${testRun.id}`, {
+              method: "PATCH", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ locale: code, yamlContent: snapshot }),
+            });
+            if (!response.ok) throw new Error("Could not save test draft.");
+            const payload: ApiDocumentResponse = { document: { id: testRun.id, user_id: "", locale: code,
+              title: "Test onboardingu", yaml_content: snapshot, schema_version: 1, updated_at: "" }, revisions: [] };
+            return { code, payload, snapshot };
+          }
           const response = await fetch("/api/resume/publish", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -384,6 +412,11 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
         }),
       );
 
+      outcomes.forEach((outcome, index) => {
+        if (outcome.status === "fulfilled") result.succeeded.push(targets[index]);
+        else result.failed.push({ locale: targets[index], message: outcome.reason instanceof Error ? outcome.reason.message : "Save failed." });
+      });
+
       setBuffers((prev) => {
         const next = { ...prev };
         outcomes.forEach((outcome, index) => {
@@ -401,11 +434,9 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
                 saveError: null,
               };
             }
-            result.succeeded.push(code);
           } else {
             const message = outcome.reason instanceof Error ? outcome.reason.message : "Save failed.";
             if (next[code]) next[code] = { ...next[code], saveError: message };
-            result.failed.push({ locale: code, message });
           }
         });
         return next;
@@ -413,7 +444,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
 
       return result;
     },
-    [activeLocale, buffers, dirtyLocales],
+    [activeLocale, buffers, dirtyLocales, testRun],
   );
 
   const rollbackActiveToRevision = useCallback(
@@ -467,6 +498,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
 
   const saveLanguageVersion = useCallback(
     async (input: { code: string; label: string; shortLabel: string }, editingCode: ResumeLocale | null) => {
+      if (testRun) throw new Error("Test languages are isolated.");
       const response = await fetch("/api/resume/languages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -492,10 +524,11 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
         setActiveLocale(language.code);
       }
     },
-    [actor?.displayName],
+    [actor?.displayName, testRun],
   );
 
   const setDefaultLanguage = useCallback(async (code: ResumeLocale) => {
+    if (testRun) { setDefaultLocale(code); return; }
     const response = await fetch("/api/resume/languages", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -508,7 +541,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     const nextDefault = payload.defaultLocale || code;
     setDefaultLocale(nextDefault);
     setLanguageOptions((prev) => prev.map((language) => ({ ...language, is_default: language.code === nextDefault })));
-  }, []);
+  }, [testRun]);
 
   const deleteLanguageVersion = useCallback(async (code: ResumeLocale) => {
     const response = await fetch("/api/resume/languages", {

@@ -2,7 +2,10 @@
 
 Zakres: tylko funkcje w pełni wdrożone (Fazy A–F + role inheritance). Każda rola ma sekcję **A. Techniczne** (RBAC, RLS, granice API, infrastruktura) i **B. Produktowe** (realny flow użytkownika, klik-po-kliku).
 
-Powiązane dokumenty: [Deployment and QA Checklist](../testing/deployment-qa.md).
+Powiązane dokumenty: [Deployment and QA Checklist](../testing/deployment-qa.md),
+[Onboarding — User i Admin](ONBOARDING_TEST_SCENARIOS.md).
+Po wdrożeniu onboardingu nowe konta trafiają do przewodnika przed dashboardem;
+dla pierwszego logowania obowiązują scenariusze z dokumentu onboardingu.
 
 ---
 

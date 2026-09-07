@@ -23,6 +23,12 @@ This repository contains the React/Next.js OpenCiVera codebase. The former stati
 4. Start: `npm run dev`
 5. Open the React routes, for example `/`, `/resume`, `/login`, `/dashboard`, `/user`, `/admin`, `/master-resume`, `/privacy`, or canonical public `/{person-slug}/{public-id}`.
 
+New accounts use the [first-use Master CV guide](docs/guides/features/first-use-master-cv.md)
+at `/onboarding`. Apply migration `20260907000000_resume_onboarding.sql` before deploying
+this flow; existing accounts are not automatically enrolled.
+Administrators can repeat it on a separate test draft from account settings
+(`/settings`). This additionally requires `20260907010000_admin_onboarding_tests.sql`.
+
 ## Database migrations
 
 Apply via `supabase db push`, which applies files from `supabase/migrations/` in version (filename) order. Every migration has a unique 14-digit version, so filename order is the execution order.

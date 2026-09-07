@@ -1,0 +1,200 @@
+.onboarding {
+  max-width: 920px;
+  margin: 0 auto;
+  color: var(--ed-t1);
+}
+.onboarding__progress {
+  position: sticky;
+  top: var(--app-header-height, 56px);
+  z-index: 20;
+  padding: 1rem 1.5rem;
+  background: var(--ed-work);
+  border-bottom: 1px solid var(--ed-line);
+}
+.onboarding__progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+.onboarding progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--ed-raised);
+  accent-color: var(--ed-accent);
+}
+.onboarding progress::-webkit-progress-bar {
+  background: var(--ed-raised);
+}
+.onboarding progress::-webkit-progress-value {
+  background: var(--ed-accent);
+}
+.onboarding progress::-moz-progress-bar {
+  background: var(--ed-accent);
+}
+.onboarding__card {
+  background: var(--ed-work);
+  padding: clamp(1rem, 4vw, 3rem);
+  border: 1px solid var(--ed-line);
+  border-radius: 12px;
+}
+.onboarding__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+.onboarding__topline .app-brand__name {
+  font-size: 1.15rem;
+}
+.onboarding h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+.onboarding h1:focus {
+  outline: none;
+}
+.onboarding p {
+  max-width: 68ch;
+  line-height: 1.7;
+}
+.onboarding__hint,
+.onboarding__footer > p {
+  color: var(--ed-t2);
+}
+.onboarding__welcome ol {
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+}
+.onboarding__welcome li {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--ed-line);
+}
+.onboarding__choices,
+.onboarding__form {
+  margin: 1.5rem 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.onboarding__language {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+.onboarding select,
+.onboarding input[readonly] {
+  background: var(--ed-card);
+  color: var(--ed-t1);
+  border: 1px solid var(--ed-line-2);
+  border-radius: 6px;
+  padding: 0.65rem;
+  max-width: 100%;
+}
+.onboarding input[readonly] {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.onboarding__choices > .onboarding__language {
+  max-width: 280px;
+  margin-bottom: 1.5rem;
+}
+.onboarding__choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.4rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid var(--ed-line-2);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.onboarding__choice:has(input:checked) {
+  border-color: var(--ed-accent);
+  background: var(--ed-accent-bg);
+}
+.onboarding__choice input {
+  margin-top: 0.25rem;
+  accent-color: var(--ed-accent);
+}
+.onboarding__choice small {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--ed-t2);
+  line-height: 1.6;
+}
+.onboarding__footer {
+  border-top: 1px solid var(--ed-line);
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+.onboarding__footer > p {
+  font-size: 0.8rem;
+}
+.onboarding__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+.onboarding__review-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 1rem 0;
+}
+.onboarding__error {
+  border-left: 3px solid var(--ed-warn);
+  padding: 0.75rem 1rem;
+  background: var(--ed-warn-bg);
+}
+.onboarding :is(button, input, select, textarea, a):focus-visible {
+  outline: 2px solid var(--ed-accent);
+  outline-offset: 3px;
+}
+.onboarding__form .resume-human-editor {
+  padding: 0;
+}
+.onboarding__form.resume-editor-workspace {
+  padding: 0;
+  overflow: visible;
+}
+.onboarding .resume-human-editor__section > * {
+  animation: none;
+}
+.onboarding__preview {
+  max-height: 640px;
+  overflow: auto;
+  border-radius: 8px;
+}
+@media (max-width: 600px) {
+  .onboarding__topline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .onboarding__actions,
+  .onboarding__actions .actions-row {
+    flex-direction: column;
+    width: 100%;
+  }
+  .onboarding__actions .button {
+    width: 100%;
+    white-space: normal;
+  }
+  .onboarding__progress {
+    padding: 0.75rem 1rem;
+  }
+}

@@ -254,9 +254,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
             Beta test mode
           </button>
         )}
-        <button type="button" className="account-menu__item" disabled>
-          Settings
-        </button>
+        {isAdminRole(role) ? <Link href="/settings" className="account-menu__item" role="menuitem">Settings / Ustawienia</Link> : <button type="button" className="account-menu__item" disabled>Settings</button>}
         <button type="button" className="account-menu__item account-menu__item--danger" onClick={handleSignOut} disabled={isBusy}>
           {isBusy ? "Signing out..." : "Log out"}
         </button>

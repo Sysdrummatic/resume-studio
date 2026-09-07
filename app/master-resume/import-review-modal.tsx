@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onboardingEditorText } from "../onboarding/editor-copy";
 import type { ResumeImportResult } from "../lib/resume-import/parse-resume-file";
 import type {
   ResumeContactItem,
@@ -14,6 +15,7 @@ import type {
 import type { ImportedResumeSections } from "../lib/resume-import/types";
 
 type ImportReviewModalProps = {
+  language?: "en" | "pl";
   isOpen: boolean;
   filename: string;
   result: ResumeImportResult | null;
@@ -139,7 +141,8 @@ function describeImportItem(key: SectionKey, item: unknown): { title: string; me
 // Best-effort extraction, always shown for review before it touches the
 // draft: parsing PDF/DOCX/plain-text CVs is heuristic, never guaranteed
 // correct, so nothing here is applied until the user confirms it.
-export default function ImportReviewModal({ isOpen, filename, result, currentName, onConfirm, onClose }: ImportReviewModalProps) {
+export default function ImportReviewModal({ isOpen, filename, result, currentName, onConfirm, onClose, language = "en" }: ImportReviewModalProps) {
+  const t = (en: string, pl: string) => language === "pl" ? pl : en;
   const [acknowledgedMismatch, setAcknowledgedMismatch] = useState(false);
   const [selection, setSelection] = useState<ImportSelection>({});
   const [reviewedResult, setReviewedResult] = useState<ResumeImportResult | null>(null);
@@ -182,20 +185,19 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Review imported CV">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close import review"></button>
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={t("Review imported CV", "Sprawdź zaimportowane CV")} lang={language}>
+      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label={t("Close import review", "Zamknij podgląd importu")}></button>
       <div className="dashboard-modal__body">
-        <h2>Review import</h2>
+        <h2>{t("Review import", "Sprawdź import")}</h2>
         <p className="card-lead">
-          Parsed <strong>{filename}</strong>. Expand a section to pick which entries to add — nothing you&apos;ve
-          already entered is removed or replaced.
+          <strong>{filename}</strong>. {t("Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.", "Rozwiń sekcję i wybierz wpisy do dodania. Wcześniej wpisane dane pozostaną zachowane.")}
         </p>
 
         {hasAnyField ? (
           <ul className="import-review-list">
             {parsedName ? (
               <li className="import-review-row">
-                <span>Name</span>
+                <span>{t("Name", "Imię i nazwisko")}</span>
                 <span className="import-review-list__value">{parsedName}</span>
               </li>
             ) : null}
@@ -208,9 +210,9 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
                 <li key={key}>
                   <details className="import-review-section">
                     <summary className="import-review-section__summary">
-                      <span className="import-review-section__label">{label}</span>
+                      <span className="import-review-section__label">{onboardingEditorText(label, language)}</span>
                       <span className="import-review-list__value">
-                        {selectedCount} of {items.length} selected
+                        {selectedCount} {t("of", "z")} {items.length} {t("selected", "wybranych")}
                       </span>
                     </summary>
                     <ul className="import-review-section__items">
@@ -239,11 +241,11 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
             })}
           </ul>
         ) : (
-          <p className="resume-editor-hint">Nothing usable was found in this file.</p>
+          <p className="resume-editor-hint">{t("Nothing usable was found in this file.", "Nie znaleziono danych do zaimportowania w tym pliku.")}</p>
         )}
 
         {skippedLabels.length > 0 && hasAnyField ? (
-          <p className="resume-editor-hint">Not found, left as-is: {skippedLabels.join(", ")}.</p>
+          <p className="resume-editor-hint">{t("Not found, left as-is:", "Nie znaleziono, pozostawiono bez zmian:")} {skippedLabels.map((label) => onboardingEditorText(label, language)).join(", ")}.</p>
         ) : null}
 
         {result.warnings.length > 0 ? (
@@ -257,9 +259,8 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
         {nameMismatch ? (
           <div className="import-review-mismatch">
             <p>
-              This file looks like it&apos;s for <strong>{parsedName}</strong>, but the current draft is for{" "}
-              <strong>{currentName}</strong>. Adding it will mix {parsedName}&apos;s experience, education, and other
-              details into {currentName}&apos;s draft.
+              {t("Name in the file:", "Imię i nazwisko w pliku:")} <strong>{parsedName}</strong>. {t("Name in your draft:", "Imię i nazwisko w formularzu:")} <strong>{currentName}</strong>.
+              {t("Adding this content will combine details from both people in the current draft.", "Dodanie tych wpisów połączy dane obu osób w bieżącym formularzu.")}
             </p>
             <label className="checkbox-row">
               <input
@@ -267,14 +268,14 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
                 checked={acknowledgedMismatch}
                 onChange={(event) => setAcknowledgedMismatch(event.target.checked)}
               />
-              Add anyway, even though the names don&apos;t match
+              {t("Add anyway, even though the names don't match", "Dodaj mimo różnicy w imieniu i nazwisku")}
             </label>
           </div>
         ) : null}
 
         <div className="actions-row">
           <button type="button" className="button button--ghost" onClick={onClose}>
-            Cancel
+            {t("Cancel", "Anuluj")}
           </button>
           <button
             type="button"
@@ -282,7 +283,7 @@ export default function ImportReviewModal({ isOpen, filename, result, currentNam
             onClick={handleConfirm}
             disabled={!canApply}
           >
-            Add to draft
+            {t("Add to draft", "Dodaj do formularza")}
           </button>
         </div>
       </div>
