@@ -5,6 +5,19 @@ scratch/import choice, the eleven existing Master Resume sections, a preview,
 and an explicit choice to create a published CV. Both English and Polish guide
 copy are available; the document language is selected independently.
 
+The guide fills the browser viewport and hides the application header, including
+its navigation, account menu and theme switch. It inherits the current editor
+theme and reuses the editor's fields and color tokens. Its brand is non-navigating;
+the explicit “Finish later” action saves before leaving the guide.
+
+A vertical axis on the left lists all fifteen steps. The current number is larger
+and highlighted; previous steps are marked separately. The axis reflects the
+current position, not a checklist of field completeness, and does not allow
+skipping validation or saving. On small screens it becomes a narrow numbered rail,
+with step labels still available to assistive technology. The rail can scroll on
+short viewports and keeps the active step visible. Completion shows 100 percent.
+Leaving onboarding restores the application's normal navigation.
+
 ## Enrollment and resumption
 
 Migration `20260907000000_resume_onboarding.sql` enrolls profiles inserted after
@@ -119,6 +132,9 @@ Manual User and Admin acceptance scenarios (Polish):
 [Onboarding test scenarios](../test-scenarios/ONBOARDING_TEST_SCENARIOS.md).
 
 - Default checks: `npm.cmd run lint`, `npm.cmd run typecheck`, `npm.cmd test`.
+- UI regression tests: `tests/onboarding-progress.test.mjs` renders every step,
+  backward movement, completion and localized labels; `tests/app-brand.test.mjs`
+  checks the non-navigating brand and unique SVG gradient IDs alongside the header.
 - Behavioral tests: `tests/resume-onboarding.test.mjs` covers enrollment decisions,
   input validation, owner scoping, role capabilities, publication consent, summary
   selection, failures, and retries without duplicate CVs.

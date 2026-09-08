@@ -101,7 +101,10 @@ Język przewodnika oraz język dokumentu CV wybiera się niezależnie.
 
 **Oczekiwany wynik:** konto wymaga weryfikacji. Po zalogowaniu przejście na
 dashboard lub Master Resume prowadzi do `/onboarding`. Widoczne są logo,
-powitanie, wybór języka przewodnika i pasek postępu. Nie powstaje jeszcze CV
+powitanie, wybór języka przewodnika i pionowa oś postępu po lewej. Przewodnik
+zajmuje cały obszar strony w przeglądarce; globalna nawigacja, menu konta i
+przełącznik motywu są niewidoczne i niedostępne klawiaturą. Logo nie jest linkiem.
+Nie powstaje jeszcze CV
 z publicznym linkiem.
 
 ### U-02 — Utworzenie CV od zera i podgląd [P0]
@@ -162,6 +165,7 @@ nie oczekuj identycznego odtworzenia formatowania pliku źródłowego.
 1. W sekcji doświadczenia dodaj tekst `WZNOWIENIE-01`.
 2. Wybierz **Dokończę później / Finish later**.
 3. Na dashboardzie odszukaj możliwość wznowienia przewodnika.
+   Sprawdź również powrót globalnej nawigacji i menu konta po opuszczeniu przewodnika.
 4. Wyloguj się i zaloguj ponownie, opcjonalnie na drugim urządzeniu.
 5. Wznów przewodnik, przejdź do następnej planszy, a następnie odśwież stronę.
 
@@ -378,17 +382,31 @@ Jeżeli nie można zasymulować awarii po zapisie na serwerze, oznacz krok 3 jak
 wpisanej treści ani zmiany wybranego języka CV. Po zapisaniu kroku i odświeżeniu
 wybory pozostają. Publikacja udostępnia wybrany język dokumentu.
 
-### W-04 — Mały ekran, klawiatura i postęp [P1]
+### W-04 — Pełny ekran, klawiatura, motywy i pionowy postęp [P1]
 
 1. Sprawdź powitanie, import, formularz, podgląd i zakończenie przy szerokości
-   390 px oraz na komputerze.
-2. Przewiń długą planszę i sprawdź dostępność paska postępu.
+   320 px, 390 px, 768 px oraz na komputerze. Uwzględnij niski widok poziomy.
+2. Sprawdź oś po lewej: 15 numerowanych etapów, wyraźnie większy i podświetlony
+   numer bieżącej planszy. Przejdź dalej i cofnij się; oznaczenie ma podążać za planszą.
+   Sprawdź także końcowe etapy, które na niskim ekranie wymagają przewinięcia osi.
+   Oś jest wskaźnikiem — nie umożliwia pominięcia zapisu przez kliknięcie numeru.
 3. Przejdź pola i przyciski klawiszem Tab; uruchamiaj je klawiaturą.
 4. Zmień planszę i sprawdź położenie strony oraz fokus nagłówka.
+5. Przewiń długą planszę formularza; sprawdź, czy oś pozostaje przy lewej krawędzi
+   i bieżący etap jest widoczny.
+6. Przed wejściem w onboarding ustaw kolejno jasny i ciemny motyw aplikacji;
+   powtórz kontrolę wyglądu, czytelności aktywnego numeru i kompletności logo.
+7. Wyjdź przez Dokończę później. Sprawdź, czy dashboard i zwykły edytor ponownie
+   pokazują nawigację aplikacji i mają swój standardowy układ.
 
 **Oczekiwany wynik:** brak poziomego przewijania całej strony i zasłoniętych akcji.
-Postęp pozostaje widoczny podczas wypełniania. Fokus jest widoczny, kolejność
-klawiatury logiczna, a zmiana planszy przenosi widok na jej początek.
+Przewodnik wypełnia cały obszar strony, bez globalnego nagłówka i jego pustego miejsca.
+Na telefonie oś pozostaje po lewej jako wąska kolumna numerów; nazwa aktualnej sekcji
+jest widoczna nad formularzem. Postęp pozostaje dostępny podczas wypełniania,
+a aktywny numer mieści się w widocznym obszarze osi. Fokus jest widoczny, kolejność
+klawiatury logiczna, a zmiana planszy przenosi widok na jej początek. Kolory,
+pola i przyciski odpowiadają aktualnemu edytorowi CV w obu motywach. Układ pozostałych
+stron nie zmienia się po opuszczeniu przewodnika.
 
 ### W-05 — Zamknięcie strony z niezapisanymi zmianami [P1]
 
