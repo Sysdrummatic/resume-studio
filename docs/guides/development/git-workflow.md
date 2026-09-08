@@ -11,31 +11,32 @@ This file is the canonical source for the OpenCiVera git workflow convention —
 
 ## Branch naming
 
-Use a conventional prefix + short kebab-case description:
-- `feat/<area>-<change>` (new functionality)
-- `fix/<area>-<bug>` (bug fix)
-- `refactor/<area>-<change>` (no behavior change intended)
-- `docs/<topic>` (documentation-only)
-- `chore/<topic>` (tooling/cleanup)
+Use: `ocv-<numer>-<krótki-opis-kebab-case>`
+
+- `<numer>` — numer powiązanego PR/issue z GitHuba, zero-padded do 4 cyfr (np. `0150`). Ponieważ GitHub nadaje numer PR-a dopiero przy jego utworzeniu, w praktyce najpierw zakłada się issue (i używa jego numeru) albo tworzy się PR wcześnie (np. jako draft) i w razie potrzeby zmienia nazwę brancha.
+- `<krótki-opis-kebab-case>` — zwięzły opis treści brancha, bez prefiksu typu zmiany (ten trafia do commitów/PR-ów, patrz niżej).
 
 Examples:
-- `feat/public-resume-seo`
-- `fix/auth-session-refresh`
-- `docs/codex-git-workflow`
+- `ocv-0150-import-cv-z-pliku`
+- `ocv-0151-auth-session-refresh`
 
-## Commit messages
+Ten format zastąpił poprzednią konwencję `<prefix>/<area>-<change>` (feat/fix/refactor/docs/chore jako prefiks brancha) — historyczne branche i przykłady z nią mogą jeszcze występować w starszych PR-ach/dokumentach.
 
-Use Conventional Commits (imperative, present tense):
-- `feat: <what>`
-- `fix: <what>`
-- `refactor: <what>`
-- `docs: <what>`
-- `test: <what>`
-- `chore: <what>`
+## Commit messages i tytuły PR-ów
+
+Tytuły PR-ów używają Conventional Commits ze scope'em wskazującym numer z nazwy brancha:
+- `feat(ocv-<numer>): <what>`
+- `fix(ocv-<numer>): <what>`
+- `refactor(ocv-<numer>): <what>`
+- `docs(ocv-<numer>): <what>`
+- `test(ocv-<numer>): <what>`
+- `chore(ocv-<numer>): <what>`
 
 Examples:
-- `docs: add prompt template and git rules`
-- `fix: enforce email verification on signin`
+- `feat(ocv-0123): add prompt template and git rules`
+- `fix(ocv-0155): enforce email verification on signin`
+
+Pojedyncze commity wewnątrz brancha mogą używać krótszej formy bez scope'u (`feat: <what>`, `fix: <what>`, ...) — imperative, present tense.
 
 Rule of thumb:
 - Keep commits atomic (one logical change).

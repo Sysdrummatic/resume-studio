@@ -32,13 +32,13 @@ process.stdin.on('end', () => {
 
   if (!branchName) process.exit(0);
 
-  const validPattern = /^(feat|fix|refactor|docs|chore)\/[a-z0-9]+(-[a-z0-9]+)*$/;
+  const validPattern = /^ocv-[0-9]{4,}-[a-z0-9]+(-[a-z0-9]+)*$/;
 
   if (!validPattern.test(branchName)) {
     console.error(
       `Branch name "${branchName}" does not follow the OpenCiVera convention.\n` +
-      `Use: <prefix>/<area>-<change>, prefix one of feat, fix, refactor, docs, chore.\n` +
-      `Examples: feat/public-resume-seo, fix/auth-session-refresh, docs/codex-git-workflow\n` +
+      `Use: ocv-<numer>-<krotki-opis>, numer = powiazany numer PR/issue z GitHuba (zero-padded do 4 cyfr).\n` +
+      `Examples: ocv-0150-import-cv-z-pliku, ocv-0151-auth-session-refresh\n` +
       `Full rule: docs/guides/development/git-workflow.md`
     );
     process.exit(2);
