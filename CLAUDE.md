@@ -1,6 +1,6 @@
 # OpenCiVera/OpenCVHub Claude Configuration
 
-**Last Updated:** July 2026  
+**Last Updated:** 2026-09-08  
 **Phase Tracking:** See [docs/STATUS.md](docs/STATUS.md) for current phase, status, and roadmap  
 **Stack:** Next.js (App Router) + React + TypeScript + Supabase + Tailwind CSS
 
@@ -48,6 +48,8 @@ OpenCiVera/
 │   ├── admin/             # Admin panel (RBAC-gated, protected)
 │   ├── master-resume/     # Editor canvas (Phase D, protected)
 │   ├── user/              # Personal Hub (protected)
+│   ├── onboarding/        # First-use "guided first CV" flow (protected, see Implementation Notes)
+│   ├── settings/          # Admin onboarding-test harness (protected, admin-only)
 │   ├── docs/              # In-app docs site (Tutorials / Test Scenarios, ADR 0020)
 │   ├── [personSlug]/      # Public CV route: /{person-slug}/{public-id}
 │   ├── resume/            # Public sample CV
@@ -74,7 +76,7 @@ Key files NOT to edit (read-only):
 - supabase/migrations/     (ask Backend Engineer)
 ```
 
-Protected routes have no `(authenticated)` route group — `dashboard/`, `admin/`, `master-resume/`, `user/` are plain top-level segments, each independently gated by `requireRequestActor()`.
+Protected routes have no `(authenticated)` route group — `dashboard/`, `admin/`, `master-resume/`, `user/`, `onboarding/`, `settings/` are plain top-level segments, each independently gated by `requireRequestActor()`.
 
 ---
 
@@ -159,6 +161,7 @@ Master Resume (Draft) ──publish──> Saved Version (Snapshot)
 - Zainstalowany globalnie: `npm install -g supabase`
 - Use: `supabase db push` (push local migrations)
 - Use: `supabase pull` (pull schema z production)
+- **Known issue (as of 2026-09-07):** the migration ledger on `test`/`prod` has drifted from local `.sql` filenames — some migrations were applied directly (e.g. via an MCP `apply_migration` call) rather than via `db push`, and `test` has at least one orphan migration with no local file. `supabase db push` in this state is likely to fail on conflicts/duplicate objects. Prefer applying new migrations directly via `mcp__supabase-test__apply_migration` / `mcp__supabase-prod__apply_migration` (same SQL, same name on both) until the ledger is repaired.
 
 **NEVER DO:**
 - Hardcode secrets (use env vars only)
@@ -353,6 +356,7 @@ node tests/phase-d-editor-implementation.test.js
 | **Editor** | `app/master-resume/**` | Publish, rollback, draft save/restore |
 | **Public View** | `app/[person-slug]/[public-id]/` | Canonical route renders, indexing controls |
 | **Admin RBAC** | `app/admin/`, `app/api/admin/**` | Role hierarchy enforced, user deletion respects boundaries |
+| **Onboarding** | `app/onboarding/**`, `app/api/resume/onboarding`, `app/lib/resume-onboarding*.ts` | Enrollment/resumption states, selection is raw-domain (see Implementation Notes), publish creates exactly one CV |
 
 ### Testing Discipline (From .codex/instructions.md)
 
@@ -456,6 +460,27 @@ See [ADR 0014](docs/adr/0014-pdf-rendering-architecture.md).
 
 **ATS Export Refactor:** Export rules/constants and Phase K scoring types are isolated in `app/lib/ats-export-rules.ts`; `convertResumeToPlainText`/`convertResumeToAtsYaml`/`getRawYamlSource` consume them. ATS Ready dropdown (CVasCode / .txt / .yaml) downloads the currently selected language version. Foundation for Phase K — see [Phase K ATS Intelligence](docs/phases/phase-k-ats-intelligence-plan.md).
 
+**CV Import (PDF/DOCX/YAML/TXT):** `app/lib/resume-import/` (`parse-resume-file.ts`,
+`extract-text.ts`, `parse-plain-text.ts`, `parse-yaml-cv.ts`, `text-blocks.ts`,
+`merge-imported-resume.ts`, `read-upload.ts`) is a heuristic, best-effort
+extractor — never guaranteed correct, so nothing it produces touches the
+draft until the user reviews and confirms it. `POST /api/resume/import-file`
+parses the upload; `ImportCvBanner` (`app/master-resume/import-cv-banner.tsx`)
+is the upload trigger and `ImportReviewModal`
+(`app/master-resume/import-review-modal.tsx`) is the confirmation step —
+both take an optional `language` prop (`"en" | "pl"`) so they can render in
+the onboarding guide's language, not just English. Import is **additive,
+never destructive**: `mergeImportedResume()` adds selected entries to the
+existing draft, it does not overwrite sections. If the parsed name differs
+from the draft's current name, the modal blocks adding content until the
+user explicitly acknowledges the mismatch (avoids silently mixing two
+people's CVs into one document). Test contracts:
+`tests/resume-import-file-route-contract.test.mjs`,
+`tests/resume-import-merge.test.mjs`, `tests/resume-import-plain-text.test.mjs`,
+`tests/resume-import-text-blocks.test.mjs`, `tests/resume-import-upload.test.mjs`,
+`tests/resume-import-yaml.test.mjs`, `tests/import-review-name-mismatch.test.mjs`,
+`tests/import-review-selection.test.mjs`.
+
 **Published Export Selection Contract (R09):** `fetchPublishedResumeExportByPublicLink`
 (`app/lib/resume-server.ts`) is the single resolver behind every published-CV
 export surface (PDF, ATS `.txt`, ATS `.yaml`, CVasCode, public OpenCV API v1).
@@ -486,12 +511,21 @@ means no ATS transformations, not unselected master content. Contract tests
 execute `buildPublishedExportContent` directly:
 `tests/resume-export-contract.test.mjs`,
 `tests/adr-0008-opencv-public-api-contract.test.mjs`.
+**This contract has already been violated twice by new code that computed a
+selection against a normalized document instead of the raw one** (most
+recently `firstCvSelection` in `app/lib/resume-onboarding.ts`, fixed
+2026-09-07 — it now probes raw items via `normalizeResumeDocument` per-item
+rather than filtering an already-normalized array, so indexes still line up
+with the raw YAML the selection is later applied to). Any function that
+builds a `ResumePresetSelection` must be checked against this rule, not just
+functions that consume one.
 
 **API Routes (Public CV / Export):**
 - GET/POST `/api/resume/document?locale=en|pl` — Fetch/save documents
 - POST `/api/resume/publish` — Create revision snapshot
 - POST `/api/resume/rollback` — Restore previous version
 - GET|POST|PATCH `/api/resume/languages` — Language management
+- POST `/api/resume/import-file` — Parse an uploaded PDF/DOCX/YAML/TXT CV for review (never saves directly)
 - GET `/api/resume/presets` — List Saved Versions
 - POST/PATCH `/api/resume/presets/[id]/publish` — Publish version
 - POST `/api/resume/presets/[id]/unpublish` — Unpublish version
@@ -500,6 +534,12 @@ execute `buildPublishedExportContent` directly:
 - GET `/api/resume/export/cvac` — Raw CVasCode source YAML export
 - GET `/api/resume/export/pdf` — Published CV PDF export
 - POST `/api/resume/export/pdf/preview` — Draft CV PDF export (admin, gated by `pdf_draft_enabled` flag)
+
+**API Routes (Onboarding):**
+- PATCH `/api/resume/onboarding` — Save guide progress (no owner/preset ID accepted from client)
+- POST `/api/resume/onboarding` — Complete the guide with an explicit boolean `publish` choice
+- GET/PATCH `/api/admin/onboarding-test/[runId]` — Admin-only onboarding QA harness: read/save an isolated test draft
+- POST `/api/admin/onboarding-test/[runId]` — Finish an onboarding test run (publish or not)
 
 **Routing Model:**
 - **Canonical:** `/{person-slug}/{public-id}` (primary, from `resume_public_links`), the only public route
@@ -770,6 +810,50 @@ What's actually true as of 2026-08-26:
   was corrected — faster and can't drift from reality the way a static
   checklist can.
 
+**First-Use Master CV Onboarding:** `/onboarding` walks a newly registered
+account through welcome → scratch/import choice → the eleven Master Resume
+sections → preview → an explicit publish choice, reusing `EditorCanvasClient`
+and the CV Import review flow above. Migration
+`20260907000000_resume_onboarding.sql` adds `resume_onboarding`
+(one row per account, RLS-scoped to its own owner) and enrolls only profiles
+created **after** the migration — existing accounts get no row and never see
+the guide (by design, not a gap). States: `pending` (dashboard/master-resume
+redirect to `/onboarding`) → `active` → `paused` (progress saved, resumable
+from the dashboard) → `completed` (route returns to dashboard, cannot be
+reset through authenticated updates). `PATCH /api/resume/onboarding` saves
+progress and accepts no owner/preset ID from the client; `POST
+/api/resume/onboarding` requires an explicit boolean `publish` choice.
+Publishing derives the selection **from the raw saved YAML** — see the
+"this contract has already been violated twice" note under Published Export
+Selection Contract above; `firstCvSelection()`
+(`app/lib/resume-onboarding.ts`) is the function responsible for getting
+this right. `reserve_onboarding_preset` (SECURITY INVOKER) locks the
+onboarding row and reserves exactly one CV version so retries are
+idempotent; it delegates to the existing `publishResumePreset` for variants,
+snapshots, audit records and the canonical public link (published locale
+only, indexing disabled). Full behavioral spec:
+[docs/guides/features/first-use-master-cv.md](docs/guides/features/first-use-master-cv.md).
+Test contracts: `tests/resume-onboarding.test.mjs`,
+`tests/onboarding-progress.test.mjs`.
+
+**Admin Onboarding-Test Harness:** `/settings` (admin-only) and migration
+`20260907010000_admin_onboarding_tests.sql` let staff dry-run the onboarding
+guide without touching their own Master Resume or account state. Test runs
+live in `resume_onboarding_test_runs`, not `resume_onboarding`; synthetic
+presets/published CVs created by a test run are tagged via a nullable
+`resume_presets.onboarding_test_run_id` FK rather than a separate table —
+**every new `resume_presets` code path must decide whether it should
+include or exclude onboarding-test rows** (dashboard, publish, export, and
+the transfer/export route already do). RPCs `configure_onboarding_test`,
+`save_onboarding_test`, `finish_onboarding_test` are `SECURITY DEFINER`,
+gated by `require_onboarding_test_admin()` (active, verified admin only);
+`guard_onboarding_test_preset()` blocks `authenticated`/`anon` from
+inserting or updating a preset's `onboarding_test_run_id` directly through
+PostgREST. `POST/PATCH /api/admin/onboarding-test/[runId]` must call
+`flagSuspiciousResumeContent()` on saved test YAML like every other
+YAML-content save path (draft, publish, transfer/import) — this was missing
+until fixed 2026-09-07. Test contract: `tests/admin-onboarding-test.test.mjs`.
+
 ---
 
 ## ✅ Pre-Commit Checklist
@@ -847,5 +931,5 @@ Before pushing code:
 ---
 
 **Status:** Production-ready (merged with .codex/instructions.md)  
-**Last Review:** July 2026  
+**Last Review:** 2026-09-08  
 **Next Update:** See [docs/STATUS.md](docs/STATUS.md) for current phase and next milestones

@@ -1,39 +1,78 @@
-# Runbook: Testing and validation (Codex workflow)
+# Testing and validation — Codex workflow
 
-This project expects changes to be validated with automated checks and relevant manual flows.
+Working rules: [AGENTS.md](../../AGENTS.md).
+Use checks that can detect regressions in the requested behavior.
 
-## Default automated suite (run before task completion)
+## TDD for behavior changes
 
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
+1. Reproduce the missing/incorrect behavior with the smallest relevant test.
+2. Run it before implementation and confirm the expected failure.
+3. Implement the smallest change that makes the test pass.
+4. Refactor while keeping the test passing; reuse existing code and fixtures.
+5. Run the default suite before declaring code changes complete.
 
-Shortcut:
-- `npm run verify` (runs lint + typecheck + test)
+Prefer behavioral tests of outputs, interactions, roles, ownership and failures.
+For visual changes, a reproducible failing browser check can establish the
+regression; do not create artificial unit tests for copy or CSS declarations.
+Keep reusable automated regression checks in the repository when practical.
 
-## After every modification guidance
+## Default suite
 
-Not every keystroke warrants a full CI run, but every meaningful change should be followed by the smallest relevant check:
+On Windows PowerShell:
 
-- Docs-only change:
-  - run `npm test` only if docs imply behavior/workflow changes; otherwise skip with justification.
-- Frontend/Next change:
-  - run `npm run lint` + `npm run typecheck` as soon as the code compiles cleanly.
-  - run `npm test` before finishing the task.
-- Supabase migration / contract change:
-  - run `npm test` immediately after updating contract/migration logic.
+```powershell
+npm.cmd run verify
+```
 
-## Manual QA triggers (when applicable)
+This runs `npm.cmd run lint`, `npm.cmd run typecheck` and `npm.cmd test`.
+On other platforms use `npm run verify`. The package scripts are the command
+source of truth.
 
-- Auth: signup/verify/signin/signout, session refresh, protected routes.
-- Resume: locale switching, public vs private rendering, publish/rollback.
-- Admin: role boundaries + audit logging.
-- Public SEO: robots meta, canonical URL, indexing controls, 404 behavior.
+For a focused Node test:
 
-## Reporting (in the final recap)
+```powershell
+node --test tests/onboarding-progress.test.mjs
+```
 
-- Commands run + pass/fail.
-- Manual steps executed (short checklist).
-- Known limitations or blockers (with next steps).
+Run the smallest relevant check after a meaningful implementation change.
+For frontend/Next changes, run lint and typecheck once the code is ready.
+Broaden checks when changes, failures or unresolved concerns justify it; avoid
+rerunning unchanged passing suites without a reason.
+
+For build/deployment-sensitive changes, use `npm.cmd run build` or
+`npm.cmd run ci` as appropriate to the task.
+
+## Documentation-only changes
+
+Check referenced files, Markdown links, example commands and consistency with
+current code. Run `npm.cmd test` when changing development/testing workflows.
+Lint/typecheck/build can be omitted when no application or executable configuration
+changes; report the reason. Do not describe documented manual scenarios as executed.
+
+## Browser and integration checks
+
+- **UI:** desktop/mobile, dark/light, relevant EN/PL copy, keyboard/focus, dialogs,
+  overflow and the shared shell after navigating away.
+- **Auth:** signup/verify/signin/signout, refresh and protected redirects when affected.
+- **Admin/RBAC:** anonymous, user, recruiter, manager and admin boundaries, activity,
+  verification, cross-account isolation and audit behavior.
+- **Resume:** locale switching, draft save/load, import, revisions/rollback, export.
+- **Publication:** selected snapshot content, consent, retries, stable links,
+  unpublish/republish and no private-data fallback.
+- **Public SEO:** canonical identity, locale selection, indexing and missing/inactive links.
+- **Onboarding:** [User and Admin scenarios](../../docs/guides/test-scenarios/ONBOARDING_TEST_SCENARIOS.md).
+- **SQL:** validate the actual new migration and policies/RPCs in an isolated
+  environment; identify any real Supabase staging checks still needed.
+
+Preserve existing development servers. Reuse an appropriate server or create an
+isolated test instance; do not stop the user's process merely to free a port/lock.
+Use test data for publication checks.
+
+## Reporting
+
+State the commands and outcomes, browser checks actually performed, and remaining
+failures or unavailable checks. Identify mocked services and isolated databases;
+they do not establish that production or real Supabase integration was tested.
+Distinguish local completion, migration application, push and deployment.
 
 

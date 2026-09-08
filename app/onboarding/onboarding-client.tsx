@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import AppBrand from "../components/app-brand";
+import OnboardingProgress from "./onboarding-progress";
 import {
   ONBOARDING_PUBLISH_STEP,
   ONBOARDING_REVIEW_STEP,
@@ -85,10 +86,9 @@ export default function OnboardingClient(props: Props) {
   const t = (en: string, pl: string) => (uiLanguage === "pl" ? pl : en);
   const disabled = busy || props.loading || props.importing || props.loadError;
   const section = ONBOARDING_SECTIONS[step - 2];
-  const percent = finished ? 100 : Math.round((step / (ONBOARDING_PUBLISH_STEP + 1)) * 100);
 
   useEffect(() => {
-    heading.current?.focus();
+    heading.current?.focus({ preventScroll: true });
   }, [step, finished]);
 
   async function progress(nextStep: number, status: "active" | "paused" = "active") {
@@ -171,24 +171,23 @@ export default function OnboardingClient(props: Props) {
   }
 
   return (
-    <section className="resume-editor-shell onboarding" lang={uiLanguage}>
-      <div className="onboarding__progress">
-        <div className="onboarding__progress-label">
-          <span>{t("Your first CV", "Twoje pierwsze CV")}</span>
-          <span>
-            {finished ? t("Complete", "Gotowe") : `${step + 1} / ${ONBOARDING_PUBLISH_STEP + 1}`} ·{" "}
-            {percent}%
-          </span>
-        </div>
-        <progress
-          value={percent}
-          max={100}
-          aria-label={t("Guide progress", "Postęp przewodnika")}
+    <section className="resume-editor-shell onboarding" lang={uiLanguage} aria-labelledby="onboarding-title">
+      <aside className="onboarding__sidebar">
+        <AppBrand href={null} />
+        <OnboardingProgress
+          steps={TITLES[uiLanguage]}
+          step={step}
+          finished={finished}
+          label={t("Guide progress", "Postęp przewodnika")}
+          completeLabel={t("Complete", "Gotowe")}
         />
-      </div>
+      </aside>
       <div className="onboarding__card" aria-busy={busy}>
         <div className="onboarding__topline">
-            <AppBrand href={props.testRunId ? `/onboarding?test=${props.testRunId}` : "/onboarding"} />
+          <span className="onboarding__step-count">
+            {t("Your first CV", "Twoje pierwsze CV")}
+            <strong>{finished ? t("Complete", "Gotowe") : `${step + 1} / ${TITLES[uiLanguage].length}`}</strong>
+          </span>
           <label className="onboarding__language">
             {t("Guide language", "Język przewodnika")}
             <select
@@ -202,7 +201,7 @@ export default function OnboardingClient(props: Props) {
             </select>
           </label>
         </div>
-        <h1 ref={heading} tabIndex={-1}>
+        <h1 id="onboarding-title" ref={heading} tabIndex={-1}>
           {finished
             ? publicPath
               ? t("Your CV is ready to send", "Twoje CV jest gotowe do wysłania")
