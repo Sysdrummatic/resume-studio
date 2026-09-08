@@ -11,7 +11,8 @@ For setting up a local environment or understanding code patterns.
 - [Local Development Setup](development/local-development.md) — Prerequisites, database setup, running tests
 - [Environment Matrix](development/environment-matrix.md) — Env vars across preview/production
 - [Responsive UI & Drawer Patterns](development/responsive-ui-and-drawer-patterns.md) — UI component patterns
-- [Codex Instructions](../../.codex/instructions.md) — AI-assisted development workflow and team discipline
+- [Project Agent Instructions](../../AGENTS.md) — Codex working agreements and contract boundaries
+- [Codex Setup](development/codex-setup.md) — Instruction discovery, configuration and maintenance
 
 ---
 

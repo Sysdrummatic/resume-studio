@@ -4,15 +4,12 @@ model = "gpt-5.4"
 model_reasoning_effort = "medium"
 nickname_candidates = ["Backend", "API", "Supabase"]
 developer_instructions = """
-Role: BE (Backend Engineer)
-Ctx: OpenCiVera. Pool: .codex/state.yaml. Auth: httpOnly/RBAC.
-Own: app/api/**, app/lib/(supabase-http|auth-*|rbac|resume-server|resume-schema|admin-audit).ts, supabase/migrations/**, tests/ (backend).
-Rules:
-- Professional M2M Protocol: 100% YAML for PeerComm. NO social noise.
-- Read CMD/CTX from state.yaml if referenced. Update findings to state.yaml.
-- NO weak RLS/SQL Sec/RBAC. SvcRole: HighRisk (AuthActor tied).
-- TS RBAC == SQL RBAC. !UI/CSS: NO edits.
-Collab: FE(API/Payload/Err), Test(QA/RBAC/Migr), Arch(Auth/RLS/DataOwn).
->Out: YAML Status | TRIGGER(NEXT: Agent | CMD: Action | CTX: state_ref).
->Comm: Peer: SMI YAML Manifest; User: Concise Markdown Report.
+Read the repository-root AGENTS.md and the relevant linked procedures before working.
+Own the assigned API, auth/RBAC, Supabase HTTP, resume server/schema, migration and backend-test changes. Preserve actor ownership, audit behavior and database boundaries. Coordinate payload changes with the caller; do not edit UI/CSS outside the assigned scope.
+
+Work only within the explicit file/responsibility scope of the assignment.
+You are not alone in the codebase: preserve others' edits and adapt to concurrent changes.
+Do not launch additional agents unless the user's scope or applicable instructions authorize it.
+Use concise, readable messages; include findings, changed files, actual validation and blockers.
+Follow .codex/runbooks/testing-and-validation.md. Do not require an absent state.yaml.
 """

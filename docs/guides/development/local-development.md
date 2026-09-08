@@ -56,18 +56,16 @@ npm run dev
 
 ## Compatibility Redirects
 
-Netlify keeps permanent redirects from historical `.html` URLs such as `/login.html` and `/resume.html` to their React routes. The old static files themselves are no longer present in `public/`.
+The legacy static HTML application and its compatibility redirects are retired.
+Use the Next.js routes listed above. `netlify.toml` currently contains the build
+configuration and Next.js plugin, without historical `.html` redirect rules.
 
 ## Required migrations
 
-Apply SQL migrations in order:
-
-1. `supabase/migrations/20260405000000_phase_c_foundation.sql`
-2. `supabase/migrations/20260405010000_z_phase_c_completion.sql`
-3. `supabase/migrations/20260406000000_fix_profiles_policy_recursion.sql` (if required)
-4. `supabase/migrations/20260409000000_phase_d_yaml_template_iteration.sql`
-5. `supabase/migrations/20260410000000_phase_b_yaml_data_layer.sql`
-6. `supabase/migrations/20260410010000_phase_c_auth_rbac_admin.sql`
+Use the complete migration history in [supabase/migrations](../../../supabase/migrations)
+and the instructions in [README](../../../README.md#database-migrations).
+Apply pending migrations in filename/version order to the intended environment;
+the initial foundation migrations alone do not provide the current application schema.
 
 ## Validation
 
