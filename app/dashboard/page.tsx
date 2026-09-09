@@ -5,6 +5,7 @@ import { fetchOnboarding } from "../lib/resume-onboarding-server";
 import { shouldStartOnboarding } from "../lib/resume-onboarding";
 import { fetchOnboardingTest } from "../lib/onboarding-test-server";
 import DashboardClient from "./dashboard-client";
+import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
 import { requireAuthenticatedActor } from "../lib/auth-server";
 import { isPdfDraftEnabled } from "../lib/pdf-feature-flags";
 import { isUserDataTransferEnabled } from "../lib/platform-feature-flags";
@@ -31,12 +32,9 @@ export default async function DashboardPage() {
   const masterResume = ownedDocuments.find((document) => document.locale === "en") || ownedDocuments[0] || null;
 
   return (
-    <div className="dashboard-page stack">
+    <div className="dashboard-page editor-theme wide-shell-page">
       <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
-      <header className="dashboard-page__hero stack">
-        <div className="product-surface__eyebrow">Publishing workspace</div>
-        <h1 className="product-surface__title">Dashboard</h1>
-      </header>
+      <WorkspaceBreadcrumbs current="Dashboard" />
 
       {testRun && testRun.status !== "completed" ? <div className="card stack">
         <strong>Test onboardingu / Onboarding test</strong>
