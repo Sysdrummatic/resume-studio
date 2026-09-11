@@ -13,6 +13,7 @@
     "test": "node --test",
     "test:rls": "node --test tests/profile-privileged-fields-postgrest.test.mjs",
     "verify": "npm run lint && npm run typecheck && npm run test",
+    "qa:env": "node scripts/qa/environment-readiness.mjs",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "ci": "npm run verify && npm run build"
   },
