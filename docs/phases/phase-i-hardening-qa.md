@@ -14,6 +14,7 @@
 Phase I is the quality and readiness phase. After Phase E–H deliver features, Phase I ensures everything is secure, tested, observable, and ready for production launch. This is the last quality gate before real users access the platform.
 
 ### Key Theme
+
 **From MVP → production-ready.** All critical paths tested; security/perf/a11y verified.
 
 ---
@@ -31,7 +32,7 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
 - [ ] **Preview deploy QA**:
   - Netlify Deploy Previews triggered automatically
   - [x] Reusable Playwright smoke runner accepts an explicit preview URL
-  - Smoke test suite executed on the preview URL and evidence reviewed
+  - [x] Smoke test suite executed on the PR #156 preview URL and evidence reviewed (8/8 routes, 2026-09-11)
   - Manual QA on preview before production push
 
 - [ ] **Production deploy QA**:
@@ -262,7 +263,8 @@ Manual QA Checklist
 
 **Scenario**: Env var missing or incorrect in production; app crashes on deploy.
 
-**Mitigation**: 
+**Mitigation**:
+
 - Pre-deploy checklist verifies all env vars
 - Netlify Deploy Preview runs before production
 - Rollback to previous deploy if critical issue
@@ -272,6 +274,7 @@ Manual QA Checklist
 **Scenario**: Code checks RBAC capability, but RLS policy allows unauthorized access.
 
 **Mitigation**:
+
 - Phase I includes SQL alignment verification (task from memory)
 - Tests assert both code and RLS behavior
 - Manual QA checks cross-user data isolation
@@ -281,6 +284,7 @@ Manual QA Checklist
 **Scenario**: A stale branch or deploy configuration accidentally restores the retired static app or `.html` redirects.
 
 **Mitigation**:
+
 - Static-cleanup contract tests reject old entry points and redirect rules
 - Preview smoke checks exercise the canonical Next.js routes
 - Release review compares the deployment configuration with `netlify.toml`
@@ -290,6 +294,7 @@ Manual QA Checklist
 **Scenario**: Dashboard slow with 100+ CVs; public route SSR times out.
 
 **Mitigation**:
+
 - Lighthouse audits before launch
 - Query optimization (indexes on popular columns)
 - ISR cache strategy for public routes
@@ -300,25 +305,29 @@ Manual QA Checklist
 ## Phase I Execution Plan
 
 ### Workstream 1 — Repeatable deploy checks
+
 - [ ] Finalize deployment QA procedures
 - [ ] Select an error-tracking provider and define privacy constraints
 - [x] Create the public/anonymous preview smoke runner
-- [ ] Run the smoke suite on a Netlify Deploy Preview
+- [x] Run the smoke suite on a Netlify Deploy Preview
 - [ ] Begin auth flow testing
 
 ### Workstream 2 — Functional and non-functional QA
+
 - [ ] Complete functional testing (admin, editor, recruiter)
 - [ ] Run E2E regression suite
 - [ ] Performance and accessibility audits
 - [ ] RLS policy validation
 
 ### Workstream 3 — Security and recovery
+
 - [ ] Security review and hardening
 - [ ] Rollback plan testing
 - [ ] Release checklist finalization
 - [ ] Team readiness review
 
 ### Workstream 4 — Launch decision
+
 - [ ] Final production deploy QA
 - [ ] Smoke test protocol execution
 - [ ] Post-launch support preparation
@@ -329,14 +338,17 @@ Manual QA Checklist
 ## Related Documentation
 
 ### Test Contracts & Guides
+
 - [Deployment QA Checklist](../guides/testing/deployment-qa.md)
 - [CV Publication Test Contracts](../guides/testing/cv-publication-test-contracts.md)
 - [SEO/AEO Preview QA Checklist](../guides/testing/seo-aeo-preview-qa-checklist.md)
 
 ### Architecture Decisions
+
 - [ADR 0010: API Hardening and Resource Protection](../adr/0010-api-hardening-and-resource-protection.md)
 
 ### Execution
+
 - [STATUS.md](../STATUS.md)
 
 ---

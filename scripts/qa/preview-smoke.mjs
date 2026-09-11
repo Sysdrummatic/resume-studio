@@ -13,7 +13,7 @@ export const DEFAULT_SMOKE_CHECKS = Object.freeze([
   { path: "/resume", expectedPath: "/resume" },
   { path: "/dashboard", expectedPath: "/login", expectedReason: "signed-out" },
   { path: "/master-resume", expectedPath: "/login", expectedReason: "signed-out" },
-  { path: "/admin", expectedPath: "/login", expectedReason: "signed-out" },
+  { path: "/admin", expectedPath: "/login", expectedReason: "signed-out" }
 ]);
 
 function normalizeBaseUrl(value) {
@@ -24,7 +24,9 @@ function normalizeBaseUrl(value) {
   }
   if (url.username || url.password) throw new Error("Preview URL must not contain credentials.");
   if (url.pathname !== "/" || url.search || url.hash) {
-    throw new Error("Preview URL must point to the deployment root without a path, query, or fragment.");
+    throw new Error(
+      "Preview URL must point to the deployment root without a path, query, or fragment."
+    );
   }
   return url.origin;
 }
@@ -42,13 +44,16 @@ export function parsePreviewSmokeArgs(argv, env = process.env) {
 
 export function assessSmokeObservation(check, observation) {
   const issues = [];
-  if (observation.status !== 200) issues.push(`expected HTTP 200, received ${observation.status ?? "no response"}`);
+  if (observation.status !== 200)
+    issues.push(`expected HTTP 200, received ${observation.status ?? "no response"}`);
   const finalUrl = new URL(observation.finalUrl);
   if (finalUrl.pathname !== check.expectedPath) {
     issues.push(`expected final path ${check.expectedPath}, received ${finalUrl.pathname}`);
   }
   if (check.expectedReason && finalUrl.searchParams.get("reason") !== check.expectedReason) {
-    issues.push(`expected reason=${check.expectedReason}, received ${finalUrl.searchParams.get("reason") ? `reason=${finalUrl.searchParams.get("reason")}` : "no reason"}`);
+    issues.push(
+      `expected reason=${check.expectedReason}, received ${finalUrl.searchParams.get("reason") ? `reason=${finalUrl.searchParams.get("reason")}` : "no reason"}`
+    );
   }
   issues.push(...observation.pageErrors.map((message) => `page error: ${message}`));
   issues.push(...observation.consoleErrors.map((message) => `console error: ${message}`));
@@ -60,8 +65,13 @@ export function assessSmokeObservation(check, observation) {
 export function formatFailedRequest(request, baseOrigin) {
   const url = new URL(request.url);
   if (url.origin !== baseOrigin) return null;
+  if (url.pathname === "/.netlify/scripts/cdp" && request.errorText === "csp") return null;
   if (request.resourceType === "fetch" && request.errorText === "net::ERR_ABORTED") return null;
   return `${request.method} ${url.pathname}: ${request.errorText || "unknown failure"}`;
+}
+
+export function isIgnoredConsoleError(message) {
+  return message.includes("/.netlify/scripts/cdp") && message.includes("Content Security Policy");
 }
 
 function safeScreenshotName(routePath) {
@@ -78,7 +88,9 @@ async function observeRoute(context, baseUrl, check, outputDir) {
 
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (message.type() === "error" && !isIgnoredConsoleError(message.text())) {
+      consoleErrors.push(message.text());
+    }
   });
   page.on("requestfailed", (request) => {
     const message = formatFailedRequest(
@@ -86,9 +98,9 @@ async function observeRoute(context, baseUrl, check, outputDir) {
         url: request.url(),
         method: request.method(),
         resourceType: request.resourceType(),
-        errorText: request.failure()?.errorText,
+        errorText: request.failure()?.errorText
       },
-      baseOrigin,
+      baseOrigin
     );
     if (message) failedRequests.push(message);
   });
@@ -100,23 +112,33 @@ async function observeRoute(context, baseUrl, check, outputDir) {
   });
 
   try {
-    const response = await page.goto(new URL(check.path, baseUrl).toString(), { waitUntil: "domcontentloaded" });
+    const response = await page.goto(new URL(check.path, baseUrl).toString(), {
+      waitUntil: "domcontentloaded"
+    });
     await page.waitForTimeout(250);
-    await page.screenshot({ path: path.join(outputDir, `${safeScreenshotName(check.path)}.png`), fullPage: true });
+    await page.screenshot({
+      path: path.join(outputDir, `${safeScreenshotName(check.path)}.png`),
+      fullPage: true
+    });
     return {
       status: response?.status(),
       finalUrl: page.url(),
       pageErrors,
       consoleErrors,
       failedRequests,
-      serverErrors,
+      serverErrors
     };
   } finally {
     await page.close();
   }
 }
 
-export async function runPreviewSmoke({ baseUrl, outputDir, browserType = chromium, checks = DEFAULT_SMOKE_CHECKS }) {
+export async function runPreviewSmoke({
+  baseUrl,
+  outputDir,
+  browserType = chromium,
+  checks = DEFAULT_SMOKE_CHECKS
+}) {
   const resolvedOutput = path.resolve(outputDir || path.join("tmp", "preview-smoke"));
   await mkdir(resolvedOutput, { recursive: true });
   const browser = await browserType.launch({ headless: true });
@@ -125,14 +147,26 @@ export async function runPreviewSmoke({ baseUrl, outputDir, browserType = chromi
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     for (const check of checks) {
       const observation = await observeRoute(context, baseUrl, check, resolvedOutput);
-      results.push({ path: check.path, finalUrl: observation.finalUrl, issues: assessSmokeObservation(check, observation) });
+      results.push({
+        path: check.path,
+        finalUrl: observation.finalUrl,
+        issues: assessSmokeObservation(check, observation)
+      });
     }
   } finally {
     await browser.close();
   }
 
-  const report = { baseUrl, passed: results.every((result) => result.issues.length === 0), results };
-  await writeFile(path.join(resolvedOutput, "report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
+  const report = {
+    baseUrl,
+    passed: results.every((result) => result.issues.length === 0),
+    results
+  };
+  await writeFile(
+    path.join(resolvedOutput, "report.json"),
+    `${JSON.stringify(report, null, 2)}\n`,
+    "utf8"
+  );
   return report;
 }
 
