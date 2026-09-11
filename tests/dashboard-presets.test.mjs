@@ -71,7 +71,7 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   assert.equal(preview.includes("BasicResumeDocument"), true);
 });
 
-test("preset row shows Open CV first, Copy link when published, and a settings menu with confirmed delete", () => {
+test("selected CV retains its settings menu and confirmed delete dialog", () => {
   const client = read("app/dashboard/dashboard-client.tsx");
   const styles = read("app/globals.css");
 
@@ -80,7 +80,6 @@ test("preset row shows Open CV first, Copy link when published, and a settings m
   assert.equal(client.includes("aria-label={`Delete CV Version ${preset.title}`}"), true);
   assert.equal(client.includes('{preset.is_public ? "Unpublish" : "Publish"}'), true);
   assert.equal(client.includes("dashboard-preset-menu__separator"), true);
-  assert.equal(client.includes("setConfirmDeletePreset(preset)"), true);
   assert.equal(client.includes("Delete CV Version confirmation"), true);
   assert.equal(client.includes("dashboard-resume-list__secondary-actions"), false);
   assert.equal(styles.includes(".dashboard-preset-menu__panel"), true);

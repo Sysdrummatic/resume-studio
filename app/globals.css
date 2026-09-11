@@ -15,6 +15,7 @@
   color-scheme: dark;
   --app-theme: dark;
   --app-header-height: 56px;
+  --workspace-breadcrumbs-height: 42px;
   --app-theme-transition-duration: 200ms;
   --app-theme-transition-easing: ease;
 
@@ -588,6 +589,43 @@ a {
 
 .app-main:has(.wide-shell-page) {
   padding: 0;
+}
+
+.workspace-breadcrumbs {
+  display: flex;
+  align-items: center;
+  min-height: var(--workspace-breadcrumbs-height);
+  padding: 8px 26px;
+  border-bottom: 1px solid var(--ed-line);
+  background: var(--ed-nav-bg);
+  color: var(--ed-t2);
+  font: 12px/1.5 var(--font-body);
+}
+.workspace-breadcrumbs ol,
+.workspace-breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.workspace-breadcrumbs ol { flex-wrap: wrap; }
+.workspace-breadcrumbs a { color: inherit; text-decoration: none; }
+.workspace-breadcrumbs a:hover { color: var(--ed-t1); text-decoration: underline; }
+.workspace-breadcrumbs a:focus-visible { outline: 2px solid var(--ed-accent); outline-offset: 3px; }
+.workspace-breadcrumbs [aria-current="page"] { color: var(--ed-t1); }
+.resume-editor-shell:has(> .workspace-breadcrumbs) { gap: 0; }
+.resume-editor-shell:has(> .workspace-breadcrumbs) .resume-editor-layout {
+  min-height: calc(100dvh - var(--app-header-height) - var(--workspace-breadcrumbs-height));
+}
+@media (min-width: 761px) {
+  .resume-editor-shell:has(> .workspace-breadcrumbs) .resume-editor-layout {
+    height: calc(100dvh - var(--app-header-height) - var(--workspace-breadcrumbs-height));
+  }
+}
+@media (max-width: 700px) {
+  .workspace-breadcrumbs { padding-inline: 16px; }
 }
 
 .app-header {
@@ -2050,11 +2088,10 @@ a {
   outline: none;
 }
 
-/* Editor chrome palette, ported from the approved editor mockup. Scoped to the
-   shell so the flat, hairline-bordered look stays on /master-resume and does not
-   leak into the dashboard or admin, which keep the glassy portal styling.
-   The CV preview is deliberately excluded — see .resume-editor-preview below. */
-.resume-editor-shell {
+/* Shared workspace palette for the editor, onboarding and Dashboard chrome.
+   The CV renderer owns its separate document tokens. */
+.resume-editor-shell,
+.editor-theme {
   display: grid;
   gap: 1rem;
 
@@ -2082,7 +2119,8 @@ a {
 
 /* Day mode keeps the same flat, hairline structure with inverted surfaces —
    the mockup is dark-only, so these are its light-theme counterparts. */
-:root[data-app-theme="light"] .resume-editor-shell {
+:root[data-app-theme="light"] .resume-editor-shell,
+:root[data-app-theme="light"] .editor-theme {
   --ed-nav-bg: #f4f5f8;
   --ed-nav-hover: #e9ebf1;
   --ed-nav-on: #e2e5ee;
