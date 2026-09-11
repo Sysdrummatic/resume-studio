@@ -26,7 +26,6 @@ const TITLES = {
     "Courses",
     "Interests",
     "Tech stack",
-    "QR codes",
     "GDPR clause",
     "Review your first CV",
     "Ready to share your CV?"
@@ -43,7 +42,6 @@ const TITLES = {
     "Kursy",
     "Zainteresowania",
     "Technologie",
-    "Kody QR",
     "Klauzula RODO",
     "Sprawdź swoje pierwsze CV",
     "Udostępnisz swoje CV?"
