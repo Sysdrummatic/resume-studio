@@ -125,3 +125,16 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   assert.equal(userClient.includes('aria-label="Resume preview"'), true);
   assert.equal(userClient.includes("presetId="), false);
 });
+
+test("CV version actions (Edit selection, Publish, settings menu) render above the CV preview", () => {
+  // ocv-0174: these used to sit below the full inline CV render, which meant
+  // scrolling past the whole CV to reach "Edit selection" or the settings
+  // menu — both should be immediately visible next to "Open CV".
+  const client = read("app/dashboard/dashboard-client.tsx");
+
+  const nextSectionIndex = client.indexOf('<section className="dashboard-next"');
+  const previewIndex = client.indexOf("<PresetPreviewModal");
+  assert.ok(nextSectionIndex > -1, "dashboard-next section not found");
+  assert.ok(previewIndex > -1, "PresetPreviewModal render not found");
+  assert.ok(nextSectionIndex < previewIndex, "actions must render before the CV preview, not after it");
+});
