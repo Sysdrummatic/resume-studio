@@ -10,6 +10,31 @@ Use this checklist for preview and production validation.
 - [ ] `npm test` passes (or environment limitation is documented).
 - [ ] Required Supabase migrations are applied.
 
+## Automated preview smoke
+
+The smoke runner uses the repository's existing Playwright dev dependency. Verify
+it locally before use; do not install a different browser-test package:
+
+```powershell
+npm.cmd ls playwright --depth=0
+$env:PREVIEW_URL = "https://deploy-preview.example.net"
+npm.cmd run smoke:preview
+Remove-Item Env:PREVIEW_URL
+```
+
+You can use `--base=<url>` instead of `PREVIEW_URL`. The base must be an explicit
+HTTP(S) deployment root and cannot contain credentials. Evidence is written to
+`tmp/preview-smoke/` unless `--output=<directory>` is supplied.
+
+The anonymous suite verifies `/`, `/login`, `/privacy`, `/terms`, and `/resume`,
+then confirms that `/dashboard`, `/master-resume`, and `/admin` redirect to
+`/login?reason=signed-out`. It fails on an unexpected final route or status,
+browser/console exceptions, same-origin server errors, and failed same-origin
+resources. Expected aborted Next.js link-prefetch requests are ignored.
+
+This is a deploy smoke gate, not an authenticated E2E suite. It does not prove
+auth delivery, RBAC, RLS, persistence, publication, rollback, or exports.
+
 ## Functional QA (Phase C/D baseline)
 
 1. Auth:
@@ -46,3 +71,5 @@ Use this checklist for preview and production validation.
 - [ ] Validate Netlify deploy serves latest build.
 - [ ] Run smoke checks for `/login`, `/dashboard`, `/admin`, `/master-resume`, `/{person-slug}/{public-id}`.
 - [ ] Capture screenshots/PDF evidence for release notes if needed.
+- [ ] Confirm retired `.html` entry points and redirects were not restored; the
+      canonical application routes are the supported surface.
