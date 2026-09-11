@@ -1,7 +1,7 @@
 import Script from "next/script";
 import UserClient from "./user-client";
 import { requireAdminActor } from "../lib/auth-server";
-import { bootstrapResumeUserLocales, fetchResumeDocumentsForUser, fetchResumePresetsForUser, fetchResumeUserLocalesForUser } from "../lib/resume-server";
+import { bootstrapResumeUserLocales, fetchResumeDocumentsForUser, fetchResumePresetsForUser, fetchResumeUserLocalesForUser, pickMasterResumeDocument } from "../lib/resume-server";
 import "./user.css";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export default async function UserPage() {
   ]);
   const ownedLocaleCodes = new Set(resumeLanguages.map((language) => language.code));
   const ownedDocuments = resumeDocuments.filter((document) => ownedLocaleCodes.has(document.locale));
-  const masterResume = ownedDocuments.find((document) => document.locale === "en") || ownedDocuments[0] || null;
+  const masterResume = pickMasterResumeDocument(ownedDocuments, resumeLanguages);
 
   return (
     <>
