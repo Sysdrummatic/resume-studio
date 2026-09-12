@@ -1067,13 +1067,6 @@ export default function DashboardClient({
                           </small>
                         </div>
                       </li>
-                      <li aria-current={selectedPreset.is_public ? "step" : undefined}>
-                        <span>3</span>
-                        <div>
-                          <strong>Share your CV</strong>
-                          <small>Send the link when ready</small>
-                        </div>
-                      </li>
                     </ol>
                     <div className="dashboard-next__actions">
                       <p>
