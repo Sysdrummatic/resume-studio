@@ -97,3 +97,13 @@ test("add actions sit at the end of each list", () => {
   }
   assert.equal(editor.includes('className="resume-human-editor__add"'), true);
 });
+
+test("GDPR clause has a one-click starting point for both PL and EN wording", () => {
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+
+  assert.equal(editor.includes("const STANDARD_GDPR_CLAUSE ="), true);
+  assert.equal(editor.includes("const STANDARD_GDPR_CLAUSE_EN ="), true);
+  assert.equal(editor.includes("Use standard PL wording"), true);
+  assert.equal(editor.includes("Use standard EN wording"), true);
+  assert.equal(editor.includes("updateGdprClause(STANDARD_GDPR_CLAUSE_EN)"), true);
+});
