@@ -2,30 +2,27 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
 export default function WorkspaceBreadcrumbs({
-  current
+  current,
+  parents = current === "Dashboard"
+    ? [{ label: "Home", href: "/" }]
+    : [{ label: "Home", href: "/" }, { label: "Dashboard", href: "/dashboard" }],
 }: {
-  current: "Dashboard" | "Master Resume";
+  current: string;
+  parents?: ReadonlyArray<{ label: string; href?: string }>;
 }) {
   return (
     <nav className="workspace-breadcrumbs" aria-label="Breadcrumb">
       <ol>
-        <li>
-          <Link href="/">Home</Link>
-        </li>
-        <li>
-          <ChevronRight size={13} aria-hidden="true" />
-          {current === "Dashboard" ? (
-            <span aria-current="page">Dashboard</span>
-          ) : (
-            <Link href="/dashboard">Dashboard</Link>
-          )}
-        </li>
-        {current === "Master Resume" ? (
-          <li>
-            <ChevronRight size={13} aria-hidden="true" />
-            <span aria-current="page">Master Resume</span>
+        {parents.map((parent, index) => (
+          <li key={`${parent.label}-${index}`}>
+            {index > 0 ? <ChevronRight size={13} aria-hidden="true" /> : null}
+            {parent.href ? <Link href={parent.href}>{parent.label}</Link> : <span>{parent.label}</span>}
           </li>
-        ) : null}
+        ))}
+        <li>
+          {parents.length > 0 ? <ChevronRight size={13} aria-hidden="true" /> : null}
+          <span aria-current="page">{current}</span>
+        </li>
       </ol>
     </nav>
   );
