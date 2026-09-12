@@ -125,3 +125,23 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   assert.equal(userClient.includes('aria-label="Resume preview"'), true);
   assert.equal(userClient.includes("presetId="), false);
 });
+
+test("switching to a language version with no content shows a clear message, not a generic error", () => {
+  // ocv-0172: viewing a Saved Version in a language whose Master Resume tab
+  // is still empty used to show "CV preview could not be rendered from the
+  // master resume" — a scary, technical-sounding message for a normal state
+  // (that language just has nothing written yet), and it also removed the
+  // language switcher, trapping the viewer on the broken language.
+  const client = read("app/dashboard/dashboard-client.tsx");
+
+  assert.equal(client.includes('{ status: "ok"; resume: ResumeDocument }'), true);
+  assert.equal(client.includes('{ status: "empty" }'), true);
+  assert.equal(client.includes("has no content in"), true);
+  // The language-switch buttons must still render in the empty/error state,
+  // so the viewer isn't stuck once a switch fails.
+  const fallback = client.slice(
+    client.indexOf('previewResult.status !== "ok" ?'),
+    client.indexOf("</div>\n        ) : (\n          <div ref={previewContainerRef}"),
+  );
+  assert.equal(fallback.includes("setActiveLocale(language.code)"), true);
+});
