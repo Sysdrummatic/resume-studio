@@ -26,13 +26,13 @@ test("the progress axis lists every step and marks only the current step", () =>
 });
 
 test("going back reflects the current position without claiming the guide is complete", () => {
-  assert.match(render(13), /value="87"/);
-  assert.match(render(2), /value="13"/);
-  assert.match(render(14), /value="93"/);
+  assert.match(render(12), /value="86"/);
+  assert.match(render(2), /value="14"/);
+  assert.match(render(13), /value="93"/);
 });
 
 test("completion marks all steps and exposes 100 percent without an active form step", () => {
-  const html = render(14, true);
+  const html = render(13, true);
   assert.equal((html.match(/data-state="complete"/g) ?? []).length, steps.length);
   assert.doesNotMatch(html, /aria-current="step"/);
   assert.match(html, /value="100"/);
