@@ -1,6 +1,6 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-07-11
+**Last Updated:** 2026-09-11
 **Current Phase:** I — Hardening, QA & Launch Readiness
 **Overall Progress:** ~72% (A–F complete; I 60%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; J–O pending)
 
@@ -50,7 +50,8 @@ closes, but has no other hard dependency.
 ## Active Sprint: Phase I — Remaining Items
 
 **Completed:**
-- [x] Local CI gates green (lint / typecheck / test / build — 187 tests ✓)
+- [x] Local CI gates green (lint / typecheck / test / build)
+- [x] Reusable Playwright preview smoke runner for public routes and anonymous protected-route redirects
 - [x] Privacy Policy page, Terms of Service page
 - [x] Self-service account deletion (GDPR Art. 17)
 - [x] Last-admin deletion safeguard (DB trigger + API guard)
