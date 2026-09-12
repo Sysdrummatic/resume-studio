@@ -29,7 +29,7 @@ const TITLES = {
     "QR codes",
     "GDPR clause",
     "Review your first CV",
-    "Ready to share your CV?"
+    "Ready to save your CV?"
   ],
   pl: [
     "Witaj w OpenCiVera",
@@ -46,7 +46,7 @@ const TITLES = {
     "Kody QR",
     "Klauzula RODO",
     "Sprawdź swoje pierwsze CV",
-    "Udostępnisz swoje CV?"
+    "Zapiszesz swoje CV?"
   ]
 };
 
