@@ -1,8 +1,8 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-07-11
-**Current Phase:** I — Hardening, QA & Launch Readiness
-**Overall Progress:** ~72% (A–F complete; I 60%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; J–O pending)
+**Last Updated:** 2026-09-11
+**Current Phase:** I — Hardening, QA & Launch Readiness; K — ATS Intelligence implementation
+**Overall Progress:** ~74% (A–F complete; I 60%; K 70%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; J and L–O pending)
 
 ---
 
@@ -19,7 +19,7 @@
 | G | Community Beta Testing + P0 Security Entry Gate | ⏳ Planned (P0: 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E) | 5% | P0 before beta; program after I |
 | I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jul 2026 |
 | J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
-| K | ATS Intelligence | ⏳ Post-launch | 0% | TBD |
+| K | ATS Intelligence | 🔄 In progress ([#161](https://github.com/Sysdrummatic/resume-studio/issues/161)) | 70% | Sep 2026 |
 | L | Semantic Public Link URL | ⏳ Post-launch | 0% | TBD |
 | M | Security, Privacy & Trust | ⏳ Planned | 0% | Jul–Sep 2026 |
 | N | Professional Identity Platform | ✦ Vision | 0% | 2027+ |

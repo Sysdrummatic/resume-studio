@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import OnboardingClient from "../onboarding/onboarding-client";
 import { firstCvSelection, ONBOARDING_SECTIONS, type OnboardingState } from "../lib/resume-onboarding";
 import { applyResumeSelectionToRawDocument } from "../lib/preset-selection";
@@ -23,6 +23,8 @@ import type { ImportedResumeSections, ResumeImportResult } from "../lib/resume-i
 import { mergeImportedResume } from "../lib/resume-import/merge-imported-resume";
 import EditorSectionNav, { type EditorNavGroup } from "./editor-section-nav";
 import { computeResumeCompletion } from "./resume-completion";
+import { ATSIntelligencePanel } from "../components/ats-intelligence-panel";
+import { analyzeMasterResume, type ATSIntelligenceIssue } from "../lib/ats-intelligence";
 import {
   DEFAULT_RESUME_STYLE,
   type ResumeDensity,
@@ -294,7 +296,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     yamlContent: string;
   } | null>(null);
 
-  const [sidePanelTab, setSidePanelTab] = useState<"preview" | "history" | "style">("preview");
+  const [sidePanelTab, setSidePanelTab] = useState<"preview" | "ats" | "history" | "style">("preview");
   const [activeSectionId, setActiveSectionId] = useState<string>(onboarding ? ONBOARDING_SECTIONS[onboarding.step - 2] ?? "personal" : EDITOR_SECTIONS[0].id);
   // Below 1020px the side panel leaves the grid and opens as a slide-over.
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
@@ -312,6 +314,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   const activeSection = EDITOR_SECTIONS.find((section) => section.id === activeSectionId) ?? EDITOR_SECTIONS[0];
   const activeSectionCount = activeSection.countField ? resume[activeSection.countField].length : null;
   const completion = computeResumeCompletion(resume);
+  const atsInsights = useMemo(() => analyzeMasterResume(resume), [resume]);
   const navGroups: EditorNavGroup[] = EDITOR_SECTION_GROUPS.map((group) => ({
     label: group.label,
     numbered: group.numbered,
@@ -325,6 +328,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   const nextSectionLabel = completion.next
     ? EDITOR_SECTIONS.find((section) => section.id === completion.next?.id)?.label
     : null;
+
+  function handleAtsIssueSelect(issue: ATSIntelligenceIssue) {
+    const section = EDITOR_SECTIONS.find((candidate) => candidate.yamlKey === issue.field);
+    if (!section) return;
+    setEditorTab("human");
+    setActiveSectionId(section.id);
+  }
 
   // Local-only autosave safety net (localStorage, keyed by locale). This is
   // deliberately NOT a server autosave: every /api/resume/publish call
@@ -1323,6 +1333,15 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 <button
                   type="button"
                   role="tab"
+                  aria-selected={sidePanelTab === "ats"}
+                  className={`resume-editor-tabs__tab ${sidePanelTab === "ats" ? "is-active" : ""}`}
+                  onClick={() => setSidePanelTab("ats")}
+                >
+                  ATS {atsInsights.readinessScore}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
                   aria-selected={sidePanelTab === "preview"}
                   className={`resume-editor-tabs__tab ${sidePanelTab === "preview" ? "is-active" : ""}`}
                   onClick={() => setSidePanelTab("preview")}
@@ -1406,6 +1425,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 )}
               </div>
               </>
+            ) : sidePanelTab === "ats" ? (
+              <ATSIntelligencePanel mode="master" analysis={atsInsights} onIssueSelect={handleAtsIssueSelect} />
             ) : sidePanelTab === "style" ? (
               <div className="resume-editor-style-panel">
                 <label className="resume-editor-style-select">

@@ -16,6 +16,8 @@ import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
+import { ATSIntelligencePanel } from "../components/ats-intelligence-panel";
+import { analyzeResumeForAts, getATSScoreBand } from "../lib/ats-intelligence";
 
 type Props = {
   masterResume: ResumeDocumentRow | null;
@@ -333,6 +335,7 @@ function PresetPreviewModal({
     ? preset.default_locale
     : masterResume.locale;
   const [activeLocale, setActiveLocale] = useState<ResumeLocale>(initialLocale);
+  const [jobDescription, setJobDescription] = useState("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const activeDocument =
     availableDocuments.find((document) => document.locale === activeLocale) ||
@@ -340,6 +343,7 @@ function PresetPreviewModal({
     masterResume;
   const publicLink = parseCanonicalPublicPath(preset.canonical_public_path);
   const previewResume = buildPresetResumeDocument(activeDocument.yaml_content, preset.selection);
+  const atsAnalysis = previewResume ? analyzeResumeForAts(previewResume, jobDescription) : null;
   const cvLanguages = buildLanguageOptions(availableDocuments, languages);
 
   return (
@@ -352,21 +356,29 @@ function PresetPreviewModal({
             Close
           </button>
         </div>
-        {previewResume ? (
-          <div ref={previewContainerRef} className="dashboard-preset-preview">
-            <BasicResumeDocument
-              locale={activeDocument.locale}
-              resume={previewResume}
-              languages={cvLanguages}
-              onLanguageSelect={setActiveLocale}
-              status={preset.is_public ? "public" : "draft"}
-              aiGenerated={preset.ai_generated}
-              mode="public"
-              personSlug={publicLink?.personSlug}
-              publicId={publicLink?.publicId}
-              draftPdfEnabled={draftPdfEnabled}
-              scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
+        {previewResume && atsAnalysis ? (
+          <div className="dashboard-preset-intelligence-layout">
+            <ATSIntelligencePanel
+              mode="saved-version"
+              analysis={atsAnalysis}
+              jobDescription={jobDescription}
+              onJobDescriptionChange={setJobDescription}
             />
+            <div ref={previewContainerRef} className="dashboard-preset-preview">
+              <BasicResumeDocument
+                locale={activeDocument.locale}
+                resume={previewResume}
+                languages={cvLanguages}
+                onLanguageSelect={setActiveLocale}
+                status={preset.is_public ? "public" : "draft"}
+                aiGenerated={preset.ai_generated}
+                mode="public"
+                personSlug={publicLink?.personSlug}
+                publicId={publicLink?.publicId}
+                draftPdfEnabled={draftPdfEnabled}
+                scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
+              />
+            </div>
           </div>
         ) : (
           <p className="status status--error">CV preview could not be rendered from the master resume.</p>
@@ -498,6 +510,16 @@ export default function DashboardClient({
   const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
   const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
   const localeSummary = formatCountLabel(languageVersions.length, "language version");
+  const presetAtsScores = useMemo(() => {
+    if (!masterResume || options.length === 0) return new Map<string, number>();
+    return new Map(
+      presets.flatMap((preset) => {
+        const sourceDocument = documents.find((document) => document.locale === preset.default_locale) || masterResume;
+        const document = buildPresetResumeDocument(sourceDocument.yaml_content, preset.selection);
+        return document ? [[preset.id, analyzeResumeForAts(document).score] as const] : [];
+      }),
+    );
+  }, [documents, masterResume, options, presets]);
 
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
@@ -801,6 +823,14 @@ export default function DashboardClient({
                   </div>
                 </div>
                 <div className="dashboard-resume-list__badges">
+                  {presetAtsScores.has(preset.id) ? (
+                    <span
+                      className="dashboard-resume-list__badge dashboard-resume-list__badge--ats"
+                      data-band={getATSScoreBand(presetAtsScores.get(preset.id) || 0)}
+                    >
+                      ATS {presetAtsScores.get(preset.id)}
+                    </span>
+                  ) : null}
                   <span className={`dashboard-resume-list__badge ${preset.is_public ? "" : "dashboard-resume-list__badge--private"}`}>
                     {preset.is_public ? "Published" : "Private"}
                   </span>
