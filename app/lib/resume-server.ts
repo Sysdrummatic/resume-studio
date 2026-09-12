@@ -970,6 +970,25 @@ export async function fetchResumeLanguageVersionsForUser(userId: string): Promis
   }));
 }
 
+// The "master resume" is whichever document the user actually marked as
+// their default locale (resume_user_locales.is_default) — not a hardcoded
+// "en", which silently picked an empty English stub over a fully filled PL
+// document for PL-first accounts (ocv-0177: this broke Create CV Version,
+// the ATS score, and language switching, since every one of them treats
+// this document as the source of truth for section options/selection).
+export function pickMasterResumeDocument(
+  documents: ResumeDocumentRow[],
+  languages: Pick<ResumeUserLocaleRow, "code" | "is_default">[],
+): ResumeDocumentRow | null {
+  const defaultLocaleCode = languages.find((language) => language.is_default)?.code;
+  return (
+    documents.find((document) => document.locale === defaultLocaleCode) ||
+    documents.find((document) => document.locale === "en") ||
+    documents[0] ||
+    null
+  );
+}
+
 export function buildResumeDocumentFromPreset(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
   return buildPublishedResumeDocument(yamlContent, selection);
 }
