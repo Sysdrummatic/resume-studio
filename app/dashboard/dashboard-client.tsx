@@ -16,6 +16,15 @@ import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
+import { FileText, LockKeyhole, Plus, Search, Check, ArrowUpRight } from "lucide-react";
+import { normalizeResumeStyle } from "../lib/resume-style";
+import {
+  summarizeMasterResume,
+  filterDashboardPresets,
+  getSelectedDashboardPreset,
+  type DashboardFilter,
+} from "./dashboard-model";
+import "./dashboard.css";
 
 type Props = {
   masterResume: ResumeDocumentRow | null;
@@ -103,9 +112,7 @@ function getDefaultSummaryIndex(summary: unknown) {
   return index >= 0 ? index : 0;
 }
 
-function buildPresetOptions(yamlContent: string): PresetOption[] {
-  if (!yamlContent || !window.jsyaml) return [];
-  const parsed = asObject(window.jsyaml.load(yamlContent));
+function buildPresetOptionsFromDocument(parsed: Record<string, unknown>): PresetOption[] {
   return (Object.keys(OPTION_LABELS) as PresetOptionKey[]).map((key) => ({
     key,
     label: OPTION_LABELS[key],
@@ -320,6 +327,7 @@ function PresetPreviewModal({
   preset,
   draftPdfEnabled = true,
   onClose,
+  inline = false,
 }: {
   masterResume: ResumeDocumentRow;
   documents: ResumeDocumentRow[];
@@ -327,8 +335,9 @@ function PresetPreviewModal({
   preset: ResumePresetRow;
   draftPdfEnabled?: boolean;
   onClose: () => void;
+  inline?: boolean;
 }) {
-  const availableDocuments = documents.length ? documents : [masterResume];
+  const availableDocuments = useMemo(() => (documents.length ? documents : [masterResume]), [documents, masterResume]);
   const initialLocale = availableDocuments.some((document) => document.locale === preset.default_locale)
     ? preset.default_locale
     : masterResume.locale;
@@ -339,19 +348,45 @@ function PresetPreviewModal({
     availableDocuments.find((document) => document.locale === masterResume.locale) ||
     masterResume;
   const publicLink = parseCanonicalPublicPath(preset.canonical_public_path);
-  const previewResume = buildPresetResumeDocument(activeDocument.yaml_content, preset.selection);
-  const cvLanguages = buildLanguageOptions(availableDocuments, languages);
+  const previewResume = useMemo(
+    () => buildPresetResumeDocument(activeDocument.yaml_content, preset.selection),
+    [activeDocument.yaml_content, preset.selection],
+  );
+  const cvLanguages = useMemo(
+    () => buildLanguageOptions(availableDocuments, languages),
+    [availableDocuments, languages],
+  );
+  const cvStyle = normalizeResumeStyle(activeDocument.style_settings);
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="CV Version CV preview">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close CV preview"></button>
-      <div className="dashboard-modal__body dashboard-modal__body--preview">
+    <div
+      className={inline ? "dashboard-library-preview" : "dashboard-modal"}
+      role={inline ? undefined : "dialog"}
+      aria-modal={inline ? undefined : true}
+      aria-label="CV Version CV preview"
+    >
+      {!inline ? (
+        <button
+          type="button"
+          className="dashboard-modal__backdrop"
+          onClick={onClose}
+          aria-label="Close CV preview"
+        ></button>
+      ) : null}
+      <div
+        className={inline ? "dashboard-library-preview__body" : "dashboard-modal__body dashboard-modal__body--preview"}
+      >
         <div className="section-row">
           <h2>{preset.title}</h2>
           <button type="button" className="button button--ghost button--small" onClick={onClose}>
-            Close
+            {inline ? "Open CV" : "Close"}
           </button>
         </div>
+        {inline ? (
+          <p className="dashboard-library-preview__note">
+            Selected content from your current Master Resume. Published links and exports use the last publication.
+          </p>
+        ) : null}
         {previewResume ? (
           <div ref={previewContainerRef} className="dashboard-preset-preview">
             <BasicResumeDocument
@@ -365,6 +400,7 @@ function PresetPreviewModal({
               personSlug={publicLink?.personSlug}
               publicId={publicLink?.publicId}
               draftPdfEnabled={draftPdfEnabled}
+              cvStyle={cvStyle}
               scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
             />
           </div>
@@ -474,6 +510,12 @@ export default function DashboardClient({
   const importFileInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingImport, setPendingImport] = useState<{ fileName: string; yamlContent: string } | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<DashboardFilter>("all");
+  const [yamlReady, setYamlReady] = useState(false);
+  const [documentError, setDocumentError] = useState("");
+  const [masterSummary, setMasterSummary] = useState<ReturnType<typeof summarizeMasterResume> | null>(null);
   const documents = initialDocuments;
   const languageVersions = languageOptions;
 
@@ -483,7 +525,19 @@ export default function DashboardClient({
     const timer = window.setInterval(() => {
       if (window.jsyaml || retries > 30) {
         window.clearInterval(timer);
-        setOptions(buildPresetOptions(masterResume.yaml_content));
+        const ready = Boolean(window.jsyaml);
+        setYamlReady(ready);
+        if (!ready) {
+          setDocumentError("The document reader could not load. Reload the page to try again.");
+          return;
+        }
+        try {
+          const parsed = asObject(window.jsyaml.load(masterResume.yaml_content));
+          setOptions(buildPresetOptionsFromDocument(parsed));
+          setMasterSummary(summarizeMasterResume(normalizeResumeDocument(parsed, "")));
+        } catch {
+          setDocumentError("Your Master Resume could not be read. Open the editor to review it.");
+        }
       }
       retries += 1;
     }, 100);
@@ -498,6 +552,13 @@ export default function DashboardClient({
   const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
   const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
   const localeSummary = formatCountLabel(languageVersions.length, "language version");
+  const visiblePresets = filterDashboardPresets(presets, search, filter);
+  const selectedPreset = getSelectedDashboardPreset(visiblePresets, selectedPresetId);
+
+  function openCreatePreset() {
+    setActivePreset(null);
+    setIsModalOpen(true);
+  }
 
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
@@ -521,6 +582,9 @@ export default function DashboardClient({
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
+    setSelectedPresetId(result.preset.id);
+    setSearch("");
+    setFilter("all");
     showToast("CV Version saved.");
     setIsModalOpen(false);
     setActivePreset(null);
@@ -549,6 +613,9 @@ export default function DashboardClient({
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
+    setSelectedPresetId(result.preset.id);
+    setSearch("");
+    setFilter("all");
     setPublishDraft(null);
     showToast("CV Version published.");
   }
@@ -563,6 +630,9 @@ export default function DashboardClient({
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
+    setSelectedPresetId(result.preset.id);
+    setSearch("");
+    setFilter("all");
     showToast("CV Version unpublished.");
   }
 
@@ -678,32 +748,45 @@ export default function DashboardClient({
   const modalOptions = useMemo(() => options, [options]);
 
   return (
-    <div className="stack">
+    <div className="dashboard-workspace">
       <StatusToast toast={toast} onClose={closeToast} />
+      <header className="dashboard-workspace__heading">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Your experience in one place. A CV for every opportunity.</p>
+        </div>
+        <button
+          type="button"
+          className="button button--primary"
+          onClick={openCreatePreset}
+          disabled={!hasMasterResume || !yamlReady}
+          title={!hasMasterResume ? "Create your master resume first." : undefined}
+        >
+          <Plus size={16} aria-hidden="true" /> Create CV version
+        </button>
+      </header>
 
-      <section className="card dashboard-panel stack">
-        <div className="dashboard-panel__header">
-          <div className="dashboard-panel__heading stack">
-            <div className="product-surface__eyebrow">Source record</div>
-            <h2 className="dashboard-panel__title">Master Resume</h2>
-            <p className="dashboard-panel__lead">Start in the master resume when content changes. Create CV versions here only when you need a new public combination of sections, locale, and publish state.</p>
+      <section className="dashboard-master" aria-labelledby="dashboard-master-title">
+        <div className="dashboard-master__main">
+          <div className="dashboard-master__title">
+            <span className="dashboard-document-icon">
+              <FileText size={22} aria-hidden="true" />
+            </span>
+            <div>
+              <h2 id="dashboard-master-title">
+                Master Resume{" "}
+                <span className="dashboard-state">
+                  <LockKeyhole size={12} aria-hidden="true" /> Private
+                </span>
+              </h2>
+              <p>{hasMasterResume ? `Saved ${latestMasterUpdate}` : "Start your career story here."}</p>
+            </div>
           </div>
-          <div className="dashboard-panel__toolbar actions-row">
+          <p>All your experience. One source for your tailored CVs.</p>
+          <div className="actions-row">
             <Link className="button button--primary" href="/master-resume">
               Edit master resume
             </Link>
-            <button
-              type="button"
-              className="button button--ghost"
-              onClick={() => {
-                setActivePreset(null);
-                setIsModalOpen(true);
-              }}
-              disabled={!hasMasterResume}
-              title={hasMasterResume ? undefined : "Create your master resume first, then come back to add a CV version."}
-            >
-              Create CV version
-            </button>
             {dataTransferEnabled ? (
               <>
                 <button
@@ -734,110 +817,310 @@ export default function DashboardClient({
             ) : null}
           </div>
         </div>
-
-        <div className="dashboard-source-copy stack">
-          <div className="dashboard-source-meta">
-            {hasMasterResume && (
-              <div className="dashboard-source-meta__row">
-                <span className="dashboard-resume-list__badge">MasterCV Saved</span>
-                <span className="dashboard-chip">{localeSummary}</span>
-                <span className="dashboard-chip">Edited {latestMasterUpdate}</span>
-              </div>
-            )}
+        <div className="dashboard-master__completion">
+          <div>
+            <span>Master Resume completion</span>
+            <strong>{masterSummary ? `${masterSummary.completion.percent}%` : hasMasterResume ? "—" : "0%"}</strong>
           </div>
+          {masterSummary || !hasMasterResume ? (
+            <progress aria-label="Master Resume completion" max={100} value={masterSummary?.completion.percent ?? 0} />
+          ) : (
+            <p>Reading your saved content…</p>
+          )}
+          <p>
+            {masterSummary
+              ? `${Object.values(masterSummary.completion.statuses).filter((status) => status === "ok").length} of ${Object.keys(masterSummary.completion.statuses).length} sections have content.`
+              : "Add your details to build your Master Resume."}
+          </p>
+          <Link href="/master-resume" className="dashboard-text-link">
+            {masterSummary?.completion.next ? "Continue editing" : "Review your content"}
+            <ArrowUpRight size={14} aria-hidden="true" />
+          </Link>
         </div>
+        {documentError ? (
+          <p className="status status--error" role="alert">
+            {documentError}
+          </p>
+        ) : null}
+        <dl className="dashboard-master__stats" aria-label="Master Resume content statistics">
+          {(
+            [
+              ["Professional roles", masterSummary?.counts.roles, "Profile variants"],
+              ["Experience entries", masterSummary?.counts.experience, "Employment history"],
+              ["Skills", masterSummary?.counts.skills, "Available for your CVs"],
+              ["Courses", masterSummary?.counts.courses, "Courses and certificates"],
+              ["CV languages", languageVersions.length, localeSummary],
+            ] as const
+          ).map(([label, count, note]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{count ?? (hasMasterResume ? "—" : 0)}</dd>
+              <small>{note}</small>
+            </div>
+          ))}
+        </dl>
+        {masterResume ? (
+          <p className="dashboard-master__stats-note">
+            Content counts: {masterResume.locale.toUpperCase()} Master Resume. Translations are counted separately under
+            CV languages.
+          </p>
+        ) : null}
       </section>
 
-      <section className="card dashboard-panel stack">
-        <div className="dashboard-panel__header">
-          <div className="dashboard-panel__heading stack">
-            <div className="product-surface__eyebrow">Public surfaces</div>
-            <h2 className="dashboard-panel__title">Your CVs</h2>
-            <p className="dashboard-panel__lead">Manage private drafts, published links, and snapshot exports from one list.</p>
-          </div>
-          <div className="dashboard-panel__chips" aria-label="CV version state summary">
-            <span className="dashboard-chip">{presets.length} total</span>
-            <span className="dashboard-chip">{publishedPresetCount} published</span>
-            <span className="dashboard-chip">{privatePresetCount} private</span>
-          </div>
+      <section aria-labelledby="dashboard-library-title">
+        <div className="dashboard-library-heading">
+          <h2 id="dashboard-library-title">Your CVs</h2>
+          <p>
+            <strong>{presets.length}</strong> versions <span>·</span> <strong>{publishedPresetCount}</strong> public{" "}
+            <span>·</span> <strong>{privatePresetCount}</strong> private
+          </p>
         </div>
         {presets.length === 0 ? (
           <div className="dashboard-empty-state">
+            <h3>{hasMasterResume ? "No CV versions yet" : "Start with your master resume"}</h3>
+            <p>
+              {hasMasterResume
+                ? "Choose content from your Master Resume to create your first tailored CV."
+                : "Add your experience, then create a version to share."}
+            </p>
             {hasMasterResume ? (
-              <>
-                <h3>No CV versions yet</h3>
-                <p>Create the first public variant from the master resume, then publish locale-specific output from here.</p>
-                <button
-                  type="button"
-                  className="button button--primary"
-                  onClick={() => {
-                    setActivePreset(null);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  Create CV version
-                </button>
-              </>
+              <button type="button" className="button button--primary" onClick={openCreatePreset} disabled={!yamlReady}>
+                Create CV version
+              </button>
             ) : (
-              <>
-                <h3>Start with your master resume</h3>
-                <p>CV versions are published combinations of your master resume. Fill it in first, then come back to create one.</p>
-                <Link className="button button--primary" href="/master-resume">
-                  Edit master resume
-                </Link>
-              </>
+              <Link className="button button--primary" href="/master-resume">
+                Edit master resume
+              </Link>
             )}
           </div>
         ) : (
-          <ul className="dashboard-resume-list">
-            {presets.map((preset) => (
-              <li key={preset.id}>
-                <div className="dashboard-resume-list__main">
-                  <div className="dashboard-resume-list__header">
-                    <div className="dashboard-resume-list__title-group">
-                      <strong className="dashboard-resume-list__title">{preset.title}</strong>
-                      <p className="dashboard-resume-list__description">Updated {new Date(preset.updated_at).toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="dashboard-resume-list__badges">
-                  <span className={`dashboard-resume-list__badge ${preset.is_public ? "" : "dashboard-resume-list__badge--private"}`}>
-                    {preset.is_public ? "Published" : "Private"}
-                  </span>
-                  <span className={`dashboard-resume-list__badge ${preset.allow_indexing ? "" : "dashboard-resume-list__badge--private"}`}>
-                    {preset.allow_indexing ? "Indexable" : "Noindex"}
-                  </span>
-                </div>
-                <div className="dashboard-resume-list__actions">
-                  {preset.onboarding_test_run_id ? <Link className="button button--primary button--small" href={preset.canonical_public_path || `/onboarding/test-cv/${preset.onboarding_test_run_id}`} target="_blank" rel="noopener noreferrer">Open test CV</Link> : <button type="button" className="button button--primary button--small" onClick={() => setPreviewPreset(preset)}>
-                    Open CV
-                  </button>}
-                  {preset.is_public ? (
-                    <button type="button" className="button button--ghost button--small" onClick={() => copyPublicLink(preset)}>
-                      Copy link
-                    </button>
-                  ) : null}
-                  <PresetActionsMenu
-                    preset={preset}
-                    onEdit={() => {
-                      setActivePreset(preset);
-                      setIsModalOpen(true);
-                    }}
-                    onTogglePublish={() => {
-                      if (preset.is_public) {
-                        void unpublishPreset(preset);
-                      } else {
-                        openPublishSavedVersion(preset);
-                      }
-                    }}
-                    onExportText={() => exportText(preset)}
-                    onExportPdf={() => exportPdf(preset)}
-                    onDelete={() => setConfirmDeletePreset(preset)}
+          <div className="dashboard-library">
+            <div className="dashboard-library__list">
+              <div className="dashboard-library__filters">
+                <label className="dashboard-search">
+                  <Search size={16} aria-hidden="true" />
+                  <input
+                    type="search"
+                    aria-label="Search CV versions"
+                    placeholder="Search CV versions…"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
                   />
+                </label>
+                <div className="dashboard-filter" role="group" aria-label="Filter CV versions">
+                  {(
+                    [
+                      ["all", "All"],
+                      ["public", "Public"],
+                      ["private", "Private"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>
+                      {label}
+                    </button>
+                  ))}
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+              {visiblePresets.length ? (
+                <ul className="dashboard-library-items" aria-label="Saved CV versions">
+                  {visiblePresets.map((preset) => (
+                    <li key={preset.id}>
+                      <button
+                        type="button"
+                        className={`dashboard-library-item${selectedPreset?.id === preset.id ? " is-selected" : ""}`}
+                        aria-pressed={selectedPreset?.id === preset.id}
+                        onClick={() => setSelectedPresetId(preset.id)}
+                      >
+                        <span className="dashboard-document-icon">
+                          <FileText size={25} aria-hidden="true" />
+                        </span>
+                        <span className="dashboard-library-item__content">
+                          <strong>{preset.title}</strong>
+                          <small>Updated {new Date(preset.updated_at).toLocaleDateString()}</small>
+                          <span className="dashboard-library-item__badges">
+                            <span className={`dashboard-state${preset.is_public ? " dashboard-state--public" : ""}`}>
+                              {preset.is_public ? "Published" : "Private"}
+                            </span>
+                            <span className="dashboard-state">{preset.default_locale.toUpperCase()}</span>
+                            {preset.onboarding_test_run_id ? <span className="dashboard-state">Test</span> : null}
+                          </span>
+                          <small>{preset.allow_indexing ? "Indexable" : "Noindex"}</small>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="dashboard-library-empty">
+                  <p>No matching CVs.</p>
+                  <button
+                    type="button"
+                    className="button button--ghost"
+                    onClick={() => {
+                      setSearch("");
+                      setFilter("all");
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+              <div className="dashboard-library__create">
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={openCreatePreset}
+                  disabled={!hasMasterResume || !yamlReady}
+                >
+                  <Plus size={15} aria-hidden="true" /> Create CV version
+                </button>
+              </div>
+            </div>
+            <div className="dashboard-library__detail">
+              {selectedPreset ? (
+                <>
+                  {selectedPreset.onboarding_test_run_id ? (
+                    <div className="dashboard-test-preview">
+                      <FileText size={40} aria-hidden="true" />
+                      <h3>{selectedPreset.title}</h3>
+                      <p>This CV uses a separate onboarding test draft.</p>
+                      <Link
+                        className="button button--primary"
+                        href={
+                          selectedPreset.canonical_public_path ||
+                          `/onboarding/test-cv/${selectedPreset.onboarding_test_run_id}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Open test CV
+                      </Link>
+                    </div>
+                  ) : masterResume && yamlReady ? (
+                    <PresetPreviewModal
+                      key={selectedPreset.id}
+                      inline
+                      masterResume={masterResume}
+                      documents={documents}
+                      languages={languageVersions}
+                      preset={selectedPreset}
+                      draftPdfEnabled={draftPdfEnabled}
+                      onClose={() => setPreviewPreset(selectedPreset)}
+                    />
+                  ) : (
+                    <p className="dashboard-library-empty">
+                      {documentError ||
+                        (masterResume
+                          ? "Loading CV preview…"
+                          : "Open your Master Resume to add content for this version.")}
+                    </p>
+                  )}
+                  <section className="dashboard-next" aria-label="Next steps for selected CV">
+                    <div className="dashboard-next__heading">
+                      <div>
+                        <h3>What can you do next?</h3>
+                        <p>
+                          {selectedPreset.is_public
+                            ? "Share the published CV, or review your selection before publishing it again."
+                            : "Review this version, then choose which languages to publish."}
+                        </p>
+                      </div>
+                      <PresetActionsMenu
+                        preset={selectedPreset}
+                        onEdit={() => {
+                          setActivePreset(selectedPreset);
+                          setIsModalOpen(true);
+                        }}
+                        onTogglePublish={() => {
+                          if (selectedPreset.is_public) {
+                            void unpublishPreset(selectedPreset);
+                          } else {
+                            openPublishSavedVersion(selectedPreset);
+                          }
+                        }}
+                        onExportText={() => exportText(selectedPreset)}
+                        onExportPdf={() => exportPdf(selectedPreset)}
+                        onDelete={() => setConfirmDeletePreset(selectedPreset)}
+                      />
+                    </div>
+                    <ol className="dashboard-next__steps">
+                      <li data-complete="true">
+                        <span>
+                          <Check size={13} aria-hidden="true" />
+                        </span>
+                        <div>
+                          <strong>Choose content</strong>
+                          <small>Your saved selection</small>
+                        </div>
+                      </li>
+                      <li
+                        data-complete={selectedPreset.is_public}
+                        aria-current={selectedPreset.is_public ? undefined : "step"}
+                      >
+                        <span>{selectedPreset.is_public ? <Check size={13} aria-hidden="true" /> : "2"}</span>
+                        <div>
+                          <strong>{selectedPreset.is_public ? "Published" : "Review and publish"}</strong>
+                          <small>
+                            {selectedPreset.is_public
+                              ? "A public link is available"
+                              : "Check the content and languages"}
+                          </small>
+                        </div>
+                      </li>
+                      <li aria-current={selectedPreset.is_public ? "step" : undefined}>
+                        <span>3</span>
+                        <div>
+                          <strong>Share your CV</strong>
+                          <small>Send the link when ready</small>
+                        </div>
+                      </li>
+                    </ol>
+                    <div className="dashboard-next__actions">
+                      <p>
+                        <LockKeyhole size={13} aria-hidden="true" /> Your Master Resume stays private.
+                      </p>
+                      <div className="actions-row">
+                        {!selectedPreset.onboarding_test_run_id ? (
+                          <button
+                            type="button"
+                            className="button button--ghost"
+                            disabled={!hasMasterResume || !yamlReady}
+                            onClick={() => {
+                              setActivePreset(selectedPreset);
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            Edit selection
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={`button ${selectedPreset.is_public ? "button--ghost" : "button--primary"}`}
+                          onClick={() => openPublishSavedVersion(selectedPreset)}
+                        >
+                          {selectedPreset.is_public ? "Publish again" : "Publish"}
+                        </button>
+                        {selectedPreset.is_public ? (
+                          <button
+                            type="button"
+                            className="button button--primary"
+                            onClick={() => copyPublicLink(selectedPreset)}
+                          >
+                            Copy link
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </section>
+                </>
+              ) : (
+                <div className="dashboard-library-empty">
+                  <h3>No CV selected</h3>
+                  <p>Choose a version from the library or clear the filters.</p>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </section>
 
@@ -894,7 +1177,12 @@ export default function DashboardClient({
               <button type="button" className="button" onClick={() => setPendingImport(null)}>
                 Cancel
               </button>
-              <button type="button" className="button button--danger" disabled={isImporting} onClick={() => void importUserData()}>
+              <button
+                type="button"
+                className="button button--danger"
+                disabled={isImporting}
+                onClick={() => void importUserData()}
+              >
                 {isImporting ? "Importing..." : "Import and replace"}
               </button>
             </div>
@@ -931,13 +1219,16 @@ export default function DashboardClient({
       {publishDraft ? (
         <PublishSavedVersionModal
           draft={publishDraft}
-          locales={publishDraft.preset.onboarding_test_run_id ? [publishDraft.preset.default_locale] : Array.from(new Set(publishableLocales))}
+          locales={
+            publishDraft.preset.onboarding_test_run_id
+              ? [publishDraft.preset.default_locale]
+              : Array.from(new Set(publishableLocales))
+          }
           languageOptions={languageVersions}
           onClose={() => setPublishDraft(null)}
           onPublish={publishPreset}
         />
       ) : null}
-
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import OnboardingClient from "../onboarding/onboarding-client";
+import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
 import { firstCvSelection, ONBOARDING_SECTIONS, type OnboardingState } from "../lib/resume-onboarding";
 import { applyResumeSelectionToRawDocument } from "../lib/preset-selection";
 import { normalizeResumeDocument } from "../lib/resume-schema";
@@ -1085,6 +1086,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
 
   return (
     <section className="resume-editor-shell wide-shell-page">
+      <WorkspaceBreadcrumbs current="Master Resume" />
       <StatusToast toast={toast} onClose={closeToast} />
       <LanguageVersionModal
         isOpen={isLanguageModalOpen}

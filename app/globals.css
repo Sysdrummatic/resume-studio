@@ -15,6 +15,7 @@
   color-scheme: dark;
   --app-theme: dark;
   --app-header-height: 56px;
+  --workspace-breadcrumbs-height: 42px;
   --app-theme-transition-duration: 200ms;
   --app-theme-transition-easing: ease;
 
@@ -590,6 +591,43 @@ a {
   padding: 0;
 }
 
+.workspace-breadcrumbs {
+  display: flex;
+  align-items: center;
+  min-height: var(--workspace-breadcrumbs-height);
+  padding: 8px 26px;
+  border-bottom: 1px solid var(--ed-line);
+  background: var(--ed-nav-bg);
+  color: var(--ed-t2);
+  font: 12px/1.5 var(--font-body);
+}
+.workspace-breadcrumbs ol,
+.workspace-breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.workspace-breadcrumbs ol { flex-wrap: wrap; }
+.workspace-breadcrumbs a { color: inherit; text-decoration: none; }
+.workspace-breadcrumbs a:hover { color: var(--ed-t1); text-decoration: underline; }
+.workspace-breadcrumbs a:focus-visible { outline: 2px solid var(--ed-accent); outline-offset: 3px; }
+.workspace-breadcrumbs [aria-current="page"] { color: var(--ed-t1); }
+.resume-editor-shell:has(> .workspace-breadcrumbs) { gap: 0; }
+.resume-editor-shell:has(> .workspace-breadcrumbs) .resume-editor-layout {
+  min-height: calc(100dvh - var(--app-header-height) - var(--workspace-breadcrumbs-height));
+}
+@media (min-width: 761px) {
+  .resume-editor-shell:has(> .workspace-breadcrumbs) .resume-editor-layout {
+    height: calc(100dvh - var(--app-header-height) - var(--workspace-breadcrumbs-height));
+  }
+}
+@media (max-width: 700px) {
+  .workspace-breadcrumbs { padding-inline: 16px; }
+}
+
 .app-header {
   position: sticky;
   top: 0;
@@ -1160,159 +1198,6 @@ a {
 .stack {
   display: grid;
   gap: 1rem;
-}
-
-.docs-shell {
-  display: grid;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.docs-shell:not(.docs-shell--compact) {
-  grid-template-columns: 15rem minmax(0, 1fr) auto;
-}
-
-@media (min-width: 600px) {
-  /* .app-main drops its top padding at this breakpoint (relies on each page's
-     own hero spacing); docs pages have none, so restore it here. */
-  .docs-shell {
-    padding-top: 1.5rem;
-  }
-}
-
-.docs-shell__sidebar,
-.docs-shell__rail {
-  position: sticky;
-  top: 1.5rem;
-}
-
-.docs-shell__rail {
-  width: 13rem;
-}
-
-.docs-shell__mobile-nav {
-  display: grid;
-  gap: 1rem;
-  justify-items: start;
-}
-
-.docs-shell__nav {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.docs-shell__group {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.docs-shell__group-title {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.docs-shell__nav-link {
-  position: relative;
-  width: fit-content;
-  color: var(--muted);
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: color 160ms ease-out;
-}
-
-.docs-shell__nav-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.15rem;
-  height: 1px;
-  background: rgba(94, 106, 210, 0.4);
-  opacity: 0;
-  transition: opacity 160ms ease-out;
-}
-
-.docs-shell__nav-link:hover,
-.docs-shell__nav-link--active {
-  color: var(--text);
-}
-
-.docs-shell__nav-link:hover::after,
-.docs-shell__nav-link:focus-visible::after,
-.docs-shell__nav-link--active::after {
-  opacity: 1;
-}
-
-.docs-shell__toc {
-  display: grid;
-  gap: 0.4rem;
-  margin: 0.5rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.docs-shell__toc-item--nested {
-  padding-left: 0.85rem;
-}
-
-.docs-shell__content a {
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.docs-shell__content a:hover,
-.docs-shell__content a:focus-visible {
-  color: var(--accent);
-}
-
-.docs-callout {
-  padding: 0.85rem 1rem;
-  margin: 1rem 0;
-  border: 1px solid;
-  border-radius: var(--radius-md, 0.5rem);
-}
-
-.docs-callout > :first-child {
-  margin-top: 0;
-}
-
-.docs-callout > :last-child {
-  margin-bottom: 0;
-}
-
-.docs-callout--info {
-  background: var(--portal-info-bg);
-  border-color: var(--portal-info-border);
-  color: var(--portal-info-text);
-}
-
-.docs-callout--warning {
-  background: var(--portal-warning-bg);
-  border-color: var(--portal-warning-border);
-  color: var(--portal-warning-text);
-}
-
-.docs-callout--tip {
-  background: var(--portal-success-bg);
-  border-color: var(--portal-success-border);
-  color: var(--portal-success-text);
-}
-
-.docs-callout--danger {
-  background: var(--portal-danger-bg);
-  border-color: var(--portal-danger-border);
-  color: var(--portal-danger-text);
-}
-
-.docs-shell__content img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
 }
 
 .card-header {
@@ -2050,11 +1935,10 @@ a {
   outline: none;
 }
 
-/* Editor chrome palette, ported from the approved editor mockup. Scoped to the
-   shell so the flat, hairline-bordered look stays on /master-resume and does not
-   leak into the dashboard or admin, which keep the glassy portal styling.
-   The CV preview is deliberately excluded — see .resume-editor-preview below. */
-.resume-editor-shell {
+/* Shared workspace palette for the editor, onboarding and Dashboard chrome.
+   The CV renderer owns its separate document tokens. */
+.resume-editor-shell,
+.editor-theme {
   display: grid;
   gap: 1rem;
 
@@ -2082,7 +1966,8 @@ a {
 
 /* Day mode keeps the same flat, hairline structure with inverted surfaces —
    the mockup is dark-only, so these are its light-theme counterparts. */
-:root[data-app-theme="light"] .resume-editor-shell {
+:root[data-app-theme="light"] .resume-editor-shell,
+:root[data-app-theme="light"] .editor-theme {
   --ed-nav-bg: #f4f5f8;
   --ed-nav-hover: #e9ebf1;
   --ed-nav-on: #e2e5ee;
