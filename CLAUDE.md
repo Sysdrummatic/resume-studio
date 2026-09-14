@@ -1,24 +1,16 @@
 # OpenCiVera/OpenCVHub Claude Configuration
 
-**Last Updated:** 2026-09-08  
+**Last Updated:** 2026-09-14  
 **Phase Tracking:** See [docs/STATUS.md](docs/STATUS.md) for current phase, status, and roadmap  
 **Stack:** Next.js (App Router) + React + TypeScript + Supabase + Tailwind CSS
 
 ---
 
-## 🎯 Project Overview
+## 🎯 Project Overview & Architecture
 
-**OpenCiVera** is a full-stack SaaS resume/CV builder with:
-- **Master Resume Editor** (Phase D): Split-canvas YAML editor with live preview, revisioning, and rollback
-- **Published CV System**: Snapshot-based versioning with public links, SEO/AEO controls, and audit logging
-- **Authentication & RBAC**: Supabase auth with 4 role tiers (`admin`, `manager`, `user`, `recruiter`)
-- **Multilingual Support**: EN and PL document types with locale-aware rendering
-- **Public Sharing**: Canonical URLs (`/{person-slug}/{public-id}`) — the only public route (see Public URL Routing below)
+Canonical, shared with Codex — edit `docs/PROJECT-BRIEF.md`, not a copy here.
 
-**Architecture (post-migration):**
-- Legacy static app (HTML/CSS/JS in `/public/`) fully removed pre-launch (`e675940`, 2026-06-29) — no HTML entry points, no legacy scripts/styles, no compatibility redirects remain (`netlify.toml` is build config + Next.js plugin only; see `tests/legacy-static-cleanup.test.mjs`)
-- Single Next.js app in `/app/` (App Router, TypeScript, React)
-- YAML-first data model in Supabase
+@docs/PROJECT-BRIEF.md
 
 ---
 
@@ -34,105 +26,11 @@ When evaluating solutions, trade-offs, or architectural choices, prioritize in t
 
 ---
 
-## 📂 Directory Structure
+## 📂 Directory Structure & Code Map
 
-```
-OpenCiVera/
-├── app/                    # Next.js App Router (primary)
-│   ├── api/               # Route handlers (auth, resume, admin)
-│   ├── components/        # React components
-│   │   ├── design-system/ # Tailwind-based atoms
-│   │   ├── resume-renderer/ # CV rendering (shared)
-│   │   └── ...
-│   ├── dashboard/         # User dashboard + Saved Versions (protected, no route group)
-│   ├── admin/             # Admin panel (RBAC-gated, protected)
-│   ├── master-resume/     # Editor canvas (Phase D, protected)
-│   ├── user/              # Personal Hub (protected)
-│   ├── onboarding/        # First-use "guided first CV" flow (protected, see Implementation Notes)
-│   ├── settings/          # Admin onboarding-test harness (protected, admin-only)
-│   ├── docs/              # In-app docs site (Tutorials / Test Scenarios, ADR 0020)
-│   ├── [personSlug]/      # Public CV route: /{person-slug}/{public-id}
-│   ├── resume/            # Public sample CV
-│   ├── privacy/, terms/   # Public policy pages
-│   ├── login/             # Auth UI
-│   ├── lib/               # Utilities (auth-*, rbac, pdf/, Supabase, validation)
-│   ├── globals.css        # App shell styling (Tailwind)
-│   ├── layout.tsx         # Root layout + header navigation
-│   └── page.tsx           # Home/landing
-├── proxy.ts                # Session refresh + CSP nonce (Next 16 renamed middleware.ts)
-├── public/                # Static assets only (no HTML; legacy public/styles/ retired)
-│   ├── data/public/       # YAML content (EN/PL locales)
-│   ├── data/private/      # Template YAML (admin only)
-│   └── vendor/            # js-yaml.min.js, etc.
-├── supabase/
-│   └── migrations/        # SQL migrations (in order)
-├── tests/                 # Node-based test suites
-├── content/docs/          # Git-committed Markdown for the in-app docs site
-├── docs/                  # Guides, checklists, ADRs
-└── .codex/                # System instructions, state.yaml
+Canonical, shared with Codex — edit `docs/CODE-MAP.md`, not a copy here.
 
-Key files NOT to edit (read-only):
-- public/vendor/           (vendor scripts)
-- supabase/migrations/     (ask Backend Engineer)
-```
-
-Protected routes have no `(authenticated)` route group — `dashboard/`, `admin/`, `master-resume/`, `user/`, `onboarding/`, `settings/` are plain top-level segments, each independently gated by `requireRequestActor()`.
-
-**Design documentation and mockups belong in `OpenCiVera-Project` (`mocks/`), not here.** Landing page, docs-site, dashboard, and editor mockups (HTML/CSS/JS variants, their READMEs, screenshots, QA scripts) go to the sibling `OpenCiVera-Project` repo's `mocks/` directory — never `plm-resume/docs/design/` or similar. Precedent: `mocks/dashboard/`, `mocks/opencivera-editor-mockup-editor.html`, `mocks/claude-design/`, `mocks/landing-redesign/`, `mocks/docs-redesign/`. Mockup READMEs that reference application source reference it as `../plm-resume/...` (sibling checkout); their `qa.cjs` scripts need Playwright, which lives only in `plm-resume`'s `node_modules` — re-run them by copying the mockup folder into a `plm-resume` checkout, not by installing Playwright in the docs repo. **Exception:** graphics/assets actually used by the running application (imported in `app/`, served from `public/`) stay in `plm-resume` — this rule is for design *exploration and documentation*, not production assets.
-
----
-
-## 🏗️ Architecture & Key Contracts
-
-### 1. YAML-First Data Model
-- Resume content stored as YAML in Supabase `resume_documents` table
-- Schema enforced via `validate_resume_document_yaml` RPC function
-- Two locale types: `en` and `pl` as separate document rows
-- Editor imports/exports YAML; publish stores snapshot in `resume_revisions`
-
-### 2. Role-Based Access Control (RBAC)
-```
-┌──────────┬─────────────────────────────────────────┐
-│ Role     │ Capabilities                            │
-├──────────┼─────────────────────────────────────────┤
-│ admin    │ Full access; can delete any user        │
-│ manager  │ Can delete user/recruiter, not manager  │
-│ user     │ Manages own CV only                     │
-│ recruiter│ Same as user (future expansion)         │
-└──────────┴─────────────────────────────────────────┘
-```
-- Enforced via Supabase RLS policies + `app/lib/rbac.ts`
-- Never weaken RLS without Architecture review
-
-### 3. Published CV Versioning
-```
-Master Resume (Draft) ──publish──> Saved Version (Snapshot)
-                                           │
-                                   ┌───────┴──────────┐
-                                   │                  │
-                            Publish to Public Link   Keep as Draft
-                                   │
-                          resume_public_links row
-                          (canonical_public_path)
-                                   │
-                            /{person-slug}/{id}
-```
-- Publish creates immutable snapshot in `resume_revisions`
-- Public links stored with SEO controls (`allow_indexing`)
-- Rollback restores previous snapshot, not Master Resume
-
-### 4. Public URL Routing
-- **Canonical:** `/{person-slug}/{public-id}` (from `resume_public_links`), the only public route — `.html` entry points and their Netlify redirects were removed with the legacy app
-
-### 5. Change Discipline (From .codex/instructions.md)
-
-**Incremental Approach (legacy parity gate closed pre-launch):**
-- **Evolve incrementally:** only change inside `app/` when needed
-- **Preserve existing contracts:**
-  - YAML shapes (if changing schema, update both EN/PL consistently + ensure fallbacks)
-  - DB schema/RLS expectations (ask Backend Engineer for migrations)
-- **Prefer explicit, boring solutions** over hidden magic
-- **When changing YAML content contracts:** update both PL/EN consistently, ensure fallbacks exist
+@docs/CODE-MAP.md
 
 ---
 
@@ -172,7 +70,7 @@ Master Resume (Draft) ──publish──> Saved Version (Snapshot)
 - Make unencrypted API calls
 - Log sensitive data (auth tokens, passwords)
 
-### Engineering Standards (From .codex/instructions.md)
+### Engineering Standards (see also [AGENTS.md](AGENTS.md) working agreement)
 - **JavaScript/TypeScript:** modern syntax, `const` by default, small composable functions, explicit error handling
 - **Code Comments:** avoid inline comments unless logic is genuinely non-obvious or security-sensitive
 - **Secrets:** never hardcode; rely on env vars and documented setup
@@ -350,17 +248,10 @@ node tests/phase-d-editor-implementation.test.js
 
 ### Critical Flows to Validate (If Your Change Touches Them)
 
-| Flow | Test When Touching | Checklist |
-|------|-------------------|-----------|
-| **Auth** | `app/api/auth/`, `app/lib/auth.ts` | Signup → verify → signin → signout → reset password |
-| **Protected Routes** | `app/(authenticated)/**`, RBAC logic | Redirects work, role boundaries enforced |
-| **Resume Rendering** | `app/resume/`, `app/components/resume-renderer/` | Locale switching (EN/PL) works, all sections render |
-| **Editor** | `app/master-resume/**` | Publish, rollback, draft save/restore |
-| **Public View** | `app/[person-slug]/[public-id]/` | Canonical route renders, indexing controls |
-| **Admin RBAC** | `app/admin/`, `app/api/admin/**` | Role hierarchy enforced, user deletion respects boundaries |
-| **Onboarding** | `app/onboarding/**`, `app/api/resume/onboarding`, `app/lib/resume-onboarding*.ts` | Enrollment/resumption states, selection is raw-domain (see Implementation Notes), publish creates exactly one CV |
+See "Critical flows quick reference" and the per-area checklists in
+[`docs/CHECKLISTS.md`](docs/CHECKLISTS.md) — shared with Codex, canonical there.
 
-### Testing Discipline (From .codex/instructions.md)
+### Testing Discipline
 
 - Run the **smallest relevant check** after each meaningful change
 - Before submitting for review, run **full suite:** lint + typecheck + test
@@ -376,7 +267,8 @@ node tests/phase-d-editor-implementation.test.js
 | `docs/phases/phase-d-editor-canvas.md` | Editor workflows, API contracts | Feature work on `/master-resume` |
 | `docs/guides/testing/cv-publication-test-contracts.md` | Public link testing, validation | Testing publish/unpublish flows |
 | `docs/adr/0001-cv-publication-model.md` | Design decisions on versioning | Understanding snapshot-based model |
-| `.codex/instructions.md` | Full team discipline + agent rules | Understanding change discipline |
+| [`AGENTS.md`](AGENTS.md) | Full team discipline + agent rules (shared with Codex; `.codex/instructions.md` is only a compatibility redirect to it) | Understanding change discipline |
+| [`docs/runbooks/`](docs/runbooks/) | Step-by-step operational procedures (shared with Codex, not Codex-only) | Deploy checks, data-subject requests, migrations |
 | `docs/STATUS.md` | Current sprint + next phase | Understanding priorities |
 
 ---
@@ -585,7 +477,7 @@ PRs: (1) the `user.deleted` audit entry is silently dropped because
 `target_user_id` FK — `app/api/admin/users/[userId]/route.ts`; (2) staff accounts
 (`actor_user_id` on any audit row) cannot be deleted due to `ON DELETE RESTRICT`.
 Operational steps and sub-processor status live in the private `OpenCiVera-Project`
-repo (`.codex/runbooks/data-subject-request.md`, `docs/guides/processor-compliance-checklist.md`).
+repo (`docs/runbooks/data-subject-request.md`, `docs/guides/processor-compliance-checklist.md`).
 Test contract: `tests/docs-data-retention.test.mjs`.
 
 **Self-Service Account Deletion (GDPR Art. 17):** `DELETE /api/user/account`
@@ -610,7 +502,7 @@ conflicts). No-ops with `{sent:false, reason:"not_configured"}` and a `console.w
 when either var is unset; never throws. `.env.example` documents both vars as
 present-but-empty. Enabling requires only setting the two env vars (no code change).
 `app/privacy/page.tsx` Section 5 now distinguishes immediate self-service deletion
-from the 30-day manual/admin-mediated path; `.codex/runbooks/data-subject-request.md`
+from the 30-day manual/admin-mediated path; `docs/runbooks/data-subject-request.md`
 and `docs/guides/processor-compliance-checklist.md` (private `OpenCiVera-Project`
 repo) updated accordingly. Test
 contracts: `tests/account-deletion.test.mjs`, `tests/email-feature-flag.test.mjs`.
@@ -707,7 +599,7 @@ close the quadratic-complexity merge-key DoS (GHSA-h67p-54hq-rp68). The
 `audit:prod` script (`npm audit --omit=dev --audit-level=high`) needs live
 npm-registry access, so it's deliberately **not** part of `npm run
 verify`/`npm run ci` (which stay lint+typecheck+test[+build], per
-`.codex/runbooks/testing-and-validation.md` and `README.md`, and must keep
+`docs/runbooks/testing-and-validation.md` and `README.md`, and must keep
 working offline/registry-restricted) — `.github/workflows/ci.yml` calls
 `audit:prod` as its own step instead. Test contracts:
 `tests/user-data-transfer.test.mjs` and `tests/vendor-js-yaml.test.mjs` both
@@ -860,22 +752,9 @@ until fixed 2026-09-07. Test contract: `tests/admin-onboarding-test.test.mjs`.
 
 ## ✅ Pre-Commit Checklist
 
-Before pushing code:
+Canonical, shared with Codex — edit `docs/CHECKLISTS.md`, not a copy here.
 
-- [ ] `npm run lint` passes (ESLint)
-- [ ] `npm run typecheck` passes (TypeScript)
-- [ ] `npm test` passes (Node tests)
-- [ ] Code follows conventions above
-- [ ] No hardcoded secrets/env vars
-- [ ] Error handling included
-- [ ] Zod validation for user input
-- [ ] RLS policy unchanged (or Architecture-approved)
-- [ ] Branch created fresh from main
-- [ ] Commit message follows Conventional Commits
-- [ ] If auth/admin changes: role boundaries verified
-- [ ] If YAML changes: EN/PL parity checked
-- [ ] If database changes: migration documented
-- [ ] Critical flows validated if touched (see Testing & Validation section)
+@docs/CHECKLISTS.md
 
 **If any check fails:** Don't commit. Fix the issue or ask Claude for help.
 
@@ -888,7 +767,7 @@ Before pushing code:
 - **Zod Validation:** https://zod.dev
 - **Tailwind CSS:** https://tailwindcss.com/docs
 - **Project Docs:** `docs/` folder (especially STATUS.md, ADRs)
-- **Team Discipline:** `.codex/instructions.md`
+- **Team Discipline:** `AGENTS.md` (shared with Codex)
 
 ---
 
@@ -932,6 +811,6 @@ Before pushing code:
 
 ---
 
-**Status:** Production-ready (merged with .codex/instructions.md)  
-**Last Review:** 2026-09-08  
+**Status:** Production-ready (shared docs unified with Codex's AGENTS.md — see docs/PROJECT-BRIEF.md, docs/CODE-MAP.md, docs/CHECKLISTS.md, docs/runbooks/)  
+**Last Review:** 2026-09-14  
 **Next Update:** See [docs/STATUS.md](docs/STATUS.md) for current phase and next milestones

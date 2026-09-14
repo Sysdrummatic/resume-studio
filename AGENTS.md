@@ -12,9 +12,10 @@
 
 ## Start with the relevant context
 
-- Read [README](README.md) for setup and [project brief](.codex/project-brief.md) for the domain.
-- Use the [code map](.codex/site-map-and-dependencies.md) to locate the affected modules.
+- Read [README](README.md) for setup and [project brief](docs/PROJECT-BRIEF.md) for the domain.
+- Use the [code map](docs/CODE-MAP.md) to locate the affected modules.
 - Consult only the relevant [guides](docs/guides/README.md), [ADRs](docs/adr/README.md) and feature documentation.
+- Check [docs/runbooks](docs/runbooks/) for step-by-step operational procedures (shared with Claude Code — not Codex-only despite living alongside `.codex/`).
 - Treat [project status](docs/STATUS.md) as dated planning context, not proof that a change is deployed.
 - Verify architecture claims against current code, tests and migration history. Report and correct stale documentation within the task scope; do not restore retired behavior just because an old document describes it.
 
@@ -56,7 +57,7 @@
 - For documentation-only changes, verify links and commands; run `npm.cmd test` when changing development/testing workflows. State any skipped checks and why.
 - For UI changes, check desktop/mobile, EN/PL where relevant, keyboard focus and dark/light themes. For auth, publication or database changes, exercise the relevant role boundaries and save/publish/retry paths.
 - Identify mocked/isolated validation explicitly; do not report it as a real Supabase staging or production check.
-- Update affected guides, contracts and manual scenarios with behavior changes. See the [validation runbook](.codex/runbooks/testing-and-validation.md) and [task checklists](.codex/task-checklists.md).
+- Update affected guides, contracts and manual scenarios with behavior changes. See the [validation runbook](docs/runbooks/testing-and-validation.md) and [task checklists](docs/CHECKLISTS.md).
 
 ## Instruction maintenance
 

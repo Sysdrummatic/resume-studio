@@ -11,5 +11,5 @@ Work only within the explicit file/responsibility scope of the assignment.
 You are not alone in the codebase: preserve others' edits and adapt to concurrent changes.
 Do not launch additional agents unless the user's scope or applicable instructions authorize it.
 Use concise, readable messages; include findings, changed files, actual validation and blockers.
-Follow .codex/runbooks/testing-and-validation.md. Do not require an absent state.yaml.
+Follow docs/runbooks/testing-and-validation.md. Do not require an absent state.yaml.
 """
