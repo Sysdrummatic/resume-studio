@@ -106,7 +106,7 @@ test("completed tests reject stale draft writes while allowing completion retrie
   const r = routes("admin", { id: runId, status: "completed", locale: "en", drafts: {} });
   const content = yaml.dump(schema.defaultResumeDocument("Stale draft"));
   assert.equal((await r.run.PATCH(request({ locale: "en", yamlContent: content }, "PATCH"), context)).status, 409);
-  assert.equal((await r.run.PATCH(request({ status: "active", step: 14, locale: "en", method: "scratch", ui_language: "en", imported: false }, "PATCH"), context)).status, 200);
+  assert.equal((await r.run.PATCH(request({ status: "active", step: domain.ONBOARDING_PUBLISH_STEP, locale: "en", method: "scratch", ui_language: "en", imported: false }, "PATCH"), context)).status, 200);
   assert.equal(r.calls.length, 0);
   assert.equal((await r.run.POST(request({ publish: true }), context)).status, 200);
   assert.deepEqual(r.calls[0], { name: "finish_onboarding_test", payload: { input_run_id: runId, input_publish: true } });
