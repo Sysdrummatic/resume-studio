@@ -78,6 +78,8 @@ Key files NOT to edit (read-only):
 
 Protected routes have no `(authenticated)` route group — `dashboard/`, `admin/`, `master-resume/`, `user/`, `onboarding/`, `settings/` are plain top-level segments, each independently gated by `requireRequestActor()`.
 
+**Design documentation and mockups belong in `OpenCiVera-Project` (`mocks/`), not here.** Landing page, docs-site, dashboard, and editor mockups (HTML/CSS/JS variants, their READMEs, screenshots, QA scripts) go to the sibling `OpenCiVera-Project` repo's `mocks/` directory — never `plm-resume/docs/design/` or similar. Precedent: `mocks/dashboard/`, `mocks/opencivera-editor-mockup-editor.html`, `mocks/claude-design/`, `mocks/landing-redesign/`, `mocks/docs-redesign/`. Mockup READMEs that reference application source reference it as `../plm-resume/...` (sibling checkout); their `qa.cjs` scripts need Playwright, which lives only in `plm-resume`'s `node_modules` — re-run them by copying the mockup folder into a `plm-resume` checkout, not by installing Playwright in the docs repo. **Exception:** graphics/assets actually used by the running application (imported in `app/`, served from `public/`) stay in `plm-resume` — this rule is for design *exploration and documentation*, not production assets.
+
 ---
 
 ## 🏗️ Architecture & Key Contracts

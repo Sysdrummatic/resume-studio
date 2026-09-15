@@ -26,10 +26,9 @@ const TITLES = {
     "Courses",
     "Interests",
     "Tech stack",
-    "QR codes",
     "GDPR clause",
     "Review your first CV",
-    "Ready to share your CV?"
+    "Ready to save your CV?"
   ],
   pl: [
     "Witaj w OpenCiVera",
@@ -43,10 +42,9 @@ const TITLES = {
     "Kursy",
     "Zainteresowania",
     "Technologie",
-    "Kody QR",
     "Klauzula RODO",
     "Sprawdź swoje pierwsze CV",
-    "Udostępnisz swoje CV?"
+    "Zapiszesz swoje CV?"
   ]
 };
 
@@ -232,16 +230,6 @@ export default function OnboardingClient(props: Props) {
                 "Opowiedz o sobie, sekcja po sekcji. Pomożemy Ci uzupełnić Master CV i utworzyć CV, które udostępnisz za pomocą linku."
               )}
             </p>
-            <ol>
-              <li>{t("Import a CV or start from scratch", "Zaimportuj CV lub zacznij od zera")}</li>
-              <li>{t("Review and fill in your details", "Sprawdź i uzupełnij swoje dane")}</li>
-              <li>
-                {t(
-                  "Choose whether to create a shareable CV",
-                  "Zdecyduj, czy utworzyć CV z linkiem"
-                )}
-              </li>
-            </ol>
           </div>
         ) : null}
 
