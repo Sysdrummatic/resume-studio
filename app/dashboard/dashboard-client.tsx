@@ -979,42 +979,9 @@ export default function DashboardClient({
             <div className="dashboard-library__detail">
               {selectedPreset ? (
                 <>
-                  {selectedPreset.onboarding_test_run_id ? (
-                    <div className="dashboard-test-preview">
-                      <FileText size={40} aria-hidden="true" />
-                      <h3>{selectedPreset.title}</h3>
-                      <p>This CV uses a separate onboarding test draft.</p>
-                      <Link
-                        className="button button--primary"
-                        href={
-                          selectedPreset.canonical_public_path ||
-                          `/onboarding/test-cv/${selectedPreset.onboarding_test_run_id}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Open test CV
-                      </Link>
-                    </div>
-                  ) : masterResume && yamlReady ? (
-                    <PresetPreviewModal
-                      key={selectedPreset.id}
-                      inline
-                      masterResume={masterResume}
-                      documents={documents}
-                      languages={languageVersions}
-                      preset={selectedPreset}
-                      draftPdfEnabled={draftPdfEnabled}
-                      onClose={() => setPreviewPreset(selectedPreset)}
-                    />
-                  ) : (
-                    <p className="dashboard-library-empty">
-                      {documentError ||
-                        (masterResume
-                          ? "Loading CV preview…"
-                          : "Open your Master Resume to add content for this version.")}
-                    </p>
-                  )}
+                  {/* ocv-0174: actions render above the preview, next to where
+                      "Open CV" appears inside PresetPreviewModal below, instead
+                      of after the full CV render where they needed scrolling. */}
                   <section className="dashboard-next" aria-label="Next steps for selected CV">
                     <div className="dashboard-next__heading">
                       <div>
@@ -1112,6 +1079,42 @@ export default function DashboardClient({
                       </div>
                     </div>
                   </section>
+                  {selectedPreset.onboarding_test_run_id ? (
+                    <div className="dashboard-test-preview">
+                      <FileText size={40} aria-hidden="true" />
+                      <h3>{selectedPreset.title}</h3>
+                      <p>This CV uses a separate onboarding test draft.</p>
+                      <Link
+                        className="button button--primary"
+                        href={
+                          selectedPreset.canonical_public_path ||
+                          `/onboarding/test-cv/${selectedPreset.onboarding_test_run_id}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Open test CV
+                      </Link>
+                    </div>
+                  ) : masterResume && yamlReady ? (
+                    <PresetPreviewModal
+                      key={selectedPreset.id}
+                      inline
+                      masterResume={masterResume}
+                      documents={documents}
+                      languages={languageVersions}
+                      preset={selectedPreset}
+                      draftPdfEnabled={draftPdfEnabled}
+                      onClose={() => setPreviewPreset(selectedPreset)}
+                    />
+                  ) : (
+                    <p className="dashboard-library-empty">
+                      {documentError ||
+                        (masterResume
+                          ? "Loading CV preview…"
+                          : "Open your Master Resume to add content for this version.")}
+                    </p>
+                  )}
                 </>
               ) : (
                 <div className="dashboard-library-empty">
