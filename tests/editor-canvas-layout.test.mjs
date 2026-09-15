@@ -97,3 +97,17 @@ test("add actions sit at the end of each list", () => {
   }
   assert.equal(editor.includes('className="resume-human-editor__add"'), true);
 });
+
+test("compact rows put the wide field before the narrow field", () => {
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+
+  // .resume-human-editor__row--compact is `minmax(160px, 1fr) minmax(80px, 120px) auto`
+  // (wide, narrow, remove button) — every field pair using it must follow that
+  // order, or the first field renders wide when it should be narrow (ocv-0165:
+  // the course row had Year before Course name, so Year got the wide column).
+  const skillsRow = editor.slice(editor.indexOf("resume.skills.map"), editor.indexOf("+ Add skill"));
+  assert.ok(skillsRow.indexOf('aria-label={editorText("Skill")}') < skillsRow.indexOf('aria-label={editorText("Level")}'));
+
+  const coursesRow = editor.slice(editor.indexOf("resume.courses.map"), editor.indexOf("+ Add course"));
+  assert.ok(coursesRow.indexOf('aria-label={editorText("Course name")}') < coursesRow.indexOf('aria-label={editorText("Year")}'));
+});

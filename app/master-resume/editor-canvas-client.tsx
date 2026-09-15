@@ -996,8 +996,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 <section className="resume-human-editor__section">
                   {resume.courses.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
-                      <input type="number" min={0} aria-label={editorText("Year")} placeholder={editorText("Year")} value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
                       <input aria-label={editorText("Course name")} placeholder={editorText("Course name")} value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
+                      <input type="number" min={0} aria-label={editorText("Year")} placeholder={editorText("Year")} value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
                       <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
                         {editorText("Remove")}
                       </button>
