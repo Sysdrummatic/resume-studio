@@ -3605,6 +3605,21 @@ a {
   color: var(--portal-warning-text);
 }
 
+.dashboard-resume-list__badge--ats[data-band="good"] {
+  border-color: var(--portal-success-border);
+  color: var(--portal-success-text);
+}
+
+.dashboard-resume-list__badge--ats[data-band="warn"] {
+  border-color: var(--portal-warning-border);
+  color: var(--portal-warning-text);
+}
+
+.dashboard-resume-list__badge--ats[data-band="risk"] {
+  border-color: var(--portal-danger-border);
+  color: var(--portal-danger-text);
+}
+
 .dashboard-resume-list__actions {
   grid-area: actions;
   display: flex;
@@ -3717,7 +3732,7 @@ a {
 }
 
 .dashboard-modal__body--preview {
-  width: min(1100px, calc(100vw - 2rem));
+  width: min(1400px, calc(100vw - 2rem));
 }
 
 .dashboard-modal__body--compact {
@@ -3970,6 +3985,271 @@ a {
 .dashboard-preset-preview .resume-editor-basic {
   width: min(920px, 100%);
   margin: 0 auto;
+}
+
+.dashboard-preset-intelligence-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.dashboard-preset-intelligence-layout > .ats-intelligence {
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  border: 1px solid var(--portal-border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--portal-card-bg-muted);
+}
+
+.ats-intelligence {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  color: var(--ed-t1, var(--text));
+}
+
+.ats-intelligence__header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.ats-intelligence__header h2,
+.ats-intelligence__header p,
+.ats-intelligence__guidance h3,
+.ats-intelligence__issues p,
+.ats-intelligence__keywords p {
+  margin: 0;
+}
+
+.ats-intelligence__header h2 {
+  font-size: 1rem;
+}
+
+.ats-intelligence__header > div:last-child > p:last-child,
+.ats-intelligence__empty,
+.ats-intelligence__targeting small {
+  color: var(--ed-t2, var(--muted));
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.ats-intelligence__eyebrow {
+  color: var(--ed-teal, var(--portal-success-strong));
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ats-intelligence__score {
+  position: relative;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+}
+
+.ats-intelligence__score[data-band="good"] {
+  color: var(--ed-teal, var(--portal-success-strong));
+}
+
+.ats-intelligence__score[data-band="warn"] {
+  color: var(--ed-warn, var(--portal-warning-text));
+}
+
+.ats-intelligence__score[data-band="risk"] {
+  color: var(--portal-danger-text);
+}
+
+.ats-intelligence__score svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.ats-intelligence__score circle {
+  fill: none;
+  stroke-width: 3;
+}
+
+.ats-intelligence__score-track {
+  stroke: var(--ed-line-2, var(--portal-border));
+}
+
+.ats-intelligence__score-value {
+  stroke: currentColor;
+  stroke-linecap: round;
+}
+
+.ats-intelligence__score strong {
+  margin-top: -5px;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+}
+
+.ats-intelligence__score span {
+  position: absolute;
+  top: 44px;
+  font-size: 0.6rem;
+  color: var(--ed-t3, var(--muted));
+}
+
+.ats-intelligence__metrics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.ats-intelligence__metrics > div {
+  border: 1px solid var(--ed-line, var(--portal-border));
+  border-radius: 9px;
+  padding: 0.65rem;
+  background: var(--ed-work, var(--portal-surface-ghost));
+}
+
+.ats-intelligence__metrics dt {
+  color: var(--ed-t2, var(--muted));
+  font-size: 0.68rem;
+}
+
+.ats-intelligence__metrics dd {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ats-intelligence__categories {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ats-intelligence__categories > div {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(70px, 1.4fr) 24px;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.ats-intelligence__categories progress {
+  width: 100%;
+  height: 5px;
+  accent-color: var(--ed-teal, var(--portal-success-strong));
+}
+
+.ats-intelligence__categories b {
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.ats-intelligence__targeting,
+.ats-intelligence__guidance {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ed-line, var(--portal-border));
+}
+
+.ats-intelligence__targeting label,
+.ats-intelligence__guidance h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ats-intelligence__targeting textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--ed-line-2, var(--portal-border));
+  border-radius: 9px;
+  padding: 0.65rem;
+  background: var(--ed-work, var(--portal-input-bg));
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.ats-intelligence__targeting textarea:focus-visible,
+.ats-intelligence__issues button:focus-visible {
+  outline: 2px solid var(--ed-teal, var(--portal-focus-ring));
+  outline-offset: 2px;
+}
+
+.ats-intelligence__keywords {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+}
+
+.ats-intelligence__keywords > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.ats-intelligence__keywords strong {
+  color: var(--ed-teal, var(--portal-success-text));
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.ats-intelligence__issues {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ats-intelligence__issues li {
+  display: grid;
+  grid-template-columns: 7px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+}
+
+.ats-intelligence__issues li > span {
+  width: 7px;
+  height: 7px;
+  margin-top: 0.35rem;
+  border-radius: 50%;
+  background: var(--ed-warn, var(--portal-warning-text));
+}
+
+.ats-intelligence__issues li[data-severity="error"] > span {
+  background: var(--portal-danger-text);
+}
+
+.ats-intelligence__issues button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ats-intelligence__issues code {
+  color: var(--ed-t3, var(--muted));
+  font-size: 0.62rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-preset-intelligence-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-preset-intelligence-layout > .ats-intelligence,
+  .dashboard-preset-preview {
+    max-height: none;
+  }
 }
 
 /* Interactive scaled CV preview frame (Personal Hub) */

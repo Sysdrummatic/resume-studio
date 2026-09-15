@@ -84,10 +84,12 @@ test("editor renders the completion meter and per-section status dots", () => {
   assert.equal(styles.includes(".resume-editor-nav__status[data-status=\"warn\"]"), true);
 });
 
-test("the side panel exposes Preview, History and Style tabs", () => {
+test("the side panel exposes ATS, Preview, History and Style tabs", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
 
-  assert.equal(editor.includes('useState<"preview" | "history" | "style">'), true);
+  assert.equal(editor.includes('useState<"preview" | "ats" | "history" | "style">'), true);
+  assert.equal(editor.includes('sidePanelTab === "ats"'), true);
+  assert.equal(editor.includes("analyzeMasterResume"), true);
   assert.equal(editor.includes('sidePanelTab === "style"'), true);
   assert.equal(editor.includes("resume-editor-style-panel"), true);
   // The template control is the one style setting backed by real rendering

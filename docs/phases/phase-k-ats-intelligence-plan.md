@@ -1,102 +1,122 @@
-﻿# Phase K — ATS Intelligence Workstream
+# Phase K — ATS Intelligence
 
-Status: Planned (post-launch)
+Status: In progress
 
-Depends on: Phase I complete, stable production release.
+Issue: [#161](https://github.com/Sysdrummatic/resume-studio/issues/161)
 
-## Goal
+## Cel
 
-Live ATS compliance scoring in the Master Resume editor.
-Read-only analysis of YAML source — never modifies CV data.
-Visual PDF layout is never touched.
+ATS Intelligence ocenia dokument, który kandydat rzeczywiście wyśle, a jednocześnie pomaga rozwijać bibliotekę treści w Master CV.
 
-## Foundation (delivered in ATS Export PR)
+System rozróżnia dwa poziomy:
 
-`app/lib/ats-export-rules.ts` zawiera:
-- stałe używane przez warstwę eksportu
-- typy `ATSRuleResult`, `ATSScoreCategory`, `ATSCategoryScore`, `ATSScoreResult`
+1. **Master CV readiness** — wskaźniki jakości i kompletności źródłowej biblioteki treści. Nie jest to wynik dopasowania pojedynczej aplikacji.
+2. **Saved Version ATS score** — punktacja konkretnej wersji CV po zastosowaniu jej wyboru sekcji, podsumowań, ról, punktów doświadczenia, umiejętności i edukacji.
 
-Engine scoringowy Phase K-1 importuje te typy bezpośrednio.
+Analiza jest tylko do odczytu. Nie modyfikuje YAML, zapisanej wersji, eksportu PDF ani publikacji.
 
-## Phase K-1 — ATS Score Sidebar (static rules)
+## Model domenowy
 
-Branch: `feat/phase-k1-ats-score-sidebar`
+```text
+Master CV (pełna biblioteka treści)
+  ├─ wskaźniki gotowości i jakości treści
+  └─ Saved Version selection
+       └─ wybrany dokument CV
+            ├─ bazowy wynik ATS
+            └─ opcjonalne dopasowanie do opisu stanowiska
+```
 
-Pliki do utworzenia:
-- `app/lib/ats-rules.ts` — pure function `(doc: ResumeDocument) => ATSScoreResult`
-- `app/components/ats-score-sidebar/` — sidebar + sub-components
-- `tests/ats-rules.test.mjs`
+Wynik Saved Version powstaje dopiero po zastosowaniu istniejącego kontraktu `ResumePresetSelection` do surowego dokumentu. Analizator nie może zobaczyć niewybranych ról, punktów ani umiejętności z Master CV. Dla wersji wielojęzycznych podstawą jest dokument w `default_locale` danej wersji, z zachowaniem obecnych fallbacków.
 
-Modyfikacje:
-- `app/master-resume/editor-canvas-client.tsx` — mount sidebar, pass parsed doc
+## Aktualne praktyki ATS i rekrutacji
 
-Reguły per kategoria:
+Zweryfikowano 11 września 2026 na podstawie aktualnych materiałów:
 
-**Structure (25%):**
-- wymagane sekcje obecne: summary, experience, education, skills
-- sekcje mapują na standardowe nagłówki ATS w eksporcie
-- brak nieznanych kluczy najwyższego poziomu w schemacie
+- [Indeed: ATS resume keywords](https://www.indeed.com/career-advice/resumes-cover-letters/ats-resume-keywords) — używanie prawdziwych słów kluczowych z opisu stanowiska w podsumowaniu, doświadczeniu i umiejętnościach; bez dodawania nieistotnych fraz i sztucznego powtarzania.
+- [Indeed: ATS-compliant resume](https://ca.indeed.com/career-advice/resumes-cover-letters/ats-compliant-resume) oraz [ATS resume template](https://www.indeed.com/career-advice/resumes-cover-letters/ats-resume-template) — standardowe nazwy sekcji, kompletne dane kontaktowe, prosta struktura i kompatybilny format pliku.
+- [Greenhouse: unsuccessful resume parse](https://support.greenhouse.io/hc/en-us/articles/200989175-Unsuccessful-resume-parse) — obrazy, tabele, nagłówki i stopki, pola tekstowe, kolumny oraz niejasne sekcje mogą pogarszać parsowanie.
+- [Greenhouse: non-English parsing](https://support.greenhouse.io/hc/en-us/articles/205019689-Resume-parsing-with-non-English-languages) — pełne parsowanie obejmuje między innymi język angielski i polski.
+- [Workday: skills-based strategies](https://www.workday.com/en-us/perspectives/hr/key-skills-based-strategies-for-agility.html) — dobór kandydatów coraz częściej opiera się na wykazanych umiejętnościach, a nie wyłącznie na tytułach i formalnych kwalifikacjach.
 
-**Skills (20%):**
-- `skills[*].level` jest obecne — warn że wyciek do .txt eksportu
-- `tech_stack` jest osobną sekcją — warn że musi być scalona w eksporcie
-- minimum 5 skills zdefiniowanych
+Wnioski dla OpenCiVera:
 
-**Dates (20%):**
-- wszystkie wpisy experience mają niepuste `period`
-- `period` nie kończy się tokenem z `ATS_PERIOD_OPEN_TOKENS` — warn jeśli tak
-- format `YYYY-MM` wykrywalny w `period` — info jeśli inny
+- oceniamy standardową, możliwą do sparsowania treść eksportu;
+- porównujemy autentyczne słownictwo CV z opisem stanowiska i liczymy unikalne pokrycie, aby powtarzanie fraz nie podnosiło wyniku;
+- premiujemy umiejętności poparte kontekstem doświadczenia oraz mierzalnymi rezultatami;
+- nie karzemy poprawnego otwartego okresu zatrudnienia, na przykład `Present`;
+- nie ostrzegamy o polach, które istniejący eksport ATS już normalizuje lub usuwa;
+- wynik jest wskazówką jakości, nie gwarancją zachowania konkretnego systemu ATS ani decyzji rekrutera.
 
-**Contact (20%):**
-- email obecny i niepusty
-- telefon obecny
-- minimum 1 link społecznościowy lub portfolio
+## Zakres wdrożenia
 
-**Metadata (15%):**
-- `summary[*].position` != "Default" i niepuste
-- `brand_initials` zdefiniowane
-- `interests` obecne — info że będzie stripped w ATS eksporcie
+### Silnik reguł
 
-UI contract:
-- Sidebar w edytorze jako collapsible right panel
-- Score ring 0–100, kolor: czerwony < 50, amber 50–79, zielony ≥ 80
-- Mini bars per kategoria pod ringiem
-- Lista issues: label, ścieżka pola YAML, severity dot
-- Klik issue → scroll do linii w YAML
-- Zakładki ATS / Visual (Visual tab — Phase K-2)
-- Aktualizacja przy każdym parse YAML (debounce 500ms)
-- Stan disabled gdy brak załadowanego YAML
+`app/lib/ats-intelligence.ts` udostępnia czyste, deterministyczne funkcje:
 
-DoD:
-- Poprawny score dla fixture Ariany Holt
-- Wszystkie reguły pokryte testami jednostkowymi
-- Czas aktualizacji < 600ms od zmiany YAML
-- Zero regresji w testach edytora
-- `docs/STATUS.md` zaktualizowany
+- `analyzeMasterResume(document)` — gotowość biblioteki i liczniki treści;
+- `analyzeResumeForAts(document, jobDescription?)` — wynik konkretnego dokumentu i opcjonalne pokrycie słów kluczowych;
+- `getATSScoreBand(score)` — wspólne progi prezentacji.
 
-## Phase K-2 — Visual Score tab
+Bazowa punktacja ma pięć kategorii:
 
-Reguły czytelności dla człowieka:
-- długość summary (60–200 słów optimal)
-- liczba bullet pointów per wpis experience (2–5 optimal)
-- tytuł roli zdefiniowany i niestandardowy
-- minimum jedno mierzalne osiągnięcie (liczba lub %) per wpis experience
-- sekcja languages obecna jeśli skonfigurowano wiele locale
+| Kategoria | Waga | Sprawdzane sygnały |
+|---|---:|---|
+| Structure | 20 | podsumowanie, doświadczenie, edukacja i umiejętności |
+| Contact | 15 | e-mail, telefon i co najmniej jeden link |
+| Experience | 30 | rola i firma, 2–5 punktów, konkretne rezultaty i mierzalny wpływ |
+| Skills | 20 | minimum pięć unikalnych umiejętności oraz ich użycie w kontekście |
+| Dates | 15 | okres dla każdej roli i rozpoznawalny rok |
 
-## Phase K-3 — AI keyword gap (post Phase I)
+Gdy opis stanowiska zawiera co najmniej dwa znaczące słowa, końcowy wynik składa się w 75% z bazowej gotowości i w 25% z pokrycia unikalnych słów kluczowych. Ten sam wyraz jest liczony najwyżej raz.
 
-`POST /api/resume/ats-keyword-gap` — przyjmuje YAML + job description,
-zwraca brakujące słowa kluczowe względem treści CV.
+### Master Resume Editor
 
-Model: Gemini Flash (free tier) lub Groq (Llama 3, free tier).
-Rate limit: 10 req/user/dzień.
-Zależność: Phase I provider setup (preferowana, nie blokująca).
+Zakładka `ATS` w istniejącym panelu bocznym pokazuje:
 
-## Risk register
+- readiness score biblioteki treści;
+- liczbę ról, ról z mierzalnym wpływem, umiejętności, kanałów kontaktu i podsumowań;
+- wynik kategorii i krótkie wskazówki powiązane z sekcjami edytora;
+- przejście z wybranej wskazówki do odpowiedniej sekcji.
+
+### Dashboard i Saved Versions
+
+- Każda zapisana wersja ma własną etykietę `ATS <score>`.
+- Punktacja używa wyłącznie treści wybranej przez tę wersję.
+- Podgląd wersji pokazuje pełne kategorie, wskazówki i właściwy podgląd CV.
+- Użytkownik może wkleić opis stanowiska i zobaczyć dopasowane oraz brakujące słowa kluczowe.
+- Opis stanowiska pozostaje wyłącznie w stanie przeglądarki; zamknięcie podglądu go usuwa. Nie jest wysyłany do zewnętrznego dostawcy ani zapisywany w bazie.
+
+## Prywatność i zależności
+
+- Analiza działa lokalnie i nie wymaga API AI, nowej tabeli, migracji ani sekretu.
+- Nie dodajemy paczek. Implementacja używa TypeScriptu i Reacta już zadeklarowanych w `package.json` i zablokowanych w `package-lock.json`.
+- Ewentualna analiza semantyczna przez zewnętrzny model wymaga osobnej decyzji o dostawcy, retencji, zgodzie użytkownika, limitach i kosztach. Nie jest częścią obecnego wdrożenia.
+
+## Testy i kryteria akceptacji
+
+- [x] Test najpierw wykazał brak silnika, następnie przeszedł po minimalnej implementacji.
+- [x] Silny fixture Saved Version otrzymuje stabilny, deterministyczny wynik.
+- [x] Master CV zwraca właściwe liczniki gotowości.
+- [x] Analiza Saved Version nie widzi niewybranej treści Master CV.
+- [x] Otwarty okres z rokiem i `Present` jest poprawny.
+- [x] Słowo kluczowe jest liczone raz niezależnie od liczby powtórzeń.
+- [x] Słaby dokument zwraca wskazówki powiązane z polami.
+- [x] `npm.cmd run verify` przechodzi: lint i typecheck bez błędów, 578 testów zaliczonych, 1 pominięty.
+- [x] Build produkcyjny przechodzi.
+- [x] Wspólny komponent sprawdzony w przeglądarce na desktopie i mobile, w jasnym i ciemnym motywie oraz z obsługą klawiatury.
+- [ ] Końcowy smoke test osadzonych widoków Dashboard i Master Resume wymaga uwierzytelnionej sesji środowiska preview.
+
+## Ryzyka i kontrola
 
 | Ryzyko | Kontrola |
 |---|---|
-| Score engine dodaje latencję edytora | Debounce parse trigger 500ms |
-| False positives irytują użytkowników | Każda reguła ma czytelny rationale string w UI |
-| AI keyword gap wyciek CV | Explicit user opt-in per request, brak persistent storage |
-| Phase K-3 AI cost overrun | Free-tier model + per-user rate limit |
+| Wynik jest interpretowany jako gwarancja przejścia ATS | UI nazywa go wskazówką i opisuje zakres analizy |
+| Niewybrana treść zawyża wynik CV | Analiza działa po zastosowaniu `ResumePresetSelection` |
+| Keyword stuffing zawyża dopasowanie | Pokrycie bazuje na zbiorze unikalnych słów |
+| Opis stanowiska lub CV wycieka do dostawcy | Analiza jest lokalna, bez wywołania sieciowego i bez trwałego zapisu |
+| Reguły stają się zależne od eksportu wizualnego | Silnik przyjmuje dokument domenowy i nie zmienia rendererów ani PDF |
+| Duży, równoległy PR dashboardu powoduje konflikt | Funkcja jest wspólnym komponentem; integracja dashboardu pozostaje mała i może zostać przeniesiona po zmergowaniu PR |
+
+## Dalszy rozwój
+
+Po zebraniu danych z realnych aplikacji można kalibrować wagi i progi. Analiza semantyczna ma sens dopiero wtedy, gdy reguły deterministyczne nie wystarczą i zostanie zatwierdzony kontrakt prywatności. Nie może zastąpić oceny konkretnej Saved Version ani uzyskać dostępu do niewybranej treści Master CV.
