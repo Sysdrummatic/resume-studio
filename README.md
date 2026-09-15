@@ -73,6 +73,7 @@ Apply via `supabase db push`, which applies files from `supabase/migrations/` in
 - `npm run verify` - runs lint, typecheck, and test together
 - `npm run ci` - runs `verify` plus `npm run build`
 - `npm run test:rls` - runs the live four-role PostgREST/RPC matrix against an isolated Supabase project (see `docs/guides/test-scenarios/TEST_SCENARIOS.md`)
+- `npm run qa:env -- --target=preview|production` - gates hosted deploys on the runtime config contract before smoke testing (see `docs/guides/development/environment-matrix.md`)
 
 If `npm test` fails in restricted environments (`spawn EPERM`), run suites directly, e.g.:
 
