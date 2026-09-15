@@ -152,15 +152,27 @@ function normalizeSummarySelection(selection: ResumePresetSelection, options: Pr
 // The selection is built against the default-locale document; clamp it to the
 // previewed document so other language versions render the way publish stores
 // them, instead of failing on out-of-range indexes.
-function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
-  if (!yamlContent || !window.jsyaml) return null;
+type PresetPreviewResult =
+  | { status: "ok"; resume: ResumeDocument }
+  // ocv-0172: a language version that has no summary yet (e.g. a freshly
+  // added, still-empty locale) is a normal, expected state -- not a failure.
+  | { status: "empty" }
+  | { status: "error" };
+
+function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): PresetPreviewResult {
+  if (!yamlContent || !window.jsyaml) return { status: "error" };
   try {
     const rawDocument = window.jsyaml.load(yamlContent);
+    if (!rawDocument || typeof rawDocument !== "object" || Array.isArray(rawDocument)) {
+      return { status: "error" };
+    }
     const clampedSelection = clampResumeSelectionToRawDocument(rawDocument, selection);
-    const selectedRaw = clampedSelection ? applyResumeSelectionToRawDocument(rawDocument, clampedSelection) : null;
-    return selectedRaw ? normalizeResumeDocument(selectedRaw, "") : null;
+    if (!clampedSelection) return { status: "empty" };
+    const selectedRaw = applyResumeSelectionToRawDocument(rawDocument, clampedSelection);
+    if (!selectedRaw) return { status: "error" };
+    return { status: "ok", resume: normalizeResumeDocument(selectedRaw, "") };
   } catch {
-    return null;
+    return { status: "error" };
   }
 }
 
@@ -348,7 +360,7 @@ function PresetPreviewModal({
     availableDocuments.find((document) => document.locale === masterResume.locale) ||
     masterResume;
   const publicLink = parseCanonicalPublicPath(preset.canonical_public_path);
-  const previewResume = useMemo(
+  const previewResult = useMemo(
     () => buildPresetResumeDocument(activeDocument.yaml_content, preset.selection),
     [activeDocument.yaml_content, preset.selection],
   );
@@ -387,11 +399,33 @@ function PresetPreviewModal({
             Selected content from your current Master Resume. Published links and exports use the last publication.
           </p>
         ) : null}
-        {previewResume ? (
+        {previewResult.status !== "ok" ? (
+          <div className="dashboard-library-preview__fallback">
+            {cvLanguages.length > 1 ? (
+              <div className="actions-row">
+                {cvLanguages.map((language) => (
+                  <button
+                    key={language.code}
+                    type="button"
+                    className={`button button--small ${language.code === activeLocale ? "button--primary" : "button--ghost"}`}
+                    onClick={() => setActiveLocale(language.code)}
+                  >
+                    {language.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <p className={previewResult.status === "empty" ? "dashboard-library-preview__note" : "status status--error"}>
+              {previewResult.status === "empty"
+                ? `This CV version has no content in ${cvLanguages.find((language) => language.code === activeDocument.locale)?.label || activeDocument.locale.toUpperCase()} yet. Add it in your Master Resume, or switch to a language you've filled in.`
+                : "CV preview could not be rendered from the master resume."}
+            </p>
+          </div>
+        ) : (
           <div ref={previewContainerRef} className="dashboard-preset-preview">
             <BasicResumeDocument
               locale={activeDocument.locale}
-              resume={previewResume}
+              resume={previewResult.resume}
               languages={cvLanguages}
               onLanguageSelect={setActiveLocale}
               status={preset.is_public ? "public" : "draft"}
@@ -404,8 +438,6 @@ function PresetPreviewModal({
               scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
             />
           </div>
-        ) : (
-          <p className="status status--error">CV preview could not be rendered from the master resume.</p>
         )}
       </div>
     </div>
