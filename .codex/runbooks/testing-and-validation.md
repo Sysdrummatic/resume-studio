@@ -42,6 +42,15 @@ rerunning unchanged passing suites without a reason.
 For build/deployment-sensitive changes, use `npm.cmd run build` or
 `npm.cmd run ci` as appropriate to the task.
 
+For a hosted deploy (Netlify Deploy Preview or production), run
+`npm.cmd run qa:env -- --target=preview|production` inside that scope before
+smoke testing — it gates on the runtime config contract (missing values,
+placeholders, wrong `NEXT_PUBLIC_APP_ENV`, unsafe URLs, incomplete e-mail
+pair) without ever printing configured values. See
+`docs/guides/development/environment-matrix.md` for the full variable
+contract; passing the local unit tests proves the validator, not that the
+real hosting scope has correct secrets configured.
+
 ## Documentation-only changes
 
 Check referenced files, Markdown links, example commands and consistency with
