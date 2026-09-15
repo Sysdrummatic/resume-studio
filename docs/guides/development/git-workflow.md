@@ -1,6 +1,6 @@
-# Git Workflow (Branches + Commits)
+# Git Workflow (Branches + Commits + Issue/PR Metadata)
 
-This file is the canonical source for the OpenCiVera git workflow convention — branching rule, branch naming, and commit message format. It is referenced from both `CLAUDE.md` (Claude Code, via `@import`) and `.codex/instructions.md` (Codex CLI, via plain reference).
+This file is the canonical source for the OpenCiVera GitHub workflow convention — branching rule, branch naming, commit message format, and issue/PR metadata (project, assignee, priority, milestone, label). It is referenced from `CLAUDE.md` (Claude Code, via `@import`), `AGENTS.md` (Codex CLI, plain reference), and `.codex/instructions.md`.
 
 ---
 
@@ -41,3 +41,19 @@ Pojedyncze commity wewnątrz brancha mogą używać krótszej formy bez scope'u 
 Rule of thumb:
 - Keep commits atomic (one logical change).
 - Do not mix refactors with behavior changes in one commit.
+
+## GitHub issue/PR metadata (mandatory)
+
+When creating a GitHub issue or pull request in this repo (`Sysdrummatic/resume-studio`, local checkout name `plm-resume`, aka OpenCiVera/OpenCVHub), always fill in:
+
+- **Project:** add it to the GitHub Project v2 board **"OpenCiVera"** (#6, owner `Sysdrummatic`, id `PVT_kwHOAWNKvs4BYm2v`).
+- **Assignee:** `Sysdrummatic` (Łukasz Michta), unless the task is explicitly someone else's.
+- **Priority:** set **both**, kept consistent with each other:
+  - the repo label — `priority: critical` / `priority: high` / `priority: meduim` *(sic — typo in the actual label, don't silently "fix" it)* / `priority: low`
+  - the Project's native `Priority` single-select field (`PVTSSF_lAHOAWNKvs4BYm2vzhTrfTQ`)
+- **Milestone:** pick the one matching the work's phase from the repo's existing milestones (list via `gh api repos/Sysdrummatic/resume-studio/milestones`, or see `docs/STATUS.md` for current phase). Ask if ambiguous rather than guessing.
+- **Label (type):** the matching `type: *` label (`type: bug`, `type: feature`, `type: docs`, `type: security`, `type: chore`), plus the `project: OpenCiVera` badge label where relevant.
+
+GitHub issues/PRs have no native "priority" field on their own — it only exists via a label or a Projects-v2 custom field, which is why both are set here.
+
+**Tooling note:** if the GitHub MCP server isn't connected, fall back to the `gh` CLI. `gh`'s default auth may pick up a stale/invalid `GITHUB_TOKEN` env var — prefix commands with `env -u GITHUB_TOKEN` (or unset it) to fall back to the working keyring login. Use `gh project item-edit` with the field IDs above to set `Priority` on a project item after adding it via `gh project item-add`.
