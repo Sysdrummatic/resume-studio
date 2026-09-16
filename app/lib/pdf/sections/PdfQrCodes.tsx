@@ -4,7 +4,7 @@ import type { PdfTheme } from "../theme";
 import { PX_TO_PT } from "../theme";
 import { PdfSectionCard } from "../primitives";
 import { estimateQrListHeight, planCard } from "../pagination";
-import { buildQrMatrix } from "../../qr-code";
+import { buildQrMatrix, buildQrGeometry } from "../../qr-code";
 import type { ResumeQrCode } from "../../resume-schema";
 
 type PdfQrCodesProps = {
@@ -13,26 +13,17 @@ type PdfQrCodesProps = {
   theme: PdfTheme;
 };
 
-// Same vector construction as QrCodeSvg (the web renderer) — one Path of
-// unit squares, so the PDF and the web page draw the identical code.
-function qrPath(value: string, sizePt: number): string | null {
-  const matrix = buildQrMatrix(value);
-  if (!matrix) return null;
-  const cell = sizePt / matrix.size;
-  const parts: string[] = [];
-  for (let row = 0; row < matrix.size; row++) {
-    for (let col = 0; col < matrix.size; col++) {
-      if (matrix.isDark(row, col)) parts.push(`M${col * cell},${row * cell}h${cell}v${cell}h${-cell}Z`);
-    }
-  }
-  return parts.join(" ");
-}
-
-// Mirrors .qr-list / .qr-card / .qr-card figcaption.
+// Mirrors .qr-list / .qr-card / .qr-card figcaption. Geometry comes from the
+// one buildQrGeometry() helper the web SVG renderer also draws from — same
+// payload, same quiet zone, same module coordinates on both surfaces.
 export function PdfQrCodes({ qrCodes, title, theme }: PdfQrCodesProps) {
   const rendered = qrCodes
-    .map((item) => ({ item, sizePt: Math.max(1, item.size) * PX_TO_PT, d: qrPath(item.value, Math.max(1, item.size) * PX_TO_PT) }))
-    .filter((entry) => entry.d);
+    .map((item) => {
+      const built = buildQrMatrix(item.value);
+      if (built.status !== "ok") return null;
+      return { item, sizePt: Math.max(1, item.size) * PX_TO_PT, geometry: buildQrGeometry(built.matrix) };
+    })
+    .filter((entry): entry is { item: ResumeQrCode; sizePt: number; geometry: ReturnType<typeof buildQrGeometry> } => entry !== null);
 
   const pagination = planCard(
     theme,
@@ -45,9 +36,12 @@ export function PdfQrCodes({ qrCodes, title, theme }: PdfQrCodesProps) {
   return (
     <PdfSectionCard title={title} theme={theme} sidebar {...pagination}>
       <View style={{ flexDirection: "column", gap: theme.spacing.spaceSm }}>
-        {rendered.map(({ item, sizePt, d }, index) => (
+        {rendered.map(({ item, sizePt, geometry }, index) => (
+          // wrap={false}: a QR card must never split across a page break —
+          // half a symbol on each page cannot be scanned.
           <View
             key={`${item.label}-${index}`}
+            wrap={false}
             style={{
               alignItems: "center",
               backgroundColor: theme.colors.qrCardBg,
@@ -57,9 +51,9 @@ export function PdfQrCodes({ qrCodes, title, theme }: PdfQrCodesProps) {
               padding: theme.spacing.spaceSm,
             }}
           >
-            <Svg width={sizePt} height={sizePt} viewBox={`0 0 ${sizePt} ${sizePt}`}>
-              <Path d={`M0,0h${sizePt}v${sizePt}h${-sizePt}Z`} fill={theme.colors.white} />
-              <Path d={d as string} fill={theme.colors.text} />
+            <Svg width={sizePt} height={sizePt} viewBox={`0 0 ${geometry.viewBoxSize} ${geometry.viewBoxSize}`}>
+              <Path d={`M0,0h${geometry.viewBoxSize}v${geometry.viewBoxSize}h${-geometry.viewBoxSize}Z`} fill={theme.colors.white} />
+              <Path d={geometry.path} fill={theme.colors.text} />
             </Svg>
             {item.label ? (
               <Text

@@ -541,17 +541,20 @@ test("variant import surfaces failed database writes instead of reporting succes
 
 test("public view and dashboard preview apply the selection on the raw document before normalization", () => {
   const server = read("app/lib/resume-server.ts");
-  const dashboard = read("app/dashboard/dashboard-client.tsx");
+  // buildPresetResumeDocument (the dashboard preview's raw-domain selection
+  // logic) lives in its own module — see tests/preset-preview.test.mjs and
+  // tests/preset-preview-modal.test.mjs for behavioral coverage of it.
+  const presetPreview = read("app/lib/preset-preview.ts");
 
   assert.equal(server.includes("buildPublishedResumeDocument(yamlContent, selection)"), true);
-  assert.equal(dashboard.includes("const rawDocument = window.jsyaml.load(yamlContent)"), true);
-  assert.equal(dashboard.includes("applyResumeSelectionToRawDocument(rawDocument"), true);
+  assert.equal(presetPreview.includes("const rawDocument = window.jsyaml.load(yamlContent)"), true);
+  assert.equal(presetPreview.includes("applyResumeSelectionToRawDocument(rawDocument"), true);
   assert.equal(
-    dashboard.includes("clampResumeSelectionToRawDocument(rawDocument, selection)"),
+    presetPreview.includes("clampResumeSelectionToRawDocument(rawDocument, selection)"),
     true,
     "dashboard preview must clamp the base selection to the previewed locale document",
   );
-  assert.equal(dashboard.includes("selectByIndex(masterDocument"), false, "dashboard preview must not select from the normalized document");
+  assert.equal(presetPreview.includes("selectByIndex(masterDocument"), false, "dashboard preview must not select from the normalized document");
 });
 
 test("text export route is snapshot-only, rate limited, and rejects preset fallback", () => {

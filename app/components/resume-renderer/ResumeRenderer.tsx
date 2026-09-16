@@ -8,7 +8,7 @@ import ResumeLanguageSwitcher from "../resume-language-switcher";
 import type { ResumeLanguageOption } from "../resume-language-switcher";
 import type { ResumeDocument, ResumeLocale } from "../../lib/resume-schema";
 import { getDefaultSummary, resumeFullName } from "../../lib/resume-schema";
-import QrCodeSvg from "./QrCodeSvg";
+import QrCodeSvg, { QrCodeAccessibleText } from "./QrCodeSvg";
 import { sanitizeExternalHref } from "../../lib/safe-url";
 import { DEFAULT_RESUME_STYLE, resumeStyleDataAttributes, type ResumeStyleSettings } from "../../lib/resume-style";
 import {
@@ -576,6 +576,7 @@ export default function ResumeRenderer({
                   {resume.qr_codes.map((item, index) => (
                     <figure className="qr-card" key={`${item.label}-${index}`}>
                       <QrCodeSvg value={item.value} size={item.size} />
+                      <QrCodeAccessibleText value={item.value} />
                       {item.label ? <figcaption>{item.label}</figcaption> : null}
                     </figure>
                   ))}

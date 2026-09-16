@@ -1,4 +1,5 @@
 import { splitProfileName } from "./profile-name";
+import { QR_CODE_LIMITS, clampQrSize } from "./qr-code";
 
 export type ResumeContactItem = {
   label: string;
@@ -185,6 +186,29 @@ export function migrateLegacyResumeYamlFields(source: Record<string, unknown>): 
   return { ...rest, first_name: firstName, family_name: lastName };
 }
 
+/**
+ * Clamps `qr_codes` to the shared resource limits (count, payload length,
+ * render size) on a raw, still-parsed YAML object — preserving every other
+ * field verbatim. Used at write time (draft save, import) alongside
+ * migrateLegacyResumeYamlFields, so a client posting directly to the API
+ * cannot store more/larger QR entries than normalizeResumeDocument would ever
+ * read back; normalizeResumeDocument covers the read path the same way.
+ */
+export function clampQrCodesInRawYaml(source: Record<string, unknown>): Record<string, unknown> {
+  if (!Array.isArray(source.qr_codes)) {
+    return source;
+  }
+  let changed = source.qr_codes.length > QR_CODE_LIMITS.maxCount;
+  const clamped = source.qr_codes.slice(0, QR_CODE_LIMITS.maxCount).map((item) => {
+    const row = asObject(item);
+    const value = asText(row.value).slice(0, QR_CODE_LIMITS.maxValueLength);
+    const size = clampQrSize(asInt(row.size, QR_CODE_LIMITS.defaultSize));
+    if (row.value !== value || row.size !== size) changed = true;
+    return { ...row, value, size };
+  });
+  return changed ? { ...source, qr_codes: clamped } : source;
+}
+
 export function normalizeLocale(value: unknown): ResumeLocale {
   const normalized = String(value ?? "en")
     .trim()
@@ -230,15 +254,17 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
     qr_codes: asArray(source.qr_codes)
       .map((item) => {
         const row = asObject(item);
-        // `image` was the pre-generator field (a pasted image URL); fall back to
-        // it so documents saved before the rename still round-trip.
+        // `image` (a pasted image-URL path) predates the generator and is not
+        // read: an image path is not a sensible QR payload, and no CV has ever
+        // populated it.
         return {
           label: asText(row.label),
-          value: asText(row.value) || asText(row.image),
-          size: Math.max(1, asInt(row.size, 130)),
+          value: asText(row.value).slice(0, QR_CODE_LIMITS.maxValueLength),
+          size: clampQrSize(asInt(row.size, QR_CODE_LIMITS.defaultSize)),
         };
       })
-      .filter((row) => row.label || row.value),
+      .filter((row) => row.label || row.value)
+      .slice(0, QR_CODE_LIMITS.maxCount),
     skills: asArray(source.skills)
       .map((item) => {
         const row = asObject(item);

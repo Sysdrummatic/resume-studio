@@ -3,7 +3,7 @@ import { fetchOnboardingTest, onboardingTestRpc } from "./onboarding-test-server
 import path from "node:path";
 import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
-import { PREVIEW_LABELS, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
+import { PREVIEW_LABELS, clampQrCodesInRawYaml, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
@@ -685,7 +685,7 @@ export function upgradeLegacyResumeYamlContent(yamlContent: string): string {
     // The loader option is supported by js-yaml but missing from its types.
     const parsed = yaml.load(yamlContent, { maxTotalMergeKeys: 50 } as yaml.LoadOptions);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return yamlContent;
-    const migrated = migrateLegacyResumeYamlFields(parsed as Record<string, unknown>);
+    const migrated = clampQrCodesInRawYaml(migrateLegacyResumeYamlFields(parsed as Record<string, unknown>));
     if (migrated === parsed) return yamlContent;
     return yaml.dump(migrated, { indent: 2 });
   } catch {
