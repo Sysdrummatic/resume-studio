@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import yaml from "js-yaml";
 import "../../app/globals.css";
+import "../../app/onboarding/onboarding.css";
 import DashboardClient from "../../app/dashboard/dashboard-client";
 import WorkspaceBreadcrumbs from "../../app/components/workspace-breadcrumbs";
 import EditorCanvasClient from "../../app/master-resume/editor-canvas-client";
@@ -90,12 +91,18 @@ const presets = [
   updated_at: "2026-09-08T12:00:00Z"
 }));
 const query = new URLSearchParams(location.search);
+if (query.has("pl-default")) {
+  const polishContent = content("pl");
+  polishContent.summary = polishContent.summary.slice(0, 1);
+  documents[1].yaml_content = yaml.dump(polishContent);
+  presets[1].selection = { ...selection, summary: [1] };
+}
 const languageRows = documents.map((doc) => ({
   user_id: "owner",
   code: doc.locale,
   label: doc.locale === "pl" ? "Polski" : "English",
   short_label: doc.locale.toUpperCase(),
-  is_default: doc.locale === "en",
+  is_default: doc.locale === (query.has("pl-default") ? "pl" : "en"),
   labels: {},
   sort_order: 0,
   created_at: doc.updated_at,
@@ -116,13 +123,16 @@ createRoot(document.getElementById("root")!).render(
     </header>
     <main className="app-main">
       {query.has("editor") ? (
-        <EditorCanvasClient draftPdfEnabled={false} />
+        <EditorCanvasClient draftPdfEnabled={false} onboarding={query.has("onboarding") ? {
+          status: "paused", step: Number(query.get("onboarding")), locale: "en", method: "scratch",
+          ui_language: query.has("pl") ? "pl" : "en", imported: false, first_preset_id: null
+        } : undefined} />
       ) : (
         <div className="dashboard-page editor-theme wide-shell-page">
           <WorkspaceBreadcrumbs current="Dashboard" />
           <DashboardClient
-            masterResume={query.has("empty") ? null : documents[0]}
-            initialDocuments={query.has("empty") ? [] : documents}
+            masterResume={query.has("empty") ? null : documents[query.has("pl-default") ? 1 : 0]}
+            initialDocuments={query.has("empty") ? [] : documents.filter((doc) => !query.has("missing-source") || doc.locale !== "en")}
             initialPresets={query.has("empty") ? [] : presets}
             languageOptions={languageRows}
             draftPdfEnabled={query.has("admin")}

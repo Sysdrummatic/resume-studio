@@ -532,6 +532,7 @@ export default function DashboardClient({
 }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
+  const [modalDocument, setModalDocument] = useState<ResumeDocumentRow | null>(null);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
   const [previewPreset, setPreviewPreset] = useState<ResumePresetRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -565,7 +566,6 @@ export default function DashboardClient({
         }
         try {
           const parsed = asObject(window.jsyaml.load(masterResume.yaml_content));
-          setOptions(buildPresetOptionsFromDocument(parsed));
           setMasterSummary(summarizeMasterResume(normalizeResumeDocument(parsed, "")));
         } catch {
           setDocumentError("Your Master Resume could not be read. Open the editor to review it.");
@@ -588,23 +588,40 @@ export default function DashboardClient({
   const selectedPreset = getSelectedDashboardPreset(visiblePresets, selectedPresetId);
 
   function openCreatePreset() {
-    setActivePreset(null);
+    openPresetEditor(null);
+  }
+
+  function openPresetEditor(preset: ResumePresetRow | null) {
+    const source = preset ? documents.find((document) => document.id === preset.document_id) : masterResume;
+    if (!source) {
+      showToast("The source document for this CV version is unavailable. Reload the page to try again.", "error");
+      return;
+    }
+    if (!window.jsyaml) return;
+    try {
+      setOptions(buildPresetOptionsFromDocument(asObject(window.jsyaml.load(source.yaml_content))));
+    } catch {
+      showToast("Your Master Resume could not be read. Open the editor to review it.", "error");
+      return;
+    }
+    setModalDocument(source);
+    setActivePreset(preset);
     setIsModalOpen(true);
   }
 
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
-    if (!masterResume) return;
+    if (!modalDocument) return;
     const response = await fetch(payload.presetId ? `/api/resume/presets/${encodeURIComponent(payload.presetId)}` : "/api/resume/presets", {
       method: payload.presetId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        documentId: masterResume.id,
+        documentId: modalDocument.id,
         title: payload.title,
         selection: payload.selection,
         allowIndexing: payload.allowIndexing,
         aiGenerated: payload.aiGenerated,
-        defaultLocale: defaultLanguageVersion?.code || masterResume.locale,
+        defaultLocale: activePreset?.default_locale || defaultLanguageVersion?.code || modalDocument.locale,
         isPublic: false,
       }),
     });
@@ -1026,10 +1043,7 @@ export default function DashboardClient({
                       </div>
                       <PresetActionsMenu
                         preset={selectedPreset}
-                        onEdit={() => {
-                          setActivePreset(selectedPreset);
-                          setIsModalOpen(true);
-                        }}
+                        onEdit={() => openPresetEditor(selectedPreset)}
                         onTogglePublish={() => {
                           if (selectedPreset.is_public) {
                             void unpublishPreset(selectedPreset);
@@ -1077,10 +1091,7 @@ export default function DashboardClient({
                             type="button"
                             className="button button--ghost"
                             disabled={!hasMasterResume || !yamlReady}
-                            onClick={() => {
-                              setActivePreset(selectedPreset);
-                              setIsModalOpen(true);
-                            }}
+                            onClick={() => openPresetEditor(selectedPreset)}
                           >
                             Edit selection
                           </button>
@@ -1218,9 +1229,9 @@ export default function DashboardClient({
         </div>
       ) : null}
 
-      {isModalOpen && masterResume ? (
+      {isModalOpen && modalDocument ? (
         <PresetModal
-          masterResume={masterResume}
+          masterResume={modalDocument}
           preset={activePreset}
           options={modalOptions}
           onClose={() => {
