@@ -31,6 +31,23 @@ const dependencies = {
   "./dashboard.css": {},
   "../lib/resume-schema": resumeSchema,
   "../lib/preset-preview": presetPreview,
+  // Mirrors ResumeLanguageSwitcher's actual observable contract (null for a
+  // single language, one control per language otherwise) without importing
+  // the real file, which pulls in next/link outside the Next.js bundler.
+  "../components/resume-language-switcher": ({ languages, activeLocale, ariaLabel, onSelect }) =>
+    languages.length <= 1
+      ? null
+      : createElement(
+          "div",
+          { "aria-label": ariaLabel, className: "resume-language-switcher" },
+          languages.map((language) =>
+            createElement(
+              "button",
+              { key: language.code, type: "button", "data-active": language.code === activeLocale, onClick: () => onSelect?.(language.code) },
+              language.label,
+            ),
+          ),
+        ),
   "../lib/resume-export": { buildPublishedResumeExportUrls: () => null, parseCanonicalPublicPath: () => null },
   "../lib/resume-style": { normalizeResumeStyle: () => ({}) },
   "../components/status-toast": {

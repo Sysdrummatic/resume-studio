@@ -17,6 +17,23 @@ export type PresetPreviewResult =
   | { status: "empty" }
   | { status: "error" };
 
+/**
+ * Runs `action` and turns a rejection into a reportable error message instead
+ * of an unhandled promise — PresetModal.handleSave's onSave() call is a
+ * network request, and letting it reject uncaught left "Saving..." on
+ * screen forever with no way to retry.
+ */
+export async function saveOrReportError<T>(
+  action: () => Promise<T>,
+  errorMessage: string,
+): Promise<{ ok: true; value: T } | { ok: false; error: string }> {
+  try {
+    return { ok: true, value: await action() };
+  } catch {
+    return { ok: false, error: errorMessage };
+  }
+}
+
 export function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): PresetPreviewResult {
   if (!yamlContent || !window.jsyaml) return { status: "error" };
   try {

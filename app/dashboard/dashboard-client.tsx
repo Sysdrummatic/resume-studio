@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeLocale } from "../lib/resume-schema";
-import { buildPresetResumeDocument } from "../lib/preset-preview";
+import { buildPresetResumeDocument, saveOrReportError } from "../lib/preset-preview";
 import type {
   ResumeDocumentRow,
   ResumePresetRow,
@@ -15,7 +15,7 @@ import { buildPublishedResumeExportUrls, parseCanonicalPublicPath } from "../lib
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
-import type { ResumeLanguageOption } from "../components/resume-language-switcher";
+import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
 import { FileText, LockKeyhole, Plus, Search, Check, ArrowUpRight } from "lucide-react";
 import { normalizeResumeStyle } from "../lib/resume-style";
 import {
@@ -231,8 +231,18 @@ function PresetModal({
     }
     setError("");
     setIsSaving(true);
-    await onSave({ presetId: preset?.id, title, selection: nextSelection, allowIndexing, aiGenerated });
-    setIsSaving(false);
+    try {
+      // A rejected save (network failure, etc.) must not strand the button on
+      // "Saving..." forever — the user's title/selection stay as entered so
+      // they can retry without re-filling the form.
+      const result = await saveOrReportError(
+        () => onSave({ presetId: preset?.id, title, selection: nextSelection, allowIndexing, aiGenerated }),
+        "Could not save. Check your connection and try again.",
+      );
+      if (!result.ok) setError(result.error);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -372,20 +382,12 @@ export function PresetPreviewModal({
         ) : null}
         {previewResult.status !== "ok" ? (
           <div className="dashboard-library-preview__fallback">
-            {cvLanguages.length > 1 ? (
-              <div className="actions-row">
-                {cvLanguages.map((language) => (
-                  <button
-                    key={language.code}
-                    type="button"
-                    className={`button button--small ${language.code === activeLocale ? "button--primary" : "button--ghost"}`}
-                    onClick={() => setActiveLocale(language.code)}
-                  >
-                    {language.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            <ResumeLanguageSwitcher
+              languages={cvLanguages}
+              activeLocale={activeLocale}
+              ariaLabel="Switch CV version language"
+              onSelect={setActiveLocale}
+            />
             <p className={previewResult.status === "empty" ? "dashboard-library-preview__note" : "status status--error"}>
               {previewResult.status === "empty"
                 ? `This CV version has no content in ${cvLanguages.find((language) => language.code === activeDocument.locale)?.label || activeDocument.locale.toUpperCase()} yet. Add it in your Master Resume, or switch to a language you've filled in.`
@@ -568,7 +570,10 @@ export default function DashboardClient({
       showToast("The source document for this CV version is unavailable. Reload the page to try again.", "error");
       return;
     }
-    if (!window.jsyaml) return;
+    if (!window.jsyaml) {
+      showToast("The document reader is still loading. Try again in a moment.", "error");
+      return;
+    }
     try {
       setOptions(buildPresetOptionsFromDocument(asObject(window.jsyaml.load(source.yaml_content))));
     } catch {
@@ -764,8 +769,6 @@ export default function DashboardClient({
       allowIndexing: preset.allow_indexing,
     });
   }
-
-  const modalOptions = useMemo(() => options, [options]);
 
   return (
     <div className="dashboard-workspace">
@@ -1204,7 +1207,7 @@ export default function DashboardClient({
         <PresetModal
           masterResume={modalDocument}
           preset={activePreset}
-          options={modalOptions}
+          options={options}
           onClose={() => {
             setIsModalOpen(false);
             setActivePreset(null);

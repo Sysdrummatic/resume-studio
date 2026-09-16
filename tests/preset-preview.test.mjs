@@ -9,7 +9,7 @@ register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 // build does (the vendored copy of the same js-yaml package).
 globalThis.window = { jsyaml: yaml };
 
-const { buildPresetResumeDocument } = await import("../app/lib/preset-preview.ts");
+const { buildPresetResumeDocument, saveOrReportError } = await import("../app/lib/preset-preview.ts");
 const { buildDefaultResumeYaml } = await import("../app/lib/resume-server.ts");
 const { EMPTY_PRESET_SELECTION } = await import("../app/lib/preset-selection.ts");
 
@@ -39,4 +39,14 @@ test("a language version with real summary text previews as ok", () => {
   const result = buildPresetResumeDocument(filledYaml, selection);
   assert.equal(result.status, "ok");
   assert.equal(result.resume.summary[0].position, "QA Engineer");
+});
+
+test("saveOrReportError turns a rejected save into a reportable message instead of an unhandled rejection", async () => {
+  const rejected = await saveOrReportError(() => Promise.reject(new Error("network down")), "Could not save. Check your connection and try again.");
+  assert.deepEqual(rejected, { ok: false, error: "Could not save. Check your connection and try again." });
+});
+
+test("saveOrReportError passes through a successful save", async () => {
+  const resolved = await saveOrReportError(() => Promise.resolve("saved"), "unused");
+  assert.deepEqual(resolved, { ok: true, value: "saved" });
 });
