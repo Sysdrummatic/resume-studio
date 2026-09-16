@@ -3,6 +3,7 @@
 **Status**: ◐ **60% IN PROGRESS**  
 **ETA**: Jun 2026 (target: 2026-06-30)  
 **Started**: 2026-05-20  
+**Last reviewed**: 2026-09-11
 
 > Final gate before production. Comprehensive testing, security hardening, observability setup, and pre-launch validation.
 
@@ -13,6 +14,7 @@
 Phase I is the quality and readiness phase. After Phase E–H deliver features, Phase I ensures everything is secure, tested, observable, and ready for production launch. This is the last quality gate before real users access the platform.
 
 ### Key Theme
+
 **From MVP → production-ready.** All critical paths tested; security/perf/a11y verified.
 
 ---
@@ -29,7 +31,8 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
 
 - [ ] **Preview deploy QA**:
   - Netlify Deploy Previews triggered automatically
-  - Smoke test suite runs on preview URL
+  - [x] Reusable Playwright smoke runner accepts an explicit preview URL
+  - [x] Smoke test suite executed on the PR #156 preview URL and evidence reviewed (8/8 routes, 2026-09-11)
   - Manual QA on preview before production push
 
 - [ ] **Production deploy QA**:
@@ -93,13 +96,12 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
   - Build artifacts are correct
   - Static assets serve correctly
   - API routes respond correctly
-  - Redirects work (legacy `.html` URLs)
+  - Retired legacy `.html` routes remain absent and do not reappear in deploy configuration
 
-- [ ] **Legacy redirect verification**:
-  - Old `.html` URLs redirect to new routes
-  - Redirect chains don't break
-  - SEO metadata correct after redirect
-  - 404s for truly deleted pages
+- [/] **Legacy redirect verification** — deliberately retired before launch:
+  - The former static application and its `.html` compatibility redirects were removed
+  - `tests/legacy-static-cleanup.test.mjs` guards the current no-redirect contract
+  - Canonical Next.js routes and truly missing routes remain part of deploy QA
 
 ### End-to-End Testing
 
@@ -144,7 +146,7 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
   - All protected endpoints verify authentication
   - All protected endpoints verify authorization
   - No sensitive data in error messages
-  - Rate limiting active (Upstash Redis)
+  - Distributed rate limiting active through the existing Postgres RPC
   - CORS headers correct
 
 - [ ] **Secret management**:
@@ -155,8 +157,8 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
 
 ### Observability & Monitoring
 
-- [ ] **Error tracking (Sentry)**:
-  - Sentry project configured
+- [ ] **Error tracking provider**:
+  - Provider selected and documented before adding an SDK
   - Frontend errors captured
   - Backend errors captured
   - Alerts for critical errors configured
@@ -210,7 +212,7 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
 ### Automation Layers
 
 ```
-Unit Tests (Jest/Vitest)
+Unit Tests (`node:test`)
 ├─ RBAC logic (app/lib/rbac.ts)
 ├─ Resume validation (app/lib/resume-schema.ts)
 ├─ Auth helpers (app/lib/auth-*.ts)
@@ -222,7 +224,7 @@ Integration Tests (Node test runner)
 ├─ Auth flow end-to-end
 └─ Publish/rollback workflows
 
-E2E Tests (Playwright)
+Browser smoke and E2E tests (installed Playwright)
 ├─ Sign-up → CV edit → publish
 ├─ Admin user management
 ├─ Recruiter access patterns
@@ -237,7 +239,7 @@ Manual QA Checklist
 
 ### Test Data
 
-- **User accounts** (pre-created for testing):
+- **Planned environment-owned test accounts** (availability must be verified; these are not credentials):
   - admin@opencivera.test
   - manager@opencivera.test
   - user@opencivera.test
@@ -261,7 +263,8 @@ Manual QA Checklist
 
 **Scenario**: Env var missing or incorrect in production; app crashes on deploy.
 
-**Mitigation**: 
+**Mitigation**:
+
 - Pre-deploy checklist verifies all env vars
 - Netlify Deploy Preview runs before production
 - Rollback to previous deploy if critical issue
@@ -271,24 +274,27 @@ Manual QA Checklist
 **Scenario**: Code checks RBAC capability, but RLS policy allows unauthorized access.
 
 **Mitigation**:
+
 - Phase I includes SQL alignment verification (task from memory)
 - Tests assert both code and RLS behavior
 - Manual QA checks cross-user data isolation
 
-### Risk 3: Legacy Redirects Break During Migration
+### Risk 3: Retired Static Routes Reappear
 
-**Scenario**: Old `.html` URLs stop working after platform migration or DNS change.
+**Scenario**: A stale branch or deploy configuration accidentally restores the retired static app or `.html` redirects.
 
 **Mitigation**:
-- netlify.toml has explicit redirect rules
-- Pre-deploy testing verifies old URLs
-- Rollback plan includes redirect config
+
+- Static-cleanup contract tests reject old entry points and redirect rules
+- Preview smoke checks exercise the canonical Next.js routes
+- Release review compares the deployment configuration with `netlify.toml`
 
 ### Risk 4: Performance Degrades Under Load
 
 **Scenario**: Dashboard slow with 100+ CVs; public route SSR times out.
 
 **Mitigation**:
+
 - Lighthouse audits before launch
 - Query optimization (indexes on popular columns)
 - ISR cache strategy for public routes
@@ -298,25 +304,30 @@ Manual QA Checklist
 
 ## Phase I Execution Plan
 
-### Week 1 (2026-05-27 to 2026-06-02)
+### Workstream 1 — Repeatable deploy checks
+
 - [ ] Finalize deployment QA procedures
-- [ ] Set up Sentry and observability
-- [ ] Create smoke test suite
+- [ ] Select an error-tracking provider and define privacy constraints
+- [x] Create the public/anonymous preview smoke runner
+- [x] Run the smoke suite on a Netlify Deploy Preview
 - [ ] Begin auth flow testing
 
-### Week 2 (2026-06-03 to 2026-06-09)
+### Workstream 2 — Functional and non-functional QA
+
 - [ ] Complete functional testing (admin, editor, recruiter)
 - [ ] Run E2E regression suite
 - [ ] Performance and accessibility audits
 - [ ] RLS policy validation
 
-### Week 3 (2026-06-10 to 2026-06-16)
+### Workstream 3 — Security and recovery
+
 - [ ] Security review and hardening
 - [ ] Rollback plan testing
 - [ ] Release checklist finalization
 - [ ] Team readiness review
 
-### Week 4 (2026-06-17 to 2026-06-30)
+### Workstream 4 — Launch decision
+
 - [ ] Final production deploy QA
 - [ ] Smoke test protocol execution
 - [ ] Post-launch support preparation
@@ -327,14 +338,17 @@ Manual QA Checklist
 ## Related Documentation
 
 ### Test Contracts & Guides
+
 - [Deployment QA Checklist](../guides/testing/deployment-qa.md)
 - [CV Publication Test Contracts](../guides/testing/cv-publication-test-contracts.md)
 - [SEO/AEO Preview QA Checklist](../guides/testing/seo-aeo-preview-qa-checklist.md)
 
 ### Architecture Decisions
+
 - [ADR 0010: API Hardening and Resource Protection](../adr/0010-api-hardening-and-resource-protection.md)
 
 ### Execution
+
 - [STATUS.md](../STATUS.md)
 
 ---
@@ -374,7 +388,7 @@ Tracked in [STATUS.md](../STATUS.md):
 - [ ] Admin panel and audit functionality verified
 - [ ] Editor publish/rollback workflows tested
 - [ ] Deployment platform validation complete
-- [ ] Legacy redirects verified
+- [/] Legacy redirect verification retired; static cleanup contract remains green
 - [ ] E2E regression suite complete
 - [ ] Performance and accessibility checks passed
 - [ ] Security and RLS validation complete

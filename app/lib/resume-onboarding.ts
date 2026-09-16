@@ -11,7 +11,6 @@ export const ONBOARDING_SECTIONS = [
   "courses",
   "interests",
   "tech-stack",
-  "qr-codes",
   "gdpr"
 ] as const;
 export const ONBOARDING_REVIEW_STEP = ONBOARDING_SECTIONS.length + 2;

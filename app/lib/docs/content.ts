@@ -12,7 +12,7 @@ export const DOC_CATEGORY_TITLES: Record<DocCategory, string> = {
 export type DocNavGroup = {
   key: DocCategory;
   title: string;
-  items: Array<{ href: string; title: string }>;
+  items: Array<{ href: string; title: string; description?: string }>;
 };
 
 export type DocEntry = {
@@ -101,6 +101,7 @@ export function listDocNavGroups(includeTestScenarios: boolean): DocNavGroup[] {
     items: listDocs(category).map((doc) => ({
       href: `/docs/${category}/${doc.slug}`,
       title: doc.title,
+      description: doc.description,
     })),
   }));
 }
