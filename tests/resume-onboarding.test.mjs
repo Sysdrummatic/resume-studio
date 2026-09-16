@@ -128,8 +128,8 @@ test("selection indexes are computed against the raw yaml array, not the post-no
   assert.equal(applied.experience[0].company, "Example");
 });
 
-function serverFixture() {
-  const state = { ...initial, status: "active", step: 14 };
+function serverFixture(locale = "en") {
+  const state = { ...initial, status: "active", step: 14, locale };
   const resume = schema.defaultResumeDocument("Jane Doe");
   resume.summary[0] = { position: "Engineer", description: "Builds products", default: true };
   const presets = [];
@@ -147,7 +147,7 @@ function serverFixture() {
           data:
             input.table === "resume_onboarding"
               ? [{ ...state }]
-              : [{ id: "doc", locale: "en", yaml_content: yaml.dump(resume) }]
+              : [{ id: "doc", locale, yaml_content: yaml.dump(resume) }]
         };
       },
       updateTable: async (input) => {
@@ -176,7 +176,8 @@ function serverFixture() {
         assert.equal(userId, "owner");
         assert.equal(id, "first-cv");
         assert.equal(options.allowIndexing, false);
-        assert.deepEqual(options.selectedLocales, ["en"]);
+        assert.equal(options.defaultLocale, locale);
+        assert.deepEqual(options.selectedLocales, [locale]);
         calls.push("publish");
         if (failPublish) throw Error("private internal SQL detail");
         presets[0].canonical_public_path = "/jane-doe/first-cv";
@@ -233,6 +234,16 @@ test("a lost completion write retries without publishing an already live CV agai
   f.failCompletion(false);
   await f.server.completeOnboarding("owner-token", "owner", true);
   assert.equal(f.calls.filter((call) => call === "publish").length, 1);
+});
+
+test("publishes the first CV in the language chosen during onboarding, not a hardcoded default", async () => {
+  // ocv-0177: dashboard/user hub used to fall back to a hardcoded "en" master
+  // resume; this pins the other end of that chain, the publish step, to the
+  // locale the user actually picked in the onboarding language selector
+  // (asserted inside the publishResumePreset mock in serverFixture).
+  const f = serverFixture("pl");
+  const result = await f.server.completeOnboarding("owner-token", "owner", true);
+  assert.equal(result.publicPath, "/jane-doe/first-cv");
 });
 
 test("empty first CV is never published", async () => {
