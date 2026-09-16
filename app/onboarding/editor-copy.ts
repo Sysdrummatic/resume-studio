@@ -56,6 +56,7 @@ const POLISH: Record<string, string> = {
   "Clause text": "Treść klauzuli",
   "No clause": "Brak klauzuli",
   "Use standard PL wording": "Wstaw standardową polską klauzulę",
+  "Use standard EN wording": "Wstaw standardową angielską klauzulę",
   Clear: "Wyczyść",
   "Rendered as a small footer on the CV. Leave empty to omit it.":
     "Klauzula pojawi się w stopce CV. Pozostaw puste pole, aby ją pominąć."

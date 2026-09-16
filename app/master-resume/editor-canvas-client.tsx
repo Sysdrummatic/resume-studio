@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import OnboardingClient from "../onboarding/onboarding-client";
 import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
-import { firstCvSelection, ONBOARDING_SECTIONS, type OnboardingState } from "../lib/resume-onboarding";
+import { firstCvSelection, ONBOARDING_SECTIONS, onboardingStepToIndex, type OnboardingState } from "../lib/resume-onboarding";
 import { applyResumeSelectionToRawDocument } from "../lib/preset-selection";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import { onboardingEditorText } from "../onboarding/editor-copy";
@@ -298,7 +298,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   } | null>(null);
 
   const [sidePanelTab, setSidePanelTab] = useState<"preview" | "history" | "style">("preview");
-  const [activeSectionId, setActiveSectionId] = useState<string>(onboarding ? ONBOARDING_SECTIONS[onboarding.step - 2] ?? "personal" : EDITOR_SECTIONS[0].id);
+  const [activeSectionId, setActiveSectionId] = useState<string>(onboarding ? ONBOARDING_SECTIONS[onboardingStepToIndex(onboarding.step) - 2] ?? "personal" : EDITOR_SECTIONS[0].id);
   // Below 1020px the side panel leaves the grid and opens as a slide-over.
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const yamlTextareaRef = useRef<HTMLTextAreaElement>(null);

@@ -78,14 +78,18 @@ i `SZKIC TESTOWY` w opisie, aby łatwo odróżnić szkic od rzeczywistego Master
 | 9 | Kursy | Dodaj kurs lub pomiń |
 | 10 | Zainteresowania | Dodaj zainteresowanie lub pomiń |
 | 11 | Technologie | Dodaj technologię lub pomiń |
-| 12 | Kody QR | Dodaj obsługiwany wpis lub pomiń |
-| 13 | Klauzula RODO | Wpisz tekst testowy lub pomiń |
-| 14 | Podgląd CV | Sprawdź dane i odnośniki do sekcji |
-| 15 | Decyzja o utworzeniu CV z linkiem | Opublikuj albo zakończ bez publikacji |
+| 12 | Klauzula RODO | Wpisz tekst testowy lub pomiń |
+| 13 | Podgląd CV | Sprawdź dane i odnośniki do sekcji |
+| 14 | Decyzja o utworzeniu CV z linkiem | Opublikuj albo zakończ bez publikacji |
 
 Przycisk przejścia dalej może nazywać się **Dalej / Continue** lub
 **Dalej / pomiń / Continue / skip**, zależnie od sekcji i języka przewodnika.
 Język przewodnika oraz język dokumentu CV wybiera się niezależnie.
+
+Sprawdź również wznowienie istniejących przebiegów Usera i Admina: zapisane
+`step=11` (dawne QR) i `step=12` mają otwierać RODO, `step=13` podgląd,
+a `step=14` decyzję o publikacji. Po przejściu dalej i wstecz zapisane numery
+muszą zachować te znaczenia. QR pozostają dostępne w zwykłym edytorze Master CV.
 
 ## 3. Konto User
 
@@ -386,7 +390,7 @@ wybory pozostają. Publikacja udostępnia wybrany język dokumentu.
 
 1. Sprawdź powitanie, import, formularz, podgląd i zakończenie przy szerokości
    320 px, 390 px, 768 px oraz na komputerze. Uwzględnij niski widok poziomy.
-2. Sprawdź oś po lewej: 15 numerowanych etapów, wyraźnie większy i podświetlony
+2. Sprawdź oś po lewej: 14 numerowanych etapów, wyraźnie większy i podświetlony
    numer bieżącej planszy. Przejdź dalej i cofnij się; oznaczenie ma podążać za planszą.
    Sprawdź także końcowe etapy, które na niskim ekranie wymagają przewinięcia osi.
    Oś jest wskaźnikiem — nie umożliwia pominięcia zapisu przez kliknięcie numeru.

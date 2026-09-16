@@ -1,7 +1,7 @@
 # First-use Master CV guide
 
 The `/onboarding` guide takes a newly registered account through a welcome,
-scratch/import choice, the eleven existing Master Resume sections, a preview,
+scratch/import choice, ten Master Resume sections (excluding QR codes), a preview,
 and an explicit choice to create a published CV. Both English and Polish guide
 copy are available; the document language is selected independently.
 
@@ -10,7 +10,7 @@ its navigation, account menu and theme switch. It inherits the current editor
 theme and reuses the editor's fields and color tokens. Its brand is non-navigating;
 the explicit “Finish later” action saves before leaving the guide.
 
-A vertical axis on the left lists all fifteen steps. The current number is larger
+A vertical axis on the left lists all fourteen steps. The current number is larger
 and highlighted; previous steps are marked separately. The axis reflects the
 current position, not a checklist of field completeness, and does not allow
 skipping validation or saving. On small screens it becomes a narrow numbered rail,
@@ -36,6 +36,12 @@ document locale, guide language and first CV ID. RLS permits reading and updatin
 only one's own progress; an admin or manager cannot read another user's progress
 through these policies. Completed rows cannot be reset through authenticated
 updates. API authorization still requires an active, verified account.
+
+API and stored step numbers retain their original meaning: GDPR is `12`, review
+is `13`, and publication is `14`. The UI maps these to visible indexes `11`, `12`,
+and `13`. Stored QR progress (`11`) resumes on GDPR; new progress skips that
+reserved number. This mapping also applies to admin test runs and preserves
+resumption and rollback without a database migration.
 
 The guide reuses `EditorCanvasClient`, its form fields, multi-language buffers,
 import parsing and import review. Field updates remain in memory until the user

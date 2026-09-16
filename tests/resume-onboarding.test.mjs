@@ -39,6 +39,24 @@ const initial = {
   imported: false
 };
 
+test("resuming stored onboarding steps preserves GDPR, review and publication after removing QR", () => {
+  assert.equal(domain.ONBOARDING_REVIEW_STEP, 13);
+  assert.equal(domain.ONBOARDING_PUBLISH_STEP, 14);
+  for (let step = 0; step <= 10; step++) {
+    assert.equal(domain.onboardingStepToIndex(step), step);
+    assert.equal(domain.onboardingIndexToStep(step), step);
+  }
+  assert.equal(domain.onboardingStepToIndex(11), 11);
+  assert.equal(domain.onboardingStepToIndex(12), 11);
+  assert.equal(domain.ONBOARDING_SECTIONS[domain.onboardingStepToIndex(12) - 2], "gdpr");
+  assert.equal(domain.onboardingStepToIndex(13), domain.ONBOARDING_REVIEW_INDEX);
+  assert.equal(domain.onboardingStepToIndex(14), domain.ONBOARDING_PUBLISH_INDEX);
+  for (const [index, step] of [[11, 12], [12, 13], [13, 14]]) {
+    assert.equal(domain.onboardingIndexToStep(index), step);
+    assert.equal(domain.parseOnboardingProgress({ ...initial, status: "paused", step })?.step, step);
+  }
+});
+
 test("only newly enrolled accounts start automatically; paused, active, completed and existing users do not", () => {
   assert.equal(domain.shouldStartOnboarding(initial), true);
   for (const state of [
