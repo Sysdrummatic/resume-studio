@@ -2,9 +2,9 @@
 
 Project rules: [AGENTS.md](../AGENTS.md).
 
-For a task, use the applicable sections of the [task checklists](task-checklists.md).
+For a task, use the applicable sections of the [task checklists](../docs/CHECKLISTS.md).
 Validation commands and exceptions are maintained only in the
-[validation runbook](runbooks/testing-and-validation.md).
+[validation runbook](../docs/runbooks/testing-and-validation.md).
 
 - YAML/content: owners, schema, EN/PL labels, fallback and selected public output.
 - Auth/admin: actor verification, activity, role boundaries, RLS and audit.
@@ -13,4 +13,4 @@ Validation commands and exceptions are maintained only in the
 - Delivery: relevant docs, verification evidence and explicit deployment status.
 
 Do not use retired HTML pages or legacy browser scripts as current application
-test targets; use the [code map](site-map-and-dependencies.md).
+test targets; use the [code map](../docs/CODE-MAP.md).
