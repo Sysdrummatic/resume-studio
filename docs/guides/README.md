@@ -42,6 +42,7 @@ Design decisions, contracts, and implementation policies linked to ADRs.
 Future features and detailed implementation plans.
 
 - [Dashboard Workspace](features/dashboard-workspace.md) — Layout, CV previews and regression checks
+- [Documentation Workspace](features/documentation-workspace.md) — Knowledge hub, article layout, access boundaries and regression checks
 
 - [AI Demo Resume Generation Plan](features/ai-demo-resume-generation-plan.md) — Fictional CV generation workstream (Phase J)
 

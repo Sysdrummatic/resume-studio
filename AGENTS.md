@@ -7,7 +7,7 @@
 - Prefer KISS, DRY and readable TypeScript: reuse existing components and domain functions before adding abstractions or dependencies.
 - Prioritize data integrity and security, then correctness, maintainability, performance and delivery speed.
 - Inspect the working tree before editing. Preserve existing changes and running development servers.
-- Follow the current [Git workflow](docs/guides/development/git-workflow.md); do not duplicate its naming rules here or invent issue/PR numbers.
+- Follow the current [Git workflow](docs/guides/development/git-workflow.md) for branching, commits, and issue/PR metadata (project, assignee, priority, milestone, label); do not duplicate those rules here or invent issue/PR numbers.
 - Report what changed, what was checked, unresolved limitations and whether work is local, pushed or deployed. Code completion does not imply deployment.
 
 ## Start with the relevant context

@@ -2,19 +2,26 @@ import { notFound } from "next/navigation";
 import DocsLayout from "../../../components/docs-layout";
 import { requireAuthenticatedActor } from "../../../lib/auth-server";
 import { canViewTestScenarios } from "../../../lib/docs/access";
-import { DOC_CATEGORY_TITLES, getDoc, isDocCategory, listDocNavGroups } from "../../../lib/docs/content";
+import {
+  DOC_CATEGORY_TITLES,
+  getDoc,
+  isDocCategory,
+  listDocNavGroups
+} from "../../../lib/docs/content";
 import { renderMarkdownWithOutline } from "../../../lib/docs/markdown";
+import { docsCopy, resolveDocsLanguage } from "../../../lib/docs/presentation";
 
 export const dynamic = "force-dynamic";
 
 type DocPageProps = {
+  searchParams?: Promise<{ lang?: string | string[] }>;
   params: Promise<{
     category: string;
     slug: string;
   }>;
 };
 
-export default async function DocPage({ params }: DocPageProps) {
+export default async function DocPage({ params, searchParams }: DocPageProps) {
   const { category, slug } = await params;
   const actor = await requireAuthenticatedActor();
 
@@ -35,12 +42,23 @@ export default async function DocPage({ params }: DocPageProps) {
   }
 
   const { html, headings } = renderMarkdownWithOutline(doc.markdown);
+  const language = resolveDocsLanguage((await searchParams)?.lang);
 
   return (
-    <DocsLayout groups={listDocNavGroups(showTestScenarios)} activeHref={`/docs/${category}/${slug}`} toc={headings}>
-      <article className="card stack">
-        <span className="product-surface__eyebrow">{DOC_CATEGORY_TITLES[category]}</span>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+    <DocsLayout
+      groups={listDocNavGroups(showTestScenarios)}
+      activeHref={`/docs/${category}/${slug}`}
+      toc={headings}
+      language={language}
+    >
+      <article className="docs-article">
+        <div className="docs-article__meta">
+          <span className="docs-tag">
+            {language === "en" ? DOC_CATEGORY_TITLES[category] : docsCopy[language][category]}
+          </span>
+          {language === "pl" ? <span>{docsCopy.pl.articleLanguage}</span> : null}
+        </div>
+        <div className="docs-prose" lang="en" dangerouslySetInnerHTML={{ __html: html }} />
       </article>
     </DocsLayout>
   );

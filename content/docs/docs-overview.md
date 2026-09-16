@@ -6,11 +6,9 @@ author: Łukasz Michta
 category: docs
 ---
 
-# Docs
----
 ## Overview
 
-This sections contains usefull materials for OpenCiVera users, including tutorials, guides, and reference documentation.
+This section contains useful materials for OpenCiVera users, including tutorials, guides, and reference documentation.
 
 :::warning
 This documentation is still in beta. Some features may be missing or incomplete, and the user interface may change in future releases. We welcome your feedback and suggestions for improvement.
@@ -18,7 +16,7 @@ This documentation is still in beta. Some features may be missing or incomplete,
 
 ## Start here!
 
-To start exploring the documentation, first of all you need to create your first Master Resume. You can do that by following the [Creating your first Master Resume](/docs/tutorials/creating-your-first-master-resume) tutorial.
+To start exploring the documentation, follow the [Publishing your first CV](/docs/tutorials/publishing-your-first-cv) tutorial. It walks you through creating your Master Resume, choosing a CV version, and publishing it.
 
 ## Tutorials
 

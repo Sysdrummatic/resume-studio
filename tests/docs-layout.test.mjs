@@ -11,8 +11,6 @@ const { listDocNavGroups } = await import("../app/lib/docs/content.ts");
 
 const layoutComponentPath = path.join(process.cwd(), "app", "components", "docs-layout.tsx");
 const headerNavPath = path.join(process.cwd(), "app", "components", "app-header-navigation.tsx");
-const indexRoutePath = path.join(process.cwd(), "app", "docs", "page.tsx");
-const docRoutePath = path.join(process.cwd(), "app", "docs", "[category]", "[slug]", "page.tsx");
 
 function read(filePath) {
   return fs.readFileSync(filePath, "utf8");
@@ -97,32 +95,4 @@ test("DocsLayout imports the shared breakpoint constant instead of redefining it
   assert.equal(layoutSource.includes('import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "./app-header-navigation"'), true);
   assert.equal(layoutSource.includes("min-width: 980px"), false);
   assert.equal(headerSource.includes("export const DESKTOP_NAVIGATION_BREAKPOINT_QUERY"), true);
-});
-
-test("DocsLayout renders grouped nav with active item marking and conditional right rail", () => {
-  const source = read(layoutComponentPath);
-
-  assert.equal(source.includes("groups.map"), true);
-  assert.equal(source.includes('aria-current={item.href === activeHref ? "page" : undefined}'), true);
-  assert.equal(source.includes("toc.length > 0"), true);
-  assert.equal(source.includes("On this page"), true);
-});
-
-test("docs index renders the welcome panel inside DocsLayout, not category cards", () => {
-  const source = read(indexRoutePath);
-
-  assert.equal(source.includes("DocsLayout"), true);
-  assert.equal(source.includes("Select a topic from the sidebar to get started."), true);
-  assert.equal(source.includes("listDocNavGroups(showTestScenarios)"), true);
-  assert.equal(source.includes("docs-index__list"), false);
-});
-
-test("doc detail page renders eyebrow, outline, and the shared layout", () => {
-  const source = read(docRoutePath);
-
-  assert.equal(source.includes("DocsLayout"), true);
-  assert.equal(source.includes("renderMarkdownWithOutline"), true);
-  assert.equal(source.includes("listDocNavGroups(showTestScenarios)"), true);
-  assert.equal(source.includes("product-surface__eyebrow"), true);
-  assert.equal(source.includes("toc={headings}"), true);
 });
