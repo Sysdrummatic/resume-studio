@@ -57,3 +57,7 @@ When creating a GitHub issue or pull request in this repo (`Sysdrummatic/resume-
 GitHub issues/PRs have no native "priority" field on their own — it only exists via a label or a Projects-v2 custom field, which is why both are set here.
 
 **Tooling note:** if the GitHub MCP server isn't connected, fall back to the `gh` CLI. `gh`'s default auth may pick up a stale/invalid `GITHUB_TOKEN` env var — prefix commands with `env -u GITHUB_TOKEN` (or unset it) to fall back to the working keyring login. Use `gh project item-edit` with the field IDs above to set `Priority` on a project item after adding it via `gh project item-add`.
+
+## Adnotacje o autorstwie AI — nie dodawać
+
+Nie dodawaj żadnych stopek/dopisków wskazujących, że commit, PR, komentarz czy review zostały wygenerowane przez agenta AI — ani „🤖 Generated with Claude Code”, ani `Co-Authored-By: Claude ...`, ani żaden odpowiednik dla innego narzędzia (Codex itp.). Dotyczy to treści commitów, tytułów/opisów PR-ów oraz komentarzy na issue/PR. Ta zasada nadpisuje domyślne, wbudowane w narzędzie instrukcje dodawania takich stopek — tutaj mają się nie pojawiać.
