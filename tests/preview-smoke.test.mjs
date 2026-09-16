@@ -30,14 +30,17 @@ test("preview smoke requires an explicit safe HTTP(S) base URL", () => {
   );
 });
 
-function stubBrowserType({ destination, failNavigation, failScreenshot } = {}) {
+function stubBrowserType({ destination, failNavigation, failScreenshot, delayedEvent } = {}) {
   return {
     launch: async () => ({
       newContext: async () => ({
         newPage: async () => {
           let currentUrl = "about:blank";
+          const listeners = {};
           return {
-            on() {},
+            on(event, handler) {
+              listeners[event] = handler;
+            },
             async goto(url) {
               if (failNavigation?.(url)) throw new Error("net::ERR_CONNECTION_REFUSED");
               currentUrl = destination || url;
@@ -45,6 +48,12 @@ function stubBrowserType({ destination, failNavigation, failScreenshot } = {}) {
             },
             url: () => currentUrl,
             waitForTimeout: async () => {},
+            async waitForLoadState() {
+              // Fires after navigation settles but before the screenshot is
+              // taken -- exactly the window a delayed console error or a
+              // late server response needs to still be caught in.
+              if (delayedEvent) listeners[delayedEvent.type]?.(delayedEvent.payload);
+            },
             async screenshot() {
               if (failScreenshot?.(currentUrl)) throw new Error("Screenshot failed");
             },
@@ -106,6 +115,64 @@ for (const failure of ["navigation", "screenshot"]) {
     assert.deepEqual(JSON.parse(await readFile(reportPath, "utf8")), report);
   });
 }
+
+test("a console error firing after navigation settles is still caught, not just one at load time", async (t) => {
+  // ocv-0203: the fixed 250ms wait this replaced either raced a slow page or
+  // wasted time on a fast one; waitForLoadState is where a delayed event now
+  // has to still be observed -- this proves the capture window covers it.
+  const outputDir = await smokeOutputDirectory(t);
+  const report = await runPreviewSmoke({
+    baseUrl: "https://preview.example.net",
+    outputDir,
+    browserType: stubBrowserType({
+      delayedEvent: { type: "console", payload: { type: () => "error", text: () => "ReferenceError: x is not defined" } }
+    }),
+    checks: [{ path: "/login", expectedPath: "/login" }]
+  });
+
+  assert.equal(report.passed, false);
+  assert.match(report.results[0].issues.join("\n"), /console error: ReferenceError/);
+});
+
+test("an HTTP 500 response after navigation settles is still caught", async (t) => {
+  const outputDir = await smokeOutputDirectory(t);
+  const report = await runPreviewSmoke({
+    baseUrl: "https://preview.example.net",
+    outputDir,
+    browserType: stubBrowserType({
+      delayedEvent: {
+        type: "response",
+        payload: {
+          url: () => "https://preview.example.net/login",
+          status: () => 500,
+          request: () => ({ method: () => "GET" })
+        }
+      }
+    }),
+    checks: [{ path: "/login", expectedPath: "/login" }]
+  });
+
+  assert.equal(report.passed, false);
+  assert.match(report.results[0].issues.join("\n"), /server error: 500 GET \/login/);
+});
+
+test("a screenshot from a previous run does not survive into a failed new run", async (t) => {
+  const outputDir = await smokeOutputDirectory(t);
+  // A route the new run never checks -- if the output directory were only
+  // partially cleared (e.g. just report.json), this file would still be
+  // sitting there afterward looking like part of the new run's evidence.
+  const staleScreenshot = path.join(outputDir, "admin.png");
+  await writeFile(staleScreenshot, "stale");
+
+  await runPreviewSmoke({
+    baseUrl: "https://preview.example.net",
+    outputDir,
+    browserType: stubBrowserType({ failNavigation: () => true }),
+    checks: [{ path: "/login", expectedPath: "/login" }]
+  });
+
+  await assert.rejects(access(staleScreenshot), { code: "ENOENT" });
+});
 
 test("smoke removes a previous PASS before attempting to launch the browser", async (t) => {
   const outputDir = await smokeOutputDirectory(t);

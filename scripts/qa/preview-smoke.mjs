@@ -119,7 +119,12 @@ async function observeRoute(context, baseUrl, check, outputDir) {
     const response = await page.goto(new URL(check.path, baseUrl).toString(), {
       waitUntil: "domcontentloaded"
     });
-    await page.waitForTimeout(250);
+    // A fixed wait either races a slow page (screenshot/error capture too
+    // early) or wastes time on a fast one. networkidle is the actual
+    // readiness signal; a page with genuinely ongoing background activity
+    // (beacons, polling) still gets its screenshot after the timeout rather
+    // than hanging the whole run.
+    await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
     await page.screenshot({
       path: path.join(outputDir, `${safeScreenshotName(check.path)}.png`),
       fullPage: true
@@ -144,9 +149,13 @@ export async function runPreviewSmoke({
   checks = DEFAULT_SMOKE_CHECKS
 }) {
   const resolvedOutput = path.resolve(outputDir || path.join("tmp", "preview-smoke"));
+  // Clear the whole output directory up front, not just report.json -- a run
+  // that crashes partway used to leave that route's screenshot behind, where
+  // the next (possibly failed, possibly never-reaching-that-route) run's
+  // report could be read next to a stale, unrelated image.
+  await rm(resolvedOutput, { recursive: true, force: true });
   await mkdir(resolvedOutput, { recursive: true });
   const reportPath = path.join(resolvedOutput, "report.json");
-  await rm(reportPath, { force: true });
   const browser = await browserType.launch({ headless: true });
   const results = [];
   try {
