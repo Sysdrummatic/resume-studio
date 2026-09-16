@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
 import {
   DEFAULT_SMOKE_CHECKS,
   assessSmokeObservation,
   formatFailedRequest,
   isIgnoredConsoleError,
-  parsePreviewSmokeArgs
+  parsePreviewSmokeArgs,
+  runPreviewSmoke
 } from "../scripts/qa/preview-smoke.mjs";
 
 test("preview smoke requires an explicit safe HTTP(S) base URL", () => {
@@ -24,6 +28,99 @@ test("preview smoke requires an explicit safe HTTP(S) base URL", () => {
     () => parsePreviewSmokeArgs(["--base=https://user:secret@example.net"]),
     /credentials/
   );
+});
+
+function stubBrowserType({ destination, failNavigation, failScreenshot } = {}) {
+  return {
+    launch: async () => ({
+      newContext: async () => ({
+        newPage: async () => {
+          let currentUrl = "about:blank";
+          return {
+            on() {},
+            async goto(url) {
+              if (failNavigation?.(url)) throw new Error("net::ERR_CONNECTION_REFUSED");
+              currentUrl = destination || url;
+              return { status: () => 200 };
+            },
+            url: () => currentUrl,
+            waitForTimeout: async () => {},
+            async screenshot() {
+              if (failScreenshot?.(currentUrl)) throw new Error("Screenshot failed");
+            },
+            close: async () => {}
+          };
+        }
+      }),
+      close: async () => {}
+    })
+  };
+}
+
+async function smokeOutputDirectory(t) {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "opencivera-preview-smoke-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  return directory;
+}
+
+test("smoke rejects redirects to another deployment with the same route", async (t) => {
+  const outputDir = await smokeOutputDirectory(t);
+  const report = await runPreviewSmoke({
+    baseUrl: "https://preview.example.net",
+    outputDir,
+    browserType: stubBrowserType({ destination: "https://production.example.net/login" }),
+    checks: [{ path: "/login", expectedPath: "/login" }]
+  });
+
+  assert.equal(report.passed, false);
+  assert.match(report.results[0].issues.join("\n"), /expected origin https:\/\/preview.example.net/);
+});
+
+for (const failure of ["navigation", "screenshot"]) {
+  test(`smoke reports ${failure} failures, continues routes and replaces a previous PASS`, async (t) => {
+    const outputDir = await smokeOutputDirectory(t);
+    const reportPath = path.join(outputDir, "report.json");
+    await writeFile(reportPath, JSON.stringify({ passed: true, results: [] }));
+    const failsOnLogin = (url) => new URL(url).pathname === "/login";
+    const report = await runPreviewSmoke({
+      baseUrl: "https://preview.example.net",
+      outputDir,
+      browserType: stubBrowserType(
+        failure === "navigation"
+          ? { failNavigation: failsOnLogin }
+          : { failScreenshot: failsOnLogin }
+      ),
+      checks: [
+        { path: "/login", expectedPath: "/login" },
+        { path: "/privacy", expectedPath: "/privacy" }
+      ]
+    });
+
+    assert.equal(report.passed, false);
+    assert.equal(report.results.length, 2);
+    assert.match(
+      report.results[0].issues.join("\n"),
+      failure === "navigation" ? /ERR_CONNECTION_REFUSED/ : /Screenshot failed/
+    );
+    assert.deepEqual(report.results[1].issues, []);
+    assert.deepEqual(JSON.parse(await readFile(reportPath, "utf8")), report);
+  });
+}
+
+test("smoke removes a previous PASS before attempting to launch the browser", async (t) => {
+  const outputDir = await smokeOutputDirectory(t);
+  const reportPath = path.join(outputDir, "report.json");
+  await writeFile(reportPath, JSON.stringify({ passed: true, results: [] }));
+
+  await assert.rejects(
+    runPreviewSmoke({
+      baseUrl: "https://preview.example.net",
+      outputDir,
+      browserType: { launch: async () => { throw new Error("Browser launch failed"); } }
+    }),
+    /Browser launch failed/
+  );
+  await assert.rejects(access(reportPath), { code: "ENOENT" });
 });
 
 test("aborted Next.js link prefetch does not hide real same-origin asset failures", () => {
@@ -130,7 +227,7 @@ test("smoke observation reports HTTP, redirect, browser, console and request fai
     consoleErrors: [],
     failedRequests: [],
     serverErrors: []
-  });
+  }, "https://preview.example.net");
   assert.deepEqual(passing, []);
 
   const failures = assessSmokeObservation(check, {
@@ -140,7 +237,7 @@ test("smoke observation reports HTTP, redirect, browser, console and request fai
     consoleErrors: ["Unhandled error"],
     failedRequests: ["GET /_next/static/chunk.js: net::ERR_FAILED"],
     serverErrors: ["500 GET /api/auth/session"]
-  });
+  }, "https://preview.example.net");
   assert.deepEqual(failures, [
     "expected HTTP 200, received 503",
     "expected final path /login, received /dashboard",
