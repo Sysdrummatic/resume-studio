@@ -27,7 +27,7 @@ contact:
     link: https://steevetatums.dev
 qr_codes:
   - label: Personal Site
-    image: images/qrs/qr.png
+    value: https://opencivera.com
     size: 130
 skills:
   - name: Sales Team Leadership

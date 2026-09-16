@@ -39,20 +39,13 @@ const initial = {
   imported: false
 };
 
-test("resuming stored onboarding steps preserves GDPR, review and publication after removing QR", () => {
-  assert.equal(domain.ONBOARDING_REVIEW_STEP, 13);
-  assert.equal(domain.ONBOARDING_PUBLISH_STEP, 14);
-  for (let step = 0; step <= 10; step++) {
-    assert.equal(domain.onboardingStepToIndex(step), step);
-    assert.equal(domain.onboardingIndexToStep(step), step);
-  }
-  assert.equal(domain.onboardingStepToIndex(11), 11);
-  assert.equal(domain.onboardingStepToIndex(12), 11);
-  assert.equal(domain.ONBOARDING_SECTIONS[domain.onboardingStepToIndex(12) - 2], "gdpr");
-  assert.equal(domain.onboardingStepToIndex(13), domain.ONBOARDING_REVIEW_INDEX);
-  assert.equal(domain.onboardingStepToIndex(14), domain.ONBOARDING_PUBLISH_INDEX);
-  for (const [index, step] of [[11, 12], [12, 13], [13, 14]]) {
-    assert.equal(domain.onboardingIndexToStep(index), step);
+test("QR codes has its own onboarding step, ahead of GDPR/review/publication", () => {
+  assert.equal(domain.ONBOARDING_SECTIONS[domain.ONBOARDING_SECTIONS.length - 1], "gdpr");
+  assert.equal(domain.ONBOARDING_SECTIONS.includes("qr-codes"), true);
+  assert.equal(domain.ONBOARDING_SECTIONS.indexOf("qr-codes"), domain.ONBOARDING_SECTIONS.indexOf("gdpr") - 1);
+  assert.equal(domain.ONBOARDING_REVIEW_STEP, domain.ONBOARDING_SECTIONS.length + 2);
+  assert.equal(domain.ONBOARDING_PUBLISH_STEP, domain.ONBOARDING_REVIEW_STEP + 1);
+  for (const step of [domain.ONBOARDING_REVIEW_STEP, domain.ONBOARDING_PUBLISH_STEP]) {
     assert.equal(domain.parseOnboardingProgress({ ...initial, status: "paused", step })?.step, step);
   }
 });

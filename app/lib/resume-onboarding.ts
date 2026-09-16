@@ -11,22 +11,11 @@ export const ONBOARDING_SECTIONS = [
   "courses",
   "interests",
   "tech-stack",
+  "qr-codes",
   "gdpr"
 ] as const;
-export const ONBOARDING_REVIEW_INDEX = ONBOARDING_SECTIONS.length + 2;
-export const ONBOARDING_PUBLISH_INDEX = ONBOARDING_REVIEW_INDEX + 1;
-// Persisted steps keep the retired QR step (11) reserved for existing progress
-// and older clients. Both QR and GDPR progress resume at the visible GDPR card.
-export const ONBOARDING_REVIEW_STEP = 13;
-export const ONBOARDING_PUBLISH_STEP = 14;
-
-export function onboardingStepToIndex(step: number): number {
-  return step > 11 ? step - 1 : step;
-}
-
-export function onboardingIndexToStep(index: number): number {
-  return index >= 11 ? index + 1 : index;
-}
+export const ONBOARDING_REVIEW_STEP = ONBOARDING_SECTIONS.length + 2;
+export const ONBOARDING_PUBLISH_STEP = ONBOARDING_REVIEW_STEP + 1;
 
 export type OnboardingState = {
   status: "pending" | "active" | "paused" | "completed";

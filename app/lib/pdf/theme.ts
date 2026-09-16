@@ -12,6 +12,7 @@ export interface PdfTheme {
     white: string;
     pillBg: string;
     meterDotInactive: string;
+    qrCardBg: string;
   };
   typography: {
     fontFamily: string;
@@ -194,6 +195,7 @@ export const cvBasicDotTheme: PdfTheme = {
     white: "#ffffff",
     pillBg: "#e8f5f3", // .pill-list li / .meter-item
     meterDotInactive: "#d1dad8", // .meter__dot
+    qrCardBg: "#fdfefe", // .qr-card
   },
   typography: {
     fontFamily: "SpaceGrotesk",

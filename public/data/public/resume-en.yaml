@@ -23,7 +23,7 @@ contact:
     link: https://arianaholt.dev
 qr_codes:
   - label: Personal Site
-    image: images/qrs/qr.png
+    value: https://opencivera.com
     size: 130
 skills:
   - name: Product Discovery

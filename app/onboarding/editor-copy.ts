@@ -25,7 +25,7 @@ const POLISH: Record<string, string> = {
   "+ Add summary": "+ Dodaj podsumowanie",
   "Untitled summary": "Nowe podsumowanie",
   Label: "Etykieta",
-  "Image path": "Ścieżka obrazu",
+  "Text or link": "Tekst lub link",
   Size: "Rozmiar",
   Remove: "Usuń",
   "+ Add QR code": "+ Dodaj kod QR",

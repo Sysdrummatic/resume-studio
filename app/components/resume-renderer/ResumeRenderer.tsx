@@ -8,6 +8,7 @@ import ResumeLanguageSwitcher from "../resume-language-switcher";
 import type { ResumeLanguageOption } from "../resume-language-switcher";
 import type { ResumeDocument, ResumeLocale } from "../../lib/resume-schema";
 import { getDefaultSummary, resumeFullName } from "../../lib/resume-schema";
+import QrCodeSvg from "./QrCodeSvg";
 import { sanitizeExternalHref } from "../../lib/safe-url";
 import { DEFAULT_RESUME_STYLE, resumeStyleDataAttributes, type ResumeStyleSettings } from "../../lib/resume-style";
 import {
@@ -562,6 +563,23 @@ export default function ResumeRenderer({
                     <li key={`${item}-${index}`}>{item}</li>
                   ))}
                 </ul>
+              </section>
+            ) : null}
+
+            {resume.qr_codes.length > 0 ? (
+              <section className="card resume-section resume-section--qr-codes">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{rendererLabels.qrCodes}</h2>
+                </div>
+                <div className="qr-list">
+                  {resume.qr_codes.map((item, index) => (
+                    <figure className="qr-card" key={`${item.label}-${index}`}>
+                      <QrCodeSvg value={item.value} size={item.size} />
+                      {item.label ? <figcaption>{item.label}</figcaption> : null}
+                    </figure>
+                  ))}
+                </div>
               </section>
             ) : null}
           </aside>

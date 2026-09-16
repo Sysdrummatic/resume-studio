@@ -6,11 +6,9 @@ import AppBrand from "../components/app-brand";
 import OnboardingProgress from "./onboarding-progress";
 import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import {
-  ONBOARDING_PUBLISH_INDEX,
-  ONBOARDING_REVIEW_INDEX,
+  ONBOARDING_PUBLISH_STEP,
+  ONBOARDING_REVIEW_STEP,
   ONBOARDING_SECTIONS,
-  onboardingIndexToStep,
-  onboardingStepToIndex,
   isFirstCvReady,
   type OnboardingState
 } from "../lib/resume-onboarding";
@@ -29,6 +27,7 @@ const TITLES = {
     "Courses",
     "Interests",
     "Tech stack",
+    "QR codes",
     "GDPR clause",
     "Review your first CV",
     "Ready to save your CV?"
@@ -45,6 +44,7 @@ const TITLES = {
     "Kursy",
     "Zainteresowania",
     "Technologie",
+    "Kody QR",
     "Klauzula RODO",
     "Sprawdź swoje pierwsze CV",
     "Zapiszesz swoje CV?"
@@ -74,7 +74,7 @@ type Props = {
 export default function OnboardingClient(props: Props) {
   const { initialState, uiLanguage, locale, resume } = props;
   const progressEndpoint = props.testRunId ? `/api/admin/onboarding-test/${props.testRunId}` : "/api/resume/onboarding";
-  const [step, setStep] = useState(onboardingStepToIndex(initialState.step));
+  const [step, setStep] = useState(initialState.step);
   const [method, setMethod] = useState(initialState.method);
   const [firstPresetId, setFirstPresetId] = useState(initialState.first_preset_id);
   const [busy, setBusy] = useState(false);
@@ -97,7 +97,7 @@ export default function OnboardingClient(props: Props) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        step: onboardingIndexToStep(nextStep),
+        step: nextStep,
         status,
         locale,
         method,
@@ -147,7 +147,7 @@ export default function OnboardingClient(props: Props) {
   function finish(publish: boolean) {
     void run(async () => {
       await props.onSave();
-      await progress(ONBOARDING_PUBLISH_INDEX);
+      await progress(ONBOARDING_PUBLISH_STEP);
       const response = await fetch(progressEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -332,7 +332,7 @@ export default function OnboardingClient(props: Props) {
           </>
         ) : null}
 
-        {!finished && step === ONBOARDING_REVIEW_INDEX ? (
+        {!finished && step === ONBOARDING_REVIEW_STEP ? (
           <>
             <p>
               {t(
@@ -357,7 +357,7 @@ export default function OnboardingClient(props: Props) {
           </>
         ) : null}
 
-        {!finished && step === ONBOARDING_PUBLISH_INDEX ? (
+        {!finished && step === ONBOARDING_PUBLISH_STEP ? (
           <>
             <p>
               {t(
@@ -495,7 +495,7 @@ export default function OnboardingClient(props: Props) {
                     {t("Back", "Wstecz")}
                   </button>
                 ) : null}
-                {step === ONBOARDING_PUBLISH_INDEX ? (
+                {step === ONBOARDING_PUBLISH_STEP ? (
                   <>
                     <button
                       className="button button--ghost"
@@ -527,7 +527,7 @@ export default function OnboardingClient(props: Props) {
                       ? t("Saving…", "Zapisywanie…")
                       : step === 0
                         ? t("Let’s begin", "Zaczynamy")
-                        : step >= 8 && step < ONBOARDING_REVIEW_INDEX
+                        : step >= 8 && step < ONBOARDING_REVIEW_STEP
                           ? t("Continue / skip", "Dalej / pomiń")
                           : t("Continue", "Dalej")}
                   </button>

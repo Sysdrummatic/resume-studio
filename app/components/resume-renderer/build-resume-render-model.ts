@@ -20,6 +20,7 @@ export type ResumeRendererLabels = {
   techStack: string;
   languages: string;
   interests: string;
+  qrCodes: string;
   publicBadge: string;
   draftBadge: string;
   aiGeneratedBadge: string;
@@ -70,6 +71,7 @@ const DEFAULT_RENDERER_LABELS: ResumeRendererLabels = {
   techStack: "Tech stack",
   languages: "Languages",
   interests: "Interests",
+  qrCodes: "QR codes",
   publicBadge: "Public",
   draftBadge: "Draft",
   aiGeneratedBadge: "AI generated",
@@ -117,6 +119,7 @@ export function buildResumeRendererLabels(
     techStack: previewLabels.techStack,
     languages: previewLabels.languages,
     interests: previewLabels.interests,
+    qrCodes: previewLabels.qrCodes,
     ...sanitizedOverrides,
   };
 }

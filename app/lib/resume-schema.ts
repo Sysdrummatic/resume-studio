@@ -14,7 +14,8 @@ export type ResumeSummaryItem = {
 
 export type ResumeQrCode = {
   label: string;
-  image: string;
+  /** Free text or a link, rendered as a generated QR code — never a stored image. */
+  value: string;
   size: number;
 };
 
@@ -229,13 +230,15 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
     qr_codes: asArray(source.qr_codes)
       .map((item) => {
         const row = asObject(item);
+        // `image` was the pre-generator field (a pasted image URL); fall back to
+        // it so documents saved before the rename still round-trip.
         return {
           label: asText(row.label),
-          image: asText(row.image),
+          value: asText(row.value) || asText(row.image),
           size: Math.max(1, asInt(row.size, 130)),
         };
       })
-      .filter((row) => row.label || row.image),
+      .filter((row) => row.label || row.value),
     skills: asArray(source.skills)
       .map((item) => {
         const row = asObject(item);
@@ -401,6 +404,7 @@ export type ResumePreviewLabels = {
   techStack: string;
   languages: string;
   interests: string;
+  qrCodes: string;
 };
 
 export const PREVIEW_LABELS: Record<string, ResumePreviewLabels> = {
@@ -414,6 +418,7 @@ export const PREVIEW_LABELS: Record<string, ResumePreviewLabels> = {
     techStack: "Tech stack",
     languages: "Languages",
     interests: "Interests",
+    qrCodes: "QR codes",
   },
   pl: {
     summary: "Podsumowanie",
@@ -425,6 +430,7 @@ export const PREVIEW_LABELS: Record<string, ResumePreviewLabels> = {
     techStack: "Stack technologiczny",
     languages: "Jezyki",
     interests: "Zainteresowania",
+    qrCodes: "Kody QR",
   },
 };
 

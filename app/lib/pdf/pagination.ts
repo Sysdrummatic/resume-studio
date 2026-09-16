@@ -250,6 +250,28 @@ export function estimatePillListHeight(theme: PdfTheme, items: string[]): number
   );
 }
 
+/**
+ * Height of a sidebar .qr-list. Each card is the QR's own size (already in
+ * points, see PX_TO_PT) plus its padding and one optional caption line —
+ * mirrors .qr-card's fixed-size image, so unlike text-only sidebar lists this
+ * is not a wrapping row.
+ */
+export function estimateQrListHeight(
+  theme: PdfTheme,
+  items: { label: string; qrSize: number }[],
+): number {
+  const { spacing, typography } = theme;
+  const width = sidebarTextWidth(theme) - 2 * spacing.spaceSm;
+
+  return items.reduce((total, item) => {
+    const caption = item.label
+      ? spacing.spaceXs + estimateTextHeight(item.label, typography.sizes.note, typography.lineHeightTight, width)
+      : 0;
+
+    return total + item.qrSize + 2 * spacing.spaceSm + caption + spacing.spaceSm;
+  }, 0);
+}
+
 export type TimelinePagination = {
   /** Per entry: may it split across pages, because it cannot fit on one. */
   allowSplit: boolean[];

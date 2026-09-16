@@ -49,7 +49,7 @@ function isSectionComplete(id: string, resume: ResumeDocument): boolean {
     case "tech-stack":
       return resume.tech_stack.some(hasText);
     case "qr-codes":
-      return resume.qr_codes.some((item) => hasText(item.label));
+      return resume.qr_codes.some((item) => hasText(item.value));
     default:
       // `publishing` holds document metadata, not CV content, so it is not scored.
       return false;

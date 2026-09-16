@@ -42,13 +42,13 @@ function render(step, testRunId) {
   }));
 }
 
-test("normal and admin onboarding resume persisted final steps on the correct visible card", () => {
+test("normal and admin onboarding resume persisted steps on the correct visible card", () => {
   for (const testRunId of [undefined, "test-run"]) {
     for (const [step, heading, count] of [
-      [11, "GDPR clause", "12 / 14"],
-      [12, "GDPR clause", "12 / 14"],
-      [13, "Review your first CV", "13 / 14"],
-      [14, "Ready to save your CV?", "14 / 14"],
+      [11, "QR codes", "12 / 15"],
+      [12, "GDPR clause", "13 / 15"],
+      [13, "Review your first CV", "14 / 15"],
+      [14, "Ready to save your CV?", "15 / 15"],
     ]) {
       const html = render(step, testRunId);
       assert.ok(html.includes(`<h1 id="onboarding-title" tabindex="-1">${heading}</h1>`), `stored step ${step}`);

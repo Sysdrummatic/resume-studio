@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import OnboardingClient from "../onboarding/onboarding-client";
 import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
-import { firstCvSelection, ONBOARDING_SECTIONS, onboardingStepToIndex, type OnboardingState } from "../lib/resume-onboarding";
+import { firstCvSelection, ONBOARDING_SECTIONS, type OnboardingState } from "../lib/resume-onboarding";
 import { applyResumeSelectionToRawDocument } from "../lib/preset-selection";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import { onboardingEditorText } from "../onboarding/editor-copy";
@@ -149,7 +149,7 @@ const EDITOR_SECTION_GROUPS: Array<{ label: string; numbered?: boolean; sections
       { id: "courses", label: "Courses", hint: "Certificates, training and licences.", yamlKey: "courses", countField: "courses" },
       { id: "interests", label: "Interests", hint: "A short list, without elaboration.", yamlKey: "interests", countField: "interests" },
       { id: "tech-stack", label: "Tech stack", hint: "Technologies and tools you work with.", yamlKey: "tech_stack", countField: "tech_stack" },
-      { id: "qr-codes", label: "QR codes", hint: "Links encoded as QR codes in the printed version.", yamlKey: "qr_codes", countField: "qr_codes" },
+      { id: "qr-codes", label: "QR codes", hint: "Text or links, rendered as a scannable QR code.", yamlKey: "qr_codes", countField: "qr_codes" },
       { id: "gdpr", label: "GDPR clause", hint: "Common on the Polish job market, usually left empty for English CVs.", yamlKey: "gdpr_clause" },
     ],
   },
@@ -298,7 +298,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   } | null>(null);
 
   const [sidePanelTab, setSidePanelTab] = useState<"preview" | "history" | "style">("preview");
-  const [activeSectionId, setActiveSectionId] = useState<string>(onboarding ? ONBOARDING_SECTIONS[onboardingStepToIndex(onboarding.step) - 2] ?? "personal" : EDITOR_SECTIONS[0].id);
+  const [activeSectionId, setActiveSectionId] = useState<string>(onboarding ? ONBOARDING_SECTIONS[onboarding.step - 2] ?? "personal" : EDITOR_SECTIONS[0].id);
   // Below 1020px the side panel leaves the grid and opens as a slide-over.
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const yamlTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -842,14 +842,14 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.qr_codes.map((item, index) => (
                     <div className="resume-human-editor__row" key={`qr-${index}`}>
                       <input aria-label={editorText("Label")} placeholder={editorText("Label")} value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
-                      <input aria-label={editorText("Image path")} placeholder={editorText("Image path")} value={item.image} onChange={(event) => updateQrCode(index, "image", event.target.value)} />
+                      <input aria-label={editorText("Text or link")} placeholder={editorText("Text or link")} value={item.value} onChange={(event) => updateQrCode(index, "value", event.target.value)} />
                       <input type="number" min={1} aria-label={editorText("Size")} placeholder={editorText("Size")} value={item.size} onChange={(event) => updateQrCode(index, "size", event.target.value)} />
                       <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("qr_codes", { label: "", image: "", size: 130 })}>
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("qr_codes", { label: "", value: "", size: 130 })}>
                     {editorText("+ Add QR code")}
                   </button>
                 </section>
