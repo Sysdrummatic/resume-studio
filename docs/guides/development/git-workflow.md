@@ -24,7 +24,7 @@ Ten format zastąpił poprzednią konwencję `<prefix>/<area>-<change>` (feat/fi
 
 ## Commit messages i tytuły PR-ów
 
-Tytuły PR-ów używają Conventional Commits ze scope'em wskazującym numer z nazwy brancha:
+Tytuły PR-ów **oraz każdy pojedynczy commit** wewnątrz brancha używają Conventional Commits ze scope'em wskazującym numer z nazwy brancha — bez wyjątków, nigdy krótszej formy bez scope'u:
 - `feat(ocv-<numer>): <what>`
 - `fix(ocv-<numer>): <what>`
 - `refactor(ocv-<numer>): <what>`
@@ -35,8 +35,6 @@ Tytuły PR-ów używają Conventional Commits ze scope'em wskazującym numer z n
 Examples:
 - `feat(ocv-0123): add prompt template and git rules`
 - `fix(ocv-0155): enforce email verification on signin`
-
-Pojedyncze commity wewnątrz brancha mogą używać krótszej formy bez scope'u (`feat: <what>`, `fix: <what>`, ...) — imperative, present tense.
 
 Rule of thumb:
 - Keep commits atomic (one logical change).
