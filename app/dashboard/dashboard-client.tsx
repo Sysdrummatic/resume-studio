@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
-import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
-import { applyResumeSelectionToRawDocument, clampResumeSelectionToRawDocument } from "../lib/preset-selection";
+import type { ResumeLocale } from "../lib/resume-schema";
+import { buildPresetResumeDocument } from "../lib/preset-preview";
 import type {
   ResumeDocumentRow,
   ResumePresetRow,
@@ -145,35 +145,6 @@ function normalizeSummarySelection(selection: ResumePresetSelection, options: Pr
     ...selection,
     summary: [0],
   };
-}
-
-// Same raw-domain selection as the public view and exports: the selection
-// indexes point at raw YAML arrays, so apply them before normalization.
-// The selection is built against the default-locale document; clamp it to the
-// previewed document so other language versions render the way publish stores
-// them, instead of failing on out-of-range indexes.
-type PresetPreviewResult =
-  | { status: "ok"; resume: ResumeDocument }
-  // ocv-0172: a language version that has no summary yet (e.g. a freshly
-  // added, still-empty locale) is a normal, expected state -- not a failure.
-  | { status: "empty" }
-  | { status: "error" };
-
-function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): PresetPreviewResult {
-  if (!yamlContent || !window.jsyaml) return { status: "error" };
-  try {
-    const rawDocument = window.jsyaml.load(yamlContent);
-    if (!rawDocument || typeof rawDocument !== "object" || Array.isArray(rawDocument)) {
-      return { status: "error" };
-    }
-    const clampedSelection = clampResumeSelectionToRawDocument(rawDocument, selection);
-    if (!clampedSelection) return { status: "empty" };
-    const selectedRaw = applyResumeSelectionToRawDocument(rawDocument, clampedSelection);
-    if (!selectedRaw) return { status: "error" };
-    return { status: "ok", resume: normalizeResumeDocument(selectedRaw, "") };
-  } catch {
-    return { status: "error" };
-  }
 }
 
 function getFallbackLanguageLabel(locale: string): { label: string; shortLabel: string } {
@@ -332,7 +303,7 @@ function PresetModal({
   );
 }
 
-function PresetPreviewModal({
+export function PresetPreviewModal({
   masterResume,
   documents,
   languages,
