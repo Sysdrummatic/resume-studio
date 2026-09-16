@@ -63,11 +63,13 @@ import { defaultResumeDocument, initialsFromNameParts, resumeFullName } from "..
 
 type EditorTab = "yaml" | "human";
 
-// One-click starting point for the "GDPR clause" field. Users on the Polish
+// One-click starting points for the "GDPR clause" field. Users on the Polish
 // job market include this text verbatim; it is not an enum in the schema
 // (see gdpr_clause on ResumeDocument) — just a plain string a click can seed.
 const STANDARD_GDPR_CLAUSE =
   "Wyrażam zgodę na przetwarzanie moich danych osobowych zawartych w niniejszym dokumencie do realizacji procesu rekrutacji zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO).";
+const STANDARD_GDPR_CLAUSE_EN =
+  "I hereby give consent for my personal data included in this document to be processed for the purposes of the current recruitment process.";
 
 const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
   { code: "basic", label: "basic" },
@@ -1023,6 +1025,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <div className="actions-row">
                     <button type="button" className="button button--ghost button--small" onClick={() => updateGdprClause(STANDARD_GDPR_CLAUSE)}>
                       {editorText("Use standard PL wording")}
+                    </button>
+                    <button type="button" className="button button--ghost button--small" onClick={() => updateGdprClause(STANDARD_GDPR_CLAUSE_EN)}>
+                      {editorText("Use standard EN wording")}
                     </button>
                     <button type="button" className="button button--ghost button--small" onClick={() => updateGdprClause("")}>
                       {editorText("Clear")}
