@@ -88,16 +88,16 @@ import { validateWithZod } from '@/lib/validation';
 
 export async function POST(req: Request) {
   const actor = await requireRequestActor(req);
-  
+
   if (actor.role !== 'admin' && actor.role !== 'manager') {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const body = await req.json();
   const validated = validateWithZod(schema, body);
-  
+
   // Implementation
-  
+
   return Response.json({ success: true, data: result });
 }
 ```
