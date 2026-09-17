@@ -141,5 +141,5 @@ test("doc route 404s unknown categories and gates test-scenarios server-side", (
 test("authenticated header navigation links to /docs", () => {
   const source = read(layoutPath);
 
-  assert.equal(source.includes('{ href: "/docs", label: "Docs" }'), true);
+  assert.equal(source.includes('{ href: "/docs", label: appI18n.dictionary.navigation.docs }'), true);
 });

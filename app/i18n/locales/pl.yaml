@@ -1,0 +1,167 @@
+meta:
+  description: Platforma OpenCiVera oparta na Next.js
+common:
+  loading: Ładowanie…
+  close: Zamknij
+  save: Zapisz
+  cancel: Anuluj
+navigation:
+  personal_hub: Centrum osobiste
+  dashboard: Panel
+  sample_cv: Przykładowe CV
+  docs: Dokumentacja
+  sign_up: Załóż konto
+  sign_in: Zaloguj się
+  primary_aria: Główna nawigacja
+  open_primary_aria: Otwórz główną nawigację
+language_menu:
+  aria_label: Język aplikacji
+theme:
+  aria_label: "Motyw aplikacji: {theme}. Przełącz na motyw {nextTheme}."
+account:
+  open_menu_aria: Otwórz menu konta
+  actions_aria: Działania na koncie
+  profile: Profil
+  user_management: Zarządzanie użytkownikami
+  beta_test_mode: Tryb testów beta
+  settings: Ustawienia
+  signing_out: Wylogowywanie…
+  log_out: Wyloguj się
+landing:
+  hero:
+    eyebrow: // platforma publikacji LiveCV
+    title_before: Stwórz swoje docelowe LiveCV.
+    title_connector: Które
+    title_after: razem z Tobą.
+    rotating_words:
+      - rośnie
+      - ewoluuje
+      - adaptuje się
+      - skaluje się
+    lead:
+      - Zarządzanie CV jest niepotrzebnie skomplikowane. Jedna wersja do tej pracy, druga do innej roli, później tłumaczenia, a po sześciu miesiącach nikt nie wie, który PDF ma rekruter.
+      - OpenCiVera to porządkuje. Zbuduj swój profil zawodowy raz, publikuj dopasowane wersje dla różnych odbiorców i aktualizuj je wszystkie, gdy tylko coś się zmieni.
+    primary_action: Utwórz LiveCV
+    secondary_action: Zobacz przykładowe LiveCV
+    benefits:
+      - Jedno główne CV
+      - Wiele konfiguracji
+      - LiveCV zawsze aktualne
+  sample:
+    eyebrow: // publiczny link w praktyce
+    title: Twoje CV jako publiczna wizytówka.
+    description: Warstwa publikacji to przejrzysty, uporządkowany widok skupiony na doświadczeniu zawodowym, a nie na formatowaniu dokumentu. To właśnie widzą odbiorcy po otwarciu Twojego linku.
+    loading_aria: Ładowanie przykładowego CV
+    open_aria: Otwórz przykładowe CV
+    iframe_title: Przykładowe publiczne CV — OpenCiVera
+    timeout: Osadzony podgląd ładuje się dłużej niż zwykle. Nadal możesz poznać platformę, otwierając pełny przykład.
+    timeout_action: Otwórz przykładowe CV ↗
+  model:
+    eyebrow: // model CV as Code
+    title: Skup się na swojej historii zawodowej.
+    description: Zarządzaj informacjami o karierze w jednym uporządkowanym i spójnym źródle. Nie przejmuj się układem ani dopasowywaniem danych do szablonu. Edytuj YAML lub użyj edytora, a resztę zostaw nam.
+    cards:
+      - tag: główne CV
+        chip: 1 rekord
+        chip_type: t
+        title: Jedno uporządkowane źródło kariery
+        copy: Utrzymuj jedno wiarygodne źródło zamiast wielu oddzielnych plików CV, które rozchodzą się przy każdej aplikacji.
+      - tag: ścieżka publikacji
+        chip: Wiele widoków
+        chip_type: a
+        title: Twórz różne narracje zawodowe
+        copy: Prezentuj odrębne profile zawodowe różnym odbiorcom bez dzielenia bazowych informacji na osobne dokumenty.
+      - tag: wersje językowe
+        chip: PL / EN
+        chip_type: t
+        title: Publikuj we właściwym języku
+        copy: Zachowaj prezentację odpowiednią dla danego języka, nie tracąc spójnego modelu publikacji i jednego źródła danych.
+  cta:
+    eyebrow: // zacznij teraz
+    title: Zbuduj swoje LiveCV z OpenCiVera.
+    description: Otwórz przykładowe LiveCV, aby zobaczyć publiczny link w praktyce, a następnie zaloguj się i zbuduj własne CV z jednego uporządkowanego źródła.
+    primary_action: Utwórz LiveCV
+    secondary_action: Zobacz przykładowe LiveCV ↗
+  footer:
+    sample_resume: Przykładowe CV
+    platform: Platforma
+    privacy_policy: Polityka prywatności
+    terms: Regulamin
+    contact: Kontakt
+auth:
+  contextual:
+    verified: Adres e-mail został zweryfikowany. Możesz się teraz zalogować.
+    account_deleted: Twoje konto i wszystkie powiązane dane zostały trwale usunięte.
+    inactive: Twoje konto jest nieaktywne. Skontaktuj się z pomocą lub administratorem.
+    unverified: Przed uzyskaniem dostępu musisz zweryfikować adres e-mail.
+    session: Nie udało się przywrócić sesji. Zaloguj się ponownie.
+    signed_out: Zaloguj się, aby kontynuować.
+    set_new_password: Ustaw poniżej nowe hasło.
+  modes:
+    signup:
+      eyebrow: Konfiguracja konta
+      title: Utwórz konto
+      lead: Otwórz swój obszar roboczy, zweryfikuj e-mail, a następnie publikuj z jednego uporządkowanego źródła.
+      alternate_label: Masz już konto?
+      alternate_action: Zaloguj się
+    reset:
+      eyebrow: Odzyskiwanie dostępu
+      title: Zresetuj hasło
+      lead: Poproś o link odzyskiwania dla adresu e-mail przypisanego do konta.
+      alternate_label: Pamiętasz hasło?
+      alternate_action: Wróć do logowania
+    new_password:
+      eyebrow: Odzyskiwanie dostępu
+      title: Ustaw nowe hasło
+      lead: Dokończ proces odzyskiwania rozpoczęty przez link z wiadomości e-mail.
+      alternate_label: ""
+      alternate_action: ""
+    signin:
+      eyebrow: Dostęp do konta
+      title: Zaloguj się
+      lead: Przejdź do panelu i narzędzi publikowania.
+      alternate_label: Nie masz konta?
+      alternate_action: Załóż konto
+  fields:
+    email: E-mail
+    password: Hasło
+    new_password: Nowe hasło
+  actions:
+    forgot_password: Nie pamiętasz hasła?
+    resend_verification: Wyślij ponownie e-mail weryfikacyjny
+    sign_in: Zaloguj się
+    signing_in: Logowanie…
+    create_account: Utwórz konto
+    creating_account: Tworzenie konta…
+    send_reset_link: Wyślij link resetujący
+    sending: Wysyłanie…
+    update_password: Zmień hasło
+    updating: Aktualizowanie…
+  signup:
+    beta_tester: Dołączam jako beta tester
+    consent_before_privacy: Przeczytałem(-am) i akceptuję
+    privacy_policy: Politykę prywatności
+    consent_between: oraz
+    terms: Regulamin
+  messages:
+    pending_verification: "E-mail oczekujący na weryfikację: {email}"
+    signing_in: Logowanie…
+    signed_in: Zalogowano. Trwa przekierowanie…
+    sign_in_error: Wystąpił nieoczekiwany błąd logowania. Spróbuj ponownie.
+    creating_account: Tworzenie konta…
+    account_created: Konto zostało utworzone. Zweryfikuj e-mail przed zalogowaniem.
+    sign_up_error: Wystąpił nieoczekiwany błąd rejestracji. Spróbuj ponownie.
+    sending_reset: Wysyłanie linku resetującego…
+    reset_sent: E-mail z linkiem do resetowania hasła został wysłany.
+    reset_error: Wystąpił nieoczekiwany błąd resetowania hasła. Spróbuj ponownie.
+    provide_email: Najpierw podaj adres e-mail w formularzu logowania.
+    sending_verification: Wysyłanie wiadomości weryfikacyjnej…
+    verification_sent: E-mail weryfikacyjny został wysłany.
+    verification_error: Wystąpił nieoczekiwany błąd weryfikacji. Spróbuj ponownie.
+    updating_password: Aktualizowanie hasła…
+    password_updated: Hasło zostało zmienione. Możesz się teraz zalogować.
+    unexpected_error: Wystąpił nieoczekiwany błąd. Spróbuj ponownie.
+sample_resume:
+  title: Przykładowe CV | OpenCiVera
+  description: Zobacz przykładowe CV oparte na YAML i Next.js.
+  loading: Ładowanie przykładowego CV…

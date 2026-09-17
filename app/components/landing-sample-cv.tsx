@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import type { AppDictionary } from "../i18n/types";
 
-// Real measured load time for the external profile is ~8s; give it well past
-// that before giving up, since the skeleton makes the wait feel fine either way.
 const LOAD_TIMEOUT_MS = 12000;
 
 type Status = "loading" | "loaded" | "timed-out";
+type SampleLabels = AppDictionary["landing"]["sample"];
 
-function ResumeSkeleton() {
+function ResumeSkeleton({ loadingAria }: { loadingAria: string }) {
   return (
-    <div className="lp-cv__skeleton" aria-label="Loading sample resume">
+    <div className="lp-cv__skeleton" aria-label={loadingAria}>
       <div className="lp-cv__skel-header">
         <div className="lp-cv__skel-avatar" />
         <div className="lp-cv__skel-header-lines">
@@ -55,9 +55,8 @@ function ResumeSkeleton() {
   );
 }
 
-export default function LandingSampleCv() {
+export default function LandingSampleCv({ labels }: { labels: SampleLabels }) {
   const [status, setStatus] = useState<Status>("loading");
-  // Host is only known in the browser; SSR renders the path-only fallback.
   const [host] = useState(() => (typeof window === "undefined" ? "" : window.location.host));
 
   useEffect(() => {
@@ -71,11 +70,7 @@ export default function LandingSampleCv() {
   return (
     <div className="lp-cv" data-reveal>
       <div className="lp-cv__chrome">
-        <div className="lp-cv__dots">
-          <span />
-          <span />
-          <span />
-        </div>
+        <div className="lp-cv__dots"><span /><span /><span /></div>
         <div className="lp-cv__url">
           <svg className="lp-cv__lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
             <rect x="3" y="11" width="18" height="11" rx="2" />
@@ -84,7 +79,7 @@ export default function LandingSampleCv() {
           <span suppressHydrationWarning>{host ? `${host}/` : "/"}</span>
           <span className="lp-cv__url-hi">resume</span>
         </div>
-        <Link href="/resume" className="lp-cv__ext" aria-label="Open sample resume">
+        <Link href="/resume" className="lp-cv__ext" aria-label={labels.open_aria}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
             <polyline points="15 3 21 3 21 9" />
@@ -97,12 +92,12 @@ export default function LandingSampleCv() {
           <iframe
             src="/resume"
             className={`lp-cv__iframe${status === "loaded" ? " is-loaded" : ""}`}
-            title="Sample public resume — OpenCiVera"
+            title={labels.iframe_title}
             sandbox="allow-scripts allow-same-origin allow-forms"
             onLoad={() => setStatus((current) => (current === "loading" ? "loaded" : current))}
           />
         )}
-        {status === "loading" && <ResumeSkeleton />}
+        {status === "loading" && <ResumeSkeleton loadingAria={labels.loading_aria} />}
         {status === "timed-out" && (
           <div className="lp-cv__fallback">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -111,8 +106,8 @@ export default function LandingSampleCv() {
               <line x1="9" y1="13" x2="15" y2="13" />
               <line x1="9" y1="17" x2="13" y2="17" />
             </svg>
-            <p>The embedded preview is taking longer than expected. You can still explore the platform by viewing the full example.</p>
-            <Link href="/resume" className="btn btn-p">Open sample resume ↗</Link>
+            <p>{labels.timeout}</p>
+            <Link href="/resume" className="btn btn-p">{labels.timeout_action}</Link>
           </div>
         )}
       </div>

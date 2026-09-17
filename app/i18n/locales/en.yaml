@@ -1,0 +1,167 @@
+meta:
+  description: OpenCiVera platform foundation on Next.js
+common:
+  loading: Loading…
+  close: Close
+  save: Save
+  cancel: Cancel
+navigation:
+  personal_hub: Personal Hub
+  dashboard: Dashboard
+  sample_cv: Sample CV
+  docs: Docs
+  sign_up: Sign up
+  sign_in: Sign in
+  primary_aria: Primary navigation
+  open_primary_aria: Open primary navigation
+language_menu:
+  aria_label: Application language
+theme:
+  aria_label: "Application theme: {theme}. Switch to {nextTheme} theme."
+account:
+  open_menu_aria: Open account menu
+  actions_aria: Account actions
+  profile: Profile
+  user_management: User management
+  beta_test_mode: Beta test mode
+  settings: Settings
+  signing_out: Signing out…
+  log_out: Log out
+landing:
+  hero:
+    eyebrow: // LiveCV publication platform
+    title_before: Create your ultimate LiveCV.
+    title_connector: Which
+    title_after: with you.
+    rotating_words:
+      - grows
+      - evolves
+      - adapts
+      - scales
+    lead:
+      - Managing your CV is broken. One version for this job, another for that role, then translations, and six months later nobody knows which PDF a recruiter has.
+      - OpenCiVera fixes that. Build your career record once, publish a tailored version for each audience, and update all of them the instant anything changes.
+    primary_action: Create LiveCV
+    secondary_action: View sample LiveCV
+    benefits:
+      - One master CV
+      - Multiple configurations
+      - LiveCV always up-to-date
+  sample:
+    eyebrow: // public link in action
+    title: Your CV as your public business card.
+    description: The output layer is a clean structured view, designed for professional signal, not document formatting. This is what recipients see when they open your link.
+    loading_aria: Loading sample resume
+    open_aria: Open sample resume
+    iframe_title: Sample public resume — OpenCiVera
+    timeout: The embedded preview is taking longer than expected. You can still explore the platform by viewing the full example.
+    timeout_action: Open sample resume ↗
+  model:
+    eyebrow: // CV as Code model
+    title: Focus on your career record.
+    description: Manage your career information in one structured, consistent record. Don't think about layout or fitting your data to a given template. Edit YAML or use the editor, and leave the rest to us.
+    cards:
+      - tag: master resume
+        chip: 1 record
+        chip_type: t
+        title: One structured career record
+        copy: Maintain one authoritative source instead of managing disconnected CV files that diverge every time you apply.
+      - tag: publication path
+        chip: Multi-view
+        chip_type: a
+        title: Shape different public narratives
+        copy: Present distinct professional profiles for different audiences without fragmenting your underlying source data.
+      - tag: locale-aware output
+        chip: EN / PL
+        chip_type: t
+        title: Language-specific delivery
+        copy: Preserve locale-appropriate presentation while keeping the publishing model coherent and the source unified.
+  cta:
+    eyebrow: // get started
+    title: Build your LiveCV with OpenCiVera.
+    description: Open the sample LiveCV to see a published link in action, then sign in and build your own from one structured source.
+    primary_action: Create LiveCV
+    secondary_action: View sample LiveCV ↗
+  footer:
+    sample_resume: Sample resume
+    platform: Platform
+    privacy_policy: Privacy Policy
+    terms: Terms of Service
+    contact: Contact
+auth:
+  contextual:
+    verified: Email verification completed. You can sign in now.
+    account_deleted: Your account and all associated data have been permanently deleted.
+    inactive: Your account is inactive. Contact support or an administrator.
+    unverified: Email verification must be completed before access is granted.
+    session: Your session could not be restored. Please sign in again.
+    signed_out: Sign in to continue.
+    set_new_password: Set your new password below.
+  modes:
+    signup:
+      eyebrow: Account setup
+      title: Create your account
+      lead: Open your workspace, verify your email, then publish from one structured source.
+      alternate_label: Already have an account?
+      alternate_action: Sign in
+    reset:
+      eyebrow: Recovery
+      title: Reset your password
+      lead: Request a recovery link for the email address tied to your account.
+      alternate_label: Remembered your password?
+      alternate_action: Back to sign in
+    new_password:
+      eyebrow: Recovery
+      title: Set a new password
+      lead: Finish the recovery session opened from your email link.
+      alternate_label: ""
+      alternate_action: ""
+    signin:
+      eyebrow: Account access
+      title: Sign in
+      lead: Continue into your dashboard and publication controls.
+      alternate_label: Need an account?
+      alternate_action: Sign up
+  fields:
+    email: Email
+    password: Password
+    new_password: New password
+  actions:
+    forgot_password: Forgot password?
+    resend_verification: Resend verification email
+    sign_in: Sign in
+    signing_in: Signing in…
+    create_account: Create account
+    creating_account: Creating account…
+    send_reset_link: Send reset link
+    sending: Sending…
+    update_password: Update password
+    updating: Updating…
+  signup:
+    beta_tester: I'm joining as a beta tester
+    consent_before_privacy: I have read and accept the
+    privacy_policy: Privacy Policy
+    consent_between: and
+    terms: Terms of Service
+  messages:
+    pending_verification: "Pending verification email: {email}"
+    signing_in: Signing in…
+    signed_in: Signed in. Redirecting…
+    sign_in_error: Unexpected sign-in error. Try again.
+    creating_account: Creating account…
+    account_created: Account created. Verify your email before signing in.
+    sign_up_error: Unexpected sign-up error. Try again.
+    sending_reset: Sending reset link…
+    reset_sent: Password reset email sent.
+    reset_error: Unexpected password reset error. Try again.
+    provide_email: Provide an email in the sign-in form first.
+    sending_verification: Sending verification email…
+    verification_sent: Verification email sent.
+    verification_error: Unexpected verification error. Try again.
+    updating_password: Updating password…
+    password_updated: Password updated. You can sign in now.
+    unexpected_error: Unexpected error. Try again.
+sample_resume:
+  title: Sample Resume | OpenCiVera
+  description: View a sample resume powered by YAML and Next.js.
+  loading: Loading sample resume…

@@ -11,6 +11,7 @@ import {
   resolveAppTheme,
   type AppTheme,
 } from "../lib/app-theme";
+import { useAppI18n } from "./app-i18n-provider";
 
 const APP_THEME_TRANSITION_MS = 200;
 
@@ -64,6 +65,7 @@ function persistTheme(theme: AppTheme) {
 }
 
 export default function AppThemeSwitch({ initialTheme = DEFAULT_APP_THEME }: Props) {
+  const { dictionary } = useAppI18n();
   const [theme, setTheme] = useState<AppTheme>(() => resolveAppTheme(initialTheme));
   const transitionTimerRef = useRef<number | null>(null);
   const canToggle = ENABLED_APP_THEMES.length > 1;
@@ -152,7 +154,7 @@ export default function AppThemeSwitch({ initialTheme = DEFAULT_APP_THEME }: Pro
       className={`app-theme-switch app-theme-switch--${theme}`}
       role="switch"
       aria-checked={theme === "light"}
-      aria-label={`Application theme: ${theme}. Switch to ${nextTheme} theme.`}
+      aria-label={dictionary.theme.aria_label.replace("{theme}", theme).replace("{nextTheme}", nextTheme)}
       onClick={handleToggle}
       disabled={!canToggle}
     >

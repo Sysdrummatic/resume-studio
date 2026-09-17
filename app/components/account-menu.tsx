@@ -6,6 +6,7 @@ import type { FocusEvent, FormEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
 import { canAccessAdminArea, isAdminRole } from "../lib/rbac";
 import BetaTestModeModal from "./beta-test-mode-modal";
+import { useAppI18n } from "./app-i18n-provider";
 import { UserAvatar } from "./design-system/atoms/UserAvatar";
 
 type Props = {
@@ -35,6 +36,8 @@ function getInitial(email: string): string {
 }
 
 export default function AccountMenu({ email, displayName, firstName, lastName, avatarUrl, role, isActive, emailConfirmed }: Props) {
+  const { dictionary } = useAppI18n();
+  const labels = dictionary.account;
   const [isBusy, setIsBusy] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBetaTestModeOpen, setIsBetaTestModeOpen] = useState(false);
@@ -226,7 +229,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
         }
       }}
     >
-      <summary className="account-menu__trigger" aria-label="Open account menu">
+      <summary className="account-menu__trigger" aria-label={labels.open_menu_aria}>
         <span className="account-menu__avatar" aria-hidden>
           <UserAvatar
             initials={getInitial(currentDisplayName || email)}
@@ -240,23 +243,31 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
           <span className="account-menu__role">{role}</span>
         </span>
       </summary>
-      <div className="account-menu__dropdown" role="menu" aria-label="Account actions">
+      <div className="account-menu__dropdown" role="menu" aria-label={labels.actions_aria}>
         <button type="button" className="account-menu__item" onClick={openProfileModal}>
-          Profile
+          {labels.profile}
         </button>
         {canAccessAdminArea(role) && (
           <Link href="/admin" className="account-menu__item" role="menuitem">
-            User management
+            {labels.user_management}
           </Link>
         )}
         {isAdminRole(role) && (
           <button type="button" className="account-menu__item" onClick={openBetaTestModeModal}>
-            Beta test mode
+            {labels.beta_test_mode}
           </button>
         )}
-        {isAdminRole(role) ? <Link href="/settings" className="account-menu__item" role="menuitem">Settings / Ustawienia</Link> : <button type="button" className="account-menu__item" disabled>Settings</button>}
+        {isAdminRole(role) ? (
+          <Link href="/settings" className="account-menu__item" role="menuitem">
+            {labels.settings}
+          </Link>
+        ) : (
+          <button type="button" className="account-menu__item" disabled>
+            {labels.settings}
+          </button>
+        )}
         <button type="button" className="account-menu__item account-menu__item--danger" onClick={handleSignOut} disabled={isBusy}>
-          {isBusy ? "Signing out..." : "Log out"}
+          {isBusy ? labels.signing_out : labels.log_out}
         </button>
       </div>
     </details>

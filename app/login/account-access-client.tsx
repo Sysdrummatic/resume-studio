@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StatusToast, useStatusToast } from "../components/status-toast";
+import { useAppI18n } from "../components/app-i18n-provider";
 import { postJson } from "../lib/client-http";
 
 type InitialAuthMode = "signin" | "signup" | "reset";
@@ -41,6 +42,8 @@ function RestrictedSubmitButton({ label, reason }: { label: string; reason: stri
 }
 
 export default function AccountAccessClient({ reason, verified, mode, restricted = false, restrictionReason = "" }: Props) {
+  const { dictionary } = useAppI18n();
+  const auth = dictionary.auth;
   const router = useRouter();
   const [activeMode, setActiveMode] = useState<AuthMode>(mode);
   const { toast, showToast, closeToast } = useStatusToast();
@@ -68,25 +71,25 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
 
   const contextualMessage = useMemo(() => {
     if (verified === "1") {
-      return "Email verification completed. You can sign in now.";
+      return auth.contextual.verified;
     }
     if (reason === "account_deleted") {
-      return "Your account and all associated data have been permanently deleted.";
+      return auth.contextual.account_deleted;
     }
     if (reason === "inactive") {
-      return "Your account is inactive. Contact support or an administrator.";
+      return auth.contextual.inactive;
     }
     if (reason === "unverified") {
-      return "Email verification must be completed before access is granted.";
+      return auth.contextual.unverified;
     }
     if (reason === "session") {
-      return "Your session could not be restored. Please sign in again.";
+      return auth.contextual.session;
     }
     if (reason === "signed-out") {
-      return "Sign in to continue.";
+      return auth.contextual.signed_out;
     }
     return "";
-  }, [reason, verified]);
+  }, [auth.contextual, reason, verified]);
   const contextualVariant =
     reason === "account_deleted" || reason === "signed-out" ? "success" : contextualMessage ? "warning" : "success";
   const contextualToast =
@@ -106,55 +109,47 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
     if (hashParams.get("type") === "recovery" && hashParams.get("access_token")) {
       setRecoveryToken(hashParams.get("access_token")!);
       setActiveMode("new-password");
-      showToast("Set your new password below.", "warning");
+      showToast(auth.contextual.set_new_password, "warning");
       // Clean hash from URL without reload
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
-  }, [showToast]);
+  }, [auth.contextual.set_new_password, showToast]);
 
   const modeMeta = useMemo(() => {
     if (activeMode === "signup") {
       return {
-        eyebrow: "Account setup",
-        title: "Create your account",
-        lead: "Open your workspace, verify your email, then publish from one structured source.",
-        alternateLabel: "Already have an account?",
+        ...auth.modes.signup,
+        alternateLabel: auth.modes.signup.alternate_label,
         alternateHref: "/login?mode=signin",
-        alternateAction: "Sign in",
+        alternateAction: auth.modes.signup.alternate_action,
       };
     }
 
     if (activeMode === "reset") {
       return {
-        eyebrow: "Recovery",
-        title: "Reset your password",
-        lead: "Request a recovery link for the email address tied to your account.",
-        alternateLabel: "Remembered your password?",
+        ...auth.modes.reset,
+        alternateLabel: auth.modes.reset.alternate_label,
         alternateHref: "/login?mode=signin",
-        alternateAction: "Back to sign in",
+        alternateAction: auth.modes.reset.alternate_action,
       };
     }
 
     if (activeMode === "new-password") {
       return {
-        eyebrow: "Recovery",
-        title: "Set a new password",
-        lead: "Finish the recovery session opened from your email link.",
+        ...auth.modes.new_password,
         alternateLabel: "",
         alternateHref: "",
-        alternateAction: "",
+        alternateAction: auth.modes.new_password.alternate_action,
       };
     }
 
     return {
-      eyebrow: "Account access",
-      title: "Sign in",
-      lead: "Continue into your dashboard and publication controls.",
-      alternateLabel: "Need an account?",
+      ...auth.modes.signin,
+      alternateLabel: auth.modes.signin.alternate_label,
       alternateHref: "/login?mode=signup",
-      alternateAction: "Sign up",
+      alternateAction: auth.modes.signin.alternate_action,
     };
-  }, [activeMode]);
+  }, [activeMode, auth.modes]);
 
   const closeActiveToast = useCallback(() => {
     if (toast) {
@@ -170,7 +165,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
       return;
     }
     setIsBusy(true);
-    showToast("Signing in...");
+    showToast(auth.messages.signing_in);
 
     const email = normalizeEmail(signinEmail);
     let shouldRedirect = false;
@@ -188,11 +183,11 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
       }
 
       setPendingVerificationEmail("");
-      showToast("Signed in. Redirecting...");
+      showToast(auth.messages.signed_in);
       shouldRedirect = true;
       window.location.href = "/dashboard";
     } catch {
-      showToast("Unexpected sign-in error. Try again.", "error");
+      showToast(auth.messages.sign_in_error, "error");
     } finally {
       if (!shouldRedirect) {
         setIsBusy(false);
@@ -206,7 +201,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
       return;
     }
     setIsBusy(true);
-    showToast("Creating account...");
+    showToast(auth.messages.creating_account);
 
     const email = normalizeEmail(signupEmail);
 
@@ -222,14 +217,14 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         return;
       }
 
-      showToast(payload.message || "Account created. Verify your email before sign in.");
+      showToast(payload.message || auth.messages.account_created);
       setPendingVerificationEmail(email);
       setSigninEmail(email);
       setSignupPolicyAccepted(false);
       setSignupBetaOptIn(false);
       setMode("signin");
     } catch {
-      showToast("Unexpected sign-up error. Try again.", "error");
+      showToast(auth.messages.sign_up_error, "error");
     } finally {
       setIsBusy(false);
     }
@@ -238,7 +233,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
   async function handleResetPassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
-    showToast("Sending reset link...");
+    showToast(auth.messages.sending_reset);
 
     const email = normalizeEmail(resetEmail);
 
@@ -252,9 +247,9 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         return;
       }
 
-      showToast(payload.message || "Password reset email sent.");
+      showToast(payload.message || auth.messages.reset_sent);
     } catch {
-      showToast("Unexpected password reset error. Try again.", "error");
+      showToast(auth.messages.reset_error, "error");
     } finally {
       setIsBusy(false);
     }
@@ -263,12 +258,12 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
   async function handleResendVerification() {
     const email = normalizeEmail(pendingVerificationEmail || signinEmail);
     if (!email) {
-      showToast("Provide email in sign-in form first.", "warning");
+      showToast(auth.messages.provide_email, "warning");
       return;
     }
 
     setIsBusy(true);
-    showToast("Sending verification email...");
+    showToast(auth.messages.sending_verification);
 
     try {
       const payload = await postJson("/api/auth/resend-verification", { email });
@@ -277,9 +272,9 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         return;
       }
 
-      showToast(payload.message || "Verification email sent.");
+      showToast(payload.message || auth.messages.verification_sent);
     } catch {
-      showToast("Unexpected verification error. Try again.", "error");
+      showToast(auth.messages.verification_error, "error");
     } finally {
       setIsBusy(false);
     }
@@ -288,7 +283,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
   async function handleUpdatePassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
-    showToast("Updating password...");
+    showToast(auth.messages.updating_password);
 
     try {
       const payload = await postJson("/api/auth/update-password", {
@@ -301,12 +296,12 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         return;
       }
 
-      showToast(payload.message || "Password updated. You can sign in now.");
+      showToast(payload.message || auth.messages.password_updated);
       setRecoveryToken("");
       setNewPassword("");
       setMode("signin");
     } catch {
-      showToast("Unexpected error. Try again.", "error");
+      showToast(auth.messages.unexpected_error, "error");
     } finally {
       setIsBusy(false);
     }
@@ -328,13 +323,13 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         </div>
 
         {pendingVerificationEmail ? (
-          <p className="auth-card__note">Pending verification email: {pendingVerificationEmail}</p>
+          <p className="auth-card__note">{auth.messages.pending_verification.replace("{email}", pendingVerificationEmail)}</p>
         ) : null}
 
         {activeMode === "signin" && (
           <form className="stack auth-card__form" onSubmit={handleSignIn}>
             <label className="auth-card__field">
-              <span className="auth-card__label">Email</span>
+              <span className="auth-card__label">{auth.fields.email}</span>
               <input
                 type="email"
                 value={signinEmail}
@@ -344,7 +339,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
               />
             </label>
             <label className="auth-card__field">
-              <span className="auth-card__label">Password</span>
+              <span className="auth-card__label">{auth.fields.password}</span>
               <input
                 type="password"
                 value={signinPassword}
@@ -355,20 +350,20 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
             </label>
             <div className="auth-card__support-row">
               <Link href="/login?mode=reset" className="auth-card__link">
-                Forgot password?
+                {auth.actions.forgot_password}
               </Link>
               {pendingVerificationEmail ? (
                 <button type="button" className="auth-card__text-button" onClick={handleResendVerification} disabled={isBusy}>
-                  Resend verification email
+                  {auth.actions.resend_verification}
                 </button>
               ) : null}
             </div>
             <div className="auth-card__actions">
               {restricted ? (
-                <RestrictedSubmitButton label="Sign in" reason={restrictionReason} />
+                <RestrictedSubmitButton label={auth.actions.sign_in} reason={restrictionReason} />
               ) : (
                 <button className="button button--primary" type="submit" disabled={isBusy}>
-                  {isBusy ? "Signing in..." : "Sign in"}
+                  {isBusy ? auth.actions.signing_in : auth.actions.sign_in}
                 </button>
               )}
             </div>
@@ -378,7 +373,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         {activeMode === "signup" && (
           <form className="stack auth-card__form" onSubmit={handleSignUp}>
             <label className="auth-card__field">
-              <span className="auth-card__label">Email</span>
+              <span className="auth-card__label">{auth.fields.email}</span>
               <input
                 type="email"
                 value={signupEmail}
@@ -388,7 +383,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
               />
             </label>
             <label className="auth-card__field">
-              <span className="auth-card__label">Password</span>
+              <span className="auth-card__label">{auth.fields.password}</span>
               <input
                 type="password"
                 value={signupPassword}
@@ -404,7 +399,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
                 checked={signupBetaOptIn}
                 onChange={(event) => setSignupBetaOptIn(event.target.checked)}
               />
-              <span>I&apos;m joining as a beta-tester</span>
+              <span>{auth.signup.beta_tester}</span>
             </label>
             <label className="checkbox-row">
               <input
@@ -414,23 +409,23 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
                 required
               />
               <span>
-                I have read and accept the{" "}
+                {auth.signup.consent_before_privacy}{" "}
                 <Link href="/privacy" className="auth-card__link">
-                  Privacy Policy
+                  {auth.signup.privacy_policy}
                 </Link>{" "}
-                and{" "}
+                {auth.signup.consent_between}{" "}
                 <Link href="/terms" className="auth-card__link">
-                  Terms of Service
+                  {auth.signup.terms}
                 </Link>
                 .
               </span>
             </label>
             <div className="auth-card__actions">
               {restricted ? (
-                <RestrictedSubmitButton label="Create account" reason={restrictionReason} />
+                <RestrictedSubmitButton label={auth.actions.create_account} reason={restrictionReason} />
               ) : (
                 <button className="button button--primary" type="submit" disabled={isBusy || !signupPolicyAccepted}>
-                  {isBusy ? "Creating account..." : "Create account"}
+                  {isBusy ? auth.actions.creating_account : auth.actions.create_account}
                 </button>
               )}
             </div>
@@ -440,7 +435,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         {activeMode === "reset" && (
           <form className="stack auth-card__form" onSubmit={handleResetPassword}>
             <label className="auth-card__field">
-              <span className="auth-card__label">Email</span>
+              <span className="auth-card__label">{auth.fields.email}</span>
               <input
                 type="email"
                 value={resetEmail}
@@ -451,7 +446,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
             </label>
             <div className="auth-card__actions">
               <button className="button button--primary" type="submit" disabled={isBusy}>
-                {isBusy ? "Sending..." : "Send reset link"}
+                {isBusy ? auth.actions.sending : auth.actions.send_reset_link}
               </button>
             </div>
           </form>
@@ -460,7 +455,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
         {activeMode === "new-password" && recoveryToken && (
           <form className="stack auth-card__form" onSubmit={handleUpdatePassword}>
             <label className="auth-card__field">
-              <span className="auth-card__label">New password</span>
+              <span className="auth-card__label">{auth.fields.new_password}</span>
               <input
                 type="password"
                 value={newPassword}
@@ -472,7 +467,7 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
             </label>
             <div className="auth-card__actions">
               <button className="button button--primary" type="submit" disabled={isBusy}>
-                {isBusy ? "Updating..." : "Update password"}
+                {isBusy ? auth.actions.updating : auth.actions.update_password}
               </button>
             </div>
           </form>

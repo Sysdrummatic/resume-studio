@@ -4970,6 +4970,22 @@ a {
 
 @media (max-width: 600px) {
 
+  .lp-footer__in,
+  .lp-footer__left {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lp-footer__left {
+    gap: 16px;
+    width: 100%;
+  }
+
+  .lp-footer__links {
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+
   .lp-hero,
   .lp-sec,
   .lp-cta-sec {
