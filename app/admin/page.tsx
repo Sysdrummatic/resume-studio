@@ -4,6 +4,8 @@ import { requireStaffActor } from "../lib/auth-server";
 import { fetchAllProfilesAsService, fetchAuthUsersAsService, fetchPlatformStatsAsService } from "../lib/supabase-http";
 import type { AppRole, ProfileRecord } from "../lib/auth-types";
 import { hasCapability, isNonStaffRole } from "../lib/rbac";
+import { getRequestAppI18n } from "../i18n/server";
+import { formatAppMessage } from "../i18n/locale";
 
 type UserOverview = {
   id: string;
@@ -19,6 +21,8 @@ type UserOverview = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  const { dictionary } = await getRequestAppI18n();
+  const text = dictionary.admin.text;
   const actor = await requireStaffActor();
   const canReadAnalytics = hasCapability(actor.role, "admin.analytics.read");
   const canReadAudit = hasCapability(actor.role, "admin.audit.read");
@@ -84,15 +88,15 @@ export default async function AdminPage() {
     <section className="card stack">
       <header className="card-header">
         <div>
-          <h1>Admin panel</h1>
+          <h1>{text["Admin panel"]}</h1>
           <p className="card-lead">
-            Role: <strong>{actor.role}</strong>. Manage users, roles, activity and account deletion.
+            {formatAppMessage(text["Role: {role}. Manage users, roles, activity and account deletion."], { role: actor.role })}
           </p>
         </div>
         <div className="actions-row">
           {canReadAudit ? (
             <Link href="/admin/audit" className="button button--ghost button--small">
-              View Audit Logs
+              {text["View Audit Logs"]}
             </Link>
           ) : null}
         </div>

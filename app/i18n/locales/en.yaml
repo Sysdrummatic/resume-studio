@@ -5,6 +5,9 @@ common:
   close: Close
   save: Save
   cancel: Cancel
+  home: Home
+  breadcrumb: Breadcrumb
+  close_notification: Close notification
 navigation:
   personal_hub: Personal Hub
   dashboard: Dashboard
@@ -27,6 +30,29 @@ account:
   settings: Settings
   signing_out: Signing out…
   log_out: Log out
+  profile_modal:
+    title: Profile
+    close: Close
+    first_name: First name
+    last_name: Last name
+    saving: Saving…
+    save: Save
+    email: Email address
+    role: Role
+    status: Account status
+    email_verification: Email verification
+    active: Active
+    inactive: Inactive
+    verified: Verified
+    pending: Pending
+    update_failed: Profile update failed.
+    delete_title: Delete account and all data
+    delete_action: Delete account and all data
+    delete_explanation: "This action cannot be undone. Your account and all CV data will be permanently deleted. To confirm, enter your email address below: {email}."
+    delete_failed: Account deletion failed.
+    cancel: Cancel
+    deleting: Deleting…
+    delete_forever: Delete account permanently
 landing:
   hero:
     eyebrow: // LiveCV publication platform
@@ -72,7 +98,7 @@ landing:
         title: Shape different public narratives
         copy: Present distinct professional profiles for different audiences without fragmenting your underlying source data.
       - tag: locale-aware output
-        chip: EN / PL
+        chip: Multiple locales
         chip_type: t
         title: Language-specific delivery
         copy: Preserve locale-appropriate presentation while keeping the publishing model coherent and the source unified.
@@ -161,6 +187,681 @@ auth:
     updating_password: Updating password…
     password_updated: Password updated. You can sign in now.
     unexpected_error: Unexpected error. Try again.
+dashboard:
+  option_labels:
+    summary: Summary
+    experience: Experience
+    education: Education
+    courses: Courses
+    skills: Skills
+    interests: Interests
+    languages: Languages
+    tech_stack: Tech stack
+    summary_item: "Summary {number}"
+    experience_item: "Experience {number}"
+    education_item: "Education {number}"
+    course_item: "Course {number}"
+    item: "Item {number}"
+  preset_editor:
+    title_required: CV version title is required.
+    summary_required: Select exactly one summary.
+    aria_label: CV version editor
+    close_aria: Close CV version editor
+    edit_title: Edit CV version
+    create_title: Create CV version
+    close: Close
+    title_label: CV version title
+    title_placeholder: Frontend Engineer — example company
+    allow_indexing: Allow search engines to index the page after publication
+    ai_generated: Mark as AI-generated content
+    no_items: No items in the master resume.
+    saving: Saving…
+    save: Save CV version
+    cancel: Cancel
+  preview:
+    aria_label: CV version preview
+    close_aria: Close CV preview
+    open_cv: Open CV
+    close: Close
+    note: Preview of the selected content from your current master resume. Public links and exports use the last published version.
+    render_error: The preview could not be rendered from the master resume.
+  actions:
+    settings_aria: "CV version settings: {title}"
+    settings_title: CV version settings
+    edit: Edit
+    unpublish: Unpublish
+    publish: Publish
+    delete_aria: "Delete CV version: {title}"
+    delete: Delete
+  messages:
+    reader_failed: The document reader could not load. Reload the page to try again.
+    master_read_failed: Your master resume could not be read. Open the editor to review it.
+    not_saved: Not saved yet
+    language_versions: "Language versions: {count}"
+    save_failed: CV version save failed.
+    saved: CV version saved.
+    publish_failed: CV version publish failed.
+    published: CV version published.
+    unpublish_failed: CV version unpublish failed.
+    unpublished: CV version unpublished.
+    delete_failed: CV version delete failed.
+    deleted: CV version deleted.
+    publish_first: Publish this CV version first.
+    link_copied: Public link copied to the clipboard.
+    copy_failed: The link could not be copied.
+    publish_before_text: Publish this CV version before exporting a text snapshot.
+    publish_before_pdf: Publish this CV version before exporting a PDF snapshot.
+    preparing_text: Preparing text export…
+    preparing_pdf: Preparing PDF export…
+    preparing_data: Preparing data export…
+    import_failed: Import failed.
+    import_success: Data imported. Reloading…
+    no_languages: No language versions are available for publication.
+  main:
+    title: Dashboard
+    subtitle: All your experience in one place. A CV for every opportunity.
+    create_version: Create CV version
+    create_master_first: Create your master resume first.
+    master_title: Master resume
+    private: Private
+    saved: "Saved: {date}"
+    start_story: Start building your career record here.
+    master_description: One source of experience for every tailored CV.
+    edit_master: Edit master resume
+    export: Export
+    import: Import
+    export_title: Download all your CV data in a single YAML file.
+    import_title: Restore CV data from a previously exported YAML file.
+    completion: Master resume completion
+    reading: Reading your saved content…
+    completion_summary: "Completed sections: {done} of {total}."
+    add_details: Add your details to build your master resume.
+    continue_editing: Continue editing
+    review_content: Review your content
+    stats_aria: Master resume content statistics
+    roles: Professional profiles
+    roles_note: Summary variants
+    experience: Experience
+    experience_note: Employment history
+    skills: Skills
+    skills_note: Available for your CVs
+    courses: Courses
+    courses_note: Courses and certificates
+    cv_languages: CV languages
+    stats_note: "Counts refer to the {locale} master resume. Translations are counted separately under CV languages."
+  library:
+    title: Your CV versions
+    versions: versions
+    public: public
+    private: private
+    no_versions: No CV versions yet
+    start_master: Start with your master resume
+    empty_with_master: Choose content from your master resume to create your first tailored CV.
+    empty_without_master: Add your experience, then create a version to share.
+    search_aria: Search CV versions
+    search_placeholder: Search CV versions…
+    filter_aria: Filter CV versions
+    filter_all: All
+    filter_public: Public
+    filter_private: Private
+    saved_aria: Saved CV versions
+    updated: "Updated: {date}"
+    published: Published
+    private_state: Private
+    test: Test
+    indexable: Indexable
+    noindex: Noindex
+    no_matches: No matching CVs.
+    clear_filters: Clear filters
+    next_aria: Next steps for the selected CV
+    next_title: What can you do next?
+    next_published: Share the published CV or review your selection before publishing again.
+    next_private: Review this version, then choose which languages to publish.
+    choose_content: Choose content
+    saved_selection: Your saved selection
+    review_publish: Review and publish
+    public_link_available: A public link is available
+    check_content_languages: Check the content and languages
+    master_private: Your master resume stays private.
+    edit_selection: Edit selection
+    publish_again: Publish again
+    publish: Publish
+    copy_link: Copy link
+    test_draft: This CV uses a separate onboarding test draft.
+    open_test_cv: Open test CV
+    loading_preview: Loading CV preview…
+    add_content: Open your master resume to add content for this version.
+    no_selected: No CV selected
+    choose_version: Choose a version from the library or clear the filters.
+  delete_modal:
+    aria_label: Delete CV version confirmation
+    cancel_aria: Cancel deletion
+    title: Delete CV version
+    before_title: This permanently deletes
+    public_suffix: and takes its public link offline
+    after_title: This cannot be undone.
+    cancel: Cancel
+    deleting: Deleting…
+    delete: Delete
+  import_modal:
+    aria_label: Import data confirmation
+    cancel_aria: Cancel import
+    title: Import data
+    before_file: Importing
+    explanation: overwrites your master resume documents and language versions, and replaces all private CV versions. Published CV versions and their public links stay untouched. This cannot be undone.
+    cancel: Cancel
+    importing: Importing…
+    action: Import and replace
+  language_modal:
+    code_length: Language code must be two letters, for example en, pl, or de.
+    code_letters: Language code must contain letters only.
+    exists: This language already exists.
+    name_required: Language name is required.
+    add_failed: Failed to add the language.
+    network_error: Network error. Try again.
+    edit_aria: Edit language version
+    add_aria: Add language version
+    close_aria: Close
+    eyebrow: CV language versions
+    edit_title: Edit language version
+    add_title: Add language version
+    edit_description: Update the name, short label, or default language for this account.
+    add_description: Add a language and its associated CV document.
+    code: Language code
+    code_placeholder: e.g. en, pl, de
+    name: Language name
+    name_placeholder: e.g. English, Polish
+    short_label: Short label
+    short_placeholder: e.g. EN, PL
+    removing: Removing…
+    remove: Remove
+    set_default: Set as default
+    saving: Saving…
+    adding: Adding…
+    save: Save changes
+    add: Add language
+    cancel: Cancel
+    list_aria: CV language versions
+    edit_item_aria: "Edit language version: {language}"
+    default_label: Default
+    add_item_aria: Add language version
+  publish_modal:
+    aria_label: Publish CV version
+    close_aria: Close publish dialog
+    close: Close
+    title: Publish CV version
+    description: Choose the languages available at the public link and set the default language.
+    languages: Language versions
+    default: Default
+    select_one: Select at least one language.
+    default_required: The default language must be one of the selected versions.
+    allow_indexing: Allow search engines to index the public page
+    link_state: Link state after publication
+    canonical_note: The canonical URL is the permanent public link for this version.
+    active_link: The active link will be updated and keep its address.
+    new_link: A new public link will be created.
+    cancel: Cancel
+    publishing: Publishing…
+    publish: Publish
+editor:
+  text:
+    "Tech stack": Tech stack
+    "First name": First name
+    "Family name": Family name
+    "Auto-generate brand initials": Auto-generate brand initials
+    "Location": Location
+    "Phone": Phone
+    "E-mail": E-mail
+    "LinkedIn": LinkedIn
+    "Portfolio": Portfolio
+    "Position": Position
+    "Description": Description
+    "Default summary": Default summary
+    "Default": Default
+    "Summary description": Summary description
+    "Remove entry": Remove entry
+    "+ Add summary": + Add summary
+    "Untitled summary": Untitled summary
+    "Label": Label
+    "Image path": Image path
+    "Size": Size
+    "Remove": Remove
+    "+ Add QR code": + Add QR code
+    "Skill": Skill
+    "Level": Level
+    "+ Add skill": + Add skill
+    "Technology": Technology
+    "+ Add technology": + Add technology
+    "Language": Language
+    "Level text": Level text
+    "+ Add language": + Add language
+    "Interest": Interest
+    "+ Add interest": + Add interest
+    "Period": Period
+    "Company": Company
+    "Role": Role
+    "Highlights, one per line": Highlights, one per line
+    "+ Add position": + Add position
+    "Untitled school": Untitled school
+    "School": School
+    "Degree": Degree
+    "Detail": Detail
+    "+ Add education": + Add education
+    "Year": Year
+    "Course name": Course name
+    "+ Add course": + Add course
+    "Clause text": Clause text
+    "No clause": No clause
+    "Use standard PL wording": Use standard PL wording
+    "Use standard EN wording": Use standard EN wording
+    "Clear": Clear
+    "Rendered as a small footer on the CV. Leave empty to omit it.": Rendered as a small footer on the CV. Leave empty to omit it.
+    "Small": Small
+    "Medium": Medium
+    "Large": Large
+    "Compact": Compact
+    "Normal": Normal
+    "Relaxed": Relaxed
+    "Section dividers": Section dividers
+    "Initials badge in header": Initials badge in header
+    "QR code to the live link": QR code to the live link
+    "Basics": Basics
+    "Optional": Optional
+    "Personal details": Personal details
+    "Name, brand initials and contact details. All of it lands in the CV header.": Name, brand initials and contact details. All of it appears in the CV header.
+    "Several variants; one is picked per CV version.": Several variants; one is picked per CV version.
+    "Start with your most recent role.": Start with your most recent role.
+    "List your highest completed level first.": List your highest completed level first.
+    "Hard skills tied to the role you are targeting.": Hard skills tied to the role you are targeting.
+    "Proficiency renders as a meter in the CV.": Proficiency renders as a meter in the CV.
+    "Certificates, training and licences.": Certificates, training and licences.
+    "A short list, without elaboration.": A short list, without elaboration.
+    "Technologies and tools you work with.": Technologies and tools you work with.
+    "QR codes": QR codes
+    "Links encoded as QR codes in the printed version.": Links encoded as QR codes in the printed version.
+    "GDPR clause": GDPR clause
+    "Common on the Polish job market, usually left empty for English CVs.": Common on the Polish job market, usually left empty for English CVs.
+    "Master Resume": Master Resume
+    "Source for every CV version": Source for every CV version
+    "Completion": Completion
+    "Resume completion": Resume completion
+    "Complete {section} to add {percent}%.": "Complete {section} to add {percent}%."
+    "Every section has content.": Every section has content.
+    "Language version updated.": Language version updated.
+    "Language version created.": Language version created.
+    "Default language updated.": Default language updated.
+    "Language version deleted.": Language version deleted.
+    "Publish update": Publish update
+    "Saved in this browser only, not on our servers — click Save MasterCV to save it for real.": Saved in this browser only, not on our servers — click Save MasterCV to save it to your account.
+    "Draft saved locally {time}": "Draft saved locally: {time}"
+    "Preview": Preview
+    "Resume editor mode": Resume editor mode
+    "Human-friendly Editor": Human-friendly editor
+    "Form": Form
+    "YAML Editor": YAML editor
+    "Save MasterCV": Save master resume
+    "Resume section": Resume section
+    "Unsaved local draft from {time} found for this language version.": "An unsaved local draft from {time} was found for this language version."
+    "Restore": Restore
+    "Delete": Delete
+    "the same document": the same document
+    "entries": entries
+    "The sidebar jumps to the matching block.": The sidebar jumps to the matching YAML block.
+    "Load template": Load template
+    "Download YAML": Download YAML
+    "Side panel": Side panel
+    "History": History
+    "Style": Style
+    "Close": Close
+    "Revision #{number} preview": "Revision #{number} preview"
+    "Exit": Exit
+    "Loading preview…": Loading preview…
+    "Template": Template
+    "Text size": Text size
+    "Density": Density
+    "Details": Details
+    "Style is saved with the document and applies to the preview, the published CV and the PDF.": Style is saved with the document and applies to the preview, the published CV and the PDF.
+    "Revision history": Revision history
+    "No revisions yet.": No revisions yet.
+    "Unsaved draft": Unsaved draft
+    "unsaved": unsaved
+    "Saved only in this browser — not yet part of your revision history.": Saved only in this browser — not yet part of your revision history.
+    "just now": just now
+    "Revision #{number}": "Revision #{number}"
+    "current": current
+    "No note": No note
+    "Viewing": Viewing
+    "Rollback": Rollback
+    "Resume sections": Resume sections
+    "Complete": Complete
+    "Needs content": Needs content
+    "Save MasterCV version": Save master resume version
+    "Close save version dialog": Close save version dialog
+    "This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.": This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.
+    "Change note": Change note
+    "e.g. Added CDQ experience": e.g. Added CDQ experience
+    "Cancel": Cancel
+    "Saving…": Saving…
+    "Use a two-letter language code.": Use a two-letter language code.
+    "Language name is required.": Language name is required.
+    "Short label must contain two letters.": Short label must contain two letters.
+    "This language already exists.": This language already exists.
+    "Language version save failed.": Language version save failed.
+    "Default language update failed.": Default language update failed.
+    "Language version delete failed.": Language version delete failed.
+    "Edit language version {code}": "Edit language version {code}"
+    "Add language version": Add language version
+    "Close language version modal": Close language version modal
+    "Edit language version": Edit language version
+    "Selected now": Selected now
+    "Code": Code
+    "Language name": Language name
+    "Short label": Short label
+    "Versions": Versions
+    "{count} configured languages": "{count} configured languages"
+    "Selected": Selected
+    "Set default": Set default
+    "Edit": Edit
+    "Delete language version {language}": "Delete language version {language}"
+    "Delete language version": Delete language version
+    "Save changes": Save changes
+    "Create version": Create version
+    "Cancel edit": Cancel edit
+    "Local draft restored.": Local draft restored.
+    "Unsaved changes discarded.": Unsaved changes discarded.
+    "Could not read this file.": Could not read this file.
+    "Import failed. Check your connection and try again.": Import failed. Check your connection and try again.
+    "Added content from {file}.": "Added content from {file}."
+    "Template YAML loaded.": Template YAML loaded.
+    "Template load failed.": Template load failed.
+    "Downloaded {file}.": "Downloaded {file}."
+    "Saving...": Saving…
+    "Saved {count} language versions.": "Saved language versions: {count}."
+    "Save failed: {message}": "Save failed: {message}"
+    "Saved {saved}, failed {failed}: {message}": "Saved: {saved}; failed: {failed}. {message}"
+    "Rolling back to revision {number}...": "Rolling back to revision {number}…"
+    "Rollback complete. Current document now matches revision {number}.": "Rollback complete. The document now matches revision {number}."
+    "Rollback failed.": Rollback failed.
+    "Revision preview failed.": Revision preview failed.
+    "Save failed": Save failed
+    "CV unavailable": CV unavailable
+    "Already have a CV?": Already have a CV?
+    "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.
+    "Reading file…": Reading file…
+    "Upload file": Upload file
+    "Review imported CV": Review imported CV
+    "Close import review": Close import review
+    "Review import": Review import
+    "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.": Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.
+    "Name": Name
+    "Contact details": Contact details
+    "Summary": Summary
+    "Experience": Experience
+    "Education": Education
+    "Skills": Skills
+    "Languages": Languages
+    "Courses": Courses
+    "Interests": Interests
+    "of": of
+    "selected": selected
+    "Untitled role": Untitled role
+    "Untitled degree": Untitled degree
+    "Untitled skill": Untitled skill
+    "Untitled language": Untitled language
+    "Untitled course": Untitled course
+    "Nothing usable was found in this file.": Nothing usable was found in this file.
+    "Not found, left as-is:": "Not found, left as-is:"
+    "Name in the file:": "Name in the file:"
+    "Name in your draft:": "Name in your draft:"
+    "Adding this content will combine details from both people in the current draft.": Adding this content will combine details from both people in the current draft.
+    "Add anyway, even though the names don't match": Add anyway, even though the names don't match
+    "Add to draft": Add to draft
+admin:
+  text:
+    "Admin panel": Admin panel
+    "Role: {role}. Manage users, roles, activity and account deletion.": "Role: {role}. Manage users, roles, activity, and account deletion."
+    "View Audit Logs": View audit logs
+    "Failed to load users.": Failed to load users.
+    "Role update failed.": Role update failed.
+    "Role updated.": Role updated.
+    "Status update failed.": Status update failed.
+    "Account status updated.": Account status updated.
+    "Flag update failed.": Flag update failed.
+    "User flag updated.": User flag updated.
+    "Delete this user account? This operation removes auth access.": Delete this user account? This operation removes authentication access.
+    "Delete failed.": Delete failed.
+    "User deleted.": User deleted.
+    "Users": Users
+    "{total} total ({active} active)": "{total} total ({active} active)"
+    "excluded: {test} test, {staff} staff": "excluded: {test} test, {staff} staff"
+    "Resumes": Resumes
+    "Public Links": Public links
+    "Public Views": Public views
+    "Email": Email
+    "Display name": Display name
+    "Role": Role
+    "Status": Status
+    "Test user": Test user
+    "OCV Staff": OpenCiVera staff
+    "Created": Created
+    "Actions": Actions
+    "Deactivate": Deactivate
+    "Activate": Activate
+    "Delete": Delete
+    "Audit Log Explorer": Audit log explorer
+    "Monitor administrative actions with metadata-only filters and inspection tools.": Monitor administrative actions with metadata-only filters and inspection tools.
+    "Content Safety Flags": Content safety flags
+    "Content safety explanation": The system detects saved content that resembles script-injection attempts. A flag does not mean an attack succeeded. Staff can see metadata and a match hash only, never the submitted text.
+    "Timestamp": Timestamp
+    "User": User
+    "Locale": Locale
+    "Rule": Rule
+    "Match Hash": Match hash
+    "No content safety flags recorded.": No content safety flags recorded.
+    "Failed to load audit logs.": Failed to load audit logs.
+    "Filters": Filters
+    "Clear": Clear
+    "Loading…": Loading…
+    "Apply": Apply
+    "Actor ID": Actor ID
+    "Target User ID": Target user ID
+    "Action Type": Action type
+    "Actor Role": Actor role
+    "Any": Any
+    "Date From": Date from
+    "Date To": Date to
+    "Action": Action
+    "Actor": Actor
+    "Target": Target
+    "Metadata": Metadata
+    "No audit logs found.": No audit logs found.
+    "Hide": Hide
+    "Inspect": Inspect
+    "Log Metadata: {id}": "Log metadata: {id}"
+    "Close": Close
+    "Beta test mode": Beta test mode
+    "Unable to load beta test settings.": Unable to load beta test settings.
+    "Select a restriction reason first.": Select a restriction reason first.
+    "Unable to save beta test settings.": Unable to save beta test settings.
+    "Loading...": Loading…
+    "Restrict access (block sign-in and sign-up for non-staff users)": Restrict access by blocking sign-in and sign-up for non-staff users
+    "Reason shown to users": Message shown to users
+    "Select a reason...": Select a message…
+    "Cancel": Cancel
+    "Saving...": Saving…
+    "Save": Save
+user:
+  text:
+    "Personal hub": Personal hub
+    "Image could not be loaded.": Image could not be loaded.
+    "Image editor is unavailable.": Image editor is unavailable.
+    "Bio updated successfully.": Bio updated successfully.
+    "Failed to update bio.": Failed to update bio.
+    "Choose an image file.": Choose an image file.
+    "Avatar update failed.": Avatar update failed.
+    "Profile photo updated.": Profile photo updated.
+    "Failed to update profile photo.": Failed to update profile photo.
+    "Hide personal hub panel": Hide personal hub panel
+    "Show personal hub panel": Show personal hub panel
+    "Close personal hub panel": Close personal hub panel
+    "Change profile photo": Change profile photo
+    "Add profile photo": Add profile photo
+    "Profile": Profile
+    "User": User
+    "Role unavailable": Role unavailable
+    "Short bio": Short bio
+    "Share a bit about yourself…": Share a bit about yourself…
+    "Save": Save
+    "Cancel": Cancel
+    "No bio yet. Click the plus icon to add one.": No bio yet. Select the plus icon to add one.
+    "Edit short bio": Edit short bio
+    "Add short bio": Add short bio
+    "Edit Master Resume": Edit master resume
+    "Manage CV Versions": Manage CV versions
+    "Policies": Policies
+    "Privacy Policy": Privacy policy
+    "Terms of Service": Terms of service
+    "Resume preview": Resume preview
+    "{count} published": "{count} published"
+    "Preview unavailable": Preview unavailable
+    "The resume preview could not be rendered in this view. Reload the page to try again.": The resume preview could not be rendered here. Reload the page and try again.
+    "Rendering your resume…": Rendering your resume…
+onboarding:
+  steps:
+    - Welcome to OpenCiVera
+    - How would you like to start?
+    - Personal details
+    - Professional summary
+    - Experience
+    - Education
+    - Skills
+    - Languages
+    - Courses
+    - Interests
+    - Tech stack
+    - GDPR clause
+    - Review your first CV
+    - Ready to save your CV?
+  text:
+    "Could not save or finish this step. Check your connection and try again; your entries remain on this screen.": Could not save or finish this step. Check your connection and try again; your entries remain on this screen.
+    "Enter your name to continue.": Enter your first or family name to continue.
+    "Select and copy the link above.": Select and copy the link above.
+    "Guide progress": Guide progress
+    "Complete": Complete
+    "Your first CV": Your first CV
+    "Your CV is ready to send": Your CV is ready to send
+    "Your test draft is saved": Your test draft is saved
+    "Your Master CV is saved": Your master resume is saved
+    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": "Onboarding test: this is a separate draft. Your master resume and profile stay unchanged. Publishing creates a CV named Test onboardingu."
+    "Could not load your CV. Reload this page before continuing.": Could not load your CV. Reload this page before continuing.
+    "Loading your CV…": Loading your CV…
+    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Tell your story one section at a time. We’ll help you build your master resume and turn it into a CV you can share with a link.
+    "CV language": CV language
+    "Start from scratch": Start from scratch
+    "Fill in each section with short prompts.": Fill in each section with short prompts.
+    "Import my CV": Import my CV
+    "Upload your file, check the imported details and fill in anything missing.": Upload your file, check the imported details, and fill in anything missing.
+    "Import applied. Continue to check each section.": Import applied. Continue to check each section.
+    "Optional. Add what is relevant, or continue to skip this section.": Optional. Add what is relevant, or continue to skip this section.
+    "Add the details you want in your CV. You can edit them later.": Add the details you want in your CV. You can edit them later.
+    "This preview uses your selected professional summary and completed entries. Check the information before sharing.": This preview uses your selected professional summary and completed entries. Check the information before sharing.
+    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Create your first saved CV and a link you can send immediately? It will appear in your dashboard.
+    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Anyone with the link can view this CV. Search engine indexing will be disabled. Your master resume stays private.
+    "Add your name and a professional summary before creating a link. You can also save and finish without publishing.": Add your name and a professional summary before creating a link. You can also save and finish without publishing.
+    "Your first CV is saved in your dashboard. Copy the link to send it.": Your first CV is saved in your dashboard. Copy the link to send it.
+    "The test is complete. No public CV was created. You can start another test in account settings.": The test is complete. No public CV was created. You can start another test in account settings.
+    "You can create a CV with a link from your dashboard whenever you are ready.": You can create a CV with a link from your dashboard whenever you are ready.
+    "CV link": CV link
+    "Copied": Copied
+    "Copy link": Copy link
+    "Open CV": Open CV
+    "Go to dashboard": Go to dashboard
+    "Testing settings": Testing settings
+    "Your entries are saved to your account when you change steps or finish later.": Your entries are saved to your account when you change steps or finish later.
+    "Finish later": Finish later
+    "Back": Back
+    "Not now": Not now
+    "Saving…": Saving…
+    "Yes, create my CV with a link": Yes, create my CV with a link
+    "Let’s begin": Let’s begin
+    "Continue / skip": Continue / skip
+    "Continue": Continue
+    "Onboarding test": Onboarding test
+    "Resume test": Resume test
+    "Finish your first CV": Finish your first CV
+    "Your saved details are ready. Continue the guide where you left off.": Your saved details are ready. Continue the guide where you left off.
+    "Resume guide": Resume guide
+    "Onboarding test CV": Onboarding test CV
+settings:
+  text:
+    "Account settings": Account settings
+    "Testing tools": Testing tools
+    "Onboarding": Onboarding
+    "Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.": Test the first-use guide on a separate blank draft. Your master resume, languages, and profile remain unchanged.
+    "Status": Status
+    "Inactive": Inactive
+    "Completed": Completed
+    "Starts on the next dashboard visit": Starts on the next dashboard visit
+    "In progress / paused": In progress / paused
+    "Start onboarding on my next dashboard visit": Start onboarding on my next dashboard visit
+    "Start now": Start now
+    "Start a new blank test": Start a new blank test
+    "Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.": Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.
+    "Settings saved.": Settings saved.
+    "Could not save. Reload settings and retry.": Could not save. Reload settings and try again.
+    "Go to dashboard": Go to dashboard
+legal:
+  english_only_notice: This legal document is currently available in English only.
+docs:
+  title: Docs
+  home: Home
+  help_center: Help center
+  overview: Overview
+  topics: Working with your CV
+  tutorials: Tutorials
+  test_scenarios: Test scenarios
+  menu: Docs menu
+  outline: On this page
+  development: Documentation in progress
+  development_note: Guides evolve with the application.
+  heading: How can we help?
+  lead: From your first master resume entry to a CV you can share.
+  search: Search documentation
+  placeholder: Find a topic or guide…
+  results: Results
+  clear: Clear search
+  no_results: No matching topic was found. Try CV, publishing, or language.
+  start: Start here
+  first_cv: Your first CV — from editing to publication
+  first_cv_note: Build your master resume, select the right content, and share a finished version. The guide walks through every stage.
+  open_guide: Open the guide
+  tools: Get to know the tools
+  choose: Choose what you want to learn
+  guides: Guides and answers
+  privacy_tag: Your data, your choice
+  privacy_title: Your master resume stays private
+  privacy_note: Only the content selected for a published CV is shared. Everything else remains available only in your account.
+  privacy_link: Learn how publication works
+  about: About this documentation
+  no_docs: No guides are available yet.
+  article_language: Article content is available in English.
+  footer: Product documentation
+  master: Master resume
+  version: CV version
+  published: Published CV
+  master_note: Your private experience library
+  version_note: Content selected for a specific role
+  published_note: A finished version available at a public link
+  topics_content:
+    - title: Master resume
+      description: Add experience, skills, and language versions.
+      label: Creating and editing
+    - title: CV versions
+      description: Choose the information that fits a particular role.
+      label: Selecting content
+    - title: Publishing and sharing
+      description: Review your CV and share it with a public link.
+      label: Links and visibility
 sample_resume:
   title: Sample Resume | OpenCiVera
   description: View a sample resume powered by YAML and Next.js.

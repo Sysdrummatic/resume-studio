@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { FocusEvent, FormEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
+import { formatAppMessage } from "../i18n/locale";
 import { canAccessAdminArea, isAdminRole } from "../lib/rbac";
 import BetaTestModeModal from "./beta-test-mode-modal";
 import { useAppI18n } from "./app-i18n-provider";
@@ -38,6 +39,7 @@ function getInitial(email: string): string {
 export default function AccountMenu({ email, displayName, firstName, lastName, avatarUrl, role, isActive, emailConfirmed }: Props) {
   const { dictionary } = useAppI18n();
   const labels = dictionary.account;
+  const profileLabels = labels.profile_modal;
   const [isBusy, setIsBusy] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBetaTestModeOpen, setIsBetaTestModeOpen] = useState(false);
@@ -133,13 +135,13 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
       const response = await fetch("/api/user/account", { method: "DELETE" });
       const payload = (await response.json()) as { error?: string; message?: string; warning?: string };
       if (!response.ok || payload.error) {
-        setDeleteError(payload.message || payload.error || "Nie udało się usunąć konta.");
+        setDeleteError(payload.message || payload.error || profileLabels.delete_failed);
         return;
       }
 
       window.location.href = "/login?reason=account_deleted";
     } catch {
-      setDeleteError("Nie udało się usunąć konta.");
+      setDeleteError(profileLabels.delete_failed);
     } finally {
       setIsDeleting(false);
     }
@@ -171,7 +173,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
         };
       };
       if (!response.ok || payload.error) {
-        setProfileError(payload.error || "Profile update failed.");
+        setProfileError(payload.error || profileLabels.update_failed);
         return;
       }
 
@@ -182,7 +184,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
       setCurrentDisplayName(payload.data?.display_name || `${nextFirstName} ${nextLastName}`.trim());
       closeProfileModal();
     } catch {
-      setProfileError("Profile update failed.");
+      setProfileError(profileLabels.update_failed);
     } finally {
       setIsBusy(false);
     }
@@ -283,14 +285,14 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
           >
             <div className="profile-modal__content">
               <div className="profile-modal__header">
-                <h2 id="profile-modal-title">Profile</h2>
+                <h2 id="profile-modal-title">{profileLabels.title}</h2>
                 <button type="button" className="button button--ghost button--small" onClick={closeProfileModal}>
-                  Zamknij
+                  {profileLabels.close}
                 </button>
               </div>
               <form className="profile-modal__form" onSubmit={handleProfileSubmit}>
                 <label className="profile-modal__field">
-                  <span>First name</span>
+                  <span>{profileLabels.first_name}</span>
                   <input
                     value={profileFirstName}
                     onChange={(event) => setProfileFirstName(event.target.value)}
@@ -299,7 +301,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
                   />
                 </label>
                 <label className="profile-modal__field">
-                  <span>Last name</span>
+                  <span>{profileLabels.last_name}</span>
                   <input
                     value={profileLastName}
                     onChange={(event) => setProfileLastName(event.target.value)}
@@ -310,39 +312,38 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
                 {profileError ? <p className="profile-modal__error">{profileError}</p> : null}
                 <div className="profile-modal__actions">
                   <button type="submit" className="button button--primary button--small" disabled={isBusy}>
-                    {isBusy ? "Zapisywanie..." : "Zapisz"}
+                    {isBusy ? profileLabels.saving : profileLabels.save}
                   </button>
                 </div>
               </form>
               <div className="meta-grid">
                 <p>
-                  <span className="meta-label">Email</span>
+                  <span className="meta-label">{profileLabels.email}</span>
                   <span className="meta-value">{email}</span>
                 </p>
                 <p>
-                  <span className="meta-label">Role</span>
+                  <span className="meta-label">{profileLabels.role}</span>
                   <span className="meta-value">{role}</span>
                 </p>
                 <p>
-                  <span className="meta-label">Status</span>
-                  <span className="meta-value">{isActive ? "active" : "inactive"}</span>
+                  <span className="meta-label">{profileLabels.status}</span>
+                  <span className="meta-value">{isActive ? profileLabels.active : profileLabels.inactive}</span>
                 </p>
                 <p>
-                  <span className="meta-label">Email verification</span>
-                  <span className="meta-value">{emailConfirmed ? "verified" : "pending"}</span>
+                  <span className="meta-label">{profileLabels.email_verification}</span>
+                  <span className="meta-value">{emailConfirmed ? profileLabels.verified : profileLabels.pending}</span>
                 </p>
               </div>
               <div className="profile-modal__danger-zone">
-                <h3>Usuń konto i wszystkie dane</h3>
+                <h3>{profileLabels.delete_title}</h3>
                 {!isDeleteConfirmOpen ? (
                   <button type="button" className="button button--danger button--small" onClick={openDeleteConfirm}>
-                    Usuń konto i wszystkie dane
+                    {profileLabels.delete_action}
                   </button>
                 ) : (
                   <div className="profile-modal__danger-zone-confirm">
                     <p>
-                      Ta operacja jest nieodwracalna. Konto oraz wszystkie dane CV zostaną trwale
-                      usunięte. Aby potwierdzić, wpisz swój adres email ({email}) poniżej.
+                      {formatAppMessage(profileLabels.delete_explanation, { email })}
                     </p>
                     <input
                       type="email"
@@ -354,7 +355,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
                     {deleteError ? <p className="profile-modal__error">{deleteError}</p> : null}
                     <div className="profile-modal__actions">
                       <button type="button" className="button button--ghost button--small" onClick={cancelDeleteConfirm} disabled={isDeleting}>
-                        Anuluj
+                        {profileLabels.cancel}
                       </button>
                       <button
                         type="button"
@@ -362,7 +363,7 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
                         onClick={handleDeleteAccount}
                         disabled={isDeleting || deleteConfirmInput.trim().toLowerCase() !== email.toLowerCase()}
                       >
-                        {isDeleting ? "Usuwanie..." : "Usuń konto na zawsze"}
+                        {isDeleting ? profileLabels.deleting : profileLabels.delete_forever}
                       </button>
                     </div>
                   </div>

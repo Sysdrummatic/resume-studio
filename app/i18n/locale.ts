@@ -3,6 +3,15 @@ export const APP_LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 export const APP_LOCALE_HEADER_NAME = "x-opencivera-app-locale";
 export const APP_COUNTRY_HEADER_NAME = "x-opencivera-country-code";
 
+export function formatAppMessage(
+  template: string,
+  values: Record<string, string | number>,
+): string {
+  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (placeholder, key: string) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : placeholder,
+  );
+}
+
 export function normalizeAppLocale(value: unknown): string {
   return String(value ?? "")
     .trim()

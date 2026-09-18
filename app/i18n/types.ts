@@ -6,7 +6,15 @@ export type AppLocaleOption = {
 
 export type AppDictionary = {
   meta: { description: string };
-  common: { loading: string; close: string; save: string; cancel: string };
+  common: {
+    loading: string;
+    close: string;
+    save: string;
+    cancel: string;
+    home: string;
+    breadcrumb: string;
+    close_notification: string;
+  };
   navigation: {
     personal_hub: string;
     dashboard: string;
@@ -28,6 +36,7 @@ export type AppDictionary = {
     settings: string;
     signing_out: string;
     log_out: string;
+    profile_modal: Record<string, string>;
   };
   landing: {
     hero: {
@@ -91,6 +100,67 @@ export type AppDictionary = {
     actions: Record<string, string>;
     signup: Record<string, string>;
     messages: Record<string, string>;
+  };
+  dashboard: {
+    option_labels: Record<string, string>;
+    preset_editor: Record<string, string>;
+    preview: Record<string, string>;
+    actions: Record<string, string>;
+    messages: Record<string, string>;
+    main: Record<string, string>;
+    library: Record<string, string>;
+    delete_modal: Record<string, string>;
+    import_modal: Record<string, string>;
+    language_modal: Record<string, string>;
+    publish_modal: Record<string, string>;
+  };
+  editor: { text: Record<string, string> };
+  admin: { text: Record<string, string> };
+  user: { text: Record<string, string> };
+  onboarding: { steps: string[]; text: Record<string, string> };
+  settings: { text: Record<string, string> };
+  legal: { english_only_notice: string };
+  docs: {
+    title: string;
+    home: string;
+    help_center: string;
+    overview: string;
+    topics: string;
+    tutorials: string;
+    test_scenarios: string;
+    menu: string;
+    outline: string;
+    development: string;
+    development_note: string;
+    heading: string;
+    lead: string;
+    search: string;
+    placeholder: string;
+    results: string;
+    clear: string;
+    no_results: string;
+    start: string;
+    first_cv: string;
+    first_cv_note: string;
+    open_guide: string;
+    tools: string;
+    choose: string;
+    guides: string;
+    privacy_tag: string;
+    privacy_title: string;
+    privacy_note: string;
+    privacy_link: string;
+    about: string;
+    no_docs: string;
+    article_language: string;
+    footer: string;
+    master: string;
+    version: string;
+    published: string;
+    master_note: string;
+    version_note: string;
+    published_note: string;
+    topics_content: Array<{ title: string; description: string; label: string }>;
   };
   sample_resume: { title: string; description: string; loading: string };
 };

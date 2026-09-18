@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import AppBrand from "../components/app-brand";
+import { useAppI18n } from "../components/app-i18n-provider";
 import OnboardingProgress from "./onboarding-progress";
 import {
   ONBOARDING_PUBLISH_STEP,
@@ -13,46 +14,9 @@ import {
 } from "../lib/resume-onboarding";
 import type { ResumeDocument } from "../lib/resume-schema";
 
-const TITLES = {
-  en: [
-    "Welcome to OpenCiVera",
-    "How would you like to start?",
-    "Personal details",
-    "Professional summary",
-    "Experience",
-    "Education",
-    "Skills",
-    "Languages",
-    "Courses",
-    "Interests",
-    "Tech stack",
-    "GDPR clause",
-    "Review your first CV",
-    "Ready to save your CV?"
-  ],
-  pl: [
-    "Witaj w OpenCiVera",
-    "Jak chcesz zacząć?",
-    "Dane osobowe",
-    "Podsumowanie zawodowe",
-    "Doświadczenie",
-    "Wykształcenie",
-    "Umiejętności",
-    "Języki",
-    "Kursy",
-    "Zainteresowania",
-    "Technologie",
-    "Klauzula RODO",
-    "Sprawdź swoje pierwsze CV",
-    "Zapiszesz swoje CV?"
-  ]
-};
-
 type Props = {
   testRunId?: string;
   initialState: OnboardingState;
-  uiLanguage: "en" | "pl";
-  onUiLanguage: (language: "en" | "pl") => void;
   locale: string;
   languages: Array<{ code: string; label: string }>;
   onLocale: (locale: string) => Promise<void>;
@@ -69,8 +33,14 @@ type Props = {
 };
 
 export default function OnboardingClient(props: Props) {
-  const { initialState, uiLanguage, locale, resume } = props;
-  const progressEndpoint = props.testRunId ? `/api/admin/onboarding-test/${props.testRunId}` : "/api/resume/onboarding";
+  const { locale: appLocale, dictionary } = useAppI18n();
+  const { initialState, locale, resume } = props;
+  const uiLanguage: "en" | "pl" = appLocale === "pl" ? "pl" : "en";
+  const steps = dictionary.onboarding.steps;
+  const t = (text: string) => dictionary.onboarding.text[text] ?? text;
+  const progressEndpoint = props.testRunId
+    ? `/api/admin/onboarding-test/${props.testRunId}`
+    : "/api/resume/onboarding";
   const [step, setStep] = useState(initialState.step);
   const [method, setMethod] = useState(initialState.method);
   const [firstPresetId, setFirstPresetId] = useState(initialState.first_preset_id);
@@ -81,7 +51,6 @@ export default function OnboardingClient(props: Props) {
   const [copied, setCopied] = useState(false);
   const lock = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
-  const t = (en: string, pl: string) => (uiLanguage === "pl" ? pl : en);
   const disabled = busy || props.loading || props.importing || props.loadError;
   const section = ONBOARDING_SECTIONS[step - 2];
 
@@ -117,8 +86,7 @@ export default function OnboardingClient(props: Props) {
     } catch {
       setError(
         t(
-          "Could not save or finish this step. Check your connection and try again; your entries remain on this screen.",
-          "Nie udało się zapisać lub zakończyć tego kroku. Sprawdź połączenie i spróbuj ponownie; wpisane dane pozostały na tej planszy."
+          "Could not save or finish this step. Check your connection and try again; your entries remain on this screen."
         )
       );
     } finally {
@@ -129,7 +97,7 @@ export default function OnboardingClient(props: Props) {
 
   function go(nextStep: number) {
     if (step === 2 && nextStep > step && !resume.first_name.trim() && !resume.family_name.trim()) {
-      setError(t("Enter your name to continue.", "Wpisz imię lub nazwisko, aby kontynuować."));
+      setError(t("Enter your name to continue."));
       return;
     }
     void run(async () => {
@@ -164,58 +132,53 @@ export default function OnboardingClient(props: Props) {
       await navigator.clipboard.writeText(new URL(publicPath, window.location.origin).href);
       setCopied(true);
     } catch {
-      setError(t("Select and copy the link above.", "Zaznacz i skopiuj link powyżej."));
+      setError(t("Select and copy the link above."));
     }
   }
 
   return (
-    <section className="resume-editor-shell onboarding" lang={uiLanguage} aria-labelledby="onboarding-title">
+    <section
+      className="resume-editor-shell onboarding"
+      lang={appLocale}
+      aria-labelledby="onboarding-title"
+    >
       <aside className="onboarding__sidebar">
         <AppBrand href={null} />
         <OnboardingProgress
-          steps={TITLES[uiLanguage]}
+          steps={steps}
           step={step}
           finished={finished}
-          label={t("Guide progress", "Postęp przewodnika")}
-          completeLabel={t("Complete", "Gotowe")}
+          label={t("Guide progress")}
+          completeLabel={t("Complete")}
         />
       </aside>
       <div className="onboarding__card" aria-busy={busy}>
         <div className="onboarding__topline">
           <span className="onboarding__step-count">
-            {t("Your first CV", "Twoje pierwsze CV")}
-            <strong>{finished ? t("Complete", "Gotowe") : `${step + 1} / ${TITLES[uiLanguage].length}`}</strong>
+            {t("Your first CV")}
+            <strong>{finished ? t("Complete") : `${step + 1} / ${steps.length}`}</strong>
           </span>
-          <label className="onboarding__language">
-            {t("Guide language", "Język przewodnika")}
-            <select
-              aria-label={t("Guide language", "Język przewodnika")}
-              value={uiLanguage}
-              onChange={(event) => props.onUiLanguage(event.target.value as "en" | "pl")}
-              disabled={disabled || finished}
-            >
-              <option value="en">English</option>
-              <option value="pl">Polski</option>
-            </select>
-          </label>
         </div>
         <h1 id="onboarding-title" ref={heading} tabIndex={-1}>
           {finished
             ? publicPath
-              ? t("Your CV is ready to send", "Twoje CV jest gotowe do wysłania")
-              : props.testRunId ? t("Your test draft is saved", "Szkic testowy jest zapisany") : t("Your Master CV is saved", "Twoje Master CV jest zapisane")
-            : TITLES[uiLanguage][step]}
+              ? t("Your CV is ready to send")
+              : props.testRunId
+                ? t("Your test draft is saved")
+                : t("Your Master CV is saved")
+            : steps[step]}
         </h1>
-        {props.testRunId ? <p className="onboarding__hint" role="note">{t("Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.", "Test onboardingu: pracujesz na osobnym szkicu. Master CV i profil pozostają bez zmian. Publikacja utworzy CV o nazwie Test onboardingu.")}</p> : null}
-        {props.loadError ? (
-          <p role="alert">
+        {props.testRunId ? (
+          <p className="onboarding__hint" role="note">
             {t(
-              "Could not load your CV. Reload this page before continuing.",
-              "Nie udało się wczytać CV. Odśwież stronę przed kontynuowaniem."
+              "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu."
             )}
           </p>
         ) : null}
-        {props.loading ? <p role="status">{t("Loading your CV…", "Wczytywanie CV…")}</p> : null}
+        {props.loadError ? (
+          <p role="alert">{t("Could not load your CV. Reload this page before continuing.")}</p>
+        ) : null}
+        {props.loading ? <p role="status">{t("Loading your CV…")}</p> : null}
         {error ? (
           <p className="onboarding__error" role="alert">
             {error}
@@ -226,23 +189,19 @@ export default function OnboardingClient(props: Props) {
           <div className="onboarding__welcome">
             <p>
               {t(
-                "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.",
-                "Opowiedz o sobie, sekcja po sekcji. Pomożemy Ci uzupełnić Master CV i utworzyć CV, które udostępnisz za pomocą linku."
+                "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link."
               )}
             </p>
           </div>
         ) : null}
 
         {!finished && step === 1 ? (
-          <fieldset
-            className="onboarding__choices"
-            disabled={disabled || Boolean(firstPresetId)}
-          >
-            <legend className="sr-only">{TITLES[uiLanguage][1]}</legend>
+          <fieldset className="onboarding__choices" disabled={disabled || Boolean(firstPresetId)}>
+            <legend className="sr-only">{steps[1]}</legend>
             <label className="onboarding__language">
-              {t("CV language", "Język CV")}
+              {t("CV language")}
               <select
-                aria-label={t("CV language", "Język CV")}
+                aria-label={t("CV language")}
                 value={locale}
                 onChange={(event) => {
                   const value = event.target.value;
@@ -272,13 +231,8 @@ export default function OnboardingClient(props: Props) {
                 onChange={() => setMethod("scratch")}
               />
               <span>
-                <strong>{t("Start from scratch", "Zaczynam od zera")}</strong>
-                <small>
-                  {t(
-                    "Fill in each section with short prompts.",
-                    "Uzupełnij kolejne sekcje z pomocą wskazówek."
-                  )}
-                </small>
+                <strong>{t("Start from scratch")}</strong>
+                <small>{t("Fill in each section with short prompts.")}</small>
               </span>
             </label>
             <label className="onboarding__choice">
@@ -289,23 +243,15 @@ export default function OnboardingClient(props: Props) {
                 onChange={() => setMethod("import")}
               />
               <span>
-                <strong>{t("Import my CV", "Importuję moje CV")}</strong>
+                <strong>{t("Import my CV")}</strong>
                 <small>
-                  {t(
-                    "Upload your file, check the imported details and fill in anything missing.",
-                    "Wgraj plik, sprawdź odczytane dane i uzupełnij brakujące informacje."
-                  )}
+                  {t("Upload your file, check the imported details and fill in anything missing.")}
                 </small>
               </span>
             </label>
             {method === "import" ? props.importControl : null}
             {method === "import" && props.imported ? (
-              <p role="status">
-                {t(
-                  "Import applied. Continue to check each section.",
-                  "Dane z importu dodane. Przejdź dalej, aby sprawdzić sekcje."
-                )}
-              </p>
+              <p role="status">{t("Import applied. Continue to check each section.")}</p>
             ) : null}
           </fieldset>
         ) : null}
@@ -314,14 +260,8 @@ export default function OnboardingClient(props: Props) {
           <>
             <p className="onboarding__hint">
               {step >= 8
-                ? t(
-                    "Optional. Add what is relevant, or continue to skip this section.",
-                    "Opcjonalnie. Dodaj istotne informacje lub przejdź dalej, aby pominąć sekcję."
-                  )
-                : t(
-                    "Add the details you want in your CV. You can edit them later.",
-                    "Dodaj informacje, które chcesz umieścić w CV. Możesz je później zmienić."
-                  )}
+                ? t("Optional. Add what is relevant, or continue to skip this section.")
+                : t("Add the details you want in your CV. You can edit them later.")}
             </p>
             <fieldset className="onboarding__form resume-editor-workspace" disabled={disabled}>
               {props.form}
@@ -333,8 +273,7 @@ export default function OnboardingClient(props: Props) {
           <>
             <p>
               {t(
-                "This preview uses your selected professional summary and completed entries. Check the information before sharing.",
-                "Podgląd zawiera wybrane podsumowanie zawodowe i uzupełnione wpisy. Sprawdź dane przed udostępnieniem."
+                "This preview uses your selected professional summary and completed entries. Check the information before sharing."
               )}
             </p>
             <div className="onboarding__review-links">
@@ -346,7 +285,7 @@ export default function OnboardingClient(props: Props) {
                   key={id}
                   onClick={() => go(index + 2)}
                 >
-                  {TITLES[uiLanguage][index + 2]}
+                  {steps[index + 2]}
                 </button>
               ))}
             </div>
@@ -358,21 +297,18 @@ export default function OnboardingClient(props: Props) {
           <>
             <p>
               {t(
-                "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.",
-                "Utworzyć pierwsze zapisane CV z linkiem, który możesz od razu wysłać? CV pojawi się w dashboardzie."
+                "Create your first saved CV and a link you can send immediately? It will appear in your dashboard."
               )}
             </p>
             <p className="onboarding__hint">
               {t(
-                "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.",
-                "Każda osoba posiadająca link będzie mogła zobaczyć to CV. Indeksowanie w wyszukiwarkach będzie wyłączone. Master CV pozostanie prywatne."
+                "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private."
               )}
             </p>
             {!isFirstCvReady(resume) ? (
               <p role="status">
                 {t(
-                  "Add your name and a professional summary before creating a link. You can also save and finish without publishing.",
-                  "Przed utworzeniem linku uzupełnij imię lub nazwisko oraz podsumowanie zawodowe. Możesz też zakończyć bez publikacji."
+                  "Add your name and a professional summary before creating a link. You can also save and finish without publishing."
                 )}
               </p>
             ) : null}
@@ -383,22 +319,19 @@ export default function OnboardingClient(props: Props) {
           <div className="stack">
             <p>
               {publicPath
-                ? t(
-                    "Your first CV is saved in your dashboard. Copy the link to send it.",
-                    "Pierwsze CV jest zapisane w dashboardzie. Skopiuj link, aby je wysłać."
-                  )
-                : props.testRunId ? t(
-                    "The test is complete. No public CV was created. You can start another test in account settings.",
-                    "Test został zakończony. Nie utworzono publicznego CV. Kolejny test możesz uruchomić w ustawieniach konta."
-                  ) : t(
-                    "You can create a CV with a link from your dashboard whenever you are ready.",
-                    "Kiedy zechcesz, utworzysz CV z linkiem w dashboardzie."
-                  )}
+                ? t("Your first CV is saved in your dashboard. Copy the link to send it.")
+                : props.testRunId
+                  ? t(
+                      "The test is complete. No public CV was created. You can start another test in account settings."
+                    )
+                  : t(
+                      "You can create a CV with a link from your dashboard whenever you are ready."
+                    )}
             </p>
             {publicPath ? (
               <>
                 <label>
-                  {t("CV link", "Link do CV")}
+                  {t("CV link")}
                   <input
                     readOnly
                     value={
@@ -415,7 +348,7 @@ export default function OnboardingClient(props: Props) {
                     type="button"
                     onClick={() => void copyLink()}
                   >
-                    {copied ? t("Copied", "Skopiowano") : t("Copy link", "Kopiuj link")}
+                    {copied ? t("Copied") : t("Copy link")}
                   </button>
                   <Link
                     className="button button--ghost"
@@ -423,23 +356,24 @@ export default function OnboardingClient(props: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {t("Open CV", "Otwórz CV")}
+                    {t("Open CV")}
                   </Link>
                 </div>
               </>
             ) : null}
             <Link className="button button--primary" href="/dashboard">
-              {t("Go to dashboard", "Przejdź do dashboardu")}
+              {t("Go to dashboard")}
             </Link>
-            {props.testRunId ? <Link className="button button--ghost" href="/settings">{t("Testing settings", "Ustawienia testowania")}</Link> : null}
+            {props.testRunId ? (
+              <Link className="button button--ghost" href="/settings">
+                {t("Testing settings")}
+              </Link>
+            ) : null}
           </div>
         ) : (
           <footer className="onboarding__footer">
             <p>
-              {t(
-                "Your entries are saved to your account when you change steps or finish later.",
-                "Dane zapisujemy na Twoim koncie przy zmianie planszy lub wybraniu „Dokończę później”."
-              )}
+              {t("Your entries are saved to your account when you change steps or finish later.")}
             </p>
             <div className="onboarding__actions">
               <button
@@ -454,7 +388,7 @@ export default function OnboardingClient(props: Props) {
                   });
                 }}
               >
-                {t("Finish later", "Dokończę później")}
+                {t("Finish later")}
               </button>
               <div className="actions-row">
                 {step > 0 ? (
@@ -464,7 +398,7 @@ export default function OnboardingClient(props: Props) {
                     disabled={disabled}
                     onClick={() => go(step - 1)}
                   >
-                    {t("Back", "Wstecz")}
+                    {t("Back")}
                   </button>
                 ) : null}
                 {step === ONBOARDING_PUBLISH_STEP ? (
@@ -475,7 +409,7 @@ export default function OnboardingClient(props: Props) {
                       disabled={disabled}
                       onClick={() => finish(false)}
                     >
-                      {t("Not now", "Później")}
+                      {t("Not now")}
                     </button>
                     <button
                       className="button button--primary"
@@ -483,9 +417,7 @@ export default function OnboardingClient(props: Props) {
                       disabled={disabled || !isFirstCvReady(resume)}
                       onClick={() => finish(true)}
                     >
-                      {busy
-                        ? t("Saving…", "Zapisywanie…")
-                        : t("Yes, create my CV with a link", "Tak, utwórz CV z linkiem")}
+                      {busy ? t("Saving…") : t("Yes, create my CV with a link")}
                     </button>
                   </>
                 ) : (
@@ -496,12 +428,12 @@ export default function OnboardingClient(props: Props) {
                     onClick={() => go(step + 1)}
                   >
                     {busy
-                      ? t("Saving…", "Zapisywanie…")
+                      ? t("Saving…")
                       : step === 0
-                        ? t("Let’s begin", "Zaczynamy")
+                        ? t("Let’s begin")
                         : step >= 8 && step < ONBOARDING_REVIEW_STEP
-                          ? t("Continue / skip", "Dalej / pomiń")
-                          : t("Continue", "Dalej")}
+                          ? t("Continue / skip")
+                          : t("Continue")}
                   </button>
                 )}
               </div>

@@ -12,6 +12,8 @@ import { Button } from "../components/design-system/atoms/Button";
 import { UserAvatar } from "../components/design-system/atoms/UserAvatar";
 import { ResumePreviewFrame } from "../components/design-system/molecules/ResumePreviewFrame";
 import type { SessionActor } from "../lib/auth-types";
+import { useAppI18n } from "../components/app-i18n-provider";
+import { formatAppMessage } from "../i18n/locale";
 
 type Props = {
   actor: SessionActor;
@@ -57,14 +59,18 @@ function getLatestResumeRole(resume: ReturnType<typeof parseResumeYaml>) {
   return defaultSummary?.position?.trim() || "";
 }
 
-async function resizeAvatarImage(file: File): Promise<string> {
+async function resizeAvatarImage(
+  file: File,
+  imageLoadError: string,
+  editorUnavailableError: string
+): Promise<string> {
   const objectUrl = URL.createObjectURL(file);
 
   try {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
       const element = new Image();
       element.onload = () => resolve(element);
-      element.onerror = () => reject(new Error("Image could not be loaded."));
+      element.onerror = () => reject(new Error(imageLoadError));
       element.src = objectUrl;
     });
 
@@ -74,7 +80,7 @@ async function resizeAvatarImage(file: File): Promise<string> {
 
     const context = canvas.getContext("2d");
     if (!context) {
-      throw new Error("Image editor is unavailable.");
+      throw new Error(editorUnavailableError);
     }
 
     const sourceSize = Math.min(image.width, image.height);
@@ -82,7 +88,17 @@ async function resizeAvatarImage(file: File): Promise<string> {
     const sourceY = Math.max(0, (image.height - sourceSize) / 2);
 
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, canvas.width, canvas.height);
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      sourceSize,
+      sourceSize,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
 
     return canvas.toDataURL("image/jpeg", AVATAR_IMAGE_QUALITY);
   } finally {
@@ -95,11 +111,13 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
     container.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
     )
-  ).filter((element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true");
+  ).filter(
+    (element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true"
+  );
 }
 
 function getYamlLoader(): JsYamlLoader | null {
-  return typeof window === "undefined" ? null : window.jsyaml ?? null;
+  return typeof window === "undefined" ? null : (window.jsyaml ?? null);
 }
 
 function parseResumeYaml(yamlContent: string) {
@@ -115,8 +133,16 @@ function parseResumeYaml(yamlContent: string) {
   }
 }
 
-export default function UserClient({ actor, masterResume, initialDocuments, languageOptions, initialPresets }: Props) {
+export default function UserClient({
+  actor,
+  masterResume,
+  initialDocuments,
+  languageOptions,
+  initialPresets
+}: Props) {
   const router = useRouter();
+  const { dictionary } = useAppI18n();
+  const userText = (text: string) => dictionary.user.text[text] ?? text;
   const { toast, showToast, closeToast } = useStatusToast();
   const [isHydrated, setIsHydrated] = useState(false);
   const [jsYamlReady, setJsYamlReady] = useState(false);
@@ -271,16 +297,16 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
     const response = await fetch("/api/user/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bio: bioValue }),
+      body: JSON.stringify({ bio: bioValue })
     });
 
     if (response.ok) {
       setSavedBioValue(bioValue);
-      showToast("Bio updated successfully.");
+      showToast(userText("Bio updated successfully."));
       setIsBioEditing(false);
       router.refresh();
     } else {
-      showToast("Failed to update bio.", "error");
+      showToast(userText("Failed to update bio."), "error");
     }
 
     setIsSavingBio(false);
@@ -293,7 +319,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
     }
 
     if (!file.type.startsWith("image/")) {
-      showToast("Choose an image file.", "error");
+      showToast(userText("Choose an image file."), "error");
       event.target.value = "";
       return;
     }
@@ -301,22 +327,26 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
     setIsSavingAvatar(true);
 
     try {
-      const nextAvatarUrl = await resizeAvatarImage(file);
+      const nextAvatarUrl = await resizeAvatarImage(
+        file,
+        userText("Image could not be loaded."),
+        userText("Image editor is unavailable.")
+      );
       const response = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarUrl: nextAvatarUrl }),
+        body: JSON.stringify({ avatarUrl: nextAvatarUrl })
       });
 
       if (!response.ok) {
-        throw new Error("Avatar update failed.");
+        throw new Error(userText("Avatar update failed."));
       }
 
       setAvatarUrl(nextAvatarUrl);
-      showToast("Profile photo updated.");
+      showToast(userText("Profile photo updated."));
       router.refresh();
     } catch {
-      showToast("Failed to update profile photo.", "error");
+      showToast(userText("Failed to update profile photo."), "error");
     } finally {
       setIsSavingAvatar(false);
       event.target.value = "";
@@ -347,7 +377,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
       return {
         code: doc.locale,
         label: lang?.label ?? doc.locale.toUpperCase(),
-        shortLabel: lang?.short_label,
+        shortLabel: lang?.short_label
       };
     });
   }, [allDocuments, languageOptions]);
@@ -358,7 +388,8 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
 
   const initials = getProfileInitials(actor.displayName || "", actor.email);
   const currentRole = useMemo(() => getLatestResumeRole(resumeForPreview), [resumeForPreview]);
-  const isPreviewUnavailable = !masterResume || hasYamlLoaderTimedOut || (jsYamlReady && !resumeForPreview);
+  const isPreviewUnavailable =
+    !masterResume || hasYamlLoaderTimedOut || (jsYamlReady && !resumeForPreview);
   const publishedPresetsCount = initialPresets.filter((preset) => preset.is_public).length;
 
   return (
@@ -371,12 +402,20 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
         className={`personal-hub__drawer-handle ${isSidebarDrawerOpen ? "is-open" : ""} ${isHydrated ? "is-ready" : ""}`}
         aria-controls="personal-hub-sidebar-column"
         aria-expanded={isSidebarDrawerOpen}
-        aria-label={isSidebarDrawerOpen ? "Hide personal hub panel" : "Show personal hub panel"}
+        aria-label={userText(
+          isSidebarDrawerOpen ? "Hide personal hub panel" : "Show personal hub panel"
+        )}
         onClick={() => setIsSidebarDrawerOpen((current) => !current)}
       >
         <span className="personal-hub__drawer-handle-icon" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none">
-            <path d="M7 4L13 10L7 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M7 4L13 10L7 16"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </span>
       </button>
@@ -384,7 +423,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
       <button
         type="button"
         className={`personal-hub__drawer-overlay ${isSidebarDrawerOpen ? "is-open" : ""} ${isHydrated ? "is-ready" : ""}`}
-        aria-label="Close personal hub panel"
+        aria-label={userText("Close personal hub panel")}
         onClick={() => setIsSidebarDrawerOpen(false)}
       />
 
@@ -411,7 +450,7 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
               <button
                 type="button"
                 className="personal-hub__drawer-close"
-                aria-label="Close personal hub panel"
+                aria-label={userText("Close personal hub panel")}
                 onClick={() => setIsSidebarDrawerOpen(false)}
               >
                 <span aria-hidden="true">×</span>
@@ -423,12 +462,17 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
             >
               <div className="personal-hub__profile-summary w-full flex flex-col items-center text-center">
                 <div className="personal-hub__avatar-wrap">
-                  <UserAvatar initials={initials} src={avatarUrl || undefined} size="xl" className="personal-hub__avatar" />
+                  <UserAvatar
+                    initials={initials}
+                    src={avatarUrl || undefined}
+                    size="xl"
+                    className="personal-hub__avatar"
+                  />
                   <button
                     type="button"
                     className="personal-hub__add-badge personal-hub__add-badge--avatar"
-                    aria-label={avatarUrl ? "Change profile photo" : "Add profile photo"}
-                    title={avatarUrl ? "Change profile photo" : "Add profile photo"}
+                    aria-label={userText(avatarUrl ? "Change profile photo" : "Add profile photo")}
+                    title={userText(avatarUrl ? "Change profile photo" : "Add profile photo")}
                     disabled={isSavingAvatar}
                     onClick={() => avatarInputRef.current?.click()}
                   >
@@ -438,21 +482,33 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
 
                 <div className="personal-hub__profile-intro mb-8">
                   <Typography variant="caption" muted className="personal-hub__eyebrow">
-                    Profile
+                    {userText("Profile")}
                   </Typography>
-                  <Typography id="personal-hub-profile-title" variant="h2" className="mb-1 personal-hub__profile-name">
-                    {actor.displayName || "User"}
+                  <Typography
+                    id="personal-hub-profile-title"
+                    variant="h2"
+                    className="mb-1 personal-hub__profile-name"
+                  >
+                    {actor.displayName || userText("User")}
                   </Typography>
-                  <Typography variant="body" muted className="font-medium personal-hub__profile-role">
-                    {currentRole || "Role unavailable"}
+                  <Typography
+                    variant="body"
+                    muted
+                    className="font-medium personal-hub__profile-role"
+                  >
+                    {currentRole || userText("Role unavailable")}
                   </Typography>
                 </div>
 
                 <div className="personal-hub__bio-shell">
                   <div className="personal-hub__bio-block w-full text-left space-y-3">
                     <div className="flex justify-center items-center">
-                      <Typography variant="caption" muted className="font-bold tracking-widest text-[10px]">
-                      Short Bio
+                      <Typography
+                        variant="caption"
+                        muted
+                        className="font-bold tracking-widest text-[10px]"
+                      >
+                        {userText("Short bio")}
                       </Typography>
                     </div>
 
@@ -462,41 +518,48 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                           value={bioValue}
                           onChange={(event) => setBioValue(event.target.value)}
                           className="personal-hub__bio-input w-full rounded-xl p-4 text-sm min-h-[120px] leading-relaxed"
-                          placeholder="Share a bit about yourself..."
+                          placeholder={userText("Share a bit about yourself…")}
                         />
                         <div className="personal-hub__bio-actions flex gap-2">
-                        <button
-                          onClick={handleBioSave}
-                          disabled={isSavingBio}
-                          className="personal-hub__text-action personal-hub__text-action--success bg-transparent border-0 cursor-pointer"
-                        >
-                          <Typography variant="small" className="font-bold">
-                            Save
-                          </Typography>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsBioEditing(false);
-                            setBioValue(savedBioValue);
-                          }}
-                          className="personal-hub__text-action personal-hub__text-action--danger bg-transparent border-0 cursor-pointer"
-                        >
-                          <Typography variant="small" className="font-bold">
-                            Cancel
-                          </Typography>
-                        </button>
+                          <button
+                            onClick={handleBioSave}
+                            disabled={isSavingBio}
+                            className="personal-hub__text-action personal-hub__text-action--success bg-transparent border-0 cursor-pointer"
+                          >
+                            <Typography variant="small" className="font-bold">
+                              {userText("Save")}
+                            </Typography>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsBioEditing(false);
+                              setBioValue(savedBioValue);
+                            }}
+                            className="personal-hub__text-action personal-hub__text-action--danger bg-transparent border-0 cursor-pointer"
+                          >
+                            <Typography variant="small" className="font-bold">
+                              {userText("Cancel")}
+                            </Typography>
+                          </button>
                         </div>
                       </>
                     ) : (
                       <>
-                        <Typography variant="body" className="personal-hub__bio-copy leading-relaxed min-h-[60px]">
-                          {bioValue || <span className="personal-hub__bio-empty">No bio yet. Click the plus icon to add one.</span>}
+                        <Typography
+                          variant="body"
+                          className="personal-hub__bio-copy leading-relaxed min-h-[60px]"
+                        >
+                          {bioValue || (
+                            <span className="personal-hub__bio-empty">
+                              {userText("No bio yet. Click the plus icon to add one.")}
+                            </span>
+                          )}
                         </Typography>
                         <button
                           type="button"
                           className="personal-hub__add-badge personal-hub__add-badge--bio"
-                          aria-label={bioValue ? "Edit short bio" : "Add short bio"}
-                          title={bioValue ? "Edit short bio" : "Add short bio"}
+                          aria-label={userText(bioValue ? "Edit short bio" : "Add short bio")}
+                          title={userText(bioValue ? "Edit short bio" : "Add short bio")}
                           onClick={() => setIsBioEditing(true)}
                         >
                           +
@@ -506,48 +569,70 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                   </div>
                   <div className="personal-hub__profile-actions w-full space-y-3">
                     <Link href="/master-resume" className="w-full block">
-                      <Button variant="primary" className="personal-hub__primary-action w-full justify-center">
-                        Edit Master Resume
+                      <Button
+                        variant="primary"
+                        className="personal-hub__primary-action w-full justify-center"
+                      >
+                        {userText("Edit Master Resume")}
                       </Button>
                     </Link>
                     <Link href="/dashboard" className="w-full block">
-                      <Button variant="ghost" className="personal-hub__secondary-action w-full justify-center">
-                        Manage CV Versions
+                      <Button
+                        variant="ghost"
+                        className="personal-hub__secondary-action w-full justify-center"
+                      >
+                        {userText("Manage CV Versions")}
                       </Button>
                     </Link>
                   </div>
 
                   <div className="personal-hub__policies w-full space-y-3 mt-6">
-                    <Typography variant="caption" muted className="font-bold tracking-widest text-[10px]">
-                      Policies
+                    <Typography
+                      variant="caption"
+                      muted
+                      className="font-bold tracking-widest text-[10px]"
+                    >
+                      {userText("Policies")}
                     </Typography>
                     <Link href="/privacy" className="w-full block">
-                      <Button variant="ghost" className="personal-hub__secondary-action w-full justify-center">
-                        Privacy Policy
+                      <Button
+                        variant="ghost"
+                        className="personal-hub__secondary-action w-full justify-center"
+                      >
+                        {userText("Privacy Policy")}
                       </Button>
                     </Link>
                     <Link href="/terms" className="w-full block">
-                      <Button variant="ghost" className="personal-hub__secondary-action w-full justify-center">
-                        Terms of Service
+                      <Button
+                        variant="ghost"
+                        className="personal-hub__secondary-action w-full justify-center"
+                      >
+                        {userText("Terms of Service")}
                       </Button>
                     </Link>
                   </div>
                 </div>
               </div>
             </section>
-
           </div>
         </div>
 
         <div ref={contentRef} className="personal-hub__content">
-          <section className="personal-hub__resume-panel h-full flex flex-col overflow-hidden relative" aria-label="Resume preview">
+          <section
+            className="personal-hub__resume-panel h-full flex flex-col overflow-hidden relative"
+            aria-label={userText("Resume preview")}
+          >
             <div className="personal-hub__preview-shell">
               <header className="personal-hub__preview-header">
                 <Typography variant="h3" className="personal-hub__preview-title">
-                  Resume preview
+                  {userText("Resume preview")}
                 </Typography>
                 <div className="personal-hub__preview-meta">
-                  <span className="personal-hub__preview-pill">{publishedPresetsCount} published</span>
+                  <span className="personal-hub__preview-pill">
+                    {formatAppMessage(userText("{count} published"), {
+                      count: publishedPresetsCount
+                    })}
+                  </span>
                 </div>
               </header>
 
@@ -564,16 +649,18 @@ export default function UserClient({ actor, masterResume, initialDocuments, lang
                   </div>
                 ) : isPreviewUnavailable ? (
                   <div className="personal-hub__preview-fallback">
-                    <Typography variant="h3">Preview unavailable</Typography>
+                    <Typography variant="h3">{userText("Preview unavailable")}</Typography>
                     <Typography variant="body" muted>
-                      The resume preview could not be rendered in this view. Reload the page to try again.
+                      {userText(
+                        "The resume preview could not be rendered in this view. Reload the page to try again."
+                      )}
                     </Typography>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                     <Typography variant="body" muted className="animate-pulse">
-                      Rendering your resume...
+                      {userText("Rendering your resume…")}
                     </Typography>
                   </div>
                 )}
