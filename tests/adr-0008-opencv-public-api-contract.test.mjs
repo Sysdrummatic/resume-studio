@@ -23,7 +23,11 @@ test("public OpenCV export route uses snapshot-only resolver and contract header
   assert.equal(route.includes("X-OpenCV-Contract-Version"), true);
   assert.equal(route.includes("X-OpenCV-Schema-Version"), true);
   assert.equal(route.includes("X-OpenCV-Locale"), true);
-  assert.equal(route.includes("format") && route.includes("yaml") && route.includes("json"), true);
+  // Pinned to the real branch, not just the presence of these three common
+  // words anywhere in the file (which would also pass with the format
+  // switch deleted, since "yaml"/"json" show up elsewhere e.g. content types).
+  assert.equal(route.includes('url.searchParams.get("format")'), true);
+  assert.equal(route.includes('format === "json"'), true);
   assert.equal(route.includes("Cache-Control"), true);
   assert.equal(route.includes("no-store"), true);
 });

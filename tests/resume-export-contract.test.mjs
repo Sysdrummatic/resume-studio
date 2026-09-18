@@ -6,11 +6,12 @@ import path from "node:path";
 import yaml from "js-yaml";
 import { register } from "node:module";
 
-import { normalizeResumePresetSelection } from "../app/lib/preset-selection.ts";
+import { EMPTY_PRESET_SELECTION, normalizeResumePresetSelection } from "../app/lib/preset-selection.ts";
 
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
 const { buildPublishedExportContent, buildPublishedResumeDocument } = await import("../app/lib/published-export.ts");
+const { parseCanonicalPublicPath, buildPublishedResumeExportUrls } = await import("../app/lib/resume-export.ts");
 
 function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
@@ -55,16 +56,7 @@ courses:
     name: Included Course
 `;
 
-const selectionExcludingItems = {
-  summary: [0],
-  experience: [0],
-  education: [],
-  courses: [0],
-  skills: [0],
-  interests: [],
-  languages: [],
-  tech_stack: [0],
-};
+const selectionExcludingItems = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [0], courses: [0], skills: [0], tech_stack: [0] };
 
 test("buildPublishedExportContent applies the saved-version selection to exported yaml and resume", () => {
   const exportContent = buildPublishedExportContent(masterYamlWithExcludedItems, selectionExcludingItems);
@@ -115,14 +107,9 @@ experience:
     role: EXCLUDED-ROLE
 `;
   const exportContent = buildPublishedExportContent(masterYamlWithExtensions, {
+    ...EMPTY_PRESET_SELECTION,
     summary: [0],
     experience: [0],
-    education: [],
-    courses: [],
-    skills: [],
-    interests: [],
-    languages: [],
-    tech_stack: [],
   });
 
   assert.ok(exportContent, "export content must be produced");
@@ -161,16 +148,7 @@ experience:
 `;
 
 test("selection indexes are raw-domain: records dropped by normalization do not shift the selection", () => {
-  const selection = {
-    summary: [0],
-    experience: [2],
-    education: [],
-    courses: [],
-    skills: [],
-    interests: [],
-    languages: [],
-    tech_stack: [],
-  };
+  const selection = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [2] };
   const exportContent = buildPublishedExportContent(masterYamlWithInvalidRecords, selection);
 
   assert.ok(exportContent, "export content must be produced");
@@ -181,16 +159,7 @@ test("selection indexes are raw-domain: records dropped by normalization do not 
 });
 
 test("public view and export surfaces resolve the same document for the same snapshot and selection", () => {
-  const selection = {
-    summary: [0],
-    experience: [1],
-    education: [],
-    courses: [],
-    skills: [],
-    interests: [],
-    languages: [],
-    tech_stack: [],
-  };
+  const selection = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [1] };
   const viewResume = buildPublishedResumeDocument(masterYamlWithInvalidRecords, selection);
   const exportContent = buildPublishedExportContent(masterYamlWithInvalidRecords, selection);
 
@@ -200,16 +169,7 @@ test("public view and export surfaces resolve the same document for the same sna
 });
 
 test("snapshots whose selection cannot be applied faithfully are rejected", () => {
-  const emptySelection = {
-    summary: [],
-    experience: [],
-    education: [],
-    courses: [],
-    skills: [],
-    interests: [],
-    languages: [],
-    tech_stack: [],
-  };
+  const emptySelection = EMPTY_PRESET_SELECTION;
 
   assert.equal(buildPublishedExportContent("{}", emptySelection), null, "empty document must be rejected");
   assert.equal(
@@ -231,16 +191,7 @@ test("snapshots whose selection cannot be applied faithfully are rejected", () =
 });
 
 test("selected records that normalization would drop are rejected instead of exported inconsistently", () => {
-  const emptySelection = {
-    summary: [],
-    experience: [],
-    education: [],
-    courses: [],
-    skills: [],
-    interests: [],
-    languages: [],
-    tech_stack: [],
-  };
+  const emptySelection = EMPTY_PRESET_SELECTION;
 
   assert.equal(
     buildPublishedExportContent("summary:\n  - bad\n", { ...emptySelection, summary: [0] }),
@@ -335,16 +286,7 @@ test("fetchPublishedResumeExportByPublicLink applies the snapshot selection end-
     title: "Test CV",
     yaml_content: masterYamlWithInvalidRecords,
     schema_version: 1,
-    selection: {
-      summary: [0],
-      experience: [2],
-      education: [],
-      courses: [],
-      skills: [],
-      interests: [],
-      languages: [],
-      tech_stack: [],
-    },
+    selection: { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [2] },
     labels: {},
     render_data: null,
     ai_generated: false,
@@ -403,9 +345,7 @@ test("public link hides invalid locales but preserves selectable legacy locales"
     allow_indexing: false, published_at: "2026-07-01T00:00:00Z", created_by: null,
     created_at: "2026-07-01T00:00:00Z", snapshot_metadata: {},
   };
-  const selection = {
-    summary: [0], experience: [2], education: [], courses: [], skills: [], interests: [], languages: [], tech_stack: [],
-  };
+  const selection = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [2] };
   const localeRows = [
     {
       id: "loc-en", published_cv_id: "cv-multilingual", user_id: "user-1", locale: "en",
@@ -493,9 +433,7 @@ test("variant import surfaces failed database writes instead of reporting succes
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "stub-anon-key";
   process.env.SUPABASE_SERVICE_ROLE_KEY ||= "stub-service-role-key";
   const { importResumePresetVariant } = await import("../app/lib/resume-server.ts");
-  const selection = {
-    summary: [0], experience: [], education: [], courses: [], skills: [], interests: [], languages: [], tech_stack: [],
-  };
+  const selection = { ...EMPTY_PRESET_SELECTION, summary: [0] };
   const preset = {
     id: "preset-1", document_id: "doc-en", user_id: "user-1", title: "Test preset", selection,
     is_public: false, allow_indexing: false, ai_generated: false, default_locale: "en", slug: null,
@@ -687,13 +625,37 @@ test("BasicResumeDocument gates draft pdf behind the DB-driven flag", () => {
   assert.equal(basicResume.includes("allowDraftPdf"), false);
 });
 
-test("public export helper keeps canonical person slug and public id parsing local to the snapshot path", () => {
-  const exportLib = read("app/lib/resume-export.ts");
+test("parseCanonicalPublicPath extracts personSlug/publicId from a canonical path and rejects everything else", () => {
+  assert.deepEqual(parseCanonicalPublicPath("/jane-doe/abc123"), { personSlug: "jane-doe", publicId: "abc123" });
+  // URL-encoded segments (e.g. an accented person slug) must be decoded.
+  assert.deepEqual(parseCanonicalPublicPath("/ja%C5%84-doe/abc123"), { personSlug: "jań-doe", publicId: "abc123" });
 
-  assert.equal(exportLib.includes("export function parseCanonicalPublicPath"), true);
-  assert.equal(exportLib.includes("export function buildPublishedResumeExportUrls"), true);
-  assert.equal(exportLib.includes("publicId"), true);
-  assert.equal(exportLib.includes("personSlug"), true);
+  for (const bad of [null, undefined, "", "/only-one-segment", "/too/many/segments", "no-leading-slash/abc"]) {
+    assert.equal(parseCanonicalPublicPath(bad), null, `expected null for ${JSON.stringify(bad)}`);
+  }
+});
+
+test("buildPublishedResumeExportUrls builds every export URL from the canonical path and locale, or null on a bad path", () => {
+  const urls = buildPublishedResumeExportUrls("/jane-doe/abc123", "en");
+
+  assert.equal(urls.publicUrl, "/jane-doe/abc123");
+  assert.equal(urls.pdfUrl, "/api/resume/export/pdf?personSlug=jane-doe&publicId=abc123&lang=en");
+  assert.equal(urls.textUrl, "/api/resume/export/text?personSlug=jane-doe&publicId=abc123&lang=en");
+  assert.equal(urls.yamlUrl, "/api/resume/export/yaml?personSlug=jane-doe&publicId=abc123&lang=en");
+  assert.equal(urls.cvacUrl, "/api/resume/export/cvac?personSlug=jane-doe&publicId=abc123&lang=en");
+
+  // Query-string values must be encoded — a slug/publicId with reserved
+  // characters must not break the query string it's embedded in.
+  const encoded = buildPublishedResumeExportUrls("/jane doe/id&1", "en");
+  assert.equal(encoded.pdfUrl, "/api/resume/export/pdf?personSlug=jane%20doe&publicId=id%261&lang=en");
+
+  // The onboarding final screen, dashboard, and preset preview modal all
+  // gate their "Download PDF" link on this returning non-null (see
+  // tests/onboarding-final-screen.test.mjs) — an unparseable/missing path
+  // must not produce a broken link, it must hide it entirely.
+  for (const bad of [null, undefined, "", "/only-one-segment"]) {
+    assert.equal(buildPublishedResumeExportUrls(bad, "en"), null);
+  }
 });
 
 test("export helper exposes ats yaml and cvac urls", () => {

@@ -21,12 +21,17 @@ function functionBody(sql, signature, nextSignature) {
   return sql.slice(start, end === -1 ? sql.length : end);
 }
 
+const GUARD_FUNCTION_SIGNATURE = "create or replace function public.guard_profile_update()";
+const SET_USER_ROLE_SIGNATURE = "create or replace function public.set_user_role";
+
+// Read and sliced once — every test below that needs the guard trigger body
+// reads this instead of re-reading the migration file from disk and
+// re-slicing the identical substring.
+const migrationSource = migrationSql();
+const guardBody = functionBody(migrationSource, GUARD_FUNCTION_SIGNATURE, SET_USER_ROLE_SIGNATURE);
+
 test("latest profile guard is invoker-safe and blocks service-role flag writes", () => {
-  const guard = functionBody(
-    migrationSql(),
-    "create or replace function public.guard_profile_update()",
-    "create or replace function public.set_user_role"
-  );
+  const guard = guardBody;
 
   assert.equal(guard.includes("security invoker"), true);
   assert.equal(guard.includes("current_setting('request.jwt.claims', true)"), true);
@@ -76,11 +81,7 @@ test("direct profile UPDATE privilege is a five-column allowlist", () => {
 });
 
 test("safe direct updates are owner-only and unknown columns fail closed", () => {
-  const guard = functionBody(
-    migrationSql(),
-    "create or replace function public.guard_profile_update()",
-    "create or replace function public.set_user_role"
-  );
+  const guard = guardBody;
 
   assert.equal(guard.includes("actor_id is null or actor_id <> old.id"), true);
   assert.equal(guard.includes("to_jsonb(new) - array["), true);
@@ -90,11 +91,7 @@ test("safe direct updates are owner-only and unknown columns fail closed", () =>
 });
 
 test("all four privileged fields require one approved RPC-owned change", () => {
-  const guard = functionBody(
-    migrationSql(),
-    "create or replace function public.guard_profile_update()",
-    "create or replace function public.set_user_role"
-  );
+  const guard = guardBody;
 
   for (const field of ["new.role", "new.is_active", "new.is_test_user", "new.is_ocv_staff"]) {
     assert.equal(guard.includes(`${field} is distinct from old.${field.slice(4)}`), true);
@@ -165,12 +162,8 @@ test("privileged RPC execution is isolated behind an active-staff helper and a N
 });
 
 test("manager cannot change self or staff targets through privileged writes", () => {
-  const sql = migrationSql();
-  const guard = functionBody(
-    sql,
-    "create or replace function public.guard_profile_update()",
-    "create or replace function public.set_user_role"
-  );
+  const sql = migrationSource;
+  const guard = guardBody;
 
   assert.equal(guard.includes("old.id = actor_id"), true);
   assert.equal(guard.includes("old.role not in ('user', 'recruiter')"), true);
@@ -251,11 +244,7 @@ test("privileged RPCs are fixed-path, authenticated-only, and audited", () => {
 });
 
 test("service-role fast path runs before actor profile lookups", () => {
-  const guard = functionBody(
-    migrationSql(),
-    "create or replace function public.guard_profile_update()",
-    "create or replace function public.set_user_role"
-  );
+  const guard = guardBody;
   const serviceBranch = guard.indexOf("if jwt_role = 'service_role'");
   const actorLookup = guard.indexOf("actor_role := public.current_active_staff_role()");
 
