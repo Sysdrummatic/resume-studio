@@ -59,9 +59,10 @@ owner-selected default would change canonical, hreflang, and snapshot behavior.
    shared dictionaries.
 3. Documentation articles remain English source material; the Polish shell
    states this explicitly instead of presenting the articles as translated.
-4. Privacy Policy and Terms remain English pending legal review. A localized
-   notice makes that limitation explicit; do not claim locale parity for legal
-   content until reviewed translations are available.
+4. Privacy Policy and Terms are available in Polish and English from the same
+   locale dictionaries. The Polish wording is a faithful product translation
+   and still requires review by qualified legal counsel before it is treated as
+   the authoritative legal version.
 5. Treat a Polish-first Master CV template for new accounts as a separate data
    contract change requiring an additive Supabase migration.
 
