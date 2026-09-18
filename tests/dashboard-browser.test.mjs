@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import yaml from "js-yaml";
 
 test(
   "dashboard browser regression (isolated data/API, real renderer)",
@@ -41,7 +42,17 @@ test(
     });
     const server = createServer(async (req, res) => {
       try {
-        if (req.url === "/bundle.js") {
+        if (req.url === "/fixture-i18n.json") {
+          const dictionary = yaml.load(await readFile("app/i18n/locales/en.yaml", "utf8"));
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({
+              locale: "en",
+              locales: [{ code: "en", name: "English", nativeName: "English" }],
+              dictionary
+            })
+          );
+        } else if (req.url === "/bundle.js") {
           res.setHeader("Content-Type", "text/javascript");
           res.end(await readFile(path.join(output, "bundle.js")));
         } else if (req.url === "/test-geist.woff2") {
@@ -107,7 +118,7 @@ test(
       await preview.getByText("Projektantka", { exact: true }).waitFor();
       await preview.getByRole("button", { name: "English", exact: true }).click();
       await preview.getByRole("button", { name: "Open CV", exact: true }).click();
-      const expanded = page.getByRole("dialog", { name: "CV Version CV preview", exact: true });
+      const expanded = page.getByRole("dialog", { name: "CV version preview", exact: true });
       await expanded.waitFor();
       assert.equal(await expanded.locator('[data-cv-density="compact"]').count(), 1);
       await expanded.getByRole("button", { name: "Close", exact: true }).click();
@@ -155,9 +166,9 @@ test(
         await route.fulfill({ json: { ok: true, preset: saved } });
       });
       await page.getByRole("button", { name: "Edit selection", exact: true }).click();
-      const edit = page.getByRole("dialog", { name: "CV Version editor", exact: true });
-      await edit.getByLabel("CV Version title", { exact: true }).fill("Updated designer");
-      await edit.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      const edit = page.getByRole("dialog", { name: "CV version editor", exact: true });
+      await edit.getByLabel("CV version title", { exact: true }).fill("Updated designer");
+      await edit.getByRole("button", { name: "Save CV version", exact: true }).click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "Updated designer" })
@@ -165,21 +176,21 @@ test(
       assert.deepEqual(requests.at(-1).body.selection, fixture.presets[1].selection);
       assert.equal(requests.at(-1).body.documentId, "document-en");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
-      const publish = page.getByRole("dialog", { name: "Publish CV Version", exact: true });
-      await publish.getByRole("button", { name: "Publish CV Version", exact: true }).click();
+      const publish = page.getByRole("dialog", { name: "Publish CV version", exact: true });
+      await publish.getByRole("button", { name: "Publish", exact: true }).click();
       await page.getByText("Temporary publish failure", { exact: true }).waitFor();
       assert.equal(
         await publish.isVisible(),
         true,
         "Retry keeps the user's publish dialog and choices"
       );
-      await publish.getByRole("button", { name: "Publish CV Version", exact: true }).click();
+      await publish.getByRole("button", { name: "Publish", exact: true }).click();
       await page.getByRole("button", { name: "Copy link", exact: true }).waitFor();
       assert.deepEqual(requests.at(-1).body.selectedLocales, ["en", "pl"]);
       assert.equal(requests.at(-1).body.defaultLocale, "en");
       await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
       await page.getByRole("button", { name: "Copy link", exact: true }).click();
-      await page.getByText("Public link copied to clipboard.", { exact: true }).waitFor();
+      await page.getByText("Public link copied to the clipboard.", { exact: true }).waitFor();
       assert.equal(
         await page.evaluate(() => navigator.clipboard.readText()),
         `${base}/ada-example/private-cv`
@@ -199,14 +210,14 @@ test(
       assert.equal(await page.getByRole("button", { name: "Copy link", exact: true }).count(), 0);
       await menu.locator("summary").click();
       await menu
-        .getByRole("menuitem", { name: "Delete CV Version Updated designer", exact: true })
+        .getByRole("menuitem", { name: "Delete CV version: Updated designer", exact: true })
         .click();
-      const deletion = page.getByRole("dialog", { name: "Delete CV Version confirmation" });
+      const deletion = page.getByRole("dialog", { name: "Delete CV version confirmation" });
       await deletion.getByRole("button", { name: "Cancel", exact: true }).click();
       assert.equal(requests.filter((r) => r.method === "DELETE").length, 0);
       await menu.locator("summary").click();
       await menu
-        .getByRole("menuitem", { name: "Delete CV Version Updated designer", exact: true })
+        .getByRole("menuitem", { name: "Delete CV version: Updated designer", exact: true })
         .click();
       await deletion.getByRole("button", { name: "Delete", exact: true }).click();
       await page
@@ -251,9 +262,9 @@ test(
         })
       );
       await page.getByRole("button", { name: "Create CV version", exact: true }).first().click();
-      const create = page.getByRole("dialog", { name: "CV Version editor", exact: true });
-      await create.getByLabel("CV Version title", { exact: true }).fill("New opportunity");
-      await create.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      const create = page.getByRole("dialog", { name: "CV version editor", exact: true });
+      await create.getByLabel("CV version title", { exact: true }).fill("New opportunity");
+      await create.getByRole("button", { name: "Save CV version", exact: true }).click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "New opportunity" })

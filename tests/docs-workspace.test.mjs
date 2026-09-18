@@ -1,16 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import yaml from "js-yaml";
 import { register } from "node:module";
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { listDocNavGroups, getDoc } = await import("../app/lib/docs/content.ts");
 const { renderMarkdownWithOutline } = await import("../app/lib/docs/markdown.ts");
 const { canViewTestScenarios } = await import("../app/lib/docs/access.ts");
-const { buildDocsTopics, filterDocs, docsHref, resolveDocsLanguage } =
+const { buildDocsTopics, filterDocs, docsHref } =
   await import("../app/lib/docs/presentation.ts");
+const dictionaries = ["en", "pl"].map((locale) => yaml.load(fs.readFileSync(`app/i18n/locales/${locale}.yaml`, "utf8")));
 
 test("topic cards resolve to existing tutorials and heading anchors in both languages", () => {
-  for (const language of ["en", "pl"]) {
-    const topics = buildDocsTopics(listDocNavGroups(false), language);
+  for (const dictionary of dictionaries) {
+    const topics = buildDocsTopics(listDocNavGroups(false), dictionary.docs);
     assert.equal(topics.length, 3);
     for (const topic of topics) {
       const url = new URL(topic.href, "https://example.test");
@@ -22,7 +25,7 @@ test("topic cards resolve to existing tutorials and heading anchors in both lang
       );
     }
   }
-  assert.deepEqual(buildDocsTopics([], "en"), []);
+  assert.deepEqual(buildDocsTopics([], dictionaries[0].docs), []);
 });
 
 test("search handles whitespace, case and accents without changing order or input", () => {
@@ -37,15 +40,8 @@ test("search handles whitespace, case and accents without changing order or inpu
   assert.equal(entries.length, 2);
 });
 
-test("language fallback and localized links preserve article anchors and canonical English URLs", () => {
-  assert.equal(resolveDocsLanguage("pl"), "pl");
-  for (const value of [undefined, "de", ["pl", "en"]])
-    assert.equal(resolveDocsLanguage(value), "en");
-  assert.equal(
-    docsHref("/docs/tutorials/example#steps", "pl"),
-    "/docs/tutorials/example?lang=pl#steps"
-  );
-  assert.equal(docsHref("/docs/tutorials/example#steps", "en"), "/docs/tutorials/example#steps");
+test("documentation links preserve article anchors without a separate locale query", () => {
+  assert.equal(docsHref("/docs/tutorials/example#steps"), "/docs/tutorials/example#steps");
 });
 
 test("search and navigation contain test scenarios only for the existing four-role access matrix", async () => {

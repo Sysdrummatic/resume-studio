@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import yaml from "js-yaml";
-import { resolveAcceptLanguage, resolveAppLocale, selectEnabledLocale } from "../app/i18n/locale.ts";
+import { formatAppMessage, resolveAcceptLanguage, resolveAppLocale, selectEnabledLocale } from "../app/i18n/locale.ts";
 
 const root = process.cwd();
 
@@ -41,11 +41,15 @@ test("application locale config enables Polish first with English fallback", () 
   }
 });
 
-test("Polish and English application dictionaries have matching shapes", () => {
-  const english = readYaml("app/i18n/locales/en.yaml");
-  const polish = readYaml("app/i18n/locales/pl.yaml");
+test("every enabled application dictionary matches the fallback dictionary shape", () => {
+  const config = readYaml("app/i18n/config.yaml");
+  const fallback = config.locales.find((locale) => locale.code === config.fallback_locale);
+  const fallbackDictionary = readYaml(path.join("app/i18n", fallback.dictionary));
 
-  assert.deepEqual(shapePaths(polish).sort(), shapePaths(english).sort());
+  for (const locale of config.locales.filter((entry) => entry.enabled)) {
+    const dictionary = readYaml(path.join("app/i18n", locale.dictionary));
+    assert.deepEqual(shapePaths(dictionary).sort(), shapePaths(fallbackDictionary).sort(), locale.code);
+  }
 });
 
 test("locale selection accepts supported regional variants and honors quality", () => {
@@ -56,6 +60,53 @@ test("locale selection accepts supported regional variants and honors quality", 
   assert.equal(resolveAcceptLanguage("de-DE,de;q=0.9,en;q=0.8,pl;q=0.7", enabled), "en");
   assert.equal(resolveAcceptLanguage("en;q=0.5,pl-PL;q=0.9", enabled), "pl");
   assert.equal(resolveAcceptLanguage("pl;q=0,en;q=0.7", enabled), "en");
+});
+
+test("authenticated workspace copy is sourced from the application dictionaries", () => {
+  const polish = readYaml("app/i18n/locales/pl.yaml");
+  const english = readYaml("app/i18n/locales/en.yaml");
+  const accountMenu = read("app/components/account-menu.tsx");
+  const dashboard = read("app/dashboard/dashboard-client.tsx");
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const admin = read("app/admin/admin-users-client.tsx");
+  const docsPresentation = read("app/lib/docs/presentation.ts");
+  const user = read("app/user/user-client.tsx");
+  const onboarding = read("app/onboarding/onboarding-client.tsx");
+  const settings = read("app/settings/onboarding-test-settings.tsx");
+
+  assert.equal(typeof polish.account.profile_modal.first_name, "string");
+  assert.equal(typeof english.account.profile_modal.first_name, "string");
+  assert.equal(typeof polish.dashboard.main.title, "string");
+  assert.equal(typeof english.dashboard.main.title, "string");
+  assert.equal(accountMenu.includes("profileLabels.first_name"), true);
+  assert.equal(dashboard.includes("dictionary.dashboard"), true);
+  assert.equal(dashboard.includes(">Dashboard<"), false);
+  assert.equal(dashboard.includes(">Your CVs<"), false);
+  assert.equal(typeof polish.editor.text["Master Resume"], "string");
+  assert.equal(typeof english.editor.text["Master Resume"], "string");
+  assert.equal(editor.includes("dictionary.editor"), true);
+  assert.equal(editor.includes("onboardingEditorText"), false);
+  assert.equal(typeof polish.admin.text["Admin panel"], "string");
+  assert.equal(typeof english.admin.text["Admin panel"], "string");
+  assert.equal(admin.includes("dictionary.admin"), true);
+  assert.equal(typeof polish.docs.heading, "string");
+  assert.equal(typeof english.docs.heading, "string");
+  assert.equal(docsPresentation.includes("docsCopy"), false);
+  assert.equal(typeof polish.user.text["Personal hub"], "string");
+  assert.equal(typeof english.user.text["Personal hub"], "string");
+  assert.equal(user.includes("dictionary.user"), true);
+  assert.equal(polish.onboarding.steps.length, 14);
+  assert.equal(english.onboarding.steps.includes("Welcome to OpenCiVera"), true);
+  assert.equal(onboarding.includes("dictionary.onboarding"), true);
+  assert.equal(onboarding.includes("const t = (en: string, pl: string)"), false);
+  assert.equal(typeof polish.settings.text["Account settings"], "string");
+  assert.equal(typeof english.settings.text["Account settings"], "string");
+  assert.equal(settings.includes("dictionary.settings"), true);
+});
+
+test("application messages support named interpolation without changing unknown placeholders", () => {
+  assert.equal(formatAppMessage("Saved {date}", { date: "18.09.2026" }), "Saved 18.09.2026");
+  assert.equal(formatAppMessage("{done} of {total}; {unknown}", { done: 3, total: 5 }), "3 of 5; {unknown}");
 });
 
 test("application locale resolution follows cookie, header, country, browser and default precedence", () => {
