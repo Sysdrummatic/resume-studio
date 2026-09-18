@@ -52,18 +52,22 @@ owner-selected default would change canonical, hreflang, and snapshot behavior.
 
 ## Rollout
 
-1. Add configuration, dictionaries, resolver, provider, switcher, and Netlify
-   country forwarding.
-2. Localize the public shell, landing page, authentication, and sample CV chrome.
-3. Move dashboard, editor, account, admin, docs, and remaining UI strings into
-   dictionaries in bounded follow-up changes.
-4. Translate Privacy Policy and Terms with legal review before claiming locale
-   parity for legal content.
+1. Configuration, dictionaries, resolver, provider, switcher, and Netlify
+   country forwarding are in place.
+2. The public shell, landing page, authentication, sample CV chrome, dashboard,
+   editor, account, admin, onboarding, settings, and documentation shell use the
+   shared dictionaries.
+3. Documentation articles remain English source material; the Polish shell
+   states this explicitly instead of presenting the articles as translated.
+4. Privacy Policy and Terms remain English pending legal review. A localized
+   notice makes that limitation explicit; do not claim locale parity for legal
+   content until reviewed translations are available.
 5. Treat a Polish-first Master CV template for new accounts as a separate data
    contract change requiring an additive Supabase migration.
 
 ## Test contract
 
 `tests/app-i18n.test.mjs` validates the enabled/default/fallback locale catalog,
-PL/EN dictionary shape parity, locale negotiation, dynamic document language,
+the shape parity of every enabled dictionary against the fallback dictionary,
+locale negotiation, localized application surfaces, dynamic document language,
 sample locale selection, and Netlify country forwarding.
