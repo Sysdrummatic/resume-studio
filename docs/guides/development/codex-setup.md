@@ -9,9 +9,10 @@ This setup keeps project facts, working rules and tool configuration separate.
 | File | Purpose |
 | --- | --- |
 | [AGENTS.md](../../../AGENTS.md) | Project rules, TDD, validation, communication and contract boundaries |
-| [Project brief](../../../.codex/project-brief.md) | Short product/domain orientation |
-| [Code map](../../../.codex/site-map-and-dependencies.md) | Routes, modules and dependencies |
-| [Validation runbook](../../../.codex/runbooks/testing-and-validation.md) | Test commands and browser checks |
+| [Project brief](../../PROJECT-BRIEF.md) | Short product/domain orientation (shared with Claude Code) |
+| [Code map](../../CODE-MAP.md) | Routes, modules and dependencies (shared with Claude Code) |
+| [Validation runbook](../../runbooks/testing-and-validation.md) | Test commands and browser checks |
+| [Task checklists](../../CHECKLISTS.md) | Definition-of-done per area (shared with Claude Code) |
 | [Git workflow](git-workflow.md) | Current branch, commit, PR and issue metadata conventions |
 | [Guides](../README.md) and [ADRs](../../adr/README.md) | Feature behavior, policies and architectural decisions |
 | [Project status](../../STATUS.md) | Dated roadmap and progress; verify deployment separately |

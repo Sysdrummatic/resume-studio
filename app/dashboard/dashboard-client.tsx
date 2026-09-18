@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
-import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
-import { applyResumeSelectionToRawDocument, clampResumeSelectionToRawDocument } from "../lib/preset-selection";
+import type { ResumeLocale } from "../lib/resume-schema";
+import { buildPresetResumeDocument, saveOrReportError } from "../lib/preset-preview";
 import type {
   ResumeDocumentRow,
   ResumePresetRow,
@@ -15,7 +15,7 @@ import { buildPublishedResumeExportUrls, parseCanonicalPublicPath } from "../lib
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
-import type { ResumeLanguageOption } from "../components/resume-language-switcher";
+import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
 import { FileText, LockKeyhole, Plus, Search, Check, ArrowUpRight } from "lucide-react";
 import { normalizeResumeStyle } from "../lib/resume-style";
 import {
@@ -46,6 +46,7 @@ type PresetOption = {
 type PresetApiResponse = {
   ok?: boolean;
   error?: string;
+  docsUrl?: string;
   preset?: ResumePresetRow;
 };
 
@@ -147,23 +148,6 @@ function normalizeSummarySelection(selection: ResumePresetSelection, options: Pr
   };
 }
 
-// Same raw-domain selection as the public view and exports: the selection
-// indexes point at raw YAML arrays, so apply them before normalization.
-// The selection is built against the default-locale document; clamp it to the
-// previewed document so other language versions render the way publish stores
-// them, instead of failing on out-of-range indexes.
-function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): ResumeDocument | null {
-  if (!yamlContent || !window.jsyaml) return null;
-  try {
-    const rawDocument = window.jsyaml.load(yamlContent);
-    const clampedSelection = clampResumeSelectionToRawDocument(rawDocument, selection);
-    const selectedRaw = clampedSelection ? applyResumeSelectionToRawDocument(rawDocument, clampedSelection) : null;
-    return selectedRaw ? normalizeResumeDocument(selectedRaw, "") : null;
-  } catch {
-    return null;
-  }
-}
-
 function getFallbackLanguageLabel(locale: string): { label: string; shortLabel: string } {
   if (locale === "en") return { label: "English", shortLabel: "EN" };
   if (locale === "pl") return { label: "Polski", shortLabel: "PL" };
@@ -248,8 +232,18 @@ function PresetModal({
     }
     setError("");
     setIsSaving(true);
-    await onSave({ presetId: preset?.id, title, selection: nextSelection, allowIndexing, aiGenerated });
-    setIsSaving(false);
+    try {
+      // A rejected save (network failure, etc.) must not strand the button on
+      // "Saving..." forever — the user's title/selection stay as entered so
+      // they can retry without re-filling the form.
+      const result = await saveOrReportError(
+        () => onSave({ presetId: preset?.id, title, selection: nextSelection, allowIndexing, aiGenerated }),
+        "Could not save. Check your connection and try again.",
+      );
+      if (!result.ok) setError(result.error);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -320,7 +314,7 @@ function PresetModal({
   );
 }
 
-function PresetPreviewModal({
+export function PresetPreviewModal({
   masterResume,
   documents,
   languages,
@@ -348,7 +342,7 @@ function PresetPreviewModal({
     availableDocuments.find((document) => document.locale === masterResume.locale) ||
     masterResume;
   const publicLink = parseCanonicalPublicPath(preset.canonical_public_path);
-  const previewResume = useMemo(
+  const previewResult = useMemo(
     () => buildPresetResumeDocument(activeDocument.yaml_content, preset.selection),
     [activeDocument.yaml_content, preset.selection],
   );
@@ -387,11 +381,25 @@ function PresetPreviewModal({
             Selected content from your current Master Resume. Published links and exports use the last publication.
           </p>
         ) : null}
-        {previewResume ? (
+        {previewResult.status !== "ok" ? (
+          <div className="dashboard-library-preview__fallback">
+            <ResumeLanguageSwitcher
+              languages={cvLanguages}
+              activeLocale={activeLocale}
+              ariaLabel="Switch CV version language"
+              onSelect={setActiveLocale}
+            />
+            <p className={previewResult.status === "empty" ? "dashboard-library-preview__note" : "status status--error"}>
+              {previewResult.status === "empty"
+                ? `This CV version has no content in ${cvLanguages.find((language) => language.code === activeDocument.locale)?.label || activeDocument.locale.toUpperCase()} yet. Add it in your Master Resume, or switch to a language you've filled in.`
+                : "CV preview could not be rendered from the master resume."}
+            </p>
+          </div>
+        ) : (
           <div ref={previewContainerRef} className="dashboard-preset-preview">
             <BasicResumeDocument
               locale={activeDocument.locale}
-              resume={previewResume}
+              resume={previewResult.resume}
               languages={cvLanguages}
               onLanguageSelect={setActiveLocale}
               status={preset.is_public ? "public" : "draft"}
@@ -404,8 +412,6 @@ function PresetPreviewModal({
               scrollContainerRef={previewContainerRef as React.RefObject<HTMLElement>}
             />
           </div>
-        ) : (
-          <p className="status status--error">CV preview could not be rendered from the master resume.</p>
         )}
       </div>
     </div>
@@ -500,6 +506,7 @@ export default function DashboardClient({
 }: Props) {
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
+  const [modalDocument, setModalDocument] = useState<ResumeDocumentRow | null>(null);
   const [activePreset, setActivePreset] = useState<ResumePresetRow | null>(null);
   const [previewPreset, setPreviewPreset] = useState<ResumePresetRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -533,7 +540,6 @@ export default function DashboardClient({
         }
         try {
           const parsed = asObject(window.jsyaml.load(masterResume.yaml_content));
-          setOptions(buildPresetOptionsFromDocument(parsed));
           setMasterSummary(summarizeMasterResume(normalizeResumeDocument(parsed, "")));
         } catch {
           setDocumentError("Your Master Resume could not be read. Open the editor to review it.");
@@ -556,29 +562,53 @@ export default function DashboardClient({
   const selectedPreset = getSelectedDashboardPreset(visiblePresets, selectedPresetId);
 
   function openCreatePreset() {
-    setActivePreset(null);
+    openPresetEditor(null);
+  }
+
+  function openPresetEditor(preset: ResumePresetRow | null) {
+    const source = preset ? documents.find((document) => document.id === preset.document_id) : masterResume;
+    if (!source) {
+      showToast("The source document for this CV version is unavailable. Reload the page to try again.", "error");
+      return;
+    }
+    if (!window.jsyaml) {
+      showToast("The document reader is still loading. Try again in a moment.", "error");
+      return;
+    }
+    try {
+      setOptions(buildPresetOptionsFromDocument(asObject(window.jsyaml.load(source.yaml_content))));
+    } catch {
+      showToast("Your Master Resume could not be read. Open the editor to review it.", "error");
+      return;
+    }
+    setModalDocument(source);
+    setActivePreset(preset);
     setIsModalOpen(true);
   }
 
 
   async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
-    if (!masterResume) return;
+    if (!modalDocument) return;
     const response = await fetch(payload.presetId ? `/api/resume/presets/${encodeURIComponent(payload.presetId)}` : "/api/resume/presets", {
       method: payload.presetId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        documentId: masterResume.id,
+        documentId: modalDocument.id,
         title: payload.title,
         selection: payload.selection,
         allowIndexing: payload.allowIndexing,
         aiGenerated: payload.aiGenerated,
-        defaultLocale: defaultLanguageVersion?.code || masterResume.locale,
+        defaultLocale: activePreset?.default_locale || defaultLanguageVersion?.code || modalDocument.locale,
         isPublic: false,
       }),
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "CV Version save failed.", "error");
+      showToast(
+        result.error || "CV Version save failed.",
+        "error",
+        result.docsUrl ? { href: result.docsUrl, label: "Learn more" } : undefined,
+      );
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
@@ -609,7 +639,11 @@ export default function DashboardClient({
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "CV Version publish failed.", "error");
+      showToast(
+        result.error || "CV Version publish failed.",
+        "error",
+        result.docsUrl ? { href: result.docsUrl, label: "Learn more" } : undefined,
+      );
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
@@ -744,8 +778,6 @@ export default function DashboardClient({
       allowIndexing: preset.allow_indexing,
     });
   }
-
-  const modalOptions = useMemo(() => options, [options]);
 
   return (
     <div className="dashboard-workspace">
@@ -994,10 +1026,7 @@ export default function DashboardClient({
                       </div>
                       <PresetActionsMenu
                         preset={selectedPreset}
-                        onEdit={() => {
-                          setActivePreset(selectedPreset);
-                          setIsModalOpen(true);
-                        }}
+                        onEdit={() => openPresetEditor(selectedPreset)}
                         onTogglePublish={() => {
                           if (selectedPreset.is_public) {
                             void unpublishPreset(selectedPreset);
@@ -1045,10 +1074,7 @@ export default function DashboardClient({
                             type="button"
                             className="button button--ghost"
                             disabled={!hasMasterResume || !yamlReady}
-                            onClick={() => {
-                              setActivePreset(selectedPreset);
-                              setIsModalOpen(true);
-                            }}
+                            onClick={() => openPresetEditor(selectedPreset)}
                           >
                             Edit selection
                           </button>
@@ -1186,11 +1212,11 @@ export default function DashboardClient({
         </div>
       ) : null}
 
-      {isModalOpen && masterResume ? (
+      {isModalOpen && modalDocument ? (
         <PresetModal
-          masterResume={masterResume}
+          masterResume={modalDocument}
           preset={activePreset}
-          options={modalOptions}
+          options={options}
           onClose={() => {
             setIsModalOpen(false);
             setActivePreset(null);

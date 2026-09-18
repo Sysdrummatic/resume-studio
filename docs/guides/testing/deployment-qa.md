@@ -28,12 +28,17 @@ HTTP(S) deployment root and cannot contain credentials. Evidence is written to
 
 The anonymous suite verifies `/`, `/login`, `/privacy`, `/terms`, and `/resume`,
 then confirms that `/dashboard`, `/master-resume`, and `/admin` redirect to
-`/login?reason=signed-out`. It fails on an unexpected final route or status,
+`/login?reason=signed-out`. It fails on an unexpected final origin, route or status,
 browser/console exceptions, same-origin server errors, and failed same-origin
 resources. Expected aborted Next.js link-prefetch requests are ignored.
 Netlify's injected `/.netlify/scripts/cdp` preview helper is also ignored when the
 application CSP blocks it. The exemption is limited to that exact platform path;
 blocked application scripts and other CSP console errors still fail the run.
+
+Navigation and screenshot failures are recorded as failed route checks; the
+runner continues checking the remaining routes and writes the failed run to
+`report.json`. Each run removes the previous report before launching its browser,
+so startup failures cannot leave a stale passing report as current evidence.
 
 Latest preview evidence: on 2026-09-11, the runner passed all eight anonymous
 checks against the Netlify Deploy Preview for PR #156.

@@ -97,6 +97,24 @@ test("print block drops the dead grid-template-columns rules on flex containers"
   assert.equal(/\.timeline-item\s*\{[^}]*grid-template-columns/.test(printBlock), false);
 });
 
+test("print block no longer hides QR codes — they are CV content, not chrome", () => {
+  // ocv-0203: .qr-list used to sit in the same hide-list as .app-header and
+  // .admin-panel from when the section never actually rendered anything;
+  // now that qr_codes generates a real code, hiding it silently dropped
+  // content from every printed CV / "Save as PDF".
+  const hideListRule = printBlock.match(/\.error-banner\s*\{[^}]*\}/);
+  assert.notEqual(hideListRule, null, "print block must still hide .error-banner");
+  assert.equal(/\.qr-list/.test(hideListRule[0]), false);
+  assert.equal(/display:\s*none/.test(hideListRule[0]), true);
+});
+
+test("printed QR cards are sized for legibility and cannot split across a page break", () => {
+  const qrCardRule = printBlock.match(/\.qr-card\s*\{[^}]*\}/);
+  assert.notEqual(qrCardRule, null, "print block must style .qr-card");
+  assert.equal(/max-width:\s*\d/.test(qrCardRule[0]), true, "printed QR size must be bounded regardless of the author's on-screen size");
+  assert.equal(qrCardRule[0].includes("break-inside: avoid"), true);
+});
+
 test("print block drops the dead background on the hidden timeline axis", () => {
   const axisRule = printBlock.match(/\.timeline::before\s*\{[^}]*\}/);
   assert.notEqual(axisRule, null, "print block must still hide .timeline::before");

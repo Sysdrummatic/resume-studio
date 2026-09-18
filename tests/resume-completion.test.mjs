@@ -37,7 +37,7 @@ test("section weights total 100 so a fully filled resume reads 100%", () => {
       courses: [{ year: 2024, name: "Systems Design" }],
       interests: ["Hiking"],
       tech_stack: ["Python"],
-      qr_codes: [{ label: "LiveCV", image: "", size: 130 }],
+      qr_codes: [{ label: "LiveCV", value: "https://opencivera.com", size: 130 }],
     },
     "Ariana Holt",
   );

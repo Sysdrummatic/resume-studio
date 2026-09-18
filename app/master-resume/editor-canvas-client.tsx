@@ -24,6 +24,7 @@ import type { ImportedResumeSections, ResumeImportResult } from "../lib/resume-i
 import { mergeImportedResume } from "../lib/resume-import/merge-imported-resume";
 import EditorSectionNav, { type EditorNavGroup } from "./editor-section-nav";
 import { computeResumeCompletion } from "./resume-completion";
+import { buildQrMatrix, clampQrSize, QR_CODE_LIMITS } from "../lib/qr-code";
 import {
   DEFAULT_RESUME_STYLE,
   type ResumeDensity,
@@ -149,7 +150,7 @@ const EDITOR_SECTION_GROUPS: Array<{ label: string; numbered?: boolean; sections
       { id: "courses", label: "Courses", hint: "Certificates, training and licences.", yamlKey: "courses", countField: "courses" },
       { id: "interests", label: "Interests", hint: "A short list, without elaboration.", yamlKey: "interests", countField: "interests" },
       { id: "tech-stack", label: "Tech stack", hint: "Technologies and tools you work with.", yamlKey: "tech_stack", countField: "tech_stack" },
-      { id: "qr-codes", label: "QR codes", hint: "Links encoded as QR codes in the printed version.", yamlKey: "qr_codes", countField: "qr_codes" },
+      { id: "qr-codes", label: "QR codes", hint: "Text or links, rendered as a scannable QR code.", yamlKey: "qr_codes", countField: "qr_codes" },
       { id: "gdpr", label: "GDPR clause", hint: "Common on the Polish job market, usually left empty for English CVs.", yamlKey: "gdpr_clause" },
     ],
   },
@@ -540,7 +541,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     const next = [...resume.qr_codes];
     next[index] = {
       ...next[index],
-      [key]: key === "size" ? Math.max(1, Number.parseInt(value, 10) || 130) : value,
+      [key]:
+        key === "size"
+          ? clampQrSize(Number.parseInt(value, 10) || QR_CODE_LIMITS.defaultSize)
+          : key === "value"
+            ? value.slice(0, QR_CODE_LIMITS.maxValueLength)
+            : value,
     };
     updateResumeFromHuman({ ...resume, qr_codes: next });
   }
@@ -674,14 +680,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     showToast("Saving...");
     try {
       const result = await saveAllDirty({ changeNote });
+      const docsUrl = result.failed.find((entry) => entry.docsUrl)?.docsUrl;
+      const link = docsUrl ? { href: docsUrl, label: "Learn more" } : undefined;
       if (result.failed.length === 0) {
         showToast(`Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`);
       } else if (result.succeeded.length === 0) {
-        showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error");
+        showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error", link);
       } else {
         showToast(
           `Saved ${result.succeeded.length}, failed ${result.failed.length}: ${result.failed.map((entry) => entry.message).join(" ")}`,
           "warning",
+          link,
         );
       }
     } finally {
@@ -839,18 +848,50 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
 
                 {activeSectionId === "qr-codes" && (
                 <section className="resume-human-editor__section">
-                  {resume.qr_codes.map((item, index) => (
-                    <div className="resume-human-editor__row" key={`qr-${index}`}>
-                      <input aria-label={editorText("Label")} placeholder={editorText("Label")} value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
-                      <input aria-label={editorText("Image path")} placeholder={editorText("Image path")} value={item.image} onChange={(event) => updateQrCode(index, "image", event.target.value)} />
-                      <input type="number" min={1} aria-label={editorText("Size")} placeholder={editorText("Size")} value={item.size} onChange={(event) => updateQrCode(index, "size", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
-                        {editorText("Remove")}
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("qr_codes", { label: "", image: "", size: 130 })}>
-                    {editorText("+ Add QR code")}
+                  {resume.qr_codes.map((item, index) => {
+                    const built = buildQrMatrix(item.value);
+                    const errorText =
+                      built.status === "too_long"
+                        ? editorText("This text is too long for a QR code.")
+                        : built.status === "invalid"
+                          ? editorText("This text could not be turned into a QR code.")
+                          : null;
+                    return (
+                      <div className="resume-human-editor__row" key={`qr-${index}`}>
+                        <input aria-label={editorText("Label")} placeholder={editorText("Label")} value={item.label} onChange={(event) => updateQrCode(index, "label", event.target.value)} />
+                        <input
+                          aria-label={editorText("Text or link")}
+                          aria-invalid={errorText ? true : undefined}
+                          placeholder={editorText("Text or link")}
+                          maxLength={QR_CODE_LIMITS.maxValueLength}
+                          value={item.value}
+                          onChange={(event) => updateQrCode(index, "value", event.target.value)}
+                        />
+                        <input
+                          type="number"
+                          min={QR_CODE_LIMITS.minSize}
+                          max={QR_CODE_LIMITS.maxSize}
+                          aria-label={editorText("Size")}
+                          placeholder={editorText("Size")}
+                          value={item.size}
+                          onChange={(event) => updateQrCode(index, "size", event.target.value)}
+                        />
+                        <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
+                          {editorText("Remove")}
+                        </button>
+                        {errorText ? <p className="status status--error resume-human-editor__row-error">{errorText}</p> : null}
+                      </div>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    className="resume-human-editor__add"
+                    disabled={resume.qr_codes.length >= QR_CODE_LIMITS.maxCount}
+                    onClick={() => addArrayItem("qr_codes", { label: "", value: "", size: QR_CODE_LIMITS.defaultSize })}
+                  >
+                    {resume.qr_codes.length >= QR_CODE_LIMITS.maxCount
+                      ? editorText("Maximum QR codes reached")
+                      : editorText("+ Add QR code")}
                   </button>
                 </section>
                 )}

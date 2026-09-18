@@ -25,10 +25,13 @@ const POLISH: Record<string, string> = {
   "+ Add summary": "+ Dodaj podsumowanie",
   "Untitled summary": "Nowe podsumowanie",
   Label: "Etykieta",
-  "Image path": "Ścieżka obrazu",
+  "Text or link": "Tekst lub link",
   Size: "Rozmiar",
   Remove: "Usuń",
   "+ Add QR code": "+ Dodaj kod QR",
+  "Maximum QR codes reached": "Osiągnięto limit kodów QR",
+  "This text is too long for a QR code.": "Ten tekst jest za długi na kod QR.",
+  "This text could not be turned into a QR code.": "Nie udało się zamienić tego tekstu na kod QR.",
   Skill: "Umiejętność",
   Level: "Poziom",
   "+ Add skill": "+ Dodaj umiejętność",
@@ -56,6 +59,7 @@ const POLISH: Record<string, string> = {
   "Clause text": "Treść klauzuli",
   "No clause": "Brak klauzuli",
   "Use standard PL wording": "Wstaw standardową polską klauzulę",
+  "Use standard EN wording": "Wstaw standardową angielską klauzulę",
   Clear: "Wyczyść",
   "Rendered as a small footer on the CV. Leave empty to omit it.":
     "Klauzula pojawi się w stopce CV. Pozostaw puste pole, aby ją pominąć."

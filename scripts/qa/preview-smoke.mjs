@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
@@ -42,11 +42,15 @@ export function parsePreviewSmokeArgs(argv, env = process.env) {
   return { baseUrl: normalizeBaseUrl(base), outputDir: outputDir || undefined };
 }
 
-export function assessSmokeObservation(check, observation) {
+export function assessSmokeObservation(check, observation, baseUrl) {
   const issues = [];
   if (observation.status !== 200)
     issues.push(`expected HTTP 200, received ${observation.status ?? "no response"}`);
   const finalUrl = new URL(observation.finalUrl);
+  const expectedOrigin = new URL(baseUrl).origin;
+  if (finalUrl.origin !== expectedOrigin) {
+    issues.push(`expected origin ${expectedOrigin}, received ${finalUrl.origin}`);
+  }
   if (finalUrl.pathname !== check.expectedPath) {
     issues.push(`expected final path ${check.expectedPath}, received ${finalUrl.pathname}`);
   }
@@ -115,7 +119,12 @@ async function observeRoute(context, baseUrl, check, outputDir) {
     const response = await page.goto(new URL(check.path, baseUrl).toString(), {
       waitUntil: "domcontentloaded"
     });
-    await page.waitForTimeout(250);
+    // A fixed wait either races a slow page (screenshot/error capture too
+    // early) or wastes time on a fast one. networkidle is the actual
+    // readiness signal; a page with genuinely ongoing background activity
+    // (beacons, polling) still gets its screenshot after the timeout rather
+    // than hanging the whole run.
+    await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
     await page.screenshot({
       path: path.join(outputDir, `${safeScreenshotName(check.path)}.png`),
       fullPage: true
@@ -140,18 +149,32 @@ export async function runPreviewSmoke({
   checks = DEFAULT_SMOKE_CHECKS
 }) {
   const resolvedOutput = path.resolve(outputDir || path.join("tmp", "preview-smoke"));
+  // Clear the whole output directory up front, not just report.json -- a run
+  // that crashes partway used to leave that route's screenshot behind, where
+  // the next (possibly failed, possibly never-reaching-that-route) run's
+  // report could be read next to a stale, unrelated image.
+  await rm(resolvedOutput, { recursive: true, force: true });
   await mkdir(resolvedOutput, { recursive: true });
+  const reportPath = path.join(resolvedOutput, "report.json");
   const browser = await browserType.launch({ headless: true });
   const results = [];
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     for (const check of checks) {
-      const observation = await observeRoute(context, baseUrl, check, resolvedOutput);
-      results.push({
-        path: check.path,
-        finalUrl: observation.finalUrl,
-        issues: assessSmokeObservation(check, observation)
-      });
+      try {
+        const observation = await observeRoute(context, baseUrl, check, resolvedOutput);
+        results.push({
+          path: check.path,
+          finalUrl: observation.finalUrl,
+          issues: assessSmokeObservation(check, observation, baseUrl)
+        });
+      } catch (error) {
+        results.push({
+          path: check.path,
+          finalUrl: null,
+          issues: [`route check failed: ${error instanceof Error ? error.message : String(error)}`]
+        });
+      }
     }
   } finally {
     await browser.close();
@@ -162,11 +185,7 @@ export async function runPreviewSmoke({
     passed: results.every((result) => result.issues.length === 0),
     results
   };
-  await writeFile(
-    path.join(resolvedOutput, "report.json"),
-    `${JSON.stringify(report, null, 2)}\n`,
-    "utf8"
-  );
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
   return report;
 }
 
@@ -174,7 +193,7 @@ async function main() {
   const options = parsePreviewSmokeArgs(process.argv.slice(2));
   const report = await runPreviewSmoke(options);
   for (const result of report.results) {
-    console.log(`${result.issues.length ? "FAIL" : "PASS"} ${result.path} -> ${result.finalUrl}`);
+    console.log(`${result.issues.length ? "FAIL" : "PASS"} ${result.path} -> ${result.finalUrl ?? "check failed"}`);
     for (const issue of result.issues) console.error(`  ${issue}`);
   }
   if (!report.passed) process.exitCode = 1;

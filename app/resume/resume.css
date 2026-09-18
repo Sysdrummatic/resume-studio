@@ -1644,9 +1644,23 @@ img {
   .admin-access,
   .admin-config,
   .admin-panel,
-  .error-banner,
-  .qr-list {
+  .error-banner {
     display: none !important;
+  }
+
+  /* QR codes are real CV content, not chrome — they must survive to print
+     and to "Save as PDF" (which uses this same stylesheet), sized to stay
+     legible/scannable regardless of the on-screen size the CV author chose,
+     and never split across a page break. */
+  .qr-card {
+    max-width: 120px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .qr-card svg {
+    width: 100%;
+    height: auto;
   }
 
   .resume-view-page {
