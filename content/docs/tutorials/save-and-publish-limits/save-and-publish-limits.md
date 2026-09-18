@@ -2,17 +2,16 @@
 title: Save and publish limits
 description: Why saving or publishing your CV can be temporarily blocked, and what to do about it.
 updatedAt: 2026-09-18
-author: Łukasz Michta
+author: Lukasz Michta
 category: tutorials
 order: 2
 ---
 
 # Save and publish limits
 
-To keep OpenCiVera fast and reliable for everyone, a few limits protect the
-shared database and hosting from being overwhelmed by an account that (by
-accident, a bug, or a bulk script) sends far more requests than a person
-editing a CV normally would.
+OpenCiVera places a few limits on saves and publishes. They protect the shared
+service from accidental loops, broken integrations, and bulk scripts. Normal
+manual editing should stay well below these thresholds.
 
 ## What's limited
 
@@ -24,22 +23,21 @@ editing a CV normally would.
 | Publishing a CV Version | 20 publishes per minute, per account |
 | Document size | 100 KB per language version |
 
-These limits reset automatically after a short window (about a minute) — you
-don't need to contact support to unblock yourself.
+The counters reset automatically after a short window, usually about a minute.
+You do not need support to clear a temporary limit.
 
 ## Why the document size is capped
 
-A CV document is a few kilobytes of text (name, roles, bullet points, links).
-Even with a QR code section added, that section only stores short URLs, not
-embedded images — so a real document has no legitimate reason to approach
-100 KB. The cap exists to stop a single account from filling the database
-with abnormally large rows.
+A CV document is normally only a few kilobytes of text: names, roles, bullets,
+and links. QR code entries store short URLs rather than embedded images. The
+100 KB cap prevents an unusually large row from filling the database; it is not
+intended to limit an ordinary CV.
 
-## If you hit a limit while doing normal work
+## If you hit a limit during normal work
 
-- Wait about a minute and try saving or publishing again.
-- If you're scripting imports or automating edits against your account,
-  slow down the request rate — these limits apply per account, not per
-  browser tab.
-- If you're doing normal, manual editing and keep hitting a limit, that's
-  unexpected — please get in touch so we can look into it.
+Wait about a minute, then try the action again. If you are scripting imports or
+automated edits, slow down the request rate; the limit applies to the account,
+not to an individual browser tab.
+
+Repeated limits during normal manual editing are not expected. In that case,
+record the message and contact support rather than repeatedly retrying.

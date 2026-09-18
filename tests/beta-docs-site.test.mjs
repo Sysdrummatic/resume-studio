@@ -110,6 +110,29 @@ test("content loader lists the sample docs with frontmatter metadata", () => {
   }
 });
 
+test("User tutorial path contains the complete core workflow", () => {
+  const expectedTutorials = [
+    "publishing-your-first-cv",
+    "master-resume-basics",
+    "create-cv-version",
+    "publish-and-share-cv",
+    "add-language-version",
+    "import-export-cv-data",
+    "export-pdf-and-ats",
+    "revisions-and-rollback",
+    "troubleshooting-save-publish",
+    "account-and-privacy",
+  ];
+  const overview = read(path.join(process.cwd(), "content", "docs", "docs-overview.md"));
+
+  for (const slug of expectedTutorials) {
+    const doc = getDoc("tutorials", slug);
+    assert.ok(doc, `missing tutorial: ${slug}`);
+    assert.match(doc.markdown, /^#\s+.+/m, `tutorial has no H1: ${slug}`);
+    assert.match(overview, new RegExp(`/docs/tutorials/${slug}(?:\\)|$)`), `overview does not link ${slug}`);
+  }
+});
+
 test("content loader rejects unknown slugs and path traversal", () => {
   assert.equal(getDoc("tutorials", "does-not-exist"), null);
   assert.equal(getDoc("tutorials", "../../package"), null);

@@ -1,7 +1,7 @@
 ---
 title: Publishing your first CV
-description: From your Master Resume to a shareable, role-aware public LiveCV, step by step.
-updated: 2026-07-22
+description: From the first-use guide to a shareable, role-aware public CV, step by step.
+updatedAt: 2026-09-18
 author: Łukasz Michta
 category: tutorials
 order: 1
@@ -9,8 +9,31 @@ order: 1
 
 # Publishing your first CV
 
-This guide walks you from an empty Master Resume to a public, shareable LiveCV
-link, then shows how to add a second language version.
+Use this guide when you are starting with a new account. It covers the first-use
+guide, the private Master Resume, a selected CV version, publication, and the
+first additional language.
+
+:::info
+**Before you start: the first-use guide**
+
+New accounts may open `/onboarding` before the Dashboard. The guide is a safe
+way to create the first Master Resume without learning the full editor at once.
+
+1. Choose **Start from scratch** or import a supported YAML file.
+2. Complete the section cards for your name, summary, roles, experience,
+   education, skills, courses, interests and contact details. Optional sections
+   can be left empty.
+3. Use the live preview to check the result. Imported content is not published
+   automatically; review it before applying it to the editor.
+4. Select **Finish later** if you need a break. The saved progress appears on
+   the Dashboard and can be resumed.
+5. At the end, choose whether to create the first public CV. **Not now** saves
+   the Master Resume without publishing anything.
+
+The guide saves progress when you move between cards or finish later. Closing
+the browser before a save can lose edits on the current card, so use the save
+action before leaving.
+:::
 
 ## 1. Edit your Master Resume
 
@@ -49,24 +72,18 @@ link, then shows how to add a second language version.
 
    ![Save MasterCV dialog with change note field](/docs/tutorials/publishing-your-first-cv/resources/07-save-mastercv-modal.png)
 
-7. Your Master Resume is the single source of truth — you will never publish
-   it directly. Instead, you publish selected snapshots of it as CV versions.
+7. Master Resume is the source for your CV Versions. You do not publish it
+   directly; publication uses a selected snapshot.
 
 ## 2. Create a CV Version
 
 1. Back on the **Dashboard**, click **Create CV version**.
 
-2. Give the version a title and select which entries from your Master Resume
-   it should include (summary, experience, education, courses, skills,
-   interests). This selection is what a viewer of that version will see —
-   anything you leave unselected stays private. Click **Save CV Version**.
+2. Give the version a title and select the entries it should include (summary,
+   experience, education, courses, skills, and interests). A viewer sees this
+   selection only; anything left out stays private. Click **Save CV Version**.
 
    ![Create CV Version dialog with per-section selection checkboxes](/docs/tutorials/publishing-your-first-cv/resources/08-create-cv-version-modal.png)
-
-   This selection is what a viewer of that version will see —
-   anything you leave unselected stays private. Click **Save CV Version**.
-
-   ![Create CV Version dialog with per-section selection checkboxes](/docs/tutorials/publishing-your-first-cv/resources/09-create-cv-version-modal.png)
 
 3. The draft is ready under **Your CVs**, marked **Private** / **Noindex**:
    nothing is public yet. Click **Open CV** to preview it, or the gear icon for
@@ -91,9 +108,9 @@ link, then shows how to add a second language version.
 4. Click **Copy link** next to the published version, or **Open CV** to
    preview it as a visitor.
 
-5. Paste the link into the browser — your LiveCV is online at
-   `/{your-slug}/{public-id}` and always shows the published snapshot; later
-   edits to your Master Resume are not visible until you publish again.
+5. Paste the link into a browser. Your CV is online at
+   `/{your-slug}/{public-id}` and shows the published snapshot; later edits to
+   Master Resume are not visible until you publish again.
 
    ![Published LiveCV public page](/docs/tutorials/publishing-your-first-cv/resources/13-public-cv-live.png)
 
@@ -126,8 +143,8 @@ link, then shows how to add a second language version.
 
    ![CV Version edit dialog with both language checkboxes selected](/docs/tutorials/publishing-your-first-cv/resources/18-cv-version-languages-checkboxes.png)
 
-6. Publish again from the gear menu to push the new language live, then check
-   the LiveCV link — visitors can now switch between languages.
+6. Publish again from the gear menu to make the new language live, then check
+   the public link. Visitors can now switch between the selected languages.
 
    ![CV Version edit dialog with both language checkboxes selected](/docs/tutorials/publishing-your-first-cv/resources/19-cv-version-languages-published.png)
 
