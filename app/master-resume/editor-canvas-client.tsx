@@ -680,14 +680,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     showToast("Saving...");
     try {
       const result = await saveAllDirty({ changeNote });
+      const docsUrl = result.failed.find((entry) => entry.docsUrl)?.docsUrl;
+      const link = docsUrl ? { href: docsUrl, label: "Learn more" } : undefined;
       if (result.failed.length === 0) {
         showToast(`Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`);
       } else if (result.succeeded.length === 0) {
-        showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error");
+        showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error", link);
       } else {
         showToast(
           `Saved ${result.succeeded.length}, failed ${result.failed.length}: ${result.failed.map((entry) => entry.message).join(" ")}`,
           "warning",
+          link,
         );
       }
     } finally {

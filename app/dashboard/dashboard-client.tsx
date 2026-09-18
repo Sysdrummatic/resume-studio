@@ -46,6 +46,7 @@ type PresetOption = {
 type PresetApiResponse = {
   ok?: boolean;
   error?: string;
+  docsUrl?: string;
   preset?: ResumePresetRow;
 };
 
@@ -603,7 +604,11 @@ export default function DashboardClient({
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "CV Version save failed.", "error");
+      showToast(
+        result.error || "CV Version save failed.",
+        "error",
+        result.docsUrl ? { href: result.docsUrl, label: "Learn more" } : undefined,
+      );
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
@@ -634,7 +639,11 @@ export default function DashboardClient({
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "CV Version publish failed.", "error");
+      showToast(
+        result.error || "CV Version publish failed.",
+        "error",
+        result.docsUrl ? { href: result.docsUrl, label: "Learn more" } : undefined,
+      );
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));

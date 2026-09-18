@@ -209,6 +209,15 @@ export function clampQrCodesInRawYaml(source: Record<string, unknown>): Record<s
   return changed ? { ...source, qr_codes: clamped } : source;
 }
 
+// ponytail: real documents run 2-6KB (largest seen in prod/test data: ~6KB).
+// QR codes store a URL string (see QR_CODE_LIMITS.maxValueLength), not
+// embedded image bytes, so there's no legitimate reason for this to be
+// large. 100KB is ~16x headroom over the biggest real document, tight enough
+// to actually bound resume_documents/resume_revisions row growth.
+export const RESUME_YAML_MAX_BYTES = 100_000;
+
+export const RESUME_LIMITS_DOC_URL = "/docs/tutorials/save-and-publish-limits";
+
 export function normalizeLocale(value: unknown): ResumeLocale {
   const normalized = String(value ?? "en")
     .trim()
