@@ -100,9 +100,14 @@ function extractRole(value: unknown): string {
   return isRecord(value) && typeof value.role === "string" ? value.role.trim() : "";
 }
 
-export default function ResumeViewClient() {
+type Props = {
+  initialLocale: string;
+  loadingLabel: string;
+};
+
+export default function ResumeViewClient({ initialLocale, loadingLabel }: Props) {
   const [localesConfig, setLocalesConfig] = useState<LocalesConfig | null>(null);
-  const [activeLocale, setActiveLocale] = useState<string>("en");
+  const [activeLocale, setActiveLocale] = useState<string>(initialLocale);
   const [resumeData, setResumeData] = useState<ResumeDocument | null>(null);
   const [resumeRole, setResumeRole] = useState("");
   const [viewConfig, setViewConfig] = useState<ResumeViewConfig | null>(null);
@@ -171,7 +176,10 @@ export default function ResumeViewClient() {
       try {
         const config = await fetchYaml<LocalesConfig>("/data/public/locales.yaml", isLocalesConfig);
         setLocalesConfig(config);
-        await handleLocaleChange(config.default_locale, config);
+        const initialResumeLocale = config.locales.some((locale) => locale.code === initialLocale)
+          ? initialLocale
+          : config.default_locale;
+        await handleLocaleChange(initialResumeLocale, config);
       } catch (nextError) {
         const message = nextError instanceof Error ? nextError.message : "Initialization failed";
         setError(message);
@@ -181,7 +189,7 @@ export default function ResumeViewClient() {
     }
 
     void init();
-  }, [fetchYaml, handleLocaleChange, isJsYamlLoaded, showToast]);
+  }, [fetchYaml, handleLocaleChange, initialLocale, isJsYamlLoaded, showToast]);
 
   const languageOptions: ResumeLanguageOption[] = localesConfig?.locales.map((locale) => ({
     code: locale.code,
@@ -202,7 +210,7 @@ export default function ResumeViewClient() {
       <StatusToast toast={toast} onClose={closeToast} />
 
       {(isLoading || !resumeData) && !error ? (
-        <div className="loading-indicator">Loading sample resume...</div>
+        <div className="loading-indicator">{loadingLabel}</div>
       ) : null}
 
       {resumeData ? (

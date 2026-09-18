@@ -60,8 +60,8 @@ test("header exposes an active theme switch slot in the top bar", () => {
   assert.equal(navigation.includes("app-header__leading"), true);
   assert.equal(navigation.includes("app-header__accessory"), true);
   assert.equal(themeSwitch.includes('role="switch"'), true);
-  assert.equal(themeSwitch.includes("Application theme:"), true);
-  assert.equal(themeSwitch.includes("Switch to ${nextTheme} theme."), true);
+  assert.equal(themeSwitch.includes("dictionary.theme.aria_label"), true);
+  assert.equal(themeSwitch.includes('.replace("{nextTheme}", nextTheme)'), true);
   assert.equal(themeSwitch.includes("disabled={!canToggle}"), true);
   assert.equal(themeSwitch.includes("MoonIcon"), true);
   assert.equal(themeSwitch.includes("SunIcon"), true);

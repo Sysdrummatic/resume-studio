@@ -12,7 +12,7 @@ test("dashboard shows language version count in master resume section", () => {
   const styles = read("app/globals.css");
 
   assert.equal(client.includes("localeSummary"), true);
-  assert.equal(client.includes("formatCountLabel(languageVersions.length, \"language version\")"), true);
+  assert.equal(client.includes("formatAppMessage(labels.messages.language_versions, { count: languageVersions.length })"), true);
   assert.equal(client.includes("LanguageBadgeRail"), false);
   assert.equal(client.includes("AddLanguageModal"), false);
   assert.equal(styles.includes(".dashboard-chip"), true);
@@ -51,8 +51,8 @@ test("dashboard language management preserves existing preset and publish behavi
   const client = read("app/dashboard/dashboard-client.tsx");
   const page = read("app/dashboard/page.tsx");
 
-  assert.equal(client.includes("Master Resume"), true);
-  assert.equal(client.includes("Your CVs"), true);
+  assert.equal(client.includes("labels.main.master_title"), true);
+  assert.equal(client.includes("labels.library.title"), true);
   assert.equal(client.includes("PresetModal"), true);
   assert.equal(client.includes("PresetPreviewModal"), true);
   assert.equal(client.includes("PublishSavedVersionModal"), true);

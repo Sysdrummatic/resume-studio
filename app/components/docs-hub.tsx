@@ -14,30 +14,28 @@ import {
   X
 } from "lucide-react";
 import type { DocNavGroup } from "../lib/docs/content";
+import type { AppDictionary } from "../i18n/types";
 import {
   buildDocsTopics,
-  docsCopy,
   docsHref,
   filterDocs,
-  FIRST_CV_GUIDE,
-  type DocsLanguage
+  FIRST_CV_GUIDE
 } from "../lib/docs/presentation";
 
 const topicIcons = [FileText, Layers, Globe];
 
 export default function DocsHub({
   groups,
-  language = "en",
+  copy,
   children
 }: {
   groups: DocNavGroup[];
-  language?: DocsLanguage;
+  copy: AppDictionary["docs"];
   children?: ReactNode;
 }) {
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const copy = docsCopy[language];
-  const topics = buildDocsTopics(groups, language);
+  const topics = buildDocsTopics(groups, copy);
   const visibleTopics = filterDocs(topics, query);
   const documents = groups.flatMap((group) => group.items);
   const visibleDocuments = filterDocs(documents, query);
@@ -96,21 +94,21 @@ export default function DocsHub({
               <Flag size={13} aria-hidden="true" />
               {copy.start}
             </span>
-            <h2 id="docs-start-title">{copy.firstCv}</h2>
-            <p>{copy.firstCvNote}</p>
+            <h2 id="docs-start-title">{copy.first_cv}</h2>
+            <p>{copy.first_cv_note}</p>
             <Link
               className="docs-button docs-button--primary"
-              href={docsHref(FIRST_CV_GUIDE, language)}
+              href={docsHref(FIRST_CV_GUIDE)}
             >
-              {copy.openGuide}
+              {copy.open_guide}
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
           <ol className="docs-flow">
             {[
-              { title: copy.master, note: copy.masterNote },
-              { title: copy.version, note: copy.versionNote },
-              { title: copy.published, note: copy.publishedNote }
+              { title: copy.master, note: copy.master_note },
+              { title: copy.version, note: copy.version_note },
+              { title: copy.published, note: copy.published_note }
             ].map((item, index) => {
               const Icon = topicIcons[index];
               return (
@@ -152,7 +150,7 @@ export default function DocsHub({
         </div>
       ) : null}
       {count === 0 ? (
-        <p className="docs-empty">{query.trim() ? copy.noResults : copy.noDocs}</p>
+        <p className="docs-empty">{query.trim() ? copy.no_results : copy.no_docs}</p>
       ) : null}
 
       <div className="docs-hub__bottom">
@@ -162,7 +160,7 @@ export default function DocsHub({
           </div>
           <div className="docs-resources">
             {visibleDocuments.map((item) => (
-              <Link key={item.href} href={docsHref(item.href, language)}>
+              <Link key={item.href} href={docsHref(item.href)}>
                 <FileText size={16} aria-hidden="true" />
                 <span>
                   {item.title}
@@ -176,11 +174,11 @@ export default function DocsHub({
         <aside className="docs-privacy">
           <span className="docs-tag docs-tag--success">
             <LockKeyhole size={13} aria-hidden="true" />
-            {copy.privacyTag}
+            {copy.privacy_tag}
           </span>
-          <h3>{copy.privacyTitle}</h3>
-          <p>{copy.privacyNote}</p>
-          {hasGuide ? <Link href={topics[2].href}>{copy.privacyLink}</Link> : null}
+          <h3>{copy.privacy_title}</h3>
+          <p>{copy.privacy_note}</p>
+          {hasGuide ? <Link href={topics[2].href}>{copy.privacy_link}</Link> : null}
         </aside>
       </div>
       {children ? (

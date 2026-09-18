@@ -18,6 +18,9 @@ import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDo
 import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
 import { FileText, LockKeyhole, Plus, Search, Check, ArrowUpRight } from "lucide-react";
 import { normalizeResumeStyle } from "../lib/resume-style";
+import { useAppI18n } from "../components/app-i18n-provider";
+import { formatAppMessage } from "../i18n/locale";
+import type { AppDictionary } from "../i18n/types";
 import {
   summarizeMasterResume,
   filterDashboardPresets,
@@ -62,16 +65,18 @@ const EMPTY_SELECTION: ResumePresetSelection = {
   tech_stack: [],
 };
 
-const OPTION_LABELS: Record<PresetOptionKey, string> = {
-  summary: "Summary",
-  experience: "Experience",
-  education: "Education",
-  courses: "Courses",
-  skills: "Skills",
-  interests: "Interests",
-  languages: "Languages",
-  tech_stack: "Tech stack",
-};
+const PRESET_OPTION_KEYS: PresetOptionKey[] = [
+  "summary",
+  "experience",
+  "education",
+  "courses",
+  "skills",
+  "interests",
+  "languages",
+  "tech_stack",
+];
+
+type DashboardLabels = AppDictionary["dashboard"];
 
 function asObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
@@ -82,25 +87,31 @@ function itemText(value: unknown, fallback: string) {
   return fallback;
 }
 
-function formatOptionItem(key: PresetOptionKey, item: unknown, index: number) {
+function formatOptionItem(
+  key: PresetOptionKey,
+  item: unknown,
+  index: number,
+  labels: DashboardLabels["option_labels"],
+) {
   const row = asObject(item);
+  const number = index + 1;
   switch (key) {
     case "summary":
-      return itemText(row.position, `Summary ${index + 1}`);
+      return itemText(row.position, formatAppMessage(labels.summary_item, { number }));
     case "experience":
-      return [row.role, row.company].filter((part) => typeof part === "string" && part.trim()).join(" · ") || `Experience ${index + 1}`;
+      return [row.role, row.company].filter((part) => typeof part === "string" && part.trim()).join(" · ") || formatAppMessage(labels.experience_item, { number });
     case "education":
-      return [row.school, row.detail].filter((part) => typeof part === "string" && part.trim()).join(" · ") || `Education ${index + 1}`;
+      return [row.school, row.detail].filter((part) => typeof part === "string" && part.trim()).join(" · ") || formatAppMessage(labels.education_item, { number });
     case "courses":
-      return [row.year, row.name].filter((part) => String(part ?? "").trim()).join(" · ") || `Course ${index + 1}`;
+      return [row.year, row.name].filter((part) => String(part ?? "").trim()).join(" · ") || formatAppMessage(labels.course_item, { number });
     case "skills":
     case "languages":
-      return itemText(row.name, `${OPTION_LABELS[key]} ${index + 1}`);
+      return itemText(row.name, `${labels[key]} ${number}`);
     case "interests":
     case "tech_stack":
-      return itemText(item, `${OPTION_LABELS[key]} ${index + 1}`);
+      return itemText(item, `${labels[key]} ${number}`);
     default:
-      return `Item ${index + 1}`;
+      return formatAppMessage(labels.item, { number });
   }
 }
 
@@ -113,11 +124,14 @@ function getDefaultSummaryIndex(summary: unknown) {
   return index >= 0 ? index : 0;
 }
 
-function buildPresetOptionsFromDocument(parsed: Record<string, unknown>): PresetOption[] {
-  return (Object.keys(OPTION_LABELS) as PresetOptionKey[]).map((key) => ({
+function buildPresetOptionsFromDocument(
+  parsed: Record<string, unknown>,
+  labels: DashboardLabels["option_labels"],
+): PresetOption[] {
+  return PRESET_OPTION_KEYS.map((key) => ({
     key,
-    label: OPTION_LABELS[key],
-    items: Array.isArray(parsed[key]) ? parsed[key].map((item, index) => formatOptionItem(key, item, index)) : [],
+    label: labels[key],
+    items: Array.isArray(parsed[key]) ? parsed[key].map((item, index) => formatOptionItem(key, item, index, labels)) : [],
   }));
 }
 
@@ -148,18 +162,20 @@ function normalizeSummarySelection(selection: ResumePresetSelection, options: Pr
   };
 }
 
-function getFallbackLanguageLabel(locale: string): { label: string; shortLabel: string } {
-  if (locale === "en") return { label: "English", shortLabel: "EN" };
-  if (locale === "pl") return { label: "Polski", shortLabel: "PL" };
-  if (locale === "de") return { label: "Deutsch", shortLabel: "DE" };
-  return { label: locale.toUpperCase(), shortLabel: locale.slice(0, 2).toUpperCase() };
+function getFallbackLanguageLabel(locale: string, displayLocale: string): { label: string; shortLabel: string } {
+  const label = new Intl.DisplayNames([displayLocale], { type: "language" }).of(locale) || locale.toUpperCase();
+  return { label, shortLabel: locale.slice(0, 2).toUpperCase() };
 }
 
-function buildLanguageOptions(documents: ResumeDocumentRow[], languages: ResumeUserLocaleRow[]): ResumeLanguageOption[] {
+function buildLanguageOptions(
+  documents: ResumeDocumentRow[],
+  languages: ResumeUserLocaleRow[],
+  displayLocale: string,
+): ResumeLanguageOption[] {
   const metadata = new Map(languages.map((language) => [language.code, language]));
   return documents
     .map((document) => {
-      const fallback = getFallbackLanguageLabel(document.locale);
+      const fallback = getFallbackLanguageLabel(document.locale, displayLocale);
       const language = metadata.get(document.locale);
       return {
         code: document.locale,
@@ -176,10 +192,6 @@ function mergePreset(current: ResumePresetRow[], nextPreset: ResumePresetRow) {
   return current.map((preset) => (preset.id === nextPreset.id ? nextPreset : preset));
 }
 
-function formatCountLabel(count: number, singular: string, plural = `${singular}s`) {
-  return `${count} ${count === 1 ? singular : plural}`;
-}
-
 function PresetModal({
   masterResume,
   preset,
@@ -193,6 +205,8 @@ function PresetModal({
   onClose: () => void;
   onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
 }) {
+  const { dictionary } = useAppI18n();
+  const labels = dictionary.dashboard.preset_editor;
   const [title, setTitle] = useState(preset?.title || "");
   const [allowIndexing, setAllowIndexing] = useState(preset?.allow_indexing || false);
   const [aiGenerated, setAiGenerated] = useState(preset?.ai_generated || false);
@@ -223,11 +237,11 @@ function PresetModal({
   async function handleSave() {
     const nextSelection = normalizeSummarySelection(selection, options);
     if (!title.trim()) {
-      setError("CV Version title is required.");
+      setError(labels.title_required);
       return;
     }
     if (nextSelection.summary.length !== 1) {
-      setError("Select exactly one summary.");
+      setError(labels.summary_required);
       return;
     }
     setError("");
@@ -247,29 +261,29 @@ function PresetModal({
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="CV Version editor">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close CV Version editor"></button>
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={labels.aria_label}>
+      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label={labels.close_aria}></button>
       <div className="dashboard-modal__body">
         <div className="section-row">
-          <h2>{preset ? "Edit CV Version" : "Create CV Version"}</h2>
+          <h2>{preset ? labels.edit_title : labels.create_title}</h2>
           <button type="button" className="button button--ghost button--small" onClick={onClose}>
-            Close
+            {labels.close}
           </button>
         </div>
 
         <label>
-          CV Version title
-          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Frontend Engineer - Acme" />
+          {labels.title_label}
+          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={labels.title_placeholder} />
         </label>
 
         <label className="checkbox-row">
           <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
-          Allow indexing after publish
+          {labels.allow_indexing}
         </label>
 
         <label className="checkbox-row">
           <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
-          Mark as AI generated
+          {labels.ai_generated}
         </label>
 
         <div className="dashboard-preset-options">
@@ -277,7 +291,7 @@ function PresetModal({
             <section key={option.key} className="dashboard-preset-options__section">
               <h3>{option.label}</h3>
               {option.items.length === 0 ? (
-                <p className="card-lead">No items in master resume.</p>
+                <p className="card-lead">{labels.no_items}</p>
               ) : (
                 option.items.map((item, index) => {
                   const summaryChoiceEnabled = option.key !== "summary" || option.items.length > 1;
@@ -303,10 +317,10 @@ function PresetModal({
 
         <div className="actions-row">
           <button type="button" className="button button--primary" onClick={() => void handleSave()} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save CV Version"}
+            {isSaving ? labels.saving : labels.save}
           </button>
           <button type="button" className="button button--ghost" onClick={onClose}>
-            Cancel
+            {labels.cancel}
           </button>
         </div>
       </div>
@@ -331,6 +345,8 @@ export function PresetPreviewModal({
   onClose: () => void;
   inline?: boolean;
 }) {
+  const { locale, dictionary } = useAppI18n();
+  const labels = dictionary.dashboard.preview;
   const availableDocuments = useMemo(() => (documents.length ? documents : [masterResume]), [documents, masterResume]);
   const initialLocale = availableDocuments.some((document) => document.locale === preset.default_locale)
     ? preset.default_locale
@@ -347,8 +363,8 @@ export function PresetPreviewModal({
     [activeDocument.yaml_content, preset.selection],
   );
   const cvLanguages = useMemo(
-    () => buildLanguageOptions(availableDocuments, languages),
-    [availableDocuments, languages],
+    () => buildLanguageOptions(availableDocuments, languages, locale),
+    [availableDocuments, languages, locale],
   );
   const cvStyle = normalizeResumeStyle(activeDocument.style_settings);
 
@@ -357,14 +373,14 @@ export function PresetPreviewModal({
       className={inline ? "dashboard-library-preview" : "dashboard-modal"}
       role={inline ? undefined : "dialog"}
       aria-modal={inline ? undefined : true}
-      aria-label="CV Version CV preview"
+      aria-label={labels.aria_label}
     >
       {!inline ? (
         <button
           type="button"
           className="dashboard-modal__backdrop"
           onClick={onClose}
-          aria-label="Close CV preview"
+          aria-label={labels.close_aria}
         ></button>
       ) : null}
       <div
@@ -373,12 +389,12 @@ export function PresetPreviewModal({
         <div className="section-row">
           <h2>{preset.title}</h2>
           <button type="button" className="button button--ghost button--small" onClick={onClose}>
-            {inline ? "Open CV" : "Close"}
+            {inline ? labels.open_cv : labels.close}
           </button>
         </div>
         {inline ? (
           <p className="dashboard-library-preview__note">
-            Selected content from your current Master Resume. Published links and exports use the last publication.
+            {labels.note}
           </p>
         ) : null}
         {previewResult.status !== "ok" ? (
@@ -433,6 +449,8 @@ function PresetActionsMenu({
   onExportPdf: () => void;
   onDelete: () => void;
 }) {
+  const { dictionary } = useAppI18n();
+  const labels = dictionary.dashboard.actions;
   const menuRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -460,8 +478,8 @@ function PresetActionsMenu({
     <details className="dashboard-preset-menu" ref={menuRef}>
       <summary
         className="button button--ghost button--small button--icon"
-        aria-label={`CV Version settings for ${preset.title}`}
-        title="CV Version settings"
+        aria-label={formatAppMessage(labels.settings_aria, { title: preset.title })}
+        title={labels.settings_title}
       >
         <svg className="button__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="3" />
@@ -470,10 +488,10 @@ function PresetActionsMenu({
       </summary>
       <div className="dashboard-preset-menu__panel" role="menu">
         {!preset.onboarding_test_run_id ? <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onEdit)}>
-          Edit
+          {labels.edit}
         </button> : null}
         <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onTogglePublish)}>
-          {preset.is_public ? "Unpublish" : "Publish"}
+          {preset.is_public ? labels.unpublish : labels.publish}
         </button>
         <button type="button" role="menuitem" className="dashboard-preset-menu__item" onClick={() => select(onExportText)}>
           ATS (TXT)
@@ -486,10 +504,10 @@ function PresetActionsMenu({
           type="button"
           role="menuitem"
           className="dashboard-preset-menu__item dashboard-preset-menu__item--danger"
-          aria-label={`Delete CV Version ${preset.title}`}
+          aria-label={formatAppMessage(labels.delete_aria, { title: preset.title })}
           onClick={() => select(onDelete)}
         >
-          Delete
+          {labels.delete}
         </button>
       </div>
     </details>
@@ -504,6 +522,8 @@ export default function DashboardClient({
   draftPdfEnabled = true,
   dataTransferEnabled = true,
 }: Props) {
+  const { locale, dictionary } = useAppI18n();
+  const labels = dictionary.dashboard;
   const [presets, setPresets] = useState(initialPresets);
   const [options, setOptions] = useState<PresetOption[]>([]);
   const [modalDocument, setModalDocument] = useState<ResumeDocumentRow | null>(null);
@@ -535,29 +555,30 @@ export default function DashboardClient({
         const ready = Boolean(window.jsyaml);
         setYamlReady(ready);
         if (!ready) {
-          setDocumentError("The document reader could not load. Reload the page to try again.");
+          setDocumentError(labels.messages.reader_failed);
           return;
         }
         try {
           const parsed = asObject(window.jsyaml.load(masterResume.yaml_content));
+          setOptions(buildPresetOptionsFromDocument(parsed, labels.option_labels));
           setMasterSummary(summarizeMasterResume(normalizeResumeDocument(parsed, "")));
         } catch {
-          setDocumentError("Your Master Resume could not be read. Open the editor to review it.");
+          setDocumentError(labels.messages.master_read_failed);
         }
       }
       retries += 1;
     }, 100);
 
     return () => window.clearInterval(timer);
-  }, [masterResume]);
+  }, [labels.messages.master_read_failed, labels.messages.reader_failed, labels.option_labels, masterResume]);
 
   const hasMasterResume = Boolean(masterResume);
-  const latestMasterUpdate = masterResume ? new Date(masterResume.updated_at).toLocaleString() : "Not saved yet";
+  const latestMasterUpdate = masterResume ? new Date(masterResume.updated_at).toLocaleString(locale) : labels.messages.not_saved;
   const publishableLocales = (documents.length ? documents : masterResume ? [masterResume] : []).map((doc) => doc.locale);
   const publishedPresetCount = presets.filter((preset) => preset.is_public).length;
   const privatePresetCount = Math.max(0, presets.length - publishedPresetCount);
   const defaultLanguageVersion = languageVersions.find((language) => language.is_default) || null;
-  const localeSummary = formatCountLabel(languageVersions.length, "language version");
+  const localeSummary = formatAppMessage(labels.messages.language_versions, { count: languageVersions.length });
   const visiblePresets = filterDashboardPresets(presets, search, filter);
   const selectedPreset = getSelectedDashboardPreset(visiblePresets, selectedPresetId);
 
@@ -576,7 +597,7 @@ export default function DashboardClient({
       return;
     }
     try {
-      setOptions(buildPresetOptionsFromDocument(asObject(window.jsyaml.load(source.yaml_content))));
+      setOptions(buildPresetOptionsFromDocument(asObject(window.jsyaml.load(source.yaml_content)), labels.option_labels));
     } catch {
       showToast("Your Master Resume could not be read. Open the editor to review it.", "error");
       return;
@@ -605,7 +626,7 @@ export default function DashboardClient({
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
       showToast(
-        result.error || "CV Version save failed.",
+        result.error || labels.messages.save_failed,
         "error",
         result.docsUrl ? { href: result.docsUrl, label: "Learn more" } : undefined,
       );
@@ -615,7 +636,7 @@ export default function DashboardClient({
     setSelectedPresetId(result.preset.id);
     setSearch("");
     setFilter("all");
-    showToast("CV Version saved.");
+    showToast(labels.messages.saved);
     setIsModalOpen(false);
     setActivePreset(null);
   }
@@ -640,7 +661,7 @@ export default function DashboardClient({
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
       showToast(
-        result.error || "CV Version publish failed.",
+        result.error || labels.messages.publish_failed,
         "error",
         result.docsUrl ? { href: result.docsUrl, label: "Learn more" } : undefined,
       );
@@ -651,7 +672,7 @@ export default function DashboardClient({
     setSearch("");
     setFilter("all");
     setPublishDraft(null);
-    showToast("CV Version published.");
+    showToast(labels.messages.published);
   }
 
   async function unpublishPreset(preset: ResumePresetRow) {
@@ -660,14 +681,14 @@ export default function DashboardClient({
     });
     const result = (await response.json()) as PresetApiResponse;
     if (!response.ok || result.error || !result.preset) {
-      showToast(result.error || "CV Version unpublish failed.", "error");
+      showToast(result.error || labels.messages.unpublish_failed, "error");
       return;
     }
     setPresets((current) => mergePreset(current, result.preset!));
     setSelectedPresetId(result.preset.id);
     setSearch("");
     setFilter("all");
-    showToast("CV Version unpublished.");
+    showToast(labels.messages.unpublished);
   }
 
   async function deletePreset(preset: ResumePresetRow) {
@@ -679,53 +700,53 @@ export default function DashboardClient({
     setDeletingPresetId(null);
 
     if (!response.ok || result.error) {
-      showToast(result.error || "CV Version delete failed.", "error");
+      showToast(result.error || labels.messages.delete_failed, "error");
       return;
     }
 
     setPresets((current) => current.filter((item) => item.id !== preset.id));
     setPreviewPreset((current) => (current?.id === preset.id ? null : current));
     setActivePreset((current) => (current?.id === preset.id ? null : current));
-    showToast("CV Version deleted.", "error");
+    showToast(labels.messages.deleted, "error");
   }
 
   function copyPublicLink(preset: ResumePresetRow) {
     if (!preset.canonical_public_path) {
-      showToast("Publish this CV Version first.", "warning");
+      showToast(labels.messages.publish_first, "warning");
       return;
     }
     const url = `${window.location.origin}${preset.canonical_public_path}`;
     navigator.clipboard.writeText(url).then(
-      () => showToast("Public link copied to clipboard."),
-      () => showToast("Could not copy to clipboard.", "error"),
+      () => showToast(labels.messages.link_copied),
+      () => showToast(labels.messages.copy_failed, "error"),
     );
   }
 
   function exportText(preset: ResumePresetRow) {
     const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
     if (!exportUrls) {
-      showToast("Publish this CV Version before exporting a snapshot.", "warning");
+      showToast(labels.messages.publish_before_text, "warning");
       return;
     }
 
     window.open(exportUrls.textUrl, "_blank");
-    showToast("Preparing published text export...");
+    showToast(labels.messages.preparing_text);
   }
 
   function exportPdf(preset: ResumePresetRow) {
     const exportUrls = buildPublishedResumeExportUrls(preset.canonical_public_path, preset.default_locale);
     if (!exportUrls) {
-      showToast("Publish this CV Version before exporting a snapshot PDF.", "warning");
+      showToast(labels.messages.publish_before_pdf, "warning");
       return;
     }
 
     window.open(exportUrls.pdfUrl, "_blank");
-    showToast("Preparing published PDF export...");
+    showToast(labels.messages.preparing_pdf);
   }
 
   function exportUserData() {
     window.open("/api/resume/transfer/export", "_blank");
-    showToast("Preparing data export...");
+    showToast(labels.messages.preparing_data);
   }
 
   async function handleImportFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -747,13 +768,13 @@ export default function DashboardClient({
       });
       const result = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok || result.error) {
-        showToast(result.error || "Import failed.", "error");
+        showToast(result.error || labels.messages.import_failed, "error");
         return;
       }
-      showToast("Data imported. Reloading...");
+      showToast(labels.messages.import_success);
       window.location.reload();
     } catch {
-      showToast("Import failed.", "error");
+      showToast(labels.messages.import_failed, "error");
     } finally {
       setIsImporting(false);
       setPendingImport(null);
@@ -767,7 +788,7 @@ export default function DashboardClient({
     }
     const selectedLocales = Array.from(new Set(publishableLocales));
     if (selectedLocales.length === 0) {
-      showToast("No language versions available for publish.", "error");
+      showToast(labels.messages.no_languages, "error");
       return;
     }
     const defaultLocale = selectedLocales.includes(preset.default_locale) ? preset.default_locale : selectedLocales[0];
@@ -784,17 +805,17 @@ export default function DashboardClient({
       <StatusToast toast={toast} onClose={closeToast} />
       <header className="dashboard-workspace__heading">
         <div>
-          <h1>Dashboard</h1>
-          <p>Your experience in one place. A CV for every opportunity.</p>
+          <h1>{labels.main.title}</h1>
+          <p>{labels.main.subtitle}</p>
         </div>
         <button
           type="button"
           className="button button--primary"
           onClick={openCreatePreset}
           disabled={!hasMasterResume || !yamlReady}
-          title={!hasMasterResume ? "Create your master resume first." : undefined}
+          title={!hasMasterResume ? labels.main.create_master_first : undefined}
         >
-          <Plus size={16} aria-hidden="true" /> Create CV version
+          <Plus size={16} aria-hidden="true" /> {labels.main.create_version}
         </button>
       </header>
 
@@ -806,18 +827,18 @@ export default function DashboardClient({
             </span>
             <div>
               <h2 id="dashboard-master-title">
-                Master Resume{" "}
+                {labels.main.master_title}{" "}
                 <span className="dashboard-state">
-                  <LockKeyhole size={12} aria-hidden="true" /> Private
+                  <LockKeyhole size={12} aria-hidden="true" /> {labels.main.private}
                 </span>
               </h2>
-              <p>{hasMasterResume ? `Saved ${latestMasterUpdate}` : "Start your career story here."}</p>
+              <p>{hasMasterResume ? formatAppMessage(labels.main.saved, { date: latestMasterUpdate }) : labels.main.start_story}</p>
             </div>
           </div>
-          <p>All your experience. One source for your tailored CVs.</p>
+          <p>{labels.main.master_description}</p>
           <div className="actions-row">
             <Link className="button button--primary" href="/master-resume">
-              Edit master resume
+              {labels.main.edit_master}
             </Link>
             {dataTransferEnabled ? (
               <>
@@ -826,17 +847,17 @@ export default function DashboardClient({
                   className="button button--ghost"
                   onClick={exportUserData}
                   disabled={!hasMasterResume}
-                  title={hasMasterResume ? "Download all your CV data as a single YAML file." : "Create your master resume first."}
+                  title={hasMasterResume ? labels.main.export_title : labels.main.create_master_first}
                 >
-                  Export
+                  {labels.main.export}
                 </button>
                 <button
                   type="button"
                   className="button button--ghost"
                   onClick={() => importFileInputRef.current?.click()}
-                  title="Restore CV data from a previously exported YAML file."
+                  title={labels.main.import_title}
                 >
-                  Import
+                  {labels.main.import}
                 </button>
                 <input
                   ref={importFileInputRef}
@@ -851,21 +872,24 @@ export default function DashboardClient({
         </div>
         <div className="dashboard-master__completion">
           <div>
-            <span>Master Resume completion</span>
+            <span>{labels.main.completion}</span>
             <strong>{masterSummary ? `${masterSummary.completion.percent}%` : hasMasterResume ? "—" : "0%"}</strong>
           </div>
           {masterSummary || !hasMasterResume ? (
-            <progress aria-label="Master Resume completion" max={100} value={masterSummary?.completion.percent ?? 0} />
+            <progress aria-label={labels.main.completion} max={100} value={masterSummary?.completion.percent ?? 0} />
           ) : (
-            <p>Reading your saved content…</p>
+            <p>{labels.main.reading}</p>
           )}
           <p>
             {masterSummary
-              ? `${Object.values(masterSummary.completion.statuses).filter((status) => status === "ok").length} of ${Object.keys(masterSummary.completion.statuses).length} sections have content.`
-              : "Add your details to build your Master Resume."}
+              ? formatAppMessage(labels.main.completion_summary, {
+                  done: Object.values(masterSummary.completion.statuses).filter((status) => status === "ok").length,
+                  total: Object.keys(masterSummary.completion.statuses).length,
+                })
+              : labels.main.add_details}
           </p>
           <Link href="/master-resume" className="dashboard-text-link">
-            {masterSummary?.completion.next ? "Continue editing" : "Review your content"}
+            {masterSummary?.completion.next ? labels.main.continue_editing : labels.main.review_content}
             <ArrowUpRight size={14} aria-hidden="true" />
           </Link>
         </div>
@@ -874,14 +898,14 @@ export default function DashboardClient({
             {documentError}
           </p>
         ) : null}
-        <dl className="dashboard-master__stats" aria-label="Master Resume content statistics">
+        <dl className="dashboard-master__stats" aria-label={labels.main.stats_aria}>
           {(
             [
-              ["Professional roles", masterSummary?.counts.roles, "Profile variants"],
-              ["Experience entries", masterSummary?.counts.experience, "Employment history"],
-              ["Skills", masterSummary?.counts.skills, "Available for your CVs"],
-              ["Courses", masterSummary?.counts.courses, "Courses and certificates"],
-              ["CV languages", languageVersions.length, localeSummary],
+              [labels.main.roles, masterSummary?.counts.roles, labels.main.roles_note],
+              [labels.main.experience, masterSummary?.counts.experience, labels.main.experience_note],
+              [labels.main.skills, masterSummary?.counts.skills, labels.main.skills_note],
+              [labels.main.courses, masterSummary?.counts.courses, labels.main.courses_note],
+              [labels.main.cv_languages, languageVersions.length, localeSummary],
             ] as const
           ).map(([label, count, note]) => (
             <div key={label}>
@@ -893,35 +917,34 @@ export default function DashboardClient({
         </dl>
         {masterResume ? (
           <p className="dashboard-master__stats-note">
-            Content counts: {masterResume.locale.toUpperCase()} Master Resume. Translations are counted separately under
-            CV languages.
+            {formatAppMessage(labels.main.stats_note, { locale: masterResume.locale.toUpperCase() })}
           </p>
         ) : null}
       </section>
 
       <section aria-labelledby="dashboard-library-title">
         <div className="dashboard-library-heading">
-          <h2 id="dashboard-library-title">Your CVs</h2>
+          <h2 id="dashboard-library-title">{labels.library.title}</h2>
           <p>
-            <strong>{presets.length}</strong> versions <span>·</span> <strong>{publishedPresetCount}</strong> public{" "}
-            <span>·</span> <strong>{privatePresetCount}</strong> private
+            <strong>{presets.length}</strong> {labels.library.versions} <span>·</span> <strong>{publishedPresetCount}</strong> {labels.library.public}{" "}
+            <span>·</span> <strong>{privatePresetCount}</strong> {labels.library.private}
           </p>
         </div>
         {presets.length === 0 ? (
           <div className="dashboard-empty-state">
-            <h3>{hasMasterResume ? "No CV versions yet" : "Start with your master resume"}</h3>
+            <h3>{hasMasterResume ? labels.library.no_versions : labels.library.start_master}</h3>
             <p>
               {hasMasterResume
-                ? "Choose content from your Master Resume to create your first tailored CV."
-                : "Add your experience, then create a version to share."}
+                ? labels.library.empty_with_master
+                : labels.library.empty_without_master}
             </p>
             {hasMasterResume ? (
               <button type="button" className="button button--primary" onClick={openCreatePreset} disabled={!yamlReady}>
-                Create CV version
+                {labels.main.create_version}
               </button>
             ) : (
               <Link className="button button--primary" href="/master-resume">
-                Edit master resume
+                {labels.main.edit_master}
               </Link>
             )}
           </div>
@@ -933,18 +956,18 @@ export default function DashboardClient({
                   <Search size={16} aria-hidden="true" />
                   <input
                     type="search"
-                    aria-label="Search CV versions"
-                    placeholder="Search CV versions…"
+                    aria-label={labels.library.search_aria}
+                    placeholder={labels.library.search_placeholder}
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                   />
                 </label>
-                <div className="dashboard-filter" role="group" aria-label="Filter CV versions">
+                <div className="dashboard-filter" role="group" aria-label={labels.library.filter_aria}>
                   {(
                     [
-                      ["all", "All"],
-                      ["public", "Public"],
-                      ["private", "Private"],
+                      ["all", labels.library.filter_all],
+                      ["public", labels.library.filter_public],
+                      ["private", labels.library.filter_private],
                     ] as const
                   ).map(([value, label]) => (
                     <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>
@@ -954,7 +977,7 @@ export default function DashboardClient({
                 </div>
               </div>
               {visiblePresets.length ? (
-                <ul className="dashboard-library-items" aria-label="Saved CV versions">
+                <ul className="dashboard-library-items" aria-label={labels.library.saved_aria}>
                   {visiblePresets.map((preset) => (
                     <li key={preset.id}>
                       <button
@@ -968,15 +991,15 @@ export default function DashboardClient({
                         </span>
                         <span className="dashboard-library-item__content">
                           <strong>{preset.title}</strong>
-                          <small>Updated {new Date(preset.updated_at).toLocaleDateString()}</small>
+                          <small>{formatAppMessage(labels.library.updated, { date: new Date(preset.updated_at).toLocaleDateString(locale) })}</small>
                           <span className="dashboard-library-item__badges">
                             <span className={`dashboard-state${preset.is_public ? " dashboard-state--public" : ""}`}>
-                              {preset.is_public ? "Published" : "Private"}
+                              {preset.is_public ? labels.library.published : labels.library.private_state}
                             </span>
                             <span className="dashboard-state">{preset.default_locale.toUpperCase()}</span>
-                            {preset.onboarding_test_run_id ? <span className="dashboard-state">Test</span> : null}
+                            {preset.onboarding_test_run_id ? <span className="dashboard-state">{labels.library.test}</span> : null}
                           </span>
-                          <small>{preset.allow_indexing ? "Indexable" : "Noindex"}</small>
+                          <small>{preset.allow_indexing ? labels.library.indexable : labels.library.noindex}</small>
                         </span>
                       </button>
                     </li>
@@ -984,7 +1007,7 @@ export default function DashboardClient({
                 </ul>
               ) : (
                 <div className="dashboard-library-empty">
-                  <p>No matching CVs.</p>
+                  <p>{labels.library.no_matches}</p>
                   <button
                     type="button"
                     className="button button--ghost"
@@ -993,7 +1016,7 @@ export default function DashboardClient({
                       setFilter("all");
                     }}
                   >
-                    Clear filters
+                    {labels.library.clear_filters}
                   </button>
                 </div>
               )}
@@ -1004,7 +1027,7 @@ export default function DashboardClient({
                   onClick={openCreatePreset}
                   disabled={!hasMasterResume || !yamlReady}
                 >
-                  <Plus size={15} aria-hidden="true" /> Create CV version
+                  <Plus size={15} aria-hidden="true" /> {labels.main.create_version}
                 </button>
               </div>
             </div>
@@ -1014,14 +1037,14 @@ export default function DashboardClient({
                   {/* ocv-0174: actions render above the preview, next to where
                       "Open CV" appears inside PresetPreviewModal below, instead
                       of after the full CV render where they needed scrolling. */}
-                  <section className="dashboard-next" aria-label="Next steps for selected CV">
+                  <section className="dashboard-next" aria-label={labels.library.next_aria}>
                     <div className="dashboard-next__heading">
                       <div>
-                        <h3>What can you do next?</h3>
+                        <h3>{labels.library.next_title}</h3>
                         <p>
                           {selectedPreset.is_public
-                            ? "Share the published CV, or review your selection before publishing it again."
-                            : "Review this version, then choose which languages to publish."}
+                            ? labels.library.next_published
+                            : labels.library.next_private}
                         </p>
                       </div>
                       <PresetActionsMenu
@@ -1045,8 +1068,8 @@ export default function DashboardClient({
                           <Check size={13} aria-hidden="true" />
                         </span>
                         <div>
-                          <strong>Choose content</strong>
-                          <small>Your saved selection</small>
+                          <strong>{labels.library.choose_content}</strong>
+                          <small>{labels.library.saved_selection}</small>
                         </div>
                       </li>
                       <li
@@ -1055,18 +1078,18 @@ export default function DashboardClient({
                       >
                         <span>{selectedPreset.is_public ? <Check size={13} aria-hidden="true" /> : "2"}</span>
                         <div>
-                          <strong>{selectedPreset.is_public ? "Published" : "Review and publish"}</strong>
+                          <strong>{selectedPreset.is_public ? labels.library.published : labels.library.review_publish}</strong>
                           <small>
                             {selectedPreset.is_public
-                              ? "A public link is available"
-                              : "Check the content and languages"}
+                              ? labels.library.public_link_available
+                              : labels.library.check_content_languages}
                           </small>
                         </div>
                       </li>
                     </ol>
                     <div className="dashboard-next__actions">
                       <p>
-                        <LockKeyhole size={13} aria-hidden="true" /> Your Master Resume stays private.
+                        <LockKeyhole size={13} aria-hidden="true" /> {labels.library.master_private}
                       </p>
                       <div className="actions-row">
                         {!selectedPreset.onboarding_test_run_id ? (
@@ -1076,7 +1099,7 @@ export default function DashboardClient({
                             disabled={!hasMasterResume || !yamlReady}
                             onClick={() => openPresetEditor(selectedPreset)}
                           >
-                            Edit selection
+                            {labels.library.edit_selection}
                           </button>
                         ) : null}
                         <button
@@ -1084,7 +1107,7 @@ export default function DashboardClient({
                           className={`button ${selectedPreset.is_public ? "button--ghost" : "button--primary"}`}
                           onClick={() => openPublishSavedVersion(selectedPreset)}
                         >
-                          {selectedPreset.is_public ? "Publish again" : "Publish"}
+                          {selectedPreset.is_public ? labels.library.publish_again : labels.library.publish}
                         </button>
                         {selectedPreset.is_public ? (
                           <button
@@ -1092,7 +1115,7 @@ export default function DashboardClient({
                             className="button button--primary"
                             onClick={() => copyPublicLink(selectedPreset)}
                           >
-                            Copy link
+                            {labels.library.copy_link}
                           </button>
                         ) : null}
                       </div>
@@ -1102,7 +1125,7 @@ export default function DashboardClient({
                     <div className="dashboard-test-preview">
                       <FileText size={40} aria-hidden="true" />
                       <h3>{selectedPreset.title}</h3>
-                      <p>This CV uses a separate onboarding test draft.</p>
+                      <p>{labels.library.test_draft}</p>
                       <Link
                         className="button button--primary"
                         href={
@@ -1112,7 +1135,7 @@ export default function DashboardClient({
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Open test CV
+                        {labels.library.open_test_cv}
                       </Link>
                     </div>
                   ) : masterResume && yamlReady ? (
@@ -1130,15 +1153,15 @@ export default function DashboardClient({
                     <p className="dashboard-library-empty">
                       {documentError ||
                         (masterResume
-                          ? "Loading CV preview…"
-                          : "Open your Master Resume to add content for this version.")}
+                          ? labels.library.loading_preview
+                          : labels.library.add_content)}
                     </p>
                   )}
                 </>
               ) : (
                 <div className="dashboard-library-empty">
-                  <h3>No CV selected</h3>
-                  <p>Choose a version from the library or clear the filters.</p>
+                  <h3>{labels.library.no_selected}</h3>
+                  <p>{labels.library.choose_version}</p>
                 </div>
               )}
             </div>
@@ -1147,22 +1170,22 @@ export default function DashboardClient({
       </section>
 
       {confirmDeletePreset ? (
-        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Delete CV Version confirmation">
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={labels.delete_modal.aria_label}>
           <button
             type="button"
             className="dashboard-modal__backdrop"
             onClick={() => setConfirmDeletePreset(null)}
-            aria-label="Cancel delete"
+            aria-label={labels.delete_modal.cancel_aria}
           ></button>
           <div className="dashboard-modal__body dashboard-modal__body--compact">
-            <h2 className="dashboard-modal__title">Delete CV Version</h2>
+            <h2 className="dashboard-modal__title">{labels.delete_modal.title}</h2>
             <p className="dashboard-modal__copy">
-              This permanently deletes <strong>{confirmDeletePreset.title}</strong>
-              {confirmDeletePreset.is_public ? " and takes its public link offline" : ""}. This cannot be undone.
+              {labels.delete_modal.before_title} <strong>{confirmDeletePreset.title}</strong>{" "}
+              {confirmDeletePreset.is_public ? labels.delete_modal.public_suffix : ""}. {labels.delete_modal.after_title}
             </p>
             <div className="dashboard-modal__footer">
               <button type="button" className="button" onClick={() => setConfirmDeletePreset(null)}>
-                Cancel
+                {labels.delete_modal.cancel}
               </button>
               <button
                 type="button"
@@ -1173,7 +1196,7 @@ export default function DashboardClient({
                   void deletePreset(preset).then(() => setConfirmDeletePreset(null));
                 }}
               >
-                {deletingPresetId === confirmDeletePreset.id ? "Deleting..." : "Delete"}
+                {deletingPresetId === confirmDeletePreset.id ? labels.delete_modal.deleting : labels.delete_modal.delete}
               </button>
             </div>
           </div>
@@ -1181,23 +1204,21 @@ export default function DashboardClient({
       ) : null}
 
       {pendingImport ? (
-        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Import data confirmation">
+        <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={labels.import_modal.aria_label}>
           <button
             type="button"
             className="dashboard-modal__backdrop"
             onClick={() => setPendingImport(null)}
-            aria-label="Cancel import"
+            aria-label={labels.import_modal.cancel_aria}
           ></button>
           <div className="dashboard-modal__body dashboard-modal__body--compact">
-            <h2 className="dashboard-modal__title">Import data</h2>
+            <h2 className="dashboard-modal__title">{labels.import_modal.title}</h2>
             <p className="dashboard-modal__copy">
-              Importing <strong>{pendingImport.fileName}</strong> overwrites your master resume documents and language
-              versions, and replaces all private CV versions. Published CV versions and their public links stay
-              untouched. This cannot be undone.
+              {labels.import_modal.before_file} <strong>{pendingImport.fileName}</strong> {labels.import_modal.explanation}
             </p>
             <div className="dashboard-modal__footer">
               <button type="button" className="button" onClick={() => setPendingImport(null)}>
-                Cancel
+                {labels.import_modal.cancel}
               </button>
               <button
                 type="button"
@@ -1205,7 +1226,7 @@ export default function DashboardClient({
                 disabled={isImporting}
                 onClick={() => void importUserData()}
               >
-                {isImporting ? "Importing..." : "Import and replace"}
+                {isImporting ? labels.import_modal.importing : labels.import_modal.action}
               </button>
             </div>
           </div>

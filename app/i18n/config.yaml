@@ -1,0 +1,17 @@
+default_locale: pl
+fallback_locale: en
+locales:
+  - code: pl
+    enabled: true
+    name: Polish
+    native_name: Polski
+    dictionary: locales/pl.yaml
+  - code: en
+    enabled: true
+    name: English
+    native_name: English
+    dictionary: locales/en.yaml
+geo:
+  country_locales:
+    PL: pl
+  known_country_fallback: en

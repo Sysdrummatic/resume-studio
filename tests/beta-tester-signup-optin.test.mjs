@@ -19,8 +19,8 @@ function read(filePath) {
 
 test("signup form renders the beta-tester opt-in checkbox above the policy checkbox", () => {
   const source = read(clientPath);
-  const betaIndex = source.indexOf("I&apos;m joining as a beta-tester");
-  const policyIndex = source.indexOf("I have read and accept the");
+  const betaIndex = source.indexOf("auth.signup.beta_tester");
+  const policyIndex = source.indexOf("auth.signup.consent_before_privacy");
 
   assert.equal(betaIndex >= 0, true);
   assert.equal(policyIndex >= 0, true);
@@ -33,7 +33,7 @@ test("beta opt-in checkbox is optional and unchecked by default", () => {
   assert.equal(source.includes("const [signupBetaOptIn, setSignupBetaOptIn] = useState(false)"), true);
   const checkboxBlock = source.slice(
     source.indexOf("checked={signupBetaOptIn}"),
-    source.indexOf("I&apos;m joining as a beta-tester"),
+    source.indexOf("auth.signup.beta_tester"),
   );
   assert.equal(checkboxBlock.includes("required"), false);
 });

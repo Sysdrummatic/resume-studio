@@ -13,10 +13,10 @@ test("header renders sign-up and sign-in actions for guests", () => {
   const source = readLayoutSource();
 
   assert.equal(source.includes('href: "/login?mode=signup"'), true);
-  assert.equal(source.includes('label: "Sign up"'), true);
+  assert.equal(source.includes("label: appI18n.dictionary.navigation.sign_up"), true);
   assert.equal(source.includes('emphasis: "primary" as const'), true);
   assert.equal(source.includes('href: "/login?mode=signin"'), true);
-  assert.equal(source.includes('label: "Sign in"'), true);
+  assert.equal(source.includes("label: appI18n.dictionary.navigation.sign_in"), true);
   assert.equal(source.includes('emphasis: "secondary" as const'), true);
   assert.equal(source.includes('{ href: "/login", label: "Login" }'), false);
 });
@@ -24,7 +24,7 @@ test("header renders sign-up and sign-in actions for guests", () => {
 test("header keeps guest auth actions separate from authenticated navigation items", () => {
   const source = readLayoutSource();
   const signUpIndex = source.indexOf('href: "/login?mode=signup"');
-  const sampleCvIndex = source.indexOf('{ href: "/resume", label: "Sample CV" }');
+  const sampleCvIndex = source.indexOf('{ href: "/resume", label: appI18n.dictionary.navigation.sample_cv }');
 
   assert.notEqual(signUpIndex, -1);
   assert.notEqual(sampleCvIndex, -1);

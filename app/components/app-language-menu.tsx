@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import type { FocusEvent } from "react";
+import { APP_LOCALE_COOKIE_MAX_AGE, APP_LOCALE_COOKIE_NAME } from "../i18n/locale";
+import { useAppI18n } from "./app-i18n-provider";
 
 const MENU_AUTO_CLOSE_DELAY_MS = 1000;
 const HEADER_MENU_OPEN_EVENT = "app-header-menu-open";
@@ -11,7 +13,13 @@ function announceHeaderMenuOpen(menuName: string) {
   document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
 }
 
+function persistAppLocale(locale: string) {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${APP_LOCALE_COOKIE_NAME}=${encodeURIComponent(locale)}; Path=/; Max-Age=${APP_LOCALE_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+}
+
 export default function AppLanguageMenu() {
+  const { locale, locales, dictionary } = useAppI18n();
   const menuRef = useRef<HTMLDetailsElement>(null);
   const closeTimerRef = useRef<number | null>(null);
 
@@ -70,6 +78,20 @@ export default function AppLanguageMenu() {
     scheduleMenuAutoClose();
   }
 
+  function selectLocale(nextLocale: string) {
+    if (nextLocale === locale) {
+      if (menuRef.current) {
+        menuRef.current.open = false;
+      }
+      return;
+    }
+
+    persistAppLocale(nextLocale);
+    window.location.reload();
+  }
+
+  const activeLocale = locales.find((option) => option.code === locale) || locales[0];
+
   return (
     <details
       className="app-language-menu"
@@ -84,9 +106,9 @@ export default function AppLanguageMenu() {
         }
       }}
     >
-      <summary aria-label="Application language">
-        <span className="app-language-menu__label">EN</span>
-        <span className="app-language-menu__value">English</span>
+      <summary aria-label={dictionary.language_menu.aria_label}>
+        <span className="app-language-menu__label">{activeLocale.code.toUpperCase()}</span>
+        <span className="app-language-menu__value">{activeLocale.nativeName}</span>
         <span className="app-language-menu__chevron" aria-hidden="true">
           <svg viewBox="0 0 12 12" focusable="false">
             <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -94,9 +116,20 @@ export default function AppLanguageMenu() {
         </span>
       </summary>
       <div className="app-language-menu__panel">
-        <button type="button" className="app-language-menu__option app-language-menu__option--active" aria-current="true">
-          English
-        </button>
+        {locales.map((option) => {
+          const isActive = option.code === locale;
+          return (
+            <button
+              key={option.code}
+              type="button"
+              className={`app-language-menu__option ${isActive ? "app-language-menu__option--active" : ""}`}
+              aria-current={isActive ? "true" : undefined}
+              onClick={() => selectLocale(option.code)}
+            >
+              {option.nativeName}
+            </button>
+          );
+        })}
       </div>
     </details>
   );

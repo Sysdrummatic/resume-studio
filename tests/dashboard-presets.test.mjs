@@ -13,9 +13,9 @@ test("dashboard separates master resume from preset configurations", () => {
 
   assert.equal(page.includes("fetchResumePresetsForUser"), true);
   assert.equal(page.includes("DashboardClient"), true);
-  assert.equal(client.includes("Master Resume"), true);
-  assert.equal(client.includes("Your CVs"), true);
-  assert.equal(client.includes("Create CV"), true);
+  assert.equal(client.includes("labels.main.master_title"), true);
+  assert.equal(client.includes("labels.library.title"), true);
+  assert.equal(client.includes("labels.main.create_version"), true);
   assert.equal(client.includes("PresetModal"), true);
 });
 
@@ -56,7 +56,7 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   const preview = read("app/master-resume/resume-live-preview.tsx");
   const page = read("app/dashboard/page.tsx");
 
-  assert.equal(client.includes("Open CV"), true);
+  assert.equal(client.includes("labels.open_cv"), true);
   assert.equal(client.includes("PresetPreviewModal"), true);
   assert.equal(client.includes("buildPresetResumeDocument"), true);
   assert.equal(client.includes("BasicResumeDocument"), true);
@@ -76,11 +76,11 @@ test("selected CV retains its settings menu and confirmed delete dialog", () => 
   const styles = read("app/globals.css");
 
   assert.equal(client.includes("PresetActionsMenu"), true);
-  assert.equal(client.includes("aria-label={`CV Version settings for ${preset.title}`}"), true);
-  assert.equal(client.includes("aria-label={`Delete CV Version ${preset.title}`}"), true);
-  assert.equal(client.includes('{preset.is_public ? "Unpublish" : "Publish"}'), true);
+  assert.equal(client.includes("formatAppMessage(labels.settings_aria, { title: preset.title })"), true);
+  assert.equal(client.includes("formatAppMessage(labels.delete_aria, { title: preset.title })"), true);
+  assert.equal(client.includes("preset.is_public ? labels.unpublish : labels.publish"), true);
   assert.equal(client.includes("dashboard-preset-menu__separator"), true);
-  assert.equal(client.includes("Delete CV Version confirmation"), true);
+  assert.equal(client.includes("labels.delete_modal.aria_label"), true);
   assert.equal(client.includes("dashboard-resume-list__secondary-actions"), false);
   assert.equal(styles.includes(".dashboard-preset-menu__panel"), true);
 });
@@ -96,8 +96,8 @@ test("dashboard exposes canonical link management only; editor shows only Publis
   assert.equal(client.includes("<dt>Compatibility</dt>"), false);
   assert.equal(client.includes("canonical_public_path"), true);
   assert.equal(client.includes("copyPublicLink"), true);
-  assert.equal(client.includes("Open CV"), true);
-  assert.equal(client.includes("Copy link"), true);
+  assert.equal(client.includes("labels.open_cv"), true);
+  assert.equal(client.includes("labels.library.copy_link"), true);
   assert.equal(client.includes("PublishSavedVersionModal"), true);
 
   assert.equal(editor.includes("Open public CV"), false);
@@ -122,7 +122,7 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   assert.equal(editor.includes("presetId="), false);
   assert.equal(userPage.includes("UserClient"), true);
   assert.equal(userClient.includes("Primary Resume"), false);
-  assert.equal(userClient.includes('aria-label="Resume preview"'), true);
+  assert.equal(userClient.includes('aria-label={userText("Resume preview")}'), true);
   assert.equal(userClient.includes("presetId="), false);
 });
 

@@ -31,7 +31,7 @@ test("personal hub mobile drawer applies dialog-style accessibility controls", (
   assert.equal(source.includes('if (event.key === "Escape")'), true);
   assert.equal(source.includes('if (event.key !== "Tab")'), true);
   assert.equal(source.includes("drawerTriggerElement?.focus();"), true);
-  assert.equal(source.includes('aria-label="Close personal hub panel"'), true);
+  assert.equal(source.includes('aria-label={userText("Close personal hub panel")}'), true);
 });
 
 test("personal hub mobile drawer geometry and fallback states are mobile-aware", () => {
@@ -47,7 +47,7 @@ test("personal hub mobile drawer geometry and fallback states are mobile-aware",
   assert.equal(source.includes("isPreviewUnavailable"), true);
   assert.equal(source.includes("Preview unavailable"), true);
   assert.equal(source.includes("Preview mode"), false);
-  assert.equal(source.includes('aria-label="Resume preview"'), true);
+  assert.equal(source.includes('aria-label={userText("Resume preview")}'), true);
 });
 
 test("personal hub shell consumes portal theme tokens instead of local dark-only utilities", () => {

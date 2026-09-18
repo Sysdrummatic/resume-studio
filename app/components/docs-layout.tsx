@@ -7,13 +7,15 @@ import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "./app-header-navigation";
 import WorkspaceBreadcrumbs from "./workspace-breadcrumbs";
 import type { DocNavGroup } from "../lib/docs/content";
 import type { DocHeading } from "../lib/docs/markdown";
-import { buildDocsTopics, docsCopy, docsHref, type DocsLanguage } from "../lib/docs/presentation";
+import { buildDocsTopics, docsHref } from "../lib/docs/presentation";
+import type { AppDictionary } from "../i18n/types";
 
 type Props = {
   groups: DocNavGroup[];
   activeHref: string;
   toc?: DocHeading[];
-  language?: DocsLanguage;
+  locale: string;
+  copy: AppDictionary["docs"];
   children: ReactNode;
 };
 const topicIcons = [FileText, Layers, Globe];
@@ -22,19 +24,19 @@ export default function DocsLayout({
   groups,
   activeHref,
   toc = [],
-  language = "en",
+  locale,
+  copy,
   children
 }: Props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement>(null);
-  const copy = docsCopy[language];
-  const topics = buildDocsTopics(groups, language);
+  const topics = buildDocsTopics(groups, copy);
   const activeGroup = groups.find((group) => group.items.some((item) => item.href === activeHref));
   const activeItem = activeGroup?.items.find((item) => item.href === activeHref);
   const parents = [
     { label: copy.home, href: "/" },
     ...(activeItem && activeGroup
-      ? [{ label: copy.title, href: docsHref("/docs", language) }, { label: copy[activeGroup.key] }]
+      ? [{ label: copy.title, href: docsHref("/docs") }, { label: activeGroup.key === "test-scenarios" ? copy.test_scenarios : copy.tutorials }]
       : [])
   ];
 
@@ -58,7 +60,7 @@ export default function DocsLayout({
   }, [isMenuOpen]);
 
   return (
-    <div className="docs-page editor-theme wide-shell-page" lang={language}>
+    <div className="docs-page editor-theme wide-shell-page" lang={locale}>
       <WorkspaceBreadcrumbs current={activeItem?.title || copy.title} parents={parents} />
       <div className={`docs-workspace${toc.length > 0 ? " docs-workspace--article" : ""}`}>
         <div className="docs-mobile-nav">
@@ -81,11 +83,11 @@ export default function DocsLayout({
           <div className="docs-sidebar__inner">
             <div className="docs-sidebar__title">
               <BookOpen size={18} aria-hidden="true" />
-              {copy.helpCenter}
+              {copy.help_center}
             </div>
             <nav className="docs-nav" aria-label={copy.title}>
               <Link
-                href={docsHref("/docs", language)}
+                href={docsHref("/docs")}
                 className={`docs-nav__link${activeHref === "/docs" ? " docs-nav__link--active" : ""}`}
                 aria-current={activeHref === "/docs" ? "page" : undefined}
                 onClick={() => setIsMenuOpen(false)}
@@ -114,11 +116,11 @@ export default function DocsLayout({
               ) : null}
               {groups.map((group) => (
                 <div key={group.key} className="docs-nav__group">
-                  <span className="docs-nav__label">{copy[group.key]}</span>
+                  <span className="docs-nav__label">{group.key === "test-scenarios" ? copy.test_scenarios : copy.tutorials}</span>
                   {group.items.map((item) => (
                     <Link
                       key={item.href}
-                      href={docsHref(item.href, language)}
+                      href={docsHref(item.href)}
                       className={`docs-nav__link${item.href === activeHref ? " docs-nav__link--active" : ""}`}
                       aria-current={item.href === activeHref ? "page" : undefined}
                       onClick={() => setIsMenuOpen(false)}
@@ -132,25 +134,7 @@ export default function DocsLayout({
             </nav>
             <div className="docs-sidebar__footer">
               <strong>{copy.development}</strong>
-              <p>{copy.developmentNote}</p>
-              <nav className="docs-language" aria-label={copy.language}>
-                <Link
-                  href={docsHref(activeHref, "en")}
-                  aria-current={language === "en" ? "true" : undefined}
-                  lang="en"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  English
-                </Link>
-                <Link
-                  href={docsHref(activeHref, "pl")}
-                  aria-current={language === "pl" ? "true" : undefined}
-                  lang="pl"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Polski
-                </Link>
-              </nav>
+              <p>{copy.development_note}</p>
             </div>
           </div>
         </aside>

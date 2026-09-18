@@ -4,6 +4,7 @@ import { createRequire, register } from "node:module";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import yaml from "js-yaml";
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { listDocNavGroups, getDoc } = await import("../app/lib/docs/content.ts");
 const { renderMarkdownWithOutline } = await import("../app/lib/docs/markdown.ts");
@@ -45,6 +46,8 @@ test(
     const server = createServer(async (req, res) => {
       const url = new URL(req.url, "http://localhost");
       if (url.pathname === "/fixture.json") {
+        const locale = url.searchParams.get("lang") === "pl" ? "pl" : "en";
+        const dictionary = yaml.load(await readFile(`app/i18n/locales/${locale}.yaml`, "utf8"));
         const groups = url.searchParams.has("empty")
           ? []
           : listDocNavGroups(url.searchParams.has("eligible"));
@@ -52,6 +55,8 @@ test(
         res.end(
           JSON.stringify({
             groups,
+            locale,
+            dictionary,
             ...renderMarkdownWithOutline(getDoc("tutorials", "publishing-your-first-cv").markdown)
           })
         );
@@ -106,17 +111,17 @@ test(
       assert.equal(await search.evaluate((el) => el === document.activeElement), true);
       await search.fill("NO MATCHING DOCUMENT");
       assert.equal(await page.locator(".docs-topic").count(), 0);
-      assert.match(await page.locator(".docs-empty").innerText(), /No topics found/);
+      assert.match(await page.locator(".docs-empty").innerText(), /No matching topic was found/);
       await page.getByRole("button", { name: "Clear search" }).click();
       assert.equal(await page.locator(".docs-topic").count(), 3);
       await search.fill("EXPERIENCE");
       assert.equal(await page.locator(".docs-topic").count(), 1);
       await page.getByRole("button", { name: "Clear search" }).click();
-      await page.getByRole("link", { name: "Polski", exact: true }).click();
+      await page.goto(`${base}/docs?lang=pl`);
       await page.getByRole("heading", { name: "Jak możemy Ci pomóc?" }).waitFor();
       await page.getByRole("searchbox").fill("JEZYKOWE");
       assert.equal(await page.locator(".docs-topic").count(), 1);
-      await page.getByRole("link", { name: "English", exact: true }).click();
+      await page.goto(`${base}/docs?lang=en`);
       await page.getByRole("heading", { name: "How can we help?" }).waitFor();
 
       await page.locator(".docs-topic").first().click();
@@ -179,7 +184,9 @@ test(
       assert.equal(await menu.evaluate((el) => el === document.activeElement), true);
       assert.notEqual(await menu.evaluate((el) => getComputedStyle(el).outlineStyle), "none");
       await menu.click();
-      await page.getByRole("link", { name: "Master Resume", exact: true }).click();
+      await page
+        .getByRole("link", { name: "Publishing your first CV", exact: true })
+        .click();
       await page.locator(".docs-article").waitFor();
       assert.equal(await page.locator(".docs-sidebar").isVisible(), false);
       await page.setViewportSize({ width: 1440, height: 1000 });

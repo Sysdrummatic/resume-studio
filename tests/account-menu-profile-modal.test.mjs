@@ -10,12 +10,12 @@ function read(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-test("profile modal renders overlay container with close button label Zamknij", () => {
+test("profile modal renders overlay container with a localized close label", () => {
   const source = read(componentPath);
 
   assert.equal(source.includes('className="profile-modal-overlay"'), true);
   assert.equal(source.includes("onClick={closeProfileModal}"), true);
-  assert.equal(source.includes("Zamknij"), true);
+  assert.equal(source.includes("{profileLabels.close}"), true);
   assert.equal(source.includes("<dialog"), false);
 });
 

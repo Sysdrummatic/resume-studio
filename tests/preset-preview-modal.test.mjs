@@ -30,6 +30,7 @@ const dependencies = {
   "next/link": ({ children, ...props }) => createElement("a", props, children),
   "./dashboard.css": {},
   "../lib/resume-schema": resumeSchema,
+  "../i18n/locale": { formatAppMessage: (template, values = {}) => template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? `{${key}}`)) },
   "../lib/preset-preview": presetPreview,
   // Mirrors ResumeLanguageSwitcher's actual observable contract (null for a
   // single language, one control per language otherwise) without importing
@@ -49,6 +50,23 @@ const dependencies = {
           ),
         ),
   "../lib/resume-export": { buildPublishedResumeExportUrls: () => null, parseCanonicalPublicPath: () => null },
+  "../components/app-i18n-provider": {
+    useAppI18n: () => ({
+      locale: "en",
+      dictionary: {
+        dashboard: {
+          preview: {
+            aria_label: "CV preview",
+            close_aria: "Close preview",
+            open_cv: "Open CV",
+            close: "Close",
+            note: "Preview",
+            render_error: "CV preview could not be rendered from the master resume.",
+          },
+        },
+      },
+    }),
+  },
   "../lib/resume-style": { normalizeResumeStyle: () => ({}) },
   "../components/status-toast": {
     StatusToast: () => null,

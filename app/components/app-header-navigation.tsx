@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { FocusEvent } from "react";
+import { useAppI18n } from "./app-i18n-provider";
 
 type NavItem = {
   href: string;
@@ -67,6 +68,7 @@ export default function AppHeaderNavigation({
   leadingAccessory = null,
   forceInlineItems = false,
 }: Props) {
+  const { dictionary } = useAppI18n();
   const menuRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(true);
@@ -161,7 +163,7 @@ export default function AppHeaderNavigation({
       {leadingAccessory ? <div className="app-header__leading">{leadingAccessory}</div> : null}
 
       {!shouldUseCompactMenu && items.length > 0 && (
-        <nav className={`app-nav ${forceInlineItems ? "app-nav--actions" : ""}`} aria-label="Primary">
+        <nav className={`app-nav ${forceInlineItems ? "app-nav--actions" : ""}`} aria-label={dictionary.navigation.primary_aria}>
           {items.map((item) => renderNavItem(item))}
         </nav>
       )}
@@ -180,7 +182,7 @@ export default function AppHeaderNavigation({
             type="button"
             aria-expanded={isOpen}
             aria-controls="primary-mobile-menu"
-            aria-label="Open primary navigation"
+            aria-label={dictionary.navigation.open_primary_aria}
             onClick={() => {
               cancelMenuAutoClose();
               setIsOpen((current) => {
@@ -197,7 +199,7 @@ export default function AppHeaderNavigation({
             <span aria-hidden="true"></span>
           </button>
           {isOpen && (
-            <nav className="app-nav-menu__panel" id="primary-mobile-menu" aria-label="Primary">
+            <nav className="app-nav-menu__panel" id="primary-mobile-menu" aria-label={dictionary.navigation.primary_aria}>
               {items.map((item) => renderNavItem(item, () => setIsOpen(false)))}
             </nav>
           )}

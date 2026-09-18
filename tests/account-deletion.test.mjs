@@ -62,10 +62,8 @@ test("Profile modal gates the destructive delete behind a two-step, type-to-conf
   const handlerIndex = source.indexOf("async function handleDeleteAccount()");
   assert.notEqual(handlerIndex, -1);
 
-  const buttonIndex = source.indexOf("Usuń konto na zawsze");
-  const buttonSnippet = source.slice(buttonIndex - 400, buttonIndex + 100);
   assert.equal(
-    buttonSnippet.includes("deleteConfirmInput.trim().toLowerCase() !== email.toLowerCase()"),
+    source.includes("disabled={isDeleting || deleteConfirmInput.trim().toLowerCase() !== email.toLowerCase()}"),
     true,
     "Final delete button must stay disabled until the typed email matches the account email.",
   );

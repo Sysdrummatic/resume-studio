@@ -1,6 +1,7 @@
 import Link from "next/link";
+import type { AppDictionary } from "../i18n/types";
 
-export default function LandingPageFooter() {
+export default function LandingPageFooter({ labels }: { labels: AppDictionary["landing"]["footer"] }) {
   return (
     <footer className="lp-footer">
       <div className="lp-footer__in lp-container">
@@ -14,11 +15,11 @@ export default function LandingPageFooter() {
             <span>OpenCiVera</span>
           </div>
           <nav className="lp-footer__links">
-            <Link href="/resume">Sample resume</Link>
-            <Link href="/login">Platform</Link>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/terms">Terms of Service</Link>
-            <a href="mailto:contact@opencivera.com">Contact</a>
+            <Link href="/resume">{labels.sample_resume}</Link>
+            <Link href="/login">{labels.platform}</Link>
+            <Link href="/privacy">{labels.privacy_policy}</Link>
+            <Link href="/terms">{labels.terms}</Link>
+            <a href="mailto:contact@opencivera.com">{labels.contact}</a>
           </nav>
         </div>
         <p className="lp-footer__copy">© 2026 OpenCiVera</p>

@@ -72,8 +72,8 @@ test("GET route surfaces flags and excluded stats", () => {
 test("admin client renders flag checkboxes and excluded breakdown", () => {
   const source = read(clientPath);
 
-  assert.equal(source.includes("<th>Test user</th>"), true);
-  assert.equal(source.includes("<th>OCV Staff</th>"), true);
+  assert.equal(source.includes('<th>{text["Test user"]}</th>'), true);
+  assert.equal(source.includes('<th>{text["OCV Staff"]}</th>'), true);
   assert.equal(source.includes('handleFlagToggle(user.id, "isTestUser"'), true);
   assert.equal(source.includes('handleFlagToggle(user.id, "isOcvStaff"'), true);
   assert.equal(source.includes("excludedTestUsers"), true);
