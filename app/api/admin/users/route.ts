@@ -14,6 +14,7 @@ type UserOverview = {
   isOcvStaff: boolean;
   createdAt: string | null;
   updatedAt: string | null;
+  storageBytes: number;
 };
 
 export async function GET(): Promise<Response> {
@@ -33,6 +34,7 @@ export async function GET(): Promise<Response> {
       is_ocv_staff: boolean;
       created_at: string | null;
       updated_at: string | null;
+      storage_bytes: number;
     }>
   >({
     functionName: "get_staff_user_overview",
@@ -53,6 +55,7 @@ export async function GET(): Promise<Response> {
     isOcvStaff: row.is_ocv_staff,
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null,
+    storageBytes: row.storage_bytes || 0,
   }));
 
   if (!hasCapability(actorResult.actor.role, "admin.users.role_write")) {

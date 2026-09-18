@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { fetchResumePresetsForUser, normalizeResumePresetSelection, saveResumePreset, validateResumePresetSelection } from "../../../lib/resume-server";
-import { normalizeLocale } from "../../../lib/resume-schema";
+import { normalizeLocale, RESUME_LIMITS_DOC_URL } from "../../../lib/resume-schema";
+import { rateLimit } from "../../../lib/rate-limit";
 
 type PresetBody = {
   documentId?: string;
@@ -27,6 +28,14 @@ export async function POST(request: Request): Promise<Response> {
   const actorResult = await requireRequestActor({ anyCapability: "resume.preset.write_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
+  }
+
+  const rl = await rateLimit(`resume-preset-create:${actorResult.actor.userId}`, { interval: 60_000, limit: 20 });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "You've exceeded the maximum allowed save limit. Try again in a minute.", docsUrl: RESUME_LIMITS_DOC_URL },
+      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
+    );
   }
 
   let body: PresetBody;

@@ -39,6 +39,17 @@ const initial = {
   imported: false
 };
 
+test("QR codes has its own onboarding step, ahead of GDPR/review/publication", () => {
+  assert.equal(domain.ONBOARDING_SECTIONS[domain.ONBOARDING_SECTIONS.length - 1], "gdpr");
+  assert.equal(domain.ONBOARDING_SECTIONS.includes("qr-codes"), true);
+  assert.equal(domain.ONBOARDING_SECTIONS.indexOf("qr-codes"), domain.ONBOARDING_SECTIONS.indexOf("gdpr") - 1);
+  assert.equal(domain.ONBOARDING_REVIEW_STEP, domain.ONBOARDING_SECTIONS.length + 2);
+  assert.equal(domain.ONBOARDING_PUBLISH_STEP, domain.ONBOARDING_REVIEW_STEP + 1);
+  for (const step of [domain.ONBOARDING_REVIEW_STEP, domain.ONBOARDING_PUBLISH_STEP]) {
+    assert.equal(domain.parseOnboardingProgress({ ...initial, status: "paused", step })?.step, step);
+  }
+});
+
 test("only newly enrolled accounts start automatically; paused, active, completed and existing users do not", () => {
   assert.equal(domain.shouldStartOnboarding(initial), true);
   for (const state of [

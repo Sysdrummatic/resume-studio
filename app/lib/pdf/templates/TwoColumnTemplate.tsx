@@ -14,6 +14,7 @@ import { PdfSkills } from "../sections/PdfSkills";
 import { PdfTechStack } from "../sections/PdfTechStack";
 import { PdfLanguages } from "../sections/PdfLanguages";
 import { PdfInterests } from "../sections/PdfInterests";
+import { PdfQrCodes } from "../sections/PdfQrCodes";
 
 type TwoColumnTemplateProps = {
   resume: ResumeDocument;
@@ -74,6 +75,9 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
           ) : null}
           {resume.interests.length > 0 ? (
             <PdfInterests interests={resume.interests} title={labels.interests} theme={theme} />
+          ) : null}
+          {resume.qr_codes.length > 0 ? (
+            <PdfQrCodes qrCodes={resume.qr_codes} title={labels.qrCodes} theme={theme} />
           ) : null}
         </View>
       </View>

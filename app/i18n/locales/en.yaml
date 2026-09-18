@@ -643,6 +643,7 @@ admin:
     "Status": Status
     "Test user": Test user
     "OCV Staff": OpenCiVera staff
+    "Storage": Storage
     "Created": Created
     "Actions": Actions
     "Deactivate": Deactivate

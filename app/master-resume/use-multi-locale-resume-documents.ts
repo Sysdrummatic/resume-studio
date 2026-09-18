@@ -34,7 +34,7 @@ export type LocaleBuffer = {
 
 export type SaveAllResult = {
   succeeded: ResumeLocale[];
-  failed: Array<{ locale: ResumeLocale; message: string }>;
+  failed: Array<{ locale: ResumeLocale; message: string; docsUrl?: string }>;
 };
 
 type Actor = { userId: string; displayName: string; role: string };
@@ -42,10 +42,19 @@ type Actor = { userId: string; displayName: string; role: string };
 type ApiDocumentResponse = {
   ok?: boolean;
   error?: string;
+  docsUrl?: string;
   actor?: Actor;
   document?: ResumeDocumentRow;
   revisions?: ResumeRevisionItem[];
 };
+
+class ResumeSaveError extends Error {
+  docsUrl?: string;
+  constructor(message: string, docsUrl?: string) {
+    super(message);
+    this.docsUrl = docsUrl;
+  }
+}
 
 type ApiLanguagesResponse = { ok?: boolean; error?: string; languages?: ResumeLanguageMetadata[] };
 type ApiLanguagePostResponse = {
@@ -406,7 +415,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
           });
           const payload = (await response.json()) as ApiDocumentResponse;
           if (!response.ok || payload.error || !payload.document) {
-            throw new Error(`${code}: ${payload.error || "Save failed."}`);
+            throw new ResumeSaveError(`${code}: ${payload.error || "Save failed."}`, payload.docsUrl);
           }
           return { code, payload, snapshot };
         }),
@@ -414,7 +423,12 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
 
       outcomes.forEach((outcome, index) => {
         if (outcome.status === "fulfilled") result.succeeded.push(targets[index]);
-        else result.failed.push({ locale: targets[index], message: outcome.reason instanceof Error ? outcome.reason.message : "Save failed." });
+        else
+          result.failed.push({
+            locale: targets[index],
+            message: outcome.reason instanceof Error ? outcome.reason.message : "Save failed.",
+            docsUrl: outcome.reason instanceof ResumeSaveError ? outcome.reason.docsUrl : undefined,
+          });
       });
 
       setBuffers((prev) => {

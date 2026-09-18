@@ -24,9 +24,14 @@ content, not to a new application sidebar.
   saved style settings of the selected language. Selection is applied to raw YAML
   before normalization, using the existing per-locale clamping rules. The preview
   scrolls internally and uses the renderer's responsive layout on mobile.
-- Actions under the preview retain selection editing, publication, republication,
+- Actions above the preview retain selection editing, publication, republication,
   copying the canonical link, export and confirmed deletion. Export/import of
   account data remains in the Master Resume panel. Existing feature gates apply.
+- Creating a version uses the account's default-language Master Resume. Editing
+  an existing version uses its saved `document_id` and retains its `default_locale`,
+  even if the account's default language has changed. Selection indexes are never
+  reinterpreted against another document. If the source document is unavailable,
+  editing is blocked with a retry message instead of falling back to another language.
 - Published links and exports still use the last immutable publication snapshot;
   the inline preview is explicitly labeled as current selected content. Publication
   status does not claim that there are no unpublished edits.

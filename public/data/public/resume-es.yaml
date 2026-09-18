@@ -23,7 +23,7 @@ contact:
     link: https://arianaholt.dev
 qr_codes:
   - label: Sitio personal
-    image: images/qrs/qr.png
+    value: https://arianaholt.dev
     size: 130
 skills:
   - name: Descubrimiento de producto

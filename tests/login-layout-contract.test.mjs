@@ -63,3 +63,29 @@ test("signup requires accepting the privacy policy before account creation is en
   assert.match(client, /type="checkbox"\s*\n\s*checked={signupPolicyAccepted}/);
   assert.match(client, /disabled={isBusy \|\| !signupPolicyAccepted}/);
 });
+
+test("recovery-hash detection is race-proof against React Strict Mode's double-invoked mount effects", () => {
+  const client = readSource(loginClientPath);
+
+  // React 18 dev/Strict Mode re-runs mount effects with the closure from the
+  // *first* pass (recoveryToken still ""), so the mode-reset effect must not
+  // rely on that state alone - it re-fires setActiveMode(mode) after the hash
+  // effect already switched to "new-password", clobbering it back to signin.
+  // A ref read live on every invocation (not captured per-closure) closes the
+  // race; regression: clicking a valid recovery link in `npm run dev` landed
+  // on the plain sign-in form instead of the reset-password form.
+  assert.equal(client.includes("const recoveryHashDetected = useRef(false);"), true);
+  assert.match(client, /useEffect\(\(\) => \{\s*if \(!recoveryHashDetected\.current && !recoveryToken\) \{\s*setActiveMode\(mode\);/);
+  assert.equal(client.includes("recoveryHashDetected.current = true;"), true);
+});
+
+test("an expired or already-used recovery link surfaces an error instead of silently showing sign-in", () => {
+  const client = readSource(loginClientPath);
+
+  assert.equal(client.includes('if (hashParams.get("error")) {'), true);
+  assert.equal(client.includes('setActiveMode("reset");'), true);
+  assert.equal(
+    client.includes('hashParams.get("error_description") || "This password reset link is invalid or has expired. Request a new one below."'),
+    true,
+  );
+});

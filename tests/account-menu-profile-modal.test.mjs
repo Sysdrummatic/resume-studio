@@ -32,9 +32,14 @@ test("profile modal exposes editable first and last name fields", () => {
 test("profile modal styles center the modal and blur the background", () => {
   const styles = read(stylesPath);
 
-  assert.equal(styles.includes(".profile-modal-overlay"), true);
-  assert.equal(styles.includes("position: fixed;"), true);
-  assert.equal(styles.includes("inset: 0;"), true);
-  assert.equal(styles.includes("place-items: center;"), true);
-  assert.equal(styles.includes("backdrop-filter: blur("), true);
+  // Scoped to the .profile-modal-overlay rule itself — these four
+  // properties each appear elsewhere in globals.css too, so matching
+  // against the whole file would still pass if this specific rule lost
+  // centering/blur.
+  const rule = styles.match(/\.profile-modal-overlay\s*\{[^}]*\}/)?.[0] ?? "";
+  assert.notEqual(rule, "", "the .profile-modal-overlay rule must exist");
+  assert.equal(rule.includes("position: fixed;"), true);
+  assert.equal(rule.includes("inset: 0;"), true);
+  assert.equal(rule.includes("place-items: center;"), true);
+  assert.equal(rule.includes("backdrop-filter: blur("), true);
 });

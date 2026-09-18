@@ -16,6 +16,7 @@ type UserOverview = {
   isTestUser: boolean;
   isOcvStaff: boolean;
   createdAt: string | null;
+  storageBytes: number;
 };
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,10 @@ export default async function AdminPage() {
     isTestUser: profile.is_test_user,
     isOcvStaff: profile.is_ocv_staff,
     createdAt: profile.created_at || null,
+    // Storage per user isn't in this service-role profile fetch — it comes
+    // from get_staff_user_overview() via AdminUsersClient's mount-time
+    // refresh (same RPC as every other admin mutation reload).
+    storageBytes: 0,
   }));
 
   if (!hasCapability(actor.role, "admin.users.role_write")) {

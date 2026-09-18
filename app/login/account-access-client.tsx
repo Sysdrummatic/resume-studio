@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { useAppI18n } from "../components/app-i18n-provider";
 import { postJson } from "../lib/client-http";
@@ -98,19 +98,39 @@ export default function AccountAccessClient({ reason, verified, mode, restricted
       : null;
   const activeToast = toast || contextualToast;
 
+  // Guards the mode-reset effect below against React Strict Mode's dev-only
+  // double-invoke of mount effects: that replay re-runs this effect with the
+  // *stale* recoveryToken="" closure from the first pass, so a state flag
+  // isn't enough - it would still see !recoveryToken and clobber the
+  // "new-password" mode the hash effect just set back to `mode`. A ref is
+  // read live on every invocation instead of captured per-closure, so it
+  // stays true across the replay.
+  const recoveryHashDetected = useRef(false);
+
   useEffect(() => {
-    if (!recoveryToken) {
+    if (!recoveryHashDetected.current && !recoveryToken) {
       setActiveMode(mode);
     }
   }, [mode, recoveryToken]);
 
   useEffect(() => {
     const hashParams = parseHashParams(window.location.hash);
-    if (hashParams.get("type") === "recovery" && hashParams.get("access_token")) {
-      setRecoveryToken(hashParams.get("access_token")!);
+    const accessToken = hashParams.get("access_token");
+    if (hashParams.get("type") === "recovery" && accessToken) {
+      recoveryHashDetected.current = true;
+      setRecoveryToken(accessToken);
       setActiveMode("new-password");
       showToast(auth.contextual.set_new_password, "warning");
       // Clean hash from URL without reload
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      return;
+    }
+    if (hashParams.get("error")) {
+      setActiveMode("reset");
+      showToast(
+        hashParams.get("error_description") || "This password reset link is invalid or has expired. Request a new one below.",
+        "error",
+      );
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
   }, [auth.contextual.set_new_password, showToast]);

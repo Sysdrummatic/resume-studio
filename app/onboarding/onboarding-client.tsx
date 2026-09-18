@@ -5,6 +5,7 @@ import Link from "next/link";
 import AppBrand from "../components/app-brand";
 import { useAppI18n } from "../components/app-i18n-provider";
 import OnboardingProgress from "./onboarding-progress";
+import { buildPublishedResumeExportUrls } from "../lib/resume-export";
 import {
   ONBOARDING_PUBLISH_STEP,
   ONBOARDING_REVIEW_STEP,
@@ -37,7 +38,7 @@ export default function OnboardingClient(props: Props) {
   const { initialState, locale, resume } = props;
   const uiLanguage: "en" | "pl" = appLocale === "pl" ? "pl" : "en";
   const steps = dictionary.onboarding.steps;
-  const t = (text: string) => dictionary.onboarding.text[text] ?? text;
+  const t = (text: string, fallback?: string) => dictionary.onboarding.text[text] ?? fallback ?? text;
   const progressEndpoint = props.testRunId
     ? `/api/admin/onboarding-test/${props.testRunId}`
     : "/api/resume/onboarding";
@@ -358,17 +359,38 @@ export default function OnboardingClient(props: Props) {
                   >
                     {t("Open CV")}
                   </Link>
+                  {(() => {
+                    const exportUrls = buildPublishedResumeExportUrls(publicPath, locale);
+                    return exportUrls ? (
+                      <Link
+                        className="button button--ghost"
+                        href={exportUrls.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t("Download PDF", "Pobierz PDF")}
+                      </Link>
+                    ) : null;
+                  })()}
                 </div>
+                <p className="onboarding__hint">
+                  {t(
+                    "Copy link or Open CV send/show the live page. Download PDF opens a printable copy in a new tab.",
+                    "Kopiuj link i Otwórz CV dotyczą żywej strony. Pobierz PDF otwiera w nowej karcie wersję do wydruku."
+                  )}
+                </p>
               </>
             ) : null}
             <Link className="button button--primary" href="/dashboard">
               {t("Go to dashboard")}
             </Link>
-            {props.testRunId ? (
-              <Link className="button button--ghost" href="/settings">
-                {t("Testing settings")}
-              </Link>
-            ) : null}
+            <p className="onboarding__hint">
+              {t(
+                "Manage this and every future CV version — edit, publish, or delete — from your dashboard.",
+                "W dashboardzie zarządzasz tym i każdym kolejnym CV — edytujesz, publikujesz lub usuwasz."
+              )}
+            </p>
+            {props.testRunId ? <Link className="button button--ghost" href="/settings">{t("Testing settings", "Ustawienia testowania")}</Link> : null}
           </div>
         ) : (
           <footer className="onboarding__footer">

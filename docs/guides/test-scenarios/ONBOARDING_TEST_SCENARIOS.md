@@ -78,7 +78,7 @@ i `SZKIC TESTOWY` w opisie, aby łatwo odróżnić szkic od rzeczywistego Master
 | 9 | Kursy | Dodaj kurs lub pomiń |
 | 10 | Zainteresowania | Dodaj zainteresowanie lub pomiń |
 | 11 | Technologie | Dodaj technologię lub pomiń |
-| 12 | Kody QR | Dodaj obsługiwany wpis lub pomiń |
+| 12 | Kody QR | Dodaj wpis (tekst lub link) albo pomiń |
 | 13 | Klauzula RODO | Wpisz tekst testowy lub pomiń |
 | 14 | Podgląd CV | Sprawdź dane i odnośniki do sekcji |
 | 15 | Decyzja o utworzeniu CV z linkiem | Opublikuj albo zakończ bez publikacji |

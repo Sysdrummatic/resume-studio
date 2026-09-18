@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { APP_ROLES, type AppRole } from "../lib/auth-types";
 import { hasCapability, isNonStaffRole, isStaffRole } from "../lib/rbac";
@@ -16,7 +16,14 @@ type UserOverview = {
   isTestUser: boolean;
   isOcvStaff: boolean;
   createdAt: string | null;
+  storageBytes: number;
 };
+
+function formatStorageBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
 
 type PlatformStatsView = {
   totalUsers: number;
@@ -55,6 +62,14 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
   });
   const { toast, showToast, closeToast } = useStatusToast();
   const [busyUserId, setBusyUserId] = useState("");
+
+  // Initial SSR props don't include storage_bytes (that's computed by the
+  // get_staff_user_overview RPC, not the service-role profile fetch on the
+  // server page) - refresh once on mount to pick it up.
+  useEffect(() => {
+    loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function loadUsers() {
     const response = await fetch("/api/admin/users", { method: "GET" });
@@ -200,6 +215,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
               <th>{text.Status}</th>
               <th>{text["Test user"]}</th>
               <th>{text["OCV Staff"]}</th>
+              {text.Storage ? <th>{text.Storage}</th> : <th>Storage</th>}
               <th>{text.Created}</th>
               <th>{text.Actions}</th>
             </tr>
@@ -259,6 +275,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
                       onChange={(event) => handleFlagToggle(user.id, "isOcvStaff", event.target.checked)}
                     />
                   </td>
+                  <td>{formatStorageBytes(user.storageBytes)}</td>
                   <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString(locale) : "-"}</td>
                   <td>
                     <button

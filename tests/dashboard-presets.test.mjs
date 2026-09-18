@@ -126,6 +126,11 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   assert.equal(userClient.includes("presetId="), false);
 });
 
+// Rendered/behavioral coverage for the "empty language version" case (#187,
+// #203) lives in tests/preset-preview.test.mjs and
+// tests/preset-preview-modal.test.mjs — they execute buildPresetResumeDocument
+// and render PresetPreviewModal itself, rather than asserting on source text.
+
 test("CV version actions (Edit selection, Publish, settings menu) render above the CV preview", () => {
   // ocv-0174: these used to sit below the full inline CV render, which meant
   // scrolling past the whole CV to reach "Edit selection" or the settings

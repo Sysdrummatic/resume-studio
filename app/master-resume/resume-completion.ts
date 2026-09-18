@@ -1,4 +1,5 @@
 import type { ResumeDocument } from "../lib/resume-schema";
+import { buildQrMatrix } from "../lib/qr-code";
 
 export type SectionStatus = "ok" | "warn";
 
@@ -49,7 +50,9 @@ function isSectionComplete(id: string, resume: ResumeDocument): boolean {
     case "tech-stack":
       return resume.tech_stack.some(hasText);
     case "qr-codes":
-      return resume.qr_codes.some((item) => hasText(item.label));
+      // A QR that fails to generate (garbled/unsupported text) is not
+      // progress — the printed CV would carry a code that never renders.
+      return resume.qr_codes.some((item) => buildQrMatrix(item.value).status === "ok");
     default:
       // `publishing` holds document metadata, not CV content, so it is not scored.
       return false;

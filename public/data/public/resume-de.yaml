@@ -24,7 +24,7 @@ contact:
     link: https://arianaholt.dev
 qr_codes:
   - label: Persönliche Website
-    image: images/qrs/qr.png
+    value: https://arianaholt.dev
     size: 130
 skills:
   - name: Produktentdeckung

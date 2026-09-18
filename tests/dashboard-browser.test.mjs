@@ -299,6 +299,39 @@ test(
         );
         await page.setViewportSize({ width: 1440, height: 1100 });
       }
+      await page.goto(`${base}/?pl-default`);
+      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
+      await page.getByRole("button", { name: "Edit selection", exact: true }).click();
+      await edit.getByLabel("CV Version title", { exact: true }).fill("Renamed English CV");
+      await edit.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      await page.locator(".dashboard-library-item").filter({ hasText: "Renamed English CV" }).waitFor();
+      assert.deepEqual(requests.at(-1).body.selection, { ...fixture.presets[1].selection, summary: [1] });
+      assert.equal(requests.at(-1).body.documentId, "document-en", "Renaming retains the preset's source document");
+      assert.equal(requests.at(-1).body.defaultLocale, "en", "Renaming retains the preset's language");
+
+      let creationBody;
+      await page.route("**/api/resume/presets", (route) => {
+        creationBody = route.request().postDataJSON();
+        return route.fulfill({ json: { ok: true, preset: { ...fixture.presets[1], id: "created-pl", title: creationBody.title } } });
+      });
+      await page.getByRole("button", { name: "Create CV version", exact: true }).first().click();
+      await create.getByLabel("CV Version title", { exact: true }).fill("New Polish CV");
+      await create.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      await page.locator(".dashboard-library-item").filter({ hasText: "New Polish CV" }).waitFor();
+      assert.equal(creationBody.documentId, "document-pl");
+      assert.equal(creationBody.defaultLocale, "pl");
+      assert.deepEqual(creationBody.selection.summary, [0]);
+
+      await page.goto(`${base}/?pl-default&missing-source`);
+      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
+      const requestCount = requests.length;
+      await page.getByRole("button", { name: "Edit selection", exact: true }).click();
+      await page.getByText("The source document for this CV version is unavailable. Reload the page to try again.", { exact: true }).waitFor();
+      assert.equal(await edit.count(), 0, "Missing sources must not fall back to the account default");
+      assert.equal(requests.length, requestCount);
+
       await page.goto(`${base}/?restricted&empty`);
       await page.getByRole("heading", { name: "Start with your master resume" }).waitFor();
       assert.equal(await page.getByRole("button", { name: "Import", exact: true }).count(), 0);
@@ -344,6 +377,35 @@ test(
       await page.setViewportSize({ width: 390, height: 844 });
       await page.screenshot({ path: path.join(output, "editor-mobile.png"), fullPage: true });
       assert.equal(await breadcrumbs.isVisible(), true);
+      const progressWrites = [];
+      await page.route("**/api/resume/onboarding", (route) => {
+        const body = route.request().postDataJSON();
+        progressWrites.push(body);
+        return route.fulfill({ json: { state: { ...body, first_preset_id: null } } });
+      });
+      for (const polish of [false, true]) {
+        await page.setViewportSize(polish ? { width: 390, height: 844 } : { width: 1440, height: 1100 });
+        await page.goto(`${base}/?editor&onboarding=12${polish ? "&pl" : ""}`);
+        const clause = page.getByRole("button", { name: polish ? "Wstaw standardową angielską klauzulę" : "Use standard EN wording", exact: true });
+        await clause.waitFor();
+        assert.equal(await page.locator("#onboarding-title").innerText(), polish ? "Klauzula RODO" : "GDPR clause");
+        for (const theme of ["dark", "light"]) {
+          await page.evaluate((value) => document.documentElement.dataset.appTheme = value, theme);
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+          await page.screenshot({ path: path.join(output, `onboarding-${polish ? "pl-mobile" : "en-desktop"}-${theme}.png`), fullPage: true });
+        }
+        await clause.focus();
+        assert.equal(await clause.evaluate((element) => element === document.activeElement), true);
+        await page.getByRole("button", { name: polish ? "Dalej / pomiń" : "Continue / skip", exact: true }).click();
+        await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();
+        assert.equal(progressWrites.at(-1).step, 13);
+        await page.getByRole("button", { name: polish ? "Dalej" : "Continue", exact: true }).click();
+        await page.getByRole("heading", { name: polish ? "Zapiszesz swoje CV?" : "Ready to save your CV?", exact: true }).waitFor();
+        assert.equal(progressWrites.at(-1).step, 14);
+        await page.getByRole("button", { name: polish ? "Wstecz" : "Back", exact: true }).click();
+        await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();
+        assert.equal(progressWrites.at(-1).step, 13);
+      }
       assert.deepEqual(errors, []);
     } finally {
       await browser?.close();

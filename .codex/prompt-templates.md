@@ -11,7 +11,7 @@ small change. [AGENTS.md](../AGENTS.md) supplies the standing project rules.
 they matter for the task.
 
 **References:** Relevant feature guide, ADR or existing UI to match. Use the
-[code map](site-map-and-dependencies.md) and [guide index](../docs/guides/README.md)
+[code map](../docs/CODE-MAP.md) and [guide index](../docs/guides/README.md)
 to find current paths.
 
 **Acceptance criteria:** Observable success, error/retry behavior, applicable
@@ -20,7 +20,7 @@ roles, languages and screen sizes.
 **Delivery:** Local implementation, draft PR, or deployment to a named environment.
 Use the current [Git workflow](../docs/guides/development/git-workflow.md).
 
-**Validation:** Follow the [validation runbook](runbooks/testing-and-validation.md).
+**Validation:** Follow the [validation runbook](../docs/runbooks/testing-and-validation.md).
 For behavior changes, write a failing regression test first. Report actual results
 and any checks that remain unexecuted.
 

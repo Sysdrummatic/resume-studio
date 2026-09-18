@@ -1,7 +1,7 @@
 # First-use Master CV guide
 
 The `/onboarding` guide takes a newly registered account through a welcome,
-scratch/import choice, the eleven existing Master Resume sections, a preview,
+scratch/import choice, the eleven Master Resume sections, a preview,
 and an explicit choice to create a published CV. Both English and Polish guide
 copy are available; the document language is selected independently.
 

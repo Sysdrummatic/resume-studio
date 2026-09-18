@@ -24,8 +24,12 @@ test("canonical public route emits SEO/AEO metadata contract", () => {
   assert.equal(route.includes("buildPublicResumeJsonLd"), true);
   assert.equal(route.includes("mainEntityOfPage"), true);
   assert.equal(route.includes("allowIndexing ? ("), true);
-  assert.equal(route.includes("private"), false);
-  assert.equal(route.includes("draft"), false);
-  assert.equal(route.includes("admin"), false);
+  // The real property to guard is "never reads private Master CV data
+  // directly" — banning the words "private"/"draft"/"admin" outright is
+  // fragile, since "draft" is a legitimate domain term used elsewhere in
+  // this codebase (e.g. draftPdfEnabled) and a future unrelated addition
+  // could trip it for no security reason. Pin the actual bypass instead.
+  assert.equal(route.includes("fetchResumeDocumentsForUser"), false, "must never read the private Master CV documents table directly");
+  assert.equal(route.includes("useServiceRole"), false, "must rely on the snapshot resolver's own access control, not a service-role bypass");
 });
 

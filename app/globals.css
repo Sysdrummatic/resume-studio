@@ -1532,6 +1532,12 @@ a {
   line-height: 1.45;
 }
 
+.status-toast p a {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
 .status-toast--success {
   background: linear-gradient(var(--portal-success-bg), var(--portal-success-bg)), var(--portal-bg-elevated);
   border-color: var(--portal-success-border);
