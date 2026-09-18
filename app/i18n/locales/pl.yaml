@@ -811,7 +811,154 @@ settings:
     "Could not save. Reload settings and retry.": Nie udało się zapisać zmian. Odśwież ustawienia i spróbuj ponownie.
     "Go to dashboard": Przejdź do panelu
 legal:
-  english_only_notice: Ten dokument prawny jest obecnie dostępny wyłącznie w języku angielskim. Polskie tłumaczenie wymaga jeszcze weryfikacji prawnej.
+  privacy:
+    title: Polityka prywatności
+    description: Jak OpenCiVera zbiera, wykorzystuje i chroni dane konta oraz CV.
+    last_updated: "Ostatnia aktualizacja: 2026-07-24"
+    sections:
+      - title: 1. Kim jesteśmy
+        paragraphs:
+          - |
+            OpenCiVera („my”, „nas”, „nasz”) jest obsługiwana przez Łukasza Michtę. W sprawach dotyczących tej polityki lub danych osobowych skontaktuj się z nami pod adresem privacy@opencivera.com.
+      - title: 2. Jakie dane zbieramy
+        paragraphs: []
+        bullets:
+          - |
+            Dane konta: adres e-mail, zaszyfrowane hasło (obsługiwane przez naszego dostawcę uwierzytelniania), nazwa wyświetlana, zdjęcie profilowe (opcjonalnie) oraz rola konta.
+          - |
+            Treść CV: wszelkie informacje, które zdecydujesz się dodać do dokumentów CV, w tym imię i nazwisko, stanowisko, podsumowanie zawodowe, dane kontaktowe (e-mail, telefon, lokalizacja, LinkedIn, strona internetowa), umiejętności, technologie, języki, doświadczenie zawodowe, wykształcenie oraz kursy lub certyfikaty.
+          - |
+            Dane opublikowanego CV: migawki wybranych przez Ciebie wersji CV oraz metadane utworzonych przez Ciebie publicznych linków (status, wybrane języki, ustawienia widoczności).
+          - |
+            Dane dotyczące korzystania z usługi: zagregowane liczby wyświetleń publicznych linków do CV oraz administracyjne dzienniki audytowe używane do celów bezpieczeństwa (działania na koncie wraz z datą i czasem).
+          - |
+            Skanowanie bezpieczeństwa: zapisane treści CV są automatycznie sprawdzane pod kątem oznak złośliwego wstrzyknięcia skryptu; jeżeli treść zostanie oznaczona, do przeglądu przez personel zapisywany jest skrót dopasowanego fragmentu (nie jego treść) oraz identyfikator reguły.
+      - title: 3. Dlaczego przetwarzamy dane
+        paragraphs: []
+        bullets:
+          - |
+            Aby utworzyć i prowadzić konto oraz świadczyć usługę zarządzania i publikowania CV. Podstawa prawna: wykonanie umowy (art. 6 ust. 1 lit. b RODO).
+          - |
+            Aby na Twoje żądanie tworzyć i utrzymywać publiczne linki do CV. Podstawa prawna: wykonanie umowy.
+          - |
+            Aby utrzymywać bezpieczeństwo, zapobiegać nadużyciom i prowadzić administracyjne dzienniki audytowe. Podstawa prawna: prawnie uzasadniony interes (art. 6 ust. 1 lit. f RODO).
+          - Nie wykorzystujemy danych do celów reklamowych i nie sprzedajemy danych.
+      - title: 4. Komu udostępniamy dane
+        paragraphs:
+          - |
+            Do obsługi OpenCiVera korzystamy z następujących dostawców usług (podmiotów przetwarzających):
+        bullets:
+          - |
+            Supabase — baza danych, uwierzytelnianie i przechowywanie plików; usługi są hostowane w Unii Europejskiej (Frankfurt).
+          - |
+            Netlify, Inc. — hosting aplikacji. Netlify ma siedzibę w Stanach Zjednoczonych; do każdego transferu danych osobowych poza Europejski Obszar Gospodarczy stosuje się standardową umowę powierzenia przetwarzania danych Netlify oraz standardowe klauzule umowne.
+          - |
+            Resend — wiadomości transakcyjne (na przykład potwierdzenia usunięcia konta i wiadomości uwierzytelniające). Resend ma siedzibę w Stanach Zjednoczonych; do każdego transferu danych osobowych poza Europejski Obszar Gospodarczy stosuje się standardową umowę powierzenia przetwarzania danych Resend oraz standardowe klauzule umowne.
+        after:
+          - Nie udostępniamy treści CV żadnym innym podmiotom trzecim, chyba że zdecydujesz się udostępnić ją publicznie za pomocą utworzonego przez siebie publicznego linku.
+          - |
+            OpenCiVera jest obecnie projektem w wersji MVP, znajdującym się w fazie testów. Nie odpowiadamy za zmiany wprowadzane przez Supabase lub Netlify do ich własnych polityk prywatności, warunków lub praktyk dotyczących przetwarzania danych; aktualnych informacji szukaj w odpowiednich dokumentach tych dostawców.
+      - title: 5. Przechowywanie danych
+        paragraphs: []
+        bullets:
+          - Dopóki konto pozostaje aktywne, przechowujemy dane konta i CV tak długo, jak długo utrzymujesz konto.
+          - |
+            Jeżeli samodzielnie usuniesz konto za pomocą opcji „Usuń konto i wszystkie dane” w ustawieniach konta, Twoje dane osobowe zostaną usunięte niezwłocznie.
+          - |
+            Jeżeli poprosisz o usunięcie danych w inny sposób (na przykład dlatego, że nie masz już dostępu do konta), usuniemy dane osobowe w ciągu 30 dni od potwierdzenia żądania, z wyjątkiem sytuacji, gdy przechowywanie jest wymagane prawem lub niezbędne ze względów bezpieczeństwa (na przykład w przypadku administracyjnych dzienników audytowych).
+          - |
+            Zagregowane dane analityczne, które nie pozwalają na identyfikację (na przykład liczby wyświetleń linków), mogą być przechowywane dłużej w celu ulepszania produktu, zgodnie z naszą wewnętrzną polityką przechowywania danych.
+      - title: 6. Twoje prawa
+        paragraphs:
+          - |
+            Zgodnie z RODO masz prawo do:
+        bullets:
+          - dostępu do przechowywanych przez nas danych osobowych;
+          - żądania sprostowania nieprawidłowych danych;
+          - żądania usunięcia danych („prawo do bycia zapomnianym”);
+          - żądania ograniczenia przetwarzania;
+          - otrzymania kopii danych w przenośnym formacie;
+          - wniesienia sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie;
+          - |
+            wniesienia skargi do właściwego organu ochrony danych. W Polsce jest nim Prezes Urzędu Ochrony Danych Osobowych (UODO).
+        after:
+          - Aby skorzystać z któregokolwiek z tych praw, skontaktuj się z nami pod adresem privacy@opencivera.com. Odpowiemy w ciągu miesiąca, zgodnie z przepisami prawa.
+      - title: 7. Pliki cookie
+        paragraphs:
+          - Używamy wyłącznie plików cookie niezbędnych do uwierzytelniania i utrzymania zalogowania. Nie używamy zewnętrznych plików cookie reklamowych ani analitycznych, które wymagają zgody.
+      - title: 8. Międzynarodowe transfery danych
+        paragraphs:
+          - Dane konta i CV są przechowywane na terenie Europejskiego Obszaru Gospodarczego (UE, Frankfurt). Jeżeli dostawca usług znajduje się poza EOG, stosujemy odpowiednie zabezpieczenia, takie jak standardowe klauzule umowne.
+      - title: 9. Dzieci
+        paragraphs:
+          - OpenCiVera nie jest przeznaczona dla osób poniżej 16. roku życia i nie zbieramy świadomie danych osobowych dzieci.
+      - title: 10. Zmiany w tej polityce
+        paragraphs:
+          - Możemy od czasu do czasu aktualizować tę politykę. Data „Ostatnia aktualizacja” na początku dokumentu wskazuje najnowszą wersję. O istotnych zmianach poinformujemy e-mailem lub komunikatem w aplikacji.
+      - title: 11. Kontakt
+        paragraphs:
+          - "W sprawach dotyczących prywatności lub żądań związanych z danymi skontaktuj się z nami: privacy@opencivera.com"
+  terms:
+    title: Warunki korzystania
+    description: Warunki regulujące korzystanie z OpenCiVera.
+    last_updated: "Ostatnia aktualizacja: 2026-07-24"
+    sections:
+      - title: 1. O tych warunkach
+        paragraphs:
+          - |
+            Niniejsze Warunki korzystania („Warunki”) regulują dostęp do OpenCiVera i korzystanie z niej (dalej „Usługa”), obsługiwanej przez Łukasza Michtę („my”, „nas”, „nasz”). Tworząc konto lub korzystając z Usługi, akceptujesz te Warunki. Jeżeli ich nie akceptujesz, nie korzystaj z Usługi.
+      - title: 2. Usługa
+        paragraphs:
+          - |
+            OpenCiVera umożliwia tworzenie, zarządzanie i opcjonalne publikowanie treści CV pod stałym linkiem, nad którym masz kontrolę. Funkcje mogą być eksperymentalne, rozwijane lub z czasem zmieniane. Świadczymy Usługę z należytą starannością, ale nie gwarantujemy jej ciągłego działania, dostępności ani zachowania jakiejkolwiek konkretnej funkcji.
+      - title: 3. Uprawnienia i konta
+        paragraphs:
+          - Aby utworzyć konto, musisz mieć co najmniej 16 lat. Odpowiadasz za zachowanie poufności danych uwierzytelniających oraz za wszystkie działania wykonywane na Twoim koncie. Podczas tworzenia konta musisz podać prawidłowe informacje.
+      - title: 4. Twoje treści
+        paragraphs:
+          - |
+            Zachowujesz prawa do treści tworzonych lub przesyłanych do dokumentów CV („Twoje treści”). Korzystając z Usługi, udzielasz nam ograniczonej licencji na hostowanie, przechowywanie, przetwarzanie i wyświetlanie Twoich treści w zakresie niezbędnym do świadczenia Usługi.
+          - |
+            Jeżeli zdecydujesz się opublikować Twoje treści za pomocą publicznego linku, udzielasz nam licencji na publiczne udostępnianie tych treści pod utworzonym przez Ciebie linkiem tak długo, jak długo pozostaje on aktywny. Wyłącznie Ty odpowiadasz za decyzję, co opublikować, w tym za upewnienie się, że masz prawo umieścić w publikowanych treściach informacje osób trzecich (na przykład dane kontaktowe referencji).
+          - Możesz w dowolnym momencie wycofać publikację lub usunąć Twoje treści za pomocą funkcji dostępnych w Usłudze.
+      - title: 5. Dozwolone korzystanie
+        paragraphs:
+          - |
+            Zobowiązujesz się nie korzystać z Usługi w celu:
+        bullets:
+          - przesyłania lub publikowania treści niezgodnych z prawem, zniesławiających albo naruszających prawa osób trzecich;
+          - podszywania się pod osobę lub podmiot albo fałszywego przedstawiania swoich powiązań;
+          - prób uzyskania nieuprawnionego dostępu do innych kont lub infrastruktury Usługi;
+          - wykorzystywania Usługi do rozpowszechniania spamu lub złośliwego oprogramowania albo masowego pobierania lub gromadzenia danych z publicznych stron CV innych użytkowników.
+        after:
+          - Możemy zawiesić lub zamknąć konta naruszające te Warunki.
+      - title: 6. Marka OpenCiVera i format OpenCV
+        paragraphs:
+          - |
+            „OpenCiVera” i powiązane logo są naszymi znakami towarowymi i nie mogą być używane bez zezwolenia, z wyjątkiem sytuacji, gdy jest to konieczne do wskazania Usługi (na przykład w linku do opublikowanego CV). Te Warunki dotyczą wyłącznie korzystania z Usługi OpenCiVera; nie ograniczają korzystania z samej specyfikacji formatu danych OpenCV, która jest opisana i opublikowana oddzielnie.
+      - title: 7. Bezpłatne korzystanie i przyszłe zmiany
+        paragraphs:
+          - Usługa jest obecnie świadczona bezpłatnie. W przyszłości możemy wprowadzić płatne plany lub funkcje. Jeżeli to nastąpi, z odpowiednim wyprzedzeniem poinformujemy o każdej zmianie dotyczącej istniejącego konta, a dalsze korzystanie z nowej płatnej funkcji będzie opcjonalne, chyba że wyraźnie wskażemy inaczej.
+      - title: 8. Zakończenie korzystania
+        paragraphs:
+          - Możesz w dowolnym momencie przestać korzystać z Usługi i poprosić o usunięcie konta, zgodnie z naszą Polityką prywatności. Możemy zawiesić lub zakończyć Twój dostęp, jeżeli naruszysz te Warunki, albo zakończyć Usługę (lub jej funkcje), informując o tym w miarę możliwości z odpowiednim wyprzedzeniem.
+      - title: 9. Wyłączenia odpowiedzialności
+        paragraphs:
+          - |
+            Usługa jest udostępniana „w stanie, w jakim się znajduje” oraz „w miarę dostępności”, bez jakichkolwiek gwarancji, wyraźnych lub dorozumianych, w tym gwarancji przydatności handlowej, przydatności do określonego celu lub nienaruszania praw osób trzecich. Nie gwarantujemy, że Usługa będzie nieprzerwana, bezpieczna ani wolna od błędów.
+      - title: 10. Ograniczenie odpowiedzialności
+        paragraphs:
+          - |
+            W maksymalnym zakresie dozwolonym przez obowiązujące prawo Łukasz Michta nie ponosi odpowiedzialności za jakiekolwiek szkody pośrednie, przypadkowe, szczególne, wynikowe lub represyjne ani za utratę danych, przychodów lub zysków wynikającą z korzystania z Usługi lub niemożności korzystania z niej. Żadne postanowienie tych Warunków nie wyłącza ani nie ogranicza odpowiedzialności, której nie można wyłączyć lub ograniczyć na mocy obowiązującego prawa.
+      - title: 11. Prawo właściwe
+        paragraphs:
+          - Te Warunki podlegają prawu polskiemu. Niniejsze postanowienie nie narusza bezwzględnie obowiązujących praw konsumenta przysługujących Ci na mocy prawa państwa, w którym mieszkasz.
+      - title: 12. Zmiany w tych Warunkach
+        paragraphs:
+          - Możemy od czasu do czasu aktualizować te Warunki. Data „Ostatnia aktualizacja” powyżej wskazuje najnowszą wersję. O istotnych zmianach poinformujemy e-mailem lub komunikatem w aplikacji, zgodnie ze sposobem informowania o zmianach w Polityce prywatności.
+      - title: 13. Kontakt
+        paragraphs:
+          - "Pytania dotyczące tych Warunków można przesyłać na adres support@opencivera.com."
 docs:
   title: Dokumentacja
   home: Strona główna

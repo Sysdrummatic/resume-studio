@@ -4,6 +4,20 @@ export type AppLocaleOption = {
   nativeName: string;
 };
 
+export type LegalSection = {
+  title: string;
+  paragraphs: string[];
+  bullets?: string[];
+  after?: string[];
+};
+
+export type LegalDocument = {
+  title: string;
+  description: string;
+  last_updated: string;
+  sections: LegalSection[];
+};
+
 export type AppDictionary = {
   meta: { description: string };
   common: {
@@ -119,7 +133,10 @@ export type AppDictionary = {
   user: { text: Record<string, string> };
   onboarding: { steps: string[]; text: Record<string, string> };
   settings: { text: Record<string, string> };
-  legal: { english_only_notice: string };
+  legal: {
+    privacy: LegalDocument;
+    terms: LegalDocument;
+  };
   docs: {
     title: string;
     home: string;
