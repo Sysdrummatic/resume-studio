@@ -1,9 +1,10 @@
 import fs from "node:fs";
+import type { UserDataBundle } from "./user-data-transfer";
 import { fetchOnboardingTest, onboardingTestRpc } from "./onboarding-test-server";
 import path from "node:path";
 import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
-import { PREVIEW_LABELS, clampQrCodesInRawYaml, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument, singleDefaultSummaryInRawYaml } from "./resume-schema";
+import { PREVIEW_LABELS, clampQrCodesInRawYaml, fillMissingRequiredKeysInRawYaml, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument, singleDefaultSummaryInRawYaml } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
@@ -34,7 +35,12 @@ function parseRawResumeYaml(value: string): Record<string, unknown> {
 }
 
 function dumpLinkedResumeYaml(value: unknown): string {
-  return yaml.dump(ensureResumeEntryIds(value), { lineWidth: 120, noRefs: true, sortKeys: false, quotingType: '"' });
+  return yaml.dump(fillMissingRequiredKeysInRawYaml(ensureResumeEntryIds(value)), {
+    lineWidth: 120,
+    noRefs: true,
+    sortKeys: false,
+    quotingType: '"',
+  });
 }
 
 export class ResumeLanguageLinkageError extends Error {
@@ -1933,9 +1939,13 @@ async function prepareResumeLanguageYaml(
   userId: string,
   locale: ResumeLocale,
   yamlContent: string,
+  options: { asDefault?: boolean } = {},
 ): Promise<{ yamlContent: string; document: ResumeDocumentRow | null; defaultLocale: ResumeLocale }> {
   const locales = await fetchResumeUserLocalesForUser(userId, { accessToken });
-  const defaultLocale = locales.find((entry) => entry.is_default)?.code || locale;
+  // `asDefault`: the caller is about to make this locale the default (data
+  // import), so it is the canonical inventory and must not be reconciled
+  // against the outgoing default — that would blank its translated content.
+  const defaultLocale = options.asDefault ? locale : locales.find((entry) => entry.is_default)?.code || locale;
   const document = await fetchDocumentByLocale(accessToken, userId, locale);
   const candidateRaw = parseRawResumeYaml(yamlContent);
   const candidate = ensureResumeEntryIds(candidateRaw);
@@ -2076,10 +2086,13 @@ export async function saveResumeDraftDocument(
   payload: {
     yamlContent: string;
     title: string;
+    asDefault?: boolean;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
-  const prepared = await prepareResumeLanguageYaml(accessToken, userId, locale, payload.yamlContent);
+  const prepared = await prepareResumeLanguageYaml(accessToken, userId, locale, payload.yamlContent, {
+    asDefault: payload.asDefault,
+  });
   const preparedYamlContent = prepared.yamlContent;
   let document = prepared.document;
 
@@ -2130,6 +2143,86 @@ export async function saveResumeDraftDocument(
     document,
     revisions,
   };
+}
+
+export type ImportLanguagesAndDocumentsResult =
+  | { ok: true }
+  | { ok: false; status: number; error: string; linkageIssues?: ResumeLinkageIssue[] };
+
+/**
+ * Applies the languages and master documents of a data bundle (ADR 0018).
+ *
+ * The order is what makes it work with linked languages (ADR 0023): switching
+ * the default language requires that language's document to exist (it becomes
+ * the canonical inventory the others are reconciled to), and a document can only
+ * be saved against the current default. So the languages are registered without
+ * touching the default, the bundle's default-language document is saved as the
+ * canonical one, the default is switched, and only then are the other documents
+ * saved — now reconciled against the new default their IDs already match.
+ */
+export async function importLanguagesAndDocuments(
+  accessToken: string,
+  userId: string,
+  bundle: Pick<UserDataBundle, "languages" | "documents">,
+  onDocumentSaved?: (saved: { locale: ResumeLocale; documentId: string; yamlContent: string }) => Promise<void> | void,
+): Promise<ImportLanguagesAndDocumentsResult> {
+  for (const language of bundle.languages) {
+    const upserted = await upsertResumeUserLocale(
+      accessToken,
+      userId,
+      { code: language.code, label: language.label, shortLabel: language.short_label },
+      { setDefault: false },
+    );
+    if (!upserted) {
+      return { ok: false, status: 400, error: `Import failed while saving the "${language.code}" language version.` };
+    }
+  }
+
+  const defaultLocale = bundle.languages.find((language) => language.is_default)?.code ?? null;
+  const documents = [...bundle.documents].sort(
+    (left, right) => Number(right.locale === defaultLocale) - Number(left.locale === defaultLocale),
+  );
+  if (defaultLocale && !documents.some((document) => document.locale === defaultLocale)) {
+    const existing = await fetchDocumentByLocale(accessToken, userId, defaultLocale);
+    if (!existing) {
+      return { ok: false, status: 400, error: `Default language "${defaultLocale}" has no document in the import file.` };
+    }
+    if (!(await setDefaultResumeLocaleForUser(accessToken, userId, defaultLocale))) {
+      return { ok: false, status: 400, error: `Import failed while saving the "${defaultLocale}" language version.` };
+    }
+  }
+
+  for (const document of documents) {
+    const isDefault = document.locale === defaultLocale;
+    let saved: ResumeDocumentPayload | null;
+    try {
+      saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
+        yamlContent: document.yaml_content,
+        title: document.title,
+        asDefault: isDefault,
+      });
+    } catch (error) {
+      if (error instanceof ResumeLanguageLinkageError) {
+        return {
+          ok: false,
+          status: 409,
+          error: `Import failed because the "${document.locale}" language has invalid linked IDs.`,
+          linkageIssues: error.issues,
+        };
+      }
+      throw error;
+    }
+    if (!saved) {
+      return { ok: false, status: 500, error: `Import failed while saving the "${document.locale}" document.` };
+    }
+    await onDocumentSaved?.({ locale: document.locale, documentId: saved.document.id, yamlContent: document.yaml_content });
+
+    if (isDefault && !(await setDefaultResumeLocaleForUser(accessToken, userId, document.locale))) {
+      return { ok: false, status: 400, error: `Import failed while saving the "${document.locale}" language version.` };
+    }
+  }
+
+  return { ok: true };
 }
 
 export async function rollbackResumeDocument(

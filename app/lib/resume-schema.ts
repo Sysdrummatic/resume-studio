@@ -260,6 +260,28 @@ function countDefaultSummaries(items: unknown[]): number {
   return items.filter((item) => asBoolean(asObject(item).default)).length;
 }
 
+/**
+ * Adds every required key a stored document is missing (`[]` for lists, `""`
+ * for text), on a raw, still-parsed YAML object — every present field verbatim.
+ * The database validates the YAML text of every write with a `^key:` check, so
+ * a document saved before a key existed (e.g. `gdpr_clause`) is rejected the
+ * moment anything rewrites it, such as switching the default language. The name
+ * keys are left alone: a legacy `name:` is valid on its own. Returns `source`
+ * itself when nothing is missing.
+ */
+export function fillMissingRequiredKeysInRawYaml(source: Record<string, unknown>): Record<string, unknown> {
+  const missing = RESUME_REQUIRED_KEYS.filter(
+    (key) => key !== "first_name" && key !== "family_name" && !(key in source),
+  );
+  if (missing.length === 0) {
+    return source;
+  }
+  return {
+    ...source,
+    ...Object.fromEntries(missing.map((key) => [key, RESUME_ARRAY_KEYS.has(key) ? [] : ""])),
+  };
+}
+
 /** Shown by the YAML editor when a hand-edited document marks two summaries as default. */
 export const MULTIPLE_DEFAULT_SUMMARIES_ERROR =
   'Only one summary entry may have "default: true" — set the others to false.';

@@ -61,3 +61,10 @@ default-language document.
 - Private metadata normalization and public stripping:
   `app/lib/resume-schema.ts`, `app/lib/published-export.ts`
 - Behavioral contract tests: `tests/resume-language-linkage.test.mjs`
+- Data import (ADR 0018): `importLanguagesAndDocuments` in `app/lib/resume-server.ts`
+  registers the bundle's languages without changing the default, saves the
+  bundle's default-language document as the canonical one (`asDefault`), switches
+  the default, and only then saves the other documents. Switching the default
+  requires that language's document to exist, and a document is reconciled
+  against the current default, so any other order fails or blanks the imported
+  translation. Regression: `tests/import-default-language-switch.test.mjs`.

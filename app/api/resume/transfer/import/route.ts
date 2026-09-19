@@ -6,14 +6,12 @@ import {
   deleteResumePreset,
   fetchResumeDocumentsForUser,
   fetchResumePresetsForUser,
+  importLanguagesAndDocuments,
   importResumePresetVariant,
   normalizeResumePresetSelection,
-  saveResumeDraftDocument,
   saveResumePreset,
-  upsertResumeUserLocale,
   upgradeLegacyResumeYamlContent,
   validateResumePresetSelection,
-  ResumeLanguageLinkageError,
 } from "../../../../lib/resume-server";
 import { parseUserDataBundle } from "../../../../lib/user-data-transfer";
 import { callRpc } from "../../../../lib/supabase-http";
@@ -94,50 +92,19 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  for (const language of bundle.languages) {
-    const upserted = await upsertResumeUserLocale(
-      accessToken,
+  const imported = await importLanguagesAndDocuments(accessToken, userId, bundle, ({ locale, documentId, yamlContent }) =>
+    flagSuspiciousResumeContent(yamlContent, {
       userId,
-      { code: language.code, label: language.label, shortLabel: language.short_label },
-      { setDefault: language.is_default },
-    );
-    if (!upserted) {
-      return NextResponse.json(
-        { error: `Import failed while saving the "${language.code}" language version.` },
-        { status: 400 },
-      );
-    }
-  }
-
-  for (const document of bundle.documents) {
-    let saved;
-    try {
-      saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
-        yamlContent: document.yaml_content,
-        title: document.title,
-      });
-    } catch (error) {
-      if (error instanceof ResumeLanguageLinkageError) {
-        return NextResponse.json(
-          { error: `Import failed because the "${document.locale}" language has invalid linked IDs.`, linkageIssues: error.issues },
-          { status: 409 },
-        );
-      }
-      throw error;
-    }
-    if (!saved) {
-      return NextResponse.json(
-        { error: `Import failed while saving the "${document.locale}" document.` },
-        { status: 500 },
-      );
-    }
-
-    await flagSuspiciousResumeContent(document.yaml_content, {
-      userId,
-      documentId: saved.document.id,
-      locale: document.locale,
+      documentId,
+      locale,
       source: "resume_import_save",
-    });
+    }),
+  );
+  if (!imported.ok) {
+    return NextResponse.json(
+      { error: imported.error, ...(imported.linkageIssues ? { linkageIssues: imported.linkageIssues } : {}) },
+      { status: imported.status },
+    );
   }
 
   // Replace private CV versions; published ones keep their links and snapshots.
