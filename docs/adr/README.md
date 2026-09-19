@@ -25,3 +25,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0020: Test User Flag Gates Beta Docs Access](0020-test-user-flag-gates-beta-docs-access.md)
 - [ADR 0021: Admin Full Docs Visibility](0021-admin-full-docs-visibility.md)
 - [ADR 0022: Application Localization With YAML Dictionaries And Country Detection](0022-application-localization.md)
+- [ADR 0023: Linked Master Resume Language Entries](0023-multi-locale-entry-linkage.md)

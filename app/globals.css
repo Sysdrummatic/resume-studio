@@ -2799,6 +2799,80 @@ a {
   tab-size: 2;
 }
 
+.resume-editor-linkage-status {
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--ed-line);
+  border-radius: var(--ed-radius);
+  background: var(--ed-card);
+  color: var(--ed-t2);
+  padding: 12px 14px;
+  font-size: var(--font-size-sm);
+}
+
+.resume-editor-linkage-status[data-status="ok"] {
+  border-color: color-mix(in srgb, var(--portal-success-text) 45%, var(--ed-line));
+  background: color-mix(in srgb, var(--portal-success-bg) 70%, var(--ed-card));
+}
+
+.resume-editor-linkage-status[data-status="error"] {
+  border-color: color-mix(in srgb, var(--portal-danger-text) 45%, var(--ed-line));
+  background: color-mix(in srgb, var(--portal-danger-bg) 70%, var(--ed-card));
+}
+
+.resume-editor-linkage-status__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ed-t1);
+}
+
+.resume-editor-linkage-status__badge {
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--ed-t1);
+  background: var(--ed-raised);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.resume-editor-linkage-status[data-status="ok"] .resume-editor-linkage-status__badge {
+  color: var(--portal-success-text);
+}
+
+.resume-editor-linkage-status[data-status="error"] .resume-editor-linkage-status__badge {
+  color: var(--portal-danger-text);
+}
+
+.resume-editor-linkage-status p,
+.resume-editor-linkage-status small {
+  margin: 0;
+}
+
+.resume-editor-linkage-status__issues {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.resume-editor-linkage-status__id {
+  border-radius: 4px;
+  background: var(--ed-raised);
+  color: var(--ed-t1);
+  padding: 1px 4px;
+}
+
+.resume-editor-linkage-status__id--changed {
+  background: var(--portal-danger-bg);
+  color: var(--portal-danger-text);
+  text-decoration: underline wavy currentColor;
+  text-underline-offset: 3px;
+}
+
 /* Matches the workspace's own scroll pane, which starts at the same breakpoint. */
 @media (min-width: 761px) {
   .resume-editor-yaml {

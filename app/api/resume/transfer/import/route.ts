@@ -13,6 +13,7 @@ import {
   upsertResumeUserLocale,
   upgradeLegacyResumeYamlContent,
   validateResumePresetSelection,
+  ResumeLanguageLinkageError,
 } from "../../../../lib/resume-server";
 import { parseUserDataBundle } from "../../../../lib/user-data-transfer";
 import { callRpc } from "../../../../lib/supabase-http";
@@ -109,10 +110,21 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   for (const document of bundle.documents) {
-    const saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
-      yamlContent: document.yaml_content,
-      title: document.title,
-    });
+    let saved;
+    try {
+      saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
+        yamlContent: document.yaml_content,
+        title: document.title,
+      });
+    } catch (error) {
+      if (error instanceof ResumeLanguageLinkageError) {
+        return NextResponse.json(
+          { error: `Import failed because the "${document.locale}" language has invalid linked IDs.`, linkageIssues: error.issues },
+          { status: 409 },
+        );
+      }
+      throw error;
+    }
     if (!saved) {
       return NextResponse.json(
         { error: `Import failed while saving the "${document.locale}" document.` },
@@ -157,6 +169,7 @@ export async function POST(request: Request): Promise<Response> {
       isPublic: false,
       allowIndexing: version.allow_indexing,
       aiGenerated: version.ai_generated,
+      styleSettings: version.style_settings,
       defaultLocale,
     });
     if (!preset) {

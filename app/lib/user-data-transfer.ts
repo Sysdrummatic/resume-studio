@@ -33,6 +33,7 @@ export type UserDataBundleCvVersion = {
   default_locale: string;
   allow_indexing: boolean;
   ai_generated: boolean;
+  style_settings?: unknown;
   selection: unknown;
   variants: UserDataBundleCvVersionVariant[];
 };
@@ -189,6 +190,7 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
       ai_generated: row.ai_generated === true,
       selection: row.selection,
       variants,
+      ...(row.style_settings === undefined ? {} : { style_settings: row.style_settings }),
     });
   }
 

@@ -214,6 +214,13 @@ dashboard:
     title_placeholder: Frontend Developer — przykładowa firma
     allow_indexing: Zezwól wyszukiwarkom na indeksowanie po publikacji
     ai_generated: Oznacz jako treść wygenerowaną przez AI
+    style_aria: Wygląd wersji CV
+    template: Szablon
+    primary_color: Kolor główny
+    template_sample_two_column: Podstawowy dwukolumnowy
+    template_signal_grid: Signal Grid
+    template_atelier_noir: Atelier Noir
+    template_terminal_stack: Terminal Stack
     no_items: Brak pozycji w głównym CV.
     saving: Zapisywanie…
     save: Zapisz wersję CV
@@ -500,6 +507,23 @@ editor:
     "Human-friendly Editor": Edytor formularzowy
     "Form": Formularz
     "YAML Editor": Edytor YAML
+    "Language linkage status": Status zgodności języków
+    "OK": OK
+    "Needs attention": Wymaga uwagi
+    "Checking": Sprawdzanie
+    "Checking linked IDs...": Sprawdzanie powiązanych ID...
+    "All linked IDs match the default language.": Wszystkie powiązane ID są zgodne z językiem domyślnym.
+    "All IDs are stable in the saved default language.": Wszystkie ID są zgodne z zapisanym językiem domyślnym.
+    "Fix the following ID issues before saving:": "Przed zapisaniem popraw następujące problemy z ID:"
+    "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": ID są widoczne w YAML i nie można ich zmieniać. Wpisy można dodawać i usuwać tylko w języku domyślnym.
+    "Changed ID": Zmienione ID
+    "Missing ID": Brak ID
+    "Duplicate ID": Zduplikowane ID
+    "Missing linked entry": Brak powiązanego wpisu
+    "Unpaired entry": Niepowiązany wpis
+    "Default entry is not paired": Domyślny wpis nie jest sparowany
+    "Expected": Oczekiwano
+    "missing": brak
     "Save MasterCV": Zapisz główne CV
     "Resume section": Sekcja CV
     "Unsaved local draft from {time} found for this language version.": "Znaleziono lokalny szkic tej wersji językowej z godziny {time}."
@@ -518,6 +542,7 @@ editor:
     "Exit": Zakończ podgląd
     "Loading preview…": Ładowanie podglądu…
     "Template": Szablon
+    "Primary color": Kolor główny
     "Text size": Rozmiar tekstu
     "Density": Gęstość
     "Details": Szczegóły

@@ -86,6 +86,21 @@ export interface PdfTheme {
     pillPaddingY: number;
     pillPaddingX: number;
   };
+  header?: {
+    backgroundColor?: string;
+    textColor?: string;
+    roleColor?: string;
+    logoBackgroundColor?: string;
+    logoTextColor?: string;
+    logoBorderColor?: string;
+    logoBorderWidth?: number;
+    logoBorderRadius?: number;
+    bleed?: boolean;
+    paddingTop?: number;
+    paddingBottom?: number;
+    borderBottomColor?: string;
+    borderBottomWidth?: number;
+  };
 }
 
 /**

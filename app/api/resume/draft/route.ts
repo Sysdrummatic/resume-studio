@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { saveResumeDraftDocument, upgradeLegacyResumeYamlContent } from "../../../lib/resume-server";
+import { ResumeLanguageLinkageError, saveResumeDraftDocument, upgradeLegacyResumeYamlContent } from "../../../lib/resume-server";
 import { normalizeLocale, RESUME_LIMITS_DOC_URL, RESUME_YAML_MAX_BYTES } from "../../../lib/resume-schema";
 import { callRpc } from "../../../lib/supabase-http";
 import { flagSuspiciousResumeContent } from "../../../lib/content-safety-audit";
@@ -56,10 +56,18 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "YAML schema validation failed." }, { status: 400 });
   }
 
-  const payload = await saveResumeDraftDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
-    yamlContent,
-    title: String(body.title || "Master resume draft"),
-  });
+  let payload;
+  try {
+    payload = await saveResumeDraftDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
+      yamlContent,
+      title: String(body.title || "Master resume draft"),
+    });
+  } catch (error) {
+    if (error instanceof ResumeLanguageLinkageError) {
+      return NextResponse.json({ error: "Language entry IDs must match the default language.", linkageIssues: error.issues }, { status: 409 });
+    }
+    throw error;
+  }
 
   if (!payload) {
     return NextResponse.json({ error: "Draft save failed." }, { status: 500 });

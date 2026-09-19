@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { buildQrMatrix, buildQrGeometry } from "../../lib/qr-code";
 
 /** http(s) only — a QR encoding a mailto/tel/plain value gets a description, not a link. */
@@ -41,16 +42,22 @@ export default function QrCodeSvg({ value, size = 130, className }: Props) {
   );
 }
 
-/** The accessible text alternative for a QR's encoded value — a real link for
- * safe http(s) values, a plain description otherwise. */
-export function QrCodeAccessibleText({ value }: { value: string }) {
+/** Makes the QR itself the link for safe http(s) values (so it works when the CV
+ * is viewed on the device that would have to scan it); the URL is never painted.
+ * Other values (mailto:, plain text) stay non-clickable with an sr-only value. */
+export function QrCodeLink({ value, children }: { value: string; children: ReactNode }) {
   const safeLink = safeHttpHref(value);
   if (safeLink) {
     return (
-      <a href={safeLink} target="_blank" rel="noreferrer noopener" className="qr-card__link">
-        {value}
+      <a href={safeLink} target="_blank" rel="noreferrer noopener" aria-label={value} className="qr-card__link">
+        {children}
       </a>
     );
   }
-  return <span className="qr-card__value sr-only">{value}</span>;
+  return (
+    <>
+      {children}
+      <span className="qr-card__value sr-only">{value}</span>
+    </>
+  );
 }

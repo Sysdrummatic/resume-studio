@@ -214,6 +214,13 @@ dashboard:
     title_placeholder: Frontend Engineer — example company
     allow_indexing: Allow search engines to index the page after publication
     ai_generated: Mark as AI-generated content
+    style_aria: CV version appearance
+    template: Template
+    primary_color: Primary color
+    template_sample_two_column: Basic two-column
+    template_signal_grid: Signal Grid
+    template_atelier_noir: Atelier Noir
+    template_terminal_stack: Terminal Stack
     no_items: No items in the master resume.
     saving: Saving…
     save: Save CV version
@@ -499,6 +506,23 @@ editor:
     "Human-friendly Editor": Human-friendly editor
     "Form": Form
     "YAML Editor": YAML editor
+    "Language linkage status": Language linkage status
+    "OK": OK
+    "Needs attention": Needs attention
+    "Checking": Checking
+    "Checking linked IDs...": Checking linked IDs...
+    "All linked IDs match the default language.": All linked IDs match the default language.
+    "All IDs are stable in the saved default language.": All IDs are stable in the saved default language.
+    "Fix the following ID issues before saving:": Fix the following ID issues before saving.
+    "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.
+    "Changed ID": Changed ID
+    "Missing ID": Missing ID
+    "Duplicate ID": Duplicate ID
+    "Missing linked entry": Missing linked entry
+    "Unpaired entry": Unpaired entry
+    "Default entry is not paired": Default entry is not paired
+    "Expected": Expected
+    "missing": missing
     "Save MasterCV": Save master resume
     "Resume section": Resume section
     "Unsaved local draft from {time} found for this language version.": "An unsaved local draft from {time} was found for this language version."
@@ -517,6 +541,7 @@ editor:
     "Exit": Exit
     "Loading preview…": Loading preview…
     "Template": Template
+    "Primary color": Primary color
     "Text size": Text size
     "Density": Density
     "Details": Details

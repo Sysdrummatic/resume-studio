@@ -17,7 +17,7 @@ import PublishSavedVersionModal, { type PublishDraft } from "../components/Publi
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
 import { FileText, LockKeyhole, Plus, Search, Check, ArrowUpRight } from "lucide-react";
-import { normalizeResumeStyle } from "../lib/resume-style";
+import { normalizeResumeStyle, RESUME_TEMPLATE_PALETTES, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
 import { useAppI18n } from "../components/app-i18n-provider";
 import { formatAppMessage } from "../i18n/locale";
 import type { AppDictionary } from "../i18n/types";
@@ -74,6 +74,13 @@ const PRESET_OPTION_KEYS: PresetOptionKey[] = [
   "interests",
   "languages",
   "tech_stack",
+];
+
+const PRESET_TEMPLATE_OPTIONS: Array<{ value: ResumeVisualTemplate; labelKey: string }> = [
+  { value: "sample-two-column", labelKey: "template_sample_two_column" },
+  { value: "signal-grid", labelKey: "template_signal_grid" },
+  { value: "atelier-noir", labelKey: "template_atelier_noir" },
+  { value: "terminal-stack", labelKey: "template_terminal_stack" },
 ];
 
 type DashboardLabels = AppDictionary["dashboard"];
@@ -203,7 +210,7 @@ function PresetModal({
   preset: ResumePresetRow | null;
   options: PresetOption[];
   onClose: () => void;
-  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
+  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: ResumeStyleSettings; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
 }) {
   const { dictionary } = useAppI18n();
   const labels = dictionary.dashboard.preset_editor;
@@ -212,6 +219,9 @@ function PresetModal({
   const [aiGenerated, setAiGenerated] = useState(preset?.ai_generated || false);
   const [selection, setSelection] = useState<ResumePresetSelection>(
     normalizeSummarySelection(preset?.selection || createSelectionFromOptions(options, masterResume.yaml_content), options),
+  );
+  const [styleSettings, setStyleSettings] = useState<ResumeStyleSettings>(
+    normalizeResumeStyle(preset?.style_settings ?? masterResume.style_settings),
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -251,7 +261,7 @@ function PresetModal({
       // "Saving..." forever — the user's title/selection stay as entered so
       // they can retry without re-filling the form.
       const result = await saveOrReportError(
-        () => onSave({ presetId: preset?.id, title, selection: nextSelection, allowIndexing, aiGenerated }),
+        () => onSave({ presetId: preset?.id, title, selection: nextSelection, styleSettings, allowIndexing, aiGenerated }),
         "Could not save. Check your connection and try again.",
       );
       if (!result.ok) setError(result.error);
@@ -280,6 +290,39 @@ function PresetModal({
           <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
           {labels.allow_indexing}
         </label>
+
+        <div className="dashboard-preset-style" aria-label={labels.style_aria}>
+          <label>
+            {labels.template}
+            <select
+              value={styleSettings.template}
+              onChange={(event) => {
+                const template = event.target.value as ResumeVisualTemplate;
+                setStyleSettings({
+                  ...styleSettings,
+                  template,
+                  accentColor: RESUME_TEMPLATE_PALETTES[template].accent,
+                });
+              }}
+            >
+              {PRESET_TEMPLATE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{labels[option.labelKey]}</option>
+              ))}
+            </select>
+          </label>
+          <label className="dashboard-preset-style__color">
+            {labels.primary_color}
+            <span>
+              <input
+                type="color"
+                value={styleSettings.accentColor}
+                aria-label={labels.primary_color}
+                onChange={(event) => setStyleSettings({ ...styleSettings, accentColor: event.target.value })}
+              />
+              <code>{styleSettings.accentColor}</code>
+            </span>
+          </label>
+        </div>
 
         <label className="checkbox-row">
           <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
@@ -366,7 +409,7 @@ export function PresetPreviewModal({
     () => buildLanguageOptions(availableDocuments, languages, locale),
     [availableDocuments, languages, locale],
   );
-  const cvStyle = normalizeResumeStyle(activeDocument.style_settings);
+  const cvStyle = normalizeResumeStyle(preset.style_settings ?? activeDocument.style_settings);
 
   return (
     <div
@@ -608,7 +651,7 @@ export default function DashboardClient({
   }
 
 
-  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; allowIndexing: boolean; aiGenerated: boolean }) {
+  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: ResumeStyleSettings; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!modalDocument) return;
     const response = await fetch(payload.presetId ? `/api/resume/presets/${encodeURIComponent(payload.presetId)}` : "/api/resume/presets", {
       method: payload.presetId ? "PATCH" : "POST",
@@ -617,6 +660,7 @@ export default function DashboardClient({
         documentId: modalDocument.id,
         title: payload.title,
         selection: payload.selection,
+        styleSettings: payload.styleSettings,
         allowIndexing: payload.allowIndexing,
         aiGenerated: payload.aiGenerated,
         defaultLocale: activePreset?.default_locale || defaultLanguageVersion?.code || modalDocument.locale,

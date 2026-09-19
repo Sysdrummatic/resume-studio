@@ -31,6 +31,16 @@ test("resume presets are stored as lightweight selection config", () => {
   assert.equal(migration.includes("document_id uuid not null references public.resume_documents"), true);
 });
 
+test("saved version editor exposes independent template and primary color settings", () => {
+  const client = read("app/dashboard/dashboard-client.tsx");
+
+  assert.equal(client.includes("accentColor"), true);
+  assert.equal(client.includes('type="color"'), true);
+  assert.equal(client.includes("styleSettings"), true);
+  assert.equal(client.includes("preset?.style_settings"), true);
+  assert.equal(client.includes("cvStyle={cvStyle}"), true);
+});
+
 test("preset APIs expose create, update, publish and delete operations", () => {
   const listRoute = read("app/api/resume/presets/route.ts");
   const itemRoute = read("app/api/resume/presets/[presetId]/route.ts");

@@ -8,6 +8,7 @@ import {
   DENSITY_SCALE,
   TEXT_SIZE_SCALE,
   applyResumeStyleToTheme,
+  resumeStyleCssVariables,
   normalizeResumeStyle,
   resumeStyleDataAttributes,
 } from "../app/lib/resume-style.ts";
@@ -23,6 +24,8 @@ test("defaults reproduce the unstyled CV, hiding nothing the renderer draws", ()
   assert.equal(DEFAULT_RESUME_STYLE.sectionDividers, true);
   assert.equal(DEFAULT_RESUME_STYLE.headerPhoto, true);
   assert.equal(DEFAULT_RESUME_STYLE.liveLinkQr, true);
+  assert.equal(DEFAULT_RESUME_STYLE.template, "sample-two-column");
+  assert.equal(DEFAULT_RESUME_STYLE.accentColor, "#009c8a");
   assert.equal(TEXT_SIZE_SCALE[DEFAULT_RESUME_STYLE.textSize], 1);
   assert.equal(DENSITY_SCALE[DEFAULT_RESUME_STYLE.density], 1);
 });
@@ -33,6 +36,11 @@ test("normalizeResumeStyle never returns an unusable object", () => {
   assert.deepEqual(normalizeResumeStyle([]), DEFAULT_RESUME_STYLE);
   assert.equal(normalizeResumeStyle({ textSize: "enormous" }).textSize, "medium");
   assert.equal(normalizeResumeStyle({ density: 7 }).density, "normal");
+  assert.equal(normalizeResumeStyle({ template: "unknown" }).template, "sample-two-column");
+  assert.equal(normalizeResumeStyle({ template: "terminal-stack" }).template, "terminal-stack");
+  assert.equal(normalizeResumeStyle({ template: "terminal-stack" }).accentColor, "#00a3a3");
+  assert.equal(normalizeResumeStyle({ accentColor: "#ABCDEF" }).accentColor, "#abcdef");
+  assert.equal(normalizeResumeStyle({ accentColor: "not-a-color" }).accentColor, DEFAULT_RESUME_STYLE.accentColor);
   assert.equal(normalizeResumeStyle({ sectionDividers: "yes" }).sectionDividers, true);
   assert.equal(normalizeResumeStyle({ textSize: "large", liveLinkQr: false }).textSize, "large");
   assert.equal(normalizeResumeStyle({ liveLinkQr: false }).liveLinkQr, false);
@@ -43,6 +51,7 @@ test("data attributes drive the CSS variants", () => {
   assert.equal(attrs["data-cv-text-size"], "large");
   assert.equal(attrs["data-cv-live-qr"], "off");
   assert.equal(attrs["data-cv-dividers"], "on");
+  assert.equal(attrs["data-cv-template"], "sample-two-column");
 });
 
 test("web variants scale from *-base aliases, never from a restated literal", () => {
@@ -100,6 +109,39 @@ test("default settings return the theme untouched", () => {
   assert.equal(applyResumeStyleToTheme(cvBasicDotTheme, DEFAULT_RESUME_STYLE), cvBasicDotTheme);
 });
 
+test("the primary color is an independent, validated style setting", () => {
+  const style = normalizeResumeStyle({ template: "atelier-noir", accentColor: "#123456" });
+  const variables = resumeStyleCssVariables(style);
+
+  assert.equal(variables["--accent"], "#123456");
+  assert.equal(variables["--accent-dark"], "#0e2741");
+  assert.equal(variables["--accent-light"], "#e3e7eb");
+
+  const themed = applyResumeStyleToTheme(cvBasicDotTheme, style);
+  assert.equal(themed.colors.accent, "#123456");
+  assert.equal(themed.colors.accentDark, "#0e2741");
+  assert.equal(themed.colors.accentLight, "#e3e7eb");
+
+  const themedTemplate = applyResumeStyleToTheme(cvBasicDotTheme, {
+    ...DEFAULT_RESUME_STYLE,
+    template: "atelier-noir",
+    accentColor: "#123456",
+  });
+  assert.equal(themedTemplate.header?.borderBottomColor, "#123456");
+  assert.equal(themedTemplate.header?.logoTextColor, "#123456");
+});
+
+test("visual templates change PDF tokens without changing pagination geometry", () => {
+  const themed = applyResumeStyleToTheme(cvBasicDotTheme, { ...DEFAULT_RESUME_STYLE, template: "atelier-noir", accentColor: "#d7a24a" });
+
+  assert.equal(themed.id, "cv-atelier-noir");
+  assert.equal(themed.header?.backgroundColor, "#25232b");
+  assert.equal(themed.colors.accent, "#d7a24a");
+  assert.equal(themed.layout.pageMargin, cvBasicDotTheme.layout.pageMargin);
+  assert.equal(themed.layout.mainColumnFlex, cvBasicDotTheme.layout.mainColumnFlex);
+  assert.equal(themed.layout.sideColumnFlex, cvBasicDotTheme.layout.sideColumnFlex);
+});
+
 test("the renderer puts the style attributes on a descendant of the token root", () => {
   const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
 
@@ -122,6 +164,23 @@ test("style is persisted on the document and frozen into the snapshot", () => {
   // The snapshot carries its own copy, written once by the publish RPC.
   assert.match(server, /RESUME_PUBLISHED_CV_LOCALE_SELECT[\s\S]{0,240}style_settings/);
   assert.match(rpc, /coalesce\(d\.style_settings, '\{\}'::jsonb\)/);
+});
+
+test("saved CV versions carry their own style settings", () => {
+  const server = read("app/lib/resume-server.ts");
+  const presetRoute = read("app/api/resume/presets/route.ts");
+  const dashboard = read("app/dashboard/dashboard-client.tsx");
+  const migration = read("supabase/migrations/20260919000000_resume_preset_style_settings.sql");
+  const publishMigration = read("supabase/migrations/20260919010000_publish_preset_style_settings.sql");
+
+  assert.match(server, /RESUME_PRESET_SELECT\s*=\s*\n?\s*"[^"]*style_settings/);
+  assert.equal(server.includes("style_settings: normalizeResumeStyle(payload.styleSettings"), true);
+  assert.equal(presetRoute.includes("styleSettings?: unknown"), true);
+  assert.equal(presetRoute.includes("styleSettings: body.styleSettings"), true);
+  assert.equal(dashboard.includes("style_settings"), true);
+  assert.equal(migration.includes("alter table public.resume_presets"), true);
+  assert.equal(migration.includes("style_settings jsonb not null default '{}'::jsonb"), true);
+  assert.equal(publishMigration.includes("p.style_settings"), true);
 });
 
 test("published surfaces read the frozen style, not the editable document", () => {
