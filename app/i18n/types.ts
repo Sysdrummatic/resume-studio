@@ -138,6 +138,7 @@ export type AppDictionary = {
     terms: LegalDocument;
   };
   docs: {
+    workflow: Record<string, string>;
     title: string;
     home: string;
     help_center: string;
@@ -169,7 +170,7 @@ export type AppDictionary = {
     privacy_link: string;
     about: string;
     no_docs: string;
-    article_language: string;
+    article_fallback: string;
     footer: string;
     master: string;
     version: string;

@@ -18,15 +18,15 @@ export default async function DocsIndexPage() {
   const actor = await requireAuthenticatedActor();
   const { locale, dictionary } = await getRequestAppI18n();
   const showTestScenarios = await canViewTestScenarios(actor);
-  const overview = getOverviewDoc();
-  const groups = listDocNavGroups(showTestScenarios);
+  const overview = getOverviewDoc(locale);
+  const groups = listDocNavGroups(showTestScenarios, locale);
 
   return (
     <DocsLayout groups={groups} activeHref="/docs" locale={locale} copy={dictionary.docs}>
       <DocsHub groups={groups} copy={dictionary.docs}>
         {overview ? (
           <div
-            lang="en"
+            lang={overview.locale}
             dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(overview.markdown) }}
           />
         ) : null}

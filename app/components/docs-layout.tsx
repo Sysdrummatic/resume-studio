@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BookOpen, FileText, Globe, Grid2X2, Layers, Menu } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, FileText, Grid2X2, Menu } from "lucide-react";
 import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "./app-header-navigation";
 import WorkspaceBreadcrumbs from "./workspace-breadcrumbs";
 import type { DocNavGroup } from "../lib/docs/content";
 import type { DocHeading } from "../lib/docs/markdown";
-import { buildDocsTopics, docsHref } from "../lib/docs/presentation";
+import {
+  buildDocsSections,
+  buildDocsTopics,
+  docsHref,
+  FIRST_CV_GUIDE
+} from "../lib/docs/presentation";
+import { formatAppMessage } from "../i18n/locale";
 import type { AppDictionary } from "../i18n/types";
 
 type Props = {
@@ -18,7 +24,6 @@ type Props = {
   copy: AppDictionary["docs"];
   children: ReactNode;
 };
-const topicIcons = [FileText, Layers, Globe];
 
 export default function DocsLayout({
   groups,
@@ -31,12 +36,23 @@ export default function DocsLayout({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement>(null);
   const topics = buildDocsTopics(groups, copy);
+  const sections = buildDocsSections(groups, copy);
+  const stepIndex = topics.findIndex((topic) => topic.href === activeHref);
+  const stepLabel =
+    stepIndex >= 0
+      ? formatAppMessage(copy.workflow.step, { step: topics[stepIndex].step, total: topics.length })
+      : "";
+  const previous = topics[stepIndex - 1];
+  const next = topics[stepIndex + 1];
   const activeGroup = groups.find((group) => group.items.some((item) => item.href === activeHref));
   const activeItem = activeGroup?.items.find((item) => item.href === activeHref);
   const parents = [
     { label: copy.home, href: "/" },
     ...(activeItem && activeGroup
-      ? [{ label: copy.title, href: docsHref("/docs") }, { label: activeGroup.key === "test-scenarios" ? copy.test_scenarios : copy.tutorials }]
+      ? [
+          { label: copy.title, href: docsHref("/docs") },
+          { label: activeGroup.key === "test-scenarios" ? copy.test_scenarios : copy.tutorials }
+        ]
       : [])
   ];
 
@@ -75,6 +91,7 @@ export default function DocsLayout({
             <Menu size={16} aria-hidden="true" />
             {copy.menu}
           </button>
+          {stepLabel ? <span>{stepLabel}</span> : null}
         </div>
         <aside
           className={`docs-sidebar${isMenuOpen ? " docs-sidebar--open" : ""}`}
@@ -95,28 +112,9 @@ export default function DocsLayout({
                 <Grid2X2 size={15} aria-hidden="true" />
                 {copy.overview}
               </Link>
-              {topics.length > 0 ? (
-                <div className="docs-nav__group">
-                  <span className="docs-nav__label">{copy.topics}</span>
-                  {topics.map((topic, index) => {
-                    const Icon = topicIcons[index];
-                    return (
-                      <Link
-                        className="docs-nav__link"
-                        key={topic.href}
-                        href={topic.href}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Icon size={15} aria-hidden="true" />
-                        {topic.title}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
-              {groups.map((group) => (
+              {sections.map((group) => (
                 <div key={group.key} className="docs-nav__group">
-                  <span className="docs-nav__label">{group.key === "test-scenarios" ? copy.test_scenarios : copy.tutorials}</span>
+                  <span className="docs-nav__label">{group.title}</span>
                   {group.items.map((item) => (
                     <Link
                       key={item.href}
@@ -125,7 +123,13 @@ export default function DocsLayout({
                       aria-current={item.href === activeHref ? "page" : undefined}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <FileText size={15} aria-hidden="true" />
+                      {item.step ? (
+                        <span className="docs-nav__number" aria-hidden="true">
+                          {item.step}
+                        </span>
+                      ) : (
+                        <FileText size={15} aria-hidden="true" />
+                      )}
                       {item.title}
                     </Link>
                   ))}
@@ -138,7 +142,56 @@ export default function DocsLayout({
             </div>
           </div>
         </aside>
-        <div className="docs-content">{children}</div>
+        <div className="docs-content">
+          {stepLabel ? (
+            <div className="docs-step-context">
+              <span>{stepLabel}</span>
+              <Link
+                className="docs-button"
+                href={stepIndex === 0 ? "/master-resume" : "/dashboard"}
+              >
+                {stepIndex === 0 ? copy.workflow.editor : copy.workflow.dashboard}
+              </Link>
+            </div>
+          ) : null}
+          {children}
+          {activeItem ? (
+            <nav className="docs-step-navigation" aria-label={copy.workflow.navigation}>
+              {stepIndex >= 0 ? (
+                <>
+                  {previous ? (
+                    <Link href={previous.href}>
+                      <small>
+                        <ArrowLeft size={14} aria-hidden="true" />
+                        {copy.workflow.previous}
+                      </small>
+                      {previous.title}
+                    </Link>
+                  ) : null}
+                  {next ? (
+                    <Link className="docs-step-navigation__next" href={next.href}>
+                      <small>
+                        {copy.workflow.next}
+                        <ArrowRight size={14} aria-hidden="true" />
+                      </small>
+                      {next.title}
+                    </Link>
+                  ) : (
+                    <p>{copy.workflow.finished}</p>
+                  )}
+                </>
+              ) : activeHref === FIRST_CV_GUIDE && topics[0] ? (
+                <Link className="docs-button docs-button--primary" href={topics[0].href}>
+                  {copy.workflow.start}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+              ) : null}
+              <Link className="docs-step-navigation__back" href="/docs">
+                {copy.workflow.back}
+              </Link>
+            </nav>
+          ) : null}
+        </div>
         {toc.length > 0 ? (
           <aside className="docs-outline">
             <strong>{copy.outline}</strong>

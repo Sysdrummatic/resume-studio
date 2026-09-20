@@ -18,6 +18,7 @@ type Fixture = {
 };
 const query = new URLSearchParams(location.search);
 const article = location.pathname !== "/docs";
+if (article) query.set("slug", location.pathname.split("/").at(-1)!);
 fetch(`/fixture.json?${query}`)
   .then((response) => response.json())
   .then((fixture: Fixture) => {
@@ -43,7 +44,7 @@ fetch(`/fixture.json?${query}`)
               <article className="docs-article">
                 <div
                   className="docs-prose"
-                  lang="en"
+                  lang={fixture.locale}
                   dangerouslySetInnerHTML={{ __html: fixture.html }}
                 />
               </article>

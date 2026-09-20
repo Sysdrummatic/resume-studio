@@ -2,11 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { requireAuthenticatedActor } from "../../../../../lib/auth-server";
 import { canViewTestScenarios } from "../../../../../lib/docs/access";
-import { isDocCategory } from "../../../../../lib/docs/content";
+import { getDocResourcePath, isDocCategory } from "../../../../../lib/docs/content";
+import { getRequestAppI18n } from "../../../../../i18n/server";
 
-const CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
-const SAFE_SEGMENT = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
 
 const CONTENT_TYPES: Record<string, string> = {
   ".png": "image/png",
@@ -25,7 +24,7 @@ export async function GET(_req: Request, { params }: { params: Promise<RoutePara
   if (!isDocCategory(category) || !SLUG_PATTERN.test(slug)) {
     return new Response("Not found", { status: 404 });
   }
-  if (file.length === 0 || file.some((segment) => !SAFE_SEGMENT.test(segment))) {
+  if (file.length === 0) {
     return new Response("Not found", { status: 404 });
   }
 
@@ -41,10 +40,15 @@ export async function GET(_req: Request, { params }: { params: Promise<RoutePara
     return new Response("Not found", { status: 404 });
   }
 
-  const filePath = path.join(CONTENT_ROOT, category, slug, "resources", ...file);
+  const { locale } = await getRequestAppI18n();
+  const resource = getDocResourcePath(category, slug, locale, file);
+  if (!resource) {
+    return new Response("Not found", { status: 404 });
+  }
+
   let data: Buffer;
   try {
-    data = await fs.readFile(filePath);
+    data = await fs.readFile(resource.filePath);
   } catch {
     return new Response("Not found", { status: 404 });
   }

@@ -984,6 +984,24 @@ legal:
         paragraphs:
           - "Questions about these Terms can be sent to support@opencivera.com."
 docs:
+  workflow:
+    path: Create your CV step by step
+    more: Develop and update your CV
+    help: Need help?
+    intro: Explore the whole process
+    start: Start with your master resume
+    go: Go to step
+    step: "Step {step} of {total}"
+    previous: Previous step
+    next: Next step
+    navigation: CV workflow navigation
+    editor: Open the editor
+    dashboard: Go to dashboard
+    back: Back to the CV workflow
+    optional: "Optional: prepare another language before publishing."
+    language: Add a language version
+    outcome: Result
+    finished: This is the last guide step. Review your downloaded file before sending it.
   title: Docs
   home: Home
   help_center: Help center
@@ -995,8 +1013,8 @@ docs:
   outline: On this page
   development: Documentation in progress
   development_note: Guides evolve with the application.
-  heading: How can we help?
-  lead: From your first master resume entry to a CV you can share.
+  heading: Create your CV step by step
+  lead: Build your private master resume, select the right content, and share a finished version.
   search: Search documentation
   placeholder: Find a topic or guide…
   results: Results
@@ -1015,7 +1033,7 @@ docs:
   privacy_link: Learn how publication works
   about: About this documentation
   no_docs: No guides are available yet.
-  article_language: Article content is available in English.
+  article_fallback: This article is shown in English because a translation is not available yet.
   footer: Product documentation
   master: Master resume
   version: CV version
@@ -1024,15 +1042,18 @@ docs:
   version_note: Content selected for a specific role
   published_note: A finished version available at a public link
   topics_content:
-    - title: Master resume
-      description: Add experience, skills, and language versions.
-      label: Creating and editing
-    - title: CV versions
-      description: Choose the information that fits a particular role.
-      label: Selecting content
-    - title: Publishing and sharing
-      description: Review your CV and share it with a public link.
-      label: Links and visibility
+    - title: Build your master resume
+      description: Add experience, skills and contact details, then save your document.
+      label: A private master resume saved in your account
+    - title: Tailor a version for a role
+      description: Select relevant content, choose its appearance and check the preview.
+      label: A tailored CV version ready to publish
+    - title: Publish and share
+      description: Choose languages, decide on indexing and copy the public link.
+      label: A public link to your selected CV
+    - title: Download your finished CV
+      description: Export the published version as PDF or ATS text and review the file.
+      label: A file ready to send
 sample_resume:
   title: Sample Resume | OpenCiVera
   description: View a sample resume powered by YAML and Next.js.

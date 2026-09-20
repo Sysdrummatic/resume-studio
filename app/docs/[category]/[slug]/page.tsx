@@ -36,7 +36,7 @@ export default async function DocPage({ params }: DocPageProps) {
     notFound();
   }
 
-  const doc = getDoc(category, slug);
+  const doc = getDoc(category, slug, locale);
   if (!doc) {
     notFound();
   }
@@ -44,7 +44,7 @@ export default async function DocPage({ params }: DocPageProps) {
   const { html, headings } = renderMarkdownWithOutline(doc.markdown);
   return (
     <DocsLayout
-      groups={listDocNavGroups(showTestScenarios)}
+      groups={listDocNavGroups(showTestScenarios, locale)}
       activeHref={`/docs/${category}/${slug}`}
       toc={headings}
       locale={locale}
@@ -55,9 +55,9 @@ export default async function DocPage({ params }: DocPageProps) {
           <span className="docs-tag">
             {locale === "en" ? DOC_CATEGORY_TITLES[category] : category === "test-scenarios" ? dictionary.docs.test_scenarios : dictionary.docs.tutorials}
           </span>
-          {locale !== "en" ? <span>{dictionary.docs.article_language}</span> : null}
+          {doc.locale !== locale ? <span>{dictionary.docs.article_fallback}</span> : null}
         </div>
-        <div className="docs-prose" lang="en" dangerouslySetInnerHTML={{ __html: html }} />
+        <div className="docs-prose" lang={doc.locale} dangerouslySetInnerHTML={{ __html: html }} />
       </article>
     </DocsLayout>
   );

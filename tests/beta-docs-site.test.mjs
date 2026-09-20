@@ -8,7 +8,14 @@ register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
 const { canViewTestScenarios, BETA_TEST_SCENARIOS_FLAG_KEY } = await import("../app/lib/docs/access.ts");
 const { renderMarkdownToHtml } = await import("../app/lib/docs/markdown.ts");
-const { listDocs, getDoc, isDocCategory } = await import("../app/lib/docs/content.ts");
+const {
+  DOC_LOCALES,
+  getDoc,
+  getDocResourcePath,
+  getOverviewDoc,
+  isDocCategory,
+  listDocs,
+} = await import("../app/lib/docs/content.ts");
 
 const accessPath = path.join(process.cwd(), "app", "lib", "docs", "access.ts");
 const indexRoutePath = path.join(process.cwd(), "app", "docs", "page.tsx");
@@ -108,6 +115,59 @@ test("content loader lists the sample docs with frontmatter metadata", () => {
     assert.equal(typeof doc.title === "string" && doc.title.length > 0, true);
     assert.equal(typeof doc.order, "number");
   }
+});
+
+test("content loader exposes every current tutorial in the docs catalog", () => {
+  const tutorialSlugs = new Set(listDocs("tutorials").map((doc) => doc.slug));
+  const expectedTutorials = [
+    "publishing-your-first-cv",
+    "master-resume-basics",
+    "create-cv-version",
+    "publish-and-share-cv",
+    "add-language-version",
+    "import-export-cv-data",
+    "export-pdf-and-ats",
+    "revisions-and-rollback",
+    "troubleshooting-save-publish",
+    "account-and-privacy",
+    "save-and-publish-limits",
+  ];
+
+  for (const slug of expectedTutorials) {
+    assert.equal(tutorialSlugs.has(slug), true, `Missing tutorial: ${slug}`);
+  }
+});
+
+test("documentation content is available in Polish and English with matching catalogs", () => {
+  assert.deepEqual(DOC_LOCALES, ["en", "pl"]);
+
+  const english = listDocs("tutorials", "en");
+  const polish = listDocs("tutorials", "pl");
+  assert.deepEqual(
+    polish.map((doc) => doc.slug),
+    english.map((doc) => doc.slug),
+  );
+  assert.notEqual(getDoc("tutorials", "publishing-your-first-cv", "en")?.title, getDoc("tutorials", "publishing-your-first-cv", "pl")?.title);
+  assert.equal(getDoc("tutorials", "publishing-your-first-cv", "pl")?.locale, "pl");
+  assert.equal(getOverviewDoc("en")?.locale, "en");
+  assert.equal(getOverviewDoc("pl")?.locale, "pl");
+  assert.deepEqual(
+    listDocs("test-scenarios", "pl").map((doc) => doc.slug),
+    listDocs("test-scenarios", "en").map((doc) => doc.slug),
+  );
+});
+
+test("localized documentation resources fall back to English assets", () => {
+  const resource = getDocResourcePath(
+    "tutorials",
+    "publishing-your-first-cv",
+    "pl",
+    ["01-dashboard-nav.png"],
+  );
+
+  assert.ok(resource);
+  assert.equal(resource.locale, "en");
+  assert.equal(resource.filePath.includes(path.join("content", "docs", "locales", "en")), true);
 });
 
 test("content loader rejects unknown slugs and path traversal", () => {

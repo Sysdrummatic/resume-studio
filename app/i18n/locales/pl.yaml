@@ -986,6 +986,24 @@ legal:
         paragraphs:
           - "Pytania dotyczące tych Warunków można przesyłać na adres support@opencivera.com."
 docs:
+  workflow:
+    path: Tworzenie CV krok po kroku
+    more: Rozwijaj i aktualizuj CV
+    help: Potrzebujesz pomocy?
+    intro: Poznaj cały proces
+    start: Zacznij od głównego CV
+    go: Przejdź do kroku
+    step: "Krok {step} z {total}"
+    previous: Poprzedni krok
+    next: Następny krok
+    navigation: Nawigacja po ścieżce tworzenia CV
+    editor: Otwórz edytor
+    dashboard: Przejdź do panelu
+    back: Wróć do ścieżki tworzenia CV
+    optional: "Opcjonalnie: przygotuj drugi język przed publikacją."
+    language: Dodaj wersję językową
+    outcome: Rezultat
+    finished: To ostatni etap poradnika. Sprawdź pobrany plik przed wysłaniem.
   title: Dokumentacja
   home: Strona główna
   help_center: Centrum pomocy
@@ -997,8 +1015,8 @@ docs:
   outline: Na tej stronie
   development: Dokumentacja jest rozwijana
   development_note: Poradniki aktualizujemy wraz z aplikacją.
-  heading: Jak możemy Ci pomóc?
-  lead: Od pierwszego wpisu w głównym CV do gotowej wersji, którą możesz udostępnić.
+  heading: Stwórz swoje CV krok po kroku
+  lead: Uzupełnij prywatne główne CV, wybierz treści i udostępnij gotową wersję.
   search: Szukaj w dokumentacji
   placeholder: Znajdź temat lub poradnik…
   results: Wyniki
@@ -1017,7 +1035,7 @@ docs:
   privacy_link: Zobacz, jak działa publikacja
   about: O dokumentacji
   no_docs: Nie ma jeszcze dostępnych poradników.
-  article_language: Treść artykułu jest dostępna po angielsku.
+  article_fallback: Ten artykuł jest pokazany po angielsku, ponieważ tłumaczenie nie jest jeszcze dostępne.
   footer: Dokumentacja produktu
   master: Główne CV
   version: Wersja CV
@@ -1026,15 +1044,18 @@ docs:
   version_note: Treści wybrane pod konkretną rolę
   published_note: Gotowa wersja dostępna pod publicznym linkiem
   topics_content:
-    - title: Główne CV
-      description: Dodawaj doświadczenie, umiejętności i wersje językowe.
-      label: Tworzenie i edycja
-    - title: Wersje CV
-      description: Wybieraj informacje pasujące do konkretnej roli.
-      label: Dobór treści
-    - title: Publikowanie i udostępnianie
-      description: Sprawdź CV i udostępnij je za pomocą publicznego linku.
-      label: Linki i widoczność
+    - title: Uzupełnij główne CV
+      description: Wpisz doświadczenie, umiejętności i dane kontaktowe, a następnie zapisz dokument.
+      label: Prywatne główne CV zapisane na koncie
+    - title: Przygotuj wersję pod ofertę
+      description: Wybierz odpowiednie treści, dopasuj wygląd i sprawdź podgląd.
+      label: Dopasowana wersja CV gotowa do publikacji
+    - title: Opublikuj i udostępnij
+      description: Wybierz języki, zdecyduj o indeksowaniu i skopiuj publiczny link.
+      label: Publiczny link do wybranej wersji
+    - title: Pobierz gotowe CV
+      description: Wyeksportuj opublikowaną wersję do PDF lub ATS i sprawdź plik.
+      label: Plik gotowy do wysłania
 sample_resume:
   title: Przykładowe CV | OpenCiVera
   description: Zobacz przykładowe CV oparte na YAML i Next.js.

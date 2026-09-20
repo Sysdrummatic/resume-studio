@@ -50,14 +50,20 @@ test(
         const dictionary = yaml.load(await readFile(`app/i18n/locales/${locale}.yaml`, "utf8"));
         const groups = url.searchParams.has("empty")
           ? []
-          : listDocNavGroups(url.searchParams.has("eligible"));
+          : listDocNavGroups(url.searchParams.has("eligible"), locale);
         res.setHeader("Content-Type", "application/json");
         res.end(
           JSON.stringify({
             groups,
             locale,
             dictionary,
-            ...renderMarkdownWithOutline(getDoc("tutorials", "publishing-your-first-cv").markdown)
+            ...renderMarkdownWithOutline(
+              getDoc(
+                "tutorials",
+                url.searchParams.get("slug") || "publishing-your-first-cv",
+                locale
+              ).markdown
+            )
           })
         );
       } else if (url.pathname.startsWith("/docs/tutorials/publishing-your-first-cv/resources/")) {
@@ -66,7 +72,10 @@ test(
           res.setHeader("Content-Type", "image/png");
           res.end(
             await readFile(
-              path.join("content/docs/tutorials/publishing-your-first-cv/resources", file)
+              path.join(
+                "content/docs/locales/en/tutorials/publishing-your-first-cv/resources",
+                file
+              )
             )
           );
         } catch {
@@ -104,55 +113,70 @@ test(
       const header = await page.locator(".app-header").boundingBox();
       const crumb = await page.locator(".workspace-breadcrumbs").boundingBox();
       assert.ok(Math.abs(crumb.y - header.y - header.height) <= 1);
-      assert.equal(await page.locator(".docs-topic").count(), 3);
+      assert.equal(await page.locator(".docs-steps > li").count(), 4);
       assert.equal(await page.locator('a[href*="test-scenarios"]').count(), 0);
       await page.keyboard.press("Control+k");
       const search = page.getByRole("searchbox", { name: "Search documentation" });
       assert.equal(await search.evaluate((el) => el === document.activeElement), true);
       await search.fill("NO MATCHING DOCUMENT");
-      assert.equal(await page.locator(".docs-topic").count(), 0);
+      assert.equal(await page.locator(".docs-steps > li").count(), 0);
       assert.match(await page.locator(".docs-empty").innerText(), /No matching topic was found/);
       await page.getByRole("button", { name: "Clear search" }).click();
-      assert.equal(await page.locator(".docs-topic").count(), 3);
-      await search.fill("EXPERIENCE");
-      assert.equal(await page.locator(".docs-topic").count(), 1);
-      await page.getByRole("button", { name: "Clear search" }).click();
-      await page.goto(`${base}/docs?lang=pl`);
-      await page.getByRole("heading", { name: "Jak możemy Ci pomóc?" }).waitFor();
-      await page.getByRole("searchbox").fill("JEZYKOWE");
-      assert.equal(await page.locator(".docs-topic").count(), 1);
-      await page.goto(`${base}/docs?lang=en`);
-      await page.getByRole("heading", { name: "How can we help?" }).waitFor();
+      assert.equal(await page.locator(".docs-steps > li").count(), 4);
 
-      await page.locator(".docs-topic").first().click();
-      await page.locator('[id="1-edit-your-master-resume"]').waitFor();
-      assert.ok(page.url().endsWith("#1-edit-your-master-resume"));
-      assert.match(
-        await page.locator(".workspace-breadcrumbs").innerText(),
-        /Home.*Docs.*Tutorials.*Publishing/s
-      );
-      assert.equal(await page.locator('.docs-nav [aria-current="page"]').count(), 1);
-      assert.equal((await page.locator(".docs-outline a").count()) > 0, true);
+      await search.fill("master");
+      const found = await page
+        .locator(".docs-resources a")
+        .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+      assert.ok(found.length > 0);
+      assert.equal(new Set(found).size, found.length);
+      await page.goto(`${base}/docs?lang=pl`);
+      await page.getByRole("heading", { name: "Stwórz swoje CV krok po kroku" }).waitFor();
+      await page.getByRole("searchbox").fill("DODAJ WERSJE JEZYKOWA");
+      assert.equal(await page.locator(".docs-resources a").count(), 1);
+      await page.goto(`${base}/docs?lang=en`);
+      await page.getByRole("heading", { name: "Create your CV step by step", level: 1 }).waitFor();
+
+      const slugs = [
+        "master-resume-basics",
+        "create-cv-version",
+        "publish-and-share-cv",
+        "export-pdf-and-ats"
+      ];
+      for (const [index, slug] of slugs.entries()) {
+        await page.goto(`${base}/docs`);
+        await page.locator(".docs-step .docs-button").nth(index).click();
+        await page.locator(".docs-article").waitFor();
+        assert.ok(page.url().endsWith(slug));
+        assert.match(
+          await page.locator(".docs-step-context").innerText(),
+          new RegExp(`Step ${index + 1} of 4`)
+        );
+        assert.equal(await page.locator('.docs-nav [aria-current="page"]').count(), 1);
+        const next = page.locator(".docs-step-navigation__next");
+        assert.equal(await next.count(), index < 3 ? 1 : 0);
+        if (index < 3) {
+          await next.click();
+          await page.locator(".docs-article").waitFor();
+          assert.ok(page.url().endsWith(slugs[index + 1]));
+          await page.locator(`.docs-step-navigation a[href="/docs/tutorials/${slug}"]`).click();
+          await page.locator(".docs-article").waitFor();
+          assert.ok(page.url().endsWith(slug));
+        }
+      }
+      await page.goto(`${base}/docs`);
+      await page.locator(".docs-optional a").click();
+      await page.locator(".docs-article").waitFor();
+      assert.ok(page.url().endsWith("add-language-version"));
+      await page.goto(`${base}/docs/tutorials/publishing-your-first-cv`);
       await page.locator(".docs-outline a").nth(1).click();
-      assert.ok(page.url().includes("#2-create-a-cv-version"));
-      assert.equal(
-        await page
-          .locator(".docs-prose img")
-          .first()
-          .evaluate((img) => img.complete && img.naturalWidth > 0),
-        true
-      );
-      await page.locator('[id="3-publish-the-cv-version"]').scrollIntoViewIfNeeded();
-      assert.ok(
-        (await page.locator(".docs-nav").boundingBox()).y >= header.height - 1,
-        "Topic navigation remains reachable while reading a long article"
-      );
+      assert.ok(page.url().endsWith("#four-steps"));
 
       for (const width of [390, 768, 1440])
         for (const language of ["en", "pl"])
           for (const theme of ["dark", "light"]) {
             await page.setViewportSize({ width, height: 1000 });
-            for (const route of ["/docs", "/docs/tutorials/publishing-your-first-cv"]) {
+            for (const route of ["/docs", "/docs/tutorials/master-resume-basics"]) {
               await page.goto(`${base}${route}?lang=${language}`);
               await page.locator("h1").waitFor();
               await page.evaluate(
@@ -184,9 +208,7 @@ test(
       assert.equal(await menu.evaluate((el) => el === document.activeElement), true);
       assert.notEqual(await menu.evaluate((el) => getComputedStyle(el).outlineStyle), "none");
       await menu.click();
-      await page
-        .getByRole("link", { name: "Publishing your first CV", exact: true })
-        .click();
+      await page.getByRole("link", { name: "Publishing your first CV", exact: true }).click();
       await page.locator(".docs-article").waitFor();
       assert.equal(await page.locator(".docs-sidebar").isVisible(), false);
       await page.setViewportSize({ width: 1440, height: 1000 });
@@ -197,7 +219,7 @@ test(
       assert.equal(await page.locator(".docs-resources a").count(), 1);
       await page.goto(`${base}/docs?empty=1`);
       await page.locator(".docs-empty").waitFor();
-      assert.equal(await page.locator(".docs-feature, .docs-topic").count(), 0);
+      assert.equal(await page.locator(".docs-steps").count(), 0);
       assert.deepEqual(errors, []);
     } finally {
       await browser.close();
