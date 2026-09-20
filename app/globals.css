@@ -22,6 +22,7 @@
   --layout-content-max: 1180px;
   --layout-dashboard-max: 1500px;
   --layout-gutter: 16px;
+  --workspace-page-bg: #0e1015;
 
   /* Motion: decisive deceleration for state changes; press is faster than settle. */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -251,6 +252,7 @@
 }
 
 :root[data-app-theme="light"] {
+  --workspace-page-bg: #ffffff;
   color-scheme: light;
   --app-theme: light;
 
@@ -438,6 +440,18 @@ body {
   background: var(--portal-body-gradient), var(--bg);
   color: var(--text);
   text-rendering: optimizeLegibility;
+}
+
+body:has(.editor-theme.wide-shell-page),
+body:has(.resume-editor-shell.wide-shell-page) {
+  background: var(--workspace-page-bg);
+}
+
+body:has(.editor-theme.wide-shell-page)::before,
+body:has(.editor-theme.wide-shell-page)::after,
+body:has(.resume-editor-shell.wide-shell-page)::before,
+body:has(.resume-editor-shell.wide-shell-page)::after {
+  opacity: 0;
 }
 
 body::before,
