@@ -2528,6 +2528,334 @@ img {
   }
 }
 
+/* Template chrome
+   The document body is shared, but the controls are part of each template's
+   composition. Keep them in the same visual language as the hero instead of
+   letting the global rounded-chip defaults leak into editorial and terminal
+   layouts. */
+.resume-template--signal-grid .hero__actions,
+.resume-template--atelier-noir .hero__actions,
+.resume-template--terminal-stack .hero__actions {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.resume-template--signal-grid .hero__export-group,
+.resume-template--atelier-noir .hero__export-group,
+.resume-template--terminal-stack .hero__export-group {
+  margin-left: 0;
+}
+
+.resume-template--signal-grid .hero__export-actions,
+.resume-template--atelier-noir .hero__export-actions,
+.resume-template--terminal-stack .hero__export-actions {
+  justify-content: flex-end;
+}
+
+.resume-template--signal-grid .hero__export-button,
+.resume-template--signal-grid .hero__export-menu,
+.resume-template--signal-grid .hero__export-menu-item,
+.resume-template--signal-grid .resume-language-switcher,
+.resume-template--signal-grid .resume-language-switcher__option {
+  border-radius: 0;
+}
+
+.resume-template--signal-grid .resume-language-switcher {
+  gap: 16px;
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  box-shadow: none;
+}
+
+.resume-template--signal-grid .resume-language-switcher__option {
+  min-height: 28px;
+  padding: 5px 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.resume-template--signal-grid .resume-language-switcher__option:hover,
+.resume-template--signal-grid .resume-language-switcher__option:focus-visible {
+  color: var(--accent-dark);
+  background: transparent;
+}
+
+.resume-template--signal-grid .resume-language-switcher__option--active {
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.resume-template--signal-grid .resume-badges {
+  gap: 6px;
+}
+
+.resume-template--signal-grid .resume-badge {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.resume-template--signal-grid .resume-badge--public,
+.resume-template--signal-grid .resume-badge--ai {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.resume-template--signal-grid .hero__export-button {
+  min-height: 30px;
+  padding: 7px 10px;
+  border-color: var(--text);
+  background: #ffffff;
+  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.resume-template--signal-grid .hero__export-button:hover,
+.resume-template--signal-grid .hero__export-button:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: none;
+  transform: none;
+}
+
+.resume-template--signal-grid .hero__export-menu {
+  border-color: var(--text);
+  background: #ffffff;
+  box-shadow: 4px 4px 0 var(--accent);
+}
+
+.resume-template--signal-grid .hero__export-menu-item {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.resume-template--signal-grid .hero__export-menu-item:hover,
+.resume-template--signal-grid .hero__export-menu-item:focus-visible {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+/* Signal Grid uses a true editorial date rail. Each date belongs to its own
+   entry; without this positioning context all dates shared the timeline box. */
+.resume-template--signal-grid .timeline-item {
+  position: relative;
+}
+
+.resume-template--atelier-noir .hero__actions,
+.resume-template--terminal-stack .hero__actions {
+  align-items: flex-end;
+}
+
+/* Match the basic resume hierarchy: identity first, all resume controls on
+   one row directly underneath. The template may still wrap this row on a
+   narrow viewport, but it never moves the controls into a right-hand hero
+   column. */
+.resume-template--signal-grid .hero,
+.resume-template--atelier-noir .hero,
+.resume-template--terminal-stack .hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.resume-template--signal-grid .hero__actions,
+.resume-template--atelier-noir .hero__actions,
+.resume-template--terminal-stack .hero__actions {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.resume-template--signal-grid .hero__export-group,
+.resume-template--atelier-noir .hero__export-group,
+.resume-template--terminal-stack .hero__export-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.resume-template--atelier-noir .resume-language-switcher,
+.resume-template--terminal-stack .resume-language-switcher {
+  gap: 4px;
+  padding: 4px;
+  border-color: rgba(255, 255, 255, 0.26);
+  border-radius: 2px;
+  background: rgba(16, 18, 23, 0.44);
+  box-shadow: none;
+}
+
+.resume-template--atelier-noir .resume-language-switcher__option,
+.resume-template--terminal-stack .resume-language-switcher__option {
+  min-height: 26px;
+  padding: 5px 9px;
+  border-radius: 1px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.resume-template--atelier-noir .resume-language-switcher__option:hover,
+.resume-template--atelier-noir .resume-language-switcher__option:focus-visible,
+.resume-template--terminal-stack .resume-language-switcher__option:hover,
+.resume-template--terminal-stack .resume-language-switcher__option:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.resume-template--atelier-noir .resume-language-switcher__option--active,
+.resume-template--terminal-stack .resume-language-switcher__option--active {
+  background: var(--accent);
+  color: #172026;
+  box-shadow: none;
+}
+
+.resume-template--atelier-noir .resume-badges,
+.resume-template--terminal-stack .resume-badges {
+  gap: 6px;
+}
+
+.resume-template--atelier-noir .resume-badge,
+.resume-template--terminal-stack .resume-badge {
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 2px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.resume-template--atelier-noir .resume-badge--public,
+.resume-template--atelier-noir .resume-badge--ai {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.resume-template--terminal-stack .resume-badge--public,
+.resume-template--terminal-stack .resume-badge--ai {
+  border-color: #48bbb8;
+  color: #82e4da;
+}
+
+.resume-template--atelier-noir .hero__export-button,
+.resume-template--terminal-stack .hero__export-button {
+  min-height: 30px;
+  padding: 7px 10px;
+  border-radius: 2px;
+  background: transparent;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.resume-template--atelier-noir .hero__export-button {
+  border-color: rgba(215, 162, 74, 0.72);
+  color: #f7e8c7;
+}
+
+.resume-template--atelier-noir .hero__export-button:hover,
+.resume-template--atelier-noir .hero__export-button:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #25222a;
+  box-shadow: none;
+  transform: none;
+}
+
+.resume-template--terminal-stack .hero__export-button {
+  border-color: rgba(72, 187, 184, 0.7);
+  color: #b4eee7;
+}
+
+.resume-template--terminal-stack .hero__export-button:hover,
+.resume-template--terminal-stack .hero__export-button:focus-visible {
+  border-color: #82e4da;
+  background: #82e4da;
+  color: #10252d;
+  box-shadow: none;
+  transform: none;
+}
+
+.resume-template--atelier-noir .hero__export-menu,
+.resume-template--terminal-stack .hero__export-menu {
+  border-radius: 2px;
+  box-shadow: 5px 5px 0 rgba(16, 18, 23, 0.22);
+}
+
+.resume-template--atelier-noir .hero__export-menu {
+  border-color: #c6a56b;
+  background: #302d35;
+}
+
+.resume-template--atelier-noir .hero__export-menu-item {
+  color: #f7e8c7;
+  font-size: 10px;
+}
+
+.resume-template--atelier-noir .hero__export-menu-item:hover,
+.resume-template--atelier-noir .hero__export-menu-item:focus-visible {
+  background: var(--accent);
+  color: #25222a;
+}
+
+.resume-template--terminal-stack .hero__export-menu {
+  border-color: #48bbb8;
+  background: #163a44;
+}
+
+.resume-template--terminal-stack .hero__export-menu-item {
+  color: #b4eee7;
+  font-size: 10px;
+}
+
+.resume-template--terminal-stack .hero__export-menu-item:hover,
+.resume-template--terminal-stack .hero__export-menu-item:focus-visible {
+  background: #82e4da;
+  color: #10252d;
+}
+
+@media (max-width: 640px) {
+  .resume-template--signal-grid .hero__actions,
+  .resume-template--atelier-noir .hero__actions,
+  .resume-template--terminal-stack .hero__actions {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .resume-template--signal-grid .hero__export-actions,
+  .resume-template--atelier-noir .hero__export-actions,
+  .resume-template--terminal-stack .hero__export-actions {
+    justify-content: flex-start;
+  }
+
+  .resume-template--signal-grid .resume-language-switcher,
+  .resume-template--atelier-noir .resume-language-switcher,
+  .resume-template--terminal-stack .resume-language-switcher {
+    align-self: flex-start;
+  }
+}
+
 /* Print layout adjustments.
    Single canonical print block — the previous split into two blocks meant the
    later one silently won every conflict. Values kept here are the ones that
