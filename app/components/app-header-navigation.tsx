@@ -42,7 +42,11 @@ function renderNavItem(item: NavItem, onNavigate?: () => void) {
   if (item.disabled) {
     return (
       <span key={item.href} className="nav-tooltip-anchor" tabIndex={0}>
-        <span className={`${getNavItemClassName(item) || ""} app-nav__action--disabled`} aria-disabled="true" role="link">
+        <span
+          className={`${getNavItemClassName(item) || ""} app-nav__action--disabled`}
+          aria-disabled="true"
+          role="link"
+        >
           {item.label}
         </span>
         {item.disabledReason ? (
@@ -55,7 +59,12 @@ function renderNavItem(item: NavItem, onNavigate?: () => void) {
   }
 
   return (
-    <Link key={item.href} href={item.href} className={getNavItemClassName(item)} onClick={onNavigate}>
+    <Link
+      key={item.href}
+      href={item.href}
+      className={getNavItemClassName(item)}
+      onClick={onNavigate}
+    >
       {item.label}
     </Link>
   );
@@ -66,14 +75,16 @@ export default function AppHeaderNavigation({
   items,
   accessory = null,
   leadingAccessory = null,
-  forceInlineItems = false,
+  forceInlineItems = false
 }: Props) {
   const { dictionary } = useAppI18n();
   const menuRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const shouldUseCompactMenu = isCompact && !forceInlineItems;
+  const shouldUseCompactMenu = isCompact;
+  const shouldRenderCenteredNavigation = !isCompact && !forceInlineItems;
+  const shouldRenderInlineActions = !isCompact && forceInlineItems;
 
   const updateMode = useCallback(() => {
     const nextIsCompact = !window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY).matches;
@@ -158,56 +169,69 @@ export default function AppHeaderNavigation({
     scheduleMenuAutoClose();
   }
 
-  return (
-    <div className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""} ${forceInlineItems ? "app-header__controls--inline" : ""}`}>
-      {leadingAccessory ? <div className="app-header__leading">{leadingAccessory}</div> : null}
-
-      {!shouldUseCompactMenu && items.length > 0 && (
-        <nav className={`app-nav ${forceInlineItems ? "app-nav--actions" : ""}`} aria-label={dictionary.navigation.primary_aria}>
-          {items.map((item) => renderNavItem(item))}
+  const navigationMenu = shouldUseCompactMenu ? (
+    <div
+      className="app-nav-menu"
+      ref={menuRef}
+      onMouseEnter={cancelMenuAutoClose}
+      onMouseLeave={scheduleMenuAutoClose}
+      onFocus={cancelMenuAutoClose}
+      onBlur={handleMenuBlur}
+    >
+      <button
+        className="app-nav-menu__trigger"
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls="primary-mobile-menu"
+        aria-label={dictionary.navigation.open_primary_aria}
+        onClick={() => {
+          cancelMenuAutoClose();
+          setIsOpen((current) => {
+            const nextIsOpen = !current;
+            if (nextIsOpen) {
+              announceHeaderMenuOpen(NAVIGATION_MENU_NAME);
+            }
+            return nextIsOpen;
+          });
+        }}
+      >
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+      {isOpen && (
+        <nav
+          className="app-nav-menu__panel"
+          id="primary-mobile-menu"
+          aria-label={dictionary.navigation.primary_aria}
+        >
+          {items.map((item) => renderNavItem(item, () => setIsOpen(false)))}
         </nav>
       )}
-
-      {shouldUseCompactMenu && (
-        <div
-          className="app-nav-menu"
-          ref={menuRef}
-          onMouseEnter={cancelMenuAutoClose}
-          onMouseLeave={scheduleMenuAutoClose}
-          onFocus={cancelMenuAutoClose}
-          onBlur={handleMenuBlur}
-        >
-          <button
-            className="app-nav-menu__trigger"
-            type="button"
-            aria-expanded={isOpen}
-            aria-controls="primary-mobile-menu"
-            aria-label={dictionary.navigation.open_primary_aria}
-            onClick={() => {
-              cancelMenuAutoClose();
-              setIsOpen((current) => {
-                const nextIsOpen = !current;
-                if (nextIsOpen) {
-                  announceHeaderMenuOpen(NAVIGATION_MENU_NAME);
-                }
-                return nextIsOpen;
-              });
-            }}
-          >
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-          </button>
-          {isOpen && (
-            <nav className="app-nav-menu__panel" id="primary-mobile-menu" aria-label={dictionary.navigation.primary_aria}>
-              {items.map((item) => renderNavItem(item, () => setIsOpen(false)))}
-            </nav>
-          )}
-        </div>
-      )}
-
-      {accessory ? <div className="app-header__accessory">{accessory}</div> : null}
-      <div className="app-header__account">{account}</div>
     </div>
+  ) : null;
+
+  return (
+    <>
+      {shouldRenderCenteredNavigation && items.length > 0 ? (
+        <nav className="app-nav" aria-label={dictionary.navigation.primary_aria}>
+          {items.map((item) => renderNavItem(item))}
+        </nav>
+      ) : null}
+
+      <div
+        className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""} ${forceInlineItems ? "app-header__controls--inline" : ""}`}
+      >
+        {leadingAccessory ? <div className="app-header__leading">{leadingAccessory}</div> : null}
+        {shouldRenderInlineActions && items.length > 0 ? (
+          <nav className="app-nav app-nav--actions" aria-label={dictionary.navigation.primary_aria}>
+            {items.map((item) => renderNavItem(item))}
+          </nav>
+        ) : null}
+        {navigationMenu}
+        {accessory ? <div className="app-header__accessory">{accessory}</div> : null}
+        <div className="app-header__account">{account}</div>
+      </div>
+    </>
   );
 }

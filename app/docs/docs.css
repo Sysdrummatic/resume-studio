@@ -421,7 +421,7 @@
 .docs-mobile-nav {
   display: none;
 }
-@media (max-width: 1200px) {
+@media (max-width: 1279px) {
   .docs-hub__heading {
     display: block;
   }
