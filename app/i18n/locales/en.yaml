@@ -55,59 +55,71 @@ account:
     delete_forever: Delete account permanently
 landing:
   hero:
-    eyebrow: // LiveCV publication platform
-    title_before: Create your ultimate LiveCV.
-    title_connector: Which
-    title_after: with you.
-    rotating_words:
-      - grows
-      - evolves
-      - adapts
-      - scales
-    lead:
-      - Managing your CV is broken. One version for this job, another for that role, then translations, and six months later nobody knows which PDF a recruiter has.
-      - OpenCiVera fixes that. Build your career record once, publish a tailored version for each audience, and update all of them the instant anything changes.
-    primary_action: Create LiveCV
-    secondary_action: View sample LiveCV
-    benefits:
-      - One master CV
-      - Multiple configurations
-      - LiveCV always up-to-date
+    title:
+      - Your experience
+      - deserves a
+      - good introduction.
+    description: A CV that is easy to prepare, tailor and share. Take care of your career story — from the first draft to your next opportunity.
+    primary_action: Create your CV
+    secondary_action: See a sample CV
+    privacy_note: Your career record stays private.
+    process_aria: How OpenCiVera works
+    process:
+      - Your record
+      - Selected content
+      - Public CV
   sample:
-    eyebrow: // public link in action
-    title: Your CV as your public business card.
-    description: The output layer is a clean structured view, designed for professional signal, not document formatting. This is what recipients see when they open your link.
+    public_path: opencivera.com / resume
+    status: Published
+    data_note: Current sample CV
+    open_action: Open the full example
     loading_aria: Loading sample resume
     open_aria: Open sample resume
     iframe_title: Sample public resume — OpenCiVera
     timeout: The embedded preview is taking longer than expected. You can still explore the platform by viewing the full example.
     timeout_action: Open sample resume ↗
-  model:
-    eyebrow: // CV as Code model
-    title: Focus on your career record.
-    description: Manage your career information in one structured, consistent record. Don't think about layout or fitting your data to a given template. Edit YAML or use the editor, and leave the rest to us.
-    cards:
-      - tag: master resume
-        chip: 1 record
-        chip_type: t
-        title: One structured career record
-        copy: Maintain one authoritative source instead of managing disconnected CV files that diverge every time you apply.
-      - tag: publication path
-        chip: Multi-view
-        chip_type: a
-        title: Shape different public narratives
-        copy: Present distinct professional profiles for different audiences without fragmenting your underlying source data.
-      - tag: locale-aware output
-        chip: Multiple locales
-        chip_type: t
-        title: Language-specific delivery
-        copy: Preserve locale-appropriate presentation while keeping the publishing model coherent and the source unified.
+  benefits:
+    aria_label: Key OpenCiVera capabilities
+    items:
+      - One record of all your experience
+      - Versions tailored to each application
+      - CVs in different languages
+  animation:
+    title: From your whole story to the right CV.
+    description: See how your experience moves into a private Master Resume and then into versions tailored to specific roles.
+    iframe_title: Animation showing how OpenCiVera creates tailored CVs
+  how:
+    title: Less time managing files. More room to grow.
+    description: A simple way to organise what you already know and show what matters right now.
+    features:
+      - icon: file
+        title: All your experience. One place.
+        description: Stop looking for achievements in old files. Keep your story in Master Resume and add to it as your career develops.
+      - icon: layers
+        title: The right story for the right role.
+        description: Choose relevant experience and a summary. Save a separate CV for each career path using the same source record.
+      - icon: link
+        title: Ready to share. On your terms.
+        description: Publish a selected version and send the link. You decide when later edits appear there and when the link is no longer available.
+  privacy:
+    title: Your whole career is yours. You share a selected part.
+    description: Your Master Resume stays private. A public link shows only the content you selected and published. You can deactivate it whenever you want.
+    action: About publishing
+  faq:
+    title: Good to know before you start.
+    items:
+      - question: Can I use a CV I already have?
+        answer: Yes. The editor supports PDF, DOCX, YAML and TXT imports. You review the content before saving it to your career record.
+      - question: Who can see my Master Resume?
+        answer: Your Master Resume is private. A public link recipient sees only the content selected for the published CV version.
+      - question: Does editing change a CV I have already shared?
+        answer: Not immediately. Saving edits does not change a publication. Publish the selected version again for link recipients to see the new content.
+      - question: Can I create language versions?
+        answer: Yes. You can maintain CV content in different languages and choose the languages of a saved version. You provide the content for each language separately.
   cta:
-    eyebrow: // get started
-    title: Build your LiveCV with OpenCiVera.
-    description: Open the sample LiveCV to see a published link in action, then sign in and build your own from one structured source.
-    primary_action: Create LiveCV
-    secondary_action: View sample LiveCV ↗
+    title: Make room for your next step.
+    description: You already have the experience. Give it the right shape.
+    primary_action: Create your CV
   footer:
     sample_resume: Sample resume
     platform: Platform

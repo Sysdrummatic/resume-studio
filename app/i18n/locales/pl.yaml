@@ -55,59 +55,71 @@ account:
     delete_forever: Usuń konto bezpowrotnie
 landing:
   hero:
-    eyebrow: // platforma publikacji LiveCV
-    title_before: Stwórz LiveCV,
-    title_connector: które
-    title_after: razem z Tobą.
-    rotating_words:
-      - rośnie
-      - zmienia się
-      - dopasowuje się
-      - nadąża
-    lead:
-      - Zarządzanie CV szybko staje się chaotyczne. Jedna wersja do tej rekrutacji, druga do innej roli, do tego tłumaczenia — i po kilku miesiącach trudno ustalić, który plik jest aktualny.
-      - OpenCiVera porządkuje ten proces. Prowadzisz jedno źródło informacji o swoim doświadczeniu, a z niego publikujesz wersje dopasowane do różnych odbiorców.
-    primary_action: Utwórz LiveCV
-    secondary_action: Zobacz przykładowe LiveCV
-    benefits:
-      - Jedno główne CV
-      - Wiele konfiguracji
-      - LiveCV zawsze aktualne
+    title:
+      - Twoje doświadczenie
+      - zasługuje na
+      - dobrą prezentację.
+    description: CV, które łatwo przygotujesz, dopasujesz i udostępnisz. Zadbaj o swoją historię zawodową — od pierwszego szkicu po kolejny krok w karierze.
+    primary_action: Utwórz swoje CV
+    secondary_action: Zobacz przykładowe CV
+    privacy_note: Twoja baza doświadczeń pozostaje prywatna.
+    process_aria: Jak działa OpenCiVera
+    process:
+      - Twoja baza
+      - Wybrana treść
+      - Publiczne CV
   sample:
-    eyebrow: // publiczny link w praktyce
-    title: Twoje CV jako publiczna wizytówka.
-    description: Publiczne CV przedstawia doświadczenie w przejrzysty i uporządkowany sposób. Tak wygląda strona, którą zobaczy osoba otwierająca Twój link.
+    public_path: opencivera.com / resume
+    status: Opublikowane
+    data_note: Aktualne przykładowe CV
+    open_action: Otwórz pełny przykład
     loading_aria: Ładowanie przykładowego CV
     open_aria: Otwórz przykładowe CV
     iframe_title: Przykładowe publiczne CV — OpenCiVera
     timeout: Osadzony podgląd ładuje się dłużej niż zwykle. Nadal możesz poznać platformę, otwierając pełny przykład.
     timeout_action: Otwórz przykładowe CV ↗
-  model:
-    eyebrow: // jedno źródło danych
-    title: Skup się na swojej historii zawodowej.
-    description: Zapisuj informacje o swojej karierze w jednym miejscu. Nie musisz za każdym razem układać dokumentu od nowa — wybierasz treści, a OpenCiVera przygotowuje spójną wersję CV.
-    cards:
-      - tag: główne CV
-        chip: 1 rekord
-        chip_type: t
-        title: Jedno źródło informacji zawodowych
-        copy: Aktualizuj doświadczenie w jednym miejscu zamiast poprawiać wiele osobnych plików przy każdej rekrutacji.
-      - tag: ścieżka publikacji
-        chip: Wiele widoków
-        chip_type: a
-        title: Dopasuj CV do odbiorcy
-        copy: Wybieraj inne podsumowanie, doświadczenia i umiejętności dla różnych ról bez powielania danych źródłowych.
-      - tag: wersje językowe
-        chip: Wiele języków
-        chip_type: t
-        title: Publikuj we właściwym języku
-        copy: Dodawaj kolejne wersje językowe i publikuj je pod jednym, spójnym adresem.
+  benefits:
+    aria_label: Najważniejsze możliwości OpenCiVera
+    items:
+      - Jedna baza wszystkich doświadczeń
+      - Wersje dopasowane do rekrutacji
+      - CV w różnych językach
+  animation:
+    title: Od całej historii do właściwego CV.
+    description: Zobacz, jak doświadczenie trafia do prywatnego Master Resume, a następnie do wersji dopasowanych do konkretnych ról.
+    iframe_title: Animacja pokazująca proces tworzenia CV w OpenCiVera
+  how:
+    title: Mniej pracy z plikami. Więcej miejsca na rozwój.
+    description: Prosty sposób, by uporządkować to, co już umiesz, i pokazać to, co jest teraz ważne.
+    features:
+      - icon: file
+        title: Całe doświadczenie. Jedno miejsce.
+        description: Nie szukaj osiągnięć w starych plikach. Przechowuj swoją historię w Master Resume i uzupełniaj ją w miarę rozwoju kariery.
+      - icon: layers
+        title: Właściwa historia dla właściwej roli.
+        description: Wybierz istotne doświadczenia i podsumowanie. Zapisz osobne CV dla każdej ścieżki zawodowej, korzystając z tej samej bazy.
+      - icon: link
+        title: Gotowe do pokazania. Na Twoich zasadach.
+        description: Opublikuj wybraną wersję i wyślij link. To Ty decydujesz, kiedy pojawią się pod nim kolejne zmiany i kiedy przestanie być dostępny.
+  privacy:
+    title: Cała kariera jest Twoja. Udostępniasz wybraną część.
+    description: Master Resume pozostaje prywatne. Publiczny link pokazuje tylko wybraną i opublikowaną treść. Możesz go wyłączyć, kiedy zechcesz.
+    action: Więcej o publikacji
+  faq:
+    title: Warto wiedzieć przed startem.
+    items:
+      - question: Czy mogę użyć CV, które już mam?
+        answer: Tak. Edytor obsługuje import plików PDF, DOCX, YAML i TXT. Po imporcie sprawdzasz treść przed zapisaniem jej do swojej bazy.
+      - question: Kto widzi moje Master Resume?
+        answer: Master Resume jest Twoją prywatną bazą. Odbiorca publicznego linku widzi wyłącznie treść wybraną do opublikowanej wersji CV.
+      - question: Czy edycja zmienia już udostępnione CV?
+        answer: Nie od razu. Zapisanie zmian w edytorze nie zmienia publikacji. Aby odbiorcy linku zobaczyli nową treść, publikujesz wybraną wersję ponownie.
+      - question: Czy mogę przygotować wersje językowe?
+        answer: Tak. Możesz utrzymywać treści CV w różnych językach i wybierać języki zapisanej wersji. Treść każdego języka uzupełniasz osobno.
   cta:
-    eyebrow: // zacznij teraz
-    title: Zbuduj swoje LiveCV z OpenCiVera.
-    description: Zobacz przykładowe LiveCV, a następnie utwórz własne na podstawie jednego, aktualnego źródła danych.
-    primary_action: Utwórz LiveCV
-    secondary_action: Zobacz przykładowe LiveCV ↗
+    title: Zrób miejsce na kolejny krok.
+    description: Twoje doświadczenie już jest. Teraz nadaj mu właściwą formę.
+    primary_action: Utwórz swoje CV
   footer:
     sample_resume: Przykładowe CV
     platform: Platforma

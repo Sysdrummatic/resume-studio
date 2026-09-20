@@ -54,44 +54,56 @@ export type AppDictionary = {
   };
   landing: {
     hero: {
-      eyebrow: string;
-      title_before: string;
-      title_connector: string;
-      title_after: string;
-      rotating_words: string[];
-      lead: string[];
+      title: string[];
+      description: string;
       primary_action: string;
       secondary_action: string;
-      benefits: string[];
+      privacy_note: string;
+      process_aria: string;
+      process: string[];
     };
     sample: {
-      eyebrow: string;
-      title: string;
-      description: string;
+      public_path: string;
+      status: string;
+      data_note: string;
+      open_action: string;
       loading_aria: string;
       open_aria: string;
       iframe_title: string;
       timeout: string;
       timeout_action: string;
     };
-    model: {
-      eyebrow: string;
+    benefits: {
+      aria_label: string;
+      items: string[];
+    };
+    animation: {
       title: string;
       description: string;
-      cards: Array<{
-        tag: string;
-        chip: string;
-        chip_type: "t" | "a";
+      iframe_title: string;
+    };
+    how: {
+      title: string;
+      description: string;
+      features: Array<{
+        icon: "file" | "layers" | "link";
         title: string;
-        copy: string;
+        description: string;
       }>;
     };
+    privacy: {
+      title: string;
+      description: string;
+      action: string;
+    };
+    faq: {
+      title: string;
+      items: Array<{ question: string; answer: string }>;
+    };
     cta: {
-      eyebrow: string;
       title: string;
       description: string;
       primary_action: string;
-      secondary_action: string;
     };
     footer: {
       sample_resume: string;
@@ -103,13 +115,16 @@ export type AppDictionary = {
   };
   auth: {
     contextual: Record<string, string>;
-    modes: Record<"signup" | "reset" | "new_password" | "signin", {
-      eyebrow: string;
-      title: string;
-      lead: string;
-      alternate_label: string;
-      alternate_action: string;
-    }>;
+    modes: Record<
+      "signup" | "reset" | "new_password" | "signin",
+      {
+        eyebrow: string;
+        title: string;
+        lead: string;
+        alternate_label: string;
+        alternate_action: string;
+      }
+    >;
     fields: { email: string; password: string; new_password: string };
     actions: Record<string, string>;
     signup: Record<string, string>;

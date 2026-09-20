@@ -1,0 +1,21 @@
+.frame {
+  overflow: hidden;
+  border: 1px solid var(--border-hover);
+  border-radius: 8px;
+  background: #090b10;
+  box-shadow: var(--shadow-glass);
+}
+
+.iframe {
+  display: block;
+  width: 100%;
+  height: clamp(660px, 58vw, 700px);
+  border: 0;
+  background: #090b10;
+}
+
+@media (max-width: 760px) {
+  .iframe {
+    height: 760px;
+  }
+}

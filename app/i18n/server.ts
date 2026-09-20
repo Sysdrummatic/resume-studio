@@ -9,7 +9,7 @@ import {
   APP_LOCALE_COOKIE_NAME,
   APP_LOCALE_HEADER_NAME,
   resolveAppLocale,
-  selectEnabledLocale,
+  selectEnabledLocale
 } from "./locale";
 import type { AppDictionary, AppI18nContextValue, AppLocaleOption } from "./types";
 
@@ -54,21 +54,33 @@ function loadConfig(): AppI18nConfig {
   }
 
   const locales = parsed.locales.filter(isRecord).map((entry) => ({
-    code: String(entry.code || "").trim().toLowerCase(),
+    code: String(entry.code || "")
+      .trim()
+      .toLowerCase(),
     enabled: entry.enabled !== false,
     name: String(entry.name || "").trim(),
     native_name: String(entry.native_name || "").trim(),
-    dictionary: String(entry.dictionary || "").trim(),
+    dictionary: String(entry.dictionary || "").trim()
   }));
   const enabledCodes = locales.filter((locale) => locale.enabled).map((locale) => locale.code);
   const defaultLocale = selectEnabledLocale(parsed.default_locale, enabledCodes);
   const fallbackLocale = selectEnabledLocale(parsed.fallback_locale, enabledCodes);
   const countryLocales = isRecord(parsed.geo.country_locales)
-    ? Object.fromEntries(Object.entries(parsed.geo.country_locales).map(([country, locale]) => [country.toUpperCase(), String(locale)]))
+    ? Object.fromEntries(
+        Object.entries(parsed.geo.country_locales).map(([country, locale]) => [
+          country.toUpperCase(),
+          String(locale)
+        ])
+      )
     : {};
   const knownCountryFallback = selectEnabledLocale(parsed.geo.known_country_fallback, enabledCodes);
 
-  if (!defaultLocale || !fallbackLocale || !knownCountryFallback || locales.some((locale) => !/^[a-z]{2}$/.test(locale.code) || !locale.dictionary)) {
+  if (
+    !defaultLocale ||
+    !fallbackLocale ||
+    !knownCountryFallback ||
+    locales.some((locale) => !/^[a-z]{2}$/.test(locale.code) || !locale.dictionary)
+  ) {
     throw new Error("Application locale configuration contains an invalid or disabled locale.");
   }
 
@@ -78,8 +90,8 @@ function loadConfig(): AppI18nConfig {
     locales,
     geo: {
       country_locales: countryLocales,
-      known_country_fallback: knownCountryFallback,
-    },
+      known_country_fallback: knownCountryFallback
+    }
   };
   return configCache;
 }
@@ -105,7 +117,9 @@ function loadRawDictionary(locale: string): AppDictionary {
 
   const resolvedPath = path.resolve(I18N_ROOT, entry.dictionary);
   if (!resolvedPath.startsWith(`${I18N_ROOT}${path.sep}`)) {
-    throw new Error(`Application dictionary path escapes the i18n directory for locale "${locale}".`);
+    throw new Error(
+      `Application dictionary path escapes the i18n directory for locale "${locale}".`
+    );
   }
   const parsed = readYamlFile(resolvedPath);
   if (!isRecord(parsed)) {
@@ -129,7 +143,7 @@ export function getAppI18nConfig(): {
       .filter((locale) => locale.enabled)
       .map((locale) => ({ code: locale.code, name: locale.name, nativeName: locale.native_name })),
     countryLocales: config.geo.country_locales,
-    knownCountryFallback: config.geo.known_country_fallback,
+    knownCountryFallback: config.geo.known_country_fallback
   };
 }
 
@@ -137,7 +151,8 @@ export function getAppDictionary(localeInput: string): AppDictionary {
   const config = getAppI18nConfig();
   const enabledCodes = config.locales.map((locale) => locale.code);
   const locale = selectEnabledLocale(localeInput, enabledCodes) || config.defaultLocale;
-  const cached = dictionaryCache.get(locale);
+  const shouldCache = process.env.NODE_ENV === "production";
+  const cached = shouldCache ? dictionaryCache.get(locale) : null;
   if (cached) {
     return cached;
   }
@@ -145,7 +160,9 @@ export function getAppDictionary(localeInput: string): AppDictionary {
   const fallback = loadRawDictionary(config.fallbackLocale);
   const selected = locale === config.fallbackLocale ? fallback : loadRawDictionary(locale);
   const dictionary = mergeDictionary(fallback, selected) as AppDictionary;
-  dictionaryCache.set(locale, dictionary);
+  if (shouldCache) {
+    dictionaryCache.set(locale, dictionary);
+  }
   return dictionary;
 }
 
@@ -161,12 +178,12 @@ export async function getRequestAppI18n(): Promise<AppI18nContextValue> {
     enabledLocales: enabledCodes,
     countryLocales: config.countryLocales,
     knownCountryFallback: config.knownCountryFallback,
-    defaultLocale: config.defaultLocale,
+    defaultLocale: config.defaultLocale
   });
 
   return {
     locale,
     locales: config.locales,
-    dictionary: getAppDictionary(locale),
+    dictionary: getAppDictionary(locale)
   };
 }
