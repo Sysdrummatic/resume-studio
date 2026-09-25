@@ -45,6 +45,6 @@ test("Saved Version management is delegated to Dashboard; editor keeps only its 
   assert.equal(dashboard.includes("PublishSavedVersionModal"), true);
   assert.equal(dashboard.includes("canonical_public_path"), true);
   assert.equal(dashboard.includes("copyPublicLink"), true);
-  assert.equal(dashboard.includes("labels.open_cv"), true);
+  assert.equal(dashboard.includes("dictionary.dashboard.preview.open_cv"), true);
   assert.equal(editor.includes("resume_public_links"), false);
 });

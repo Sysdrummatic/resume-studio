@@ -16,7 +16,7 @@ import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
-import { FileText, LockKeyhole, Plus, Search, Check, ArrowUpRight } from "lucide-react";
+import { FileText, LockKeyhole, Plus, Search, ArrowUpRight } from "lucide-react";
 import { normalizeResumeStyle, RESUME_TEMPLATE_PALETTES, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
 import { useAppI18n } from "../components/app-i18n-provider";
 import { formatAppMessage } from "../i18n/locale";
@@ -431,9 +431,11 @@ export function PresetPreviewModal({
       >
         <div className="section-row">
           <h2>{preset.title}</h2>
-          <button type="button" className="button button--ghost button--small" onClick={onClose}>
-            {inline ? labels.open_cv : labels.close}
-          </button>
+          {!inline ? (
+            <button type="button" className="button button--ghost button--small" onClick={onClose}>
+              {labels.close}
+            </button>
+          ) : null}
         </div>
         {inline ? (
           <p className="dashboard-library-preview__note">
@@ -852,15 +854,6 @@ export default function DashboardClient({
           <h1>{labels.main.title}</h1>
           <p>{labels.main.subtitle}</p>
         </div>
-        <button
-          type="button"
-          className="button button--primary"
-          onClick={openCreatePreset}
-          disabled={!hasMasterResume || !yamlReady}
-          title={!hasMasterResume ? labels.main.create_master_first : undefined}
-        >
-          <Plus size={16} aria-hidden="true" /> {labels.main.create_version}
-        </button>
       </header>
 
       <section className="dashboard-master" aria-labelledby="dashboard-master-title">
@@ -995,6 +988,17 @@ export default function DashboardClient({
         ) : (
           <div className="dashboard-library">
             <div className="dashboard-library__list">
+              <div className="dashboard-library__create">
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={openCreatePreset}
+                  disabled={!hasMasterResume || !yamlReady}
+                  title={!hasMasterResume ? labels.main.create_master_first : undefined}
+                >
+                  <Plus size={15} aria-hidden="true" /> {labels.main.create_version}
+                </button>
+              </div>
               <div className="dashboard-library__filters">
                 <label className="dashboard-search">
                   <Search size={16} aria-hidden="true" />
@@ -1064,33 +1068,47 @@ export default function DashboardClient({
                   </button>
                 </div>
               )}
-              <div className="dashboard-library__create">
-                <button
-                  type="button"
-                  className="button button--ghost"
-                  onClick={openCreatePreset}
-                  disabled={!hasMasterResume || !yamlReady}
-                >
-                  <Plus size={15} aria-hidden="true" /> {labels.main.create_version}
-                </button>
-              </div>
             </div>
             <div className="dashboard-library__detail">
               {selectedPreset ? (
                 <>
-                  {/* ocv-0174: actions render above the preview, next to where
-                      "Open CV" appears inside PresetPreviewModal below, instead
-                      of after the full CV render where they needed scrolling. */}
-                  <section className="dashboard-next" aria-label={labels.library.next_aria}>
-                    <div className="dashboard-next__heading">
-                      <div>
-                        <h3>{labels.library.next_title}</h3>
-                        <p>
-                          {selectedPreset.is_public
-                            ? labels.library.next_published
-                            : labels.library.next_private}
-                        </p>
-                      </div>
+                  <div className="dashboard-library__actions">
+                    <p>
+                      <LockKeyhole size={13} aria-hidden="true" /> {labels.library.master_private}
+                    </p>
+                    <div className="actions-row">
+                      {selectedPreset.onboarding_test_run_id ? (
+                        <Link
+                          className="button button--ghost"
+                          href={selectedPreset.canonical_public_path || `/onboarding/test-cv/${selectedPreset.onboarding_test_run_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {labels.library.open_test_cv}
+                        </Link>
+                      ) : (
+                        <button type="button" className="button button--ghost" onClick={() => setPreviewPreset(selectedPreset)}>
+                          {dictionary.dashboard.preview.open_cv}
+                        </button>
+                      )}
+                      {!selectedPreset.onboarding_test_run_id ? (
+                        <button
+                          type="button"
+                          className={`button ${selectedPreset.is_public ? "button--ghost" : "button--primary"}`}
+                          onClick={() => openPublishSavedVersion(selectedPreset)}
+                        >
+                          {selectedPreset.is_public ? labels.library.publish_again : labels.library.publish}
+                        </button>
+                      ) : null}
+                      {selectedPreset.is_public ? (
+                        <button
+                          type="button"
+                          className="button button--primary"
+                          onClick={() => copyPublicLink(selectedPreset)}
+                        >
+                          {labels.library.copy_link}
+                        </button>
+                      ) : null}
                       <PresetActionsMenu
                         preset={selectedPreset}
                         onEdit={() => openPresetEditor(selectedPreset)}
@@ -1106,81 +1124,12 @@ export default function DashboardClient({
                         onDelete={() => setConfirmDeletePreset(selectedPreset)}
                       />
                     </div>
-                    <ol className="dashboard-next__steps">
-                      <li data-complete="true">
-                        <span>
-                          <Check size={13} aria-hidden="true" />
-                        </span>
-                        <div>
-                          <strong>{labels.library.choose_content}</strong>
-                          <small>{labels.library.saved_selection}</small>
-                        </div>
-                      </li>
-                      <li
-                        data-complete={selectedPreset.is_public}
-                        aria-current={selectedPreset.is_public ? undefined : "step"}
-                      >
-                        <span>{selectedPreset.is_public ? <Check size={13} aria-hidden="true" /> : "2"}</span>
-                        <div>
-                          <strong>{selectedPreset.is_public ? labels.library.published : labels.library.review_publish}</strong>
-                          <small>
-                            {selectedPreset.is_public
-                              ? labels.library.public_link_available
-                              : labels.library.check_content_languages}
-                          </small>
-                        </div>
-                      </li>
-                    </ol>
-                    <div className="dashboard-next__actions">
-                      <p>
-                        <LockKeyhole size={13} aria-hidden="true" /> {labels.library.master_private}
-                      </p>
-                      <div className="actions-row">
-                        {!selectedPreset.onboarding_test_run_id ? (
-                          <button
-                            type="button"
-                            className="button button--ghost"
-                            disabled={!hasMasterResume || !yamlReady}
-                            onClick={() => openPresetEditor(selectedPreset)}
-                          >
-                            {labels.library.edit_selection}
-                          </button>
-                        ) : null}
-                        <button
-                          type="button"
-                          className={`button ${selectedPreset.is_public ? "button--ghost" : "button--primary"}`}
-                          onClick={() => openPublishSavedVersion(selectedPreset)}
-                        >
-                          {selectedPreset.is_public ? labels.library.publish_again : labels.library.publish}
-                        </button>
-                        {selectedPreset.is_public ? (
-                          <button
-                            type="button"
-                            className="button button--primary"
-                            onClick={() => copyPublicLink(selectedPreset)}
-                          >
-                            {labels.library.copy_link}
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
-                  </section>
+                  </div>
                   {selectedPreset.onboarding_test_run_id ? (
                     <div className="dashboard-test-preview">
                       <FileText size={40} aria-hidden="true" />
                       <h3>{selectedPreset.title}</h3>
                       <p>{labels.library.test_draft}</p>
-                      <Link
-                        className="button button--primary"
-                        href={
-                          selectedPreset.canonical_public_path ||
-                          `/onboarding/test-cv/${selectedPreset.onboarding_test_run_id}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {labels.library.open_test_cv}
-                      </Link>
                     </div>
                   ) : masterResume && yamlReady ? (
                     <PresetPreviewModal
