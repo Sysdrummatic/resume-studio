@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { convertResumeToAtsYaml } from "../../../../lib/resume-export";
 import { rateLimit } from "../../../../lib/rate-limit";
+import { buildExportFilename } from "../../../../lib/pdf/filename";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse(atsYaml, {
       headers: {
         "Content-Type": "text/yaml; charset=utf-8",
-        "Content-Disposition": `attachment; filename="resume-${exportData.personSlug}-${exportData.locale}.yaml"`,
+        "Content-Disposition": `attachment; filename="${buildExportFilename(exportData.resume, publicId, "yaml")}"`,
         "Cache-Control": "private, no-store, max-age=0",
       },
     });
