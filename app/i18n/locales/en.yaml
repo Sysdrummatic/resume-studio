@@ -55,66 +55,112 @@ account:
     delete_forever: Delete account permanently
 landing:
   hero:
+    eyebrow: A CV builder designed differently
     title:
       - One Experience Base.
       - A separate CV
       - for every application.
-    description: OpenCiVera is a CV builder designed differently. Keep your full career history in one private place, then select the right content for a CV tailored to a specific role.
-    primary_action: Create your Experience Base
+    description: Keep your full career history in one private place, then select the right content for a CV tailored to a specific role.
+    primary_action: Create your first CV
     secondary_action: See a sample CV
     privacy_note: Your Experience Base is private. You share only the CV you select.
     process_aria: How OpenCiVera works
     process:
-      - Save your experience
-      - Select the content
+      - Collect your skills and experience
+      - Add language versions
       - Create a CV
   sample:
     data_note: An example created with OpenCiVera
     open_action: View the full CV
     loading_aria: Loading sample resume
     open_aria: Open sample resume
-  benefits:
-    aria_label: Key OpenCiVera capabilities
+  animation:
+    title: How does it work in practice?
+    description: Your Experience Base is the single source of truth for your career — a place you keep current over the years. When you find the right opportunity, select the skills and experience you want to show the employer and create a tailored CV from them.
+    detail: See how you select information from your private Experience Base to create separate CVs for specific roles.
+    iframe_title: Animation showing how OpenCiVera creates tailored CVs
+  experience_base:
+    eyebrow: Experience Base
+    title: Stop leaving multiple CV files on your computer to be forgotten after each application.
+    description: Your Experience Base keeps every detail that may be useful in a future application. You do not have to cut it down to two pages or wonder which file you updated most recently.
     items:
       - Your full career history in one place
-      - A separate version for every application
-      - CVs in multiple languages
-  animation:
-    title: One source. As many CVs as you need.
-    description: See how you select information from your private Experience Base to create a separate CV for each role.
-    iframe_title: Animation showing how OpenCiVera creates tailored CVs
+      - A separate content selection for every CV
+      - Versions in different languages
+      - Changes under your control
   how:
     title: Do not start from scratch for every application.
-    description: Update your experience in one place while each CV keeps its own selection of content.
+    description: In a traditional builder, every CV quickly becomes a separate document. In OpenCiVera, every version starts from the same Experience Base.
     features:
       - icon: file
         title: Build your Experience Base
-        description: Add information manually or import an existing CV. Keep the base current as you complete new projects, change roles and develop new skills.
+        description: Add information manually or import an existing CV. Keep your projects, roles, achievements and skills in one private place.
+      - icon: globe
+        title: Create a language version
+        description: Add your information in another language. You create each version separately, so you stay in control of its meaning and tone.
       - icon: layers
-        title: Prepare a CV for a specific role
-        description: Select the relevant experience, professional summary and skills. Save a separate version for each application or career direction.
+        title: Prepare your CV for a specific role
+        description: Select the experience, summary and skills that match the requirements of the opportunity.
       - icon: link
-        title: Download or share it
-        description: Review the preview, publish the selected version under a public link or download a file ready to send.
+        title: Download or share a LiveCV link
+        description: Download a ready-to-send file or publish the CV under a link you can share with a recruiter or employer.
+      - icon: refresh
+        title: Update your Experience Base
+        description: Add new projects and achievements without changing CVs you have already published. When you want to refresh one, publish that version again.
+  advantages:
+    title: Why separate your Experience Base from your CVs?
+    description: The base keeps the complete record. Each CV contains only what matters for a particular application.
+    items:
+      - title: Less duplication
+        description: Save contact details, experience and skills once, then select them for each new CV.
+      - title: Better targeting
+        description: Every version can have its own summary, selected experience, languages and appearance.
+      - title: More control
+        description: Your private base, saved versions and published CVs stay separate. Nothing becomes public without your decision.
+  languages:
+    eyebrow: Language versions
+    title: One career. Different language versions.
+    description: Maintain your CV content in several languages and decide which versions to share under a public link. You complete each language version separately, so you stay in control of its meaning and tone.
+  structured_data:
+    eyebrow: CV-as-Code
+    title: Your CV as structured data, not a locked document.
+    description: Behind the form, OpenCiVera stores your information in a lightweight, structured YAML format. You do not need to know the format to use the builder. It allows the same data to be checked, moved and reused across different CV versions.
+    detail: We call this approach CV-as-Code. Content stays separate from document design, so you can change the template or publishing method without rewriting your career history.
+    items:
+      - Content independent of the template
+      - Data you can export
+      - One structure for multiple uses
   privacy:
     title: Your full career history stays private.
     description: Your Experience Base is available only in your account. A public link shows only the information you selected and published. Changes to the base stay private until you publish the CV again.
-    action: How publishing works
+    note: You can disable a public link at any time.
+    action: How does publishing work?
+  vision:
+    eyebrow: A CV is only the beginning
+    title: Your experience can support more than one document.
+    description: OpenCiVera is being built as a professional identity platform — one structured source of career information that can gradually support different professional materials and ways to present your work. We are starting with CVs because that is where repeated entry and outdated information create the clearest problem today.
   faq:
     title: Good to know before you start.
     items:
-      - question: Can I use a CV I already have?
-        answer: Yes. The editor supports PDF, DOCX, YAML and TXT imports. You review the content before saving it to your career record.
+      - question: How is OpenCiVera different from a regular CV builder?
+        answer: A regular builder helps you prepare a single document. In OpenCiVera, you first create a private Experience Base, then select content from it for separate CVs tailored to specific opportunities.
+      - question: Do I have to rewrite my current CV?
+        answer: No. You can import a PDF, DOCX, YAML or TXT file, review the extracted information and complete anything that is missing.
+      - question: Do I need to know YAML?
+        answer: No. You can complete your CV through a regular form. YAML is the technical foundation of the data and remains available to people who want additional control over it.
       - question: Who can see my Experience Base?
         answer: Your Experience Base is private. A public link recipient sees only the information selected for that published CV.
-      - question: Does editing change a CV I have already shared?
-        answer: Not immediately. Saving edits does not change a publication. Publish the selected version again for link recipients to see the new content.
-      - question: Can I create language versions?
-        answer: Yes. You can maintain CV content in several languages and choose which ones to share. You complete each language version separately, so you stay in control of its meaning and tone.
+      - id: publication-faq
+        question: How does publishing work?
+        answer: Your Experience Base stays private. Select the content for a CV, then choose to publish it. Editing the base does not change a CV you have already published. To share new information, publish that CV version again. You can disable the public link at any time.
+      - question: Does changing my data update a published CV?
+        answer: No. Editing your Experience Base does not automatically change a publication. To share new information, publish the selected CV version again.
+      - question: Can I create several CV versions?
+        answer: Yes. You can prepare separate versions for different roles, opportunities and languages from the same Experience Base.
   cta:
     title: Start with your experience. Create the CV when you need it.
     description: Import an existing document or build your Experience Base step by step. You can prepare your first tailored version from the same data.
-    primary_action: Create your Experience Base
+    primary_action: Create your first CV
   footer:
     sample_resume: Sample resume
     platform: Platform

@@ -55,66 +55,112 @@ account:
     delete_forever: Usuń konto bezpowrotnie
 landing:
   hero:
+    eyebrow: Kreator CV zbudowany inaczej
     title:
       - Jedna Baza doświadczeń.
       - Osobne CV
       - na każdą ofertę.
-    description: OpenCiVera to kreator CV zbudowany inaczej. Zapisujesz całą historię zawodową w jednym prywatnym miejscu, a potem wybierasz z niej treści do CV dopasowanego do konkretnego stanowiska.
-    primary_action: Utwórz Bazę doświadczeń
+    description: Zapisujesz całą historię zawodową w jednym prywatnym miejscu, a potem wybierasz z niej treści do CV dopasowanego do konkretnego stanowiska.
+    primary_action: Utwórz swoje pierwsze CV
     secondary_action: Zobacz przykładowe CV
     privacy_note: Baza doświadczeń jest prywatna. Udostępniasz tylko wybrane CV.
     process_aria: Jak działa OpenCiVera
     process:
-      - Zapisz doświadczenie
-      - Wybierz treści
+      - Zbierz umiejętności i doświadczenia
+      - Dodaj wersje językowe
       - Utwórz CV
   sample:
     data_note: Przykład utworzony w OpenCiVera
     open_action: Zobacz całe CV
     loading_aria: Ładowanie przykładowego CV
     open_aria: Otwórz przykładowe CV
-  benefits:
-    aria_label: Najważniejsze możliwości OpenCiVera
-    items:
-      - Pełna historia zawodowa w jednym miejscu
-      - Osobna wersja na każdą ofertę
-      - CV w wielu językach
   animation:
-    title: Jedno źródło. Tyle CV, ile potrzebujesz.
-    description: Zobacz, jak z prywatnej Bazy doświadczeń wybierasz informacje do osobnych CV dla konkretnych stanowisk.
+    title: Jak to działa w praktyce?
+    description: Baza doświadczeń jest jednym źródłem prawdy o Twojej karierze — miejscem, które uzupełniasz na bieżąco przez kolejne lata. Gdy znajdziesz odpowiednią ofertę, wybierasz umiejętności i doświadczenia, które chcesz pokazać pracodawcy, i tworzysz z nich dopasowane CV.
+    detail: Zobacz, jak z prywatnej Bazy doświadczeń wybierasz informacje do osobnych CV dla konkretnych stanowisk.
     iframe_title: Animacja pokazująca proces tworzenia CV w OpenCiVera
+  experience_base:
+    eyebrow: Baza doświadczeń
+    title: Koniec z wieloma plikami CV zapisanymi na dysku i zapomnianymi po wysłaniu oferty.
+    description: Baza doświadczeń przechowuje wszystkie informacje, które mogą przydać się w przyszłych rekrutacjach. Nie musisz skracać jej do dwóch stron ani za każdym razem zastanawiać się, którą wersję pliku ostatnio aktualizowałeś.
+    items:
+      - Jedno miejsce na pełną historię zawodową
+      - Osobny wybór treści dla każdego CV
+      - Wersje w różnych językach
+      - Zmiany pod Twoją kontrolą
   how:
     title: Nie tworzysz wszystkiego od początku przy każdej rekrutacji.
-    description: Aktualizujesz doświadczenie w jednym miejscu, a każde CV zachowuje własny wybór treści.
+    description: W tradycyjnym kreatorze każde CV szybko staje się osobnym dokumentem. W OpenCiVera wszystkie wersje powstają z tej samej Bazy doświadczeń.
     features:
       - icon: file
         title: Zbuduj Bazę doświadczeń
-        description: Dodaj informacje ręcznie lub zaimportuj obecne CV. Rozwijaj bazę wraz z kolejnymi projektami, stanowiskami i zdobytymi umiejętnościami.
+        description: Dodaj informacje ręcznie lub zaimportuj obecne CV. Zapisuj projekty, stanowiska, osiągnięcia i umiejętności w jednym prywatnym miejscu.
+      - icon: globe
+        title: Utwórz wersję językową
+        description: Uzupełnij informacje w kolejnym języku. Każdą wersję tworzysz osobno, dzięki czemu zachowujesz kontrolę nad znaczeniem i stylem.
       - icon: layers
-        title: Przygotuj CV pod konkretną rolę
-        description: Wybierz odpowiednie doświadczenia, podsumowanie zawodowe i umiejętności. Zapisz osobną wersję dla każdej oferty lub kierunku kariery.
+        title: Przygotuj swoje CV pod konkretną rolę
+        description: Wybierz doświadczenia, podsumowanie i umiejętności, które odpowiadają wymaganiom danej oferty.
       - icon: link
-        title: Pobierz lub udostępnij
-        description: Sprawdź podgląd, opublikuj wybraną wersję pod publicznym linkiem albo pobierz plik gotowy do wysłania.
+        title: Pobierz lub udostępnij link z LiveCV
+        description: Pobierz gotowy plik albo opublikuj CV pod linkiem, który możesz wysłać rekruterowi lub pracodawcy.
+      - icon: refresh
+        title: Zaktualizuj Bazę doświadczeń
+        description: Dodawaj nowe projekty i osiągnięcia bez zmieniania wcześniej opublikowanych CV. Gdy zechcesz odświeżyć wybraną wersję, opublikujesz ją ponownie.
+  advantages:
+    title: Po co oddzielać Bazę doświadczeń od CV?
+    description: Baza przechowuje pełny materiał, a każde CV tylko to, co ma znaczenie w konkretnej rekrutacji.
+    items:
+      - title: Mniej duplikowania
+        description: Dane kontaktowe, doświadczenia i umiejętności zapisujesz raz, a później wybierasz je do kolejnych CV.
+      - title: Lepsze dopasowanie
+        description: Każda wersja może mieć własne podsumowanie, wybór doświadczeń, języki i wygląd.
+      - title: Więcej kontroli
+        description: Prywatna baza, zapisane wersje i opublikowane CV są oddzielone. Nic nie staje się publiczne bez Twojej decyzji.
+  languages:
+    eyebrow: Wersje językowe
+    title: Jedna kariera. Różne wersje językowe.
+    description: Prowadź treści CV w kilku językach i zdecyduj, które z nich udostępnić pod publicznym linkiem. Każdą wersję językową uzupełniasz osobno, dzięki czemu zachowujesz kontrolę nad znaczeniem i stylem tekstu.
+  structured_data:
+    eyebrow: CV-as-Code
+    title: CV jako uporządkowane dane, nie zamknięty dokument.
+    description: Pod formularzem OpenCiVera zapisuje informacje w lekkiej, uporządkowanej strukturze YAML. Nie musisz znać tego formatu, aby korzystać z kreatora. Dzięki niemu te same dane można sprawdzać, przenosić i wykorzystywać w różnych wersjach CV.
+    detail: To podejście nazywamy CV-as-Code. Treść jest oddzielona od wyglądu dokumentu, dlatego możesz zmienić szablon lub sposób publikacji bez przepisywania swojej historii zawodowej.
+    items:
+      - Treść niezależna od szablonu
+      - Dane możliwe do eksportu
+      - Jedna struktura dla wielu zastosowań
   privacy:
     title: Twoja pełna historia pozostaje prywatna.
     description: Baza doświadczeń jest dostępna tylko na Twoim koncie. Publiczny link pokazuje wyłącznie wybrane i opublikowane informacje. Zmiany w bazie nie pojawią się pod linkiem, dopóki ponownie nie opublikujesz CV.
-    action: Jak działa publikacja
+    note: Publiczny link możesz w każdej chwili wyłączyć.
+    action: Jak działa publikacja?
+  vision:
+    eyebrow: CV to dopiero początek
+    title: Twoje doświadczenie może pracować w więcej niż jednym dokumencie.
+    description: OpenCiVera powstaje jako platforma tożsamości zawodowej — jedno uporządkowane źródło informacji o karierze, z którego z czasem będzie można tworzyć różne profesjonalne materiały i sposoby prezentacji. Zaczynamy od CV, ponieważ właśnie tam problem powtarzania i aktualizowania danych jest dziś najbardziej widoczny.
   faq:
     title: Warto wiedzieć przed startem.
     items:
-      - question: Czy mogę użyć CV, które już mam?
-        answer: Tak. Edytor obsługuje import plików PDF, DOCX, YAML i TXT. Po imporcie sprawdzasz treść przed zapisaniem jej do swojej bazy.
-      - question: Kto widzi moją Bazę doświadczeń?
-        answer: Baza doświadczeń jest prywatna. Odbiorca publicznego linku widzi wyłącznie informacje wybrane do konkretnego, opublikowanego CV.
-      - question: Czy edycja zmienia już udostępnione CV?
-        answer: Nie od razu. Zapisanie zmian w edytorze nie zmienia publikacji. Aby odbiorcy linku zobaczyli nową treść, publikujesz wybraną wersję ponownie.
-      - question: Czy mogę przygotować wersje językowe?
-        answer: Tak. Możesz prowadzić treści CV w kilku językach i zdecydować, które z nich udostępnić. Każdą wersję językową uzupełniasz osobno, dlatego zachowujesz kontrolę nad jej znaczeniem i stylem.
+      - question: Czym OpenCiVera różni się od zwykłego kreatora CV?
+        answer: Zwykły kreator pomaga przygotować pojedynczy dokument. W OpenCiVera najpierw tworzysz prywatną Bazę doświadczeń, a następnie wybierasz z niej treści do osobnych CV dopasowanych do konkretnych ofert.
+      - question: Czy muszę przepisać moje obecne CV?
+        answer: Nie. Możesz zaimportować plik PDF, DOCX, YAML lub TXT, sprawdzić odczytane informacje i uzupełnić brakujące dane.
+      - question: Czy muszę znać YAML?
+        answer: Nie. CV możesz uzupełniać za pomocą zwykłego formularza. YAML jest techniczną podstawą danych i pozostaje dostępny dla osób, które chcą mieć nad nimi dodatkową kontrolę.
+      - question: Kto może zobaczyć moją Bazę doświadczeń?
+        answer: Baza doświadczeń jest prywatna. Odbiorca publicznego linku widzi tylko informacje wybrane do konkretnego, opublikowanego CV.
+      - id: publication-faq
+        question: Jak działa publikacja?
+        answer: Baza doświadczeń pozostaje prywatna. Wybierasz treści do CV, a następnie świadomie je publikujesz. Edycja bazy nie zmienia już opublikowanego CV. Gdy chcesz udostępnić nowe informacje, publikujesz wybraną wersję ponownie. Publiczny link możesz w każdej chwili wyłączyć.
+      - question: Czy zmiana danych aktualizuje opublikowane CV?
+        answer: Nie. Edycja Bazy doświadczeń nie zmienia automatycznie publikacji. Aby udostępnić nowe informacje, ponownie publikujesz wybraną wersję CV.
+      - question: Czy mogę utworzyć kilka wersji CV?
+        answer: Tak. Możesz przygotować osobne wersje dla różnych stanowisk, ofert i języków, korzystając z tej samej Bazy doświadczeń.
   cta:
     title: Zacznij od doświadczenia. CV utworzysz z niego później.
     description: Zaimportuj obecny dokument lub uzupełnij Bazę doświadczeń krok po kroku. Pierwszą dopasowaną wersję przygotujesz z tych samych danych.
-    primary_action: Utwórz Bazę doświadczeń
+    primary_action: Utwórz swoje pierwsze CV
   footer:
     sample_resume: Przykładowe CV
     platform: Platforma

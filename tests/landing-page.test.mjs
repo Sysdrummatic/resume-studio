@@ -84,17 +84,32 @@ test("landing explains the Experience Base model and keeps product sections in o
   const html = await renderLanding("pl");
   const sampleIndex = html.indexOf('data-testid="landing-sample-cv"');
   const animationIndex = html.indexOf('id="story-animation"');
+  const experienceBaseIndex = html.indexOf('id="experience-base-title"');
   const howIndex = html.indexOf('id="how"');
+  const structuredDataIndex = html.indexOf('id="structured-data-title"');
   const privacyIndex = html.indexOf('id="privacy"');
+  const visionIndex = html.indexOf('id="vision-title"');
   const faqIndex = html.indexOf('id="faq"');
   const footerIndex = html.indexOf('data-testid="landing-footer"');
 
   assert.match(html, /Jedna Baza doświadczeń/);
+  assert.match(html, /Kreator CV zbudowany inaczej/);
+  assert.match(html, /Utwórz swoje pierwsze CV/);
+  assert.match(html, /Jak to działa w praktyce/);
+  assert.match(html, /05[\s\S]*Zaktualizuj Bazę doświadczeń/);
+  assert.match(html, /Koniec z wieloma plikami CV zapisanymi na dysku/);
+  assert.match(html, /CV jako uporządkowane dane/);
+  assert.match(html, /CV to dopiero początek/);
+  assert.match(html, /Czy muszę znać YAML/);
+  assert.doesNotMatch(html, /Aktualizujesz doświadczenie w jednym miejscu/);
   assert.ok(sampleIndex > -1, "the current sample CV is visible in the hero");
   assert.ok(animationIndex > sampleIndex, "the animation follows the sample CV");
-  assert.ok(howIndex > animationIndex, "the product explanation follows the animation");
-  assert.ok(privacyIndex > howIndex, "privacy follows the product explanation");
-  assert.ok(faqIndex > privacyIndex, "FAQ follows privacy");
+  assert.ok(experienceBaseIndex > animationIndex, "the Experience Base explanation follows the animation");
+  assert.ok(howIndex > experienceBaseIndex, "the process follows the Experience Base explanation");
+  assert.ok(structuredDataIndex > howIndex, "CV-as-Code follows the current product workflow");
+  assert.ok(privacyIndex > structuredDataIndex, "privacy follows the data model explanation");
+  assert.ok(visionIndex > privacyIndex, "the future vision follows current product capabilities");
+  assert.ok(faqIndex > visionIndex, "FAQ follows the product vision");
   assert.ok(footerIndex > faqIndex, "the unchanged footer stays last");
 });
 
@@ -102,6 +117,12 @@ test("landing renders the same complete narrative from the English dictionary", 
   const html = await renderLanding("en");
 
   assert.match(html, /One Experience Base/);
+  assert.match(html, /A CV builder designed differently/);
+  assert.match(html, /Create your first CV/);
+  assert.match(html, /How does it work in practice/);
+  assert.match(html, /Stop leaving multiple CV files on your computer/);
+  assert.match(html, /Your CV as structured data/);
+  assert.match(html, /A CV is only the beginning/);
   assert.match(html, /Do not start from scratch/);
   assert.match(html, /Good to know/);
   assert.match(html, /data-testid="open-civera-animation"/);

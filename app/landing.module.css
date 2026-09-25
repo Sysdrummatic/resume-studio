@@ -43,7 +43,6 @@
 }
 
 .hero,
-.benefits,
 .sectionHead,
 .featureRow,
 .privacyInner,
@@ -69,6 +68,16 @@
   grid-column: 1 / 13;
   min-width: 0;
   padding-bottom: clamp(36px, 4vw, 56px);
+}
+
+.heroEyebrow {
+  margin: 0 0 14px;
+  color: var(--story-accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .heroTitle {
@@ -283,36 +292,13 @@
   text-decoration: none;
 }
 
-/* ── Proof strip ──────────────────────────────── */
-
-/* `margin-block`, not `margin`: `.container`'s `margin-inline: auto` has to survive. */
-.benefits {
-  margin-block: 0;
-  padding: 0 0 clamp(40px, 4vw, 56px);
-  list-style: none;
-}
-
-.benefits li {
-  grid-column: span 4;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 16px;
-  border-top: 1px solid var(--story-line-strong);
-  color: var(--story-text);
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-
-.benefits svg {
-  flex: none;
-  color: var(--story-teal);
-}
-
 /* ── Section heads ────────────────────────────── */
 
 .animationSection,
-.howSection {
+.howSection,
+.valueSection,
+.storySection,
+.visionSection {
   padding-block: clamp(64px, 7vw, 104px);
 }
 
@@ -338,7 +324,6 @@
 }
 
 .sectionHead p {
-  grid-column: 8 / 12;
   align-self: end;
   max-width: 44ch;
   margin: 0;
@@ -346,6 +331,140 @@
   font-size: 0.92rem;
   line-height: 1.7;
   text-wrap: pretty;
+}
+
+.sectionHead > p {
+  grid-column: 1 / 12;
+  max-width: 80ch;
+}
+
+/* Product narrative sections reuse the landing grid while keeping long-form
+   explanations separate from compact process rows. */
+.storySection,
+.visionSection,
+.valueGrid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--story-col-gap);
+}
+
+.storySection,
+.visionSection,
+.valueSection {
+  border-top: 1px solid var(--story-line);
+}
+
+.storyIntro {
+  grid-column: 1 / 7;
+}
+
+.storyIntro h2,
+.visionSection h2,
+.valueGrid h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 520;
+  letter-spacing: -0.03em;
+}
+
+.storyIntro h2,
+.visionSection h2 {
+  font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.sectionEyebrow {
+  margin: 0 0 14px;
+  color: var(--story-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.storyIntro > p:last-child,
+.storyBody > p,
+.visionSection > p:last-child,
+.valueGrid p {
+  color: var(--story-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.storyIntro > p:last-child {
+  max-width: 58ch;
+  margin: 20px 0 0;
+}
+
+.storyBody {
+  grid-column: 8 / 13;
+}
+
+.storyBody > p:first-child {
+  margin-top: 0;
+}
+
+.pointList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pointList li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--story-line);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.pointList li:first-child {
+  border-top: 1px solid var(--story-line);
+}
+
+.emphasis {
+  margin: 24px 0 0;
+  color: var(--story-text) !important;
+  font-weight: 560;
+}
+
+.valueGrid article {
+  grid-column: span 4;
+  padding: 28px 28px 28px 0;
+  border-top: 1px solid var(--story-line-strong);
+}
+
+.valueGrid h3 {
+  font-size: 1.15rem;
+}
+
+.valueGrid p {
+  margin: 12px 0 0;
+}
+
+.visionSection > .sectionEyebrow,
+.visionSection h2 {
+  grid-column: 1 / 7;
+}
+
+.visionSection > p:last-child {
+  grid-column: 8 / 13;
+  align-self: end;
+  margin: 0;
+}
+
+.sectionCopy {
+  grid-column: 1 / 7;
+  display: grid;
+  align-self: start;
+  max-width: none;
+  margin-top: 20px;
+  gap: 14px;
+}
+
+.sectionCopy p {
+  max-width: none;
 }
 
 /* ── How it works ─────────────────────────────── */
@@ -414,10 +533,6 @@
   display: grid;
   justify-items: start;
   gap: 18px;
-}
-
-.privacyHead svg {
-  color: var(--story-teal);
 }
 
 .privacyInner h2 {
@@ -511,7 +626,7 @@
   border-top: 1px solid var(--story-line);
 }
 
-.closing > div {
+.closingCopy {
   grid-column: 1 / 8;
 }
 
@@ -525,9 +640,11 @@
   color: var(--story-muted);
 }
 
-.closing .primaryAction {
+.closingActions {
   grid-column: 9 / 12;
-  justify-self: start;
+  display: grid;
+  justify-items: start;
+  gap: 12px;
 }
 
 /* ── Responsive ───────────────────────────────── */
@@ -570,10 +687,21 @@
 @media (max-width: 979px) {
   .sectionHead h2,
   .sectionHead p,
+  .sectionCopy,
   .privacyHead,
   .privacyBody,
-  .closing > div {
+  .closingCopy,
+  .storyIntro,
+  .storyBody,
+  .visionSection > .sectionEyebrow,
+  .visionSection h2,
+  .visionSection > p:last-child {
     grid-column: 1 / 13;
+  }
+
+  .storyBody,
+  .visionSection > p:last-child {
+    margin-top: 28px;
   }
 
   .hero {
@@ -598,15 +726,9 @@
     grid-column: 1 / 13;
   }
 
-  .closing .primaryAction {
+  .closingActions {
     grid-column: 1 / 13;
     margin-top: 28px;
-  }
-}
-
-@media (max-width: 767px) {
-  .benefits li {
-    grid-column: span 6;
   }
 }
 
@@ -641,7 +763,7 @@
     flex-direction: column;
   }
 
-  .benefits li {
+  .valueGrid article {
     grid-column: 1 / 13;
   }
 

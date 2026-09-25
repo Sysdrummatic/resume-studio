@@ -54,6 +54,7 @@ export type AppDictionary = {
   };
   landing: {
     hero: {
+      eyebrow: string;
       title: string[];
       description: string;
       primary_action: string;
@@ -68,32 +69,58 @@ export type AppDictionary = {
       loading_aria: string;
       open_aria: string;
     };
-    benefits: {
-      aria_label: string;
-      items: string[];
-    };
     animation: {
       title: string;
       description: string;
+      detail: string;
       iframe_title: string;
+    };
+    experience_base: {
+      eyebrow: string;
+      title: string;
+      description: string;
+      items: string[];
     };
     how: {
       title: string;
       description: string;
       features: Array<{
-        icon: "file" | "layers" | "link";
+        icon: "file" | "globe" | "layers" | "link" | "refresh";
         title: string;
         description: string;
       }>;
     };
+    advantages: {
+      title: string;
+      description: string;
+      items: Array<{ title: string; description: string }>;
+    };
+    languages: {
+      eyebrow: string;
+      title: string;
+      description: string;
+    };
+    structured_data: {
+      eyebrow: string;
+      title: string;
+      description: string;
+      detail: string;
+      items: string[];
+    };
     privacy: {
       title: string;
       description: string;
+      note: string;
       action: string;
+    };
+    vision: {
+      eyebrow: string;
+      title: string;
+      description: string;
     };
     faq: {
       title: string;
-      items: Array<{ question: string; answer: string }>;
+      items: Array<{ id?: string; question: string; answer: string }>;
     };
     cta: {
       title: string;
