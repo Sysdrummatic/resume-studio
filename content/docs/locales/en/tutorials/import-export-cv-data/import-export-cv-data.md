@@ -16,7 +16,7 @@ browser, or when you prepare content outside the editor.
 ## Export a backup
 
 1. Open **Dashboard**.
-2. In the **Master Resume** card, choose **Export**.
+2. In the **Experience Base** card, choose **Export**.
 3. Save the downloaded YAML file somewhere private and durable.
 
 The file contains account data rather than a public CV. Store it like any other
@@ -27,7 +27,7 @@ backup containing personal and professional information.
 1. Open **Dashboard** and choose **Import**.
 2. Select a trusted `.yaml` or `.yml` file.
 3. Read the confirmation dialog and confirm the import.
-4. After the page reloads, inspect Master Resume, the language versions, and
+4. After the page reloads, inspect the Experience Base, the language versions, and
    the CV Versions.
 
 The server validates the bundle before it is accepted. Import never publishes a

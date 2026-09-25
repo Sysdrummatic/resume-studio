@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Script from "next/script";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
@@ -103,9 +103,19 @@ function extractRole(value: unknown): string {
 type Props = {
   initialLocale: string;
   loadingLabel: string;
+  showChrome?: boolean;
+  /** Keeps the CV inside its container instead of breaking out to 100vw. */
+  embedded?: boolean;
+  loadingFallback?: ReactNode;
 };
 
-export default function ResumeViewClient({ initialLocale, loadingLabel }: Props) {
+export default function ResumeViewClient({
+  initialLocale,
+  loadingLabel,
+  showChrome = true,
+  embedded = false,
+  loadingFallback,
+}: Props) {
   const [localesConfig, setLocalesConfig] = useState<LocalesConfig | null>(null);
   const [activeLocale, setActiveLocale] = useState<string>(initialLocale);
   const [resumeData, setResumeData] = useState<ResumeDocument | null>(null);
@@ -209,15 +219,17 @@ export default function ResumeViewClient({ initialLocale, loadingLabel }: Props)
 
       <StatusToast toast={toast} onClose={closeToast} />
 
-      {(isLoading || !resumeData) && !error ? (
-        <div className="loading-indicator">{loadingLabel}</div>
-      ) : null}
+      {(isLoading || !resumeData) && !error
+        ? loadingFallback ?? <div className="loading-indicator">{loadingLabel}</div>
+        : null}
 
       {resumeData ? (
         <BasicResumeDocument
           locale={activeLocale}
           resume={resumeData}
           mode="public"
+          showChrome={showChrome}
+          embedded={embedded}
           languages={languageOptions}
           onLanguageSelect={(localeCode) => localesConfig && void handleLocaleChange(localeCode, localesConfig)}
           status="public"

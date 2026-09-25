@@ -17,8 +17,8 @@ przed przypadkowym błędem, usterką albo masowym skryptem wysyłającym więce
 
 | Akcja | Limit |
 | --- | --- |
-| Zapis szkicu głównego CV | 30 zapisów na minutę na konto |
-| Publikacja głównego CV | 20 publikacji na minutę na konto |
+| Zapis Bazy doświadczeń | 30 zapisów na minutę na konto |
+| Publikacja CV | 20 publikacji na minutę na konto |
 | Zapis wersji CV | 20 zapisów na minutę na konto |
 | Publikacja wersji CV | 20 publikacji na minutę na konto |
 | Rozmiar dokumentu | 100 KB na wersję językową |

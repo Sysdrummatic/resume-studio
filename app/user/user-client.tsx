@@ -13,6 +13,7 @@ import { UserAvatar } from "../components/design-system/atoms/UserAvatar";
 import { ResumePreviewFrame } from "../components/design-system/molecules/ResumePreviewFrame";
 import type { SessionActor } from "../lib/auth-types";
 import { useAppI18n } from "../components/app-i18n-provider";
+import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "../components/app-header-navigation";
 import { formatAppMessage } from "../i18n/locale";
 
 type Props = {
@@ -27,7 +28,9 @@ type JsYamlLoader = {
   load: (yamlContent: string) => unknown;
 };
 
-const MOBILE_DRAWER_BREAKPOINT_QUERY = "(min-width: 980px)";
+/* Same threshold as the app header's compact/desktop switch — imported, not
+   re-declared, so the drawer and the navigation can never drift apart. */
+const MOBILE_DRAWER_BREAKPOINT_QUERY = DESKTOP_NAVIGATION_BREAKPOINT_QUERY;
 const AVATAR_IMAGE_SIZE = 256;
 const AVATAR_IMAGE_QUALITY = 0.82;
 

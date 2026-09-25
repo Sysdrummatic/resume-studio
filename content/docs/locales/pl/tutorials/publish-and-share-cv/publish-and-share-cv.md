@@ -14,7 +14,7 @@ order: 5
 **Zanim zaczniesz:** [zapisz i sprawdź wersję CV](/docs/tutorials/create-cv-version). Jeśli potrzebujesz drugiego języka, [przygotuj go przed publikacją](/docs/tutorials/add-language-version).
 
 Publikacja zamienia zapisany wybór w migawkę dostępną pod kanonicznym publicznym
-linkiem. Późniejsze zmiany głównego CV nie zmienią tej strony, dopóki nie
+linkiem. Późniejsze zmiany Bazy doświadczeń nie zmienią tej strony, dopóki nie
 opublikujesz wersji ponownie.
 
 ## Opublikuj zapisaną wersję
@@ -40,7 +40,7 @@ publikacji. Nieobsługiwany parametr `?lang=` wraca do języka domyślnego.
 
 ## Zaktualizuj lub wycofaj publikację
 
-Po zmianie głównego CV albo wyboru wersji opublikuj ją ponownie, aby utworzyć
+Po zmianie Bazy doświadczeń albo wyboru treści opublikuj CV ponownie, aby utworzyć
 nową migawkę. Aby wyłączyć stronę, wybierz **Wycofaj publikację**. Zapisana wersja
 pozostanie na koncie i można ją później opublikować ponownie.
 

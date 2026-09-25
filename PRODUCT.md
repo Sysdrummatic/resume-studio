@@ -8,8 +8,10 @@
 When in doubt: default to `product` register. Brand surfaces are additive.
 
 ## Users
-- **Primary**: Tech-savvy professionals (software engineers, technical writers, 
-  data scientists) who value structure and control over their public career narrative
+- **Primary**: Professionals who want to keep their career information organized
+  and prepare CVs for different applications without duplicating documents
+- **Early adopters**: Tech-savvy professionals (software engineers, technical
+  writers, data scientists) who value structure, portability and control
 - **Secondary**: Hiring teams and recruiters reading published CV surfaces
 - **Tertiary**: Language-conscious professionals in EN/PL markets
 
@@ -18,6 +20,11 @@ OpenCiVera is a **professional identity platform** that treats the CV as a
 structured, reusable data layer — not a static document. Users maintain one 
 YAML-powered source record and publish role-aware, locale-specific public 
 surfaces from it.
+
+The current market entry point is a CV builder based on an **Experience Base**
+(`Baza doświadczeń` in Polish): a private, complete career record from which
+users select content for tailored CVs. The CV builder is the first useful
+surface of the broader professional identity platform, not its final boundary.
 
 Core value:
 - One source, many surfaces
@@ -36,10 +43,12 @@ This is NOT:
 - Brutalist minimal (empty space is not a design decision)
 
 ## Tone & Voice
-- Technical, not marketing-speak — talk like an engineer to engineers
+- Clear to non-technical users; explain the benefit before the implementation
+- Technically credible without requiring technical knowledge
 - Clarity over cleverness — direct statements over metaphors
 - Opinionated but not dogmatic
-- Precise terminology: "master source", "publication", "surface", "locale"
+- Use the canonical product terminology and information-architecture language
+  defined in [Brand language and terminology](docs/guides/brand-language-and-terminology.md)
 
 ## Brand Principles
 1. **Structure is beauty** — design reflects the data model, no gratuitous ornament
@@ -89,7 +98,13 @@ The following are grounds for rejection in PR review and `/impeccable detect`:
 ❌ `side-stripe-border` — no left-border accent on cards
 ❌ `shadow-depth-theater` — no shadows that exist only to look "deep"
 ❌ `nested-cards` — maximum one card level
-❌ `icon-text-pair-every-line` — icons are for navigation, not decoration
+❌ `icon-text-pair-every-line` — an icon repeated beside every line of body copy,
+   or a large rounded-corner icon parked above every heading. Icons **are** allowed
+   as section and row markers where the icon names what the row is about (the
+   landing page's benefits strip, its three publishing steps, the privacy band).
+   One marker per row, in a marker column or leading the label — never one per
+   sentence. Revised 2026-09-20; the rule previously read "icons are for
+   navigation, not decoration" and had removed the landing page's icons entirely.
 
 ## Success Metrics
 - Landing page communicates the publishing model in <90 seconds

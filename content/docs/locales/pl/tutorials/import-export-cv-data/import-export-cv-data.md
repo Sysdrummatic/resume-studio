@@ -16,7 +16,7 @@ przeglądarki albo przygotowaniem treści poza edytorem.
 ## Eksportuj kopię
 
 1. Otwórz **Panel**.
-2. W karcie **Główne CV** wybierz **Eksportuj**.
+2. W karcie **Baza doświadczeń** wybierz **Eksportuj**.
 3. Zapisz pobrany plik YAML w prywatnym i trwałym miejscu.
 
 Plik zawiera dane konta, a nie tylko publiczne CV. Traktuj go jak każdą kopię
@@ -27,7 +27,7 @@ zawierającą dane osobowe i zawodowe.
 1. Otwórz **Panel** i wybierz **Importuj**.
 2. Wskaż zaufany plik `.yaml` lub `.yml`.
 3. Przeczytaj okno potwierdzenia i zaakceptuj import.
-4. Po ponownym załadowaniu strony sprawdź główne CV, wersje językowe i wersje
+4. Po ponownym załadowaniu strony sprawdź Bazę doświadczeń, wersje językowe i wersje
    CV.
 
 Serwer sprawdza pakiet przed przyjęciem. Import nigdy nie publikuje CV: prywatne

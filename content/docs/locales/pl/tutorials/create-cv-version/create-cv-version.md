@@ -1,6 +1,6 @@
 ---
 title: Utwórz wersję CV pod konkretną rolę
-description: Wybierz właściwe elementy głównego CV dla jednej oferty, pozostawiając resztę prywatną.
+description: Wybierz z Bazy doświadczeń informacje potrzebne w jednej rekrutacji, pozostawiając resztę prywatną.
 updatedAt: 2026-09-20
 author: Łukasz Michta
 category: tutorials
@@ -11,9 +11,9 @@ order: 4
 
 **Cel:** przygotować dopasowany wybór treści i wygląd CV, bez publikowania danych.
 
-**Zanim zaczniesz:** [uzupełnij i zapisz główne CV](/docs/tutorials/master-resume-basics). Przygotuj ofertę, pod którą dopasujesz wersję.
+**Zanim zaczniesz:** [uzupełnij i zapisz Bazę doświadczeń](/docs/tutorials/master-resume-basics). Przygotuj ofertę, pod którą dopasujesz CV.
 
-Główne CV to pełna historia kariery. Wersja CV to krótszy wybór, który chcesz
+Baza doświadczeń zawiera pełną historię kariery. Wersja CV to krótszy wybór, który chcesz
 wysłać w sprawie jednej roli lub projektu. Utworzenie wersji nie kopiuje całego
 dokumentu do przestrzeni publicznej — zapisuje tylko wybrane wpisy.
 
@@ -35,13 +35,13 @@ Otwórz podgląd i przełączaj dostępne języki CV. Czytaj go jak rekruter: cz
 podsumowanie pasuje do roli, czy najważniejsze osiągnięcia są wysoko i czy nie
 udostępniasz informacji, które powinny pozostać prywatne?
 
-Podgląd korzysta z bieżącego wyboru głównego CV. Publiczny link jest inny: do
+Podgląd korzysta z bieżącego wyboru z Bazy doświadczeń. Publiczny link jest inny: do
 czasu kolejnej publikacji pokazuje ostatnią niezmienną migawkę.
 
 ## Edytuj lub usuń wersję
 
 W menu ustawień wersji wybierz **Edytuj**, **Opublikuj**, eksport albo **Usuń**.
-Usunięcie wersji kasuje tylko ten wybór; główne CV pozostaje bez zmian. Jeśli
+Usunięcie wersji kasuje tylko ten wybór; Baza doświadczeń pozostaje bez zmian. Jeśli
 wersja jest publiczna i chcesz zachować ją na później, wybierz **Wycofaj publikację**.
 
 :::tip

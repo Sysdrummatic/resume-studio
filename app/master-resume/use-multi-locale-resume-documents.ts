@@ -483,7 +483,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             body: JSON.stringify({
               locale: code,
               yamlContent: snapshot,
-              title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Master resume` : "Master resume",
+              title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Experience Base` : "Experience Base",
               styleSettings: buffer.cvStyle,
               changeNote: changeNote || "Saved update",
             }),

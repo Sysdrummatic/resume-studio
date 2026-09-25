@@ -18,8 +18,8 @@ editing a CV normally would.
 
 | Action | Limit |
 | --- | --- |
-| Saving a Master Resume draft | 30 saves per minute, per account |
-| Publishing a Master Resume | 20 publishes per minute, per account |
+| Saving the Experience Base | 30 saves per minute, per account |
+| Publishing a CV | 20 publishes per minute, per account |
 | Saving a CV Version | 20 saves per minute, per account |
 | Publishing a CV Version | 20 publishes per minute, per account |
 | Document size | 100 KB per language version |

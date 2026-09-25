@@ -181,6 +181,103 @@ No ad-hoc spacing values. Use tokens exclusively.
 
 ---
 
+## Layout
+
+### Canvas widths (`:root`, `app/globals.css`)
+
+```
+--layout-canvas-max:      1600px   Landing, app header, landing footer
+--layout-content-max:     1180px   Reading surfaces: docs, /privacy, /terms
+--layout-dashboard-max:   1500px   Dashboard workspace
+--layout-gutter:            16px   → 24px from 768px up
+--app-header-height:        56px
+--workspace-breadcrumbs-height: 42px
+```
+
+Every page-level container is the same expression, never a bare `max-width`:
+
+```css
+width: min(var(--layout-<surface>-max), calc(100% - var(--layout-gutter) - var(--layout-gutter)));
+margin-inline: auto;
+```
+
+**1600px is a canvas, not a measure.** It is the frame the header's brand mark
+aligns to; text inside it sits on the grid below, capped by its own `ch` measure.
+A paragraph that runs the full 1600px is a bug. If a surface is text-led and has
+no header to align with, use `--layout-content-max` instead.
+
+### Grid
+
+12 columns, `column-gap: clamp(16px, 1.6vw, 26px)`, placed with explicit column
+lines (`grid-column: 1 / 8`). The landing page
+(`app/landing.module.css`) is the reference implementation.
+
+- Never fill a wide row with `justify-self: end` — that pushes body copy to the
+  far edge and leaves a 400px void mid-row. Place it on a column line instead.
+- Trailing columns left empty are legitimate negative space on brand surfaces;
+  they are not "unfinished".
+
+### Text measures
+
+```
+Body / paragraphs:     54–65ch     (never wider)
+Long-form prose:       64–72ch
+Supporting / captions: 44–48ch
+Display headings:      15–18ch     (forces a 2–3 line break, not a 5-line ladder)
+```
+
+Caps go on the element in `ch`, not on the grid column — the column defines
+position, the measure defines readability.
+
+### Breakpoints — portal
+
+One ladder, used across `globals.css`, `dashboard.css`, `docs.css`, `user.css`
+and `landing.module.css`. Do not add values between these steps:
+
+```
+ 640px   max   phone
+ 767/768px     phone ↔ tablet (gutter steps to 24px at 768)
+ 979/980px     compact ↔ desktop navigation
+1279/1280px    wide desktop
+1439/1440px    extra-wide
+1599/1600px    canvas reaches its --layout-canvas-max cap
+```
+
+`980px` is also `DESKTOP_NAVIGATION_BREAKPOINT_QUERY`, exported from
+`app/components/app-header-navigation.tsx`. In JS/TS **import it**; in CSS write
+`(min-width: 980px)` literally — never redefine the number in a constant of your own.
+
+### Breakpoints — CV domain
+
+`app/resume/resume.css` runs its own ladder — **480 / 640 / 768 / 1024** — because
+the CV is a fixed-width document (210mm in plain/print mode), not a fluid page. Do
+not merge the two ladders, and do not import portal breakpoints into the CV
+renderer. See [Design Domain Boundaries](#design-domain-boundaries).
+
+Container queries (`@container`) are outside both ladders: they measure an element,
+not the viewport, and answer to the component that owns them.
+
+### Enforcement
+
+`tests/layout-breakpoint-ladder.test.mjs` scans every `.css`/`.ts`/`.tsx` under
+`app/` and fails on any `@media` width — or quoted `matchMedia` string — outside
+these ladders. It also fails if a second module re-declares the 980px navigation
+query. The prose here and the sets in that file are one decision: change both
+together.
+
+### Known off-ladder values
+
+Legacy, predating this section (2026-09-20), listed as `GRANDFATHERED` in that test:
+`520`, `560`, `600`, `680`, `699/700`, `720`, `760`, `900`, `940`, `960` — in
+`onboarding.css`, `templates.module.css`, `user.css`,
+`open-civera-animation.module.css`, `resume.css` and parts of `globals.css`.
+
+That list is a **ratchet**: it may shrink, never grow. Deleting a value from the CSS
+without deleting it from the test fails the stale-entry check, so the list cannot
+outlive the code it excuses. Migrate opportunistically when you touch the file.
+
+---
+
 ## Radii
 
 ```
@@ -284,11 +381,20 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   `--ease-out-expo` over 600ms as they enter the viewport, with an 80ms stagger across the
   publishing-model cards. Driven by `app/components/scroll-reveal.tsx` (IntersectionObserver).
   The hidden start state is gated behind the `.lp--reveal-ready` class the controller adds, so
-  content stays visible without JS and for crawlers. The hero is never gated.
+  content stays visible without JS and for crawlers. The hero is never gated. The stagger
+  applied to landing cards that no longer exist; only the base reveal remains.
+- **Sheet rise (landing hero)**: the published-CV preview starts one frame-height below the
+  hero's bottom rule and rises to rest over 1100ms on `--ease-out-expo`, clipped by that rule
+  so the document reads as coming up out of the line. Pure CSS `@keyframes` inside
+  `@media (prefers-reduced-motion: no-preference)` — no JS, no reveal class, no `animation-delay`
+  on anything a reader needs. This is the one entrance animation in a hero, allowed because it
+  moves a decorative artifact: the headline, lead, both CTAs and the process caption paint
+  immediately and never wait on it.
 
 **Rules**:
 - Ambient animation only on non-content layers (background pseudo-elements)
-- Entrance animations must not delay information access: gate only below-the-fold content, never the hero
+- Entrance animations must not delay information access. Below-the-fold content may be gated;
+  in a hero, only a decorative artifact may animate, and never the copy or the CTAs
 - No looping animations on content elements at idle state
 - `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
   `app/globals.css` zeroes transition and animation durations; reveal targets are forced visible
@@ -353,9 +459,28 @@ and will be flagged by `/impeccable detect app/` (portal code lives in `app/`, n
 | `side-stripe-border`         | Left-border accent on cards is a template cliché      |
 | `shadow-depth-theater`       | Shadows that exist only to look "deep"                |
 | `nested-cards`               | Maximum one card nesting level                        |
-| `icon-text-pair-every-line`  | Icons are for navigation, not decoration              |
+| `icon-text-pair-every-line`  | An icon beside every line of body copy, or a large rounded-corner icon above every heading. See the note below — section and row markers are allowed |
 | `hardcoded-hex-in-component` | All colors via CSS vars from the token system         |
 | `inter-default-tracking`     | Geist only — no Inter fallback without explicit ADR   |
+
+### Icons as markers
+
+Revised 2026-09-20. The earlier wording ("icons are for navigation, not
+decoration") was read literally and stripped every icon from the landing page.
+The intent was narrower, so the rule now reads:
+
+**Allowed** — one icon per section or row, where it names what the row is about:
+a benefits strip, the three publishing steps, the privacy band's shield. It sits
+in a marker column or leads the label, and it is the only glyph of its kind in
+that row.
+
+**Still rejected** — an icon repeated beside every line of body copy; a large
+rounded-corner icon parked above every heading; icons chosen because a row looked
+empty rather than because they carry the row's meaning.
+
+Marker icons come from `lucide-react`, take `aria-hidden="true"` (the label
+carries the meaning), and use `--story-teal` or `--story-accent`, never a third
+colour introduced for the icon alone.
 
 ---
 
@@ -367,9 +492,14 @@ and will be flagged by `/impeccable detect app/` (portal code lives in `app/`, n
 | `app/styles/colors.ts`                 | TypeScript color constants           |
 | `app/lib/app-theme.ts`                 | Theme IDs, default, enabled set      |
 | `app/components/app-theme-switch.tsx`  | Top-bar theme toggle                 |
-| `.agent/design-system/tokens.json`     | Spacing, radii, shadow tokens        |
+| `app/landing.module.css`               | Reference 12-column grid implementation |
+| `app/components/app-header-navigation.tsx` | `DESKTOP_NAVIGATION_BREAKPOINT_QUERY` (980px) |
 | `app/resume/resume.css`                | CV domain — do not touch from portal |
 | `PRODUCT.md`                           | Product context, register, voice     |
+
+Spacing, radii and shadow tokens live in `app/globals.css` `:root` and are
+mirrored above. A `.agent/design-system/tokens.json` was listed here until
+2026-09-20; no such file has ever existed in this repo.
 
 ---
 

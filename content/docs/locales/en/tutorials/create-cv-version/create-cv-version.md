@@ -1,6 +1,6 @@
 ---
 title: Create a CV version for a specific role
-description: Select the right parts of your Master Resume for one opportunity while keeping the rest private.
+description: Select the right information from your Experience Base for one application while keeping the rest private.
 updatedAt: 2026-09-18
 author: Łukasz Michta
 category: tutorials
@@ -11,9 +11,9 @@ order: 4
 
 **Goal:** prepare a tailored selection and appearance without publishing your data.
 
-**Before you start:** [complete and save your master resume](/docs/tutorials/master-resume-basics). Have the target job description ready.
+**Before you start:** [complete and save your Experience Base](/docs/tutorials/master-resume-basics). Have the target job description ready.
 
-Your Master Resume is the complete career record. A CV Version is the shorter
+Your Experience Base is the complete career record. A CV Version is the shorter
 selection you want to send for one role or project. Creating one does not copy
 the whole document into public view: it stores which entries should be shown.
 
@@ -36,7 +36,7 @@ Open the preview and switch between the available CV languages. Read it as a
 recruiter would: does the summary fit the role, are the strongest achievements
 near the top, and did you leave out anything that should stay private?
 
-The preview uses the current Master Resume selection. A link that is already
+The preview uses the current selection from the Experience Base. A link that is already
 public is different: it keeps showing its last immutable snapshot until you
 publish the version again.
 

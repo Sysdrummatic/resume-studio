@@ -1,13 +1,53 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef } from "react";
+import ResumeViewClient from "../resume/resume-view-client";
 import type { AppDictionary } from "../i18n/types";
 
-const LOAD_TIMEOUT_MS = 12000;
-
-type Status = "loading" | "loaded" | "timed-out";
 type SampleLabels = AppDictionary["landing"]["sample"];
+
+/**
+ * Keeps the preview fitted to whatever width the hero column happens to have.
+ *
+ * The CV is laid out at a fixed px width (the sample CV's own shell width), so
+ * fitting it to a fluid column means dividing a length by a length — which CSS
+ * cannot express, in `calc()` or anywhere else. Discrete zoom steps per
+ * breakpoint were the previous answer and they left visible slack between
+ * steps, so the ratio is measured here instead and handed back to CSS as a
+ * plain number.
+ *
+ * The reference width is read from `--story-sheet-width` rather than repeated
+ * as a constant, so this never becomes a third copy of a derived value.
+ */
+function useSheetScale(anchor: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const frame = anchor.current?.closest<HTMLElement>("[data-sheet-frame]");
+    if (!frame || typeof ResizeObserver === "undefined") return;
+
+    let retry = 0;
+    const update = () => {
+      const sheetWidth = Number.parseFloat(
+        getComputedStyle(frame).getPropertyValue("--story-sheet-width")
+      );
+      // The token comes from the page's CSS module. If that stylesheet has not
+      // applied yet, retry rather than give up: the observer only fires again
+      // when the frame resizes, so bailing here would leave the CSS fallback
+      // in place for the whole session.
+      if (!sheetWidth) {
+        if (retry++ < 30) requestAnimationFrame(update);
+        return;
+      }
+      retry = 0;
+      // Never past 1:1 — the preview is the sample CV scaled down, not blown up.
+      const scale = Math.min(1, frame.clientWidth / sheetWidth);
+      frame.style.setProperty("--sheet-scale", String(scale));
+    };
+
+    const observer = new ResizeObserver(update);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [anchor]);
+}
 
 function ResumeSkeleton({ loadingAria }: { loadingAria: string }) {
   return (
@@ -55,62 +95,39 @@ function ResumeSkeleton({ loadingAria }: { loadingAria: string }) {
   );
 }
 
-export default function LandingSampleCv({ labels }: { labels: SampleLabels }) {
-  const [status, setStatus] = useState<Status>("loading");
-  const [host] = useState(() => (typeof window === "undefined" ? "" : window.location.host));
-
-  useEffect(() => {
-    if (status !== "loading") return;
-    const timer = window.setTimeout(() => {
-      setStatus((current) => (current === "loading" ? "timed-out" : current));
-    }, LOAD_TIMEOUT_MS);
-    return () => window.clearTimeout(timer);
-  }, [status]);
+/**
+ * The published CV rendered inline, exactly as `/resume` renders it — same
+ * renderer, same data, same chrome, same shell width — and scaled down by the
+ * landing module. `showChrome={false}` is deliberately NOT passed: it switches
+ * the renderer into its plain variant (210mm paper, 12mm margins, no card
+ * shadows), which is what made the preview look unlike the sample CV.
+ *
+ * `embedded` keeps the CV inside this container; the sample route lets the same
+ * root break out to 100vw.
+ *
+ * It used to be an `<iframe src="/resume">`, which pulled in the whole route —
+ * including the app header — so the landing page showed its navigation twice.
+ */
+export default function LandingSampleCv({
+  labels,
+  locale
+}: {
+  labels: SampleLabels;
+  locale: string;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useSheetScale(rootRef);
 
   return (
-    <div className="lp-cv" data-reveal>
-      <div className="lp-cv__chrome">
-        <div className="lp-cv__dots"><span /><span /><span /></div>
-        <div className="lp-cv__url">
-          <svg className="lp-cv__lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-            <rect x="3" y="11" width="18" height="11" rx="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-          <span suppressHydrationWarning>{host ? `${host}/` : "/"}</span>
-          <span className="lp-cv__url-hi">resume</span>
-        </div>
-        <Link href="/resume" className="lp-cv__ext" aria-label={labels.open_aria}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
-          </svg>
-        </Link>
-      </div>
-      <div className="lp-cv__wrap">
-        {status !== "timed-out" && (
-          <iframe
-            src="/resume"
-            className={`lp-cv__iframe${status === "loaded" ? " is-loaded" : ""}`}
-            title={labels.iframe_title}
-            sandbox="allow-scripts allow-same-origin allow-forms"
-            onLoad={() => setStatus((current) => (current === "loading" ? "loaded" : current))}
-          />
-        )}
-        {status === "loading" && <ResumeSkeleton loadingAria={labels.loading_aria} />}
-        {status === "timed-out" && (
-          <div className="lp-cv__fallback">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="9" y1="13" x2="15" y2="13" />
-              <line x1="9" y1="17" x2="13" y2="17" />
-            </svg>
-            <p>{labels.timeout}</p>
-            <Link href="/resume" className="btn btn-p">{labels.timeout_action}</Link>
-          </div>
-        )}
-      </div>
+    // inert, not aria-hidden: the sheet contains links, and the full,
+    // interactive CV is one click away at /resume.
+    <div className="lp-cv" ref={rootRef} inert>
+      <ResumeViewClient
+        initialLocale={locale}
+        loadingLabel={labels.loading_aria}
+        embedded
+        loadingFallback={<ResumeSkeleton loadingAria={labels.loading_aria} />}
+      />
     </div>
   );
 }

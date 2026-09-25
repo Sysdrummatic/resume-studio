@@ -20,7 +20,7 @@ z dostępem pracowniczym.
 3. Zmień imię lub nazwisko i wybierz **Zapisz**.
 
 Nazwa profilu i nazwa drukowana na CV to osobne wartości. Jeśli chcesz zmienić
-nazwę na CV, zaktualizuj ją w głównym CV.
+nazwę na CV, zaktualizuj ją w Bazie doświadczeń.
 
 ## Chroń konto
 
@@ -34,7 +34,7 @@ linku sesji ani tokenu dostępu.
 
 ## Zrozum, co jest publiczne
 
-Główne CV i prywatne wersje CV pozostają na koncie. Publiczny link zawiera tylko
+Baza doświadczeń i prywatne wersje CV pozostają na koncie. Publiczny link zawiera tylko
 elementy wybrane do publikacji oraz wybrane wersje językowe. `noindex` prosi
 wyszukiwarki o nieindeksowanie strony, ale nie zabezpiecza jej hasłem.
 

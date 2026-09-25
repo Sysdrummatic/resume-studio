@@ -15,12 +15,12 @@ treści żadnej wersji CV.
 
 ## Dodaj język
 
-1. Otwórz **Panel** i wybierz **Edytuj główne CV**.
+1. Otwórz **Panel** i wybierz **Edytuj Bazę doświadczeń**.
 2. W pasku narzędzi edytora otwórz **Języki**.
 3. Wpisz kod, nazwę wyświetlaną i krótki skrót, a następnie wybierz
    **Utwórz wersję**.
 4. Otwórz nową kartę języka i wpisz przetłumaczoną treść.
-5. Zapisz główne CV przy aktywnej tej karcie.
+5. Zapisz Bazę doświadczeń przy aktywnej tej karcie.
 
 Zachowaj zgodność faktów między językami, ale dopasuj nagłówki, podsumowanie i
 opis roli do osób, które będą czytać daną wersję.
@@ -34,7 +34,7 @@ opis roli do osób, które będą czytać daną wersję.
 5. Opublikuj ją ponownie i wybierz te języki w oknie publikacji.
 
 Publiczny przełącznik pokazuje tylko języki zawarte w ostatniej publikacji. Język
-może istnieć w głównym CV, a mimo to pozostać prywatny, jeśli nie zaznaczysz go
+może istnieć w Bazie doświadczeń, a mimo to pozostać prywatny, jeśli nie zaznaczysz go
 w tym miejscu.
 
 :::tip

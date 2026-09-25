@@ -14,7 +14,7 @@ przydaje się, gdy chcesz sprawdzić starszy stan przed zmianą bieżącego.
 
 ## Podejrzyj historię
 
-1. Otwórz **Główne CV**.
+1. Otwórz **Bazę doświadczeń**.
 2. Wybierz język, który chcesz sprawdzić.
 3. Otwórz panel **Historia**.
 4. Wybierz rewizję i otwórz jej podgląd.
@@ -29,7 +29,7 @@ usuwa niezapisanych zmian.
 3. Potwierdź i poczekaj na komunikat powodzenia.
 4. Sprawdź bieżący podgląd i zapisz ewentualne poprawki.
 
-Przywrócenie zmienia aktywny dokument głównego CV dla tego języka. Nie zmienia
+Przywrócenie zmienia aktywny stan Bazy doświadczeń dla tego języka. Nie zmienia
 publicznej migawki. Aby publiczne CV odzwierciedlało przywrócony dokument,
 zaktualizuj wersję CV i opublikuj ją ponownie.
 

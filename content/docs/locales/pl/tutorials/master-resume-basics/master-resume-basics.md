@@ -1,5 +1,5 @@
 ---
-title: Poznaj i edytuj główne CV
+title: Poznaj i edytuj Bazę doświadczeń
 description: Dowiedz się, co należy do prywatnego dokumentu źródłowego i jak bezpiecznie go aktualizować.
 updatedAt: 2026-09-20
 author: Łukasz Michta
@@ -7,19 +7,19 @@ category: tutorials
 order: 3
 ---
 
-# Poznaj i edytuj główne CV
+# Poznaj i edytuj Bazę doświadczeń
 
-**Cel:** zapisać prywatne główne CV, z którego przygotujesz wersje pod oferty.
+**Cel:** utworzyć prywatną Bazę doświadczeń, z której przygotujesz CV pod konkretne oferty.
 
 **Zanim zaczniesz:** zaloguj się i przygotuj dane kontaktowe oraz historię zatrudnienia.
 
-Traktuj główne CV jak prywatną bibliotekę kariery. Zawiera pełną historię, z
+Traktuj Bazę doświadczeń jak prywatny zbiór informacji o karierze. Zawiera pełną historię, z
 której tworzysz krótsze wersje CV. Sam zapis nie publikuje żadnego pola.
 
 ## Otwórz edytor
 
 1. Zaloguj się i otwórz **Panel**.
-2. W karcie **Główne CV** wybierz **Edytuj główne CV**.
+2. W karcie **Baza doświadczeń** wybierz **Edytuj Bazę doświadczeń**.
 3. Użyj nawigacji sekcji, aby przejść do danych osobowych, podsumowań,
    stanowisk, doświadczenia, wykształcenia, umiejętności, języków, kursów,
    zainteresowań i danych kontaktowych.
@@ -33,7 +33,7 @@ dokument zapisywany na serwerze.
 - Podgląd na żywo pokazuje wybrany język i aktualny szkic.
 - Procent kompletności jest wskazówką, a nie oceną CV ani warunkiem publikacji.
 - Lokalny szkic można odzyskać po odświeżeniu, ale istnieje tylko w tej
-  przeglądarce, dopóki nie klikniesz **Zapisz główne CV**.
+  przeglądarce, dopóki nie klikniesz **Zapisz Bazę doświadczeń**.
 - Każda zapisana rewizja dotyczy jednej wersji językowej. Krótka notatka ułatwi
   późniejsze znalezienie zmiany w historii.
 
@@ -42,14 +42,14 @@ dokument zapisywany na serwerze.
 1. Zmień pole albo dodaj lub usuń wpis.
 2. Sprawdź podgląd przy aktywnej właściwej karcie języka.
 3. Dodaj notatkę, na przykład `Aktualizacja doświadczenia React`.
-4. Kliknij **Zapisz główne CV** i poczekaj na komunikat powodzenia.
+4. Kliknij **Zapisz Bazę doświadczeń** i poczekaj na potwierdzenie.
 
-Główne CV pozostaje prywatne. Gdy chcesz udostępnić tylko wybrane informacje,
+Baza doświadczeń pozostaje prywatna. Gdy chcesz udostępnić tylko wybrane informacje,
 utwórz wersję CV z poziomu panelu.
 
 :::warning
 Wskaźnik lokalnego szkicu nie oznacza zapisu na serwerze. Przed zamknięciem
-karty albo zmianą urządzenia użyj **Zapisz główne CV**.
+karty albo zmianą urządzenia użyj **Zapisz Bazę doświadczeń**.
 :::
 
 ## Resetuj lub importuj dane
@@ -61,4 +61,4 @@ Import dodaje dane i nie publikuje CV. Pełną kopię zapasową konta opisuje po
 ## Sprawdź rezultat
 
 - Widzisz potwierdzenie zapisu, a podgląd zawiera aktualne dane.
-- Wybrany język jest prawidłowy. Główne CV nadal jest prywatne.
+- Wybrany język jest prawidłowy. Baza doświadczeń nadal jest prywatna.

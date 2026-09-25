@@ -14,7 +14,7 @@ order: 8
 **Before you start:** [publish your current CV version](/docs/tutorials/publish-and-share-cv). Export uses the published snapshot, not the current draft.
 
 The export tools use the same selected snapshot that visitors see. A draft
-Master Resume and an unpublished CV Version are not public snapshots, so they
+The Experience Base and an unpublished CV Version are private, so they
 are not available through these actions.
 
 ## Export ATS TXT

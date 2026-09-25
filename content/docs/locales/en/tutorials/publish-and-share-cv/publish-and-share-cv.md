@@ -14,7 +14,7 @@ order: 5
 **Before you start:** [save and review your CV version](/docs/tutorials/create-cv-version). If you need another language, [prepare it before publishing](/docs/tutorials/add-language-version).
 
 Publishing takes the saved selection and freezes it into a snapshot behind your
-canonical public link. Later edits to Master Resume do not change that page
+canonical public link. Later edits to the Experience Base do not change that page
 until you publish the version again.
 
 ## Publish a saved version
@@ -34,14 +34,14 @@ URL.
 
 `noindex` asks search engines not to list the page; it does not make the URL
 secret. Anyone with the link can view it. Only content selected in the CV
-Version is included, so unselected Master Resume fields remain private.
+Version is included, so unselected Experience Base fields remain private.
 
 Visitors can switch languages only when the locale was selected for this
 publication. An unsupported `?lang=` value falls back to the published default.
 
 ## Update or take down a publication
 
-After changing Master Resume or the CV Version selection, publish again to make
+After changing the Experience Base or the CV Version selection, publish again to make
 a new snapshot. To take the page offline, choose **Unpublish**. The saved
 version stays in your account and can be published again later.
 

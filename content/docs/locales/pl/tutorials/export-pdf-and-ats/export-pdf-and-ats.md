@@ -14,7 +14,7 @@ order: 8
 **Zanim zaczniesz:** [opublikuj aktualną wersję CV](/docs/tutorials/publish-and-share-cv). Eksport korzysta z opublikowanej migawki, nie z bieżącego szkicu.
 
 Narzędzia eksportu korzystają z tej samej migawki, którą widzą odwiedzający.
-Szkic głównego CV i nieopublikowana wersja CV nie są publicznymi migawkami, więc
+Szkic Bazy doświadczeń i nieopublikowana wersja CV nie są publicznymi publikacjami, więc
 nie można ich eksportować tymi akcjami.
 
 ## Eksportuj ATS TXT
@@ -39,7 +39,7 @@ Zwykłe konta użytkowników powinny korzystać z eksportu opublikowanego PDF.
 Podgląd roboczego PDF jest funkcją tylko dla administratorów.
 
 :::warning
-Jeśli brakuje pola, najpierw sprawdź wybór w wersji CV. Sama edycja głównego CV
+Jeśli brakuje pola, najpierw sprawdź wybór w wersji CV. Sama edycja Bazy doświadczeń
 nie zmieni eksportu utworzonego ze starszej publikacji.
 :::
 

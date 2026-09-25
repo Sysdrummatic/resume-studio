@@ -1,5 +1,5 @@
 meta:
-  description: OpenCiVera platform foundation on Next.js
+  description: OpenCiVera — a CV builder based on a private Experience Base. Create a separate CV tailored to each application.
 common:
   loading: Loading…
   close: Close
@@ -9,7 +9,7 @@ common:
   breadcrumb: Breadcrumb
   close_notification: Close notification
 navigation:
-  personal_hub: Personal Hub
+  personal_hub: Profile and CVs
   dashboard: Dashboard
   sample_cv: Sample CV
   docs: Docs
@@ -56,70 +56,65 @@ account:
 landing:
   hero:
     title:
-      - Your experience
-      - deserves a
-      - good introduction.
-    description: A CV that is easy to prepare, tailor and share. Take care of your career story — from the first draft to your next opportunity.
-    primary_action: Create your CV
+      - One Experience Base.
+      - A separate CV
+      - for every application.
+    description: OpenCiVera is a CV builder designed differently. Keep your full career history in one private place, then select the right content for a CV tailored to a specific role.
+    primary_action: Create your Experience Base
     secondary_action: See a sample CV
-    privacy_note: Your career record stays private.
+    privacy_note: Your Experience Base is private. You share only the CV you select.
     process_aria: How OpenCiVera works
     process:
-      - Your record
-      - Selected content
-      - Public CV
+      - Save your experience
+      - Select the content
+      - Create a CV
   sample:
-    public_path: opencivera.com / resume
-    status: Published
-    data_note: Current sample CV
-    open_action: Open the full example
+    data_note: An example created with OpenCiVera
+    open_action: View the full CV
     loading_aria: Loading sample resume
     open_aria: Open sample resume
-    iframe_title: Sample public resume — OpenCiVera
-    timeout: The embedded preview is taking longer than expected. You can still explore the platform by viewing the full example.
-    timeout_action: Open sample resume ↗
   benefits:
     aria_label: Key OpenCiVera capabilities
     items:
-      - One record of all your experience
-      - Versions tailored to each application
-      - CVs in different languages
+      - Your full career history in one place
+      - A separate version for every application
+      - CVs in multiple languages
   animation:
-    title: From your whole story to the right CV.
-    description: See how your experience moves into a private Master Resume and then into versions tailored to specific roles.
+    title: One source. As many CVs as you need.
+    description: See how you select information from your private Experience Base to create a separate CV for each role.
     iframe_title: Animation showing how OpenCiVera creates tailored CVs
   how:
-    title: Less time managing files. More room to grow.
-    description: A simple way to organise what you already know and show what matters right now.
+    title: Do not start from scratch for every application.
+    description: Update your experience in one place while each CV keeps its own selection of content.
     features:
       - icon: file
-        title: All your experience. One place.
-        description: Stop looking for achievements in old files. Keep your story in Master Resume and add to it as your career develops.
+        title: Build your Experience Base
+        description: Add information manually or import an existing CV. Keep the base current as you complete new projects, change roles and develop new skills.
       - icon: layers
-        title: The right story for the right role.
-        description: Choose relevant experience and a summary. Save a separate CV for each career path using the same source record.
+        title: Prepare a CV for a specific role
+        description: Select the relevant experience, professional summary and skills. Save a separate version for each application or career direction.
       - icon: link
-        title: Ready to share. On your terms.
-        description: Publish a selected version and send the link. You decide when later edits appear there and when the link is no longer available.
+        title: Download or share it
+        description: Review the preview, publish the selected version under a public link or download a file ready to send.
   privacy:
-    title: Your whole career is yours. You share a selected part.
-    description: Your Master Resume stays private. A public link shows only the content you selected and published. You can deactivate it whenever you want.
-    action: About publishing
+    title: Your full career history stays private.
+    description: Your Experience Base is available only in your account. A public link shows only the information you selected and published. Changes to the base stay private until you publish the CV again.
+    action: How publishing works
   faq:
     title: Good to know before you start.
     items:
       - question: Can I use a CV I already have?
         answer: Yes. The editor supports PDF, DOCX, YAML and TXT imports. You review the content before saving it to your career record.
-      - question: Who can see my Master Resume?
-        answer: Your Master Resume is private. A public link recipient sees only the content selected for the published CV version.
+      - question: Who can see my Experience Base?
+        answer: Your Experience Base is private. A public link recipient sees only the information selected for that published CV.
       - question: Does editing change a CV I have already shared?
         answer: Not immediately. Saving edits does not change a publication. Publish the selected version again for link recipients to see the new content.
       - question: Can I create language versions?
-        answer: Yes. You can maintain CV content in different languages and choose the languages of a saved version. You provide the content for each language separately.
+        answer: Yes. You can maintain CV content in several languages and choose which ones to share. You complete each language version separately, so you stay in control of its meaning and tone.
   cta:
-    title: Make room for your next step.
-    description: You already have the experience. Give it the right shape.
-    primary_action: Create your CV
+    title: Start with your experience. Create the CV when you need it.
+    description: Import an existing document or build your Experience Base step by step. You can prepare your first tailored version from the same data.
+    primary_action: Create your Experience Base
   footer:
     sample_resume: Sample resume
     platform: Platform
@@ -139,7 +134,7 @@ auth:
     signup:
       eyebrow: Account setup
       title: Create your account
-      lead: Open your workspace, verify your email, then publish from one structured source.
+      lead: Create an account to build a private Experience Base and prepare tailored CVs from it.
       alternate_label: Already have an account?
       alternate_action: Sign in
     reset:
@@ -157,7 +152,7 @@ auth:
     signin:
       eyebrow: Account access
       title: Sign in
-      lead: Continue into your dashboard and publication controls.
+      lead: Sign in to update your Experience Base and manage your CVs.
       alternate_label: Need an account?
       alternate_action: Sign up
   fields:
@@ -220,9 +215,9 @@ dashboard:
     aria_label: CV version editor
     close_aria: Close CV version editor
     edit_title: Edit CV version
-    create_title: Create CV version
+    create_title: Create a tailored CV
     close: Close
-    title_label: CV version title
+    title_label: CV name
     title_placeholder: Frontend Engineer — example company
     allow_indexing: Allow search engines to index the page after publication
     ai_generated: Mark as AI-generated content
@@ -233,17 +228,17 @@ dashboard:
     template_signal_grid: Signal Grid
     template_atelier_noir: Atelier Noir
     template_terminal_stack: Terminal Stack
-    no_items: No items in the master resume.
+    no_items: No items in the Experience Base.
     saving: Saving…
-    save: Save CV version
+    save: Save CV
     cancel: Cancel
   preview:
     aria_label: CV version preview
     close_aria: Close CV preview
     open_cv: Open CV
     close: Close
-    note: Preview of the selected content from your current master resume. Public links and exports use the last published version.
-    render_error: The preview could not be rendered from the master resume.
+    note: Preview of content selected from your current Experience Base. Public links and exports use the last published version.
+    render_error: The preview could not be rendered from the Experience Base.
   actions:
     settings_aria: "CV version settings: {title}"
     settings_title: CV version settings
@@ -254,7 +249,7 @@ dashboard:
     delete: Delete
   messages:
     reader_failed: The document reader could not load. Reload the page to try again.
-    master_read_failed: Your master resume could not be read. Open the editor to review it.
+    master_read_failed: Your Experience Base could not be read. Open the editor to review the data.
     not_saved: Not saved yet
     language_versions: "Language versions: {count}"
     save_failed: CV version save failed.
@@ -278,28 +273,28 @@ dashboard:
     no_languages: No language versions are available for publication.
   main:
     title: Dashboard
-    subtitle: All your experience in one place. A CV for every opportunity.
-    create_version: Create CV version
-    create_master_first: Create your master resume first.
-    master_title: Master resume
+    subtitle: One Experience Base. A separate CV for each application.
+    create_version: Create a tailored CV
+    create_master_first: Create your Experience Base first.
+    master_title: Experience Base
     private: Private
     saved: "Saved: {date}"
-    start_story: Start building your career record here.
-    master_description: One source of experience for every tailored CV.
-    edit_master: Edit master resume
+    start_story: Add information you can use in your CVs.
+    master_description: Your complete private record, from which you select content for each CV.
+    edit_master: Edit Experience Base
     export: Export
     import: Import
-    export_title: Download all your CV data in a single YAML file.
-    import_title: Restore CV data from a previously exported YAML file.
-    completion: Master resume completion
+    export_title: Download a YAML copy of your Experience Base and saved CV Versions.
+    import_title: Restore your Experience Base and private CV Versions from a YAML backup.
+    completion: Experience Base completeness
     reading: Reading your saved content…
     completion_summary: "Completed sections: {done} of {total}."
-    add_details: Add your details to build your master resume.
+    add_details: Add information to complete your Experience Base.
     continue_editing: Continue editing
     review_content: Review your content
-    stats_aria: Master resume content statistics
-    roles: Professional profiles
-    roles_note: Summary variants
+    stats_aria: Experience Base statistics
+    roles: Professional summaries
+    roles_note: Variants for different roles
     experience: Experience
     experience_note: Employment history
     skills: Skills
@@ -307,16 +302,16 @@ dashboard:
     courses: Courses
     courses_note: Courses and certificates
     cv_languages: CV languages
-    stats_note: "Counts refer to the {locale} master resume. Translations are counted separately under CV languages."
+    stats_note: "Counts refer to the {locale} Experience Base. Language versions are counted separately."
   library:
-    title: Your CV versions
+    title: Your CVs
     versions: versions
     public: public
     private: private
-    no_versions: No CV versions yet
-    start_master: Start with your master resume
-    empty_with_master: Choose content from your master resume to create your first tailored CV.
-    empty_without_master: Add your experience, then create a version to share.
+    no_versions: No tailored CVs yet
+    start_master: Start with your Experience Base
+    empty_with_master: Select content from your Experience Base to create your first tailored CV.
+    empty_without_master: Add your experience first. You can then select content for your first CV.
     search_aria: Search CV versions
     search_placeholder: Search CV versions…
     filter_aria: Filter CV versions
@@ -333,15 +328,15 @@ dashboard:
     no_matches: No matching CVs.
     clear_filters: Clear filters
     next_aria: Next steps for the selected CV
-    next_title: What can you do next?
-    next_published: Share the published CV or review your selection before publishing again.
-    next_private: Review this version, then choose which languages to publish.
+    next_title: Next step
+    next_published: Copy the public link, or change the content selection and publish the CV again.
+    next_private: Review the selected content and choose which languages to publish.
     choose_content: Choose content
-    saved_selection: Your saved selection
+    saved_selection: Content selected for this CV
     review_publish: Review and publish
-    public_link_available: A public link is available
+    public_link_available: This CV is available under a public link
     check_content_languages: Check the content and languages
-    master_private: Your master resume stays private.
+    master_private: Your Experience Base stays private.
     edit_selection: Edit selection
     publish_again: Publish again
     publish: Publish
@@ -349,9 +344,9 @@ dashboard:
     test_draft: This CV uses a separate onboarding test draft.
     open_test_cv: Open test CV
     loading_preview: Loading CV preview…
-    add_content: Open your master resume to add content for this version.
+    add_content: Open your Experience Base to add information for this version.
     no_selected: No CV selected
-    choose_version: Choose a version from the library or clear the filters.
+    choose_version: Select a CV from the list to review its content and available actions.
   delete_modal:
     aria_label: Delete CV version confirmation
     cancel_aria: Cancel deletion
@@ -367,7 +362,7 @@ dashboard:
     cancel_aria: Cancel import
     title: Import data
     before_file: Importing
-    explanation: overwrites your master resume documents and language versions, and replaces all private CV versions. Published CV versions and their public links stay untouched. This cannot be undone.
+    explanation: overwrites your entire Experience Base, its language versions and all private CV Versions. Published CVs and their public links stay unchanged. Before continuing, make sure you selected the correct backup. This cannot be undone.
     cancel: Cancel
     importing: Importing…
     action: Import and replace
@@ -384,8 +379,8 @@ dashboard:
     eyebrow: CV language versions
     edit_title: Edit language version
     add_title: Add language version
-    edit_description: Update the name, short label, or default language for this account.
-    add_description: Add a language and its associated CV document.
+    edit_description: Update the name, short label or default language of your Experience Base.
+    add_description: Add a language in which you want to maintain experience and create CVs.
     code: Language code
     code_placeholder: e.g. en, pl, de
     name: Language name
@@ -416,8 +411,8 @@ dashboard:
     default_required: The default language must be one of the selected versions.
     allow_indexing: Allow search engines to index the public page
     link_state: Link state after publication
-    canonical_note: The canonical URL is the permanent public link for this version.
-    active_link: The active link will be updated and keep its address.
+    canonical_note: This CV keeps the same public address when you publish it again.
+    active_link: The new publication will replace the content under the active link. The address will not change.
     new_link: A new public link will be created.
     cancel: Cancel
     publishing: Publishing…
@@ -500,31 +495,31 @@ editor:
     "Links encoded as QR codes in the printed version.": Links encoded as QR codes in the printed version.
     "GDPR clause": GDPR clause
     "Common on the Polish job market, usually left empty for English CVs.": Common on the Polish job market, usually left empty for English CVs.
-    "Master Resume": Master Resume
-    "Source for every CV version": Source for every CV version
-    "Completion": Completion
-    "Resume completion": Resume completion
-    "Complete {section} to add {percent}%.": "Complete {section} to add {percent}%."
-    "Every section has content.": Every section has content.
+    "Master Resume": Experience Base
+    "Source for every CV version": The private content source for all your CVs
+    "Completion": Completeness
+    "Resume completion": Experience Base completeness
+    "Complete {section} to add {percent}%.": "Complete {section}. It accounts for {percent}% of the completeness score."
+    "Every section has content.": Every section of your Experience Base has content.
     "Language version updated.": Language version updated.
     "Language version created.": Language version created.
     "Default language updated.": Default language updated.
     "Language version deleted.": Language version deleted.
-    "Publish update": Publish update
-    "Saved in this browser only, not on our servers — click Save MasterCV to save it for real.": Saved in this browser only, not on our servers — click Save MasterCV to save it to your account.
+    "Publish update": Save changes to your account
+    "Saved in this browser only, not on our servers — click Save MasterCV to save it for real.": Saved in this browser only. Select Save Experience Base to keep the changes in your account.
     "Draft saved locally {time}": "Draft saved locally: {time}"
     "Preview": Preview
-    "Resume editor mode": Resume editor mode
-    "Human-friendly Editor": Human-friendly editor
+    "Resume editor mode": Experience Base editing mode
+    "Human-friendly Editor": Form
     "Form": Form
     "YAML Editor": YAML editor
-    "Language linkage status": Language linkage status
+    "Language linkage status": Language version consistency
     "OK": OK
     "Needs attention": Needs attention
     "Checking": Checking
     "Checking linked IDs...": Checking linked IDs...
-    "All linked IDs match the default language.": All linked IDs match the default language.
-    "All IDs are stable in the saved default language.": All IDs are stable in the saved default language.
+    "All linked IDs match the default language.": Entries are correctly linked to the default language version.
+    "All IDs are stable in the saved default language.": Links to the saved default language are valid.
     "Fix the following ID issues before saving:": Fix the following ID issues before saving.
     "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.
     "Changed ID": Changed ID
@@ -535,7 +530,7 @@ editor:
     "Default entry is not paired": Default entry is not paired
     "Expected": Expected
     "missing": missing
-    "Save MasterCV": Save master resume
+    "Save MasterCV": Save Experience Base
     "Resume section": Resume section
     "Unsaved local draft from {time} found for this language version.": "An unsaved local draft from {time} was found for this language version."
     "Restore": Restore
@@ -559,22 +554,22 @@ editor:
     "Details": Details
     "Style is saved with the document and applies to the preview, the published CV and the PDF.": Style is saved with the document and applies to the preview, the published CV and the PDF.
     "Revision history": Revision history
-    "No revisions yet.": No revisions yet.
+    "No revisions yet.": The history is empty. Save a history point so you can return to it later.
     "Unsaved draft": Unsaved draft
     "unsaved": unsaved
-    "Saved only in this browser — not yet part of your revision history.": Saved only in this browser — not yet part of your revision history.
+    "Saved only in this browser — not yet part of your revision history.": This draft exists only in this browser. Save the Experience Base to keep it in your account.
     "just now": just now
     "Revision #{number}": "Revision #{number}"
     "current": current
     "No note": No note
     "Viewing": Viewing
-    "Rollback": Rollback
+    "Rollback": Restore this state
     "Resume sections": Resume sections
     "Complete": Complete
     "Needs content": Needs content
-    "Save MasterCV version": Save master resume version
+    "Save MasterCV version": Save history point
     "Close save version dialog": Close save version dialog
-    "This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.": This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.
+    "This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.": Save the current state of your Experience Base in its history. You can restore it later if needed.
     "Change note": Change note
     "e.g. Added CDQ experience": e.g. Added CDQ experience
     "Cancel": Cancel
@@ -623,13 +618,13 @@ editor:
     "Save failed": Save failed
     "CV unavailable": CV unavailable
     "Already have a CV?": Already have a CV?
-    "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.
+    "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Upload a PDF, DOCX, YAML or TXT file. You can review the extracted information before adding it to your Experience Base.
     "Reading file…": Reading file…
     "Upload file": Upload file
     "Review imported CV": Review imported CV
     "Close import review": Close import review
     "Review import": Review import
-    "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.": Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.
+    "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.": Expand a section to choose which entries to add. Importing does not remove or replace information you saved earlier.
     "Name": Name
     "Contact details": Contact details
     "Summary": Summary
@@ -730,7 +725,7 @@ admin:
     "Save": Save
 user:
   text:
-    "Personal hub": Personal hub
+    "Personal hub": Profile and CVs
     "Image could not be loaded.": Image could not be loaded.
     "Image editor is unavailable.": Image editor is unavailable.
     "Bio updated successfully.": Bio updated successfully.
@@ -739,23 +734,23 @@ user:
     "Avatar update failed.": Avatar update failed.
     "Profile photo updated.": Profile photo updated.
     "Failed to update profile photo.": Failed to update profile photo.
-    "Hide personal hub panel": Hide personal hub panel
-    "Show personal hub panel": Show personal hub panel
-    "Close personal hub panel": Close personal hub panel
+    "Hide personal hub panel": Hide profile and CV panel
+    "Show personal hub panel": Show profile and CV panel
+    "Close personal hub panel": Close profile and CV panel
     "Change profile photo": Change profile photo
     "Add profile photo": Add profile photo
     "Profile": Profile
     "User": User
-    "Role unavailable": Role unavailable
+    "Role unavailable": No position provided
     "Short bio": Short bio
     "Share a bit about yourself…": Share a bit about yourself…
     "Save": Save
     "Cancel": Cancel
-    "No bio yet. Click the plus icon to add one.": No bio yet. Select the plus icon to add one.
+    "No bio yet. Click the plus icon to add one.": Add a short bio to complete your profile.
     "Edit short bio": Edit short bio
     "Add short bio": Add short bio
-    "Edit Master Resume": Edit master resume
-    "Manage CV Versions": Manage CV versions
+    "Edit Master Resume": Edit Experience Base
+    "Manage CV Versions": Manage your CVs
     "Policies": Policies
     "Privacy Policy": Privacy policy
     "Terms of Service": Terms of service
@@ -779,7 +774,7 @@ onboarding:
     - Tech stack
     - GDPR clause
     - Review your first CV
-    - Ready to save your CV?
+    - Publish your first CV?
   text:
     "Could not save or finish this step. Check your connection and try again; your entries remain on this screen.": Could not save or finish this step. Check your connection and try again; your entries remain on this screen.
     "Enter your name to continue.": Enter your first or family name to continue.
@@ -789,11 +784,11 @@ onboarding:
     "Your first CV": Your first CV
     "Your CV is ready to send": Your CV is ready to send
     "Your test draft is saved": Your test draft is saved
-    "Your Master CV is saved": Your master resume is saved
-    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": "Onboarding test: this is a separate draft. Your master resume and profile stay unchanged. Publishing creates a CV named Test onboardingu."
+    "Your Master CV is saved": Your Experience Base is saved
+    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": "Onboarding test: this is a separate draft. Your Experience Base and profile stay unchanged. Publishing creates a CV named Test onboardingu."
     "Could not load your CV. Reload this page before continuing.": Could not load your CV. Reload this page before continuing.
     "Loading your CV…": Loading your CV…
-    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Tell your story one section at a time. We’ll help you build your master resume and turn it into a CV you can share with a link.
+    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Build your Experience Base step by step. At the end, select the information and create a CV you can share with a link.
     "CV language": CV language
     "Start from scratch": Start from scratch
     "Fill in each section with short prompts.": Fill in each section with short prompts.
@@ -803,8 +798,8 @@ onboarding:
     "Optional. Add what is relevant, or continue to skip this section.": Optional. Add what is relevant, or continue to skip this section.
     "Add the details you want in your CV. You can edit them later.": Add the details you want in your CV. You can edit them later.
     "This preview uses your selected professional summary and completed entries. Check the information before sharing.": This preview uses your selected professional summary and completed entries. Check the information before sharing.
-    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Create your first saved CV and a link you can send immediately? It will appear in your dashboard.
-    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Anyone with the link can view this CV. Search engine indexing will be disabled. Your master resume stays private.
+    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Create your first CV and publish it under a shareable link? It will appear in your dashboard, where you can later change its content or unpublish it.
+    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Anyone with the link can view this CV. Search engine indexing will be disabled. Your Experience Base stays private.
     "Add your name and a professional summary before creating a link. You can also save and finish without publishing.": Add your name and a professional summary before creating a link. You can also save and finish without publishing.
     "Your first CV is saved in your dashboard. Copy the link to send it.": Your first CV is saved in your dashboard. Copy the link to send it.
     "The test is complete. No public CV was created. You can start another test in account settings.": The test is complete. No public CV was created. You can start another test in account settings.
@@ -835,7 +830,7 @@ settings:
     "Account settings": Account settings
     "Testing tools": Testing tools
     "Onboarding": Onboarding
-    "Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.": Test the first-use guide on a separate blank draft. Your master resume, languages, and profile remain unchanged.
+    "Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.": Test the first-use guide on a separate blank draft. Your Experience Base, language versions and profile remain unchanged.
     "Status": Status
     "Inactive": Inactive
     "Completed": Completed
@@ -854,11 +849,13 @@ legal:
     description: How OpenCiVera collects, uses, and protects your account and CV data.
     last_updated: "Last updated: 2026-07-24"
     sections:
-      - title: 1. Who We Are
+      - icon: undefined
+        title: 1. Who We Are
         paragraphs:
           - |
             OpenCiVera ("we", "us", "our") is operated by Łukasz Michta. For any questions about this policy or your personal data, contact us at privacy@opencivera.com.
-      - title: 2. What Data We Collect
+      - icon: undefined
+        title: 2. What Data We Collect
         paragraphs: []
         bullets:
           - |
@@ -871,7 +868,8 @@ legal:
             Usage data: aggregated view counts for your published CV links, and administrative audit logs used for security purposes (account actions with timestamps).
           - |
             Security scanning: saved CV content is automatically scanned for signs of malicious script injection; if flagged, a hash of the matching fragment (not the raw content) plus a rule identifier is logged for staff review.
-      - title: 3. Why We Process Your Data
+      - icon: undefined
+        title: 3. Why We Process Your Data
         paragraphs: []
         bullets:
           - |
@@ -881,7 +879,8 @@ legal:
           - |
             To maintain security, prevent abuse, and keep administrative audit logs. Legal basis: legitimate interest (GDPR Art. 6(1)(f)).
           - We do not use your data for advertising and we do not sell your data.
-      - title: 4. Who We Share Your Data With
+      - icon: undefined
+        title: 4. Who We Share Your Data With
         paragraphs:
           - |
             We use the following service providers (processors) to operate OpenCiVera:
@@ -896,7 +895,8 @@ legal:
           - We do not share your CV content with any other third party unless you choose to make it publicly available via a Public Link that you create.
           - |
             OpenCiVera is currently an MVP (Minimum Viable Product) in a testing phase. We are not responsible for changes that Supabase or Netlify make to their own privacy policies, terms, or data-handling practices; please refer to their respective policies for the most current information.
-      - title: 5. Data Retention
+      - icon: undefined
+        title: 5. Data Retention
         paragraphs: []
         bullets:
           - While your account is active, we retain your account and CV data for as long as you keep your account.
@@ -906,7 +906,8 @@ legal:
             If you request deletion through other means (for example, because you can no longer access your account), we will delete your personal data within 30 days of confirming the request, except where retention is required by law or for legitimate security purposes (such as administrative audit logs).
           - |
             Aggregated, non-identifying analytics (such as link view counts) may be retained longer for product improvement, in line with our internal data retention policy.
-      - title: 6. Your Rights
+      - icon: undefined
+        title: 6. Your Rights
         paragraphs:
           - Under the GDPR, you have the right to:
         bullets:
@@ -919,19 +920,24 @@ legal:
           - Lodge a complaint with your local data protection authority. In Poland, this is the President of the Personal Data Protection Office (UODO).
         after:
           - To exercise any of these rights, contact us at privacy@opencivera.com. We will respond within one month, as required by law.
-      - title: 7. Cookies
+      - icon: undefined
+        title: 7. Cookies
         paragraphs:
           - We use only cookies that are strictly necessary for authentication, to keep you signed in. We do not use third-party advertising or analytics cookies that require consent.
-      - title: 8. International Data Transfers
+      - icon: undefined
+        title: 8. International Data Transfers
         paragraphs:
           - Your account and CV data are stored within the European Economic Area (EU, Frankfurt). Where a service provider is located outside the EEA, appropriate safeguards (such as Standard Contractual Clauses) are in place.
-      - title: 9. Children
+      - icon: undefined
+        title: 9. Children
         paragraphs:
           - OpenCiVera is not directed at individuals under the age of 16, and we do not knowingly collect personal data from children.
-      - title: 10. Changes to This Policy
+      - icon: undefined
+        title: 10. Changes to This Policy
         paragraphs:
           - We may update this policy from time to time. The "Last updated" date at the top reflects the most recent revision. Material changes will be communicated via email or an in-app notice.
-      - title: 11. Contact
+      - icon: undefined
+        title: 11. Contact
         paragraphs:
           - "For privacy-related questions or requests, contact: privacy@opencivera.com"
   terms:
@@ -939,25 +945,30 @@ legal:
     description: The terms that govern your use of OpenCiVera.
     last_updated: "Last updated: 2026-07-24"
     sections:
-      - title: 1. About These Terms
+      - icon: undefined
+        title: 1. About These Terms
         paragraphs:
           - |
             These Terms of Service ("Terms") govern your access to and use of OpenCiVera (the "Service"), operated by Łukasz Michta ("we", "us", "our"). By creating an account or using the Service, you agree to these Terms. If you do not agree, do not use the Service.
-      - title: 2. The Service
+      - icon: undefined
+        title: 2. The Service
         paragraphs:
           - |
             OpenCiVera lets you create, manage, and optionally publish CV/resume content at a stable link that you control. Features may be experimental, in development, or may change over time. We provide the Service on a best-effort basis and do not guarantee uptime, availability, or that any particular feature will remain available.
-      - title: 3. Eligibility and Accounts
+      - icon: undefined
+        title: 3. Eligibility and Accounts
         paragraphs:
           - You must be at least 16 years old to create an account. You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account. You must provide accurate information when creating your account.
-      - title: 4. Your Content
+      - icon: undefined
+        title: 4. Your Content
         paragraphs:
           - |
             You retain ownership of the content you create or upload to your CV documents ("Your Content"). By using the Service, you grant us a limited license to host, store, process, and display Your Content as necessary to provide the Service to you.
           - |
             If you choose to publish Your Content via a Public Link, you grant us a license to make that content publicly accessible at the link you create, for as long as the link remains published. You are solely responsible for deciding what to publish, including ensuring you have the right to include any third-party information (such as references' contact details) in published content.
           - You may unpublish or delete Your Content at any time through the features provided in the Service.
-      - title: 5. Acceptable Use
+      - icon: undefined
+        title: 5. Acceptable Use
         paragraphs:
           - |
             You agree not to use the Service to:
@@ -968,31 +979,39 @@ legal:
           - Use the Service to distribute spam or malware, or to scrape or harvest data from other users' public CV pages at scale.
         after:
           - We may suspend or terminate accounts that violate these Terms.
-      - title: 6. The OpenCiVera Brand, and the OpenCV Format
+      - icon: undefined
+        title: 6. The OpenCiVera Brand, and the OpenCV Format
         paragraphs:
           - |
             "OpenCiVera" and associated logos are our trademarks and may not be used without permission, except as necessary to refer to the Service (for example, linking to your published CV). These Terms govern your use of the OpenCiVera Service only; they do not restrict use of the OpenCV data format specification itself, which is documented and published separately.
-      - title: 7. Free Use and Future Changes
+      - icon: undefined
+        title: 7. Free Use and Future Changes
         paragraphs:
           - The Service is currently provided free of charge. We may introduce paid plans or features in the future. If we do, we will provide reasonable advance notice before any change affects your existing account, and continued use of any new paid feature will be optional unless clearly stated otherwise.
-      - title: 8. Termination
+      - icon: undefined
+        title: 8. Termination
         paragraphs:
           - You may stop using the Service and request deletion of your account at any time, as described in our Privacy Policy. We may suspend or terminate your access if you violate these Terms, or discontinue the Service (or features of it) with reasonable notice where practicable.
-      - title: 9. Disclaimers
+      - icon: undefined
+        title: 9. Disclaimers
         paragraphs:
           - |
             The Service is provided "as is" and "as available", without warranties of any kind, express or implied, including warranties of merchantability, fitness for a particular purpose, or non-infringement. We do not warrant that the Service will be uninterrupted, secure, or error-free.
-      - title: 10. Limitation of Liability
+      - icon: undefined
+        title: 10. Limitation of Liability
         paragraphs:
           - |
             To the maximum extent permitted by applicable law, Łukasz Michta shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of data, revenue, or profits, arising from your use of, or inability to use, the Service. Nothing in these Terms excludes or limits liability that cannot be excluded or limited under applicable law.
-      - title: 11. Governing Law
+      - icon: undefined
+        title: 11. Governing Law
         paragraphs:
           - These Terms are governed by the laws of Poland. This section does not affect any mandatory consumer-protection rights you may have under the laws of your country of residence.
-      - title: 12. Changes to These Terms
+      - icon: undefined
+        title: 12. Changes to These Terms
         paragraphs:
           - We may update these Terms from time to time. The "Last updated" date above reflects the most recent revision. Material changes will be communicated via email or an in-app notice, consistent with how we communicate changes to our Privacy Policy.
-      - title: 13. Contact
+      - icon: undefined
+        title: 13. Contact
         paragraphs:
           - "Questions about these Terms can be sent to support@opencivera.com."
 docs:
@@ -1001,7 +1020,7 @@ docs:
     more: Develop and update your CV
     help: Need help?
     intro: Explore the whole process
-    start: Start with your master resume
+    start: Start with your Experience Base
     go: Go to step
     step: "Step {step} of {total}"
     previous: Previous step
@@ -1026,7 +1045,7 @@ docs:
   development: Documentation in progress
   development_note: Guides evolve with the application.
   heading: Create your CV step by step
-  lead: Build your private master resume, select the right content, and share a finished version.
+  lead: Build your private Experience Base, select the right content and share a finished CV.
   search: Search documentation
   placeholder: Find a topic or guide…
   results: Results
@@ -1034,29 +1053,29 @@ docs:
   no_results: No matching topic was found. Try CV, publishing, or language.
   start: Start here
   first_cv: Your first CV — from editing to publication
-  first_cv_note: Build your master resume, select the right content, and share a finished version. The guide walks through every stage.
+  first_cv_note: Build your Experience Base, select the right content and share a finished CV. The guide walks through every stage.
   open_guide: Open the guide
   tools: Get to know the tools
   choose: Choose what you want to learn
   guides: Guides and answers
   privacy_tag: Your data, your choice
-  privacy_title: Your master resume stays private
+  privacy_title: Your Experience Base stays private
   privacy_note: Only the content selected for a published CV is shared. Everything else remains available only in your account.
   privacy_link: Learn how publication works
   about: About this documentation
   no_docs: No guides are available yet.
   article_fallback: This article is shown in English because a translation is not available yet.
   footer: Product documentation
-  master: Master resume
+  master: Experience Base
   version: CV version
   published: Published CV
   master_note: Your private experience library
   version_note: Content selected for a specific role
   published_note: A finished version available at a public link
   topics_content:
-    - title: Build your master resume
+    - title: Build your Experience Base
       description: Add experience, skills and contact details, then save your document.
-      label: A private master resume saved in your account
+      label: A private Experience Base saved in your account
     - title: Tailor a version for a role
       description: Select relevant content, choose its appearance and check the preview.
       label: A tailored CV version ready to publish
@@ -1068,5 +1087,5 @@ docs:
       label: A file ready to send
 sample_resume:
   title: Sample Resume | OpenCiVera
-  description: View a sample resume powered by YAML and Next.js.
+  description: View a sample CV created and published with OpenCiVera.
   loading: Loading sample resume…

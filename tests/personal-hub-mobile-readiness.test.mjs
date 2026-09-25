@@ -16,7 +16,15 @@ test("personal hub mobile drawer uses the shared 980px breakpoint contract", () 
   assert.equal(headerNavigation.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
   assert.equal(headerNavigation.includes("window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY)"), true);
   assert.equal(headerStyles.includes("@media (max-width: 979px)"), true);
-  assert.equal(userClient.includes('const MOBILE_DRAWER_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
+  assert.equal(
+    userClient.includes('import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "../components/app-header-navigation";'),
+    true,
+    "the drawer imports the shared query rather than repeating the 980px literal"
+  );
+  assert.equal(
+    userClient.includes("const MOBILE_DRAWER_BREAKPOINT_QUERY = DESKTOP_NAVIGATION_BREAKPOINT_QUERY;"),
+    true
+  );
   assert.equal(userStyles.includes("@media (max-width: 979px)"), true);
   assert.equal(userStyles.includes("@media (min-width: 980px)"), true);
 });

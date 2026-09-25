@@ -26,7 +26,7 @@ editor is usable.
 
 ## Why can I not create or publish a version?
 
-- Create and save a Master Resume first.
+- Create and save an Experience Base first.
 - Ensure the CV Version has a title and at least one meaningful selected item.
 - Confirm that each selected publication language has content.
 - Check that the selected default language is included in the publication.
@@ -42,7 +42,7 @@ for the current values.
 
 ## Why is the public page showing older content?
 
-Public links use an immutable publication snapshot. Save Master Resume, update
+Public links show the last published state of a CV. Save the Experience Base, update
 the CV Version selection if necessary, and publish again. A private preview can
 show current content while the public link still shows its last published state.
 

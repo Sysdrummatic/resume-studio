@@ -73,10 +73,6 @@ function renderLanding(locale) {
       default: () => createElement("div", { "data-testid": "open-civera-animation" })
     },
     "./components/recovery-redirect": { __esModule: true, default: () => null },
-    "./components/rotating-word": {
-      __esModule: true,
-      default: ({ words }) => createElement("span", null, words[0])
-    },
     "./components/scroll-reveal": { __esModule: true, default: () => null },
     "./i18n/server": { getRequestAppI18n: async () => appI18n }
   };
@@ -84,7 +80,7 @@ function renderLanding(locale) {
   return HomePage().then((page) => renderToStaticMarkup(page));
 }
 
-test("landing follows the Twoja historia narrative and keeps product sections in order", async () => {
+test("landing explains the Experience Base model and keeps product sections in order", async () => {
   const html = await renderLanding("pl");
   const sampleIndex = html.indexOf('data-testid="landing-sample-cv"');
   const animationIndex = html.indexOf('id="story-animation"');
@@ -93,7 +89,7 @@ test("landing follows the Twoja historia narrative and keeps product sections in
   const faqIndex = html.indexOf('id="faq"');
   const footerIndex = html.indexOf('data-testid="landing-footer"');
 
-  assert.match(html, /Twoje doświadczenie/);
+  assert.match(html, /Jedna Baza doświadczeń/);
   assert.ok(sampleIndex > -1, "the current sample CV is visible in the hero");
   assert.ok(animationIndex > sampleIndex, "the animation follows the sample CV");
   assert.ok(howIndex > animationIndex, "the product explanation follows the animation");
@@ -105,8 +101,8 @@ test("landing follows the Twoja historia narrative and keeps product sections in
 test("landing renders the same complete narrative from the English dictionary", async () => {
   const html = await renderLanding("en");
 
-  assert.match(html, /Your experience/);
-  assert.match(html, /Less time managing files/);
+  assert.match(html, /One Experience Base/);
+  assert.match(html, /Do not start from scratch/);
   assert.match(html, /Good to know/);
   assert.match(html, /data-testid="open-civera-animation"/);
 });

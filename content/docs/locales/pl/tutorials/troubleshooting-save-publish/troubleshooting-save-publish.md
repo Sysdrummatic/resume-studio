@@ -18,7 +18,7 @@ statusu i nie klikaj wielokrotnie akcji, która już się nie powiodła.
 2. Jeśli używasz trybu YAML, popraw nieprawidłowy lub niepełny YAML.
 3. Przełącz się na **Edytor formularzowy**, jeśli potrzebujesz pomocy w
    znalezieniu brakującej wartości.
-4. Spróbuj raz jeszcze użyć **Zapisz główne CV**.
+4. Spróbuj ponownie użyć **Zapisz Bazę doświadczeń**.
 
 Jeśli przeglądarka oferuje lokalny szkic, przywróć go przed odświeżeniem. Nie
 jest on synchronizowany z innym urządzeniem, więc zapisz go na serwerze, gdy
@@ -26,7 +26,7 @@ edytor będzie gotowy.
 
 ## Dlaczego nie mogę utworzyć lub opublikować wersji?
 
-- Najpierw utwórz i zapisz główne CV.
+- Najpierw utwórz i zapisz Bazę doświadczeń.
 - Upewnij się, że wersja CV ma tytuł i co najmniej jeden sensowny wybrany wpis.
 - Sprawdź, czy każdy wybrany język publikacji ma treść.
 - Sprawdź, czy język domyślny należy do publikacji.
@@ -42,7 +42,7 @@ Odczekaj około minuty, zwolnij automatyzację i spróbuj ponownie. Zobacz też
 
 ## Dlaczego publiczna strona pokazuje starszą treść?
 
-Publiczne linki korzystają z niezmiennej migawki publikacji. Zapisz główne CV,
+Publiczny link pokazuje ostatnio opublikowany stan CV. Zapisz Bazę doświadczeń,
 zaktualizuj wybór wersji, jeśli trzeba, i opublikuj ponownie. Prywatny podgląd
 może pokazywać bieżącą treść, gdy publiczny link nadal pokazuje poprzedni stan.
 

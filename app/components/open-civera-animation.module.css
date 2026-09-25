@@ -1,4 +1,8 @@
+/* The scene is composed for a ~1100px stage; letting it run the full canvas
+   left the sides empty and shrank the type below legibility. */
 .frame {
+  max-width: 1180px;
+  margin-inline: auto;
   overflow: hidden;
   border: 1px solid var(--border-hover);
   border-radius: 8px;
@@ -9,7 +13,7 @@
 .iframe {
   display: block;
   width: 100%;
-  height: clamp(660px, 58vw, 700px);
+  height: clamp(580px, 52vw, 660px);
   border: 0;
   background: #090b10;
 }

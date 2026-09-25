@@ -63,15 +63,10 @@ export type AppDictionary = {
       process: string[];
     };
     sample: {
-      public_path: string;
-      status: string;
       data_note: string;
       open_action: string;
       loading_aria: string;
       open_aria: string;
-      iframe_title: string;
-      timeout: string;
-      timeout_action: string;
     };
     benefits: {
       aria_label: string;

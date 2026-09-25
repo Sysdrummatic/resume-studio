@@ -82,7 +82,7 @@ test(
       await page.goto(base);
       try {
         await page
-          .getByRole("progressbar", { name: "Master Resume completion" })
+          .getByRole("progressbar", { name: "Experience Base completeness" })
           .waitFor({ timeout: 8000 });
       } catch (error) {
         await page.screenshot({ path: path.join(output, "failure.png"), fullPage: true });
@@ -167,8 +167,8 @@ test(
       });
       await page.getByRole("button", { name: "Edit selection", exact: true }).click();
       const edit = page.getByRole("dialog", { name: "CV version editor", exact: true });
-      await edit.getByLabel("CV version title", { exact: true }).fill("Updated designer");
-      await edit.getByRole("button", { name: "Save CV version", exact: true }).click();
+      await edit.getByLabel("CV name", { exact: true }).fill("Updated designer");
+      await edit.getByRole("button", { name: "Save CV", exact: true }).click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "Updated designer" })
@@ -234,7 +234,7 @@ test(
       const transfer = page.getByRole("dialog", { name: "Import data confirmation" });
       await transfer.getByRole("button", { name: "Cancel", exact: true }).click();
       await page.goto(base);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       const filters = page.getByRole("group", { name: "Filter CV versions" });
       await filters.getByRole("button", { name: "Private", exact: true }).focus();
       await page.keyboard.press("Space");
@@ -261,10 +261,10 @@ test(
           }
         })
       );
-      await page.getByRole("button", { name: "Create CV version", exact: true }).first().click();
+      await page.getByRole("button", { name: "Create a tailored CV", exact: true }).first().click();
       const create = page.getByRole("dialog", { name: "CV version editor", exact: true });
-      await create.getByLabel("CV version title", { exact: true }).fill("New opportunity");
-      await create.getByRole("button", { name: "Save CV version", exact: true }).click();
+      await create.getByLabel("CV name", { exact: true }).fill("New opportunity");
+      await create.getByRole("button", { name: "Save CV", exact: true }).click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "New opportunity" })
@@ -275,7 +275,7 @@ test(
         "A newly saved CV becomes the selected preview"
       );
       await page.goto(base);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       await page.screenshot({ path: path.join(output, "desktop-dark.png"), fullPage: true });
       for (const theme of ["dark", "light"]) {
         await page.evaluate((theme) => (document.documentElement.dataset.appTheme = theme), theme);
@@ -300,7 +300,7 @@ test(
         await page.setViewportSize({ width: 1440, height: 1100 });
       }
       await page.goto(`${base}/?pl-default`);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
       await page.getByRole("button", { name: "Edit selection", exact: true }).click();
       await edit.getByLabel("CV Version title", { exact: true }).fill("Renamed English CV");
@@ -315,7 +315,7 @@ test(
         creationBody = route.request().postDataJSON();
         return route.fulfill({ json: { ok: true, preset: { ...fixture.presets[1], id: "created-pl", title: creationBody.title } } });
       });
-      await page.getByRole("button", { name: "Create CV version", exact: true }).first().click();
+      await page.getByRole("button", { name: "Create a tailored CV", exact: true }).first().click();
       await create.getByLabel("CV Version title", { exact: true }).fill("New Polish CV");
       await create.getByRole("button", { name: "Save CV Version", exact: true }).click();
       await page.locator(".dashboard-library-item").filter({ hasText: "New Polish CV" }).waitFor();
@@ -324,7 +324,7 @@ test(
       assert.deepEqual(creationBody.selection.summary, [0]);
 
       await page.goto(`${base}/?pl-default&missing-source`);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
       const requestCount = requests.length;
       await page.getByRole("button", { name: "Edit selection", exact: true }).click();
@@ -333,10 +333,10 @@ test(
       assert.equal(requests.length, requestCount);
 
       await page.goto(`${base}/?restricted&empty`);
-      await page.getByRole("heading", { name: "Start with your master resume" }).waitFor();
+      await page.getByRole("heading", { name: "Start with your Experience Base" }).waitFor();
       assert.equal(await page.getByRole("button", { name: "Import", exact: true }).count(), 0);
       assert.equal(
-        await page.getByRole("button", { name: "Create CV version", exact: true }).isDisabled(),
+        await page.getByRole("button", { name: "Create a tailored CV", exact: true }).isDisabled(),
         true
       );
       await page.route("**/api/resume/languages?withDocuments=true", (route) =>
@@ -363,7 +363,7 @@ test(
         await breadcrumbs.getByRole("link", { name: "Dashboard" }).getAttribute("href"),
         "/dashboard"
       );
-      assert.equal(await breadcrumbs.locator('[aria-current="page"]').innerText(), "Master Resume");
+      assert.equal(await breadcrumbs.locator('[aria-current="page"]').innerText(), "Experience Base");
       await page.getByLabel("First name", { exact: true }).fill("Ada edited");
       const localeButtons = page.locator(".locale-tab-strip");
       await localeButtons.getByRole("tab", { name: "PL", exact: true }).click();
@@ -400,7 +400,7 @@ test(
         await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();
         assert.equal(progressWrites.at(-1).step, 13);
         await page.getByRole("button", { name: polish ? "Dalej" : "Continue", exact: true }).click();
-        await page.getByRole("heading", { name: polish ? "Zapiszesz swoje CV?" : "Ready to save your CV?", exact: true }).waitFor();
+        await page.getByRole("heading", { name: polish ? "Czy chcesz opublikowaÄ‡ swoje pierwsze CV?" : "Publish your first CV?", exact: true }).waitFor();
         assert.equal(progressWrites.at(-1).step, 14);
         await page.getByRole("button", { name: polish ? "Wstecz" : "Back", exact: true }).click();
         await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();

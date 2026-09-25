@@ -1,6 +1,6 @@
 ---
 title: Publishing your first CV
-description: From your Master Resume to a shareable, role-aware public LiveCV, step by step.
+description: From your Experience Base to a tailored CV you can share under a public link.
 updatedAt: 2026-09-20
 author: Łukasz Michta
 category: tutorials
@@ -17,18 +17,18 @@ Sign in and gather your contact details, career history and target job descripti
 
 ## Four steps
 
-1. [Build your master resume](/docs/tutorials/master-resume-basics) — save your complete, private career record.
+1. [Build your Experience Base](/docs/tutorials/master-resume-basics) — save your complete, private career record.
 2. [Tailor a version for a role](/docs/tutorials/create-cv-version) — select entries, a template and color, then check the preview.
 3. [Publish and share](/docs/tutorials/publish-and-share-cv) — choose public languages and get a shareable link.
 4. [Download PDF or ATS](/docs/tutorials/export-pdf-and-ats) — review the file before sending it.
 
 ## If you need another language
 
-After saving your master resume, you can [add a language version](/docs/tutorials/add-language-version). Complete it before publishing. The documentation language and CV content language are independent.
+After saving your Experience Base, you can [add a language version](/docs/tutorials/add-language-version). Complete it before publishing. The documentation language and CV content language are independent.
 
 ## What stays private?
 
-Your master resume is a private source document. A CV version selects specific content from it. Only publishing shares a snapshot of that selection. Editing the master resume does not automatically update the public page or exports: publish the version again.
+Your Experience Base is private. A CV Version contains content selected from it. Publishing makes that selection available under a public link. Editing the Experience Base does not automatically update the public page or exports: publish the CV again to replace them.
 
 ## When you return
 

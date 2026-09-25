@@ -450,8 +450,8 @@ export function PresetPreviewModal({
             />
             <p className={previewResult.status === "empty" ? "dashboard-library-preview__note" : "status status--error"}>
               {previewResult.status === "empty"
-                ? `This CV version has no content in ${cvLanguages.find((language) => language.code === activeDocument.locale)?.label || activeDocument.locale.toUpperCase()} yet. Add it in your Master Resume, or switch to a language you've filled in.`
-                : "CV preview could not be rendered from the master resume."}
+                ? `This CV version has no content in ${cvLanguages.find((language) => language.code === activeDocument.locale)?.label || activeDocument.locale.toUpperCase()} yet. Add it in your Experience Base, or switch to a language you've filled in.`
+                : "CV preview could not be rendered from the Experience Base."}
             </p>
           </div>
         ) : (
@@ -642,7 +642,7 @@ export default function DashboardClient({
     try {
       setOptions(buildPresetOptionsFromDocument(asObject(window.jsyaml.load(source.yaml_content)), labels.option_labels));
     } catch {
-      showToast("Your Master Resume could not be read. Open the editor to review it.", "error");
+      showToast("Your Experience Base could not be read. Open the editor to review it.", "error");
       return;
     }
     setModalDocument(source);

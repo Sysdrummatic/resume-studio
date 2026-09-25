@@ -14,7 +14,7 @@ is there when you need to check an older state before changing the current one.
 
 ## Preview history
 
-1. Open **Master Resume**.
+1. Open **Experience Base**.
 2. Select the language you want to inspect.
 3. Open the **History** side panel.
 4. Select a revision and open its preview.
@@ -29,7 +29,7 @@ draft or discard unsaved edits.
 3. Confirm and wait for the success message.
 4. Review the current preview, then save any follow-up corrections.
 
-Rollback changes the active Master Resume document for that locale. It does not
+Restoring changes the active Experience Base state for that language. It does not
 rewrite a public snapshot. If the public CV should match the restored document,
 update the CV Version and publish it again.
 

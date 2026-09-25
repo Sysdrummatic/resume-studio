@@ -1,5 +1,5 @@
 meta:
-  description: OpenCiVera — jedno źródło danych zawodowych i wiele dopasowanych wersji CV.
+  description: OpenCiVera — kreator CV oparty na prywatnej Bazie doświadczeń. Twórz osobne CV dopasowane do konkretnych ofert.
 common:
   loading: Ładowanie…
   close: Zamknij
@@ -9,7 +9,7 @@ common:
   breadcrumb: Okruszki nawigacyjne
   close_notification: Zamknij powiadomienie
 navigation:
-  personal_hub: Centrum osobiste
+  personal_hub: Profil i CV
   dashboard: Panel
   sample_cv: Przykładowe CV
   docs: Dokumentacja
@@ -56,70 +56,65 @@ account:
 landing:
   hero:
     title:
-      - Twoje doświadczenie
-      - zasługuje na
-      - dobrą prezentację.
-    description: CV, które łatwo przygotujesz, dopasujesz i udostępnisz. Zadbaj o swoją historię zawodową — od pierwszego szkicu po kolejny krok w karierze.
-    primary_action: Utwórz swoje CV
+      - Jedna Baza doświadczeń.
+      - Osobne CV
+      - na każdą ofertę.
+    description: OpenCiVera to kreator CV zbudowany inaczej. Zapisujesz całą historię zawodową w jednym prywatnym miejscu, a potem wybierasz z niej treści do CV dopasowanego do konkretnego stanowiska.
+    primary_action: Utwórz Bazę doświadczeń
     secondary_action: Zobacz przykładowe CV
-    privacy_note: Twoja baza doświadczeń pozostaje prywatna.
+    privacy_note: Baza doświadczeń jest prywatna. Udostępniasz tylko wybrane CV.
     process_aria: Jak działa OpenCiVera
     process:
-      - Twoja baza
-      - Wybrana treść
-      - Publiczne CV
+      - Zapisz doświadczenie
+      - Wybierz treści
+      - Utwórz CV
   sample:
-    public_path: opencivera.com / resume
-    status: Opublikowane
-    data_note: Aktualne przykładowe CV
-    open_action: Otwórz pełny przykład
+    data_note: Przykład utworzony w OpenCiVera
+    open_action: Zobacz całe CV
     loading_aria: Ładowanie przykładowego CV
     open_aria: Otwórz przykładowe CV
-    iframe_title: Przykładowe publiczne CV — OpenCiVera
-    timeout: Osadzony podgląd ładuje się dłużej niż zwykle. Nadal możesz poznać platformę, otwierając pełny przykład.
-    timeout_action: Otwórz przykładowe CV ↗
   benefits:
     aria_label: Najważniejsze możliwości OpenCiVera
     items:
-      - Jedna baza wszystkich doświadczeń
-      - Wersje dopasowane do rekrutacji
-      - CV w różnych językach
+      - Pełna historia zawodowa w jednym miejscu
+      - Osobna wersja na każdą ofertę
+      - CV w wielu językach
   animation:
-    title: Od całej historii do właściwego CV.
-    description: Zobacz, jak doświadczenie trafia do prywatnego Master Resume, a następnie do wersji dopasowanych do konkretnych ról.
+    title: Jedno źródło. Tyle CV, ile potrzebujesz.
+    description: Zobacz, jak z prywatnej Bazy doświadczeń wybierasz informacje do osobnych CV dla konkretnych stanowisk.
     iframe_title: Animacja pokazująca proces tworzenia CV w OpenCiVera
   how:
-    title: Mniej pracy z plikami. Więcej miejsca na rozwój.
-    description: Prosty sposób, by uporządkować to, co już umiesz, i pokazać to, co jest teraz ważne.
+    title: Nie tworzysz wszystkiego od początku przy każdej rekrutacji.
+    description: Aktualizujesz doświadczenie w jednym miejscu, a każde CV zachowuje własny wybór treści.
     features:
       - icon: file
-        title: Całe doświadczenie. Jedno miejsce.
-        description: Nie szukaj osiągnięć w starych plikach. Przechowuj swoją historię w Master Resume i uzupełniaj ją w miarę rozwoju kariery.
+        title: Zbuduj Bazę doświadczeń
+        description: Dodaj informacje ręcznie lub zaimportuj obecne CV. Rozwijaj bazę wraz z kolejnymi projektami, stanowiskami i zdobytymi umiejętnościami.
       - icon: layers
-        title: Właściwa historia dla właściwej roli.
-        description: Wybierz istotne doświadczenia i podsumowanie. Zapisz osobne CV dla każdej ścieżki zawodowej, korzystając z tej samej bazy.
+        title: Przygotuj CV pod konkretną rolę
+        description: Wybierz odpowiednie doświadczenia, podsumowanie zawodowe i umiejętności. Zapisz osobną wersję dla każdej oferty lub kierunku kariery.
       - icon: link
-        title: Gotowe do pokazania. Na Twoich zasadach.
-        description: Opublikuj wybraną wersję i wyślij link. To Ty decydujesz, kiedy pojawią się pod nim kolejne zmiany i kiedy przestanie być dostępny.
+        title: Pobierz lub udostępnij
+        description: Sprawdź podgląd, opublikuj wybraną wersję pod publicznym linkiem albo pobierz plik gotowy do wysłania.
   privacy:
-    title: Cała kariera jest Twoja. Udostępniasz wybraną część.
-    description: Master Resume pozostaje prywatne. Publiczny link pokazuje tylko wybraną i opublikowaną treść. Możesz go wyłączyć, kiedy zechcesz.
-    action: Więcej o publikacji
+    title: Twoja pełna historia pozostaje prywatna.
+    description: Baza doświadczeń jest dostępna tylko na Twoim koncie. Publiczny link pokazuje wyłącznie wybrane i opublikowane informacje. Zmiany w bazie nie pojawią się pod linkiem, dopóki ponownie nie opublikujesz CV.
+    action: Jak działa publikacja
   faq:
     title: Warto wiedzieć przed startem.
     items:
       - question: Czy mogę użyć CV, które już mam?
         answer: Tak. Edytor obsługuje import plików PDF, DOCX, YAML i TXT. Po imporcie sprawdzasz treść przed zapisaniem jej do swojej bazy.
-      - question: Kto widzi moje Master Resume?
-        answer: Master Resume jest Twoją prywatną bazą. Odbiorca publicznego linku widzi wyłącznie treść wybraną do opublikowanej wersji CV.
+      - question: Kto widzi moją Bazę doświadczeń?
+        answer: Baza doświadczeń jest prywatna. Odbiorca publicznego linku widzi wyłącznie informacje wybrane do konkretnego, opublikowanego CV.
       - question: Czy edycja zmienia już udostępnione CV?
         answer: Nie od razu. Zapisanie zmian w edytorze nie zmienia publikacji. Aby odbiorcy linku zobaczyli nową treść, publikujesz wybraną wersję ponownie.
       - question: Czy mogę przygotować wersje językowe?
-        answer: Tak. Możesz utrzymywać treści CV w różnych językach i wybierać języki zapisanej wersji. Treść każdego języka uzupełniasz osobno.
+        answer: Tak. Możesz prowadzić treści CV w kilku językach i zdecydować, które z nich udostępnić. Każdą wersję językową uzupełniasz osobno, dlatego zachowujesz kontrolę nad jej znaczeniem i stylem.
   cta:
-    title: Zrób miejsce na kolejny krok.
-    description: Twoje doświadczenie już jest. Teraz nadaj mu właściwą formę.
-    primary_action: Utwórz swoje CV
+    title: Zacznij od doświadczenia. CV utworzysz z niego później.
+    description: Zaimportuj obecny dokument lub uzupełnij Bazę doświadczeń krok po kroku. Pierwszą dopasowaną wersję przygotujesz z tych samych danych.
+    primary_action: Utwórz Bazę doświadczeń
   footer:
     sample_resume: Przykładowe CV
     platform: Platforma
@@ -139,7 +134,7 @@ auth:
     signup:
       eyebrow: Konfiguracja konta
       title: Utwórz konto
-      lead: Otwórz swój obszar roboczy, zweryfikuj e-mail, a następnie publikuj z jednego uporządkowanego źródła.
+      lead: Utwórz konto, aby prowadzić prywatną Bazę doświadczeń i przygotowywać z niej dopasowane CV.
       alternate_label: Masz już konto?
       alternate_action: Zaloguj się
     reset:
@@ -157,7 +152,7 @@ auth:
     signin:
       eyebrow: Dostęp do konta
       title: Zaloguj się
-      lead: Przejdź do panelu i narzędzi publikowania.
+      lead: Zaloguj się, aby uzupełniać Bazę doświadczeń i zarządzać swoimi CV.
       alternate_label: Nie masz konta?
       alternate_action: Załóż konto
   fields:
@@ -220,9 +215,9 @@ dashboard:
     aria_label: Edycja wersji CV
     close_aria: Zamknij edycję wersji CV
     edit_title: Edytuj wersję CV
-    create_title: Utwórz wersję CV
+    create_title: Utwórz dopasowane CV
     close: Zamknij
-    title_label: Nazwa wersji CV
+    title_label: Nazwa CV
     title_placeholder: Frontend Developer — przykładowa firma
     allow_indexing: Zezwól wyszukiwarkom na indeksowanie po publikacji
     ai_generated: Oznacz jako treść wygenerowaną przez AI
@@ -233,17 +228,17 @@ dashboard:
     template_signal_grid: Signal Grid
     template_atelier_noir: Atelier Noir
     template_terminal_stack: Terminal Stack
-    no_items: Brak pozycji w głównym CV.
+    no_items: Brak pozycji w Bazie doświadczeń.
     saving: Zapisywanie…
-    save: Zapisz wersję CV
+    save: Zapisz CV
     cancel: Anuluj
   preview:
     aria_label: Podgląd wersji CV
     close_aria: Zamknij podgląd CV
     open_cv: Otwórz CV
     close: Zamknij
-    note: Podgląd wybranych treści z bieżącego głównego CV. Publiczny link i eksport korzystają z ostatnio opublikowanej wersji.
-    render_error: Nie udało się przygotować podglądu na podstawie głównego CV.
+    note: Podgląd treści wybranych z bieżącej Bazy doświadczeń. Publiczny link i eksport korzystają z ostatnio opublikowanej wersji.
+    render_error: Nie udało się przygotować podglądu na podstawie Bazy doświadczeń.
   actions:
     settings_aria: "Ustawienia wersji CV: {title}"
     settings_title: Ustawienia wersji CV
@@ -254,7 +249,7 @@ dashboard:
     delete: Usuń
   messages:
     reader_failed: Nie udało się uruchomić odczytu dokumentu. Odśwież stronę i spróbuj ponownie.
-    master_read_failed: Nie udało się odczytać głównego CV. Otwórz edytor i sprawdź dokument.
+    master_read_failed: Nie udało się odczytać Bazy doświadczeń. Otwórz edytor i sprawdź dane.
     not_saved: Jeszcze nie zapisano
     language_versions: "Wersje językowe: {count}"
     save_failed: Nie udało się zapisać wersji CV.
@@ -278,28 +273,28 @@ dashboard:
     no_languages: Brak wersji językowych dostępnych do publikacji.
   main:
     title: Panel
-    subtitle: Całe doświadczenie w jednym miejscu. Osobne CV na każdą okazję.
-    create_version: Utwórz wersję CV
-    create_master_first: Najpierw utwórz główne CV.
-    master_title: Główne CV
+    subtitle: Jedna Baza doświadczeń. Osobne CV dla konkretnych ofert.
+    create_version: Utwórz dopasowane CV
+    create_master_first: Najpierw utwórz Bazę doświadczeń.
+    master_title: Baza doświadczeń
     private: Prywatne
     saved: "Zapisano: {date}"
-    start_story: Zacznij tutaj tworzyć swoją historię zawodową.
-    master_description: Jedno źródło doświadczenia dla wszystkich dopasowanych wersji CV.
-    edit_master: Edytuj główne CV
+    start_story: Dodaj informacje, które wykorzystasz w swoich CV.
+    master_description: Pełny, prywatny zbiór informacji, z którego wybierasz treści do kolejnych CV.
+    edit_master: Edytuj Bazę doświadczeń
     export: Eksportuj
     import: Importuj
-    export_title: Pobierz wszystkie dane CV w jednym pliku YAML.
-    import_title: Przywróć dane CV z wcześniej wyeksportowanego pliku YAML.
-    completion: Uzupełnienie głównego CV
+    export_title: Pobierz kopię Bazy doświadczeń i zapisanych wersji w jednym pliku YAML.
+    import_title: Przywróć Bazę doświadczeń i prywatne wersje CV z kopii YAML.
+    completion: Kompletność Bazy doświadczeń
     reading: Odczytywanie zapisanych treści…
     completion_summary: "Uzupełnione sekcje: {done} z {total}."
-    add_details: Dodaj informacje, aby uzupełnić główne CV.
+    add_details: Dodaj informacje, aby uzupełnić Bazę doświadczeń.
     continue_editing: Kontynuuj edycję
     review_content: Sprawdź treść
-    stats_aria: Statystyki treści głównego CV
-    roles: Profile zawodowe
-    roles_note: Warianty podsumowania
+    stats_aria: Statystyki Bazy doświadczeń
+    roles: Podsumowania zawodowe
+    roles_note: Warianty do różnych ról
     experience: Doświadczenie
     experience_note: Historia zatrudnienia
     skills: Umiejętności
@@ -307,16 +302,16 @@ dashboard:
     courses: Kursy
     courses_note: Kursy i certyfikaty
     cv_languages: Języki CV
-    stats_note: "Liczby dotyczą głównego CV w języku {locale}. Tłumaczenia są liczone osobno w sekcji języków CV."
+    stats_note: "Liczby dotyczą Bazy doświadczeń w języku {locale}. Wersje językowe są liczone osobno."
   library:
-    title: Twoje wersje CV
+    title: Twoje CV
     versions: wersje
     public: publiczne
     private: prywatne
-    no_versions: Nie masz jeszcze wersji CV
-    start_master: Zacznij od głównego CV
-    empty_with_master: Wybierz treści z głównego CV i utwórz pierwszą dopasowaną wersję.
-    empty_without_master: Dodaj doświadczenie, a następnie utwórz wersję do udostępnienia.
+    no_versions: Nie masz jeszcze dopasowanego CV
+    start_master: Zacznij od Bazy doświadczeń
+    empty_with_master: Wybierz treści z Bazy doświadczeń i utwórz pierwsze dopasowane CV.
+    empty_without_master: Najpierw dodaj doświadczenie. Potem wybierzesz z niego treści do pierwszego CV.
     search_aria: Szukaj wersji CV
     search_placeholder: Szukaj wersji CV…
     filter_aria: Filtruj wersje CV
@@ -333,15 +328,15 @@ dashboard:
     no_matches: Brak wersji CV spełniających kryteria.
     clear_filters: Wyczyść filtry
     next_aria: Następne kroki dla wybranej wersji CV
-    next_title: Co możesz zrobić dalej?
-    next_published: Udostępnij opublikowane CV lub sprawdź wybór treści przed kolejną publikacją.
-    next_private: Sprawdź tę wersję, a następnie wybierz języki do publikacji.
+    next_title: Następny krok
+    next_published: Skopiuj publiczny link albo zmień wybór treści i opublikuj CV ponownie.
+    next_private: Sprawdź wybrane treści i zdecyduj, w których językach opublikować CV.
     choose_content: Wybierz treści
-    saved_selection: Zapisany wybór
+    saved_selection: Treści wybrane do tego CV
     review_publish: Sprawdź i opublikuj
-    public_link_available: Publiczny link jest dostępny
+    public_link_available: CV jest dostępne pod publicznym linkiem
     check_content_languages: Sprawdź treść i języki
-    master_private: Główne CV pozostaje prywatne.
+    master_private: Baza doświadczeń pozostaje prywatna.
     edit_selection: Edytuj wybór
     publish_again: Opublikuj ponownie
     publish: Opublikuj
@@ -349,9 +344,9 @@ dashboard:
     test_draft: To CV korzysta z osobnego szkicu testu onboardingu.
     open_test_cv: Otwórz testowe CV
     loading_preview: Ładowanie podglądu CV…
-    add_content: Otwórz główne CV i dodaj treści do tej wersji.
+    add_content: Otwórz Bazę doświadczeń i dodaj informacje potrzebne w tej wersji.
     no_selected: Nie wybrano wersji CV
-    choose_version: Wybierz wersję z listy lub wyczyść filtry.
+    choose_version: Wybierz CV z listy, aby zobaczyć jego treść i dostępne działania.
   delete_modal:
     aria_label: Potwierdzenie usunięcia wersji CV
     cancel_aria: Anuluj usuwanie
@@ -367,7 +362,7 @@ dashboard:
     cancel_aria: Anuluj import
     title: Import danych
     before_file: Import pliku
-    explanation: zastąpi dokumenty głównego CV i wersje językowe oraz wszystkie prywatne wersje CV. Opublikowane wersje i ich publiczne linki pozostaną bez zmian. Tej operacji nie można cofnąć.
+    explanation: zastąpi całą Bazę doświadczeń, jej wersje językowe oraz wszystkie prywatne wersje CV. Opublikowane CV i ich publiczne linki pozostaną bez zmian. Przed kontynuowaniem upewnij się, że wybrany plik jest właściwą kopią. Tej operacji nie można cofnąć.
     cancel: Anuluj
     importing: Importowanie…
     action: Importuj i zastąp
@@ -384,8 +379,8 @@ dashboard:
     eyebrow: Wersje językowe CV
     edit_title: Edytuj wersję językową
     add_title: Dodaj wersję językową
-    edit_description: Zmień nazwę, skrót lub język domyślny dla tego konta.
-    add_description: Dodaj język i powiązany dokument CV.
+    edit_description: Zmień nazwę, skrót lub domyślny język Bazy doświadczeń.
+    add_description: Dodaj język, w którym chcesz uzupełniać doświadczenie i tworzyć CV.
     code: Kod języka
     code_placeholder: np. pl, en, de
     name: Nazwa języka
@@ -416,8 +411,8 @@ dashboard:
     default_required: Język domyślny musi należeć do wybranych wersji.
     allow_indexing: Zezwól wyszukiwarkom na indeksowanie publicznej strony
     link_state: Stan linku po publikacji
-    canonical_note: Adres kanoniczny jest stałym publicznym linkiem tej wersji.
-    active_link: Aktywny link zostanie zaktualizowany i pozostanie bez zmian.
+    canonical_note: To CV zachowa ten sam publiczny adres przy kolejnych publikacjach.
+    active_link: Treść pod aktywnym linkiem zostanie zastąpiona nową publikacją. Sam adres się nie zmieni.
     new_link: Zostanie utworzony nowy publiczny link.
     cancel: Anuluj
     publishing: Publikowanie…
@@ -501,31 +496,31 @@ editor:
     "Links encoded as QR codes in the printed version.": Linki zapisane jako kody QR w wersji do druku.
     "GDPR clause": Klauzula RODO
     "Common on the Polish job market, usually left empty for English CVs.": Stosowana głównie na polskim rynku pracy; w angielskiej wersji CV zwykle pozostaje pusta.
-    "Master Resume": Główne CV
-    "Source for every CV version": Źródło wszystkich wersji CV
-    "Completion": Uzupełnienie
-    "Resume completion": Uzupełnienie CV
-    "Complete {section} to add {percent}%.": "Uzupełnij sekcję „{section}”, aby dodać {percent}%."
-    "Every section has content.": Wszystkie sekcje zawierają treść.
+    "Master Resume": Baza doświadczeń
+    "Source for every CV version": Prywatne źródło treści dla wszystkich Twoich CV
+    "Completion": Kompletność
+    "Resume completion": Kompletność Bazy doświadczeń
+    "Complete {section} to add {percent}%.": "Uzupełnij sekcję „{section}”. Jej udział w wyniku kompletności to {percent}%."
+    "Every section has content.": Wszystkie sekcje Bazy doświadczeń są uzupełnione.
     "Language version updated.": Wersja językowa została zaktualizowana.
     "Language version created.": Wersja językowa została utworzona.
     "Default language updated.": Zmieniono język domyślny.
     "Language version deleted.": Wersja językowa została usunięta.
-    "Publish update": Aktualizacja głównego CV
-    "Saved in this browser only, not on our servers — click Save MasterCV to save it for real.": Zapisano tylko w tej przeglądarce. Użyj przycisku „Zapisz główne CV”, aby zapisać zmiany na koncie.
+    "Publish update": Zapisz zmiany na koncie
+    "Saved in this browser only, not on our servers — click Save MasterCV to save it for real.": Zapisano tylko w tej przeglądarce. Użyj przycisku „Zapisz Bazę doświadczeń”, aby zachować zmiany na koncie.
     "Draft saved locally {time}": "Szkic zapisano lokalnie: {time}"
     "Preview": Podgląd
-    "Resume editor mode": Tryb edycji CV
-    "Human-friendly Editor": Edytor formularzowy
+    "Resume editor mode": Sposób edycji Bazy doświadczeń
+    "Human-friendly Editor": Formularz
     "Form": Formularz
     "YAML Editor": Edytor YAML
-    "Language linkage status": Status zgodności języków
+    "Language linkage status": Spójność wersji językowych
     "OK": OK
     "Needs attention": Wymaga uwagi
     "Checking": Sprawdzanie
     "Checking linked IDs...": Sprawdzanie powiązanych ID...
-    "All linked IDs match the default language.": Wszystkie powiązane ID są zgodne z językiem domyślnym.
-    "All IDs are stable in the saved default language.": Wszystkie ID są zgodne z zapisanym językiem domyślnym.
+    "All linked IDs match the default language.": Wpisy są prawidłowo powiązane z wersją w języku domyślnym.
+    "All IDs are stable in the saved default language.": Powiązania z zapisanym językiem domyślnym są prawidłowe.
     "Fix the following ID issues before saving:": "Przed zapisaniem popraw następujące problemy z ID:"
     "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": ID są widoczne w YAML i nie można ich zmieniać. Wpisy można dodawać i usuwać tylko w języku domyślnym.
     "Changed ID": Zmienione ID
@@ -536,7 +531,7 @@ editor:
     "Default entry is not paired": Domyślny wpis nie jest sparowany
     "Expected": Oczekiwano
     "missing": brak
-    "Save MasterCV": Zapisz główne CV
+    "Save MasterCV": Zapisz Bazę doświadczeń
     "Resume section": Sekcja CV
     "Unsaved local draft from {time} found for this language version.": "Znaleziono lokalny szkic tej wersji językowej z godziny {time}."
     "Restore": Przywróć
@@ -560,22 +555,22 @@ editor:
     "Details": Szczegóły
     "Style is saved with the document and applies to the preview, the published CV and the PDF.": Styl jest zapisywany z dokumentem i stosowany w podglądzie, opublikowanym CV oraz pliku PDF.
     "Revision history": Historia zmian
-    "No revisions yet.": Brak zapisanych wersji.
+    "No revisions yet.": Historia zmian jest pusta. Zapisz punkt w historii, aby móc później do niego wrócić.
     "Unsaved draft": Niezapisany szkic
     "unsaved": niezapisany
-    "Saved only in this browser — not yet part of your revision history.": Szkic zapisano tylko w tej przeglądarce i nie należy jeszcze do historii zmian.
+    "Saved only in this browser — not yet part of your revision history.": Ten szkic istnieje tylko w tej przeglądarce. Zapisz Bazę doświadczeń, aby zachować go na koncie.
     "just now": przed chwilą
     "Revision #{number}": "Wersja #{number}"
     "current": bieżąca
     "No note": Brak opisu
     "Viewing": Wyświetlana
-    "Rollback": Przywróć tę wersję
+    "Rollback": Przywróć ten stan
     "Resume sections": Sekcje CV
     "Complete": Uzupełniona
     "Needs content": Wymaga uzupełnienia
-    "Save MasterCV version": Zapisywanie głównego CV
+    "Save MasterCV version": Zapisz punkt w historii
     "Close save version dialog": Zamknij okno zapisywania
-    "This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.": Powstanie nowy wpis w historii zmian, do którego można później wrócić. Bieżący szkic pozostaje dostępny.
+    "This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.": Zapisz obecny stan Bazy doświadczeń w historii. W razie potrzeby możesz go później przywrócić.
     "Change note": Opis zmian
     "e.g. Added CDQ experience": np. dodano doświadczenie w firmie CDQ
     "Cancel": Anuluj
@@ -624,13 +619,13 @@ editor:
     "Save failed": Zapisywanie nie powiodło się
     "CV unavailable": CV jest niedostępne
     "Already have a CV?": Masz już CV?
-    "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Wgraj plik PDF, DOCX, YAML lub TXT, a przeniesiemy dane do formularza.
+    "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Wgraj plik PDF, DOCX, YAML lub TXT. Przed dodaniem danych do Bazy doświadczeń zobaczysz ich podgląd.
     "Reading file…": Odczytywanie pliku…
     "Upload file": Wgraj plik
     "Review imported CV": Sprawdź zaimportowane CV
     "Close import review": Zamknij podgląd importu
     "Review import": Sprawdź import
-    "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.": Rozwiń sekcję i wybierz wpisy do dodania. Wcześniej wpisane dane pozostaną zachowane.
+    "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.": Rozwiń sekcję i wybierz wpisy do dodania. Import nie usuwa ani nie zastępuje informacji zapisanych wcześniej.
     "Name": Imię i nazwisko
     "Contact details": Dane kontaktowe
     "Summary": Podsumowanie
@@ -730,7 +725,7 @@ admin:
     "Save": Zapisz
 user:
   text:
-    "Personal hub": Centrum osobiste
+    "Personal hub": Profil i CV
     "Image could not be loaded.": Nie udało się wczytać obrazu.
     "Image editor is unavailable.": Edytor obrazu jest niedostępny.
     "Bio updated successfully.": Krótki opis został zaktualizowany.
@@ -739,23 +734,23 @@ user:
     "Avatar update failed.": Nie udało się zaktualizować zdjęcia profilowego.
     "Profile photo updated.": Zdjęcie profilowe zostało zaktualizowane.
     "Failed to update profile photo.": Nie udało się zaktualizować zdjęcia profilowego.
-    "Hide personal hub panel": Ukryj panel centrum osobistego
-    "Show personal hub panel": Pokaż panel centrum osobistego
-    "Close personal hub panel": Zamknij panel centrum osobistego
+    "Hide personal hub panel": Ukryj panel profilu i CV
+    "Show personal hub panel": Pokaż panel profilu i CV
+    "Close personal hub panel": Zamknij panel profilu i CV
     "Change profile photo": Zmień zdjęcie profilowe
     "Add profile photo": Dodaj zdjęcie profilowe
     "Profile": Profil
     "User": Użytkownik
-    "Role unavailable": Brak informacji o stanowisku
+    "Role unavailable": Nie podano stanowiska
     "Short bio": Krótki opis
     "Share a bit about yourself…": Napisz kilka słów o sobie…
     "Save": Zapisz
     "Cancel": Anuluj
-    "No bio yet. Click the plus icon to add one.": Nie ma jeszcze opisu. Wybierz ikonę plusa, aby go dodać.
+    "No bio yet. Click the plus icon to add one.": Dodaj krótki opis, aby uzupełnić profil.
     "Edit short bio": Edytuj krótki opis
     "Add short bio": Dodaj krótki opis
-    "Edit Master Resume": Edytuj główne CV
-    "Manage CV Versions": Zarządzaj wersjami CV
+    "Edit Master Resume": Edytuj Bazę doświadczeń
+    "Manage CV Versions": Zarządzaj swoimi CV
     "Policies": Dokumenty prawne
     "Privacy Policy": Polityka prywatności
     "Terms of Service": Warunki korzystania
@@ -779,7 +774,7 @@ onboarding:
     - Technologie
     - Klauzula RODO
     - Sprawdź swoje pierwsze CV
-    - Czy chcesz zapisać swoje CV?
+    - Czy chcesz opublikować swoje pierwsze CV?
   text:
     "Could not save or finish this step. Check your connection and try again; your entries remain on this screen.": Nie udało się zapisać ani zakończyć tego kroku. Sprawdź połączenie i spróbuj ponownie. Wpisane dane pozostaną na tym ekranie.
     "Enter your name to continue.": Wpisz imię lub nazwisko, aby przejść dalej.
@@ -789,11 +784,11 @@ onboarding:
     "Your first CV": Twoje pierwsze CV
     "Your CV is ready to send": Twoje CV jest gotowe do wysłania
     "Your test draft is saved": Szkic testowy został zapisany
-    "Your Master CV is saved": Główne CV zostało zapisane
-    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": Test onboardingu odbywa się na osobnym szkicu. Główne CV i profil pozostają bez zmian. Publikacja utworzy CV o nazwie „Test onboardingu”.
+    "Your Master CV is saved": Baza doświadczeń została zapisana
+    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": Test onboardingu odbywa się na osobnym szkicu. Baza doświadczeń i profil pozostają bez zmian. Publikacja utworzy CV o nazwie „Test onboardingu”.
     "Could not load your CV. Reload this page before continuing.": Nie udało się wczytać CV. Odśwież stronę przed przejściem dalej.
     "Loading your CV…": Wczytywanie CV…
-    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Opisz swoje doświadczenie, uzupełniając kolejne sekcje. Pomożemy Ci przygotować główne CV i utworzyć wersję, którą udostępnisz za pomocą linku.
+    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Uzupełnij Bazę doświadczeń krok po kroku. Na końcu wybierzesz informacje i utworzysz CV, które możesz udostępnić za pomocą linku.
     "CV language": Język CV
     "Start from scratch": Zaczynam od zera
     "Fill in each section with short prompts.": Uzupełnij kolejne sekcje z pomocą krótkich wskazówek.
@@ -803,8 +798,8 @@ onboarding:
     "Optional. Add what is relevant, or continue to skip this section.": Ta sekcja jest opcjonalna. Dodaj potrzebne informacje albo przejdź dalej.
     "Add the details you want in your CV. You can edit them later.": Dodaj informacje, które chcesz umieścić w CV. Możesz je później zmienić.
     "This preview uses your selected professional summary and completed entries. Check the information before sharing.": Podgląd zawiera wybrane podsumowanie zawodowe i uzupełnione wpisy. Sprawdź dane przed udostępnieniem.
-    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Czy utworzyć pierwszą zapisaną wersję CV z linkiem do udostępnienia? Znajdziesz ją w panelu.
-    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Każda osoba posiadająca link będzie mogła zobaczyć to CV. Indeksowanie w wyszukiwarkach pozostanie wyłączone, a główne CV będzie prywatne.
+    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Czy chcesz utworzyć pierwsze CV i opublikować je pod linkiem? CV pojawi się w panelu, gdzie możesz później zmienić jego treść lub wycofać publikację.
+    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Każda osoba posiadająca link będzie mogła zobaczyć to CV. Indeksowanie w wyszukiwarkach pozostanie wyłączone, a Baza doświadczeń będzie prywatna.
     "Add your name and a professional summary before creating a link. You can also save and finish without publishing.": Przed utworzeniem linku uzupełnij imię lub nazwisko oraz podsumowanie zawodowe. Możesz też zakończyć bez publikowania CV.
     "Your first CV is saved in your dashboard. Copy the link to send it.": Pierwsze CV zostało zapisane w panelu. Skopiuj link, aby je udostępnić.
     "The test is complete. No public CV was created. You can start another test in account settings.": Test został zakończony. Nie utworzono publicznego CV. Kolejny test możesz uruchomić w ustawieniach konta.
@@ -835,7 +830,7 @@ settings:
     "Account settings": Ustawienia konta
     "Testing tools": Narzędzia testowe
     "Onboarding": Pierwsze uruchomienie
-    "Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.": Przetestuj przewodnik pierwszego uruchomienia na osobnym, pustym szkicu. Główne CV, wersje językowe i profil pozostaną bez zmian.
+    "Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.": Przetestuj przewodnik pierwszego uruchomienia na osobnym, pustym szkicu. Baza doświadczeń, wersje językowe i profil pozostaną bez zmian.
     "Status": Stan
     "Inactive": Nieaktywny
     "Completed": Zakończony
@@ -854,11 +849,13 @@ legal:
     description: Jak OpenCiVera zbiera, wykorzystuje i chroni dane konta oraz CV.
     last_updated: "Ostatnia aktualizacja: 2026-07-24"
     sections:
-      - title: 1. Kim jesteśmy
+      - icon: undefined
+        title: 1. Kim jesteśmy
         paragraphs:
           - |
             OpenCiVera („my”, „nas”, „nasz”) jest obsługiwana przez Łukasza Michtę. W sprawach dotyczących tej polityki lub danych osobowych skontaktuj się z nami pod adresem privacy@opencivera.com.
-      - title: 2. Jakie dane zbieramy
+      - icon: undefined
+        title: 2. Jakie dane zbieramy
         paragraphs: []
         bullets:
           - |
@@ -871,7 +868,8 @@ legal:
             Dane dotyczące korzystania z usługi: zagregowane liczby wyświetleń publicznych linków do CV oraz administracyjne dzienniki audytowe używane do celów bezpieczeństwa (działania na koncie wraz z datą i czasem).
           - |
             Skanowanie bezpieczeństwa: zapisane treści CV są automatycznie sprawdzane pod kątem oznak złośliwego wstrzyknięcia skryptu; jeżeli treść zostanie oznaczona, do przeglądu przez personel zapisywany jest skrót dopasowanego fragmentu (nie jego treść) oraz identyfikator reguły.
-      - title: 3. Dlaczego przetwarzamy dane
+      - icon: undefined
+        title: 3. Dlaczego przetwarzamy dane
         paragraphs: []
         bullets:
           - |
@@ -881,7 +879,8 @@ legal:
           - |
             Aby utrzymywać bezpieczeństwo, zapobiegać nadużyciom i prowadzić administracyjne dzienniki audytowe. Podstawa prawna: prawnie uzasadniony interes (art. 6 ust. 1 lit. f RODO).
           - Nie wykorzystujemy danych do celów reklamowych i nie sprzedajemy danych.
-      - title: 4. Komu udostępniamy dane
+      - icon: undefined
+        title: 4. Komu udostępniamy dane
         paragraphs:
           - |
             Do obsługi OpenCiVera korzystamy z następujących dostawców usług (podmiotów przetwarzających):
@@ -896,7 +895,8 @@ legal:
           - Nie udostępniamy treści CV żadnym innym podmiotom trzecim, chyba że zdecydujesz się udostępnić ją publicznie za pomocą utworzonego przez siebie publicznego linku.
           - |
             OpenCiVera jest obecnie projektem w wersji MVP, znajdującym się w fazie testów. Nie odpowiadamy za zmiany wprowadzane przez Supabase lub Netlify do ich własnych polityk prywatności, warunków lub praktyk dotyczących przetwarzania danych; aktualnych informacji szukaj w odpowiednich dokumentach tych dostawców.
-      - title: 5. Przechowywanie danych
+      - icon: undefined
+        title: 5. Przechowywanie danych
         paragraphs: []
         bullets:
           - Dopóki konto pozostaje aktywne, przechowujemy dane konta i CV tak długo, jak długo utrzymujesz konto.
@@ -906,7 +906,8 @@ legal:
             Jeżeli poprosisz o usunięcie danych w inny sposób (na przykład dlatego, że nie masz już dostępu do konta), usuniemy dane osobowe w ciągu 30 dni od potwierdzenia żądania, z wyjątkiem sytuacji, gdy przechowywanie jest wymagane prawem lub niezbędne ze względów bezpieczeństwa (na przykład w przypadku administracyjnych dzienników audytowych).
           - |
             Zagregowane dane analityczne, które nie pozwalają na identyfikację (na przykład liczby wyświetleń linków), mogą być przechowywane dłużej w celu ulepszania produktu, zgodnie z naszą wewnętrzną polityką przechowywania danych.
-      - title: 6. Twoje prawa
+      - icon: undefined
+        title: 6. Twoje prawa
         paragraphs:
           - |
             Zgodnie z RODO masz prawo do:
@@ -921,19 +922,24 @@ legal:
             wniesienia skargi do właściwego organu ochrony danych. W Polsce jest nim Prezes Urzędu Ochrony Danych Osobowych (UODO).
         after:
           - Aby skorzystać z któregokolwiek z tych praw, skontaktuj się z nami pod adresem privacy@opencivera.com. Odpowiemy w ciągu miesiąca, zgodnie z przepisami prawa.
-      - title: 7. Pliki cookie
+      - icon: undefined
+        title: 7. Pliki cookie
         paragraphs:
           - Używamy wyłącznie plików cookie niezbędnych do uwierzytelniania i utrzymania zalogowania. Nie używamy zewnętrznych plików cookie reklamowych ani analitycznych, które wymagają zgody.
-      - title: 8. Międzynarodowe transfery danych
+      - icon: undefined
+        title: 8. Międzynarodowe transfery danych
         paragraphs:
           - Dane konta i CV są przechowywane na terenie Europejskiego Obszaru Gospodarczego (UE, Frankfurt). Jeżeli dostawca usług znajduje się poza EOG, stosujemy odpowiednie zabezpieczenia, takie jak standardowe klauzule umowne.
-      - title: 9. Dzieci
+      - icon: undefined
+        title: 9. Dzieci
         paragraphs:
           - OpenCiVera nie jest przeznaczona dla osób poniżej 16. roku życia i nie zbieramy świadomie danych osobowych dzieci.
-      - title: 10. Zmiany w tej polityce
+      - icon: undefined
+        title: 10. Zmiany w tej polityce
         paragraphs:
           - Możemy od czasu do czasu aktualizować tę politykę. Data „Ostatnia aktualizacja” na początku dokumentu wskazuje najnowszą wersję. O istotnych zmianach poinformujemy e-mailem lub komunikatem w aplikacji.
-      - title: 11. Kontakt
+      - icon: undefined
+        title: 11. Kontakt
         paragraphs:
           - "W sprawach dotyczących prywatności lub żądań związanych z danymi skontaktuj się z nami: privacy@opencivera.com"
   terms:
@@ -941,25 +947,30 @@ legal:
     description: Warunki regulujące korzystanie z OpenCiVera.
     last_updated: "Ostatnia aktualizacja: 2026-07-24"
     sections:
-      - title: 1. O tych warunkach
+      - icon: undefined
+        title: 1. O tych warunkach
         paragraphs:
           - |
             Niniejsze Warunki korzystania („Warunki”) regulują dostęp do OpenCiVera i korzystanie z niej (dalej „Usługa”), obsługiwanej przez Łukasza Michtę („my”, „nas”, „nasz”). Tworząc konto lub korzystając z Usługi, akceptujesz te Warunki. Jeżeli ich nie akceptujesz, nie korzystaj z Usługi.
-      - title: 2. Usługa
+      - icon: undefined
+        title: 2. Usługa
         paragraphs:
           - |
             OpenCiVera umożliwia tworzenie, zarządzanie i opcjonalne publikowanie treści CV pod stałym linkiem, nad którym masz kontrolę. Funkcje mogą być eksperymentalne, rozwijane lub z czasem zmieniane. Świadczymy Usługę z należytą starannością, ale nie gwarantujemy jej ciągłego działania, dostępności ani zachowania jakiejkolwiek konkretnej funkcji.
-      - title: 3. Uprawnienia i konta
+      - icon: undefined
+        title: 3. Uprawnienia i konta
         paragraphs:
           - Aby utworzyć konto, musisz mieć co najmniej 16 lat. Odpowiadasz za zachowanie poufności danych uwierzytelniających oraz za wszystkie działania wykonywane na Twoim koncie. Podczas tworzenia konta musisz podać prawidłowe informacje.
-      - title: 4. Twoje treści
+      - icon: undefined
+        title: 4. Twoje treści
         paragraphs:
           - |
             Zachowujesz prawa do treści tworzonych lub przesyłanych do dokumentów CV („Twoje treści”). Korzystając z Usługi, udzielasz nam ograniczonej licencji na hostowanie, przechowywanie, przetwarzanie i wyświetlanie Twoich treści w zakresie niezbędnym do świadczenia Usługi.
           - |
             Jeżeli zdecydujesz się opublikować Twoje treści za pomocą publicznego linku, udzielasz nam licencji na publiczne udostępnianie tych treści pod utworzonym przez Ciebie linkiem tak długo, jak długo pozostaje on aktywny. Wyłącznie Ty odpowiadasz za decyzję, co opublikować, w tym za upewnienie się, że masz prawo umieścić w publikowanych treściach informacje osób trzecich (na przykład dane kontaktowe referencji).
           - Możesz w dowolnym momencie wycofać publikację lub usunąć Twoje treści za pomocą funkcji dostępnych w Usłudze.
-      - title: 5. Dozwolone korzystanie
+      - icon: undefined
+        title: 5. Dozwolone korzystanie
         paragraphs:
           - |
             Zobowiązujesz się nie korzystać z Usługi w celu:
@@ -970,31 +981,39 @@ legal:
           - wykorzystywania Usługi do rozpowszechniania spamu lub złośliwego oprogramowania albo masowego pobierania lub gromadzenia danych z publicznych stron CV innych użytkowników.
         after:
           - Możemy zawiesić lub zamknąć konta naruszające te Warunki.
-      - title: 6. Marka OpenCiVera i format OpenCV
+      - icon: undefined
+        title: 6. Marka OpenCiVera i format OpenCV
         paragraphs:
           - |
             „OpenCiVera” i powiązane logo są naszymi znakami towarowymi i nie mogą być używane bez zezwolenia, z wyjątkiem sytuacji, gdy jest to konieczne do wskazania Usługi (na przykład w linku do opublikowanego CV). Te Warunki dotyczą wyłącznie korzystania z Usługi OpenCiVera; nie ograniczają korzystania z samej specyfikacji formatu danych OpenCV, która jest opisana i opublikowana oddzielnie.
-      - title: 7. Bezpłatne korzystanie i przyszłe zmiany
+      - icon: undefined
+        title: 7. Bezpłatne korzystanie i przyszłe zmiany
         paragraphs:
           - Usługa jest obecnie świadczona bezpłatnie. W przyszłości możemy wprowadzić płatne plany lub funkcje. Jeżeli to nastąpi, z odpowiednim wyprzedzeniem poinformujemy o każdej zmianie dotyczącej istniejącego konta, a dalsze korzystanie z nowej płatnej funkcji będzie opcjonalne, chyba że wyraźnie wskażemy inaczej.
-      - title: 8. Zakończenie korzystania
+      - icon: undefined
+        title: 8. Zakończenie korzystania
         paragraphs:
           - Możesz w dowolnym momencie przestać korzystać z Usługi i poprosić o usunięcie konta, zgodnie z naszą Polityką prywatności. Możemy zawiesić lub zakończyć Twój dostęp, jeżeli naruszysz te Warunki, albo zakończyć Usługę (lub jej funkcje), informując o tym w miarę możliwości z odpowiednim wyprzedzeniem.
-      - title: 9. Wyłączenia odpowiedzialności
+      - icon: undefined
+        title: 9. Wyłączenia odpowiedzialności
         paragraphs:
           - |
             Usługa jest udostępniana „w stanie, w jakim się znajduje” oraz „w miarę dostępności”, bez jakichkolwiek gwarancji, wyraźnych lub dorozumianych, w tym gwarancji przydatności handlowej, przydatności do określonego celu lub nienaruszania praw osób trzecich. Nie gwarantujemy, że Usługa będzie nieprzerwana, bezpieczna ani wolna od błędów.
-      - title: 10. Ograniczenie odpowiedzialności
+      - icon: undefined
+        title: 10. Ograniczenie odpowiedzialności
         paragraphs:
           - |
             W maksymalnym zakresie dozwolonym przez obowiązujące prawo Łukasz Michta nie ponosi odpowiedzialności za jakiekolwiek szkody pośrednie, przypadkowe, szczególne, wynikowe lub represyjne ani za utratę danych, przychodów lub zysków wynikającą z korzystania z Usługi lub niemożności korzystania z niej. Żadne postanowienie tych Warunków nie wyłącza ani nie ogranicza odpowiedzialności, której nie można wyłączyć lub ograniczyć na mocy obowiązującego prawa.
-      - title: 11. Prawo właściwe
+      - icon: undefined
+        title: 11. Prawo właściwe
         paragraphs:
           - Te Warunki podlegają prawu polskiemu. Niniejsze postanowienie nie narusza bezwzględnie obowiązujących praw konsumenta przysługujących Ci na mocy prawa państwa, w którym mieszkasz.
-      - title: 12. Zmiany w tych Warunkach
+      - icon: undefined
+        title: 12. Zmiany w tych Warunkach
         paragraphs:
           - Możemy od czasu do czasu aktualizować te Warunki. Data „Ostatnia aktualizacja” powyżej wskazuje najnowszą wersję. O istotnych zmianach poinformujemy e-mailem lub komunikatem w aplikacji, zgodnie ze sposobem informowania o zmianach w Polityce prywatności.
-      - title: 13. Kontakt
+      - icon: undefined
+        title: 13. Kontakt
         paragraphs:
           - "Pytania dotyczące tych Warunków można przesyłać na adres support@opencivera.com."
 docs:
@@ -1003,7 +1022,7 @@ docs:
     more: Rozwijaj i aktualizuj CV
     help: Potrzebujesz pomocy?
     intro: Poznaj cały proces
-    start: Zacznij od głównego CV
+    start: Zacznij od Bazy doświadczeń
     go: Przejdź do kroku
     step: "Krok {step} z {total}"
     previous: Poprzedni krok
@@ -1028,7 +1047,7 @@ docs:
   development: Dokumentacja jest rozwijana
   development_note: Poradniki aktualizujemy wraz z aplikacją.
   heading: Stwórz swoje CV krok po kroku
-  lead: Uzupełnij prywatne główne CV, wybierz treści i udostępnij gotową wersję.
+  lead: Uzupełnij prywatną Bazę doświadczeń, wybierz treści i udostępnij gotowe CV.
   search: Szukaj w dokumentacji
   placeholder: Znajdź temat lub poradnik…
   results: Wyniki
@@ -1036,29 +1055,29 @@ docs:
   no_results: Nie znaleziono pasującego tematu. Spróbuj wyszukać CV, publikację lub język.
   start: Zacznij tutaj
   first_cv: Twoje pierwsze CV — od edycji do publikacji
-  first_cv_note: Uzupełnij główne CV, wybierz potrzebne treści i udostępnij gotową wersję. Poradnik prowadzi przez każdy etap.
+  first_cv_note: Uzupełnij Bazę doświadczeń, wybierz potrzebne treści i udostępnij gotowe CV. Poradnik prowadzi przez każdy etap.
   open_guide: Otwórz poradnik
   tools: Poznaj narzędzia
   choose: Wybierz obszar, który Cię interesuje
   guides: Poradniki i odpowiedzi
   privacy_tag: Twoje dane, Twój wybór
-  privacy_title: Główne CV pozostaje prywatne
+  privacy_title: Baza doświadczeń pozostaje prywatna
   privacy_note: Udostępniasz tylko treści wybrane do opublikowanej wersji CV. Pozostałe informacje są dostępne wyłącznie na Twoim koncie.
   privacy_link: Zobacz, jak działa publikacja
   about: O dokumentacji
   no_docs: Nie ma jeszcze dostępnych poradników.
   article_fallback: Ten artykuł jest pokazany po angielsku, ponieważ tłumaczenie nie jest jeszcze dostępne.
   footer: Dokumentacja produktu
-  master: Główne CV
+  master: Baza doświadczeń
   version: Wersja CV
   published: Opublikowane CV
   master_note: Prywatny zbiór informacji o doświadczeniu
   version_note: Treści wybrane pod konkretną rolę
   published_note: Gotowa wersja dostępna pod publicznym linkiem
   topics_content:
-    - title: Uzupełnij główne CV
+    - title: Uzupełnij Bazę doświadczeń
       description: Wpisz doświadczenie, umiejętności i dane kontaktowe, a następnie zapisz dokument.
-      label: Prywatne główne CV zapisane na koncie
+      label: Prywatna Baza doświadczeń zapisana na koncie
     - title: Przygotuj wersję pod ofertę
       description: Wybierz odpowiednie treści, dopasuj wygląd i sprawdź podgląd.
       label: Dopasowana wersja CV gotowa do publikacji
@@ -1070,5 +1089,5 @@ docs:
       label: Plik gotowy do wysłania
 sample_resume:
   title: Przykładowe CV | OpenCiVera
-  description: Zobacz przykładowe CV oparte na YAML i Next.js.
+  description: Zobacz przykładowe CV utworzone i opublikowane w OpenCiVera.
   loading: Ładowanie przykładowego CV…

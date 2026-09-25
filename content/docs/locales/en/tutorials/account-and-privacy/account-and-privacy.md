@@ -20,7 +20,7 @@ are working in an account with staff access.
 3. Change your first or last name and choose **Save**.
 
 Your profile name and the name printed on your CV are separate values. If the
-name on the CV should change too, update it in Master Resume.
+name on the CV should change too, update it in the Experience Base.
 
 ## Protect your account
 
@@ -34,7 +34,7 @@ never send someone your session link or access token.
 
 ## Understand what is public
 
-Your Master Resume and private CV Versions stay in your account. A public link
+Your Experience Base and private CV Versions stay in your account. A public link
 contains only the entries selected for its publication and the language
 versions you chose. `noindex` asks search engines not to list the page; it does
 not turn the link into a password-protected page.

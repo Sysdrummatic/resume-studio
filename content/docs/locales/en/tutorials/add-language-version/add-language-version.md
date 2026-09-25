@@ -15,12 +15,12 @@ not rewrite the content of either CV.
 
 ## Add the locale
 
-1. Open **Dashboard** and select **Edit master resume**.
+1. Open **Dashboard** and select **Edit Experience Base**.
 2. In the editor toolbar, open **Languages**.
 3. Enter the code (for example, `pl`), the display name, and the short badge.
    Select **Create version**.
 4. Open the new language tab and write the translated content.
-5. Save the Master Resume while that tab is active.
+5. Save the Experience Base while that tab is active.
 
 Keep the facts consistent between locales, but adapt headings, summary wording,
 and role-specific phrasing for the people who will read each version.
@@ -34,7 +34,7 @@ and role-specific phrasing for the people who will read each version.
 5. Publish it again and select those locales in the publication dialog.
 
 The public language switcher shows only locales included in the latest
-publication. A language document can exist in Master Resume and still remain
+publication. A language version can exist in the Experience Base and still remain
 private when it is not selected here.
 
 :::tip

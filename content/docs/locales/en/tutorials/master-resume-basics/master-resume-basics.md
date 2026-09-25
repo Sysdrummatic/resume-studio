@@ -1,5 +1,5 @@
 ---
-title: Understand and edit your Master Resume
+title: Understand and edit your Experience Base
 description: Learn what belongs in the private source document and how to update it safely.
 updatedAt: 2026-09-18
 author: Łukasz Michta
@@ -7,20 +7,20 @@ category: tutorials
 order: 3
 ---
 
-# Understand and edit your Master Resume
+# Understand and edit your Experience Base
 
-**Goal:** save a private master resume that you can use to build tailored versions.
+**Goal:** create a private Experience Base from which you can prepare tailored CVs.
 
 **Before you start:** sign in and gather your contact details and career history.
 
-Think of Master Resume as your private career library. It holds the complete
+Think of the Experience Base as your private career record. It holds the complete
 record from which you build shorter CV Versions. Saving it does not make every
 field public.
 
 ## Open the editor
 
 1. Sign in and open **Dashboard**.
-2. In the **Master Resume** card, choose **Edit master resume**.
+2. In the **Experience Base** card, choose **Edit Experience Base**.
 3. Use the section navigation to move between personal details, summaries,
    roles, experience, education, skills, languages, courses, interests and
    contact details.
@@ -46,7 +46,7 @@ the exact document that will be saved.
 3. Add a note such as `Updated React experience`.
 4. Click **Save MasterCV** and wait for the success message.
 
-Master Resume stays private. When you are ready to share only selected
+Your Experience Base stays private. When you are ready to share only selected
 information, create a CV Version from the Dashboard.
 
 :::warning
@@ -63,4 +63,4 @@ account backup and restore flow, see [Import and export your CV data](/docs/tuto
 ## Check the result
 
 - You see a save confirmation and the preview contains the current details.
-- The selected language is correct. Your master resume is still private.
+- The selected language is correct. Your Experience Base is still private.

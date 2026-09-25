@@ -18,7 +18,7 @@ This documentation is still in beta. Some features may be missing or incomplete,
 
 ## Start here!
 
-If this is your first visit, start with [Publishing your first CV](/docs/tutorials/publishing-your-first-cv). It takes you from the first-use guide to a private Master Resume, a tailored version, and a public link.
+If this is your first visit, start with [Publishing your first CV](/docs/tutorials/publishing-your-first-cv). It takes you from a private Experience Base to a tailored CV and a public link.
 
 ## Tutorials
 
@@ -27,7 +27,7 @@ new to OpenCiVera, or jump directly to the part of the workflow you need.
 
 ### CV creation workflow
 
-1. [Build your master resume](/docs/tutorials/master-resume-basics)
+1. [Build your Experience Base](/docs/tutorials/master-resume-basics)
 2. [Tailor a CV version](/docs/tutorials/create-cv-version)
 3. [Publish and share](/docs/tutorials/publish-and-share-cv)
 4. [Download PDF or ATS](/docs/tutorials/export-pdf-and-ats)

@@ -21,7 +21,7 @@ propozycji.
 
 Jeśli odwiedzasz dokumentację po raz pierwszy, zacznij od poradnika
 [Publikowanie pierwszego CV](/docs/tutorials/publishing-your-first-cv). Prowadzi
-on od utworzenia prywatnego głównego CV przez przygotowanie wybranej wersji aż
+on od utworzenia prywatnej Bazy doświadczeń przez przygotowanie wybranego CV aż
 do uzyskania publicznego linku.
 
 ## Poradniki
@@ -31,7 +31,7 @@ całą ścieżkę po kolei, a pozostali mogą otworzyć od razu potrzebny temat.
 
 ### Ścieżka tworzenia CV
 
-1. [Uzupełnij główne CV](/docs/tutorials/master-resume-basics)
+1. [Uzupełnij Bazę doświadczeń](/docs/tutorials/master-resume-basics)
 2. [Przygotuj wersję pod ofertę](/docs/tutorials/create-cv-version)
 3. [Opublikuj i udostępnij](/docs/tutorials/publish-and-share-cv)
 4. [Pobierz PDF lub ATS](/docs/tutorials/export-pdf-and-ats)
