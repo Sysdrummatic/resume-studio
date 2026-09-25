@@ -132,8 +132,8 @@ test("animation stays an isolated, lazy component with locale and theme inputs",
   assert.match(html, /sandbox="allow-scripts"/);
   assert.doesNotMatch(html, /allow-same-origin/);
 
-  const animationSource = readFileSync(animationPath, "utf8");
+  const animationSource = readFileSync("public/animations/opencivera-animation.js", "utf8");
   assert.match(animationSource, /Zatrzymaj animację/);
   assert.match(animationSource, /Postęp animacji/);
-  assert.match(animationSource, /Zbieranie historii/);
+  assert.match(animationSource, /Doświadczenia przybywa z czasem/);
 });

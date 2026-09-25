@@ -390,6 +390,23 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   on anything a reader needs. This is the one entrance animation in a hero, allowed because it
   moves a decorative artifact: the headline, lead, both CTAs and the process caption paint
   immediately and never wait on it.
+- **Experience Base explainer (landing)**: the isolated iframe collects career tiles in
+  one randomly ordered column, tracks downward, moves the tiles into a stationary queue,
+  and fills the empty Experience Base one item at a time. The document pans downward
+  through its sections, zooms out, then gives rise to three selected CVs. CV 2 finishes
+  in the center; mobile framing zooms out enough to retain the neighboring CVs.
+  Playback runs once, only while visible, and stops on the completed scene. Embedded
+  player controls are hidden; clicking the scene or pressing Space/Enter while focused
+  pauses/resumes it. Reduced motion shows all four documents in a static overview.
+  The standalone preview retains its timeline for inspecting individual stages.
+  The Experience Base is enclosed by a brand-indigo (`#5e6ad2`) outline and
+  the three CVs share one brand-teal (`#009c8a`) outline. Labels in EN/PL interrupt
+  the top borders, retain a fixed readable size during zoom, and stay visible
+  while the base pans. A single arrow appears before the first CV and continues
+  to connect the two groups; later CVs expand the shared outline without adding
+  arrows. On mobile the compact base sits above the CV group with a downward
+  arrow, preserving both group labels. Reduced motion uses the same grouping
+  with all documents fully in view.
 
 **Rules**:
 - Ambient animation only on non-content layers (background pseudo-elements)
