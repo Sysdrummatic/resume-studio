@@ -15,7 +15,7 @@ order: 4
 
 Baza doświadczeń zawiera pełną historię kariery. Wersja CV to krótszy wybór, który chcesz
 wysłać w sprawie jednej roli lub projektu. Utworzenie wersji nie kopiuje całego
-dokumentu do przestrzeni publicznej — zapisuje tylko wybrane wpisy.
+dokumentu do przestrzeni publicznej: zapisuje tylko wybrane wpisy.
 
 ## Utwórz wersję
 

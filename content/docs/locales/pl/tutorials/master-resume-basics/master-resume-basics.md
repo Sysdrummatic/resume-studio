@@ -13,8 +13,8 @@ order: 3
 
 **Zanim zaczniesz:** zaloguj się i przygotuj dane kontaktowe oraz historię zatrudnienia.
 
-Traktuj Bazę doświadczeń jak prywatny zbiór informacji o karierze. Zawiera pełną historię, z
-której tworzysz krótsze wersje CV. Sam zapis nie publikuje żadnego pola.
+Baza doświadczeń to prywatny zbiór informacji o Twojej karierze, pełna historia,
+z której tworzysz krótsze wersje CV. Sam zapis nie publikuje żadnego pola.
 
 ## Otwórz edytor
 

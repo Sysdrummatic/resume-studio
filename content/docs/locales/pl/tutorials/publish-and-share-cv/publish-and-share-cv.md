@@ -32,7 +32,7 @@ publiczny link z panelu, a nie adres prywatnego podglądu.
 ## Zrozum widoczność
 
 `noindex` prosi wyszukiwarki, aby nie umieszczały strony w wynikach. Nie ukrywa
-jednak adresu — każdy, kto go ma, może go otworzyć. Publicznie trafiają tylko
+jednak adresu: każdy, kto go ma, może go otworzyć. Publicznie trafiają tylko
 elementy wybrane w wersji CV.
 
 Odwiedzający mogą przełączać język tylko wtedy, gdy został wybrany podczas tej

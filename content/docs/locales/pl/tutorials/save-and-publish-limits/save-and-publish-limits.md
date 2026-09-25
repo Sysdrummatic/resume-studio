@@ -35,7 +35,7 @@ nienaturalnie dużymi rekordami.
 ## Jeśli limit pojawi się podczas normalnej pracy
 
 - Odczekaj około minuty i spróbuj zapisać lub opublikować ponownie.
-- Jeśli automatyzujesz importy albo edycję, zmniejsz częstotliwość żądań — limit
+- Jeśli automatyzujesz importy albo edycję, zmniejsz częstotliwość żądań: limit
   dotyczy konta, a nie pojedynczej karty przeglądarki.
 - Jeśli przy ręcznej edycji limit pojawia się regularnie, zgłoś to, aby można
   było sprawdzić problem.

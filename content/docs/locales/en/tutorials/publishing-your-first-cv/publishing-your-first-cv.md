@@ -9,7 +9,7 @@ order: 1
 
 # Publishing your first CV
 
-This map takes you from private career data to a finished CV. Follow all four steps or return to the stage you are working on.
+This page takes you from private career data to a finished CV. Follow all four steps or return to the stage you are working on.
 
 ## Before you start
 
@@ -17,10 +17,10 @@ Sign in and gather your contact details, career history and target job descripti
 
 ## Four steps
 
-1. [Build your Experience Base](/docs/tutorials/master-resume-basics) — save your complete, private career record.
-2. [Tailor a version for a role](/docs/tutorials/create-cv-version) — select entries, a template and color, then check the preview.
-3. [Publish and share](/docs/tutorials/publish-and-share-cv) — choose public languages and get a shareable link.
-4. [Download PDF or ATS](/docs/tutorials/export-pdf-and-ats) — review the file before sending it.
+1. [Build your Experience Base](/docs/tutorials/master-resume-basics): save your complete, private career record.
+2. [Tailor a version for a role](/docs/tutorials/create-cv-version): select entries, a template and color, then check the preview.
+3. [Publish and share](/docs/tutorials/publish-and-share-cv): choose public languages and get a shareable link.
+4. [Download PDF or ATS](/docs/tutorials/export-pdf-and-ats): review the file before sending it.
 
 ## If you need another language
 

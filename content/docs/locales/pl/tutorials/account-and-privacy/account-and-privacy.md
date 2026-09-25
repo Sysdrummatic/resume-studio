@@ -28,7 +28,7 @@ Potwierdź adres e-mail przed użyciem chronionych obszarów. Na współdzielony
 komputerze zakończ pracę przez **Wyloguj się**. Jeśli utracisz dostęp, rozpocznij
 odzyskiwanie hasła na `/login`.
 
-Pliki YAML z eksportu przechowuj prywatnie — mogą zawierać pełną historię pracy
+Pliki YAML z eksportu przechowuj prywatnie: mogą zawierać pełną historię pracy
 i dane kontaktowe. Używaj silnego, unikalnego hasła i nigdy nie wysyłaj nikomu
 linku sesji ani tokenu dostępu.
 
@@ -47,7 +47,7 @@ mogła później odzyskać konta ani danych CV.
 
 :::danger
 Przed usunięciem wyeksportuj potrzebne dane. Nie używaj usuwania konta do
-kasowania jednej wersji CV — usuń lub wycofaj publikację tej wersji.
+kasowania jednej wersji CV: usuń lub wycofaj publikację tej wersji.
 :::
 
 Szczegóły modelu prywatności publikacji opisuje poradnik

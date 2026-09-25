@@ -19,8 +19,8 @@ przeglądarki albo przygotowaniem treści poza edytorem.
 2. W karcie **Baza doświadczeń** wybierz **Eksportuj**.
 3. Zapisz pobrany plik YAML w prywatnym i trwałym miejscu.
 
-Plik zawiera dane konta, a nie tylko publiczne CV. Traktuj go jak każdą kopię
-zawierającą dane osobowe i zawodowe.
+Plik zawiera dane konta, a nie tylko publiczne CV. Przechowuj go tak samo
+ostrożnie jak każdą kopię z danymi osobowymi i zawodowymi.
 
 ## Importuj kopię
 

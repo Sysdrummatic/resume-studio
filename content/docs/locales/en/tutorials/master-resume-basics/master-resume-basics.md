@@ -13,9 +13,8 @@ order: 3
 
 **Before you start:** sign in and gather your contact details and career history.
 
-Think of the Experience Base as your private career record. It holds the complete
-record from which you build shorter CV Versions. Saving it does not make every
-field public.
+The Experience Base is your private career record, the complete source you
+build shorter CV Versions from. Saving it does not make every field public.
 
 ## Open the editor
 
