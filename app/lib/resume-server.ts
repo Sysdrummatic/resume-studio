@@ -1,19 +1,102 @@
 import fs from "node:fs";
+import type { UserDataBundle } from "./user-data-transfer";
 import { fetchOnboardingTest, onboardingTestRpc } from "./onboarding-test-server";
 import path from "node:path";
 import yaml from "js-yaml";
 import type { ResumeDocument, ResumeLocale, ResumeRevisionItem } from "./resume-schema";
-import { PREVIEW_LABELS, clampQrCodesInRawYaml, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument } from "./resume-schema";
+import { PREVIEW_LABELS, clampQrCodesInRawYaml, fillMissingRequiredKeysInRawYaml, migrateLegacyResumeYamlFields, normalizeLocale, normalizeResumeDocument, singleDefaultSummaryInRawYaml } from "./resume-schema";
 import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./supabase-http";
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
 import type { ResumePresetSelection } from "./preset-selection";
 import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
-import { normalizeResumeStyle, type ResumeStyleSettings } from "./resume-style";
+import { normalizeResumeStyle, presetStyleSource, type ResumeStyleSettings } from "./resume-style";
+import {
+  buildResumeLanguageTemplate,
+  ensureResumeEntryIds,
+  hasCompleteResumeLinkage,
+  inspectResumeEntryIdStability,
+  inspectResumeLanguagePair,
+  linkLegacyResumeLanguageDocument,
+  reconcileResumeLanguageDocument,
+  ResumeLegacyPairingError,
+  type LegacyPairingConflict,
+  type ResumeLinkageIssue,
+} from "./resume-language-linkage";
+
+export { ResumeLegacyPairingError };
+export type { LegacyPairingConflict };
 
 export { normalizeResumePresetSelection };
 export { buildPublishedExportContent };
 export type { ResumePresetSelection };
+
+function parseLinkedResumeYaml(value: string): Record<string, unknown> {
+  return ensureResumeEntryIds(yaml.load(value));
+}
+
+function parseRawResumeYaml(value: string): Record<string, unknown> {
+  const parsed = yaml.load(value);
+  return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+}
+
+function dumpLinkedResumeYaml(value: unknown): string {
+  return yaml.dump(fillMissingRequiredKeysInRawYaml(ensureResumeEntryIds(value)), {
+    lineWidth: 120,
+    noRefs: true,
+    sortKeys: false,
+    quotingType: '"',
+  });
+}
+
+export class ResumeLanguageLinkageError extends Error {
+  readonly issues: ResumeLinkageIssue[];
+
+  constructor(issues: ResumeLinkageIssue[]) {
+    super("Resume language entry IDs do not match the required linkage.");
+    this.name = "ResumeLanguageLinkageError";
+    this.issues = issues;
+  }
+}
+
+export const RESUME_LEGACY_PAIRING_MESSAGE =
+  "This older language version does not match the default language's entries (a different number or order). It was left unchanged; make its entries match the default language, then save again.";
+
+export const RESUME_SAVE_INCOMPLETE_MESSAGE =
+  "The document was saved, but its revision history or public profile could not be updated. Save again to finish.";
+
+export const RESUME_DOCUMENT_CONFLICT_MESSAGE =
+  "This language version was changed in another tab or session. Your edits were not saved; reload the editor to see the latest version.";
+
+/** The stored language version changed after the caller read it; nothing was written. */
+export class ResumeDocumentConflictError extends Error {
+  readonly locale: string;
+
+  constructor(locale: string) {
+    super(`The "${locale}" language version was changed elsewhere.`);
+    this.name = "ResumeDocumentConflictError";
+    this.locale = locale;
+  }
+}
+
+/** A translation rewritten by the default-language sync, and the version it was rewritten from. */
+export type SynchronizedResumeDocument = {
+  locale: ResumeLocale;
+  previousUpdatedAt: string;
+  document: ResumeDocumentRow;
+};
+
+/** A translation the sync left as it was, and why. */
+export type ResumeSynchronizationFailure =
+  | { locale: ResumeLocale; reason: "legacy-pairing"; conflicts: LegacyPairingConflict[] }
+  | { locale: ResumeLocale; reason: "read" | "write" | "revision" };
+
+/** `complete` is false when the translations could not even be listed, so `failed` is not exhaustive. */
+export type ResumeLanguageSynchronization = {
+  synchronized: SynchronizedResumeDocument[];
+  failed: ResumeSynchronizationFailure[];
+  complete: boolean;
+};
 
 export type ResumeDocumentRow = {
   id: string;
@@ -38,7 +121,14 @@ type ResumeRevisionRow = {
 export type ResumeDocumentPayload = {
   document: ResumeDocumentRow;
   revisions: ResumeRevisionItem[];
+  synchronized?: SynchronizedResumeDocument[];
+  synchronizationFailed?: ResumeSynchronizationFailure[];
+  synchronizationComplete?: boolean;
+  /** Steps after the document write that did not complete; retrying the same save finishes them. */
+  incomplete?: ResumeSaveStep[];
 };
+
+export type ResumeSaveStep = "revision" | "profile" | "public-identity";
 
 export type ResumeLanguageRow = {
   code: ResumeLocale;
@@ -110,6 +200,7 @@ export type ResumePresetRow = {
   user_id: string;
   title: string;
   selection: ResumePresetSelection;
+  style_settings?: unknown;
   is_public: boolean;
   allow_indexing: boolean;
   ai_generated: boolean;
@@ -247,7 +338,7 @@ const RESUME_USER_LOCALE_SELECT =
   "user_id,locale,label_override,short_label_override,is_default,sort_order,created_at,updated_at";
 const RESUME_DOCUMENT_SELECT = "id,user_id,locale,title,yaml_content,schema_version,updated_at,style_settings";
 const RESUME_PRESET_SELECT =
-  "id,document_id,user_id,title,selection,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at,onboarding_test_run_id";
+  "id,document_id,user_id,title,selection,style_settings,is_public,allow_indexing,ai_generated,default_locale,slug,published_at,created_at,updated_at,onboarding_test_run_id";
 const RESUME_PRESET_VARIANT_SELECT = "id,preset_id,document_id,user_id,locale,selection,is_default,created_at,updated_at";
 const RESUME_PUBLISHED_CV_SELECT =
   "id,user_id,preset_id,source_document_id,title,schema_version,open_cv_yaml_contract_version,default_locale,published_locales,available_locales,selection,allow_indexing,published_at,created_by,created_at,snapshot_metadata";
@@ -685,7 +776,9 @@ export function upgradeLegacyResumeYamlContent(yamlContent: string): string {
     // The loader option is supported by js-yaml but missing from its types.
     const parsed = yaml.load(yamlContent, { maxTotalMergeKeys: 50 } as yaml.LoadOptions);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return yamlContent;
-    const migrated = clampQrCodesInRawYaml(migrateLegacyResumeYamlFields(parsed as Record<string, unknown>));
+    const migrated = singleDefaultSummaryInRawYaml(
+      clampQrCodesInRawYaml(migrateLegacyResumeYamlFields(parsed as Record<string, unknown>)),
+    );
     if (migrated === parsed) return yamlContent;
     return yaml.dump(migrated, { indent: 2 });
   } catch {
@@ -874,18 +967,18 @@ export async function fetchResumeRevisionYaml(
 }
 
 export async function fetchResumeDocumentsForUser(userId: string): Promise<ResumeDocumentRow[]> {
+  return (await queryResumeDocumentsForUser(userId)) ?? [];
+}
+
+/** `null` when the query failed, as opposed to `[]` for an account without documents. */
+async function queryResumeDocumentsForUser(userId: string): Promise<ResumeDocumentRow[] | null> {
   const result = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
     select: RESUME_DOCUMENT_SELECT,
     useServiceRole: true,
     query: `user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc`,
   });
-
-  if (!result.data || result.error) {
-    return [];
-  }
-
-  return result.data;
+  return result.error || !result.data ? null : result.data;
 }
 
 async function ensureResumeDocumentRecord(
@@ -893,10 +986,14 @@ async function ensureResumeDocumentRecord(
   userId: string,
   locale: ResumeLocale,
   fallbackName: string,
+  sourceYamlContent?: string,
 ): Promise<ResumeDocumentPayload | null> {
   let document = await fetchDocumentByLocale(accessToken, userId, locale);
 
   if (!document) {
+    const seedYaml = sourceYamlContent
+      ? dumpLinkedResumeYaml(buildResumeLanguageTemplate(parseLinkedResumeYaml(sourceYamlContent)))
+      : dumpLinkedResumeYaml(parseLinkedResumeYaml(buildDefaultResumeYaml(fallbackName)));
     const insertResult = await insertTable({
       table: "resume_documents",
       accessToken,
@@ -904,7 +1001,7 @@ async function ensureResumeDocumentRecord(
         user_id: userId,
         locale,
         title: "Master resume",
-        yaml_content: buildDefaultResumeYaml(fallbackName),
+        yaml_content: seedYaml,
         schema_version: 1,
         created_by: userId,
       },
@@ -1042,6 +1139,7 @@ export async function fetchResumePresetsForUser(userId: string): Promise<ResumeP
     return {
       ...preset,
       selection: normalizeResumePresetSelection(preset.selection),
+      style_settings: normalizeResumeStyle(preset.style_settings),
       canonical_public_path: canonicalPublicPath,
     };
   });
@@ -1467,7 +1565,7 @@ export async function fetchResumeExportByPresetId(
     personSlug: "user",
     publicId: preset.id,
     locale: preset.default_locale,
-    cvStyle: normalizeResumeStyle(document.style_settings),
+    cvStyle: normalizeResumeStyle(presetStyleSource(preset.style_settings, document.style_settings)),
     defaultLocale: preset.default_locale,
     availableLocales: [preset.default_locale],
     allowIndexing: false,
@@ -1506,14 +1604,60 @@ export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitem
 }
 
 export async function setDefaultResumeLocaleForUser(accessToken: string, userId: string, localeInput: string): Promise<boolean> {
+  return (await switchDefaultResumeLocale(accessToken, userId, localeInput)).ok;
+}
+
+/** Makes a language the default; `synchronized` lists every language version it rewrote. */
+export async function switchDefaultResumeLocale(
+  accessToken: string,
+  userId: string,
+  localeInput: string,
+  /** Locales whose documents the caller is about to replace (data import); they are not synchronized. */
+  options: { replacingLocales?: ResumeLocale[] } = {},
+): Promise<
+  | { ok: false; conflicts?: LegacyPairingConflict[]; failed?: ResumeSynchronizationFailure[] }
+  | { ok: true; synchronized: SynchronizedResumeDocument[] }
+> {
   const locale = normalizeLocale(localeInput);
   const locales = await fetchResumeUserLocalesForUser(userId, { accessToken });
   if (!locales.some((entry) => entry.code === locale)) {
-    return false;
+    return { ok: false };
   }
 
+  const synchronized: SynchronizedResumeDocument[] = [];
   const currentDefault = locales.find((entry) => entry.is_default)?.code || null;
   if (currentDefault && currentDefault !== locale) {
+    const targetDocument = await fetchDocumentByLocale(accessToken, userId, locale);
+    if (!targetDocument) return { ok: false };
+    const currentDefaultDocument = await fetchDocumentByLocale(accessToken, userId, currentDefault);
+    let canonicalYaml: string;
+    try {
+      // A legacy target takes the current default's IDs by position first;
+      // otherwise the outgoing default could no longer pair with it.
+      const target = currentDefaultDocument
+        ? linkLegacyResumeLanguageDocument(parseLinkedResumeYaml(currentDefaultDocument.yaml_content), parseRawResumeYaml(targetDocument.yaml_content))
+        : parseRawResumeYaml(targetDocument.yaml_content);
+      canonicalYaml = dumpLinkedResumeYaml(target);
+    } catch (error) {
+      // A mismatched legacy target is refused before anything is written.
+      return error instanceof ResumeLegacyPairingError ? { ok: false, conflicts: error.conflicts } : { ok: false };
+    }
+    if (canonicalYaml !== targetDocument.yaml_content) {
+      try {
+        const canonical = await updateResumeDocumentIfUnchanged(accessToken, targetDocument, { yaml_content: canonicalYaml });
+        if (!canonical) return { ok: false };
+        synchronized.push({ locale, previousUpdatedAt: targetDocument.updated_at, document: canonical });
+      } catch {
+        return { ok: false };
+      }
+    }
+    try {
+      const synchronization = await synchronizeResumeLanguageDocuments(accessToken, userId, locale, canonicalYaml, options.replacingLocales);
+      synchronized.push(...synchronization.synchronized);
+      if (synchronization.failed.length || !synchronization.complete) return { ok: false, failed: synchronization.failed };
+    } catch {
+      return { ok: false };
+    }
     const clearCurrent = await updateTable({
       table: "resume_user_locales",
       accessToken,
@@ -1524,7 +1668,7 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
       },
     });
     if (clearCurrent.error) {
-      return false;
+      return { ok: false };
     }
   }
 
@@ -1538,7 +1682,7 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
     },
   });
   if (setNext.error || !setNext.data || !setNext.data[0]) {
-    return false;
+    return { ok: false };
   }
 
   const presetsResult = await updateTable({
@@ -1566,7 +1710,18 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
     ),
   );
 
-  return !presetsResult.error;
+  return presetsResult.error ? { ok: false } : { ok: true, synchronized };
+}
+
+/** Tells a deleted document (`row: null`) apart from a failed read (`ok: false`). */
+async function readResumeDocument(accessToken: string, documentId: string, userId: string): Promise<{ ok: true; row: ResumeDocumentRow | null } | { ok: false }> {
+  const result = await queryTable<ResumeDocumentRow>({
+    table: "resume_documents",
+    select: RESUME_DOCUMENT_SELECT,
+    accessToken,
+    query: `id=eq.${encodeURIComponent(documentId)}&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+  });
+  return result.error || !result.data ? { ok: false } : { ok: true, row: result.data[0] ?? null };
 }
 
 async function fetchDocumentById(accessToken: string, documentId: string, userId: string): Promise<ResumeDocumentRow | null> {
@@ -1591,13 +1746,15 @@ export async function saveResumePreset(
     documentId: string;
     title: string;
     selection: ResumePresetSelection;
+    styleSettings?: unknown;
     isPublic?: boolean;
     allowIndexing?: boolean;
     aiGenerated?: boolean;
     defaultLocale?: ResumeLocale;
   },
 ): Promise<ResumePresetRow | null> {
-  if (payload.presetId && (await fetchResumePresetById(accessToken, userId, payload.presetId))?.onboarding_test_run_id) return null;
+  const existingPreset = payload.presetId ? await fetchResumePresetById(accessToken, userId, payload.presetId) : null;
+  if (payload.presetId && existingPreset?.onboarding_test_run_id) return null;
   const document = await fetchDocumentById(accessToken, payload.documentId, userId);
   if (!document) {
     return null;
@@ -1609,11 +1766,13 @@ export async function saveResumePreset(
   }
 
   const title = payload.title.trim() || "Untitled preset";
+  const styleSettings = normalizeResumeStyle(payload.styleSettings ?? presetStyleSource(existingPreset?.style_settings, document.style_settings));
   const values = {
     document_id: document.id,
     user_id: userId,
     title,
     selection: payload.selection as unknown as Record<string, unknown>,
+    style_settings: styleSettings,
     is_public: Boolean(payload.isPublic),
     allow_indexing: Boolean(payload.allowIndexing),
     ai_generated: Boolean(payload.aiGenerated),
@@ -1644,6 +1803,7 @@ export async function saveResumePreset(
   const preset = {
     ...row,
     selection: normalizeResumePresetSelection(row.selection),
+    style_settings: normalizeResumeStyle(row.style_settings ?? styleSettings),
   };
   await upsertResumePresetVariant(accessToken, userId, preset, document, payload.selection);
   return preset;
@@ -1663,6 +1823,7 @@ async function fetchResumePresetById(accessToken: string, userId: string, preset
     ...result.data[0],
     default_locale: normalizeLocale(result.data[0].default_locale),
     selection: normalizeResumePresetSelection(result.data[0].selection),
+    style_settings: normalizeResumeStyle(result.data[0].style_settings),
   };
 
   const linkResult = await queryTable<ResumePublicLinkRow>({
@@ -1823,7 +1984,194 @@ export async function ensureResumeDocument(
     return null;
   }
 
-  return ensureResumeDocumentRecord(accessToken, userId, locale, fallbackName);
+  const defaultLocale = locales.find((entry) => entry.is_default)?.code || locale;
+  const sourceDocument = defaultLocale !== locale ? await fetchDocumentByLocale(accessToken, userId, defaultLocale) : null;
+  return ensureResumeDocumentRecord(accessToken, userId, locale, fallbackName, sourceDocument?.yaml_content);
+}
+
+/**
+ * Writes only if the row is still the version that was read (compare-and-swap on
+ * `updated_at`, which the `touch_updated_at` trigger bumps on every write).
+ * Returns the new row, `null` on a database error, and throws on a lost race.
+ */
+async function updateResumeDocumentIfUnchanged(
+  accessToken: string,
+  document: ResumeDocumentRow,
+  values: Record<string, unknown>,
+): Promise<ResumeDocumentRow | null> {
+  const result = await updateTable({
+    table: "resume_documents",
+    accessToken,
+    query: `id=eq.${encodeURIComponent(document.id)}&updated_at=eq.${encodeURIComponent(document.updated_at)}`,
+    values: { ...values, updated_at: new Date().toISOString() },
+  });
+  if (result.error || !result.data) return null;
+  if (!result.data[0]) throw new ResumeDocumentConflictError(document.locale);
+  return result.data[0] as unknown as ResumeDocumentRow;
+}
+
+/**
+ * Records a revision unless the latest one already holds this exact content,
+ * so a retry after a failed revision call completes the history without
+ * duplicating it. Returns false when the history could not be read or written.
+ */
+async function ensureResumeRevision(accessToken: string, document: ResumeDocumentRow, changeNote: string): Promise<boolean> {
+  const latest = await queryTable<{ yaml_content: string; title: string }>({
+    table: "resume_revisions",
+    select: "yaml_content,title",
+    accessToken,
+    query: `document_id=eq.${encodeURIComponent(document.id)}&order=revision_number.desc&limit=1`,
+  });
+  if (latest.error || !latest.data) return false;
+  const current = latest.data[0];
+  if (current && current.yaml_content === document.yaml_content && current.title === document.title) return true;
+  const revisionResult = await callRpc<number>({
+    functionName: "create_resume_revision",
+    payload: { input_document_id: document.id, input_change_note: changeNote },
+    accessToken,
+  });
+  if (revisionResult.error || !revisionResult.data) return false;
+  return true;
+}
+
+function assertResumeDocumentBase(locale: ResumeLocale, document: ResumeDocumentRow | null, baseUpdatedAt: string | null | undefined): void {
+  if (baseUpdatedAt === undefined) return;
+  if ((document?.updated_at ?? null) !== baseUpdatedAt) throw new ResumeDocumentConflictError(locale);
+}
+
+const SYNCHRONIZATION_ATTEMPTS = 3;
+const SYNCHRONIZATION_CHANGE_NOTE = "Synchronized with default language";
+
+/**
+ * Reconciles every translation with the saved default (ADR 0023 §4). A
+ * translation saved concurrently is re-read and reconciled again instead of
+ * being overwritten: reconciliation only changes structure and neutral fields,
+ * so it never discards the newer translated text.
+ */
+async function synchronizeResumeLanguageDocuments(
+  accessToken: string,
+  userId: string,
+  defaultLocale: ResumeLocale,
+  defaultYamlContent: string,
+  skipLocales: ResumeLocale[] = [],
+): Promise<ResumeLanguageSynchronization> {
+  const defaultRaw = parseLinkedResumeYaml(defaultYamlContent);
+  const synchronized: SynchronizedResumeDocument[] = [];
+  const failed: ResumeSynchronizationFailure[] = [];
+  const documents = await queryResumeDocumentsForUser(userId);
+  if (!documents) return { synchronized, failed, complete: false };
+  for (const initial of documents) {
+    if (normalizeLocale(initial.locale) === normalizeLocale(defaultLocale)) continue;
+    if (skipLocales.includes(normalizeLocale(initial.locale))) continue;
+    let document: ResumeDocumentRow | null = initial;
+    let written: ResumeDocumentRow | null = null;
+    let upToDate = false;
+    let conflicts: LegacyPairingConflict[] | null = null;
+    let readFailed = false;
+    for (let attempt = 0; attempt < SYNCHRONIZATION_ATTEMPTS; attempt += 1) {
+      if (!document) {
+        upToDate = true;
+        break;
+      }
+      let reconciledYaml: string;
+      try {
+        reconciledYaml = dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, parseRawResumeYaml(document.yaml_content)));
+      } catch (error) {
+        if (!(error instanceof ResumeLegacyPairingError)) throw error;
+        conflicts = error.conflicts;
+        break;
+      }
+      if (reconciledYaml === document.yaml_content) {
+        upToDate = true;
+        break;
+      }
+      try {
+        written = await updateResumeDocumentIfUnchanged(accessToken, document, { yaml_content: reconciledYaml });
+        break;
+      } catch (error) {
+        if (!(error instanceof ResumeDocumentConflictError)) throw error;
+        const reread = await readResumeDocument(accessToken, document.id, userId);
+        if (!reread.ok) {
+          readFailed = true;
+          break;
+        }
+        document = reread.row;
+      }
+    }
+    if (upToDate) {
+      // Completes a revision a previous sync wrote the YAML for but failed to record.
+      if (document && !(await ensureResumeRevision(accessToken, document, SYNCHRONIZATION_CHANGE_NOTE))) {
+        failed.push({ locale: initial.locale, reason: "revision" });
+      }
+      continue;
+    }
+    if (readFailed) {
+      failed.push({ locale: initial.locale, reason: "read" });
+      continue;
+    }
+    if (conflicts) {
+      failed.push({ locale: initial.locale, reason: "legacy-pairing", conflicts });
+      continue;
+    }
+    if (!written || !document) {
+      failed.push({ locale: initial.locale, reason: "write" });
+      continue;
+    }
+    synchronized.push({ locale: written.locale, previousUpdatedAt: document.updated_at, document: written });
+    if (!(await ensureResumeRevision(accessToken, written, SYNCHRONIZATION_CHANGE_NOTE))) {
+      failed.push({ locale: written.locale, reason: "revision" });
+    }
+  }
+  return { synchronized, failed, complete: true };
+}
+
+async function prepareResumeLanguageYaml(
+  accessToken: string,
+  userId: string,
+  locale: ResumeLocale,
+  yamlContent: string,
+  options: { asDefault?: boolean } = {},
+): Promise<{ yamlContent: string; document: ResumeDocumentRow | null; defaultLocale: ResumeLocale }> {
+  const locales = await fetchResumeUserLocalesForUser(userId, { accessToken });
+  // `asDefault`: the caller is about to make this locale the default (data
+  // import), so it is the canonical inventory and must not be reconciled
+  // against the outgoing default — that would blank its translated content.
+  const defaultLocale = options.asDefault ? locale : locales.find((entry) => entry.is_default)?.code || locale;
+  const document = await fetchDocumentByLocale(accessToken, userId, locale);
+  const candidateRaw = parseRawResumeYaml(yamlContent);
+  const candidate = ensureResumeEntryIds(candidateRaw);
+
+  if (locale === defaultLocale) {
+    if (document && hasCompleteResumeLinkage(parseRawResumeYaml(document.yaml_content))) {
+      const validation = inspectResumeEntryIdStability(parseRawResumeYaml(document.yaml_content), candidateRaw);
+      if (!validation.ok) throw new ResumeLanguageLinkageError(validation.issues);
+    }
+    return { yamlContent: dumpLinkedResumeYaml(candidate), document, defaultLocale };
+  }
+
+  const defaultDocument = await fetchDocumentByLocale(accessToken, userId, defaultLocale);
+  if (!defaultDocument) {
+    return { yamlContent: dumpLinkedResumeYaml(candidate), document, defaultLocale };
+  }
+
+  const defaultRaw = parseRawResumeYaml(defaultDocument.yaml_content);
+  const existingLocaleIsLegacy = !document || !hasCompleteResumeLinkage(parseRawResumeYaml(document.yaml_content));
+  if (hasCompleteResumeLinkage(defaultRaw) && !existingLocaleIsLegacy) {
+    const validation = inspectResumeLanguagePair(defaultRaw, candidateRaw);
+    if (!validation.ok) throw new ResumeLanguageLinkageError(validation.issues);
+    return {
+      yamlContent: dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, candidateRaw)),
+      document,
+      defaultLocale,
+    };
+  }
+
+  // One-time compatibility path for documents created before linkage IDs were introduced.
+  return {
+    yamlContent: dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, candidateRaw)),
+    document,
+    defaultLocale,
+  };
 }
 
 export async function publishResumeDocument(
@@ -1835,10 +2183,24 @@ export async function publishResumeDocument(
     title: string;
     styleSettings?: unknown;
     changeNote: string;
+    /** `updated_at` of the version the editor changed; `null` when it had none. Omitted: no check. */
+    baseUpdatedAt?: string | null;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
+  let preparedYamlContent: string;
+  let defaultLocale: ResumeLocale;
   let document = await fetchDocumentByLocale(accessToken, userId, locale);
+  try {
+    const prepared = await prepareResumeLanguageYaml(accessToken, userId, locale, payload.yamlContent);
+    preparedYamlContent = prepared.yamlContent;
+    defaultLocale = prepared.defaultLocale;
+    document = prepared.document;
+  } catch (error) {
+    if (error instanceof ResumeLanguageLinkageError || error instanceof ResumeLegacyPairingError) throw error;
+    return null;
+  }
+  assertResumeDocumentBase(locale, document, payload.baseUpdatedAt);
 
   const title = payload.title.trim() || "Master resume";
   if (!document) {
@@ -1849,7 +2211,7 @@ export async function publishResumeDocument(
         user_id: userId,
         locale,
         title,
-        yaml_content: payload.yamlContent,
+        yaml_content: preparedYamlContent,
         schema_version: 1,
         style_settings: normalizeResumeStyle(payload.styleSettings),
         created_by: userId,
@@ -1859,52 +2221,52 @@ export async function publishResumeDocument(
       return null;
     }
     document = insertResult.data[0] as unknown as ResumeDocumentRow;
-  } else {
-    const updateResult = await updateTable({
-      table: "resume_documents",
-      accessToken,
-      query: `id=eq.${encodeURIComponent(document.id)}`,
-      values: {
-        title,
-        yaml_content: payload.yamlContent,
-        style_settings: normalizeResumeStyle(payload.styleSettings),
-        updated_at: new Date().toISOString(),
-      },
+  } else if (!isStoredResumeDocument(document, title, preparedYamlContent, payload.styleSettings)) {
+    const updated = await updateResumeDocumentIfUnchanged(accessToken, document, {
+      title,
+      yaml_content: preparedYamlContent,
+      style_settings: normalizeResumeStyle(payload.styleSettings),
     });
-    if (!updateResult.data || updateResult.error) {
+    if (!updated) {
       return null;
     }
-    document = updateResult.data[0] as unknown as ResumeDocumentRow;
+    document = updated;
   }
 
-  const revisionResult = await callRpc<number>({
-    functionName: "create_resume_revision",
-    payload: {
-      input_document_id: document.id,
-      input_change_note: payload.changeNote || "Publish",
-    },
-    accessToken,
-  });
-  if (revisionResult.error || !revisionResult.data) {
-    return null;
+  // The document is stored from here on. Each remaining step is idempotent, so a
+  // failure is reported with the stored version and a plain retry finishes it.
+  const incomplete: ResumeSaveStep[] = [];
+  if (!(await ensureResumeRevision(accessToken, document, payload.changeNote || "Publish"))) {
+    incomplete.push("revision");
   }
 
-  const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, payload.yamlContent, {
+  const synchronization = locale === defaultLocale
+    ? await synchronizeResumeLanguageDocuments(accessToken, userId, defaultLocale, preparedYamlContent)
+    : { synchronized: [], failed: [], complete: true };
+
+  const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, preparedYamlContent, {
     updatePersonSlug: true,
-  });
-  if (!profileSynced) {
-    return null;
-  }
-  const publicIdentityReady = await refreshProfilePersonSlugForPublish(accessToken, userId);
-  if (!publicIdentityReady) {
-    return null;
-  }
+  }).catch(() => false);
+  if (!profileSynced) incomplete.push("profile");
+  const publicIdentityReady = await refreshProfilePersonSlugForPublish(accessToken, userId).catch(() => false);
+  if (!publicIdentityReady) incomplete.push("public-identity");
 
   const revisions = await fetchRevisions(accessToken, document.id);
   return {
     document,
     revisions,
+    synchronized: synchronization.synchronized,
+    synchronizationFailed: synchronization.failed,
+    synchronizationComplete: synchronization.complete,
+    incomplete,
   };
+}
+
+/** A retry of an already stored save must not write (and version) the document again. */
+function isStoredResumeDocument(document: ResumeDocumentRow, title: string, yamlContent: string, styleSettings: unknown): boolean {
+  return document.title === title
+    && document.yaml_content === yamlContent
+    && JSON.stringify(normalizeResumeStyle(document.style_settings)) === JSON.stringify(normalizeResumeStyle(styleSettings));
 }
 
 export async function saveResumeDraftDocument(
@@ -1914,10 +2276,15 @@ export async function saveResumeDraftDocument(
   payload: {
     yamlContent: string;
     title: string;
+    asDefault?: boolean;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
-  let document = await fetchDocumentByLocale(accessToken, userId, locale);
+  const prepared = await prepareResumeLanguageYaml(accessToken, userId, locale, payload.yamlContent, {
+    asDefault: payload.asDefault,
+  });
+  const preparedYamlContent = prepared.yamlContent;
+  let document = prepared.document;
 
   const title = payload.title.trim() || "Master resume draft";
   if (!document) {
@@ -1928,7 +2295,7 @@ export async function saveResumeDraftDocument(
         user_id: userId,
         locale,
         title,
-        yaml_content: payload.yamlContent,
+        yaml_content: preparedYamlContent,
         schema_version: 1,
         created_by: userId,
       },
@@ -1938,23 +2305,14 @@ export async function saveResumeDraftDocument(
     }
     document = insertResult.data[0] as unknown as ResumeDocumentRow;
   } else {
-    const updateResult = await updateTable({
-      table: "resume_documents",
-      accessToken,
-      query: `id=eq.${encodeURIComponent(document.id)}`,
-      values: {
-        title,
-        yaml_content: payload.yamlContent,
-        updated_at: new Date().toISOString(),
-      },
-    });
-    if (!updateResult.data || updateResult.error) {
+    const updated = await updateResumeDocumentIfUnchanged(accessToken, document, { title, yaml_content: preparedYamlContent });
+    if (!updated) {
       return null;
     }
-    document = updateResult.data[0] as unknown as ResumeDocumentRow;
+    document = updated;
   }
 
-  const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, payload.yamlContent, {
+  const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, preparedYamlContent, {
     updatePersonSlug: true,
   });
   if (!profileSynced) {
@@ -1966,6 +2324,113 @@ export async function saveResumeDraftDocument(
     document,
     revisions,
   };
+}
+
+export type ImportLanguagesAndDocumentsResult =
+  | { ok: true }
+  | { ok: false; status: number; error: string; linkageIssues?: ResumeLinkageIssue[]; legacyConflicts?: LegacyPairingConflict[] };
+
+/**
+ * Applies the languages and master documents of a data bundle (ADR 0018).
+ *
+ * The order is what makes it work with linked languages (ADR 0023): switching
+ * the default language requires that language's document to exist (it becomes
+ * the canonical inventory the others are reconciled to), and a document can only
+ * be saved against the current default. So the languages are registered without
+ * touching the default, the bundle's default-language document is saved as the
+ * canonical one, the default is switched, and only then are the other documents
+ * saved — now reconciled against the new default their IDs already match.
+ */
+export async function importLanguagesAndDocuments(
+  accessToken: string,
+  userId: string,
+  bundle: Pick<UserDataBundle, "languages" | "documents">,
+  onDocumentSaved?: (saved: { locale: ResumeLocale; documentId: string; yamlContent: string }) => Promise<void> | void,
+): Promise<ImportLanguagesAndDocumentsResult> {
+  for (const language of bundle.languages) {
+    const upserted = await upsertResumeUserLocale(
+      accessToken,
+      userId,
+      { code: language.code, label: language.label, shortLabel: language.short_label },
+      { setDefault: false },
+    );
+    if (!upserted) {
+      return { ok: false, status: 400, error: `Import failed while saving the "${language.code}" language version.` };
+    }
+  }
+
+  const defaultLocale = bundle.languages.find((language) => language.is_default)?.code ?? null;
+  const documents = [...bundle.documents].sort(
+    (left, right) => Number(right.locale === defaultLocale) - Number(left.locale === defaultLocale),
+  );
+  // Stored documents the bundle replaces are not synchronized first: they are
+  // overwritten next. Any other stored translation still has to pair.
+  const switchDefault = async (locale: ResumeLocale): Promise<ImportLanguagesAndDocumentsResult | null> => {
+    const switched = await switchDefaultResumeLocale(accessToken, userId, locale, { replacingLocales: documents.map((document) => document.locale) });
+    if (switched.ok) return null;
+    const conflicted = switched.failed?.find((failure) => failure.reason === "legacy-pairing");
+    if (switched.conflicts || conflicted) {
+      return {
+        ok: false,
+        status: 409,
+        error: `Import stopped because the "${conflicted?.locale ?? locale}" language version does not match the default language's entries. Nothing in it was changed.`,
+        legacyConflicts: switched.conflicts ?? (conflicted?.reason === "legacy-pairing" ? conflicted.conflicts : undefined),
+      };
+    }
+    return { ok: false, status: 400, error: `Import failed while saving the "${locale}" language version.` };
+  };
+  if (defaultLocale && !documents.some((document) => document.locale === defaultLocale)) {
+    const existing = await fetchDocumentByLocale(accessToken, userId, defaultLocale);
+    if (!existing) {
+      return { ok: false, status: 400, error: `Default language "${defaultLocale}" has no document in the import file.` };
+    }
+    const failure = await switchDefault(defaultLocale);
+    if (failure) return failure;
+  }
+
+  for (const document of documents) {
+    const isDefault = document.locale === defaultLocale;
+    let saved: ResumeDocumentPayload | null;
+    try {
+      saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
+        yamlContent: document.yaml_content,
+        title: document.title,
+        asDefault: isDefault,
+      });
+    } catch (error) {
+      if (error instanceof ResumeLanguageLinkageError) {
+        return {
+          ok: false,
+          status: 409,
+          error: `Import failed because the "${document.locale}" language has invalid linked IDs.`,
+          linkageIssues: error.issues,
+        };
+      }
+      if (error instanceof ResumeDocumentConflictError) {
+        return { ok: false, status: 409, error: `Import stopped because the "${document.locale}" language version was changed during the import.` };
+      }
+      if (error instanceof ResumeLegacyPairingError) {
+        return {
+          ok: false,
+          status: 409,
+          error: `Import stopped because the "${document.locale}" language version does not match the default language's entries. Nothing in it was changed.`,
+          legacyConflicts: error.conflicts,
+        };
+      }
+      throw error;
+    }
+    if (!saved) {
+      return { ok: false, status: 500, error: `Import failed while saving the "${document.locale}" document.` };
+    }
+    await onDocumentSaved?.({ locale: document.locale, documentId: saved.document.id, yamlContent: document.yaml_content });
+
+    if (isDefault) {
+      const failure = await switchDefault(document.locale);
+      if (failure) return failure;
+    }
+  }
+
+  return { ok: true };
 }
 
 export async function rollbackResumeDocument(

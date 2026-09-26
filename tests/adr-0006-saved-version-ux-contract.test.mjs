@@ -23,11 +23,11 @@ test("dashboard publish modal supports language selection and default locale con
   assert.equal(client.includes("PublishSavedVersionModal"), true);
   assert.equal(client.includes("selectedLocales"), true);
   assert.equal(client.includes("defaultLocale"), true);
-  assert.equal(modal.includes("Allow indexing for this Published CV"), true);
-  assert.equal(modal.includes("Canonical URL is the permanent public link"), true);
+  assert.equal(modal.includes("labels.allow_indexing"), true);
+  assert.equal(modal.includes("labels.canonical_note"), true);
 });
 
-test("Saved Version management is delegated to Dashboard; editor shows only Publish and Revision history", () => {
+test("Saved Version management is delegated to Dashboard; editor keeps only its save and revision workflow", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const dashboard = read("app/dashboard/dashboard-client.tsx");
 
@@ -38,14 +38,13 @@ test("Saved Version management is delegated to Dashboard; editor shows only Publ
   assert.equal(editor.includes("Open public CV"), false);
   assert.equal(editor.includes("Copy public URL"), false);
 
-  assert.equal(editor.includes("Publish"), true);
-  assert.equal(editor.includes("Revision history"), true);
-  assert.equal(editor.includes("Save MasterCV"), true);
-  assert.equal(editor.includes("Rollback"), true);
+  assert.equal(editor.includes('editorText("Revision history")'), true);
+  assert.equal(editor.includes('editorText("Save MasterCV")'), true);
+  assert.equal(editor.includes('editorText("Rollback")'), true);
 
   assert.equal(dashboard.includes("PublishSavedVersionModal"), true);
   assert.equal(dashboard.includes("canonical_public_path"), true);
   assert.equal(dashboard.includes("copyPublicLink"), true);
-  assert.equal(dashboard.includes("Open CV"), true);
+  assert.equal(dashboard.includes("dictionary.dashboard.preview.open_cv"), true);
   assert.equal(editor.includes("resume_public_links"), false);
 });

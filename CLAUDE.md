@@ -26,6 +26,29 @@ When evaluating solutions, trade-offs, or architectural choices, prioritize in t
 
 ---
 
+## ⚠️ Contradicting an Earlier Decision
+
+Full rule: [AGENTS.md](AGENTS.md) → Working agreement. Summarised here because it
+has to be in context on every turn, not looked up.
+
+When a request conflicts with something already decided — a rule in this file or
+`AGENTS.md`, `PRODUCT.md`/`DESIGN.md`, an ADR, a guide, a contract test, or a
+decision made earlier in the same conversation — **say so before acting**:
+
+1. Name the file and section (or the earlier turn).
+2. Quote the rule verbatim.
+3. State which part of the request conflicts with it.
+
+Then resolve it in the same change, never silently: either follow the request
+**and** update the written rule so code and documentation agree, or keep the rule
+and explain why. The user decides; when they have already said to change the rule,
+change it. Leaving a rule on disk that the code contradicts is always wrong.
+
+This fires for a request that merely restores something a rule caused to be
+removed — not only for a head-on "do the opposite".
+
+---
+
 ## 📂 Directory Structure & Code Map
 
 Canonical, shared with Codex — edit `docs/CODE-MAP.md`, not a copy here.
@@ -316,6 +339,52 @@ Show only: [Diffs/changes/new code, not explanations]
 
 ---
 
+## Skill routing
+
+Catalogue of available skills (gstack, impeccable, claude.ai account skills and
+plugins): [`.claude/SKILLS.md`](.claude/SKILLS.md).
+
+**Whenever you suggest a next action** (in a closing summary, a recommendation,
+an "I could also…" offer, or a list of options), pair it with the matching
+skill and propose it by its exact invocation, e.g.:
+
+> Next step: check the landing page on mobile → `/impeccable adapt app/page.tsx`
+> or `/qa` against localhost. Run it?
+
+Rules:
+- **Propose, don't auto-run.** Invoke a skill without asking only when the user
+  explicitly requested that skill or its exact workflow. Otherwise name it and
+  wait for a yes.
+- **One best match per action.** Name at most one alternative, and only when it
+  is genuinely different (e.g. `/qa` fixes, `/qa-only` only reports).
+- **No match → say nothing about skills.** Never force a skill onto an action
+  just to satisfy this rule.
+- **Repo rules win over skill defaults.** When a skill's workflow conflicts with
+  this file or `docs/guides/development/git-workflow.md` (e.g. `/ship` bumping
+  VERSION/CHANGELOG, commit format, AI attribution footers), say so when
+  proposing it and follow the repo rule.
+
+Common pairings for this repo:
+
+| Suggested action | Skill |
+|---|---|
+| Bug, error, unexpected behavior | `/investigate` |
+| Review a diff before commit/PR | `/review` or `/code-review` |
+| Security-sensitive change (auth, RLS, public export) | `/cso` or `/security-review` |
+| Test a flow in the browser | `/qa` (fixes) / `/qa-only` (report) |
+| Visual polish of a live page | `/design-review` or `/impeccable polish <target>` |
+| UX critique / accessibility audit | `/impeccable critique` / `/impeccable audit` |
+| UI copy, labels, error messages | `/impeccable clarify <target>` |
+| Mobile/responsive issues | `/impeccable adapt <target>` |
+| Plan a feature before coding | `/spec`, then `/plan-eng-review` |
+| Architecture decision / ADR | `/engineering:architecture` |
+| Landing/marketing content, SEO | `/searchfit-seo:create-content`, `/searchfit-seo:on-page-seo` |
+| LinkedIn post about the product | `/anthropic-skills:opencivera-linkedin-writer` |
+| Docs after a feature ships | `/document-release` |
+| Save / resume a long session | `/context-save` / `/context-restore` |
+
+---
+
 ## 🎯 Project Phases
 
 **Phase tracking lives in [docs/STATUS.md](docs/STATUS.md)** — the single source of truth for phase status, progress table, active sprint items, and links to all phase documentation.
@@ -348,7 +417,7 @@ Durable "how things work" reference material for specific features, independent 
 - `sections/` — isolated section components receiving `(data, theme)`; shared card/timeline/dot-meter/pill/meter-item primitives in `primitives.tsx`. Employer blocks render with `wrap={false}` (never split across pages). **Every styled `<Text>` must set its own `lineHeight`** — react-pdf measures a Text's box from a `lineHeight` on that Text and only *paints* with an inherited one, so a Page-level value silently overlapped the hero role onto the name. `PdfSectionCard` draws no border, matching `.section`/`.card`, which use a soft `box-shadow` react-pdf cannot express; a substitute border read as a hard box.
 - `templates/TwoColumnTemplate.tsx` — A4 layout (main 2.5 : sidebar 1).
 - `CvPdfDocument.tsx` — entry point; `app/lib/CvPdfTemplate.tsx` is a backward-compat re-export only.
-- `filename.ts` — `buildPdfFilename()` → `{name-slug}-{YYYY-MM-DD}-opencivera-{publicId}.pdf`.
+- `filename.ts` — `buildPdfFilename()` → `{name-slug}-{YYYY-MM-DD}-opencivera-{publicId}.pdf`. The published ATS/CVasCode exports use the same `buildExportFilename()`: `….txt`, `…-ats.yaml` and `…-cvascode.yaml` (the suffix keeps the two YAML downloads from colliding). Contract: `tests/export-filenames.test.mjs`.
 - Draft PDF export is controlled by `platform_feature_flags.pdf_draft_enabled` (Supabase), read via `app/lib/pdf-feature-flags.ts` (`isPdfDraftEnabled()`, fail-open) and threaded as `draftPdfEnabled` prop into `BasicResumeDocument`.
 See [ADR 0014](docs/adr/0014-pdf-rendering-architecture.md).
 

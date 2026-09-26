@@ -16,7 +16,15 @@ test("personal hub mobile drawer uses the shared 980px breakpoint contract", () 
   assert.equal(headerNavigation.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
   assert.equal(headerNavigation.includes("window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY)"), true);
   assert.equal(headerStyles.includes("@media (max-width: 979px)"), true);
-  assert.equal(userClient.includes('const MOBILE_DRAWER_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
+  assert.equal(
+    userClient.includes('import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "../components/app-header-navigation";'),
+    true,
+    "the drawer imports the shared query rather than repeating the 980px literal"
+  );
+  assert.equal(
+    userClient.includes("const MOBILE_DRAWER_BREAKPOINT_QUERY = DESKTOP_NAVIGATION_BREAKPOINT_QUERY;"),
+    true
+  );
   assert.equal(userStyles.includes("@media (max-width: 979px)"), true);
   assert.equal(userStyles.includes("@media (min-width: 980px)"), true);
 });
@@ -31,7 +39,7 @@ test("personal hub mobile drawer applies dialog-style accessibility controls", (
   assert.equal(source.includes('if (event.key === "Escape")'), true);
   assert.equal(source.includes('if (event.key !== "Tab")'), true);
   assert.equal(source.includes("drawerTriggerElement?.focus();"), true);
-  assert.equal(source.includes('aria-label="Close personal hub panel"'), true);
+  assert.equal(source.includes('aria-label={userText("Close personal hub panel")}'), true);
 });
 
 test("personal hub mobile drawer geometry and fallback states are mobile-aware", () => {
@@ -47,7 +55,7 @@ test("personal hub mobile drawer geometry and fallback states are mobile-aware",
   assert.equal(source.includes("isPreviewUnavailable"), true);
   assert.equal(source.includes("Preview unavailable"), true);
   assert.equal(source.includes("Preview mode"), false);
-  assert.equal(source.includes('aria-label="Resume preview"'), true);
+  assert.equal(source.includes('aria-label={userText("Resume preview")}'), true);
 });
 
 test("personal hub shell consumes portal theme tokens instead of local dark-only utilities", () => {

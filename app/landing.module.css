@@ -1,0 +1,791 @@
+/* Landing layout. One canvas, one 12-column grid, three type steps.
+   Every section places its content on named column lines instead of pushing it
+   to the far edge with `justify-self: end` — that produced 400px voids mid-row
+   at wide viewports. */
+
+.page {
+  --story-line: var(--border, rgba(255, 255, 255, 0.08));
+  --story-line-strong: var(--border-hover, #2e3441);
+  --story-surface: var(--bg-elevated, #151821);
+  --story-text: var(--fg, #e9ebef);
+  --story-muted: var(--fg-muted, #9298a5);
+  --story-accent: var(--accent, #5e6ad2);
+  --story-teal: var(--accent-teal, #009c8a);
+  --story-col-gap: clamp(16px, 1.6vw, 26px);
+  /* The white sheet needs its own lift: in light theme it sits on a near-white
+     canvas, so the dark-theme shadow disappears entirely. */
+  --story-sheet-shadow: 0 28px 60px rgba(0, 0, 0, 0.5);
+  /* Mirrors --resume-max-width in app/resume/resume.css, which is derived from
+     PX_TO_PT and must not be re-rounded here. It cannot be read directly: that
+     token is scoped to the CV root, which is a descendant of this element.
+     tests/landing-sheet-width.test.mjs fails if the two drift apart. */
+  --story-sheet-width: 901.7392px;
+  color: var(--story-text);
+  overflow: clip;
+}
+
+:global(:root[data-app-theme="light"]) .page {
+  --story-sheet-shadow: 0 22px 46px rgba(28, 27, 31, 0.2);
+}
+
+:global(.app-main):has(.page) {
+  width: 100%;
+}
+
+/* Same canvas as the app header, so the landing's first column line sits
+   directly under the brand mark. */
+.container {
+  width: min(
+    var(--layout-canvas-max),
+    calc(100% - var(--layout-gutter) - var(--layout-gutter))
+  );
+  margin-inline: auto;
+}
+
+.hero,
+.sectionHead,
+.featureRow,
+.privacyInner,
+.faq,
+.closing {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--story-col-gap);
+}
+
+/* ── Hero ─────────────────────────────────────── */
+
+/* The hero's bottom rule is load-bearing: the published CV is clipped at it and
+   rises out of it on load. So the hero carries no bottom padding — its children
+   pay for their own breathing room and the sheet ends exactly on the line. */
+.hero {
+  align-items: end;
+  padding-block: clamp(52px, 7vw, 92px) 0;
+  border-bottom: 1px solid var(--story-line-strong);
+}
+
+.heroCopy {
+  grid-column: 1 / 13;
+  min-width: 0;
+  padding-bottom: clamp(36px, 4vw, 56px);
+}
+
+.heroEyebrow {
+  margin: 0 0 14px;
+  color: var(--story-accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  margin: 0;
+  max-width: 17ch;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4.4vw, 4rem);
+  font-weight: 520;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.heroTitle span {
+  display: block;
+}
+
+.heroLead {
+  max-width: 54ch;
+  margin: clamp(22px, 2.4vw, 32px) 0 0;
+  color: var(--story-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.primaryAction,
+.secondaryAction {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background-color var(--motion-settle, 220ms) var(--ease-out-expo, ease),
+    border-color var(--motion-settle, 220ms) var(--ease-out-expo, ease),
+    color var(--motion-settle, 220ms) var(--ease-out-expo, ease);
+}
+
+.primaryAction {
+  border-color: var(--story-accent);
+  background: var(--story-accent);
+  color: #fff;
+}
+
+.primaryAction:hover,
+.primaryAction:focus-visible {
+  background: var(--accent-bright, #6872d9);
+  border-color: var(--accent-bright, #6872d9);
+}
+
+.secondaryAction {
+  border-color: var(--story-line-strong);
+  background: transparent;
+  color: var(--story-text);
+}
+
+.secondaryAction:hover,
+.secondaryAction:focus-visible {
+  border-color: var(--story-accent);
+  background: color-mix(in srgb, var(--story-accent) 10%, transparent);
+}
+
+.primaryAction:focus-visible,
+.secondaryAction:focus-visible,
+.stageMeta a:focus-visible,
+.faq summary:focus-visible {
+  outline: 2px solid var(--story-accent);
+  outline-offset: 4px;
+}
+
+.privateNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 0;
+  color: var(--story-muted);
+  font-size: 0.78rem;
+}
+
+.privateNote svg {
+  color: var(--story-teal);
+}
+
+/* The publishing model as a caption under the hero, not a section: three words
+   the visitor should carry into the sheet below. */
+.process {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 34px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--story-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.process li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.process li span {
+  color: var(--story-accent);
+}
+
+/* ── Published CV sheet ───────────────────────── */
+
+.heroSheet {
+  grid-column: 1 / 13;
+  display: grid;
+  align-content: end;
+  min-width: 0;
+}
+
+.stageMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--story-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.stageMeta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Clips the sheet at the hero's bottom rule — both the resting crop and the
+   start of the rise, so the document comes up out of the line. */
+.sheetFrame {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Scaled down rather than cropped tighter: at this zoom the sheet shows the
+   header, the summary and the first employers instead of stopping mid-summary.
+   The short bottom fade keeps the line from guillotining a row of text. */
+.sheet {
+  max-height: clamp(340px, 30vw, 460px);
+  overflow: hidden;
+  filter: drop-shadow(var(--story-sheet-shadow));
+  -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+}
+
+/* The preview is the sample CV at its own shell width, only scaled. Pinning
+   --resume-shell-width here rather than letting it resolve makes that exact at
+   every viewport: the CV's own formula is `min(--resume-max-width, 100% - 2rem)`
+   behind viewport media queries, so a narrow container or a phone would quietly
+   hand back a different width. `app/resume/resume.css` is untouched. */
+.sheet :global(.resume-view-page) {
+  --resume-shell-width: var(--story-sheet-width);
+}
+
+/* `--sheet-scale` is measured and set by landing-sample-cv.tsx; the fallback is
+   what renders for the one frame before the observer runs, and without JS. */
+.sheet :global(.lp-cv) {
+  width: var(--story-sheet-width);
+  zoom: var(--sheet-scale, 0.62);
+}
+
+/* The sample route gives the CV the full page height; here the crop does. */
+.sheet :global(.resume) {
+  min-height: auto;
+}
+
+/* Hero entrance, not a below-the-fold reveal: the headline, lead and both CTAs
+   render immediately; only the preview artifact animates. DESIGN.md → Motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .sheet {
+    animation: sheetRise 1100ms var(--ease-out-expo, ease) 120ms both;
+  }
+}
+
+@keyframes sheetRise {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.stageMeta {
+  padding-block: 14px clamp(48px, 6vw, 80px);
+}
+
+.stageMeta a {
+  color: var(--story-text);
+  text-decoration: none;
+}
+
+/* ── Section heads ────────────────────────────── */
+
+.animationSection,
+.howSection,
+.valueSection,
+.storySection,
+.visionSection {
+  padding-block: clamp(64px, 7vw, 104px);
+}
+
+.sectionHead {
+  margin-bottom: clamp(32px, 4vw, 52px);
+}
+
+.sectionHead h2,
+.privacyInner h2,
+.faq h2,
+.closing h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 520;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.sectionHead h2 {
+  grid-column: 1 / 8;
+  font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+}
+
+.sectionHead p {
+  align-self: end;
+  max-width: 44ch;
+  margin: 0;
+  color: var(--story-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.sectionHead > p {
+  grid-column: 1 / 12;
+  max-width: 80ch;
+}
+
+/* Product narrative sections reuse the landing grid while keeping long-form
+   explanations separate from compact process rows. */
+.storySection,
+.visionSection,
+.valueGrid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--story-col-gap);
+}
+
+.storySection,
+.visionSection,
+.valueSection {
+  border-top: 1px solid var(--story-line);
+}
+
+.storyIntro {
+  grid-column: 1 / 7;
+}
+
+.storyIntro h2,
+.visionSection h2,
+.valueGrid h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 520;
+  letter-spacing: -0.03em;
+}
+
+.storyIntro h2,
+.visionSection h2 {
+  font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.sectionEyebrow {
+  margin: 0 0 14px;
+  color: var(--story-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.storyIntro > p:last-child,
+.storyBody > p,
+.visionSection > p:last-child,
+.valueGrid p {
+  color: var(--story-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.storyIntro > p:last-child {
+  max-width: 58ch;
+  margin: 20px 0 0;
+}
+
+.storyBody {
+  grid-column: 8 / 13;
+}
+
+.storyBody > p:first-child {
+  margin-top: 0;
+}
+
+.pointList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pointList li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--story-line);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.pointList li:first-child {
+  border-top: 1px solid var(--story-line);
+}
+
+.emphasis {
+  margin: 24px 0 0;
+  color: var(--story-text) !important;
+  font-weight: 560;
+}
+
+.valueGrid article {
+  grid-column: span 4;
+  padding: 28px 28px 28px 0;
+  border-top: 1px solid var(--story-line-strong);
+}
+
+.valueGrid h3 {
+  font-size: 1.15rem;
+}
+
+.valueGrid p {
+  margin: 12px 0 0;
+}
+
+.visionSection > .sectionEyebrow,
+.visionSection h2 {
+  grid-column: 1 / 7;
+}
+
+.visionSection > p:last-child {
+  grid-column: 8 / 13;
+  align-self: end;
+  margin: 0;
+}
+
+.sectionCopy {
+  grid-column: 1 / 7;
+  display: grid;
+  align-self: start;
+  max-width: none;
+  margin-top: 20px;
+  gap: 14px;
+}
+
+.sectionCopy p {
+  max-width: none;
+}
+
+/* ── How it works ─────────────────────────────── */
+
+.featureRows {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--story-line);
+  list-style: none;
+}
+
+.featureRow {
+  align-items: baseline;
+  padding-block: clamp(28px, 3vw, 40px);
+  border-bottom: 1px solid var(--story-line);
+}
+
+/* Marker column: the icon names the step, the numeral orders it. */
+.featureIndex {
+  grid-column: 1 / 2;
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  color: var(--story-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.featureIndex svg {
+  color: var(--story-accent);
+}
+
+.featureRow h3 {
+  grid-column: 2 / 7;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 1.8vw, 1.375rem);
+  font-weight: 540;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.featureRow p {
+  grid-column: 7 / 12;
+  max-width: 56ch;
+  margin: 0;
+  color: var(--story-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+/* ── Privacy band ─────────────────────────────── */
+
+.privacyBand {
+  background: var(--story-surface);
+  border-block: 1px solid var(--story-line);
+}
+
+.privacyInner {
+  align-items: start;
+  padding-block: clamp(56px, 6vw, 88px);
+}
+
+.privacyHead {
+  grid-column: 1 / 7;
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+}
+
+.privacyInner h2 {
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+}
+
+.privacyBody {
+  grid-column: 8 / 12;
+}
+
+.privacyInner p {
+  max-width: 48ch;
+  margin: 0 0 24px;
+  color: var(--story-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+/* ── FAQ ──────────────────────────────────────── */
+
+.faq {
+  padding-block: clamp(64px, 7vw, 104px);
+}
+
+.faq h2 {
+  grid-column: 1 / 5;
+  position: sticky;
+  top: calc(var(--app-header-height, 64px) + 32px);
+  align-self: start;
+  font-size: clamp(1.75rem, 2.8vw, 2.4rem);
+}
+
+/* Runs to the canvas edge so the row rules line up with the feature rows above. */
+.faq > div {
+  grid-column: 6 / 13;
+}
+
+.faq details {
+  border-bottom: 1px solid var(--story-line);
+}
+
+.faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-block: 20px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.95rem;
+  font-weight: 560;
+  line-height: 1.5;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-right: 1.5px solid var(--story-muted);
+  border-bottom: 1.5px solid var(--story-muted);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--motion-settle, 220ms) var(--ease-out-expo, ease);
+  content: "";
+}
+
+.faq summary:hover {
+  color: var(--story-accent);
+}
+
+.faq details[open] summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.faq details p {
+  max-width: 64ch;
+  margin: 0 0 22px;
+  color: var(--story-muted);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+/* ── Closing ──────────────────────────────────── */
+
+.closing {
+  align-items: end;
+  padding-block: clamp(64px, 7vw, 96px);
+  border-top: 1px solid var(--story-line);
+}
+
+.closingCopy {
+  grid-column: 1 / 8;
+}
+
+.closing h2 {
+  font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+}
+
+.closing p {
+  max-width: 48ch;
+  margin: 16px 0 0;
+  color: var(--story-muted);
+}
+
+.closingActions {
+  grid-column: 9 / 12;
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+}
+
+/* ── Responsive ───────────────────────────────── */
+
+/* Side by side for as long as the header shows full navigation. This is
+   DESKTOP_NAVIGATION_BREAKPOINT_QUERY (app/components/app-header-navigation.tsx)
+   written as CSS — when the nav collapses to a hamburger, the sheet stacks under
+   the copy. One threshold for both, so the hero never rearranges on its own.
+
+   There is deliberately no second breakpoint inside this range: the scale is
+   measured continuously, so the sheet grows with the column instead of stepping.
+
+   Taking the frame out of flow is what makes the sheet's height follow the hero
+   text at any resolution: the row is then sized by the copy alone, and the
+   frame fills it top to bottom. In flow, the CV's full height would size the
+   row instead and the hero would run to several thousand pixels. */
+@media (min-width: 980px) {
+  .heroCopy {
+    grid-column: 1 / 6;
+    padding-bottom: clamp(56px, 5vw, 84px);
+  }
+
+  .heroSheet {
+    grid-column: 6 / 13;
+    align-self: stretch;
+    position: relative;
+  }
+
+  .sheetFrame {
+    position: absolute;
+    inset: 0;
+    align-items: flex-start;
+  }
+
+  .sheet {
+    max-height: 100%;
+  }
+}
+
+@media (max-width: 979px) {
+  .sectionHead h2,
+  .sectionHead p,
+  .sectionCopy,
+  .privacyHead,
+  .privacyBody,
+  .closingCopy,
+  .storyIntro,
+  .storyBody,
+  .visionSection > .sectionEyebrow,
+  .visionSection h2,
+  .visionSection > p:last-child {
+    grid-column: 1 / 13;
+  }
+
+  .storyBody,
+  .visionSection > p:last-child {
+    margin-top: 28px;
+  }
+
+  .hero {
+    row-gap: 40px;
+  }
+
+  .featureRow h3 {
+    grid-column: 2 / 8;
+  }
+
+  .featureRow p {
+    grid-column: 8 / 13;
+  }
+
+  .faq h2 {
+    position: static;
+    grid-column: 1 / 13;
+    margin-bottom: 28px;
+  }
+
+  .faq > div {
+    grid-column: 1 / 13;
+  }
+
+  .closingActions {
+    grid-column: 1 / 13;
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: calc(100% - 32px);
+  }
+
+  .hero {
+    padding-block: 40px 0;
+  }
+
+  .heroTitle {
+    font-size: clamp(2.35rem, 11vw, 3rem);
+  }
+
+  .actions {
+    display: grid;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+  }
+
+  .sheet {
+    max-height: 300px;
+  }
+
+  .stageMeta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .valueGrid article {
+    grid-column: 1 / 13;
+  }
+
+  .featureIndex {
+    grid-column: 1 / 13;
+    margin-bottom: 10px;
+  }
+
+  .featureRow h3,
+  .featureRow p {
+    grid-column: 1 / 13;
+  }
+
+  .featureRow p {
+    margin-top: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryAction,
+  .secondaryAction,
+  .faq summary::after {
+    transition: none;
+  }
+}

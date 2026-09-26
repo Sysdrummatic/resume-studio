@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { publishResumeDocument, upgradeLegacyResumeYamlContent } from "../../../lib/resume-server";
+import {
+  publishResumeDocument,
+  RESUME_DOCUMENT_CONFLICT_MESSAGE,
+  RESUME_LEGACY_PAIRING_MESSAGE,
+  RESUME_SAVE_INCOMPLETE_MESSAGE,
+  ResumeDocumentConflictError,
+  ResumeLanguageLinkageError,
+  ResumeLegacyPairingError,
+  upgradeLegacyResumeYamlContent,
+} from "../../../lib/resume-server";
 import { normalizeLocale, RESUME_LIMITS_DOC_URL, RESUME_YAML_MAX_BYTES } from "../../../lib/resume-schema";
 import { callRpc } from "../../../lib/supabase-http";
 import { flagSuspiciousResumeContent } from "../../../lib/content-safety-audit";
@@ -12,6 +21,7 @@ type PublishBody = {
   title?: string;
   styleSettings?: unknown;
   changeNote?: string;
+  baseUpdatedAt?: unknown;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -36,6 +46,10 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const locale = normalizeLocale(body.locale);
+  const { baseUpdatedAt } = body;
+  if (baseUpdatedAt !== undefined && baseUpdatedAt !== null && typeof baseUpdatedAt !== "string") {
+    return NextResponse.json({ error: "baseUpdatedAt must be a string or null." }, { status: 400 });
+  }
   const submittedYamlContent = String(body.yamlContent || "").trim();
   if (!submittedYamlContent) {
     return NextResponse.json({ error: "YAML payload is required." }, { status: 400 });
@@ -58,12 +72,27 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "YAML schema validation failed." }, { status: 400 });
   }
 
-  const payload = await publishResumeDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
-    yamlContent,
-    title: String(body.title || "Master resume"),
-    styleSettings: body.styleSettings,
-    changeNote: String(body.changeNote || "Publish"),
-  });
+  let payload;
+  try {
+    payload = await publishResumeDocument(actorResult.accessToken, actorResult.actor.userId, locale, {
+      yamlContent,
+      title: String(body.title || "Master resume"),
+      styleSettings: body.styleSettings,
+      changeNote: String(body.changeNote || "Publish"),
+      baseUpdatedAt,
+    });
+  } catch (error) {
+    if (error instanceof ResumeLanguageLinkageError) {
+      return NextResponse.json({ error: "Language entry IDs must match the default language.", linkageIssues: error.issues }, { status: 409 });
+    }
+    if (error instanceof ResumeDocumentConflictError) {
+      return NextResponse.json({ error: RESUME_DOCUMENT_CONFLICT_MESSAGE, conflict: true }, { status: 409 });
+    }
+    if (error instanceof ResumeLegacyPairingError) {
+      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, legacyConflicts: error.conflicts }, { status: 409 });
+    }
+    throw error;
+  }
 
   if (!payload) {
     return NextResponse.json({ error: "Publish failed." }, { status: 500 });
@@ -76,10 +105,17 @@ export async function POST(request: Request): Promise<Response> {
     source: "resume_publish_save",
   });
 
-  return NextResponse.json({
-    ok: true,
+  const result = {
     locale,
     document: payload.document,
     revisions: payload.revisions,
-  });
+    synchronizedDocuments: payload.synchronized ?? [],
+    synchronizationFailed: payload.synchronizationFailed ?? [],
+    synchronizationComplete: payload.synchronizationComplete ?? true,
+  };
+  if (payload.incomplete?.length) {
+    // The document is stored; `document` is the base a retry must send.
+    return NextResponse.json({ ...result, error: RESUME_SAVE_INCOMPLETE_MESSAGE, saved: true, incomplete: payload.incomplete }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, ...result });
 }

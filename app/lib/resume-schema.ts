@@ -1,19 +1,23 @@
+import { stripBulletMarker } from "./bullet-text";
 import { splitProfileName } from "./profile-name";
 import { QR_CODE_LIMITS, clampQrSize } from "./qr-code";
 
 export type ResumeContactItem = {
+  entry_id?: string;
   label: string;
   value: string;
   link?: string;
 };
 
 export type ResumeSummaryItem = {
+  entry_id?: string;
   position: string;
   description: string;
   default: boolean;
 };
 
 export type ResumeQrCode = {
+  entry_id?: string;
   label: string;
   /** Free text or a link, rendered as a generated QR code — never a stored image. */
   value: string;
@@ -21,17 +25,20 @@ export type ResumeQrCode = {
 };
 
 export type ResumeSkill = {
+  entry_id?: string;
   name: string;
   level: number;
 };
 
 export type ResumeLanguage = {
+  entry_id?: string;
   name: string;
   level_text: string;
   level: number;
 };
 
 export type ResumeExperience = {
+  entry_id?: string;
   period: string;
   company: string;
   role: string;
@@ -39,6 +46,7 @@ export type ResumeExperience = {
 };
 
 export type ResumeEducation = {
+  entry_id?: string;
   period: string;
   school: string;
   degree: string;
@@ -46,11 +54,14 @@ export type ResumeEducation = {
 };
 
 export type ResumeCourse = {
+  entry_id?: string;
   year: number;
   name: string;
 };
 
 export type ResumeDocument = {
+  /** Private locale-linkage metadata; stripped from public CV exports. */
+  __ocv?: { entries?: Record<string, string[]> };
   brand_initials: string;
   first_name: string;
   family_name: string;
@@ -116,6 +127,17 @@ function asText(value: unknown): string {
 function asInt(value: unknown, fallback = 0): number {
   const parsed = Number.parseInt(String(value ?? "").trim(), 10);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function optionalEntryId(row: Record<string, unknown>): { entry_id?: string } {
+  const value = asText(row.entry_id);
+  return value ? { entry_id: value } : {};
+}
+
+function hasLinkedSlot(source: Record<string, unknown>, collection: string, index: number): boolean {
+  const linkage = asObject(source.__ocv);
+  const entries = asObject(linkage.entries);
+  return Array.isArray(entries[collection]) && typeof entries[collection][index] === "string" && entries[collection][index].trim().length > 0;
 }
 
 function clampLevel(value: unknown, fallback = 3): number {
@@ -209,6 +231,66 @@ export function clampQrCodesInRawYaml(source: Record<string, unknown>): Record<s
   return changed ? { ...source, qr_codes: clamped } : source;
 }
 
+/**
+ * Keeps `default: true` on the first summary entry only, on a raw, still-parsed
+ * YAML object — every other field verbatim. getDefaultSummary() treats two
+ * defaults as "none set" and the summary silently vanishes from the CV, so a
+ * document with two must never be stored. Used at write time alongside the
+ * other raw repairs; normalizeSummaryItems() covers the read path. Returns
+ * `source` itself when there is nothing to fix.
+ */
+export function singleDefaultSummaryInRawYaml(source: Record<string, unknown>): Record<string, unknown> {
+  if (!Array.isArray(source.summary) || countDefaultSummaries(source.summary) < 2) {
+    return source;
+  }
+  let seen = false;
+  const summary = source.summary.map((item) => {
+    const row = asObject(item);
+    if (!asBoolean(row.default)) return item;
+    if (!seen) {
+      seen = true;
+      return item;
+    }
+    return { ...row, default: false };
+  });
+  return { ...source, summary };
+}
+
+function countDefaultSummaries(items: unknown[]): number {
+  return items.filter((item) => asBoolean(asObject(item).default)).length;
+}
+
+/**
+ * Adds every required key a stored document is missing (`[]` for lists, `""`
+ * for text), on a raw, still-parsed YAML object — every present field verbatim.
+ * The database validates the YAML text of every write with a `^key:` check, so
+ * a document saved before a key existed (e.g. `gdpr_clause`) is rejected the
+ * moment anything rewrites it, such as switching the default language. The name
+ * keys are left alone: a legacy `name:` is valid on its own. Returns `source`
+ * itself when nothing is missing.
+ */
+export function fillMissingRequiredKeysInRawYaml(source: Record<string, unknown>): Record<string, unknown> {
+  const missing = RESUME_REQUIRED_KEYS.filter(
+    (key) => key !== "first_name" && key !== "family_name" && !(key in source),
+  );
+  if (missing.length === 0) {
+    return source;
+  }
+  return {
+    ...source,
+    ...Object.fromEntries(missing.map((key) => [key, RESUME_ARRAY_KEYS.has(key) ? [] : ""])),
+  };
+}
+
+/** Shown by the YAML editor when a hand-edited document marks two summaries as default. */
+export const MULTIPLE_DEFAULT_SUMMARIES_ERROR =
+  'Only one summary entry may have "default: true" — set the others to false.';
+
+export function hasMultipleDefaultSummaries(value: unknown): boolean {
+  const summary = asObject(value).summary;
+  return Array.isArray(summary) && countDefaultSummaries(summary) > 1;
+}
+
 // ponytail: real documents run 2-6KB (largest seen in prod/test data: ~6KB).
 // QR codes store a URL string (see QR_CODE_LIMITS.maxValueLength), not
 // embedded image bytes, so there's no legitimate reason for this to be
@@ -226,9 +308,10 @@ export function normalizeLocale(value: unknown): ResumeLocale {
   return /^[a-z]{2}$/.test(normalized) ? normalized : "en";
 }
 
-export function normalizeResumeDocument(value: unknown, fallbackName = ""): ResumeDocument {
+export function normalizeResumeDocument(value: unknown, fallbackName = "", options: { preserveLinkedEntries?: boolean } = {}): ResumeDocument {
   const source = asObject(value);
   const fallback = defaultResumeDocument(fallbackName);
+  const preserveLinkedEntries = options.preserveLinkedEntries === true;
 
   let firstName = asText(source.first_name);
   let familyName = asText(source.family_name);
@@ -246,20 +329,22 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
   }
 
   return {
+    ...(source.__ocv && typeof source.__ocv === "object" && !Array.isArray(source.__ocv) ? { __ocv: source.__ocv as { entries?: Record<string, string[]> } } : {}),
     brand_initials: asText(source.brand_initials) || initialsFromNameParts(firstName, familyName),
     first_name: firstName,
     family_name: familyName,
-    summary: normalizeSummaryItems(source.summary),
+    summary: normalizeSummaryItems(source.summary, preserveLinkedEntries),
     contact: asArray(source.contact)
       .map((item) => {
         const row = asObject(item);
         return {
+          ...optionalEntryId(row),
           label: asText(row.label),
           value: asText(row.value),
           link: asText(row.link) || undefined,
         };
       })
-      .filter((row) => row.label && row.value),
+      .filter((row, index) => (row.label && row.value) || (preserveLinkedEntries && hasLinkedSlot(source, "contact", index))),
     qr_codes: asArray(source.qr_codes)
       .map((item) => {
         const row = asObject(item);
@@ -267,12 +352,13 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
         // read: an image path is not a sensible QR payload, and no CV has ever
         // populated it.
         return {
+          ...optionalEntryId(row),
           label: asText(row.label),
           value: asText(row.value).slice(0, QR_CODE_LIMITS.maxValueLength),
           size: clampQrSize(asInt(row.size, QR_CODE_LIMITS.defaultSize)),
         };
       })
-      .filter((row) => row.label || row.value)
+      .filter((row, index) => row.label || row.value || (preserveLinkedEntries && hasLinkedSlot(source, "qr_codes", index)))
       .slice(0, QR_CODE_LIMITS.maxCount),
     skills: asArray(source.skills)
       .map((item) => {
@@ -281,12 +367,13 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
           return { name: asText(item), level: 3 };
         }
         return {
+          ...optionalEntryId(row),
           name: asText(row.name),
           level: clampLevel(row.level, 3),
         };
       })
-      .filter((row) => row.name),
-    tech_stack: asArray(source.tech_stack).map(asText).filter(Boolean),
+      .filter((row, index) => row.name || (preserveLinkedEntries && (Boolean(row.entry_id) || hasLinkedSlot(source, "skills", index)))),
+    tech_stack: asArray(source.tech_stack).map(asText).filter((value, index) => value || (preserveLinkedEntries && hasLinkedSlot(source, "tech_stack", index))),
     languages: asArray(source.languages)
       .map((item) => {
         if (typeof item === "string") {
@@ -294,13 +381,14 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
         }
         const row = asObject(item);
         return {
+          ...optionalEntryId(row),
           name: asText(row.name),
           level_text: asText(row.level_text),
           level: clampLevel(row.level, 3),
         };
       })
-      .filter((row) => row.name),
-    interests: asArray(source.interests).map(asText).filter(Boolean),
+      .filter((row, index) => row.name || (preserveLinkedEntries && (Boolean(row.entry_id) || hasLinkedSlot(source, "languages", index)))),
+    interests: asArray(source.interests).map(asText).filter((value, index) => value || (preserveLinkedEntries && hasLinkedSlot(source, "interests", index))),
     experience: asArray(source.experience)
       .map((item) => {
         if (typeof item === "string") {
@@ -308,13 +396,14 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
         }
         const row = asObject(item);
         return {
+          ...optionalEntryId(row),
           period: asText(row.period),
           company: asText(row.company),
           role: asText(row.role),
-          highlights: asArray(row.highlights).map(asText).filter(Boolean),
+          highlights: asArray(row.highlights).map(asText).map(stripBulletMarker).filter(Boolean),
         };
       })
-      .filter((row) => row.period || row.company || row.role || row.highlights.length > 0),
+      .filter((row) => row.period || row.company || row.role || row.highlights.length > 0 || (preserveLinkedEntries && Boolean(row.entry_id))),
     education: asArray(source.education)
       .map((item) => {
         if (typeof item === "string") {
@@ -322,13 +411,14 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
         }
         const row = asObject(item);
         return {
+          ...optionalEntryId(row),
           period: asText(row.period),
           school: asText(row.school),
           degree: asText(row.degree),
           detail: asText(row.detail),
         };
       })
-      .filter((row) => row.period || row.school || row.degree || row.detail),
+      .filter((row) => row.period || row.school || row.degree || row.detail || (preserveLinkedEntries && Boolean(row.entry_id))),
     courses: asArray(source.courses)
       .map((item) => {
         if (typeof item === "string") {
@@ -336,11 +426,12 @@ export function normalizeResumeDocument(value: unknown, fallbackName = ""): Resu
         }
         const row = asObject(item);
         return {
+          ...optionalEntryId(row),
           year: Math.max(0, asInt(row.year, 0)),
           name: asText(row.name),
         };
       })
-      .filter((row) => row.name),
+      .filter((row) => row.name || row.year > 0 || (preserveLinkedEntries && Boolean(row.entry_id))),
     gdpr_clause: asText(source.gdpr_clause),
   };
 }
@@ -351,22 +442,28 @@ function asBoolean(value: unknown): boolean {
   return false;
 }
 
-function normalizeSummaryItems(value: unknown): ResumeSummaryItem[] {
+function normalizeSummaryItems(value: unknown, preserveLinkedEntries = false): ResumeSummaryItem[] {
   if (typeof value === "string") {
     const description = asText(value);
     return description ? [{ position: "Default", description, default: true }] : [];
   }
 
+  // At most one default per document: the first wins, so a hand-edited or
+  // legacy document with two never loses its summary (see getDefaultSummary).
+  let hasDefault = false;
   return asArray(value)
     .map((item) => {
       const row = asObject(item);
+      const isDefault = asBoolean(row.default) && !hasDefault;
+      if (isDefault) hasDefault = true;
       return {
+        ...optionalEntryId(row),
         position: asText(row.position),
         description: asText(row.description),
-        default: asBoolean(row.default),
+        default: isDefault,
       };
     })
-    .filter((row) => row.position || row.description || row.default);
+    .filter((row) => row.position || row.description || row.default || (preserveLinkedEntries && Boolean(row.entry_id)));
 }
 
 export function getDefaultSummary(summary: ResumeSummaryItem[]): ResumeSummaryItem | null {

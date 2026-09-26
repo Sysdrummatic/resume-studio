@@ -102,18 +102,20 @@ test("Supabase migration prepares multilingual CV metadata", () => {
   assert.equal(server.includes("default_locale"), true);
 });
 
-test("app header exposes the application language menu only for admin actors", () => {
+test("app header exposes the configured application language menu to every visitor", () => {
   const layout = read("app/layout.tsx");
   const component = read("app/components/app-language-menu.tsx");
   const themeSwitch = read("app/components/app-theme-switch.tsx");
 
   assert.equal(layout.includes("AppLanguageMenu"), true);
   assert.equal(layout.includes("const isAdmin = actor ? isAdminRole(actor.role) : false;"), true);
-  assert.equal(layout.includes("{isAdmin ? <AppLanguageMenu /> : null}"), true);
+  assert.equal(layout.includes("<AppLanguageMenu />"), true);
+  assert.equal(layout.includes("{isAdmin ? <AppLanguageMenu /> : null}"), false);
   assert.equal(layout.includes("AppThemeSwitch"), true);
-  assert.equal(component.includes("English"), true);
-  assert.equal(component.includes("aria-label=\"Application language\""), true);
-  assert.equal(themeSwitch.includes("Application theme:"), true);
+  assert.equal(component.includes("locales.map"), true);
+  assert.equal(component.includes("APP_LOCALE_COOKIE_NAME"), true);
+  assert.equal(component.includes("dictionary.language_menu.aria_label"), true);
+  assert.equal(themeSwitch.includes("dictionary.theme.aria_label"), true);
   assert.equal(themeSwitch.includes("Soon"), false);
   assert.equal(themeSwitch.includes("app-theme-switch__meta"), false);
   assert.equal(themeSwitch.includes("app-theme-switch__status"), false);

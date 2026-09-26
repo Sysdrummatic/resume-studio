@@ -9,14 +9,25 @@ import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
 import { requireAuthenticatedActor } from "../lib/auth-server";
 import { isPdfDraftEnabled } from "../lib/pdf-feature-flags";
 import { isUserDataTransferEnabled } from "../lib/platform-feature-flags";
-import { bootstrapResumeUserLocales, fetchResumeDocumentsForUser, fetchResumePresetsForUser, fetchResumeUserLocalesForUser, pickMasterResumeDocument } from "../lib/resume-server";
+import {
+  bootstrapResumeUserLocales,
+  fetchResumeDocumentsForUser,
+  fetchResumePresetsForUser,
+  fetchResumeUserLocalesForUser,
+  pickMasterResumeDocument
+} from "../lib/resume-server";
+import { getRequestAppI18n } from "../i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const { dictionary } = await getRequestAppI18n();
+  const onboardingText = (text: string) => dictionary.onboarding.text[text] ?? text;
   const actor = await requireAuthenticatedActor();
-  const testRun = actor.role === "admin" ? await fetchOnboardingTest(actor.accessToken, actor.userId) : null;
-  if (testRun?.auto_start && testRun.status !== "completed") redirect(`/onboarding?test=${testRun.id}`);
+  const testRun =
+    actor.role === "admin" ? await fetchOnboardingTest(actor.accessToken, actor.userId) : null;
+  if (testRun?.auto_start && testRun.status !== "completed")
+    redirect(`/onboarding?test=${testRun.id}`);
   const onboarding = await fetchOnboarding(actor.accessToken, actor.userId);
   if (shouldStartOnboarding(onboarding)) redirect("/onboarding");
   await bootstrapResumeUserLocales(actor.accessToken, actor.userId, actor.displayName);
@@ -25,26 +36,36 @@ export default async function DashboardPage() {
     fetchResumePresetsForUser(actor.userId),
     fetchResumeUserLocalesForUser(actor.userId),
     isPdfDraftEnabled(),
-    isUserDataTransferEnabled(),
+    isUserDataTransferEnabled()
   ]);
   const ownedLocaleCodes = new Set(resumeLanguages.map((language) => language.code));
-  const ownedDocuments = resumeDocuments.filter((document) => ownedLocaleCodes.has(document.locale));
+  const ownedDocuments = resumeDocuments.filter((document) =>
+    ownedLocaleCodes.has(document.locale)
+  );
   const masterResume = pickMasterResumeDocument(ownedDocuments, resumeLanguages);
 
   return (
     <div className="dashboard-page editor-theme wide-shell-page">
       <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
-      <WorkspaceBreadcrumbs current="Dashboard" />
+      <WorkspaceBreadcrumbs current={dictionary.dashboard.main.title} />
 
-      {testRun && testRun.status !== "completed" ? <div className="card stack">
-        <strong>Test onboardingu / Onboarding test</strong>
-        <Link className="button button--primary" href={`/onboarding?test=${testRun.id}`}>{testRun.ui_language === "pl" ? "Wznów test" : "Resume test"}</Link>
-      </div> : null}
+      {testRun && testRun.status !== "completed" ? (
+        <div className="card stack">
+          <strong>{onboardingText("Onboarding test")}</strong>
+          <Link className="button button--primary" href={`/onboarding?test=${testRun.id}`}>
+            {onboardingText("Resume test")}
+          </Link>
+        </div>
+      ) : null}
       {onboarding && onboarding.status !== "completed" ? (
         <div className="card stack">
-          <strong>{onboarding.ui_language === "pl" ? "Dokończ swoje pierwsze CV" : "Finish your first CV"}</strong>
-          <p>{onboarding.ui_language === "pl" ? "Twoje zapisane dane czekają. Wróć do przewodnika w miejscu, w którym przerwano." : "Your saved details are ready. Continue the guide where you left off."}</p>
-          <Link className="button button--primary" href="/onboarding">{onboarding.ui_language === "pl" ? "Wznów przewodnik" : "Resume guide"}</Link>
+          <strong>{onboardingText("Finish your first CV")}</strong>
+          <p>
+            {onboardingText("Your saved details are ready. Continue the guide where you left off.")}
+          </p>
+          <Link className="button button--primary" href="/onboarding">
+            {onboardingText("Resume guide")}
+          </Link>
         </div>
       ) : null}
       <DashboardClient

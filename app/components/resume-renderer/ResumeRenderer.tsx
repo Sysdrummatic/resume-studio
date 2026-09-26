@@ -1,16 +1,23 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { ChevronDown, Download, FileText } from "lucide-react";
 import { StatusToast, useStatusToast } from "../status-toast";
 import ResumeBadges from "../resume-badges";
 import ResumeLanguageSwitcher from "../resume-language-switcher";
 import type { ResumeLanguageOption } from "../resume-language-switcher";
 import type { ResumeDocument, ResumeLocale } from "../../lib/resume-schema";
-import { getDefaultSummary, resumeFullName } from "../../lib/resume-schema";
-import QrCodeSvg, { QrCodeAccessibleText } from "./QrCodeSvg";
+import { getDefaultSummary, normalizeResumeDocument, resumeFullName } from "../../lib/resume-schema";
+import BulletText from "./BulletText";
+import QrCodeSvg, { QrCodeLink } from "./QrCodeSvg";
 import { sanitizeExternalHref } from "../../lib/safe-url";
-import { DEFAULT_RESUME_STYLE, resumeStyleDataAttributes, type ResumeStyleSettings } from "../../lib/resume-style";
+import {
+  DEFAULT_RESUME_STYLE,
+  resumeStyleCssVariables,
+  resumeStyleDataAttributes,
+  type ResumeStyleSettings,
+  type ResumeVisualTemplate,
+} from "../../lib/resume-style";
 import {
   buildResumeRenderConfig,
   buildResumeRendererLabels,
@@ -43,7 +50,10 @@ type Props = {
   scrollContainerRef?: React.RefObject<HTMLElement>;
   embedded?: boolean;
   cvStyle?: ResumeStyleSettings;
+  template?: ResumeVisualTemplate;
 };
+
+export type { ResumeVisualTemplate } from "../../lib/resume-style";
 
 function renderMeter(level: number) {
   return [1, 2, 3, 4, 5].map((step) => (
@@ -197,7 +207,7 @@ function AtsExportDropdown({ label, items }: { label: string; items: ResumeRende
 
 export default function ResumeRenderer({
   locale,
-  resume,
+  resume: sourceResume,
   mode = "public",
   languages = [],
   activeLocale,
@@ -212,7 +222,9 @@ export default function ResumeRenderer({
   scrollContainerRef,
   embedded = false,
   cvStyle = DEFAULT_RESUME_STYLE,
+  template,
 }: Props) {
+  const resume = normalizeResumeDocument(sourceResume, "");
   const rendererLabels = buildResumeRendererLabels(locale, labels);
   const config = buildResumeRenderConfig({
     mode,
@@ -235,10 +247,12 @@ export default function ResumeRenderer({
   const visibleLanguages = config.chrome.languages || [];
   const isEmbedded = Boolean(scrollContainerRef) || embedded;
   const allowStickyHero = (config.mode === "public" || Boolean(scrollContainerRef)) && config.chrome.visible;
+  const selectedTemplate = template || cvStyle.template;
+  const templateClassName = selectedTemplate === "sample-two-column" ? "resume-template--sample-two-column" : `resume-template--${selectedTemplate}`;
   const rootClassName = [
     "resume-view-page",
     "resume-renderer",
-    "resume-template--sample-two-column",
+    templateClassName,
     "resume-theme--cv-basic-dot",
     `resume-render-mode--${config.mode}`,
     config.mode === "editor" || config.mode === "preview" ? "resume-editor-basic" : "",
@@ -310,7 +324,7 @@ export default function ResumeRenderer({
   }
 
   return (
-    <div className={rootClassName} ref={rootRef}>
+    <div className={rootClassName} ref={rootRef} style={resumeStyleCssVariables(cvStyle) as CSSProperties}>
       <StatusToast toast={toast} onClose={closeToast} />
 
       {/* Style variants scale the token values inherited from the root above.
@@ -388,7 +402,7 @@ export default function ResumeRenderer({
                   <span className="section-dot"></span>
                   <h2>{rendererLabels.summary}</h2>
                 </div>
-                <p className="summary-text">{defaultSummary.description}</p>
+                <BulletText className="summary-text" text={defaultSummary.description} />
               </article>
             ) : null}
 
@@ -432,7 +446,7 @@ export default function ResumeRenderer({
                       <div className="timeline-item__content">
                         <h3>{item.school || "School"}</h3>
                         {item.degree ? <p className="timeline-item__subheading">{item.degree}</p> : null}
-                        {item.detail ? <p className="timeline-item__detail">{item.detail}</p> : null}
+                        {item.detail ? <BulletText className="timeline-item__detail" text={item.detail} /> : null}
                       </div>
                     </div>
                   ))}
@@ -498,6 +512,25 @@ export default function ResumeRenderer({
                 })}
               </dl>
             </section>
+
+            {resume.qr_codes.length > 0 ? (
+              <section className="card resume-section resume-section--qr-codes">
+                <div className="section-title">
+                  <span className="section-dot"></span>
+                  <h2>{rendererLabels.qrCodes}</h2>
+                </div>
+                <div className="qr-list">
+                  {resume.qr_codes.map((item, index) => (
+                    <figure className="qr-card" key={`${item.label}-${index}`}>
+                      <QrCodeLink value={item.value}>
+                        <QrCodeSvg value={item.value} size={item.size} />
+                      </QrCodeLink>
+                      {item.label ? <figcaption>{item.label}</figcaption> : null}
+                    </figure>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             {resume.skills.length > 0 ? (
               <section className="card resume-section resume-section--skills">
@@ -566,23 +599,6 @@ export default function ResumeRenderer({
               </section>
             ) : null}
 
-            {resume.qr_codes.length > 0 ? (
-              <section className="card resume-section resume-section--qr-codes">
-                <div className="section-title">
-                  <span className="section-dot"></span>
-                  <h2>{rendererLabels.qrCodes}</h2>
-                </div>
-                <div className="qr-list">
-                  {resume.qr_codes.map((item, index) => (
-                    <figure className="qr-card" key={`${item.label}-${index}`}>
-                      <QrCodeSvg value={item.value} size={item.size} />
-                      <QrCodeAccessibleText value={item.value} />
-                      {item.label ? <figcaption>{item.label}</figcaption> : null}
-                    </figure>
-                  ))}
-                </div>
-              </section>
-            ) : null}
           </aside>
         </main>
 

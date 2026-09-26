@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { StatusToast, useStatusToast } from "../../components/status-toast";
+import { useAppI18n } from "../../components/app-i18n-provider";
+import { formatAppMessage } from "../../i18n/locale";
 
 type AuditLog = {
   id: string;
@@ -47,6 +49,8 @@ function buildQuery(filters: AuditFilterState): string {
 }
 
 export default function AuditLogsClient({ initialLogs }: Props) {
+  const { locale, dictionary } = useAppI18n();
+  const text = dictionary.admin.text;
   const [logs, setLogs] = useState<AuditLog[]>(initialLogs);
   const [filters, setFilters] = useState<AuditFilterState>(EMPTY_FILTERS);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -59,7 +63,7 @@ export default function AuditLogsClient({ initialLogs }: Props) {
       const response = await fetch(`/api/admin/audit${query}`, { method: "GET" });
       const payload = (await response.json()) as { error?: string; logs?: AuditLog[] };
       if (!response.ok || payload.error) {
-        showToast(payload.error || "Failed to load audit logs.", "error");
+        showToast(payload.error || text["Failed to load audit logs."], "error");
         return;
       }
 
@@ -67,7 +71,7 @@ export default function AuditLogsClient({ initialLogs }: Props) {
       setExpandedId(null);
       closeToast();
     } catch {
-      showToast("Failed to load audit logs.", "error");
+      showToast(text["Failed to load audit logs."], "error");
     } finally {
       setIsLoading(false);
     }
@@ -92,33 +96,33 @@ export default function AuditLogsClient({ initialLogs }: Props) {
 
       <section className="card stack">
         <div className="section-row">
-          <h2 style={{ margin: 0, fontSize: "1rem" }}>Filters</h2>
+          <h2 style={{ margin: 0, fontSize: "1rem" }}>{text.Filters}</h2>
           <div className="actions-row">
             <button type="button" className="button button--ghost button--small" onClick={clearFilters} disabled={isLoading}>
-              Clear
+              {text.Clear}
             </button>
             <button type="button" className="button button--primary button--small" onClick={() => void applyFilters()} disabled={isLoading}>
-              {isLoading ? "Loading..." : "Apply"}
+              {isLoading ? text["Loading…"] : text.Apply}
             </button>
           </div>
         </div>
         <div className="meta-grid">
           <label>
-            Actor ID
+            {text["Actor ID"]}
             <input value={filters.actorUserId} onChange={(event) => updateFilter("actorUserId", event.target.value)} />
           </label>
           <label>
-            Target User ID
+            {text["Target User ID"]}
             <input value={filters.targetUserId} onChange={(event) => updateFilter("targetUserId", event.target.value)} />
           </label>
           <label>
-            Action Type
+            {text["Action Type"]}
             <input value={filters.action} onChange={(event) => updateFilter("action", event.target.value)} />
           </label>
           <label>
-            Actor Role
+            {text["Actor Role"]}
             <select value={filters.actorRole} onChange={(event) => updateFilter("actorRole", event.target.value)}>
-              <option value="">Any</option>
+              <option value="">{text.Any}</option>
               <option value="admin">admin</option>
               <option value="manager">manager</option>
               <option value="user">user</option>
@@ -126,11 +130,11 @@ export default function AuditLogsClient({ initialLogs }: Props) {
             </select>
           </label>
           <label>
-            Date From
+            {text["Date From"]}
             <input type="datetime-local" value={filters.dateFrom} onChange={(event) => updateFilter("dateFrom", event.target.value)} />
           </label>
           <label>
-            Date To
+            {text["Date To"]}
             <input type="datetime-local" value={filters.dateTo} onChange={(event) => updateFilter("dateTo", event.target.value)} />
           </label>
         </div>
@@ -140,25 +144,25 @@ export default function AuditLogsClient({ initialLogs }: Props) {
         <table className="users-table">
           <thead>
             <tr>
-              <th style={{ width: "180px" }}>Timestamp</th>
-              <th>Action</th>
-              <th>Actor</th>
-              <th>Role</th>
-              <th>Target</th>
-              <th style={{ textAlign: "right" }}>Metadata</th>
+              <th style={{ width: "180px" }}>{text.Timestamp}</th>
+              <th>{text.Action}</th>
+              <th>{text.Actor}</th>
+              <th>{text.Role}</th>
+              <th>{text.Target}</th>
+              <th style={{ textAlign: "right" }}>{text.Metadata}</th>
             </tr>
           </thead>
           <tbody>
             {logs.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--muted)" }}>
-                  No audit logs found.
+                  {text["No audit logs found."]}
                 </td>
               </tr>
             ) : (
               logs.map((log) => (
                 <tr key={log.id}>
-                  <td style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{new Date(log.created_at).toLocaleString()}</td>
+                  <td style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{new Date(log.created_at).toLocaleString(locale)}</td>
                   <td>
                     <span className="resume-badge" style={{ fontWeight: 600 }}>
                       {log.action}
@@ -173,7 +177,7 @@ export default function AuditLogsClient({ initialLogs }: Props) {
                       className="button button--ghost button--small"
                       onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
                     >
-                      {expandedId === log.id ? "Hide" : "Inspect"}
+                      {expandedId === log.id ? text.Hide : text.Inspect}
                     </button>
                   </td>
                 </tr>
@@ -186,9 +190,9 @@ export default function AuditLogsClient({ initialLogs }: Props) {
       {expandedId ? (
         <div className="card stack" style={{ background: "rgba(0,0,0,0.2)", borderStyle: "dashed" }}>
           <div className="card-header">
-            <h3 style={{ margin: 0, fontSize: "1rem" }}>Log Metadata: {expandedId}</h3>
+            <h3 style={{ margin: 0, fontSize: "1rem" }}>{formatAppMessage(text["Log Metadata: {id}"], { id: expandedId })}</h3>
             <button className="button button--small" onClick={() => setExpandedId(null)}>
-              Close
+              {text.Close}
             </button>
           </div>
           <pre

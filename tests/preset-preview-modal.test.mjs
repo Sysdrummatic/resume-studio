@@ -30,6 +30,7 @@ const dependencies = {
   "next/link": ({ children, ...props }) => createElement("a", props, children),
   "./dashboard.css": {},
   "../lib/resume-schema": resumeSchema,
+  "../i18n/locale": { formatAppMessage: (template, values = {}) => template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? `{${key}}`)) },
   "../lib/preset-preview": presetPreview,
   // Mirrors ResumeLanguageSwitcher's actual observable contract (null for a
   // single language, one control per language otherwise) without importing
@@ -49,7 +50,24 @@ const dependencies = {
           ),
         ),
   "../lib/resume-export": { buildPublishedResumeExportUrls: () => null, parseCanonicalPublicPath: () => null },
-  "../lib/resume-style": { normalizeResumeStyle: () => ({}) },
+  "../components/app-i18n-provider": {
+    useAppI18n: () => ({
+      locale: "en",
+      dictionary: {
+        dashboard: {
+          preview: {
+            aria_label: "CV preview",
+            close_aria: "Close preview",
+            open_cv: "Open CV",
+            close: "Close",
+            note: "Preview",
+            render_error: "CV preview could not be rendered from the Experience Base.",
+          },
+        },
+      },
+    }),
+  },
+  "../lib/resume-style": { normalizeResumeStyle: () => ({}), presetStyleSource: (preset, document) => preset ?? document },
   "../components/status-toast": {
     StatusToast: () => null,
     useStatusToast: () => ({ toast: null, showToast() {}, closeToast() {} }),
@@ -101,7 +119,7 @@ test("an empty language version shows the friendly empty message, keeps the swit
   const html = renderToStaticMarkup(createElement(PresetPreviewModal, { ...fixture, onClose() {} }));
 
   assert.match(html, /has no content in/);
-  assert.doesNotMatch(html, /CV preview could not be rendered from the master resume/);
+  assert.doesNotMatch(html, /CV preview could not be rendered from the Experience Base/);
   // The switcher must stay usable: both language buttons render.
   assert.match(html, />EN</);
   assert.match(html, />PL</);
@@ -127,6 +145,6 @@ test("a document that fails to parse shows the generic error, not the empty-lang
   const fixture = baseFixture({ activeYaml: "not: [valid, yaml", secondYaml: filledYaml("pl") });
   const html = renderToStaticMarkup(createElement(PresetPreviewModal, { ...fixture, onClose() {} }));
 
-  assert.match(html, /CV preview could not be rendered from the master resume/);
+  assert.match(html, /CV preview could not be rendered from the Experience Base/);
   assert.doesNotMatch(html, /has no content in/);
 });

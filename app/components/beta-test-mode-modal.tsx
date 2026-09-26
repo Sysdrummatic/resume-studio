@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAppI18n } from "./app-i18n-provider";
 
 type RestrictionState = {
   restricted: boolean;
@@ -12,6 +13,8 @@ type Props = {
 };
 
 export default function BetaTestModeModal({ onClose }: Props) {
+  const { dictionary } = useAppI18n();
+  const text = dictionary.admin.text;
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -34,7 +37,7 @@ export default function BetaTestModeModal({ onClose }: Props) {
           return;
         }
         if (!response.ok || payload.error || !payload.restriction || !payload.reasons) {
-          setError(payload.error || "Unable to load beta test settings.");
+          setError(payload.error || text["Unable to load beta test settings."]);
           return;
         }
         setReasons(payload.reasons);
@@ -42,7 +45,7 @@ export default function BetaTestModeModal({ onClose }: Props) {
         setSelectedReason(payload.restriction.reason || "");
       } catch {
         if (!isCancelled) {
-          setError("Unable to load beta test settings.");
+          setError(text["Unable to load beta test settings."]);
         }
       } finally {
         if (!isCancelled) {
@@ -55,14 +58,14 @@ export default function BetaTestModeModal({ onClose }: Props) {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [text]);
 
   async function handleSave() {
     if (isSaving) {
       return;
     }
     if (restrictEnabled && !selectedReason) {
-      setError("Select a restriction reason first.");
+      setError(text["Select a restriction reason first."]);
       return;
     }
 
@@ -79,12 +82,12 @@ export default function BetaTestModeModal({ onClose }: Props) {
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok || payload.error) {
-        setError(payload.error || "Unable to save beta test settings.");
+        setError(payload.error || text["Unable to save beta test settings."]);
         return;
       }
       onClose();
     } catch {
-      setError("Unable to save beta test settings.");
+      setError(text["Unable to save beta test settings."]);
     } finally {
       setIsSaving(false);
     }
@@ -101,13 +104,13 @@ export default function BetaTestModeModal({ onClose }: Props) {
       >
         <div className="profile-modal__content">
           <div className="profile-modal__header">
-            <h2 id="beta-test-mode-modal-title">Beta test mode</h2>
+            <h2 id="beta-test-mode-modal-title">{text["Beta test mode"]}</h2>
             <button type="button" className="button button--ghost button--small" onClick={onClose}>
-              Close
+              {text.Close}
             </button>
           </div>
           {isLoading ? (
-            <p>Loading...</p>
+            <p>{text["Loading..."]}</p>
           ) : (
             <div className="stack">
               <label className="checkbox-row">
@@ -116,14 +119,14 @@ export default function BetaTestModeModal({ onClose }: Props) {
                   checked={restrictEnabled}
                   onChange={(event) => setRestrictEnabled(event.target.checked)}
                 />
-                <span>Restrict access (block sign-in and sign-up for non-staff users)</span>
+                <span>{text["Restrict access (block sign-in and sign-up for non-staff users)"]}</span>
               </label>
               {restrictEnabled ? (
                 <label className="profile-modal__field">
-                  <span>Reason shown to users</span>
+                  <span>{text["Reason shown to users"]}</span>
                   <select value={selectedReason} onChange={(event) => setSelectedReason(event.target.value)} required>
                     <option value="" disabled>
-                      Select a reason...
+                      {text["Select a reason..."]}
                     </option>
                     {reasons.map((reasonOption) => (
                       <option key={reasonOption} value={reasonOption}>
@@ -136,10 +139,10 @@ export default function BetaTestModeModal({ onClose }: Props) {
               {error ? <p className="profile-modal__error">{error}</p> : null}
               <div className="profile-modal__actions">
                 <button type="button" className="button button--ghost button--small" onClick={onClose} disabled={isSaving}>
-                  Cancel
+                  {text.Cancel}
                 </button>
                 <button type="button" className="button button--primary button--small" onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save"}
+                  {isSaving ? text["Saving..."] : text.Save}
                 </button>
               </div>
             </div>

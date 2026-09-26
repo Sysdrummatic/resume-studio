@@ -3,7 +3,9 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { DEFAULT_RESUME_STYLE, normalizeResumeStyle, type ResumeStyleSettings } from "../lib/resume-style";
 import {
+  MULTIPLE_DEFAULT_SUMMARIES_ERROR,
   defaultResumeDocument,
+  hasMultipleDefaultSummaries,
   normalizeResumeDocument,
   resumeFullName,
   validateResumeDocument,
@@ -11,8 +13,24 @@ import {
   type ResumeLocale,
   type ResumeRevisionItem,
 } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumeUserLocaleVersionRow } from "../lib/resume-server";
+import type { ResumeDocumentRow, ResumeSynchronizationFailure, ResumeUserLocaleVersionRow, SynchronizedResumeDocument } from "../lib/resume-server";
+import { formatAppMessage } from "../i18n/locale";
 import type { OnboardingTestRun } from "../lib/onboarding-test";
+import {
+  ensureResumeEntryIds,
+  hasCompleteResumeLinkage,
+  inspectResumeEntryIdStability,
+  inspectResumeLanguagePair,
+  reconcileResumeLanguageDocument,
+  type ResumeLinkageIssue,
+} from "../lib/resume-language-linkage";
+import {
+  partialSaveFailure,
+  planSynchronizedBuffer,
+  saveLocalesInOrder,
+  synchronizationFailureMessages,
+  type EditorFailureMessage,
+} from "./locale-save-plan";
 
 const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
 
@@ -24,6 +42,7 @@ export type LocaleBuffer = {
   resume: ResumeDocument;
   yamlPanel: string;
   savedYamlContent: string;
+  savedCvStyle: ResumeStyleSettings;
   yamlError: string | null;
   revisions: ResumeRevisionItem[];
   cvStyle: ResumeStyleSettings;
@@ -34,7 +53,15 @@ export type LocaleBuffer = {
 
 export type SaveAllResult = {
   succeeded: ResumeLocale[];
-  failed: Array<{ locale: ResumeLocale; message: string; docsUrl?: string }>;
+  /** `messageKey`/`messageParams` let the editor show `message` in the interface language. */
+  failed: Array<{ locale: ResumeLocale; message: string; docsUrl?: string; messageKey?: string; messageParams?: Record<string, string> }>;
+};
+
+export type ResumeLinkageStatus = {
+  ok: boolean;
+  issues: ResumeLinkageIssue[];
+  basis: "saved-default" | "default-language";
+  parseError?: string;
 };
 
 type Actor = { userId: string; displayName: string; role: string };
@@ -46,13 +73,20 @@ type ApiDocumentResponse = {
   actor?: Actor;
   document?: ResumeDocumentRow;
   revisions?: ResumeRevisionItem[];
+  synchronizedDocuments?: SynchronizedResumeDocument[];
+  synchronizationFailed?: ResumeSynchronizationFailure[];
+  synchronizationComplete?: boolean;
+  saved?: boolean;
 };
 
 class ResumeSaveError extends Error {
   docsUrl?: string;
-  constructor(message: string, docsUrl?: string) {
+  /** Set when the server stored the document but could not finish the save. */
+  partial?: { document: ResumeDocumentRow; message: EditorFailureMessage; payload: ApiDocumentResponse };
+  constructor(message: string, docsUrl?: string, partial?: ResumeSaveError["partial"]) {
     super(message);
     this.docsUrl = docsUrl;
+    this.partial = partial;
   }
 }
 
@@ -69,15 +103,20 @@ function hasYamlRuntime(): boolean {
   return typeof window !== "undefined" && typeof window.jsyaml?.load === "function" && typeof window.jsyaml?.dump === "function";
 }
 
+function parseYamlValue(yamlContent: string): unknown {
+  if (!hasYamlRuntime()) throw new Error("YAML runtime is not loaded.");
+  return window.jsyaml?.load(yamlContent);
+}
+
 function parseYamlToResumeDocument(yamlContent: string, fallbackName: string): ResumeDocument {
   if (!hasYamlRuntime()) {
     throw new Error("YAML runtime is not loaded.");
   }
-  const parsed = window.jsyaml?.load(yamlContent);
-  return normalizeResumeDocument(parsed, fallbackName);
+  const parsed = ensureResumeEntryIds(window.jsyaml?.load(yamlContent));
+  return normalizeResumeDocument(parsed, fallbackName, { preserveLinkedEntries: true });
 }
 
-function serializeResumeToYaml(resume: ResumeDocument): string {
+function serializeResumeToYaml(resume: unknown): string {
   if (!hasYamlRuntime()) {
     throw new Error("YAML runtime is not loaded.");
   }
@@ -91,12 +130,21 @@ function serializeResumeToYaml(resume: ResumeDocument): string {
 
 function normalizeYamlForEditor(yamlContent: string, fallbackName: string): { resume: ResumeDocument; yamlContent: string; migrated: boolean } {
   const parsed = window.jsyaml?.load(yamlContent);
-  const source = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
-  const resume = normalizeResumeDocument(parsed, fallbackName);
+  const source = ensureResumeEntryIds(parsed);
+  const resume = normalizeResumeDocument(source, fallbackName, { preserveLinkedEntries: true });
   const shouldMigrateYaml = !Array.isArray(source.summary);
+  const shouldPersistLinkageIds = !hasCompleteResumeLinkage(parsed);
+  // A stored document with two defaults is re-serialized from the normalized
+  // one (which keeps the first), so opening it does not raise the YAML error
+  // reserved for edits made in the YAML tab.
+  const hasDuplicateDefault = hasMultipleDefaultSummaries(parsed);
   return {
     resume,
-    yamlContent: shouldMigrateYaml ? serializeResumeToYaml(resume) : yamlContent,
+    yamlContent: shouldMigrateYaml || hasDuplicateDefault
+      ? serializeResumeToYaml(resume)
+      : shouldPersistLinkageIds
+        ? serializeResumeToYaml(source)
+        : yamlContent,
     migrated: shouldMigrateYaml,
   };
 }
@@ -125,7 +173,7 @@ function buildBuffer(
   let migrated = false;
 
   if (!yamlContent) {
-    resume = defaultResumeDocument(fallbackName);
+    resume = normalizeResumeDocument(ensureResumeEntryIds(defaultResumeDocument(fallbackName)), fallbackName, { preserveLinkedEntries: true });
     if (hasYamlRuntime()) {
       try {
         yamlContent = serializeResumeToYaml(resume);
@@ -155,6 +203,7 @@ function buildBuffer(
       resume,
       yamlPanel: yamlContent,
       savedYamlContent: yamlContent,
+      savedCvStyle: normalizeResumeStyle(documentRow?.style_settings),
       yamlError,
       revisions,
       cvStyle: normalizeResumeStyle(documentRow?.style_settings),
@@ -165,6 +214,46 @@ function buildBuffer(
   };
 }
 
+/**
+ * Adopts translations the server rewrote while syncing with the default. A
+ * clean buffer takes the stored version; an edited one keeps its text,
+ * reconciled against the saved default exactly as the server would. A buffer
+ * that also changed elsewhere is left stale, so its next save is a conflict.
+ */
+function applySynchronizedDocuments(
+  buffers: Record<ResumeLocale, LocaleBuffer>,
+  synchronized: SynchronizedResumeDocument[],
+  defaultLocale: ResumeLocale,
+  fallbackName: string,
+): Record<ResumeLocale, LocaleBuffer> {
+  const next = { ...buffers };
+  for (const entry of synchronized) {
+    const current = next[entry.locale];
+    if (!current) continue;
+    const plan = planSynchronizedBuffer(current, entry.previousUpdatedAt);
+    if (plan === "replace") {
+      next[entry.locale] = { ...buildBuffer(entry.locale, entry.document, current.revisions, fallbackName).buffer, saveError: current.saveError };
+    } else if (plan === "rebase") {
+      try {
+        const rebased = entry.locale === defaultLocale
+          ? parseYamlValue(current.yamlPanel)
+          : reconcileResumeLanguageDocument(parseYamlValue(next[defaultLocale]?.savedYamlContent ?? ""), parseYamlValue(current.yamlPanel));
+        const linked = ensureResumeEntryIds(rebased);
+        next[entry.locale] = {
+          ...current,
+          documentRow: entry.document,
+          savedYamlContent: entry.document.yaml_content,
+          yamlPanel: serializeResumeToYaml(linked),
+          resume: normalizeResumeDocument(linked, fallbackName, { preserveLinkedEntries: true }),
+        };
+      } catch {
+        // Unparseable local edits cannot be rebased; the next save reports the conflict.
+      }
+    }
+  }
+  return next;
+}
+
 function buildFailedBuffer(locale: ResumeLocale, message: string, fallbackName: string): LocaleBuffer {
   return {
     locale,
@@ -172,6 +261,7 @@ function buildFailedBuffer(locale: ResumeLocale, message: string, fallbackName: 
     resume: defaultResumeDocument(fallbackName),
     yamlPanel: "",
     savedYamlContent: "",
+    savedCvStyle: { ...DEFAULT_RESUME_STYLE },
     yamlError: null,
     revisions: [],
     cvStyle: { ...DEFAULT_RESUME_STYLE },
@@ -315,7 +405,12 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     (nextResume: ResumeDocument) => {
       patchBuffer(activeLocale, () => {
         try {
-          return { resume: nextResume, yamlPanel: serializeResumeToYaml(nextResume), yamlError: null };
+          const linkedResume = ensureResumeEntryIds(nextResume);
+          return {
+            resume: normalizeResumeDocument(linkedResume, "", { preserveLinkedEntries: true }),
+            yamlPanel: serializeResumeToYaml(linkedResume),
+            yamlError: null,
+          };
         } catch {
           return { resume: nextResume };
         }
@@ -336,12 +431,17 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     try {
       const parsed = parseYamlToResumeDocument(deferredYaml, actor?.displayName ?? "");
       const validation = validateResumeDocument(parsed);
+      // Normalization already keeps one default, so the raw text is checked
+      // to tell the author instead of silently ignoring their second one.
+      const duplicateDefault = hasMultipleDefaultSummaries(window.jsyaml?.load(deferredYaml));
       patchBuffer(activeLocale, (buffer) =>
         buffer.yamlPanel !== deferredYaml
           ? {}
-          : validation.valid
-            ? { resume: parsed, yamlError: null }
-            : { yamlError: validation.errors.join(" ") },
+          : duplicateDefault
+            ? { yamlError: MULTIPLE_DEFAULT_SUMMARIES_ERROR }
+            : validation.valid
+              ? { resume: parsed, yamlError: null }
+              : { yamlError: validation.errors.join(" ") },
       );
     } catch (error) {
       patchBuffer(activeLocale, (buffer) =>
@@ -351,7 +451,9 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
   }, [deferredYaml, activeLocale, actor?.displayName, patchBuffer, testRun]);
 
   const dirtyLocales = useMemo(
-    () => Object.values(buffers).filter((buffer) => buffer.yamlPanel !== buffer.savedYamlContent).map((buffer) => buffer.locale),
+    () => Object.values(buffers)
+      .filter((buffer) => buffer.yamlPanel !== buffer.savedYamlContent || JSON.stringify(buffer.cvStyle) !== JSON.stringify(buffer.savedCvStyle))
+      .map((buffer) => buffer.locale),
     [buffers],
   );
   const errorLocales = useMemo(
@@ -359,6 +461,33 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     [buffers],
   );
   const isAnyDirty = dirtyLocales.length > 0;
+
+  const linkageStatuses = useMemo<Record<ResumeLocale, ResumeLinkageStatus>>(() => {
+    const result = {} as Record<ResumeLocale, ResumeLinkageStatus>;
+    const defaultBuffer = buffers[defaultLocale];
+    for (const buffer of Object.values(buffers)) {
+      try {
+        const currentRaw = parseYamlValue(buffer.yamlPanel);
+        if (buffer.locale === defaultLocale) {
+          const savedRaw = parseYamlValue(buffer.savedYamlContent);
+          const validation = inspectResumeEntryIdStability(savedRaw, currentRaw);
+          result[buffer.locale] = { ...validation, basis: "saved-default" };
+        } else if (defaultBuffer) {
+          const defaultRaw = parseYamlValue(defaultBuffer.yamlPanel);
+          const validation = inspectResumeLanguagePair(defaultRaw, currentRaw);
+          result[buffer.locale] = { ...validation, basis: "default-language" };
+        }
+      } catch (error) {
+        result[buffer.locale] = {
+          ok: false,
+          issues: [],
+          basis: buffer.locale === defaultLocale ? "saved-default" : "default-language",
+          parseError: error instanceof Error ? error.message : "Invalid YAML",
+        };
+      }
+    }
+    return result;
+  }, [buffers, defaultLocale]);
 
   const resetActiveToTemplate = useCallback(async (): Promise<boolean> => {
     const current = buffers[activeLocale];
@@ -381,13 +510,18 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       const targets = Array.from(new Set([activeLocale, ...dirtyLocales]));
       const result: SaveAllResult = { succeeded: [], failed: [] };
 
-      const outcomes = await Promise.allSettled(
-        targets.map(async (code) => {
+      const outcomes = await saveLocalesInOrder(
+        targets,
+        defaultLocale,
+        async (code) => {
           const buffer = buffers[code];
           if (!buffer) throw new Error(`${code}: not loaded.`);
           if (buffer.loadFailed) {
             throw new Error(`${code}: this language version failed to load — reload the page before saving it.`);
           }
+          if (buffer.yamlError) throw new Error(`${code}: ${buffer.yamlError}`);
+          const linkageStatus = linkageStatuses[code];
+          if (linkageStatus && !linkageStatus.ok) throw new Error(`${code}: linked entry IDs are not valid.`);
           const validation = validateResumeDocument(buffer.resume);
           if (!validation.valid) throw new Error(`${code}: ${validation.errors.join(" ")}`);
 
@@ -400,7 +534,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             if (!response.ok) throw new Error("Could not save test draft.");
             const payload: ApiDocumentResponse = { document: { id: testRun.id, user_id: "", locale: code,
               title: "Test onboardingu", yaml_content: snapshot, schema_version: 1, updated_at: "" }, revisions: [] };
-            return { code, payload, snapshot };
+            return { code, payload, snapshot, styleSnapshot: buffer.cvStyle };
           }
           const response = await fetch("/api/resume/publish", {
             method: "POST",
@@ -408,18 +542,30 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             body: JSON.stringify({
               locale: code,
               yamlContent: snapshot,
-              title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Master resume` : "Master resume",
+              title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Experience Base` : "Experience Base",
               styleSettings: buffer.cvStyle,
               changeNote: changeNote || "Saved update",
+              baseUpdatedAt: buffer.documentRow?.updated_at ?? null,
             }),
           });
           const payload = (await response.json()) as ApiDocumentResponse;
           if (!response.ok || payload.error || !payload.document) {
-            throw new ResumeSaveError(`${code}: ${payload.error || "Save failed."}`, payload.docsUrl);
+            const stored = partialSaveFailure(payload, code);
+            const partial = stored ? { ...stored, payload } : undefined;
+            const message = partial ? formatAppMessage(partial.message.key, partial.message.params) : `${code}: ${payload.error || "Save failed."}`;
+            throw new ResumeSaveError(message, payload.docsUrl, partial);
           }
-          return { code, payload, snapshot };
-        }),
+          return { code, payload, snapshot, styleSnapshot: buffer.cvStyle };
+        },
       );
+
+      const defaultOutcome = outcomes[targets.indexOf(defaultLocale)];
+      // A partially saved default still ran the sync, so its rewrites are adopted too.
+      const defaultPayload = defaultOutcome?.status === "fulfilled"
+        ? defaultOutcome.value.payload
+        : defaultOutcome?.reason instanceof ResumeSaveError ? defaultOutcome.reason.partial?.payload ?? null : null;
+      const synchronized = defaultPayload?.synchronizedDocuments ?? [];
+      const unsynchronized = defaultPayload ? synchronizationFailureMessages(defaultPayload, defaultLocale) : [];
 
       outcomes.forEach((outcome, index) => {
         if (outcome.status === "fulfilled") result.succeeded.push(targets[index]);
@@ -428,37 +574,51 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             locale: targets[index],
             message: outcome.reason instanceof Error ? outcome.reason.message : "Save failed.",
             docsUrl: outcome.reason instanceof ResumeSaveError ? outcome.reason.docsUrl : undefined,
+            messageKey: outcome.reason instanceof ResumeSaveError ? outcome.reason.partial?.message.key : undefined,
+            messageParams: outcome.reason instanceof ResumeSaveError ? outcome.reason.partial?.message.params : undefined,
           });
       });
+      unsynchronized.forEach((failure) =>
+        result.failed.push({ locale: failure.locale, message: formatAppMessage(failure.key, failure.params), messageKey: failure.key, messageParams: failure.params }),
+      );
 
       setBuffers((prev) => {
-        const next = { ...prev };
+        let next = { ...prev };
         outcomes.forEach((outcome, index) => {
           const code = targets[index];
           if (outcome.status === "fulfilled") {
-            const { payload, snapshot } = outcome.value;
+            const { payload, snapshot, styleSnapshot } = outcome.value;
             const current = next[code];
-            // Only clear dirty if nothing changed locally since the save was sent.
-            if (current && current.yamlPanel === snapshot) {
+            // The stored version is the new base even when the user kept typing:
+            // edits made since the save was sent stay dirty against the snapshot.
+            if (current) {
               next[code] = {
                 ...current,
                 documentRow: payload.document!,
                 revisions: payload.revisions || [],
                 savedYamlContent: snapshot,
+                savedCvStyle: styleSnapshot,
                 saveError: null,
               };
             }
           } else {
             const message = outcome.reason instanceof Error ? outcome.reason.message : "Save failed.";
-            if (next[code]) next[code] = { ...next[code], saveError: message };
+            const partial = outcome.reason instanceof ResumeSaveError ? outcome.reason.partial : undefined;
+            // A stored-but-unfinished save moves the base forward and stays dirty,
+            // so "save again" resends it and the server finishes the missing steps.
+            if (next[code]) next[code] = { ...next[code], saveError: message, ...(partial ? { documentRow: partial.document } : {}) };
           }
+        });
+        next = applySynchronizedDocuments(next, synchronized, defaultLocale, actor?.displayName || "");
+        unsynchronized.forEach((failure) => {
+          if (next[failure.locale]) next[failure.locale] = { ...next[failure.locale], saveError: formatAppMessage(failure.key, failure.params) };
         });
         return next;
       });
 
       return result;
     },
-    [activeLocale, buffers, dirtyLocales, testRun],
+    [activeLocale, actor?.displayName, buffers, defaultLocale, dirtyLocales, linkageStatuses, testRun],
   );
 
   const rollbackActiveToRevision = useCallback(
@@ -548,14 +708,18 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code, setDefault: true }),
     });
-    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale };
+    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale; synchronizedDocuments?: SynchronizedResumeDocument[] };
     if (!response.ok || payload.error) {
       throw new Error(payload.error || "Default language update failed.");
     }
     const nextDefault = payload.defaultLocale || code;
     setDefaultLocale(nextDefault);
     setLanguageOptions((prev) => prev.map((language) => ({ ...language, is_default: language.code === nextDefault })));
-  }, [testRun]);
+    const synchronized = payload.synchronizedDocuments ?? [];
+    // The new default is rewritten first, so translations rebase against its stored version.
+    const ordered = [...synchronized.filter((entry) => entry.locale === nextDefault), ...synchronized.filter((entry) => entry.locale !== nextDefault)];
+    setBuffers((prev) => applySynchronizedDocuments(prev, ordered, nextDefault, actor?.displayName || ""));
+  }, [actor?.displayName, testRun]);
 
   const deleteLanguageVersion = useCallback(async (code: ResumeLocale) => {
     const response = await fetch("/api/resume/languages", {
@@ -593,6 +757,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     loadNotice,
     dirtyLocales,
     errorLocales,
+    linkageStatuses,
     isAnyDirty,
     setActiveLocale,
     updateActiveYaml,

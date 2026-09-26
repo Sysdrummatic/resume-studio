@@ -1,0 +1,120 @@
+# ADR 0023: Linked Master Resume Language Entries
+
+Status: Accepted
+Date: 2026-09-19
+
+## Context
+
+Master Resume documents are stored separately for each locale. Previously a new
+locale received an empty document, repeated entries had no cross-locale identity,
+and `summary[].default` was local to one YAML document. This allowed a translated
+document to lose an experience or to select a different default role than the
+default-language document.
+
+## Decision
+
+1. The user's default language owns the canonical inventory and ordering of
+   repeatable CV entries. Non-default locales may translate those entries but may
+   not add or remove independent records.
+2. Repeatable records receive a private `entry_id` shared by all locales. String
+   lists use the private `__ocv.entries` metadata map. These fields remain in
+   private Master Resume YAML and transfer bundles, but are removed from public
+   OpenCV exports.
+3. Creating a locale clones the default-language structure. Translation fields are
+   blank; neutral fields such as company, period, school and year are retained.
+   Blank linked slots remain visible in the editor but are omitted by rendering.
+4. Saving the default locale reconciles every other locale: missing slots are
+   created, removed canonical slots disappear, neutral fields and ordering follow
+   the default, and the default summary entry is mirrored by `entry_id`.
+5. Saving a non-default locale reconciles it against the current default, so a
+   linked record cannot be removed through the YAML editor or a stale client.
+   The editor also disables structural add/remove controls outside the default
+   locale and shows a linkage status panel. Changed, missing or duplicate IDs
+   block saving and are reported with the affected YAML collection and index.
+6. The server treats IDs as immutable linkage metadata. A complete existing
+   document must keep its IDs stable; legacy documents receive a one-time ID
+   upgrade. The default locale may intentionally add or remove records, while
+   non-default locales must have exactly the same ID set as the default.
+7. Legacy documents without IDs are paired by existing position during their
+   first reconciliation, then retain generated IDs. Public snapshots continue to
+   use the existing numeric selection contract after locale reconciliation.
+   A document is legacy only when it has neither `__ocv` metadata nor any
+   `entry_id`. Its IDs are derived from the position (`legacy-<collection>-<index>`),
+   so the editor, a save, the language sync and a default switch, which each
+   parse it independently, produce IDs that pair. A legacy translation takes the
+   canonical IDs at the same positions, including `tech_stack` and `interests`.
+   A missing ID in an already linked document is never guessed from its position.
+   **Positions are trusted only when they are unambiguous** (amended 2026-09-26):
+   every non-empty collection of the legacy translation must have exactly as
+   many entries as the default, and where both sides carry a start year
+   (`experience`/`education` period, `courses` year) the years must agree at
+   each position. Otherwise the automatic migration stops with a
+   `legacy-pairing` conflict that names the collections, and the legacy
+   translation is left byte for byte unchanged. §4's "removed canonical slots
+   disappear" therefore never applies to unlinked legacy content. The language
+   sync reports the conflict for that locale; a save, a default switch or an
+   import returns `409 { legacyConflicts }`. The user resolves it by making the
+   translation's entries match (for example in YAML) and saving again. An
+   explicit, user-confirmed mapping UI was considered and deferred; import skips
+   the sync for stored locales it is about to replace.
+
+8. Concurrent saves never overwrite silently. Every write to `resume_documents`
+   is a compare-and-swap on `updated_at` (bumped by the `touch_updated_at`
+   trigger). The editor sends the `baseUpdatedAt` it edited; a stale base or a
+   write that loses the race returns `409 { conflict: true }` and nothing is
+   written. The default-language sync re-reads and reconciles a translation that
+   changed under it, since reconciliation keeps translated text. The editor saves
+   translations before the default and adopts a synchronized translation only
+   when the sync started from the version it holds (`synchronizedDocuments`);
+   a translation the sync could not update is reported as a failed save.
+   A failed read is never read as "nothing to do": if the translations cannot
+   be listed the response says `synchronizationComplete: false`, and a failed
+   re-read after a lost compare-and-swap reports that locale with reason `read`.
+9. Steps after the `resume_documents` write are recoverable, not atomic: the
+   revision, the profile-name sync and the public-identity refresh run after the
+   document is stored. If one fails, `POST /api/resume/publish` answers
+   `500 { saved: true, document, incomplete: [...] }`; the editor takes
+   `document` as its new base, keeps the language dirty and shows a localized
+   "save again to finish" message. A retry is idempotent: an unchanged document
+   is not written again, and a revision is recorded only when the latest one
+   does not already hold the same content and title. The same rule completes a
+   sync revision whose translation YAML was written but whose
+   `create_resume_revision` call failed. Consequences: saving an unchanged
+   language no longer adds a duplicate revision or bumps `updated_at`, and a
+   translation last written without a revision (a draft save or an import) gets
+   a "Synchronized with default language" revision on the next default save.
+   Making these steps atomic would need a new database function; deferred.
+
+## Consequences
+
+- A user can prepare a translation gradually without losing the experience,
+  summary or education slots that exist in the default language.
+- Switching the default language triggers the same reconciliation against the
+  newly selected canonical document.
+- Private YAML gains implementation metadata; public exports do not expose it.
+- YAML editing exposes IDs for diagnostics, but the save action and API reject
+  changed, missing or duplicate IDs in an already linked language version.
+- Application-level reconciliation updates several locale documents and creates
+  revision entries. A future structured content store may replace this YAML
+  metadata without changing the user-facing contract.
+
+## Implementation
+
+- Linkage helpers: `app/lib/resume-language-linkage.ts`
+- Locale creation and reconciliation: `app/lib/resume-server.ts`
+- Editor protections and default-summary behavior:
+  `app/master-resume/editor-canvas-client.tsx`
+- Private metadata normalization and public stripping:
+  `app/lib/resume-schema.ts`, `app/lib/published-export.ts`
+- Behavioral contract tests: `tests/resume-language-linkage.test.mjs`,
+  `tests/resume-language-legacy-linkage.test.mjs`,
+  `tests/resume-language-save-race.test.mjs`, `tests/locale-save-plan.test.mjs`
+- Editor save order and sync adoption: `app/master-resume/locale-save-plan.ts`,
+  `app/master-resume/use-multi-locale-resume-documents.ts`
+- Data import (ADR 0018): `importLanguagesAndDocuments` in `app/lib/resume-server.ts`
+  registers the bundle's languages without changing the default, saves the
+  bundle's default-language document as the canonical one (`asDefault`), switches
+  the default, and only then saves the other documents. Switching the default
+  requires that language's document to exist, and a document is reconciled
+  against the current default, so any other order fails or blanks the imported
+  translation. Regression: `tests/import-default-language-switch.test.mjs`.

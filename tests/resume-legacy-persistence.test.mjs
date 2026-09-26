@@ -60,10 +60,13 @@ function importRoute({ validationSucceeds = true } = {}) {
     },
     "../../../../lib/resume-server": {
       upgradeLegacyResumeYamlContent,
-      upsertResumeUserLocale: async (...args) => { localeWrites.push(args); return true; },
-      saveResumeDraftDocument: async (_token, _userId, _locale, payload) => {
-        saved.push(payload.yamlContent);
-        return { document: { id: "document-id" } };
+      importLanguagesAndDocuments: async (_token, _userId, importedBundle, onDocumentSaved) => {
+        importedBundle.languages.forEach((language) => localeWrites.push(language));
+        for (const document of importedBundle.documents) {
+          saved.push(document.yaml_content);
+          await onDocumentSaved?.({ locale: document.locale, documentId: "document-id", yamlContent: document.yaml_content });
+        }
+        return { ok: true };
       },
       fetchResumePresetsForUser: async () => [],
       fetchResumeDocumentsForUser: async () => [],

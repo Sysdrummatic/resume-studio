@@ -1,4 +1,4 @@
-default_locale: en
+default_locale: pl
 locales:
   - code: en
     label: English

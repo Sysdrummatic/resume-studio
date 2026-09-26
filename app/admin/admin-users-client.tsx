@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import { APP_ROLES, type AppRole } from "../lib/auth-types";
 import { hasCapability, isNonStaffRole, isStaffRole } from "../lib/rbac";
+import { useAppI18n } from "../components/app-i18n-provider";
+import { formatAppMessage } from "../i18n/locale";
 
 type UserOverview = {
   id: string;
@@ -51,6 +53,8 @@ function canRoleBeAssignedByManager(role: AppRole): boolean {
 }
 
 export default function AdminUsersClient({ actorRole, initialUsers, initialStats }: Props) {
+  const { locale, dictionary } = useAppI18n();
+  const text = dictionary.admin.text;
   const [state, setState] = useState<ApiState>({
     users: initialUsers,
     actorRole,
@@ -77,7 +81,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     };
 
     if (!response.ok || payload.error) {
-      showToast(payload.error || "Failed to load users.", "error");
+      showToast(payload.error || text["Failed to load users."], "error");
       return;
     }
 
@@ -105,12 +109,12 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok || payload.error) {
-      showToast(payload.error || "Role update failed.", "error");
+      showToast(payload.error || text["Role update failed."], "error");
       setBusyUserId("");
       return;
     }
     await loadUsers();
-    showToast("Role updated.");
+    showToast(text["Role updated."]);
     setBusyUserId("");
   }
 
@@ -123,12 +127,12 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok || payload.error) {
-      showToast(payload.error || "Status update failed.", "error");
+      showToast(payload.error || text["Status update failed."], "error");
       setBusyUserId("");
       return;
     }
     await loadUsers();
-    showToast("Account status updated.");
+    showToast(text["Account status updated."]);
     setBusyUserId("");
   }
 
@@ -141,17 +145,17 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok || payload.error) {
-      showToast(payload.error || "Flag update failed.", "error");
+      showToast(payload.error || text["Flag update failed."], "error");
       setBusyUserId("");
       return;
     }
     await loadUsers();
-    showToast("User flag updated.");
+    showToast(text["User flag updated."]);
     setBusyUserId("");
   }
 
   async function handleDeleteUser(userId: string) {
-    const confirmed = window.confirm("Delete this user account? This operation removes auth access.");
+    const confirmed = window.confirm(text["Delete this user account? This operation removes auth access."]);
     if (!confirmed) {
       return;
     }
@@ -162,12 +166,12 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok || payload.error) {
-      showToast(payload.error || "Delete failed.", "error");
+      showToast(payload.error || text["Delete failed."], "error");
       setBusyUserId("");
       return;
     }
     await loadUsers();
-    showToast("User deleted.", "error");
+    showToast(text["User deleted."], "error");
     setBusyUserId("");
   }
 
@@ -178,24 +182,24 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
       {state.stats && (
         <div className="meta-grid">
           <p>
-            <span className="meta-label">Users</span>
+            <span className="meta-label">{text.Users}</span>
             <span className="meta-value">
-              {state.stats.totalUsers} total ({state.stats.activeUsers} active)
+              {formatAppMessage(text["{total} total ({active} active)"], { total: state.stats.totalUsers, active: state.stats.activeUsers })}
               {state.stats.excludedTestUsers + state.stats.excludedStaffUsers > 0
-                ? ` · excluded: ${state.stats.excludedTestUsers} test, ${state.stats.excludedStaffUsers} staff`
+                ? ` · ${formatAppMessage(text["excluded: {test} test, {staff} staff"], { test: state.stats.excludedTestUsers, staff: state.stats.excludedStaffUsers })}`
                 : ""}
             </span>
           </p>
           <p>
-            <span className="meta-label">Resumes</span>
+            <span className="meta-label">{text.Resumes}</span>
             <span className="meta-value">{state.stats.totalResumes}</span>
           </p>
           <p>
-            <span className="meta-label">Public Links</span>
+            <span className="meta-label">{text["Public Links"]}</span>
             <span className="meta-value">{state.stats.totalPublicLinks}</span>
           </p>
           <p>
-            <span className="meta-label">Public Views</span>
+            <span className="meta-label">{text["Public Views"]}</span>
             <span className="meta-value">{state.stats.totalPublicViews}</span>
           </p>
         </div>
@@ -205,15 +209,15 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
         <table className="users-table">
           <thead>
             <tr>
-              <th>Email</th>
-              <th>Display name</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Test user</th>
-              <th>OCV Staff</th>
-              <th>Storage</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th>{text.Email}</th>
+              <th>{text["Display name"]}</th>
+              <th>{text.Role}</th>
+              <th>{text.Status}</th>
+              <th>{text["Test user"]}</th>
+              <th>{text["OCV Staff"]}</th>
+              {text.Storage ? <th>{text.Storage}</th> : <th>Storage</th>}
+              <th>{text.Created}</th>
+              <th>{text.Actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -250,13 +254,13 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
                       disabled={busyUserId === user.id}
                       onClick={() => handleActiveToggle(user.id, !user.isActive)}
                     >
-                      {user.isActive ? "Deactivate" : "Activate"}
+                      {user.isActive ? text.Deactivate : text.Activate}
                     </button>
                   </td>
                   <td>
                     <input
                       type="checkbox"
-                      aria-label="Test user"
+                      aria-label={text["Test user"]}
                       checked={user.isTestUser}
                       disabled={disableRoleInput}
                       onChange={(event) => handleFlagToggle(user.id, "isTestUser", event.target.checked)}
@@ -265,14 +269,14 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
                   <td>
                     <input
                       type="checkbox"
-                      aria-label="OCV Staff"
+                      aria-label={text["OCV Staff"]}
                       checked={user.isOcvStaff}
                       disabled={disableRoleInput}
                       onChange={(event) => handleFlagToggle(user.id, "isOcvStaff", event.target.checked)}
                     />
                   </td>
                   <td>{formatStorageBytes(user.storageBytes)}</td>
-                  <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}</td>
+                  <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString(locale) : "-"}</td>
                   <td>
                     <button
                       type="button"
@@ -280,7 +284,7 @@ export default function AdminUsersClient({ actorRole, initialUsers, initialStats
                       disabled={disableDelete}
                       onClick={() => handleDeleteUser(user.id)}
                     >
-                      Delete
+                      {text.Delete}
                     </button>
                   </td>
                 </tr>

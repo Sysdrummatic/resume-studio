@@ -14,6 +14,8 @@ type PdfHeaderProps = {
 // chrome (.hero__actions) has no PDF counterpart, as in @media print.
 export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
   const { components, spacing, typography } = theme;
+  const header = theme.header;
+  const bleed = header?.bleed;
 
   return (
     <View
@@ -22,20 +24,36 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
         alignItems: "center",
         gap: spacing.spaceMd,
         marginBottom: spacing.spaceXl,
+        backgroundColor: header?.backgroundColor,
+        color: header?.textColor,
+        paddingTop: header?.paddingTop,
+        paddingBottom: header?.paddingBottom,
+        paddingLeft: bleed ? theme.layout.pageMargin : undefined,
+        paddingRight: bleed ? theme.layout.pageMargin : undefined,
+        marginLeft: bleed ? -theme.layout.pageMargin : undefined,
+        marginRight: bleed ? -theme.layout.pageMargin : undefined,
+        borderBottomColor: header?.borderBottomColor,
+        borderBottomWidth: header?.borderBottomWidth,
       }}
     >
       <PdfCircle
         size={components.logoSize}
-        color={theme.colors.accent}
+        color={header?.logoBackgroundColor || theme.colors.accent}
         theme={theme}
-        style={{ justifyContent: "center", alignItems: "center" }}
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: header?.logoBorderRadius ?? theme.radii.full,
+          borderColor: header?.logoBorderColor,
+          borderWidth: header?.logoBorderWidth,
+        }}
       >
         {/* .logo-circle asks for 'Homemade Apple' first, but that family has no
             @font-face and is not vendored, so the web already falls back to
             Space Grotesk. The PDF matches by using the same fallback. */}
         <Text
           style={{
-            color: theme.colors.white,
+            color: header?.logoTextColor || theme.colors.white,
             fontSize: typography.sizes.logo,
             // Natural, not 1.6: the circle centres this Text, and react-pdf
             // hangs all leading below the glyphs, so a 1.6 box put the initials
@@ -61,7 +79,7 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
             // gap to the role below.
             lineHeight: typography.lineHeightHeading,
             fontWeight: typography.weights.bold,
-            color: theme.colors.text,
+            color: header?.textColor || theme.colors.text,
           }}
         >
           {resumeFullName(resume)}
@@ -73,7 +91,7 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
               fontSize: typography.sizes.role,
               lineHeight: typography.lineHeight,
               fontWeight: typography.weights.medium,
-              color: theme.colors.muted,
+              color: header?.roleColor || theme.colors.muted,
             }}
           >
             {heroRole}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ResumeUserLocaleRow } from "../lib/resume-server";
+import { useAppI18n } from "../components/app-i18n-provider";
 
 interface AddLanguageModalProps {
   existingLanguageCodes: string[];
@@ -28,6 +29,8 @@ export function AddLanguageModal({
   onDelete,
   onSetDefault,
 }: AddLanguageModalProps) {
+  const { dictionary } = useAppI18n();
+  const labels = dictionary.dashboard.language_modal;
   const [code, setCode] = useState("");
   const [label, setLabel] = useState("");
   const [shortLabel, setShortLabel] = useState("");
@@ -51,22 +54,22 @@ export function AddLanguageModal({
 
     const normalized = normalizeCode(code);
     if (!normalized || normalized.length !== 2) {
-      setError("Language code must be two letters (e.g., en, pl, de).");
+      setError(labels.code_length);
       return false;
     }
 
     if (!/^[a-z]{2}$/.test(normalized)) {
-      setError("Language code must contain only letters.");
+      setError(labels.code_letters);
       return false;
     }
 
     if (!isEditing && existingLanguageCodes.includes(normalized)) {
-      setError("This language already exists.");
+      setError(labels.exists);
       return false;
     }
 
     if (!label.trim()) {
-      setError("Language name is required.");
+      setError(labels.name_required);
       return false;
     }
 
@@ -96,41 +99,41 @@ export function AddLanguageModal({
       const result = (await response.json()) as ApiResponse;
 
       if (!response.ok || result.error || !result.language) {
-        setError(result.error || "Failed to add language.");
+        setError(result.error || labels.add_failed);
         return;
       }
 
       onSuccess(result.language);
     } catch {
-      setError("Network error. Please try again.");
+      setError(labels.network_error);
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={isEditing ? "Edit language version" : "Add language version"}>
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={isEditing ? labels.edit_aria : labels.add_aria}>
       <button
         type="button"
         className="dashboard-modal__backdrop"
         onClick={onClose}
-        aria-label="Close"
+        aria-label={labels.close_aria}
       />
       <div className="dashboard-modal__body dashboard-modal__body--compact">
         <div className="stack">
-          <div className="product-surface__eyebrow">Locale setup</div>
-          <h2 className="dashboard-modal__title">{isEditing ? "Edit Language Version" : "Add Language Version"}</h2>
+          <div className="product-surface__eyebrow">{labels.eyebrow}</div>
+          <h2 className="dashboard-modal__title">{isEditing ? labels.edit_title : labels.add_title}</h2>
           <p className="dashboard-modal__copy">
-            {isEditing ? "Update the locale label, short badge, or default status for this account." : "Create a new locale entry and an associated resume document in one step."}
+            {isEditing ? labels.edit_description : labels.add_description}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="dashboard-modal__form">
           <label>
-            <span className="dashboard-modal__field-label">Language code</span>
+            <span className="dashboard-modal__field-label">{labels.code}</span>
             <input
               type="text"
-              placeholder="e.g., en, pl, de"
+              placeholder={labels.code_placeholder}
               value={code}
               onChange={(e) => setCode(e.target.value)}
               disabled={isLoading || isEditing}
@@ -139,10 +142,10 @@ export function AddLanguageModal({
           </label>
 
           <label>
-            <span className="dashboard-modal__field-label">Language name</span>
+            <span className="dashboard-modal__field-label">{labels.name}</span>
             <input
               type="text"
-              placeholder="e.g., English, Polish"
+              placeholder={labels.name_placeholder}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               disabled={isLoading}
@@ -150,10 +153,10 @@ export function AddLanguageModal({
           </label>
 
           <label>
-            <span className="dashboard-modal__field-label">Short label</span>
+            <span className="dashboard-modal__field-label">{labels.short_label}</span>
             <input
               type="text"
-              placeholder="e.g., En, Pl"
+              placeholder={labels.short_placeholder}
               value={shortLabel}
               onChange={(e) => setShortLabel(e.target.value)}
               disabled={isLoading}
@@ -171,7 +174,7 @@ export function AddLanguageModal({
                 disabled={isLoading || isDeleting}
                 className="button button--ghost button--danger"
               >
-                {isDeleting ? "Removing..." : "Remove"}
+                {isDeleting ? labels.removing : labels.remove}
               </button>
             ) : null}
             {isEditing && onSetDefault && language && !language.is_default ? (
@@ -181,7 +184,7 @@ export function AddLanguageModal({
                 disabled={isLoading}
                 className="button button--ghost"
               >
-                Set default
+                {labels.set_default}
               </button>
             ) : null}
             <button
@@ -190,10 +193,10 @@ export function AddLanguageModal({
               disabled={isLoading}
               className="button button--ghost"
             >
-              Cancel
+              {labels.cancel}
             </button>
             <button type="submit" disabled={isLoading} className="button button--primary">
-              {isLoading ? (isEditing ? "Saving..." : "Adding...") : isEditing ? "Save changes" : "Add"}
+              {isLoading ? (isEditing ? labels.saving : labels.adding) : isEditing ? labels.save : labels.add}
             </button>
           </div>
         </form>

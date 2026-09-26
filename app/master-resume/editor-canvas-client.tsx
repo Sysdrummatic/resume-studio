@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import OnboardingClient from "../onboarding/onboarding-client";
 import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
 import { firstCvSelection, ONBOARDING_SECTIONS, type OnboardingState } from "../lib/resume-onboarding";
 import { applyResumeSelectionToRawDocument } from "../lib/preset-selection";
 import { normalizeResumeDocument } from "../lib/resume-schema";
-import { onboardingEditorText } from "../onboarding/editor-copy";
 import type { OnboardingTestRun } from "../lib/onboarding-test";
 import { useSearchParams } from "next/navigation";
 import { StatusToast, useStatusToast } from "../components/status-toast";
@@ -17,6 +16,8 @@ import type { ResumeEditorStyle } from "./resume-live-preview";
 import LocaleTabStrip from "./locale-tab-strip";
 import LanguageVersionModal from "./language-version-modal";
 import SaveVersionModal from "./save-version-modal";
+import { BulletListTextarea, continueBulletsOnEnter } from "./bullet-textarea";
+import { parseBulletLines } from "../lib/bullet-text";
 import ImportCvBanner from "./import-cv-banner";
 import ImportReviewModal from "./import-review-modal";
 import { shouldClearLocalDraft } from "./local-draft-policy";
@@ -30,7 +31,11 @@ import {
   type ResumeDensity,
   type ResumeStyleSettings,
   type ResumeTextSize,
+  type ResumeVisualTemplate,
 } from "../lib/resume-style";
+import { useAppI18n } from "../components/app-i18n-provider";
+import { formatAppMessage } from "../i18n/locale";
+import type { ResumeLinkageIssue } from "../lib/resume-language-linkage";
 
 const TEXT_SIZE_OPTIONS: Array<{ value: ResumeTextSize; label: string }> = [
   { value: "small", label: "Small" },
@@ -73,8 +78,11 @@ const STANDARD_GDPR_CLAUSE_EN =
   "I hereby give consent for my personal data included in this document to be processed for the purposes of the current recruitment process.";
 
 const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
-  { code: "basic", label: "basic" },
-  { code: "empty", label: "empty" },
+  { code: "sample-two-column", label: "Basic" },
+  { code: "signal-grid", label: "Signal Grid" },
+  { code: "atelier-noir", label: "Atelier Noir" },
+  { code: "terminal-stack", label: "Terminal Stack" },
+  { code: "empty", label: "YAML source" },
 ];
 
 type ContactLinkKind = "tel" | "mailto" | "url";
@@ -222,9 +230,9 @@ function clearLocalDraft(locale: string): void {
 }
 
 export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding, testRun }: { draftPdfEnabled?: boolean; onboarding?: OnboardingState; testRun?: OnboardingTestRun } = {}) {
-  const [onboardingLanguage, setOnboardingLanguage] = useState<"en" | "pl">(onboarding?.ui_language ?? "en");
+  const { locale: appLocale, dictionary } = useAppI18n();
+  const editorText = (text: string) => dictionary.editor.text[text] ?? text;
   const [onboardingImported, setOnboardingImported] = useState(onboarding?.imported ?? false);
-  const editorText = (text: string) => onboardingEditorText(text, onboarding ? onboardingLanguage : "en");
   const searchParams = useSearchParams();
   const requestedPanel = searchParams.get("panel");
 
@@ -251,34 +259,65 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     saveLanguageVersion,
     setDefaultLanguage,
     deleteLanguageVersion,
+    linkageStatuses,
   } = useMultiLocaleResumeDocuments(onboarding?.locale ?? searchParams.get("locale"), testRun);
 
   const activeBuffer = buffers[locale];
   const resume = activeBuffer?.resume ?? defaultResumeDocument("");
   const yamlPanel = activeBuffer?.yamlPanel ?? "";
   const yamlError = activeBuffer?.yamlError ?? null;
+  const linkageStatus = linkageStatuses[locale];
   const revisions = activeBuffer?.revisions ?? [];
   // Style lives on the document buffer, so it survives a reload and is saved
   // with the rest of the document rather than only living in this component.
   const cvStyle = activeBuffer?.cvStyle ?? DEFAULT_RESUME_STYLE;
   const setCvStyle = setActiveCvStyle;
   const documentRow = activeBuffer?.documentRow ?? null;
+  const defaultBuffer = buffers[defaultLocale];
+  const isDefaultLanguage = locale === defaultLocale;
+
+  function formatLinkageIssue(issue: ResumeLinkageIssue): ReactNode {
+    const field = `${issue.collection}${typeof issue.index === "number" ? `[${issue.index}]` : ""}`;
+    if (issue.kind === "changed-id") {
+      return <>{field}: {editorText("Changed ID")} <code className="resume-editor-linkage-status__id resume-editor-linkage-status__id--changed">{issue.actualId || editorText("missing")}</code> ({editorText("Expected")} <code>{issue.expectedId || editorText("missing")}</code>).</>;
+    }
+    if (issue.kind === "missing-id") return <>{field}: {editorText("Missing ID")}</>;
+    if (issue.kind === "duplicate-id") return <>{field}: {editorText("Duplicate ID")} <code className="resume-editor-linkage-status__id resume-editor-linkage-status__id--changed">{issue.actualId}</code>.</>;
+    if (issue.kind === "missing-entry") return <>{field}: {editorText("Missing linked entry")} <code>{issue.expectedId}</code>.</>;
+    if (issue.kind === "extra-entry") return <>{field}: {editorText("Unpaired entry")} <code className="resume-editor-linkage-status__id resume-editor-linkage-status__id--changed">{issue.actualId}</code>.</>;
+    return <>{field}: {editorText("Default entry is not paired")}.</>;
+  }
+
+  function isProtectedLinkedEntry(field: keyof ResumeDocument, index: number): boolean {
+    if (isDefaultLanguage || !defaultBuffer || !Array.isArray(defaultBuffer.resume[field])) return false;
+    const currentItems = resume[field] as unknown[];
+    const defaultItems = defaultBuffer.resume[field] as unknown[];
+    const currentId = currentItems[index] && typeof currentItems[index] === "object"
+      ? (currentItems[index] as { entry_id?: string }).entry_id
+      : undefined;
+    if (!currentId) return index < defaultItems.length;
+    return defaultItems.some((item) => item && typeof item === "object" && (item as { entry_id?: string }).entry_id === currentId);
+  }
 
   // Form-first, matching the redesigned editor: the sidebar's section switching
   // is the primary interaction, and it only applies to the form. YAML stays one
   // click away in the toolbar.
   const [editorTab, setEditorTab] = useState<EditorTab>("human");
-  const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>("basic");
+  const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>(cvStyle.template);
   const [isBusy, setIsBusy] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isSaveVersionModalOpen, setIsSaveVersionModalOpen] = useState(false);
-  const [changeNote, setChangeNote] = useState("Publish update");
+  const [changeNote, setChangeNote] = useState(editorText("Publish update"));
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<ResumeImportResult | null>(null);
   const [importFilename, setImportFilename] = useState("");
   const importControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setSelectedStyle(cvStyle.template);
+  }, [cvStyle.template, locale]);
   // Brand initials have no manual input anymore, only this toggle: checked
   // (the default) keeps them in sync with the name; unchecking freezes the
   // last computed value. Only explicit edits update existing branding.
@@ -317,17 +356,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   const activeSectionCount = activeSection.countField ? resume[activeSection.countField].length : null;
   const completion = computeResumeCompletion(resume);
   const navGroups: EditorNavGroup[] = EDITOR_SECTION_GROUPS.map((group) => ({
-    label: group.label,
+    label: editorText(group.label),
     numbered: group.numbered,
     sections: group.sections.map((section) => ({
       id: section.id,
-      label: section.label,
+      label: editorText(section.label),
       count: section.countField ? resume[section.countField].length : null,
       status: completion.statuses[section.id] ?? null,
     })),
   }));
   const nextSectionLabel = completion.next
-    ? EDITOR_SECTIONS.find((section) => section.id === completion.next?.id)?.label
+    ? editorText(EDITOR_SECTIONS.find((section) => section.id === completion.next?.id)?.label || "")
     : null;
 
   // Local-only autosave safety net (localStorage, keyed by locale). This is
@@ -383,7 +422,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     if (!restorableDraft) return;
     updateActiveYaml(restorableDraft.yamlContent);
     setRestorableDraft(null);
-    showToast("Local draft restored.");
+    showToast(editorText("Local draft restored."));
   }
 
   // The explicit "discard" action for the unsaved-draft entry (banner and
@@ -394,7 +433,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     clearLocalDraft(locale);
     setRestorableDraft(null);
     if (activeBuffer) updateActiveYaml(activeBuffer.savedYamlContent);
-    showToast("Unsaved changes discarded.");
+    showToast(editorText("Unsaved changes discarded."));
   }
 
   // True both right after a reload (a stale local draft was found) and while
@@ -473,6 +512,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   }
 
   function setDefaultSummary(index: number, checked: boolean) {
+    if (!isDefaultLanguage) return;
     updateResumeFromHuman({
       ...resume,
       summary: resume.summary.map((item, itemIndex) => ({
@@ -492,6 +532,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   function addArrayItem(field: "education", item: ResumeEducation): void;
   function addArrayItem(field: "courses", item: ResumeCourse): void;
   function addArrayItem(field: keyof ResumeDocument, item: unknown) {
+    if (!isDefaultLanguage) return;
     const currentValue = resume[field];
     if (!Array.isArray(currentValue)) return;
     setOpenEntryKey(`${String(field)}:${currentValue.length}`);
@@ -520,6 +561,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   }
 
   function removeArrayItem(field: keyof ResumeDocument, index: number) {
+    if (isProtectedLinkedEntry(field, index)) return;
     const currentValue = resume[field];
     if (!Array.isArray(currentValue)) return;
     updateResumeFromHuman({
@@ -579,7 +621,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     const next = [...resume.experience];
     next[index] = {
       ...next[index],
-      [key]: key === "highlights" ? value.split("\n").map((item) => item.trim()).filter(Boolean) : value,
+      [key]: key === "highlights" ? parseBulletLines(value) : value,
     };
     updateResumeFromHuman({ ...resume, experience: next });
   }
@@ -624,13 +666,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
       const payload = await response.json();
       if (controller.signal.aborted) return;
       if (!response.ok) {
-        showToast(payload.error || "Could not read this file.", "error");
+        showToast(payload.error || editorText("Could not read this file."), "error");
         return;
       }
       setImportResult(payload as ResumeImportResult);
       setImportFilename(file.name);
     } catch {
-      if (!controller.signal.aborted) showToast("Import failed. Check your connection and try again.", "error");
+      if (!controller.signal.aborted) showToast(editorText("Import failed. Check your connection and try again."), "error");
     } finally {
       if (importControllerRef.current === controller) {
         importControllerRef.current = null;
@@ -647,15 +689,15 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     updateResumeFromHuman(next);
     setImportResult(null);
     setOnboardingImported(true);
-    showToast(onboarding && onboardingLanguage === "pl" ? `Dodano dane z pliku ${importFilename}.` : `Added content from ${importFilename}.`);
+    showToast(formatAppMessage(editorText("Added content from {file}."), { file: importFilename }));
   }
 
   async function resetToTemplate() {
     try {
       const applied = await resetActiveToTemplate();
-      if (applied) showToast("Template YAML loaded.");
+      if (applied) showToast(editorText("Template YAML loaded."));
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "Template load failed.", "error");
+      showToast(error instanceof Error ? error.message : editorText("Template load failed."), "error");
     }
   }
 
@@ -672,23 +714,30 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 0);
-    showToast(`Downloaded ${fileName}.`);
+    showToast(formatAppMessage(editorText("Downloaded {file}."), { file: fileName }));
   }
 
   async function publishResume() {
     setIsBusy(true);
-    showToast("Saving...");
+    showToast(editorText("Saving..."));
     try {
       const result = await saveAllDirty({ changeNote });
+      const failures = result.failed
+        .map((entry) => (entry.messageKey ? formatAppMessage(editorText(entry.messageKey), entry.messageParams ?? {}) : entry.message))
+        .join(" ");
       const docsUrl = result.failed.find((entry) => entry.docsUrl)?.docsUrl;
       const link = docsUrl ? { href: docsUrl, label: "Learn more" } : undefined;
       if (result.failed.length === 0) {
-        showToast(`Saved (${result.succeeded.length} language${result.succeeded.length === 1 ? "" : "s"}).`);
+        showToast(formatAppMessage(editorText("Saved {count} language versions."), { count: result.succeeded.length }));
       } else if (result.succeeded.length === 0) {
-        showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error", link);
+        showToast(`Save failed: ${failures}`, "error", link);
       } else {
         showToast(
-          `Saved ${result.succeeded.length}, failed ${result.failed.length}: ${result.failed.map((entry) => entry.message).join(" ")}`,
+          formatAppMessage(editorText("Saved {saved}, failed {failed}: {message}"), {
+            saved: result.succeeded.length,
+            failed: result.failed.length,
+            message: failures,
+          }),
           "warning",
           link,
         );
@@ -700,13 +749,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
 
   async function rollbackToRevision(revisionNumber: number) {
     setIsBusy(true);
-    showToast(`Rolling back to revision ${revisionNumber}...`);
+    showToast(formatAppMessage(editorText("Rolling back to revision {number}..."), { number: revisionNumber }));
     try {
       await rollbackActiveToRevision(revisionNumber);
       setPreviewedRevision(null);
-      showToast(`Rollback complete. Current document now matches revision ${revisionNumber}.`);
+      showToast(formatAppMessage(editorText("Rollback complete. Current document now matches revision {number}."), { number: revisionNumber }));
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "Rollback failed.", "error");
+      showToast(error instanceof Error ? error.message : editorText("Rollback failed."), "error");
     } finally {
       setIsBusy(false);
     }
@@ -723,7 +772,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
       });
       setSidePanelTab("preview");
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "Revision preview failed.", "error");
+      showToast(error instanceof Error ? error.message : editorText("Revision preview failed."), "error");
     }
   }
 
@@ -815,6 +864,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                               rows={4}
                               aria-label={editorText("Summary description")} placeholder={editorText("Summary description")}
                               value={item.description}
+                              onKeyDown={(event) => continueBulletsOnEnter(event, (text) => updateSummary(index, "description", text))}
                               onChange={(event) => updateSummary(index, "description", event.target.value)}
                             />
                           </label>
@@ -822,13 +872,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                             <input
                               type="checkbox"
                               checked={selectedDefaultIndex === index}
-                              disabled={!item.default && anotherDefaultSelected}
+                              disabled={!isDefaultLanguage || (!item.default && anotherDefaultSelected)}
                               onChange={(event) => setDefaultSummary(index, event.target.checked)}
                             />
                             {editorText("Default summary")}
                           </label>
                           <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("summary", index)}>
+                            <button type="button" className="button button--ghost button--small" disabled={isProtectedLinkedEntry("summary", index)} onClick={() => removeArrayItem("summary", index)}>
                               {editorText("Remove entry")}
                             </button>
                           </div>
@@ -839,6 +889,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
+                    disabled={!isDefaultLanguage}
                     onClick={() => addArrayItem("summary", { position: "", description: "", default: resume.summary.length === 0 })}
                   >
                     {editorText("+ Add summary")}
@@ -876,7 +927,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                           value={item.size}
                           onChange={(event) => updateQrCode(index, "size", event.target.value)}
                         />
-                        <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
+                        <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("qr_codes", index)} onClick={() => removeArrayItem("qr_codes", index)}>
                           {editorText("Remove")}
                         </button>
                         {errorText ? <p className="status status--error resume-human-editor__row-error">{errorText}</p> : null}
@@ -886,7 +937,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
-                    disabled={resume.qr_codes.length >= QR_CODE_LIMITS.maxCount}
+                    disabled={!isDefaultLanguage || resume.qr_codes.length >= QR_CODE_LIMITS.maxCount}
                     onClick={() => addArrayItem("qr_codes", { label: "", value: "", size: QR_CODE_LIMITS.defaultSize })}
                   >
                     {resume.qr_codes.length >= QR_CODE_LIMITS.maxCount
@@ -901,13 +952,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.skills.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--compact" key={`skill-${index}`}>
                       <input aria-label={editorText("Skill")} placeholder={editorText("Skill")} value={item.name} onChange={(event) => updateSkill(index, "name", event.target.value)} />
-                      <input type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateSkill(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("skills", index)}>
+                      <input disabled={!isDefaultLanguage} type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateSkill(index, "level", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("skills", index)} onClick={() => removeArrayItem("skills", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
+                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
                     {editorText("+ Add skill")}
                   </button>
                 </section>
@@ -918,12 +969,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.tech_stack.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`tech-${index}`}>
                       <input aria-label={editorText("Technology")} placeholder={editorText("Technology")} value={item} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("tech_stack", index)}>
+                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("tech_stack", index)} onClick={() => removeArrayItem("tech_stack", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("tech_stack", "")}>
+                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("tech_stack", "")}>
                     {editorText("+ Add technology")}
                   </button>
                 </section>
@@ -935,13 +986,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                     <div className="resume-human-editor__row" key={`language-${index}`}>
                       <input aria-label={editorText("Language")} placeholder={editorText("Language")} value={item.name} onChange={(event) => updateLanguage(index, "name", event.target.value)} />
                       <input aria-label={editorText("Level text")} placeholder={editorText("Level text")} value={item.level_text} onChange={(event) => updateLanguage(index, "level_text", event.target.value)} />
-                      <input type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateLanguage(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("languages", index)}>
+                      <input disabled={!isDefaultLanguage} type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateLanguage(index, "level", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("languages", index)} onClick={() => removeArrayItem("languages", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
+                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
                     {editorText("+ Add language")}
                   </button>
                 </section>
@@ -952,12 +1003,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.interests.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`interest-${index}`}>
                       <input aria-label={editorText("Interest")} placeholder={editorText("Interest")} value={item} onChange={(event) => updateStringList("interests", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("interests", index)}>
+                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("interests", index)} onClick={() => removeArrayItem("interests", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("interests", "")}>
+                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("interests", "")}>
                     {editorText("+ Add interest")}
                   </button>
                 </section>
@@ -977,12 +1028,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         <span className="resume-human-editor__card-meta">{cardMeta([item.company, item.period])}</span>
                       </summary>
                       <div className="resume-human-editor__card-body">
-                        <input aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
-                        <input aria-label={editorText("Company")} placeholder={editorText("Company")} value={item.company} onChange={(event) => updateExperience(index, "company", event.target.value)} />
+                        <input disabled={!isDefaultLanguage} aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
+                        <input disabled={!isDefaultLanguage} aria-label={editorText("Company")} placeholder={editorText("Company")} value={item.company} onChange={(event) => updateExperience(index, "company", event.target.value)} />
                         <input aria-label={editorText("Role")} placeholder={editorText("Role")} value={item.role} onChange={(event) => updateExperience(index, "role", event.target.value)} />
-                        <textarea rows={3} aria-label={editorText("Highlights, one per line")} placeholder={editorText("Highlights, one per line")} value={item.highlights.join("\n")} onChange={(event) => updateExperience(index, "highlights", event.target.value)} />
+                        <BulletListTextarea rows={3} ariaLabel={editorText("Highlights, one per line")} placeholder={editorText("Highlights, one per line")} items={item.highlights} onChange={(text) => updateExperience(index, "highlights", text)} />
                         <div className="resume-human-editor__card-actions">
-                          <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("experience", index)}>
+                            <button type="button" className="button button--ghost button--small" disabled={isProtectedLinkedEntry("experience", index)} onClick={() => removeArrayItem("experience", index)}>
                             {editorText("Remove entry")}
                           </button>
                         </div>
@@ -992,6 +1043,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
+                    disabled={!isDefaultLanguage}
                     onClick={() => addArrayItem("experience", { period: "", company: "", role: "", highlights: [] })}
                   >
                     {editorText("+ Add position")}
@@ -1013,12 +1065,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         <span className="resume-human-editor__card-meta">{cardMeta([item.degree, item.period])}</span>
                       </summary>
                       <div className="resume-human-editor__card-body">
-                        <input aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateEducation(index, "period", event.target.value)} />
-                        <input aria-label={editorText("School")} placeholder={editorText("School")} value={item.school} onChange={(event) => updateEducation(index, "school", event.target.value)} />
+                        <input disabled={!isDefaultLanguage} aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateEducation(index, "period", event.target.value)} />
+                        <input disabled={!isDefaultLanguage} aria-label={editorText("School")} placeholder={editorText("School")} value={item.school} onChange={(event) => updateEducation(index, "school", event.target.value)} />
                         <input aria-label={editorText("Degree")} placeholder={editorText("Degree")} value={item.degree} onChange={(event) => updateEducation(index, "degree", event.target.value)} />
-                        <textarea rows={2} aria-label={editorText("Detail")} placeholder={editorText("Detail")} value={item.detail} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
+                        <textarea rows={2} aria-label={editorText("Detail")} placeholder={editorText("Detail")} value={item.detail} onKeyDown={(event) => continueBulletsOnEnter(event, (text) => updateEducation(index, "detail", text))} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
                         <div className="resume-human-editor__card-actions">
-                          <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("education", index)}>
+                            <button type="button" className="button button--ghost button--small" disabled={isProtectedLinkedEntry("education", index)} onClick={() => removeArrayItem("education", index)}>
                             {editorText("Remove entry")}
                           </button>
                         </div>
@@ -1028,6 +1080,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
+                    disabled={!isDefaultLanguage}
                     onClick={() => addArrayItem("education", { period: "", school: "", degree: "", detail: "" })}
                   >
                     {editorText("+ Add education")}
@@ -1040,13 +1093,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.courses.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
                       <input aria-label={editorText("Course name")} placeholder={editorText("Course name")} value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
-                      <input type="number" min={0} aria-label={editorText("Year")} placeholder={editorText("Year")} value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
+                      <input disabled={!isDefaultLanguage} type="number" min={0} aria-label={editorText("Year")} placeholder={editorText("Year")} value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
+                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("courses", index)} onClick={() => removeArrayItem("courses", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
+                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
                     {editorText("+ Add course")}
                   </button>
                 </section>
@@ -1083,7 +1136,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   );
   const importReview = (
       <ImportReviewModal
-        language={onboarding ? onboardingLanguage : "en"}
         isOpen={importResult !== null}
         filename={importFilename}
         result={importResult}
@@ -1097,7 +1149,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     return <>
       <StatusToast toast={toast} onClose={closeToast} />
       {importReview}
-      <OnboardingClient initialState={onboarding} testRunId={testRun?.id} uiLanguage={onboardingLanguage} onUiLanguage={setOnboardingLanguage}
+      <OnboardingClient initialState={onboarding} testRunId={testRun?.id}
         locale={locale} languages={languageOptions} loading={isLoading}
         loadError={Boolean(loadError || activeBuffer?.loadFailed || yamlError)} importing={isImporting}
         imported={onboardingImported} resume={resume} onSection={handleSectionNavSelect}
@@ -1105,7 +1157,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
           if (code === locale) return;
           if (isAnyDirty) {
             const saved = await saveAllDirty({ changeNote: "First CV guide" });
-            if (saved.failed.length) throw new Error("Save failed");
+            if (saved.failed.length) throw new Error(editorText("Save failed"));
           }
           if (languageOptions.some((language) => language.code === code)) setActiveLocale(code);
           else await saveLanguageVersion({ code, label: code === "pl" ? "Polski" : "English", shortLabel: code.toUpperCase() }, null);
@@ -1113,26 +1165,26 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
           setOnboardingImported(false);
         }}
         onSave={async () => {
-          if (!activeBuffer || activeBuffer.loadFailed || isLoading || yamlError) throw new Error("CV unavailable");
+          if (!activeBuffer || activeBuffer.loadFailed || isLoading || yamlError) throw new Error(editorText("CV unavailable"));
           if (!isAnyDirty) return;
           setIsBusy(true);
           try {
             const saved = await saveAllDirty({ changeNote: "First CV guide" });
-            if (saved.failed.length) throw new Error("Save failed");
+            if (saved.failed.length) throw new Error(editorText("Save failed"));
           } finally { setIsBusy(false); }
         }}
         form={humanEditor}
-        preview={<ResumeLivePreview locale={locale} resume={previewResume} styleCode="basic" yamlContent={yamlPanel}
+        preview={<ResumeLivePreview locale={locale} resume={previewResume} styleCode={selectedStyle} yamlContent={yamlPanel}
           isExpanded={isPreviewExpanded} draftPdfEnabled={false} cvStyle={cvStyle}
           onExpand={() => setIsPreviewExpanded(true)} onClose={() => setIsPreviewExpanded(false)} />}
-        importControl={<ImportCvBanner language={onboardingLanguage} isBusy={isImporting} onFileSelected={(file) => void handleImportFile(file)} />}
+        importControl={<ImportCvBanner isBusy={isImporting} onFileSelected={(file) => void handleImportFile(file)} />}
       />
     </>;
   }
 
   return (
     <section className="resume-editor-shell wide-shell-page">
-      <WorkspaceBreadcrumbs current="Master Resume" />
+      <WorkspaceBreadcrumbs current={editorText("Master Resume")} />
       <StatusToast toast={toast} onClose={closeToast} />
       <LanguageVersionModal
         isOpen={isLanguageModalOpen}
@@ -1142,15 +1194,15 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
         onClose={() => setIsLanguageModalOpen(false)}
         onSave={async (input, editingCode) => {
           await saveLanguageVersion(input, editingCode);
-          showToast(editingCode ? "Language version updated." : "Language version created.");
+          showToast(editorText(editingCode ? "Language version updated." : "Language version created."));
         }}
         onSetDefault={async (code) => {
           await setDefaultLanguage(code);
-          showToast("Default language updated.");
+          showToast(editorText("Default language updated."));
         }}
         onDelete={async (code) => {
           await deleteLanguageVersion(code);
-          showToast("Language version deleted.");
+          showToast(editorText("Language version deleted."));
         }}
         onError={(message) => showToast(message, "error")}
       />
@@ -1169,14 +1221,14 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
       <div className="resume-editor-layout">
         <aside className="resume-editor-sidebar">
           <div className="resume-editor-sidebar__header">
-            <h1>Master Resume</h1>
-            <p>Source for every CV version</p>
+            <h1>{editorText("Master Resume")}</h1>
+            <p>{editorText("Source for every CV version")}</p>
           </div>
           <EditorSectionNav groups={navGroups} activeId={activeSectionId} onSelect={handleSectionNavSelect} />
 
           <div className="resume-editor-completion">
             <div className="resume-editor-completion__row">
-              <span>Completion</span>
+              <span>{editorText("Completion")}</span>
               <b>{completion.percent}%</b>
             </div>
             <div
@@ -1185,16 +1237,19 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
               aria-valuenow={completion.percent}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label="Resume completion"
+              aria-label={editorText("Resume completion")}
             >
               <i style={{ width: `${completion.percent}%` }} />
             </div>
             {completion.next && nextSectionLabel ? (
               <small>
-                Complete {nextSectionLabel} to add {completion.next.weight}%.
+                {formatAppMessage(editorText("Complete {section} to add {percent}%."), {
+                  section: nextSectionLabel,
+                  percent: completion.next.weight,
+                })}
               </small>
             ) : (
-              <small>Every section has content.</small>
+              <small>{editorText("Every section has content.")}</small>
             )}
           </div>
         </aside>
@@ -1216,10 +1271,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
             {lastLocalSaveAt ? (
               <span
                 className="resume-editor-draft-indicator"
-                title="Saved in this browser only, not on our servers — click Save MasterCV to save it for real."
+                title={editorText("Saved in this browser only, not on our servers — click Save MasterCV to save it for real.")}
               >
                 <span className="resume-editor-draft-indicator__dot" aria-hidden="true" />
-                Draft saved locally {formatClockTime(lastLocalSaveAt)}
+                {formatAppMessage(editorText("Draft saved locally {time}"), { time: formatClockTime(lastLocalSaveAt) })}
               </span>
             ) : null}
           </div>
@@ -1230,26 +1285,26 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
               className="button button--ghost resume-editor-toolbar__panel-trigger"
               onClick={() => setIsSidePanelOpen(true)}
             >
-              Preview
+              {editorText("Preview")}
             </button>
-            <div className="resume-editor-tabs" role="tablist" aria-label="Resume editor mode">
+            <div className="resume-editor-tabs" role="tablist" aria-label={editorText("Resume editor mode")}>
               {/* Short visible labels keep the toolbar on one row at narrow
                   widths; the full names stay as the accessible names. */}
               <button
                 type="button"
                 role="tab"
                 aria-selected={editorTab === "human"}
-                aria-label="Human-friendly Editor"
+                aria-label={editorText("Human-friendly Editor")}
                 className={`resume-editor-tabs__tab ${editorTab === "human" ? "is-active" : ""}`}
                 onClick={() => setEditorTab("human")}
               >
-                Form
+                {editorText("Form")}
               </button>
               <button
                 type="button"
                 role="tab"
                 aria-selected={editorTab === "yaml"}
-                aria-label="YAML Editor"
+                aria-label={editorText("YAML Editor")}
                 className={`resume-editor-tabs__tab ${editorTab === "yaml" ? "is-active" : ""}`}
                 onClick={() => setEditorTab("yaml")}
               >
@@ -1260,9 +1315,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
               className="button button--primary"
               type="button"
               onClick={() => setIsSaveVersionModalOpen(true)}
-              disabled={isBusy || isLoading}
+              disabled={isBusy || isLoading || Boolean(linkageStatus && !linkageStatus.ok)}
+              title={linkageStatus && !linkageStatus.ok ? editorText("Fix the following ID issues before saving:") : undefined}
             >
-              Save MasterCV
+              {editorText("Save MasterCV")}
             </button>
           </div>
         </div>
@@ -1270,7 +1326,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
         {/* Below 760px the sidebar is hidden and this replaces it. */}
         <div className="resume-editor-section-select">
           <label className="sr-only" htmlFor="resume-editor-section-select">
-            Resume section
+            {editorText("Resume section")}
           </label>
           <select
             id="resume-editor-section-select"
@@ -1278,10 +1334,10 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
             onChange={(event) => handleSectionNavSelect(event.target.value)}
           >
             {EDITOR_SECTION_GROUPS.map((group) => (
-              <optgroup key={group.label} label={group.label}>
+              <optgroup key={group.label} label={editorText(group.label)}>
                 {group.sections.map((section) => (
                   <option key={section.id} value={section.id}>
-                    {section.label}
+                    {editorText(section.label)}
                   </option>
                 ))}
               </optgroup>
@@ -1292,13 +1348,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
         <main className="resume-editor-workspace">
           {restorableDraft ? (
             <div className="resume-editor-restore-banner">
-              <span>Unsaved local draft from {formatClockTime(restorableDraft.savedAt)} found for this language version.</span>
+              <span>{formatAppMessage(editorText("Unsaved local draft from {time} found for this language version."), { time: formatClockTime(restorableDraft.savedAt) })}</span>
               <div className="actions-row">
                 <button type="button" className="button button--ghost button--small" onClick={restoreLocalDraft}>
-                  Restore
+                  {editorText("Restore")}
                 </button>
                 <button type="button" className="button button--ghost button--small" onClick={discardLocalDraft}>
-                  Delete
+                  {editorText("Delete")}
                 </button>
               </div>
             </div>
@@ -1308,20 +1364,54 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
 
           <header className="resume-editor-workspace__header">
             <h2>
-              {editorTab === "yaml" ? "YAML" : activeSection.label}
+              {editorTab === "yaml" ? "YAML" : editorText(activeSection.label)}
               {editorTab === "yaml" ? (
-                <span>the same document</span>
+                <span>{editorText("the same document")}</span>
               ) : activeSectionCount === null ? null : (
                 <span>
-                  {activeSectionCount} {activeSectionCount === 1 ? "entry" : "entries"}
+                  {activeSectionCount} {editorText("entries")}
                 </span>
               )}
             </h2>
-            <p>{editorTab === "yaml" ? "The sidebar jumps to the matching block." : activeSection.hint}</p>
+            <p>{editorTab === "yaml" ? editorText("The sidebar jumps to the matching block.") : editorText(activeSection.hint)}</p>
           </header>
 
           {editorTab === "yaml" ? (
             <div className="stack">
+                <section
+                  className="resume-editor-linkage-status"
+                  data-status={!linkageStatus ? "pending" : linkageStatus.ok ? "ok" : "error"}
+                  aria-live="polite"
+                  aria-label={editorText("Language linkage status")}
+                >
+                  <div className="resume-editor-linkage-status__heading">
+                    <strong>{editorText("Language linkage status")}</strong>
+                    <span className="resume-editor-linkage-status__badge">
+                      {!linkageStatus ? editorText("Checking") : linkageStatus.ok ? editorText("OK") : editorText("Needs attention")}
+                    </span>
+                  </div>
+                  {!linkageStatus ? (
+                    <p>{editorText("Checking linked IDs...")}</p>
+                  ) : linkageStatus.parseError ? (
+                    <p>{linkageStatus.parseError}</p>
+                  ) : linkageStatus?.ok ? (
+                    <p>
+                      {isDefaultLanguage
+                        ? editorText("All IDs are stable in the saved default language.")
+                        : editorText("All linked IDs match the default language.")}
+                    </p>
+                  ) : (
+                    <>
+                      <p>{editorText("Fix the following ID issues before saving:")}</p>
+                      <ul className="resume-editor-linkage-status__issues">
+                        {(linkageStatus?.issues || []).map((issue, index) => (
+                          <li key={`${issue.collection}-${issue.index ?? "all"}-${issue.kind}-${index}`}>{formatLinkageIssue(issue)}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  <small>{editorText("IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.")}</small>
+                </section>
                 <textarea
                   ref={yamlTextareaRef}
                   className="resume-editor-yaml"
@@ -1343,13 +1433,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 {yamlError && <p className="resume-editor-yaml__error">{yamlError}</p>}
                 <div className="actions-row">
                   <button type="button" className="button button--ghost" onClick={() => void resetToTemplate()} disabled={isLoading || isBusy}>
-                    Load template
+                    {editorText("Load template")}
                   </button>
                   <button type="button" className="button button--ghost" onClick={exportYamlFile}>
-                    Download YAML
+                    {editorText("Download YAML")}
                   </button>
                   <button type="button" className="button button--ghost" onClick={() => setIsLanguageModalOpen(true)}>
-                    Languages
+                    {editorText("Languages")}
                   </button>
                 </div>
               </div>
@@ -1360,7 +1450,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
 
           <aside className="resume-editor-side-panel" data-open={isSidePanelOpen}>
             <div className="resume-editor-side-panel__head">
-              <div className="resume-editor-tabs" role="tablist" aria-label="Side panel" ref={sidePanelTabsRef}>
+              <div className="resume-editor-tabs" role="tablist" aria-label={editorText("Side panel")} ref={sidePanelTabsRef}>
                 {tabIndicator ? (
                   <span
                     className="resume-editor-tabs__indicator"
@@ -1375,7 +1465,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   className={`resume-editor-tabs__tab ${sidePanelTab === "preview" ? "is-active" : ""}`}
                   onClick={() => setSidePanelTab("preview")}
                 >
-                  Preview
+                  {editorText("Preview")}
                 </button>
                 <button
                   type="button"
@@ -1384,7 +1474,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   className={`resume-editor-tabs__tab ${sidePanelTab === "history" ? "is-active" : ""}`}
                   onClick={() => setSidePanelTab("history")}
                 >
-                  History
+                  {editorText("History")}
                 </button>
                 <button
                   type="button"
@@ -1393,7 +1483,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   className={`resume-editor-tabs__tab ${sidePanelTab === "style" ? "is-active" : ""}`}
                   onClick={() => setSidePanelTab("style")}
                 >
-                  Style
+                  {editorText("Style")}
                 </button>
               </div>
               <button
@@ -1401,7 +1491,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 className="button button--ghost button--small resume-editor-side-panel__close"
                 onClick={() => setIsSidePanelOpen(false)}
               >
-                Close
+                {editorText("Close")}
               </button>
             </div>
 
@@ -1410,9 +1500,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
               {previewedRevision ? (
                 <div className="resume-editor-revision-ribbon">
                   <div>
-                    <strong>Revision #{previewedRevision.revisionNumber} preview</strong>
+                    <strong>{formatAppMessage(editorText("Revision #{number} preview"), { number: previewedRevision.revisionNumber })}</strong>
                     <span>
-                      {previewedRevision.note} · {new Date(previewedRevision.createdAt).toLocaleDateString()}
+                      {previewedRevision.note} · {new Date(previewedRevision.createdAt).toLocaleDateString(appLocale)}
                     </span>
                   </div>
                   <div className="actions-row">
@@ -1422,17 +1512,17 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                       onClick={() => void rollbackToRevision(previewedRevision.revisionNumber)}
                       disabled={isBusy || !documentRow}
                     >
-                      Restore
+                      {editorText("Restore")}
                     </button>
                     <button type="button" className="button button--ghost button--small" onClick={() => setPreviewedRevision(null)}>
-                      Exit
+                      {editorText("Exit")}
                     </button>
                   </div>
                 </div>
               ) : null}
               <div className="resume-editor-preview">
                 {isLoading ? (
-                  <p>Loading preview...</p>
+                  <p>{editorText("Loading preview…")}</p>
                 ) : (
                   <ResumeLivePreview
                     locale={locale}
@@ -1457,19 +1547,38 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
             ) : sidePanelTab === "style" ? (
               <div className="resume-editor-style-panel">
                 <label className="resume-editor-style-select">
-                  Template
-                  <select value={selectedStyle} onChange={(event) => setSelectedStyle(event.target.value as ResumeEditorStyle)}>
+                  {editorText("Template")}
+                  <select
+                    value={selectedStyle}
+                    onChange={(event) => {
+                      const nextStyle = event.target.value as ResumeEditorStyle;
+                      setSelectedStyle(nextStyle);
+                      if (nextStyle !== "empty") {
+                        setCvStyle({ ...cvStyle, template: nextStyle as ResumeVisualTemplate });
+                      }
+                    }}
+                  >
                     {EDITOR_STYLES.map((style) => (
                       <option key={style.code} value={style.code}>
-                        {style.label}
+                        {editorText(style.label)}
                       </option>
                     ))}
                   </select>
                 </label>
 
+                <label className="resume-editor-style-select">
+                  {editorText("Primary color")}
+                  <input
+                    type="color"
+                    value={cvStyle.accentColor}
+                    aria-label={editorText("Primary color")}
+                    onChange={(event) => setCvStyle({ ...cvStyle, accentColor: event.target.value })}
+                  />
+                </label>
+
                 <div className="resume-editor-style-group">
-                  <span className="resume-editor-style-group__label">Text size</span>
-                  <div className="resume-editor-segmented" role="group" aria-label="Text size">
+                  <span className="resume-editor-style-group__label">{editorText("Text size")}</span>
+                  <div className="resume-editor-segmented" role="group" aria-label={editorText("Text size")}>
                     {TEXT_SIZE_OPTIONS.map((option) => (
                       <button
                         key={option.value}
@@ -1477,15 +1586,15 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         aria-pressed={cvStyle.textSize === option.value}
                         onClick={() => setCvStyle({ ...cvStyle, textSize: option.value })}
                       >
-                        {option.label}
+                        {editorText(option.label)}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="resume-editor-style-group">
-                  <span className="resume-editor-style-group__label">Density</span>
-                  <div className="resume-editor-segmented" role="group" aria-label="Density">
+                  <span className="resume-editor-style-group__label">{editorText("Density")}</span>
+                  <div className="resume-editor-segmented" role="group" aria-label={editorText("Density")}>
                     {DENSITY_OPTIONS.map((option) => (
                       <button
                         key={option.value}
@@ -1493,21 +1602,21 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         aria-pressed={cvStyle.density === option.value}
                         onClick={() => setCvStyle({ ...cvStyle, density: option.value })}
                       >
-                        {option.label}
+                        {editorText(option.label)}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="resume-editor-style-group">
-                  <span className="resume-editor-style-group__label">Details</span>
+                  <span className="resume-editor-style-group__label">{editorText("Details")}</span>
                   {STYLE_DETAIL_TOGGLES.map((toggle) => (
                     <div className="resume-editor-style-row" key={toggle.key}>
-                      <span>{toggle.label}</span>
+                      <span>{editorText(toggle.label)}</span>
                       <input
                         type="checkbox"
                         checked={cvStyle[toggle.key]}
-                        aria-label={toggle.label}
+                        aria-label={editorText(toggle.label)}
                         onChange={(event) => setCvStyle({ ...cvStyle, [toggle.key]: event.target.checked })}
                       />
                     </div>
@@ -1515,34 +1624,34 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 </div>
 
                 <p className="resume-editor-hint">
-                  Style is saved with the document and applies to the preview, the published CV and the PDF.
+                  {editorText("Style is saved with the document and applies to the preview, the published CV and the PDF.")}
                 </p>
               </div>
             ) : (
               <div className="resume-editor-side-panel__history">
-                <h2>Revision history</h2>
+                <h2>{editorText("Revision history")}</h2>
                 {revisions.length === 0 && !hasUnsavedDraft ? (
-                  <p className="cv-preview__placeholder">No revisions yet.</p>
+                  <p className="cv-preview__placeholder">{editorText("No revisions yet.")}</p>
                 ) : (
                   <ul className="revision-list">
                     {hasUnsavedDraft ? (
                       <li data-unsaved="true">
                         <div className="revision-list__meta">
                           <div className="revision-list__top">
-                            <strong>Unsaved draft</strong>
-                            <span className="revision-list__tag revision-list__tag--unsaved">unsaved</span>
+                            <strong>{editorText("Unsaved draft")}</strong>
+                            <span className="revision-list__tag revision-list__tag--unsaved">{editorText("unsaved")}</span>
                           </div>
-                          <p>Saved only in this browser — not yet part of your revision history.</p>
-                          <small>{unsavedDraftSavedAt ? formatClockTime(unsavedDraftSavedAt) : "just now"}</small>
+                          <p>{editorText("Saved only in this browser — not yet part of your revision history.")}</p>
+                          <small>{unsavedDraftSavedAt ? formatClockTime(unsavedDraftSavedAt) : editorText("just now")}</small>
                         </div>
                         <div className="actions-row">
                           {restorableDraft ? (
                             <button type="button" className="button button--ghost button--small" onClick={restoreLocalDraft}>
-                              Restore
+                              {editorText("Restore")}
                             </button>
                           ) : null}
                           <button type="button" className="button button--danger button--small" onClick={discardLocalDraft}>
-                            Delete
+                            {editorText("Delete")}
                           </button>
                         </div>
                       </li>
@@ -1557,11 +1666,11 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         <li key={revision.id} data-current={isCurrent} data-viewing={isBeingViewed}>
                           <div className="revision-list__meta">
                             <div className="revision-list__top">
-                              <strong>Revision #{revision.revision_number}</strong>
-                              {isCurrent ? <span className="revision-list__tag">current</span> : null}
+                              <strong>{formatAppMessage(editorText("Revision #{number}"), { number: revision.revision_number })}</strong>
+                              {isCurrent ? <span className="revision-list__tag">{editorText("current")}</span> : null}
                             </div>
-                            <p>{revision.change_note || "No note"}</p>
-                            <small>{new Date(revision.created_at).toLocaleString()}</small>
+                            <p>{revision.change_note || editorText("No note")}</p>
+                            <small>{new Date(revision.created_at).toLocaleString(appLocale)}</small>
                           </div>
                           {isCurrent ? null : (
                             <div className="actions-row">
@@ -1571,7 +1680,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                                 onClick={() => void previewRevision(revision)}
                                 disabled={isBusy || !documentRow}
                               >
-                                {isBeingViewed ? "Viewing" : "Preview"}
+                                {isBeingViewed ? editorText("Viewing") : editorText("Preview")}
                               </button>
                               <button
                                 type="button"
@@ -1579,7 +1688,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                                 onClick={() => void rollbackToRevision(revision.revision_number)}
                                 disabled={isBusy || !documentRow}
                               >
-                                Rollback
+                                {editorText("Rollback")}
                               </button>
                             </div>
                           )}

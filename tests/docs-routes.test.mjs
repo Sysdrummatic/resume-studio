@@ -5,10 +5,17 @@ import { createRequire, register } from "node:module";
 import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
+import yaml from "js-yaml";
 
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { canViewTestScenarios } = await import("../app/lib/docs/access.ts");
 const require = createRequire(import.meta.url);
+const dictionary = yaml.load(readFileSync("app/i18n/locales/en.yaml", "utf8"));
+const appI18n = {
+  locale: "en",
+  locales: [{ code: "en", name: "English", nativeName: "English" }],
+  dictionary
+};
 
 function loadPages(actor, flag = false) {
   const cache = new Map();
@@ -33,6 +40,8 @@ function loadPages(actor, flag = false) {
         };
       if (specifier.endsWith("/lib/docs/access"))
         return { canViewTestScenarios: (value) => canViewTestScenarios(value, async () => flag) };
+      if (specifier.endsWith("/i18n/server")) return { getRequestAppI18n: async () => appI18n };
+      if (specifier.endsWith("/app-i18n-provider")) return { useAppI18n: () => appI18n };
       if (specifier === "next/navigation")
         return {
           notFound: () => {
@@ -77,7 +86,7 @@ test("server-rendered docs and direct scenario URLs preserve all role/flag combi
         const pages = loadPages({ role, isTestUser }, flag);
         const allowed = role === "admin" || (isTestUser && flag);
         const html = renderToStaticMarkup(await pages.index({}));
-        assert.match(html, /How can we help/);
+        assert.match(html, /Create your CV step by step/);
         assert.equal(
           [...html.matchAll(/<h1\b/g)].length,
           1,
@@ -100,12 +109,12 @@ test("article Markdown, outline and breadcrumbs keep real targets; unknown docs 
       searchParams: Promise.resolve({ lang: "pl" })
     })
   );
-  assert.match(html, /href="\/docs\?lang=pl"/);
+  assert.match(html, /href="\/docs"/);
   assert.match(html, /aria-current="page">Publishing your first CV/);
-  assert.match(html, /id="1-edit-your-master-resume"/);
-  assert.match(html, /href="#1-edit-your-master-resume"/);
+  assert.match(html, /id="four-steps"/);
+  assert.match(html, /href="#four-steps"/);
   assert.match(html, /lang="en"/);
-  assert.match(html, /resources\/01-dashboard-nav.png/);
+  assert.match(html, /href="\/docs\/tutorials\/master-resume-basics"/);
   assert.doesNotMatch(html, /href="\/docs\/tutorials"/);
   await assert.rejects(pages.article(params("unknown", "publishing-your-first-cv")), /NOT_FOUND/);
   await assert.rejects(pages.article(params("tutorials", "missing")), /NOT_FOUND/);

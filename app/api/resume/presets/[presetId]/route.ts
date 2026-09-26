@@ -7,6 +7,7 @@ type PresetBody = {
   documentId?: string;
   title?: string;
   selection?: unknown;
+  styleSettings?: unknown;
   isPublic?: boolean;
   allowIndexing?: boolean;
   aiGenerated?: boolean;
@@ -50,6 +51,7 @@ export async function PATCH(request: Request, context: PresetRouteContext): Prom
     documentId,
     title: String(body.title || "Untitled preset"),
     selection,
+    styleSettings: body.styleSettings,
     isPublic: typeof body.isPublic === "boolean" ? body.isPublic : false,
     allowIndexing: typeof body.allowIndexing === "boolean" ? body.allowIndexing : false,
     aiGenerated: typeof body.aiGenerated === "boolean" ? body.aiGenerated : false,

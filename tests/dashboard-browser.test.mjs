@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import yaml from "js-yaml";
 
 test(
   "dashboard browser regression (isolated data/API, real renderer)",
@@ -41,7 +42,17 @@ test(
     });
     const server = createServer(async (req, res) => {
       try {
-        if (req.url === "/bundle.js") {
+        if (req.url === "/fixture-i18n.json") {
+          const dictionary = yaml.load(await readFile("app/i18n/locales/en.yaml", "utf8"));
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({
+              locale: "en",
+              locales: [{ code: "en", name: "English", nativeName: "English" }],
+              dictionary
+            })
+          );
+        } else if (req.url === "/bundle.js") {
           res.setHeader("Content-Type", "text/javascript");
           res.end(await readFile(path.join(output, "bundle.js")));
         } else if (req.url === "/test-geist.woff2") {
@@ -65,13 +76,18 @@ test(
       browser = await chromium.launch({ headless: true });
       const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
       page.setDefaultTimeout(8000);
+      async function editSelectionFromSettings() {
+        const settings = page.locator(".dashboard-preset-menu");
+        await settings.locator("summary").click();
+        await settings.getByRole("menuitem", { name: "Edit", exact: true }).click();
+      }
       const errors = [];
       page.on("pageerror", (error) => errors.push(error.message));
       const base = `http://127.0.0.1:${server.address().port}`;
       await page.goto(base);
       try {
         await page
-          .getByRole("progressbar", { name: "Master Resume completion" })
+          .getByRole("progressbar", { name: "Experience Base completeness" })
           .waitFor({ timeout: 8000 });
       } catch (error) {
         await page.screenshot({ path: path.join(output, "failure.png"), fullPage: true });
@@ -80,6 +96,14 @@ test(
         );
       }
       assert.equal(await page.locator(".dashboard-library-item").count(), 3);
+      assert.equal(
+        await page.locator(".dashboard-library__create").evaluate((element) =>
+          element.nextElementSibling?.classList.contains("dashboard-library__filters")
+        ),
+        true,
+        "CV creation is placed above search and filters"
+      );
+      assert.equal(await page.locator(".dashboard-next").count(), 0, "The removed next-step panel stays absent");
       assert.equal(await page.getByRole("navigation", { name: "Breadcrumb" }).count(), 1);
       const headerBox = await page.locator(".app-header").boundingBox();
       const breadcrumbBox = await page
@@ -91,6 +115,11 @@ test(
       );
       await page.evaluate(() => document.fonts.ready);
       const preview = page.locator(".dashboard-library-preview");
+      const actionBar = page.locator(".dashboard-library__actions");
+      const openCvBox = await actionBar.getByRole("button", { name: "Open CV", exact: true }).boundingBox();
+      const settingsBox = await page.locator(".dashboard-preset-menu > summary").boundingBox();
+      assert.equal(openCvBox.height, settingsBox.height, "Open CV and settings share a consistent action height");
+      assert.equal(settingsBox.width, 40, "The settings control has a larger, usable target");
       assert.equal(
         await preview
           .locator(
@@ -106,8 +135,8 @@ test(
       await preview.getByRole("button", { name: "Polski", exact: true }).click();
       await preview.getByText("Projektantka", { exact: true }).waitFor();
       await preview.getByRole("button", { name: "English", exact: true }).click();
-      await preview.getByRole("button", { name: "Open CV", exact: true }).click();
-      const expanded = page.getByRole("dialog", { name: "CV Version CV preview", exact: true });
+      await actionBar.getByRole("button", { name: "Open CV", exact: true }).click();
+      const expanded = page.getByRole("dialog", { name: "CV version preview", exact: true });
       await expanded.waitFor();
       assert.equal(await expanded.locator('[data-cv-density="compact"]').count(), 1);
       await expanded.getByRole("button", { name: "Close", exact: true }).click();
@@ -154,10 +183,10 @@ test(
           saved = { ...saved, title: body.title, selection: body.selection };
         await route.fulfill({ json: { ok: true, preset: saved } });
       });
-      await page.getByRole("button", { name: "Edit selection", exact: true }).click();
-      const edit = page.getByRole("dialog", { name: "CV Version editor", exact: true });
-      await edit.getByLabel("CV Version title", { exact: true }).fill("Updated designer");
-      await edit.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      await editSelectionFromSettings();
+      const edit = page.locator('.dashboard-modal[role="dialog"]').filter({ has: page.locator("input:not([type])") }).first();
+      await edit.locator("input:not([type])").first().fill("Updated designer");
+      await edit.locator(".actions-row .button--primary").click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "Updated designer" })
@@ -165,21 +194,21 @@ test(
       assert.deepEqual(requests.at(-1).body.selection, fixture.presets[1].selection);
       assert.equal(requests.at(-1).body.documentId, "document-en");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
-      const publish = page.getByRole("dialog", { name: "Publish CV Version", exact: true });
-      await publish.getByRole("button", { name: "Publish CV Version", exact: true }).click();
+      const publish = page.getByRole("dialog", { name: "Publish CV version", exact: true });
+      await publish.getByRole("button", { name: "Publish", exact: true }).click();
       await page.getByText("Temporary publish failure", { exact: true }).waitFor();
       assert.equal(
         await publish.isVisible(),
         true,
         "Retry keeps the user's publish dialog and choices"
       );
-      await publish.getByRole("button", { name: "Publish CV Version", exact: true }).click();
+      await publish.getByRole("button", { name: "Publish", exact: true }).click();
       await page.getByRole("button", { name: "Copy link", exact: true }).waitFor();
       assert.deepEqual(requests.at(-1).body.selectedLocales, ["en", "pl"]);
       assert.equal(requests.at(-1).body.defaultLocale, "en");
       await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
       await page.getByRole("button", { name: "Copy link", exact: true }).click();
-      await page.getByText("Public link copied to clipboard.", { exact: true }).waitFor();
+      await page.getByText("Public link copied to the clipboard.", { exact: true }).waitFor();
       assert.equal(
         await page.evaluate(() => navigator.clipboard.readText()),
         `${base}/ada-example/private-cv`
@@ -199,14 +228,14 @@ test(
       assert.equal(await page.getByRole("button", { name: "Copy link", exact: true }).count(), 0);
       await menu.locator("summary").click();
       await menu
-        .getByRole("menuitem", { name: "Delete CV Version Updated designer", exact: true })
+        .getByRole("menuitem", { name: "Delete CV version: Updated designer", exact: true })
         .click();
-      const deletion = page.getByRole("dialog", { name: "Delete CV Version confirmation" });
+      const deletion = page.getByRole("dialog", { name: "Delete CV version confirmation" });
       await deletion.getByRole("button", { name: "Cancel", exact: true }).click();
       assert.equal(requests.filter((r) => r.method === "DELETE").length, 0);
       await menu.locator("summary").click();
       await menu
-        .getByRole("menuitem", { name: "Delete CV Version Updated designer", exact: true })
+        .getByRole("menuitem", { name: "Delete CV version: Updated designer", exact: true })
         .click();
       await deletion.getByRole("button", { name: "Delete", exact: true }).click();
       await page
@@ -223,7 +252,7 @@ test(
       const transfer = page.getByRole("dialog", { name: "Import data confirmation" });
       await transfer.getByRole("button", { name: "Cancel", exact: true }).click();
       await page.goto(base);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       const filters = page.getByRole("group", { name: "Filter CV versions" });
       await filters.getByRole("button", { name: "Private", exact: true }).focus();
       await page.keyboard.press("Space");
@@ -250,10 +279,10 @@ test(
           }
         })
       );
-      await page.getByRole("button", { name: "Create CV version", exact: true }).first().click();
-      const create = page.getByRole("dialog", { name: "CV Version editor", exact: true });
-      await create.getByLabel("CV Version title", { exact: true }).fill("New opportunity");
-      await create.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      await page.getByRole("button", { name: "Create a tailored CV", exact: true }).first().click();
+      const create = page.getByRole("dialog", { name: "CV version editor", exact: true });
+      await create.getByLabel("CV name", { exact: true }).fill("New opportunity");
+      await create.getByRole("button", { name: "Save CV", exact: true }).click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "New opportunity" })
@@ -264,7 +293,7 @@ test(
         "A newly saved CV becomes the selected preview"
       );
       await page.goto(base);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       await page.screenshot({ path: path.join(output, "desktop-dark.png"), fullPage: true });
       for (const theme of ["dark", "light"]) {
         await page.evaluate((theme) => (document.documentElement.dataset.appTheme = theme), theme);
@@ -289,11 +318,11 @@ test(
         await page.setViewportSize({ width: 1440, height: 1100 });
       }
       await page.goto(`${base}/?pl-default`);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
-      await page.getByRole("button", { name: "Edit selection", exact: true }).click();
-      await edit.getByLabel("CV Version title", { exact: true }).fill("Renamed English CV");
-      await edit.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      await editSelectionFromSettings();
+      await edit.locator("input:not([type])").first().fill("Renamed English CV");
+      await edit.locator(".actions-row .button--primary").click();
       await page.locator(".dashboard-library-item").filter({ hasText: "Renamed English CV" }).waitFor();
       assert.deepEqual(requests.at(-1).body.selection, { ...fixture.presets[1].selection, summary: [1] });
       assert.equal(requests.at(-1).body.documentId, "document-en", "Renaming retains the preset's source document");
@@ -304,29 +333,30 @@ test(
         creationBody = route.request().postDataJSON();
         return route.fulfill({ json: { ok: true, preset: { ...fixture.presets[1], id: "created-pl", title: creationBody.title } } });
       });
-      await page.getByRole("button", { name: "Create CV version", exact: true }).first().click();
-      await create.getByLabel("CV Version title", { exact: true }).fill("New Polish CV");
-      await create.getByRole("button", { name: "Save CV Version", exact: true }).click();
+      await page.getByRole("button", { name: "Create a tailored CV", exact: true }).first().click();
+      await create.locator("input:not([type])").first().fill("New Polish CV");
+      await create.locator(".actions-row .button--primary").click();
       await page.locator(".dashboard-library-item").filter({ hasText: "New Polish CV" }).waitFor();
       assert.equal(creationBody.documentId, "document-pl");
       assert.equal(creationBody.defaultLocale, "pl");
       assert.deepEqual(creationBody.selection.summary, [0]);
 
       await page.goto(`${base}/?pl-default&missing-source`);
-      await page.getByRole("progressbar", { name: "Master Resume completion" }).waitFor();
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
       const requestCount = requests.length;
-      await page.getByRole("button", { name: "Edit selection", exact: true }).click();
+      await editSelectionFromSettings();
       await page.getByText("The source document for this CV version is unavailable. Reload the page to try again.", { exact: true }).waitFor();
       assert.equal(await edit.count(), 0, "Missing sources must not fall back to the account default");
       assert.equal(requests.length, requestCount);
 
       await page.goto(`${base}/?restricted&empty`);
-      await page.getByRole("heading", { name: "Start with your master resume" }).waitFor();
+      await page.getByRole("heading", { name: "Start with your Experience Base" }).waitFor();
       assert.equal(await page.getByRole("button", { name: "Import", exact: true }).count(), 0);
       assert.equal(
-        await page.getByRole("button", { name: "Create CV version", exact: true }).isDisabled(),
-        true
+        await page.getByRole("button", { name: "Create a tailored CV", exact: true }).count(),
+        0,
+        "CV creation is not offered until an Experience Base exists"
       );
       await page.route("**/api/resume/languages?withDocuments=true", (route) =>
         route.fulfill({ json: { ok: true, languages: fixture.languageRows } })
@@ -352,7 +382,7 @@ test(
         await breadcrumbs.getByRole("link", { name: "Dashboard" }).getAttribute("href"),
         "/dashboard"
       );
-      assert.equal(await breadcrumbs.locator('[aria-current="page"]').innerText(), "Master Resume");
+      assert.equal(await breadcrumbs.locator('[aria-current="page"]').innerText(), "Experience Base");
       await page.getByLabel("First name", { exact: true }).fill("Ada edited");
       const localeButtons = page.locator(".locale-tab-strip");
       await localeButtons.getByRole("tab", { name: "PL", exact: true }).click();
@@ -389,7 +419,7 @@ test(
         await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();
         assert.equal(progressWrites.at(-1).step, 13);
         await page.getByRole("button", { name: polish ? "Dalej" : "Continue", exact: true }).click();
-        await page.getByRole("heading", { name: polish ? "Zapiszesz swoje CV?" : "Ready to save your CV?", exact: true }).waitFor();
+        await page.getByRole("heading", { name: polish ? "Czy chcesz opublikowaÄ‡ swoje pierwsze CV?" : "Publish your first CV?", exact: true }).waitFor();
         assert.equal(progressWrites.at(-1).step, 14);
         await page.getByRole("button", { name: polish ? "Wstecz" : "Back", exact: true }).click();
         await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();

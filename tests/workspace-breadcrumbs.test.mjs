@@ -11,7 +11,17 @@ const { outputText } = ts.transpileModule(readFileSync("app/components/workspace
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
 });
 const module = { exports: {} };
-new Function("require", "module", "exports", outputText)(require, module, module.exports);
+const localRequire = (specifier) => specifier === "./app-i18n-provider"
+  ? {
+      useAppI18n: () => ({
+        dictionary: {
+          common: { home: "Home", breadcrumb: "Breadcrumb" },
+          dashboard: { main: { title: "Dashboard" } },
+        },
+      }),
+    }
+  : require(specifier);
+new Function("require", "module", "exports", outputText)(localRequire, module, module.exports);
 const render = (props) => renderToStaticMarkup(createElement(module.exports.default, props));
 
 test("existing Dashboard and Master Resume breadcrumbs retain destinations and current page", () => {

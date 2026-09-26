@@ -5,9 +5,9 @@ import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 
-import { DEFAULT_RESUME_STYLE, type ResumeStyleSettings } from "../lib/resume-style";
+import { DEFAULT_RESUME_STYLE, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
 
-export type ResumeEditorStyle = "basic" | "empty";
+export type ResumeEditorStyle = ResumeVisualTemplate | "empty";
 
 type Props = {
   locale: ResumeLocale;
@@ -53,7 +53,7 @@ export default function ResumeLivePreview({
   }
 
   useEffect(() => {
-    if (styleCode !== "basic") {
+    if (styleCode === "empty") {
       return;
     }
     const frame = frameRef.current;
@@ -104,6 +104,7 @@ export default function ResumeLivePreview({
             mode="editor"
             draftPdfEnabled={draftPdfEnabled}
             cvStyle={cvStyle}
+            template={styleCode}
             embedded
           />
         </div>
@@ -127,6 +128,7 @@ export default function ResumeLivePreview({
             mode="public"
             draftPdfEnabled={draftPdfEnabled}
             cvStyle={cvStyle}
+            template={styleCode}
             scrollContainerRef={modalBodyRef as RefObject<HTMLElement>}
           />
           </div>

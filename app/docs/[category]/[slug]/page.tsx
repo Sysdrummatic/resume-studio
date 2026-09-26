@@ -9,21 +9,21 @@ import {
   listDocNavGroups
 } from "../../../lib/docs/content";
 import { renderMarkdownWithOutline } from "../../../lib/docs/markdown";
-import { docsCopy, resolveDocsLanguage } from "../../../lib/docs/presentation";
+import { getRequestAppI18n } from "../../../i18n/server";
 
 export const dynamic = "force-dynamic";
 
 type DocPageProps = {
-  searchParams?: Promise<{ lang?: string | string[] }>;
   params: Promise<{
     category: string;
     slug: string;
   }>;
 };
 
-export default async function DocPage({ params, searchParams }: DocPageProps) {
+export default async function DocPage({ params }: DocPageProps) {
   const { category, slug } = await params;
   const actor = await requireAuthenticatedActor();
+  const { locale, dictionary } = await getRequestAppI18n();
 
   if (!isDocCategory(category)) {
     notFound();
@@ -36,29 +36,28 @@ export default async function DocPage({ params, searchParams }: DocPageProps) {
     notFound();
   }
 
-  const doc = getDoc(category, slug);
+  const doc = getDoc(category, slug, locale);
   if (!doc) {
     notFound();
   }
 
   const { html, headings } = renderMarkdownWithOutline(doc.markdown);
-  const language = resolveDocsLanguage((await searchParams)?.lang);
-
   return (
     <DocsLayout
-      groups={listDocNavGroups(showTestScenarios)}
+      groups={listDocNavGroups(showTestScenarios, locale)}
       activeHref={`/docs/${category}/${slug}`}
       toc={headings}
-      language={language}
+      locale={locale}
+      copy={dictionary.docs}
     >
       <article className="docs-article">
         <div className="docs-article__meta">
           <span className="docs-tag">
-            {language === "en" ? DOC_CATEGORY_TITLES[category] : docsCopy[language][category]}
+            {locale === "en" ? DOC_CATEGORY_TITLES[category] : category === "test-scenarios" ? dictionary.docs.test_scenarios : dictionary.docs.tutorials}
           </span>
-          {language === "pl" ? <span>{docsCopy.pl.articleLanguage}</span> : null}
+          {doc.locale !== locale ? <span>{dictionary.docs.article_fallback}</span> : null}
         </div>
-        <div className="docs-prose" lang="en" dangerouslySetInnerHTML={{ __html: html }} />
+        <div className="docs-prose" lang={doc.locale} dangerouslySetInnerHTML={{ __html: html }} />
       </article>
     </DocsLayout>
   );
