@@ -151,4 +151,11 @@ default-language document.
   the default, and only then saves the other documents. Switching the default
   requires that language's document to exist, and a document is reconciled
   against the current default, so any other order fails or blanks the imported
-  translation. Regression: `tests/import-default-language-switch.test.mjs`.
+  translation. The bundle only has to be internally consistent: before anything
+  is written, every bundle translation that carries IDs must pair with the
+  bundle's default (otherwise `409 { linkageIssues }`), and the bundle's default
+  may then replace the stored default with different IDs; the edit-time ID
+  stability check still guards every ordinary save. Outside import, a new or
+  legacy-stored translation that carries its own IDs must pair with the default
+  by ID too, instead of being reconciled into blank slots.
+  Regression: `tests/import-default-language-switch.test.mjs`.

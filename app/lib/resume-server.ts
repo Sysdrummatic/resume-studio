@@ -2151,7 +2151,9 @@ async function prepareResumeLanguageYaml(
   const candidate = ensureResumeEntryIds(candidateRaw, { positional: !document || storedIsLegacy });
 
   if (locale === defaultLocale) {
-    if (document && hasCompleteResumeLinkage(parseRawResumeYaml(document.yaml_content))) {
+    // An import replaces the default with its own bundle, checked for internal
+    // consistency up front; the stability check guards ordinary edits.
+    if (document && !options.replacingStoredDocument && hasCompleteResumeLinkage(parseRawResumeYaml(document.yaml_content))) {
       const validation = inspectResumeEntryIdStability(parseRawResumeYaml(document.yaml_content), candidateRaw);
       if (!validation.ok) throw new ResumeLanguageLinkageError(validation.issues);
     }
@@ -2183,6 +2185,13 @@ async function prepareResumeLanguageYaml(
       document,
       defaultLocale,
     };
+  }
+
+  // A translation carrying its own IDs (an import, a new language) must pair with
+  // the default by ID; reconciling mismatched IDs would blank every translation.
+  if (!isLegacyResumeDocument(pairingCandidate)) {
+    const validation = inspectResumeLanguagePair(ensureResumeEntryIds(defaultRaw), pairingCandidate);
+    if (!validation.ok) throw new ResumeLanguageLinkageError(validation.issues);
   }
 
   // One-time compatibility path for documents created before linkage IDs were introduced.
@@ -2352,6 +2361,29 @@ export async function saveResumeDraftDocument(
   };
 }
 
+/**
+ * A bundle replaces the stored documents, so its own IDs only have to agree with
+ * each other: every translation that carries IDs must pair with the bundle's
+ * default. Checked before anything is written. Legacy translations without IDs
+ * are paired by position later.
+ */
+function findInconsistentBundleDocument(
+  bundle: Pick<UserDataBundle, "languages" | "documents">,
+): { locale: ResumeLocale; issues: ResumeLinkageIssue[] } | null {
+  const defaultLocale = bundle.languages.find((language) => language.is_default)?.code;
+  const defaultDocument = bundle.documents.find((document) => document.locale === defaultLocale);
+  if (!defaultDocument) return null;
+  const defaultRaw = ensureResumeEntryIds(parseRawResumeYaml(defaultDocument.yaml_content));
+  for (const document of bundle.documents) {
+    if (document.locale === defaultLocale) continue;
+    const raw = parseRawResumeYaml(document.yaml_content);
+    if (isLegacyResumeDocument(raw)) continue;
+    const validation = inspectResumeLanguagePair(defaultRaw, raw);
+    if (!validation.ok) return { locale: document.locale, issues: validation.issues };
+  }
+  return null;
+}
+
 export type ImportLanguagesAndDocumentsResult =
   | { ok: true }
   | { ok: false; status: number; error: string; linkageIssues?: ResumeLinkageIssue[]; legacyConflicts?: LegacyPairingConflict[] };
@@ -2373,6 +2405,15 @@ export async function importLanguagesAndDocuments(
   bundle: Pick<UserDataBundle, "languages" | "documents">,
   onDocumentSaved?: (saved: { locale: ResumeLocale; documentId: string; yamlContent: string }) => Promise<void> | void,
 ): Promise<ImportLanguagesAndDocumentsResult> {
+  const inconsistent = findInconsistentBundleDocument(bundle);
+  if (inconsistent) {
+    return {
+      ok: false,
+      status: 409,
+      error: `Import failed because the "${inconsistent.locale}" language has invalid linked IDs.`,
+      linkageIssues: inconsistent.issues,
+    };
+  }
   for (const language of bundle.languages) {
     const upserted = await upsertResumeUserLocale(
       accessToken,

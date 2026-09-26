@@ -197,3 +197,115 @@ test("fillMissingRequiredKeysInRawYaml adds only what is missing and leaves comp
   assert.deepEqual(filled.experience, []);
   assert.equal("first_name" in filled, false, "a legacy name-only document stays valid without name keys");
 });
+
+// Re-maps every linkage ID of a bundle consistently, like a bundle exported from
+// another account (or after the account's IDs changed): same content, new IDs.
+function withRegeneratedIds(bundle) {
+  const ids = new Map();
+  const next = (id) => {
+    if (!ids.has(id)) ids.set(id, `re-${ids.size}-${id}`);
+    return ids.get(id);
+  };
+  return {
+    ...bundle,
+    documents: bundle.documents.map((document) => {
+      const parsed = yaml.load(document.yaml_content);
+      for (const value of Object.values(parsed)) {
+        if (Array.isArray(value)) value.forEach((row) => { if (row && typeof row === "object" && row.entry_id) row.entry_id = next(row.entry_id); });
+      }
+      for (const [key, list] of Object.entries(parsed.__ocv?.entries ?? {})) parsed.__ocv.entries[key] = list.map(next);
+      return { ...document, yaml_content: yaml.dump(parsed) };
+    }),
+  };
+}
+
+async function importBundle(seed, bundle) {
+  const fake = installFakePostgrest(seed, { triggers: DATABASE_TRIGGERS });
+  const { importLanguagesAndDocuments } = await import("../app/lib/resume-server.ts");
+  return { fake, result: await importLanguagesAndDocuments("token", USER, bundle) };
+}
+
+async function parsedSeedBundle() {
+  const { parseUserDataBundle } = await import("../app/lib/user-data-transfer.ts");
+  const { upgradeLegacyResumeYamlContent } = await import("../app/lib/resume-server.ts");
+  const parsed = parseUserDataBundle(seedBundle());
+  return { ...parsed.bundle, documents: parsed.bundle.documents.map((document) => ({ ...document, yaml_content: upgradeLegacyResumeYamlContent(document.yaml_content) })) };
+}
+
+const roles = (document) => yaml.load(document.yaml_content).experience.map((row) => [row.role, row.highlights]);
+
+test("a re-import of a consistent bundle with different IDs replaces the stored default and keeps EN/PL roles", async (t) => {
+  const bundle = await parsedSeedBundle();
+  const first = await importBundle({ resume_languages: GLOBAL_LANGUAGES }, bundle);
+  assert.deepEqual(first.result, { ok: true });
+  const seeded = { resume_languages: GLOBAL_LANGUAGES, resume_user_locales: first.fake.rows("resume_user_locales"), resume_documents: first.fake.rows("resume_documents") };
+  first.fake.restore();
+
+  const reimport = withRegeneratedIds(bundle);
+  const second = await importBundle(seeded, reimport);
+  t.after(() => second.fake.restore());
+
+  assert.deepEqual(second.result, { ok: true }, "a consistent bundle is not blocked by the edit-time ID stability check");
+  const { validateResumeLanguagePair } = await import("../app/lib/resume-language-linkage.ts");
+  const stored = Object.fromEntries(["pl", "en", "de"].map((locale) => [locale, documentFor(second.fake, locale)]));
+  for (const locale of ["pl", "en", "de"]) {
+    assert.deepEqual(roles(stored[locale]), roles(reimport.documents.find((document) => document.locale === locale)), `${locale}: translated roles and highlights are kept`);
+  }
+  assert.deepEqual(validateResumeLanguagePair(yaml.load(stored.pl.yaml_content), yaml.load(stored.en.yaml_content)), []);
+});
+
+test("an import whose translation IDs do not match its default is refused before anything is blanked", async (t) => {
+  const bundle = await parsedSeedBundle();
+  const foreign = withRegeneratedIds(bundle);
+  const mixed = { ...bundle, documents: bundle.documents.map((document) => (document.locale === "en" ? foreign.documents.find((entry) => entry.locale === "en") : document)) };
+  const { fake, result } = await importBundle({ resume_languages: GLOBAL_LANGUAGES }, mixed);
+  t.after(() => fake.restore());
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, 409);
+  assert.match(result.error, /"en"/);
+  assert.ok(result.linkageIssues?.length, "the conflict lists the mismatched IDs");
+  const en = documentFor(fake, "en");
+  assert.ok(!en || roles(en).some(([role]) => role), "no English document is stored with blanked translations");
+});
+
+test("creating a translation with its own complete IDs that do not match the default is refused", async (t) => {
+  const { ensureResumeEntryIds } = await import("../app/lib/resume-language-linkage.ts");
+  const english = ensureResumeEntryIds(yaml.load(legacyEnglishDocument));
+  const foreignPolish = { ...english, experience: english.experience.map((row) => ({ ...row, entry_id: `foreign-${row.entry_id}`, role: "Stary" })) };
+  const fake = installFakePostgrest({
+    resume_languages: GLOBAL_LANGUAGES,
+    resume_user_locales: [
+      { user_id: USER, locale: "en", label_override: null, short_label_override: null, is_default: true, sort_order: 10 },
+      { user_id: USER, locale: "pl", label_override: null, short_label_override: null, is_default: false, sort_order: 20 },
+    ],
+    resume_documents: [{ id: "doc-en", user_id: USER, locale: "en", title: "en", yaml_content: yaml.dump(english), schema_version: 1 }],
+    profiles: [{ id: USER, display_name: "Old Admin", person_slug: "old-admin", name_sync_mode: "manual" }],
+  }, { triggers: DATABASE_TRIGGERS });
+  t.after(() => fake.restore());
+  const { publishResumeDocument, ResumeLanguageLinkageError } = await import("../app/lib/resume-server.ts");
+
+  await assert.rejects(
+    publishResumeDocument("token", USER, "pl", { yamlContent: yaml.dump(foreignPolish), title: "pl", changeNote: "create" }),
+    ResumeLanguageLinkageError,
+  );
+  assert.equal(documentFor(fake, "pl"), undefined, "nothing is written");
+});
+
+test("a normal save still cannot change the IDs of the stored default", async (t) => {
+  const { ensureResumeEntryIds } = await import("../app/lib/resume-language-linkage.ts");
+  const english = ensureResumeEntryIds(yaml.load(legacyEnglishDocument));
+  const fake = installFakePostgrest({
+    resume_languages: GLOBAL_LANGUAGES,
+    resume_user_locales: [{ user_id: USER, locale: "en", label_override: null, short_label_override: null, is_default: true, sort_order: 10 }],
+    resume_documents: [{ id: "doc-en", user_id: USER, locale: "en", title: "en", yaml_content: yaml.dump(english), schema_version: 1 }],
+    profiles: [{ id: USER, display_name: "Old Admin", person_slug: "old-admin", name_sync_mode: "manual" }],
+  }, { triggers: DATABASE_TRIGGERS });
+  t.after(() => fake.restore());
+  const { publishResumeDocument, saveResumeDraftDocument, ResumeLanguageLinkageError } = await import("../app/lib/resume-server.ts");
+  const changedIds = { ...english, experience: english.experience.map((row) => ({ ...row, entry_id: `changed-${row.entry_id}` })) };
+
+  await assert.rejects(publishResumeDocument("token", USER, "en", { yamlContent: yaml.dump(changedIds), title: "en", changeNote: "edit" }), ResumeLanguageLinkageError);
+  await assert.rejects(saveResumeDraftDocument("token", USER, "en", { yamlContent: yaml.dump(changedIds), title: "en" }), ResumeLanguageLinkageError);
+  assert.equal(documentFor(fake, "en").yaml_content, yaml.dump(english));
+});
