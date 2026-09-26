@@ -101,6 +101,8 @@ default-language document.
    language no longer adds a duplicate revision or bumps `updated_at`, and a
    translation last written without a revision (a draft save or an import) gets
    a "Synchronized with default language" revision on the next default save.
+   A failed profile read counts as an incomplete `profile` step; a missing
+   profile and manual name-sync mode do not.
    Making these steps atomic would need a new database function; deferred.
 
 ## Consequences
@@ -126,7 +128,9 @@ default-language document.
   `app/lib/resume-schema.ts`, `app/lib/published-export.ts`
 - Behavioral contract tests: `tests/resume-language-linkage.test.mjs`,
   `tests/resume-language-legacy-linkage.test.mjs`,
-  `tests/resume-language-save-race.test.mjs`, `tests/locale-save-plan.test.mjs`
+  `tests/resume-language-save-race.test.mjs`, `tests/locale-save-plan.test.mjs`,
+  `tests/resume-save-partial-failure.test.mjs`, and the isolated editor browser
+  check `tests/editor-save-retry-browser.test.mjs` (`EDITOR_BROWSER_TEST=1`)
 - Editor save order and sync adoption: `app/master-resume/locale-save-plan.ts`,
   `app/master-resume/use-multi-locale-resume-documents.ts`
 - Data import (ADR 0018): `importLanguagesAndDocuments` in `app/lib/resume-server.ts`
