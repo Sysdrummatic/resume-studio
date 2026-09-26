@@ -17,6 +17,7 @@ import {
   hasCompleteResumeLinkage,
   inspectResumeEntryIdStability,
   inspectResumeLanguagePair,
+  linkLegacyResumeLanguageDocument,
   reconcileResumeLanguageDocument,
   type ResumeLinkageIssue,
 } from "./resume-language-linkage";
@@ -1562,9 +1563,15 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
   if (currentDefault && currentDefault !== locale) {
     const targetDocument = await fetchDocumentByLocale(accessToken, userId, locale);
     if (!targetDocument) return false;
+    const currentDefaultDocument = await fetchDocumentByLocale(accessToken, userId, currentDefault);
     let canonicalYaml: string;
     try {
-      canonicalYaml = dumpLinkedResumeYaml(parseLinkedResumeYaml(targetDocument.yaml_content));
+      // A legacy target takes the current default's IDs by position first;
+      // otherwise the outgoing default could no longer pair with it.
+      const target = currentDefaultDocument
+        ? linkLegacyResumeLanguageDocument(parseLinkedResumeYaml(currentDefaultDocument.yaml_content), parseRawResumeYaml(targetDocument.yaml_content))
+        : parseRawResumeYaml(targetDocument.yaml_content);
+      canonicalYaml = dumpLinkedResumeYaml(target);
     } catch {
       return false;
     }
@@ -1911,7 +1918,7 @@ async function synchronizeResumeLanguageDocuments(
   const documents = await fetchResumeDocumentsForUser(userId);
   for (const document of documents) {
     if (normalizeLocale(document.locale) === normalizeLocale(defaultLocale)) continue;
-    const reconciledYaml = dumpLinkedResumeYaml(reconcileResumeLanguageDocument(parseLinkedResumeYaml(defaultYamlContent), parseLinkedResumeYaml(document.yaml_content)));
+    const reconciledYaml = dumpLinkedResumeYaml(reconcileResumeLanguageDocument(parseLinkedResumeYaml(defaultYamlContent), parseRawResumeYaml(document.yaml_content)));
     if (reconciledYaml === document.yaml_content) continue;
 
     const updateResult = await updateTable({

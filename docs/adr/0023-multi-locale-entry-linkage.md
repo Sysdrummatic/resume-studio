@@ -38,6 +38,12 @@ default-language document.
 7. Legacy documents without IDs are paired by existing position during their
    first reconciliation, then retain generated IDs. Public snapshots continue to
    use the existing numeric selection contract after locale reconciliation.
+   A document is legacy only when it has neither `__ocv` metadata nor any
+   `entry_id`. Its IDs are derived from the position (`legacy-<collection>-<index>`),
+   so the editor, a save, the language sync and a default switch, which each
+   parse it independently, produce IDs that pair. A legacy translation takes the
+   canonical IDs at the same positions, including `tech_stack` and `interests`.
+   A missing ID in an already linked document is never guessed from its position.
 
 ## Consequences
 

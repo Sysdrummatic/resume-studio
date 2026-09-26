@@ -8,7 +8,10 @@ const SUPABASE_URL = "http://fake-supabase.test";
 // not model RLS, so it is only for asserting the order of the app's own calls.
 // `triggers[table](row)` mirrors a BEFORE INSERT/UPDATE trigger: returning a
 // string rejects the write like a PL/pgSQL `raise exception` (PostgREST: 400).
-export function installFakePostgrest(seed = {}, { triggers = {} } = {}) {
+// Every write stamps a strictly increasing `updated_at`, like the real
+// `touch_updated_at` BEFORE UPDATE triggers. `onRequest` runs before each
+// request so a test can interleave a concurrent write via `update()`.
+export function installFakePostgrest(seed = {}, { triggers = {}, onRequest } = {}) {
   process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE_URL;
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon";
   process.env.SUPABASE_SERVICE_ROLE_KEY = "service";
@@ -19,6 +22,14 @@ export function installFakePostgrest(seed = {}, { triggers = {} } = {}) {
     return tables.get(name);
   };
   const calls = [];
+  let clock = Date.parse("2026-01-01T00:00:00.000Z");
+  const tick = () => new Date((clock += 1)).toISOString();
+
+  function update(name, predicate, patch) {
+    const hit = table(name).filter(predicate);
+    hit.forEach((row) => Object.assign(row, patch, { updated_at: tick() }));
+    return hit;
+  }
 
   function matches(row, params) {
     for (const [key, raw] of params) {
@@ -59,6 +70,7 @@ export function installFakePostgrest(seed = {}, { triggers = {} } = {}) {
     const url = new URL(String(input));
     const method = (init.method || "GET").toUpperCase();
     const path = url.pathname.replace("/rest/v1/", "");
+    await onRequest?.({ method, path, url, body: init.body });
 
     if (path.startsWith("rpc/")) {
       const name = path.slice(4);
@@ -68,7 +80,7 @@ export function installFakePostgrest(seed = {}, { triggers = {} } = {}) {
 
     const rows = table(path);
     const params = [...url.searchParams.entries()];
-    const now = new Date().toISOString();
+    const now = tick();
     calls.push({ method, target: path, query: url.search });
 
     if (method === "GET") {
@@ -97,7 +109,7 @@ export function installFakePostgrest(seed = {}, { triggers = {} } = {}) {
         const failure = rejected({ ...row, ...patch });
         if (failure) return failure;
       }
-      hit.forEach((row) => Object.assign(row, patch));
+      hit.forEach((row) => Object.assign(row, patch, "updated_at" in row ? { updated_at: tick() } : {}));
       return json(hit);
     }
     if (method === "DELETE") {
@@ -111,6 +123,7 @@ export function installFakePostgrest(seed = {}, { triggers = {} } = {}) {
   return {
     calls,
     rows: (name) => table(name),
+    update,
     restore: () => {
       globalThis.fetch = original;
     },

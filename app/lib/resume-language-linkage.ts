@@ -197,31 +197,48 @@ export function inspectResumeEntryIdStability(previousValue: unknown, currentVal
   return { ok: issues.length === 0, issues };
 }
 
-function ensureObjectEntryIds(source: RawObject, collection: Exclude<LinkedResumeCollection, "tech_stack" | "interests">): void {
+/**
+ * A document saved before linkage existed: no linkage metadata and no row ID.
+ * Only such documents are paired by position (ADR 0023 §7); a missing ID in a
+ * linked document is never guessed from its position.
+ */
+function isLegacyResumeDocument(source: RawObject): boolean {
+  if (RESUME_LINKAGE_KEY in source) return false;
+  return LINKED_RESUME_COLLECTIONS.every((collection) => idsForCollection(source, collection).every((id) => !id));
+}
+
+// Deterministic, so every independent parse of the same legacy document (editor,
+// save, language sync, default switch) yields IDs that pair by position.
+function legacyEntryId(collection: LinkedResumeCollection, index: number): string {
+  return `legacy-${collection}-${index}`;
+}
+
+function ensureObjectEntryIds(source: RawObject, collection: Exclude<LinkedResumeCollection, "tech_stack" | "interests">, legacy: boolean): void {
   const items = Array.isArray(source[collection]) ? source[collection] : [];
-  source[collection] = items.map((item) => {
+  source[collection] = items.map((item, index) => {
     const row = asObject(item);
-    return { ...row, entry_id: validEntryId(row.entry_id) ? row.entry_id : newEntryId() };
+    return { ...row, entry_id: validEntryId(row.entry_id) ? row.entry_id : legacy ? legacyEntryId(collection, index) : newEntryId() };
   });
 }
 
-function ensureStringEntryIds(source: RawObject, collection: "tech_stack" | "interests", entries: Partial<Record<LinkedResumeCollection, string[]>>): void {
+function ensureStringEntryIds(source: RawObject, collection: "tech_stack" | "interests", entries: Partial<Record<LinkedResumeCollection, string[]>>, legacy: boolean): void {
   const items = Array.isArray(source[collection]) ? source[collection] : [];
   const previous = Array.isArray(entries[collection]) ? entries[collection] || [] : [];
-  entries[collection] = items.map((_, index) => validEntryId(previous[index]) ? previous[index] : newEntryId());
+  entries[collection] = items.map((_, index) => validEntryId(previous[index]) ? previous[index] : legacy ? legacyEntryId(collection, index) : newEntryId());
 }
 
 /** Adds stable private IDs without changing the public resume fields. */
 export function ensureResumeEntryIds(value: unknown): RawObject {
   const source = clone(asObject(value));
+  const legacy = isLegacyResumeDocument(source);
   const linkage = asObject(source[RESUME_LINKAGE_KEY]) as LinkageMetadata;
   const entries = asObject(linkage.entries) as Partial<Record<LinkedResumeCollection, string[]>>;
 
   for (const collection of LINKED_RESUME_COLLECTIONS) {
     if (collection === "tech_stack" || collection === "interests") {
-      ensureStringEntryIds(source, collection, entries);
+      ensureStringEntryIds(source, collection, entries, legacy);
     } else {
-      ensureObjectEntryIds(source, collection);
+      ensureObjectEntryIds(source, collection, legacy);
     }
   }
 
@@ -254,29 +271,28 @@ function entryId(item: unknown): string | null {
   return validEntryId(id) ? id : null;
 }
 
-function seedLegacyIdsFromCanonical(value: unknown, canonical: RawObject): RawObject {
-  const source = clone(asObject(value));
-  const seeded = ensureResumeEntryIds(canonical);
+/**
+ * Gives a legacy translation the IDs of the canonical entries at the same
+ * positions (ADR 0023 §7). Rows beyond the canonical inventory get fresh IDs and
+ * are dropped by reconciliation as unpaired. Linked documents are returned as-is.
+ */
+export function linkLegacyResumeLanguageDocument(canonicalValue: unknown, localeValue: unknown): RawObject {
+  const source = clone(asObject(localeValue));
+  if (!isLegacyResumeDocument(source)) return source;
+  const canonical = ensureResumeEntryIds(canonicalValue);
+  const canonicalEntries = asObject(asObject(canonical[RESUME_LINKAGE_KEY]).entries);
+  const entries: Partial<Record<LinkedResumeCollection, string[]>> = {};
   for (const collection of LINKED_RESUME_COLLECTIONS) {
+    const items = Array.isArray(source[collection]) ? source[collection] : [];
     if (collection === "tech_stack" || collection === "interests") {
-      const sourceLinkage = asObject(source[RESUME_LINKAGE_KEY]);
-      const sourceEntries = asObject(sourceLinkage.entries);
-      const canonicalEntries = asObject(asObject(seeded[RESUME_LINKAGE_KEY]).entries);
-      const current = Array.isArray(sourceEntries[collection]) ? sourceEntries[collection] : [];
       const expected = Array.isArray(canonicalEntries[collection]) ? canonicalEntries[collection] : [];
-      source[RESUME_LINKAGE_KEY] = {
-        ...sourceLinkage,
-        entries: { ...sourceEntries, [collection]: current.map((id, index) => validEntryId(id) ? id : expected[index] || newEntryId()) },
-      };
+      entries[collection] = items.map((_, index) => validEntryId(expected[index]) ? expected[index] : newEntryId());
       continue;
     }
-    const items = Array.isArray(source[collection]) ? source[collection] : [];
-    const expected = Array.isArray(seeded[collection]) ? seeded[collection] : [];
-    source[collection] = items.map((item, index) => {
-      const row = asObject(item);
-      return { ...row, entry_id: validEntryId(row.entry_id) ? row.entry_id : entryId(expected[index]) || newEntryId() };
-    });
+    const expected = Array.isArray(canonical[collection]) ? canonical[collection] : [];
+    source[collection] = items.map((item, index) => ({ ...asObject(item), entry_id: entryId(expected[index]) || newEntryId() }));
   }
+  source[RESUME_LINKAGE_KEY] = { entries };
   return source;
 }
 
@@ -314,7 +330,7 @@ export function buildResumeLanguageTemplate(value: unknown): RawObject {
  */
 export function reconcileResumeLanguageDocument(defaultValue: unknown, localeValue: unknown): RawObject {
   const defaultSource = ensureResumeEntryIds(defaultValue);
-  const localeSource = seedLegacyIdsFromCanonical(localeValue, defaultSource);
+  const localeSource = ensureResumeEntryIds(linkLegacyResumeLanguageDocument(defaultSource, localeValue));
   const result = clone(localeSource);
 
   for (const collection of LINKED_RESUME_COLLECTIONS) {

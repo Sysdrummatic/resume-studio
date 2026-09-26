@@ -95,6 +95,55 @@ test("language pairing rejects changed and duplicate IDs with precise issues", (
   assert.ok(validation.issues.some((issue) => issue.kind === "duplicate-id" && issue.collection === "skills"));
 });
 
+const legacyPolish = {
+  ...source,
+  summary: [{ position: "Redaktor techniczny", description: "Pisze dokumentację", default: true }, { position: "Inżynier", description: "Buduje narzędzia", default: false }],
+  tech_stack: ["TypeScript (PL)"],
+  interests: ["Muzyka"],
+  experience: [{ period: "2020 - now", company: "OpenCiVera", role: "Redaktor techniczny", highlights: ["Dokumentacja"] }],
+};
+
+test("a legacy translation keeps its tech_stack and interests values when first linked to the default", () => {
+  const defaultWithIds = ensureResumeEntryIds({ ...source, tech_stack: ["TypeScript", "React"], interests: ["Music", "Chess"] });
+  const polish = { ...legacyPolish, tech_stack: ["TypeScript (PL)", "React (PL)"], interests: ["Muzyka", "Szachy"] };
+
+  const reconciled = reconcileResumeLanguageDocument(defaultWithIds, polish);
+
+  assert.deepEqual(reconciled.tech_stack, ["TypeScript (PL)", "React (PL)"]);
+  assert.deepEqual(reconciled.interests, ["Muzyka", "Szachy"]);
+  assert.equal(reconciled.experience[0].role, "Redaktor techniczny");
+  assert.deepEqual(validateResumeLanguagePair(defaultWithIds, reconciled), []);
+});
+
+test("legacy documents receive the same position-derived IDs each time they are parsed", () => {
+  // The server, the editor and a later sync each parse a legacy document
+  // independently; random IDs there cannot pair the language versions.
+  const first = ensureResumeEntryIds(source);
+  const second = ensureResumeEntryIds(structuredClone(source));
+  assert.deepEqual(second, first);
+  assert.deepEqual(ensureResumeEntryIds(legacyPolish).__ocv, first.__ocv);
+  assert.equal(ensureResumeEntryIds(legacyPolish).experience[0].entry_id, first.experience[0].entry_id);
+});
+
+test("an already linked translation never has a missing ID guessed from its position", () => {
+  const defaultWithIds = ensureResumeEntryIds({
+    ...source,
+    experience: [...source.experience, { period: "2018", company: "Earlier Co", role: "Intern", highlights: [] }],
+  });
+  const [first, second] = defaultWithIds.experience.map((item) => item.entry_id);
+  const linkedPolish = buildResumeLanguageTemplate(defaultWithIds);
+  linkedPolish.experience = [
+    { ...linkedPolish.experience[1], role: "Stażysta" },
+    { period: "2019", company: "Unknown", role: "Bez identyfikatora", highlights: [] },
+  ];
+
+  const reconciled = reconcileResumeLanguageDocument(defaultWithIds, linkedPolish);
+
+  assert.deepEqual(reconciled.experience.map((item) => item.entry_id), [first, second]);
+  assert.equal(reconciled.experience[1].role, "Stażysta", "the translation stays with its own entry");
+  assert.equal(reconciled.experience[0].role, "", "an unidentified row is not attached to another entry");
+});
+
 test("ID stability allows deliberate additions and removals but rejects replacement", () => {
   const previous = ensureResumeEntryIds(source);
   const removed = { ...previous, summary: previous.summary.slice(0, 1) };
