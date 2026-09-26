@@ -45,6 +45,16 @@ default-language document.
    canonical IDs at the same positions, including `tech_stack` and `interests`.
    A missing ID in an already linked document is never guessed from its position.
 
+8. Concurrent saves never overwrite silently. Every write to `resume_documents`
+   is a compare-and-swap on `updated_at` (bumped by the `touch_updated_at`
+   trigger). The editor sends the `baseUpdatedAt` it edited; a stale base or a
+   write that loses the race returns `409 { conflict: true }` and nothing is
+   written. The default-language sync re-reads and reconciles a translation that
+   changed under it, since reconciliation keeps translated text. The editor saves
+   translations before the default and adopts a synchronized translation only
+   when the sync started from the version it holds (`synchronizedDocuments`);
+   a translation the sync could not update is reported as a failed save.
+
 ## Consequences
 
 - A user can prepare a translation gradually without losing the experience,
@@ -66,7 +76,11 @@ default-language document.
   `app/master-resume/editor-canvas-client.tsx`
 - Private metadata normalization and public stripping:
   `app/lib/resume-schema.ts`, `app/lib/published-export.ts`
-- Behavioral contract tests: `tests/resume-language-linkage.test.mjs`
+- Behavioral contract tests: `tests/resume-language-linkage.test.mjs`,
+  `tests/resume-language-legacy-linkage.test.mjs`,
+  `tests/resume-language-save-race.test.mjs`, `tests/locale-save-plan.test.mjs`
+- Editor save order and sync adoption: `app/master-resume/locale-save-plan.ts`,
+  `app/master-resume/use-multi-locale-resume-documents.ts`
 - Data import (ADR 0018): `importLanguagesAndDocuments` in `app/lib/resume-server.ts`
   registers the bundle's languages without changing the default, saves the
   bundle's default-language document as the canonical one (`asDefault`), switches
