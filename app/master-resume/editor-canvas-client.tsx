@@ -54,7 +54,8 @@ const STYLE_DETAIL_TOGGLES: Array<{ key: keyof Pick<ResumeStyleSettings, "sectio
   { key: "headerPhoto", label: "Initials badge in header" },
   { key: "liveLinkQr", label: "QR code to the live link" },
 ];
-import { useMultiLocaleResumeDocuments } from "./use-multi-locale-resume-documents";
+import { KeyedEditorError, useMultiLocaleResumeDocuments } from "./use-multi-locale-resume-documents";
+import type { EditorFailureMessage } from "./locale-save-plan";
 import type {
   ResumeCourse,
   ResumeDocument,
@@ -232,6 +233,12 @@ function clearLocalDraft(locale: string): void {
 export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding, testRun }: { draftPdfEnabled?: boolean; onboarding?: OnboardingState; testRun?: OnboardingTestRun } = {}) {
   const { locale: appLocale, dictionary } = useAppI18n();
   const editorText = (text: string) => dictionary.editor.text[text] ?? text;
+  const keyedText = (message: EditorFailureMessage) => formatAppMessage(editorText(message.key), message.params);
+  // Legacy-pairing conflicts are shown from the EN/PL dictionaries, never from the server's English text.
+  const confirmLegacyPairing = (prompt: EditorFailureMessage) => window.confirm(keyedText(prompt));
+  const translateKeyedError = (error: unknown): never => {
+    throw error instanceof KeyedEditorError ? new Error(keyedText(error.keyed)) : error;
+  };
   const [onboardingImported, setOnboardingImported] = useState(onboarding?.imported ?? false);
   const searchParams = useSearchParams();
   const requestedPanel = searchParams.get("panel");
@@ -721,7 +728,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     setIsBusy(true);
     showToast(editorText("Saving..."));
     try {
-      const result = await saveAllDirty({ changeNote });
+      const result = await saveAllDirty({ changeNote, confirmLegacyPairing });
       const failures = result.failed
         .map((entry) => (entry.messageKey ? formatAppMessage(editorText(entry.messageKey), entry.messageParams ?? {}) : entry.message))
         .join(" ");
@@ -1156,12 +1163,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
         onLocale={async (code) => {
           if (code === locale) return;
           if (isAnyDirty) {
-            const saved = await saveAllDirty({ changeNote: "First CV guide" });
+            const saved = await saveAllDirty({ changeNote: "First CV guide", confirmLegacyPairing });
             if (saved.failed.length) throw new Error(editorText("Save failed"));
           }
           if (languageOptions.some((language) => language.code === code)) setActiveLocale(code);
           else await saveLanguageVersion({ code, label: code === "pl" ? "Polski" : "English", shortLabel: code.toUpperCase() }, null);
-          await setDefaultLanguage(code);
+          await setDefaultLanguage(code).catch(translateKeyedError);
           setOnboardingImported(false);
         }}
         onSave={async () => {
@@ -1169,7 +1176,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
           if (!isAnyDirty) return;
           setIsBusy(true);
           try {
-            const saved = await saveAllDirty({ changeNote: "First CV guide" });
+            const saved = await saveAllDirty({ changeNote: "First CV guide", confirmLegacyPairing });
             if (saved.failed.length) throw new Error(editorText("Save failed"));
           } finally { setIsBusy(false); }
         }}
@@ -1197,7 +1204,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
           showToast(editorText(editingCode ? "Language version updated." : "Language version created."));
         }}
         onSetDefault={async (code) => {
-          await setDefaultLanguage(code);
+          await setDefaultLanguage(code).catch(translateKeyedError);
           showToast(editorText("Default language updated."));
         }}
         onDelete={async (code) => {

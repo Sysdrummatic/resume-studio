@@ -87,3 +87,101 @@ test("a partial save gives the editor the stored version to retry from and a loc
     assert.ok(read(dictionary).includes(JSON.stringify(PARTIAL_SAVE_MESSAGE)), `${dictionary} translates the partial-save message`);
   }
 });
+
+const ambiguousPayload = { code: "legacy-pairing", error: "English server text", legacyConflicts: [{ collection: "interests", reason: "ambiguous" }] };
+const orderPayload = { code: "legacy-pairing", error: "English server text", legacyConflicts: [{ collection: "experience", reason: "order", index: 0 }] };
+
+test("a 409 legacy-pairing response becomes a keyed message, with a confirmation only for ambiguous order", async () => {
+  const { legacyConflictFailure, LEGACY_PAIRING_MESSAGE, LEGACY_PAIRING_AMBIGUOUS_MESSAGE, LEGACY_PAIRING_CONFIRM_PROMPT } = await import("../app/master-resume/locale-save-plan.ts");
+
+  assert.deepEqual(legacyConflictFailure(ambiguousPayload, "pl"), {
+    message: { locale: "pl", key: LEGACY_PAIRING_AMBIGUOUS_MESSAGE, params: { locale: "pl", collections: "interests" } },
+    prompt: { locale: "pl", key: LEGACY_PAIRING_CONFIRM_PROMPT, params: { locale: "pl", collections: "interests" } },
+  });
+  assert.deepEqual(legacyConflictFailure(orderPayload, "pl"), {
+    message: { locale: "pl", key: LEGACY_PAIRING_MESSAGE, params: { locale: "pl", collections: "experience" } },
+    prompt: null,
+  });
+  assert.equal(legacyConflictFailure({ error: "Publish failed." }, "pl"), null);
+});
+
+test("a direct save of an ambiguous legacy version is resent once the user confirms, and never for an order conflict", async () => {
+  const { saveWithLegacyConfirmation } = await import("../app/master-resume/locale-save-plan.ts");
+  const run = async (firstPayload, answer) => {
+    const sent = [];
+    const prompts = [];
+    const outcome = await saveWithLegacyConfirmation(
+      "pl",
+      async (confirm) => {
+        sent.push(confirm);
+        return confirm ? { status: 200, payload: { ok: true } } : { status: 409, payload: firstPayload };
+      },
+      async (prompt) => {
+        prompts.push(prompt.key);
+        return answer;
+      },
+    );
+    return { sent, prompts, outcome };
+  };
+
+  const confirmed = await run(ambiguousPayload, true);
+  assert.deepEqual(confirmed.sent, [false, true]);
+  assert.deepEqual(confirmed.outcome, { status: 200, payload: { ok: true } });
+
+  const declined = await run(ambiguousPayload, false);
+  assert.deepEqual(declined.sent, [false]);
+  assert.equal(declined.outcome.status, 409);
+
+  const order = await run(orderPayload, true);
+  assert.deepEqual([order.sent, order.prompts], [[false], []], "a contradicting order is never offered for confirmation");
+});
+
+test("legacy-pairing messages render in English and Polish from the dictionaries, not from payload.error", async () => {
+  const yaml = (await import("js-yaml")).default;
+  const { formatAppMessage } = await import("../app/i18n/locale.ts");
+  const plan = await import("../app/master-resume/locale-save-plan.ts");
+  const keys = [plan.LEGACY_PAIRING_MESSAGE, plan.LEGACY_PAIRING_AMBIGUOUS_MESSAGE, plan.LEGACY_PAIRING_CONFIRM_PROMPT];
+  const params = { locale: "pl", collections: "interests" };
+  const rendered = {};
+  for (const language of ["en", "pl"]) {
+    const text = yaml.load(read(`app/i18n/locales/${language}.yaml`)).editor.text;
+    rendered[language] = keys.map((key) => {
+      assert.ok(text[key], `${language} translates ${key}`);
+      return formatAppMessage(text[key], params);
+    });
+  }
+  for (const [index, key] of keys.entries()) {
+    assert.notEqual(rendered.pl[index], rendered.en[index], `Polish is translated: ${key}`);
+    for (const message of [rendered.en[index], rendered.pl[index]]) {
+      assert.match(message, /interests/);
+      assert.doesNotMatch(message, /English server text|\{/);
+    }
+  }
+});
+
+test("the publish route answers a direct save of a problematic legacy version with a structured code", async () => {
+  const ts = (await import("typescript")).default;
+  const server = await import("../app/lib/resume-server.ts");
+  const js = ts.transpileModule(read("app/api/resume/publish/route.ts"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const route = {};
+  const modules = {
+    "next/server": { NextResponse: { json: (body, init) => Response.json(body, init) } },
+    "../../../lib/auth-request": { requireRequestActor: async () => ({ ok: true, actor: { userId: "u" }, accessToken: "t" }) },
+    "../../../lib/rate-limit": { rateLimit: async () => ({ success: true, reset: Date.now() }) },
+    "../../../lib/resume-schema": await import("../app/lib/resume-schema.ts"),
+    "../../../lib/supabase-http": { callRpc: async () => ({ data: true }) },
+    "../../../lib/content-safety-audit": { flagSuspiciousResumeContent: async () => {} },
+    "../../../lib/resume-server": {
+      ...server,
+      publishResumeDocument: async () => { throw new server.ResumeLegacyPairingError([{ collection: "experience", reason: "order", index: 0 }]); },
+    },
+  };
+  new Function("require", "exports", js)((name) => modules[name], route);
+
+  const response = await route.POST(new Request("http://localhost/api/resume/publish", { method: "POST", body: JSON.stringify({ locale: "pl", yamlContent: "name: Jan" }) }));
+  const body = await response.json();
+
+  assert.equal(response.status, 409);
+  assert.equal(body.code, "legacy-pairing");
+  assert.deepEqual(body.legacyConflicts, [{ collection: "experience", reason: "order", index: 0 }]);
+});

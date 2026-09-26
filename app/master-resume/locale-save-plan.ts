@@ -6,6 +6,48 @@ export type EditorFailureMessage = { locale: ResumeLocale; key: string; params: 
 
 export const LEGACY_PAIRING_MESSAGE =
   "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.";
+export const LEGACY_PAIRING_AMBIGUOUS_MESSAGE =
+  "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it.";
+export const LEGACY_PAIRING_CONFIRM_PROMPT =
+  "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order.";
+
+type LegacyConflict = { collection: string; reason: string };
+type LegacyConflictPayload = { code?: string; legacyConflicts?: LegacyConflict[] };
+
+function legacyConflictMessages(locale: ResumeLocale, conflicts: LegacyConflict[]): { message: EditorFailureMessage; prompt: EditorFailureMessage | null } {
+  const params = { locale, collections: [...new Set(conflicts.map((conflict) => conflict.collection))].join(", ") };
+  const confirmable = conflicts.length > 0 && conflicts.every((conflict) => conflict.reason === "ambiguous");
+  return {
+    message: { locale, key: confirmable ? LEGACY_PAIRING_AMBIGUOUS_MESSAGE : LEGACY_PAIRING_MESSAGE, params },
+    prompt: confirmable ? { locale, key: LEGACY_PAIRING_CONFIRM_PROMPT, params } : null,
+  };
+}
+
+/**
+ * Reads `409 { code: "legacy-pairing", legacyConflicts }` by its code, never by
+ * the server's English text. `prompt` is set only when every conflict is
+ * `ambiguous`, i.e. when a user confirmation of the order may resolve it.
+ */
+export function legacyConflictFailure(payload: LegacyConflictPayload, locale: ResumeLocale): { message: EditorFailureMessage; prompt: EditorFailureMessage | null } | null {
+  if (payload.code !== "legacy-pairing") return null;
+  return legacyConflictMessages(locale, payload.legacyConflicts ?? []);
+}
+
+/**
+ * Sends a save; on an ambiguous legacy-pairing conflict asks the user once and
+ * resends with the confirmation. Count and order conflicts are never resent.
+ */
+export async function saveWithLegacyConfirmation<P extends LegacyConflictPayload>(
+  locale: ResumeLocale,
+  send: (confirmLegacyPairing: boolean) => Promise<{ status: number; payload: P }>,
+  confirm?: (prompt: EditorFailureMessage) => boolean | Promise<boolean>,
+): Promise<{ status: number; payload: P }> {
+  const first = await send(false);
+  const prompt = first.status === 409 ? legacyConflictFailure(first.payload, locale)?.prompt : null;
+  if (!prompt || !confirm || !(await confirm(prompt))) return first;
+  return send(true);
+}
+
 export const NOT_SYNCHRONIZED_MESSAGE = "{locale}: not synchronized with the default language. Save again to retry.";
 export const SYNCHRONIZATION_UNCHECKED_MESSAGE =
   "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.";
@@ -33,7 +75,7 @@ export function synchronizationFailureMessages(
 ): EditorFailureMessage[] {
   const messages: EditorFailureMessage[] = (payload.synchronizationFailed ?? []).map((failure): EditorFailureMessage =>
     failure.reason === "legacy-pairing"
-      ? { locale: failure.locale, key: LEGACY_PAIRING_MESSAGE, params: { locale: failure.locale, collections: [...new Set(failure.conflicts.map((conflict) => conflict.collection))].join(", ") } }
+      ? legacyConflictMessages(failure.locale, failure.conflicts).message
       : { locale: failure.locale, key: NOT_SYNCHRONIZED_MESSAGE, params: { locale: failure.locale } },
   );
   if (payload.synchronizationComplete === false) {

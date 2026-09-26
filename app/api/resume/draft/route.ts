@@ -78,7 +78,7 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: RESUME_DOCUMENT_CONFLICT_MESSAGE, conflict: true }, { status: 409 });
     }
     if (error instanceof ResumeLegacyPairingError) {
-      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, legacyConflicts: error.conflicts }, { status: 409 });
+      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, code: "legacy-pairing", legacyConflicts: error.conflicts }, { status: 409 });
     }
     throw error;
   }

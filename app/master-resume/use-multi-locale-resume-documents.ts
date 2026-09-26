@@ -25,8 +25,10 @@ import {
   type ResumeLinkageIssue,
 } from "../lib/resume-language-linkage";
 import {
+  legacyConflictFailure,
   partialSaveFailure,
   planSynchronizedBuffer,
+  saveWithLegacyConfirmation,
   saveLocalesInOrder,
   synchronizationFailureMessages,
   type EditorFailureMessage,
@@ -77,16 +79,30 @@ type ApiDocumentResponse = {
   synchronizationFailed?: ResumeSynchronizationFailure[];
   synchronizationComplete?: boolean;
   saved?: boolean;
+  code?: string;
+  legacyConflicts?: Array<{ collection: string; reason: string }>;
 };
 
 class ResumeSaveError extends Error {
   docsUrl?: string;
   /** Set when the server stored the document but could not finish the save. */
   partial?: { document: ResumeDocumentRow; message: EditorFailureMessage; payload: ApiDocumentResponse };
-  constructor(message: string, docsUrl?: string, partial?: ResumeSaveError["partial"]) {
+  /** A failure the editor shows from its EN/PL dictionaries instead of `message`. */
+  keyed?: EditorFailureMessage;
+  constructor(message: string, docsUrl?: string, partial?: ResumeSaveError["partial"], keyed?: EditorFailureMessage) {
     super(message);
     this.docsUrl = docsUrl;
     this.partial = partial;
+    this.keyed = keyed;
+  }
+}
+
+/** A language-management failure with a dictionary key, for the editor to translate. */
+export class KeyedEditorError extends Error {
+  readonly keyed: EditorFailureMessage;
+  constructor(keyed: EditorFailureMessage) {
+    super(formatAppMessage(keyed.key, keyed.params));
+    this.keyed = keyed;
   }
 }
 
@@ -506,7 +522,14 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
   );
 
   const saveAllDirty = useCallback(
-    async ({ changeNote }: { changeNote: string }): Promise<SaveAllResult> => {
+    async ({
+      changeNote,
+      confirmLegacyPairing,
+    }: {
+      changeNote: string;
+      /** Asks the user to confirm the order of an ambiguous legacy translation (ADR 0023 §7). */
+      confirmLegacyPairing?: (prompt: EditorFailureMessage) => boolean | Promise<boolean>;
+    }): Promise<SaveAllResult> => {
       const targets = Array.from(new Set([activeLocale, ...dirtyLocales]));
       const result: SaveAllResult = { succeeded: [], failed: [] };
 
@@ -536,24 +559,32 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
               title: "Test onboardingu", yaml_content: snapshot, schema_version: 1, updated_at: "" }, revisions: [] };
             return { code, payload, snapshot, styleSnapshot: buffer.cvStyle };
           }
-          const response = await fetch("/api/resume/publish", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              locale: code,
-              yamlContent: snapshot,
-              title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Experience Base` : "Experience Base",
-              styleSettings: buffer.cvStyle,
-              changeNote: changeNote || "Saved update",
-              baseUpdatedAt: buffer.documentRow?.updated_at ?? null,
-            }),
-          });
-          const payload = (await response.json()) as ApiDocumentResponse;
-          if (!response.ok || payload.error || !payload.document) {
+          const { status, payload } = await saveWithLegacyConfirmation<ApiDocumentResponse>(
+            code,
+            async (confirmLegacyPairing) => {
+              const response = await fetch("/api/resume/publish", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  locale: code,
+                  yamlContent: snapshot,
+                  title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Experience Base` : "Experience Base",
+                  styleSettings: buffer.cvStyle,
+                  changeNote: changeNote || "Saved update",
+                  baseUpdatedAt: buffer.documentRow?.updated_at ?? null,
+                  ...(confirmLegacyPairing ? { confirmLegacyPairing: true } : {}),
+                }),
+              });
+              return { status: response.status, payload: (await response.json()) as ApiDocumentResponse };
+            },
+            confirmLegacyPairing,
+          );
+          if (status < 200 || status >= 300 || payload.error || !payload.document) {
             const stored = partialSaveFailure(payload, code);
             const partial = stored ? { ...stored, payload } : undefined;
-            const message = partial ? formatAppMessage(partial.message.key, partial.message.params) : `${code}: ${payload.error || "Save failed."}`;
-            throw new ResumeSaveError(message, payload.docsUrl, partial);
+            const keyed = partial?.message ?? legacyConflictFailure(payload, code)?.message;
+            const message = keyed ? formatAppMessage(keyed.key, keyed.params) : `${code}: ${payload.error || "Save failed."}`;
+            throw new ResumeSaveError(message, payload.docsUrl, partial, keyed);
           }
           return { code, payload, snapshot, styleSnapshot: buffer.cvStyle };
         },
@@ -574,8 +605,8 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             locale: targets[index],
             message: outcome.reason instanceof Error ? outcome.reason.message : "Save failed.",
             docsUrl: outcome.reason instanceof ResumeSaveError ? outcome.reason.docsUrl : undefined,
-            messageKey: outcome.reason instanceof ResumeSaveError ? outcome.reason.partial?.message.key : undefined,
-            messageParams: outcome.reason instanceof ResumeSaveError ? outcome.reason.partial?.message.params : undefined,
+            messageKey: outcome.reason instanceof ResumeSaveError ? outcome.reason.keyed?.key : undefined,
+            messageParams: outcome.reason instanceof ResumeSaveError ? outcome.reason.keyed?.params : undefined,
           });
       });
       unsynchronized.forEach((failure) =>
@@ -708,8 +739,16 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code, setDefault: true }),
     });
-    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale; synchronizedDocuments?: SynchronizedResumeDocument[] };
+    const payload = (await response.json()) as {
+      error?: string;
+      code?: string;
+      legacyConflicts?: Array<{ collection: string; reason: string }>;
+      defaultLocale?: ResumeLocale;
+      synchronizedDocuments?: SynchronizedResumeDocument[];
+    };
     if (!response.ok || payload.error) {
+      const conflict = legacyConflictFailure(payload, code);
+      if (conflict) throw new KeyedEditorError(conflict.message);
       throw new Error(payload.error || "Default language update failed.");
     }
     const nextDefault = payload.defaultLocale || code;
