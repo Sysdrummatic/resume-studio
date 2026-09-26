@@ -17,10 +17,13 @@ import {
   hasCompleteResumeLinkage,
   inspectResumeEntryIdStability,
   inspectResumeLanguagePair,
+  findLegacyPairingConflicts,
+  isLegacyResumeDocument,
   linkLegacyResumeLanguageDocument,
   reconcileResumeLanguageDocument,
   ResumeLegacyPairingError,
   type LegacyPairingConflict,
+  type LegacyPairingOptions,
   type ResumeLinkageIssue,
 } from "./resume-language-linkage";
 
@@ -2130,7 +2133,7 @@ async function prepareResumeLanguageYaml(
   userId: string,
   locale: ResumeLocale,
   yamlContent: string,
-  options: { asDefault?: boolean } = {},
+  options: { asDefault?: boolean; replacingStoredDocument?: boolean } & LegacyPairingOptions = {},
 ): Promise<{ yamlContent: string; document: ResumeDocumentRow | null; defaultLocale: ResumeLocale }> {
   const locales = await fetchResumeUserLocalesForUser(userId, { accessToken });
   // `asDefault`: the caller is about to make this locale the default (data
@@ -2155,6 +2158,13 @@ async function prepareResumeLanguageYaml(
   }
 
   const defaultRaw = parseRawResumeYaml(defaultDocument.yaml_content);
+  // A stored translation that was never linked is paired now. The editor sends it
+  // with position-derived IDs, so the positions are checked on the content itself;
+  // an import replaces the stored document with its own mapping instead.
+  if (document && !options.replacingStoredDocument && isLegacyResumeDocument(parseRawResumeYaml(document.yaml_content))) {
+    const conflicts = findLegacyPairingConflicts(ensureResumeEntryIds(defaultRaw), candidateRaw, options);
+    if (conflicts.length) throw new ResumeLegacyPairingError(conflicts);
+  }
   const existingLocaleIsLegacy = !document || !hasCompleteResumeLinkage(parseRawResumeYaml(document.yaml_content));
   if (hasCompleteResumeLinkage(defaultRaw) && !existingLocaleIsLegacy) {
     const validation = inspectResumeLanguagePair(defaultRaw, candidateRaw);
@@ -2168,7 +2178,7 @@ async function prepareResumeLanguageYaml(
 
   // One-time compatibility path for documents created before linkage IDs were introduced.
   return {
-    yamlContent: dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, candidateRaw)),
+    yamlContent: dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, candidateRaw, options)),
     document,
     defaultLocale,
   };
@@ -2185,6 +2195,8 @@ export async function publishResumeDocument(
     changeNote: string;
     /** `updated_at` of the version the editor changed; `null` when it had none. Omitted: no check. */
     baseUpdatedAt?: string | null;
+    /** The user confirmed the order of ambiguous legacy collections (ADR 0023 §7). */
+    confirmLegacyPairing?: boolean;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
@@ -2192,7 +2204,9 @@ export async function publishResumeDocument(
   let defaultLocale: ResumeLocale;
   let document = await fetchDocumentByLocale(accessToken, userId, locale);
   try {
-    const prepared = await prepareResumeLanguageYaml(accessToken, userId, locale, payload.yamlContent);
+    const prepared = await prepareResumeLanguageYaml(accessToken, userId, locale, payload.yamlContent, {
+      confirmLegacyPairing: payload.confirmLegacyPairing === true,
+    });
     preparedYamlContent = prepared.yamlContent;
     defaultLocale = prepared.defaultLocale;
     document = prepared.document;
@@ -2277,11 +2291,14 @@ export async function saveResumeDraftDocument(
     yamlContent: string;
     title: string;
     asDefault?: boolean;
+    /** Data import: the stored document is replaced by the bundle's own linked content. */
+    replacingStoredDocument?: boolean;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
   const prepared = await prepareResumeLanguageYaml(accessToken, userId, locale, payload.yamlContent, {
     asDefault: payload.asDefault,
+    replacingStoredDocument: payload.replacingStoredDocument,
   });
   const preparedYamlContent = prepared.yamlContent;
   let document = prepared.document;
@@ -2396,6 +2413,7 @@ export async function importLanguagesAndDocuments(
         yamlContent: document.yaml_content,
         title: document.title,
         asDefault: isDefault,
+        replacingStoredDocument: true,
       });
     } catch (error) {
       if (error instanceof ResumeLanguageLinkageError) {

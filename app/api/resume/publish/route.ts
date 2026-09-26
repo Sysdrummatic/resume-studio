@@ -22,6 +22,7 @@ type PublishBody = {
   styleSettings?: unknown;
   changeNote?: string;
   baseUpdatedAt?: unknown;
+  confirmLegacyPairing?: unknown;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -80,6 +81,7 @@ export async function POST(request: Request): Promise<Response> {
       styleSettings: body.styleSettings,
       changeNote: String(body.changeNote || "Publish"),
       baseUpdatedAt,
+      confirmLegacyPairing: body.confirmLegacyPairing === true,
     });
   } catch (error) {
     if (error instanceof ResumeLanguageLinkageError) {

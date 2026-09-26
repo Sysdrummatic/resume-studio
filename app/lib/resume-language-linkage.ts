@@ -202,7 +202,7 @@ export function inspectResumeEntryIdStability(previousValue: unknown, currentVal
  * Only such documents are paired by position (ADR 0023 §7); a missing ID in a
  * linked document is never guessed from its position.
  */
-function isLegacyResumeDocument(source: RawObject): boolean {
+export function isLegacyResumeDocument(source: RawObject): boolean {
   if (RESUME_LINKAGE_KEY in source) return false;
   return LINKED_RESUME_COLLECTIONS.every((collection) => idsForCollection(source, collection).every((id) => !id));
 }
@@ -273,7 +273,11 @@ function entryId(item: unknown): string | null {
 
 export type LegacyPairingConflict =
   | { collection: LinkedResumeCollection; reason: "count"; defaultCount: number; translationCount: number }
-  | { collection: LinkedResumeCollection; reason: "order"; index: number };
+  | { collection: LinkedResumeCollection; reason: "order"; index: number }
+  | { collection: LinkedResumeCollection; reason: "ambiguous" };
+
+/** `confirmLegacyPairing`: the user confirmed that ambiguous collections are in the same order. */
+export type LegacyPairingOptions = { confirmLegacyPairing?: boolean };
 
 /** A legacy translation cannot be paired by position without guessing; nothing was changed. */
 export class ResumeLegacyPairingError extends Error {
@@ -286,16 +290,45 @@ export class ResumeLegacyPairingError extends Error {
   }
 }
 
-// Neutral fields every language shares; only their start year is compared, so a
-// translated period ("2020 - now" vs "2020 - obecnie") still pairs.
-const START_YEAR_FIELD: Partial<Record<LinkedResumeCollection, string>> = { experience: "period", education: "period", courses: "year" };
-
 function startYear(value: unknown): string | null {
   return String(value ?? "").match(/\d{4}/)?.[0] ?? null;
 }
 
-/** Positions are only trusted when counts match and shared start years agree. */
-export function findLegacyPairingConflicts(canonicalValue: unknown, localeValue: unknown): LegacyPairingConflict[] {
+function normalizedText(value: unknown): string | null {
+  const text = String(value ?? "").trim().toLowerCase();
+  return text || null;
+}
+
+/**
+ * A value that identifies the same entry in every language, or null when the
+ * collection has none (summary, skills, languages, courses) or it is incomplete.
+ * Company/school and contact values are neutral fields; a translated period
+ * ("2020 - obecnie") still matches on its start year.
+ */
+function pairingKey(collection: LinkedResumeCollection, item: unknown): string | null {
+  const row = asObject(item);
+  if (collection === "experience" || collection === "education") {
+    const name = normalizedText(collection === "experience" ? row.company : row.school);
+    const year = startYear(row.period);
+    return name && year ? `${name}\u001f${year}` : null;
+  }
+  if (collection === "contact" || collection === "qr_codes") return normalizedText(row.value);
+  if (collection === "tech_stack" || collection === "interests") return normalizedText(item);
+  return null;
+}
+
+function hasDuplicates(keys: Array<string | null>): boolean {
+  const present = keys.filter((key): key is string => Boolean(key));
+  return new Set(present).size !== present.length;
+}
+
+/**
+ * Pairs by position only when it is unambiguous: equal counts and either a
+ * single entry or unique keys that match at every position. The same key at a
+ * different position is an `order` conflict (e.g. Alpha/Beta swapped). Anything
+ * else without that proof is `ambiguous`, which only the user can confirm.
+ */
+export function findLegacyPairingConflicts(canonicalValue: unknown, localeValue: unknown, options: LegacyPairingOptions = {}): LegacyPairingConflict[] {
   const canonical = asObject(canonicalValue);
   const source = asObject(localeValue);
   const conflicts: LegacyPairingConflict[] = [];
@@ -307,14 +340,17 @@ export function findLegacyPairingConflicts(canonicalValue: unknown, localeValue:
       conflicts.push({ collection, reason: "count", defaultCount: expected.length, translationCount: items.length });
       continue;
     }
-    const field = START_YEAR_FIELD[collection];
-    if (!field) continue;
-    const index = items.findIndex((item, position) => {
-      const translated = startYear(asObject(item)[field]);
-      const canonicalYear = startYear(asObject(expected[position])[field]);
-      return Boolean(translated && canonicalYear && translated !== canonicalYear);
-    });
-    if (index >= 0) conflicts.push({ collection, reason: "order", index });
+    if (items.length === 1) continue;
+    const translatedKeys = items.map((item) => pairingKey(collection, item));
+    const canonicalKeys = expected.map((item) => pairingKey(collection, item));
+    const unique = !hasDuplicates(translatedKeys) && !hasDuplicates(canonicalKeys);
+    const moved = unique ? translatedKeys.findIndex((key, index) => key !== null && canonicalKeys.includes(key) && canonicalKeys[index] !== key) : -1;
+    if (moved >= 0) {
+      conflicts.push({ collection, reason: "order", index: moved });
+      continue;
+    }
+    const proven = unique && translatedKeys.every((key, index) => key !== null && key === canonicalKeys[index]);
+    if (!proven && !options.confirmLegacyPairing) conflicts.push({ collection, reason: "ambiguous" });
   }
   return conflicts;
 }
@@ -324,11 +360,11 @@ export function findLegacyPairingConflicts(canonicalValue: unknown, localeValue:
  * positions (ADR 0023 §7). Throws `ResumeLegacyPairingError` instead of guessing
  * when counts or order disagree. Linked documents are returned as-is.
  */
-export function linkLegacyResumeLanguageDocument(canonicalValue: unknown, localeValue: unknown): RawObject {
+export function linkLegacyResumeLanguageDocument(canonicalValue: unknown, localeValue: unknown, options: LegacyPairingOptions = {}): RawObject {
   const source = clone(asObject(localeValue));
   if (!isLegacyResumeDocument(source)) return source;
   const canonical = ensureResumeEntryIds(canonicalValue);
-  const conflicts = findLegacyPairingConflicts(canonical, source);
+  const conflicts = findLegacyPairingConflicts(canonical, source, options);
   if (conflicts.length) throw new ResumeLegacyPairingError(conflicts);
   const canonicalEntries = asObject(asObject(canonical[RESUME_LINKAGE_KEY]).entries);
   const entries: Partial<Record<LinkedResumeCollection, string[]>> = {};
@@ -378,9 +414,9 @@ export function buildResumeLanguageTemplate(value: unknown): RawObject {
  * Missing records are created as blank translation slots; extra records are
  * removed. Existing translated content is kept by entry_id.
  */
-export function reconcileResumeLanguageDocument(defaultValue: unknown, localeValue: unknown): RawObject {
+export function reconcileResumeLanguageDocument(defaultValue: unknown, localeValue: unknown, options: LegacyPairingOptions = {}): RawObject {
   const defaultSource = ensureResumeEntryIds(defaultValue);
-  const localeSource = ensureResumeEntryIds(linkLegacyResumeLanguageDocument(defaultSource, localeValue));
+  const localeSource = ensureResumeEntryIds(linkLegacyResumeLanguageDocument(defaultSource, localeValue, options));
   const result = clone(localeSource);
 
   for (const collection of LINKED_RESUME_COLLECTIONS) {

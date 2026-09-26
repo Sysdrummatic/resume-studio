@@ -32,14 +32,14 @@ const legacyEnglish = {
   ...base,
   summary: [{ position: "Engineer", description: "Builds tools", default: true }],
   tech_stack: ["TypeScript", "React"],
-  interests: ["Music", "Chess"],
+  interests: ["Music"],
   experience: [{ period: "2020 - now", company: "Acme", role: "Engineer", highlights: ["Built the editor"] }],
 };
 const legacyPolish = {
   ...base,
   summary: [{ position: "Inżynier", description: "Buduje narzędzia", default: true }],
-  tech_stack: ["TypeScript (PL)", "React (PL)"],
-  interests: ["Muzyka", "Szachy"],
+  tech_stack: ["TypeScript", "React"],
+  interests: ["Muzyka"],
   experience: [{ period: "2020 - now", company: "Acme", role: "Inżynier", highlights: ["Zbudował edytor"] }],
 };
 
@@ -77,7 +77,7 @@ test("saving the default language links a legacy translation without blanking it
   const { publishResumeDocument, validateResumeLanguagePair } = await load();
 
   const saved = await publishResumeDocument("token", USER, "en", {
-    yamlContent: yaml.dump({ ...legacyEnglish, interests: ["Music", "Chess"] }),
+    yamlContent: yaml.dump({ ...legacyEnglish, interests: ["Music"] }),
     title: "Jan Kowalski",
     changeNote: "First save after linkage",
   });
@@ -170,4 +170,73 @@ test("switching the default after the first linking keeps both languages' conten
 
   assertTranslationKept(stored(fake, "pl"), legacyPolish, "pl as the new default");
   assertTranslationKept(stored(fake, "en"), legacyEnglish, "en as the new translation");
+});
+
+// Alpha/Beta: both roles start in 2020, the translation lists the companies in
+// the opposite order. A start-year check alone would swap the roles.
+const alphaBetaEnglish = { ...legacyEnglish, experience: [
+  { period: "2020 - 2021", company: "Alpha", role: "Engineer A", highlights: [] },
+  { period: "2020 - 2022", company: "Beta", role: "Engineer B", highlights: [] },
+] };
+const alphaBetaPolish = { ...legacyPolish, experience: [
+  { period: "2020 - 2022", company: "Beta", role: "Inżynier B", highlights: [] },
+  { period: "2020 - 2021", company: "Alpha", role: "Inżynier A", highlights: [] },
+] };
+
+function installPair(english, polish) {
+  const fake = install("en", undefined, polish);
+  fake.rows("resume_documents").find((row) => row.locale === "en").yaml_content = yaml.dump(english);
+  return fake;
+}
+
+test("Alpha/Beta: first linking keeps the swapped legacy translation unchanged and reports an order conflict", async (t) => {
+  const fake = installPair(alphaBetaEnglish, alphaBetaPolish);
+  t.after(() => fake.restore());
+  const before = storedYaml(fake, "pl");
+  const { publishResumeDocument } = await load();
+
+  const saved = await publishResumeDocument("token", USER, "en", { yamlContent: yaml.dump(alphaBetaEnglish), title: "Jan Kowalski", changeNote: "en" });
+
+  assert.equal(storedYaml(fake, "pl"), before);
+  assert.deepEqual(saved.synchronizationFailed, [{ locale: "pl", reason: "legacy-pairing", conflicts: [{ collection: "experience", reason: "order", index: 0 }] }]);
+});
+
+test("Alpha/Beta: a direct save of the swapped translation is refused even when the user confirms the order", async (t) => {
+  const fake = installPair(alphaBetaEnglish, alphaBetaPolish);
+  t.after(() => fake.restore());
+  const before = { en: storedYaml(fake, "en"), pl: storedYaml(fake, "pl") };
+  const { publishResumeDocument, ResumeLegacyPairingError, ensureResumeEntryIds } = await load();
+  // The editor sends a legacy translation with position-derived IDs.
+  const editorYaml = yaml.dump(ensureResumeEntryIds(alphaBetaPolish));
+
+  for (const confirmLegacyPairing of [false, true]) {
+    await assert.rejects(publishResumeDocument("token", USER, "pl", { yamlContent: editorYaml, title: "Jan Kowalski", changeNote: "pl", confirmLegacyPairing }), (error) => {
+      assert.ok(error instanceof ResumeLegacyPairingError);
+      assert.deepEqual(error.conflicts, [{ collection: "experience", reason: "order", index: 0 }]);
+      return true;
+    });
+  }
+  assert.deepEqual({ en: storedYaml(fake, "en"), pl: storedYaml(fake, "pl") }, before, "both documents are unchanged");
+});
+
+test("an ambiguous legacy translation is saved only after the user confirms its order", async (t) => {
+  const english = { ...legacyEnglish, interests: ["Music", "Chess"] };
+  const polish = { ...legacyPolish, interests: ["Muzyka", "Szachy"] };
+  const fake = installPair(english, polish);
+  t.after(() => fake.restore());
+  const before = storedYaml(fake, "pl");
+  const { publishResumeDocument, ResumeLegacyPairingError, ensureResumeEntryIds, validateResumeLanguagePair } = await load();
+  const editorYaml = yaml.dump(ensureResumeEntryIds(polish));
+
+  await assert.rejects(
+    publishResumeDocument("token", USER, "pl", { yamlContent: editorYaml, title: "Jan Kowalski", changeNote: "pl" }),
+    (error) => error instanceof ResumeLegacyPairingError && error.conflicts[0].reason === "ambiguous" && error.conflicts[0].collection === "interests",
+  );
+  assert.equal(storedYaml(fake, "pl"), before);
+
+  assert.ok(await publishResumeDocument("token", USER, "pl", { yamlContent: editorYaml, title: "Jan Kowalski", changeNote: "pl", confirmLegacyPairing: true }));
+  assert.deepEqual(stored(fake, "pl").interests, ["Muzyka", "Szachy"]);
+  assert.ok(await publishResumeDocument("token", USER, "en", { yamlContent: yaml.dump(english), title: "Jan Kowalski", changeNote: "en" }));
+  assert.deepEqual(stored(fake, "pl").interests, ["Muzyka", "Szachy"], "the confirmed mapping survives the default save");
+  assert.deepEqual(validateResumeLanguagePair(stored(fake, "en"), stored(fake, "pl")), []);
 });
