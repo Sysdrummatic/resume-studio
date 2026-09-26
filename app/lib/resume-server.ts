@@ -19,8 +19,13 @@ import {
   inspectResumeLanguagePair,
   linkLegacyResumeLanguageDocument,
   reconcileResumeLanguageDocument,
+  ResumeLegacyPairingError,
+  type LegacyPairingConflict,
   type ResumeLinkageIssue,
 } from "./resume-language-linkage";
+
+export { ResumeLegacyPairingError };
+export type { LegacyPairingConflict };
 
 export { normalizeResumePresetSelection };
 export { buildPublishedExportContent };
@@ -54,6 +59,9 @@ export class ResumeLanguageLinkageError extends Error {
   }
 }
 
+export const RESUME_LEGACY_PAIRING_MESSAGE =
+  "This older language version does not match the default language's entries (a different number or order). It was left unchanged; make its entries match the default language, then save again.";
+
 export const RESUME_DOCUMENT_CONFLICT_MESSAGE =
   "This language version was changed in another tab or session. Your edits were not saved; reload the editor to see the latest version.";
 
@@ -73,6 +81,18 @@ export type SynchronizedResumeDocument = {
   locale: ResumeLocale;
   previousUpdatedAt: string;
   document: ResumeDocumentRow;
+};
+
+/** A translation the sync left as it was, and why. */
+export type ResumeSynchronizationFailure =
+  | { locale: ResumeLocale; reason: "legacy-pairing"; conflicts: LegacyPairingConflict[] }
+  | { locale: ResumeLocale; reason: "read" | "write" | "revision" };
+
+/** `complete` is false when the translations could not even be listed, so `failed` is not exhaustive. */
+export type ResumeLanguageSynchronization = {
+  synchronized: SynchronizedResumeDocument[];
+  failed: ResumeSynchronizationFailure[];
+  complete: boolean;
 };
 
 export type ResumeDocumentRow = {
@@ -99,7 +119,8 @@ export type ResumeDocumentPayload = {
   document: ResumeDocumentRow;
   revisions: ResumeRevisionItem[];
   synchronized?: SynchronizedResumeDocument[];
-  synchronizationFailed?: ResumeLocale[];
+  synchronizationFailed?: ResumeSynchronizationFailure[];
+  synchronizationComplete?: boolean;
 };
 
 export type ResumeLanguageRow = {
@@ -1584,7 +1605,12 @@ export async function switchDefaultResumeLocale(
   accessToken: string,
   userId: string,
   localeInput: string,
-): Promise<{ ok: false } | { ok: true; synchronized: SynchronizedResumeDocument[] }> {
+  /** Locales whose documents the caller is about to replace (data import); they are not synchronized. */
+  options: { replacingLocales?: ResumeLocale[] } = {},
+): Promise<
+  | { ok: false; conflicts?: LegacyPairingConflict[]; failed?: ResumeSynchronizationFailure[] }
+  | { ok: true; synchronized: SynchronizedResumeDocument[] }
+> {
   const locale = normalizeLocale(localeInput);
   const locales = await fetchResumeUserLocalesForUser(userId, { accessToken });
   if (!locales.some((entry) => entry.code === locale)) {
@@ -1605,8 +1631,9 @@ export async function switchDefaultResumeLocale(
         ? linkLegacyResumeLanguageDocument(parseLinkedResumeYaml(currentDefaultDocument.yaml_content), parseRawResumeYaml(targetDocument.yaml_content))
         : parseRawResumeYaml(targetDocument.yaml_content);
       canonicalYaml = dumpLinkedResumeYaml(target);
-    } catch {
-      return { ok: false };
+    } catch (error) {
+      // A mismatched legacy target is refused before anything is written.
+      return error instanceof ResumeLegacyPairingError ? { ok: false, conflicts: error.conflicts } : { ok: false };
     }
     if (canonicalYaml !== targetDocument.yaml_content) {
       try {
@@ -1618,9 +1645,9 @@ export async function switchDefaultResumeLocale(
       }
     }
     try {
-      const synchronization = await synchronizeResumeLanguageDocuments(accessToken, userId, locale, canonicalYaml);
+      const synchronization = await synchronizeResumeLanguageDocuments(accessToken, userId, locale, canonicalYaml, options.replacingLocales);
       synchronized.push(...synchronization.synchronized);
-      if (synchronization.failed.length) return { ok: false };
+      if (synchronization.failed.length || !synchronization.complete) return { ok: false, failed: synchronization.failed };
     } catch {
       return { ok: false };
     }
@@ -1983,22 +2010,32 @@ async function synchronizeResumeLanguageDocuments(
   userId: string,
   defaultLocale: ResumeLocale,
   defaultYamlContent: string,
-): Promise<{ synchronized: SynchronizedResumeDocument[]; failed: ResumeLocale[] }> {
+  skipLocales: ResumeLocale[] = [],
+): Promise<ResumeLanguageSynchronization> {
   const defaultRaw = parseLinkedResumeYaml(defaultYamlContent);
   const synchronized: SynchronizedResumeDocument[] = [];
-  const failed: ResumeLocale[] = [];
+  const failed: ResumeSynchronizationFailure[] = [];
   const documents = await fetchResumeDocumentsForUser(userId);
   for (const initial of documents) {
     if (normalizeLocale(initial.locale) === normalizeLocale(defaultLocale)) continue;
+    if (skipLocales.includes(normalizeLocale(initial.locale))) continue;
     let document: ResumeDocumentRow | null = initial;
     let written: ResumeDocumentRow | null = null;
     let upToDate = false;
+    let conflicts: LegacyPairingConflict[] | null = null;
     for (let attempt = 0; attempt < SYNCHRONIZATION_ATTEMPTS; attempt += 1) {
       if (!document) {
         upToDate = true;
         break;
       }
-      const reconciledYaml = dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, parseRawResumeYaml(document.yaml_content)));
+      let reconciledYaml: string;
+      try {
+        reconciledYaml = dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, parseRawResumeYaml(document.yaml_content)));
+      } catch (error) {
+        if (!(error instanceof ResumeLegacyPairingError)) throw error;
+        conflicts = error.conflicts;
+        break;
+      }
       if (reconciledYaml === document.yaml_content) {
         upToDate = true;
         break;
@@ -2012,8 +2049,12 @@ async function synchronizeResumeLanguageDocuments(
       }
     }
     if (upToDate) continue;
+    if (conflicts) {
+      failed.push({ locale: initial.locale, reason: "legacy-pairing", conflicts });
+      continue;
+    }
     if (!written || !document) {
-      failed.push(initial.locale);
+      failed.push({ locale: initial.locale, reason: "write" });
       continue;
     }
     synchronized.push({ locale: written.locale, previousUpdatedAt: document.updated_at, document: written });
@@ -2022,9 +2063,9 @@ async function synchronizeResumeLanguageDocuments(
       payload: { input_document_id: written.id, input_change_note: "Synchronized with default language" },
       accessToken,
     });
-    if (revisionResult.error) failed.push(written.locale);
+    if (revisionResult.error) failed.push({ locale: written.locale, reason: "revision" });
   }
-  return { synchronized, failed };
+  return { synchronized, failed, complete: true };
 }
 
 async function prepareResumeLanguageYaml(
@@ -2099,7 +2140,7 @@ export async function publishResumeDocument(
     defaultLocale = prepared.defaultLocale;
     document = prepared.document;
   } catch (error) {
-    if (error instanceof ResumeLanguageLinkageError) throw error;
+    if (error instanceof ResumeLanguageLinkageError || error instanceof ResumeLegacyPairingError) throw error;
     return null;
   }
   assertResumeDocumentBase(locale, document, payload.baseUpdatedAt);
@@ -2149,7 +2190,7 @@ export async function publishResumeDocument(
 
   const synchronization = locale === defaultLocale
     ? await synchronizeResumeLanguageDocuments(accessToken, userId, defaultLocale, preparedYamlContent)
-    : { synchronized: [], failed: [] };
+    : { synchronized: [], failed: [], complete: true };
 
   const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, preparedYamlContent, {
     updatePersonSlug: true,
@@ -2168,6 +2209,7 @@ export async function publishResumeDocument(
     revisions,
     synchronized: synchronization.synchronized,
     synchronizationFailed: synchronization.failed,
+    synchronizationComplete: synchronization.complete,
   };
 }
 
@@ -2230,7 +2272,7 @@ export async function saveResumeDraftDocument(
 
 export type ImportLanguagesAndDocumentsResult =
   | { ok: true }
-  | { ok: false; status: number; error: string; linkageIssues?: ResumeLinkageIssue[] };
+  | { ok: false; status: number; error: string; linkageIssues?: ResumeLinkageIssue[]; legacyConflicts?: LegacyPairingConflict[] };
 
 /**
  * Applies the languages and master documents of a data bundle (ADR 0018).
@@ -2265,14 +2307,29 @@ export async function importLanguagesAndDocuments(
   const documents = [...bundle.documents].sort(
     (left, right) => Number(right.locale === defaultLocale) - Number(left.locale === defaultLocale),
   );
+  // Stored documents the bundle replaces are not synchronized first: they are
+  // overwritten next. Any other stored translation still has to pair.
+  const switchDefault = async (locale: ResumeLocale): Promise<ImportLanguagesAndDocumentsResult | null> => {
+    const switched = await switchDefaultResumeLocale(accessToken, userId, locale, { replacingLocales: documents.map((document) => document.locale) });
+    if (switched.ok) return null;
+    const conflicted = switched.failed?.find((failure) => failure.reason === "legacy-pairing");
+    if (switched.conflicts || conflicted) {
+      return {
+        ok: false,
+        status: 409,
+        error: `Import stopped because the "${conflicted?.locale ?? locale}" language version does not match the default language's entries. Nothing in it was changed.`,
+        legacyConflicts: switched.conflicts ?? (conflicted?.reason === "legacy-pairing" ? conflicted.conflicts : undefined),
+      };
+    }
+    return { ok: false, status: 400, error: `Import failed while saving the "${locale}" language version.` };
+  };
   if (defaultLocale && !documents.some((document) => document.locale === defaultLocale)) {
     const existing = await fetchDocumentByLocale(accessToken, userId, defaultLocale);
     if (!existing) {
       return { ok: false, status: 400, error: `Default language "${defaultLocale}" has no document in the import file.` };
     }
-    if (!(await setDefaultResumeLocaleForUser(accessToken, userId, defaultLocale))) {
-      return { ok: false, status: 400, error: `Import failed while saving the "${defaultLocale}" language version.` };
-    }
+    const failure = await switchDefault(defaultLocale);
+    if (failure) return failure;
   }
 
   for (const document of documents) {
@@ -2296,6 +2353,14 @@ export async function importLanguagesAndDocuments(
       if (error instanceof ResumeDocumentConflictError) {
         return { ok: false, status: 409, error: `Import stopped because the "${document.locale}" language version was changed during the import.` };
       }
+      if (error instanceof ResumeLegacyPairingError) {
+        return {
+          ok: false,
+          status: 409,
+          error: `Import stopped because the "${document.locale}" language version does not match the default language's entries. Nothing in it was changed.`,
+          legacyConflicts: error.conflicts,
+        };
+      }
       throw error;
     }
     if (!saved) {
@@ -2303,8 +2368,9 @@ export async function importLanguagesAndDocuments(
     }
     await onDocumentSaved?.({ locale: document.locale, documentId: saved.document.id, yamlContent: document.yaml_content });
 
-    if (isDefault && !(await setDefaultResumeLocaleForUser(accessToken, userId, document.locale))) {
-      return { ok: false, status: 400, error: `Import failed while saving the "${document.locale}" language version.` };
+    if (isDefault) {
+      const failure = await switchDefault(document.locale);
+      if (failure) return failure;
     }
   }
 

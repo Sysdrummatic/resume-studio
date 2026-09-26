@@ -125,6 +125,52 @@ test("legacy documents receive the same position-derived IDs each time they are 
   assert.equal(ensureResumeEntryIds(legacyPolish).experience[0].entry_id, first.experience[0].entry_id);
 });
 
+test("a legacy translation with a different number of entries is not linked automatically", async () => {
+  const { ResumeLegacyPairingError } = await import("../app/lib/resume-language-linkage.ts");
+  const defaultWithIds = ensureResumeEntryIds(source);
+  const polish = structuredClone({
+    ...legacyPolish,
+    experience: [...legacyPolish.experience, { period: "2016 - 2019", company: "Earlier Co", role: "Młodszy redaktor", highlights: ["Tłumaczenia"] }],
+  });
+  const original = structuredClone(polish);
+
+  assert.throws(() => reconcileResumeLanguageDocument(defaultWithIds, polish), (error) => {
+    assert.ok(error instanceof ResumeLegacyPairingError);
+    assert.deepEqual(error.conflicts, [{ collection: "experience", reason: "count", defaultCount: 1, translationCount: 2 }]);
+    return true;
+  });
+  assert.deepEqual(polish, original, "the translation is left untouched");
+
+  const fewer = { ...legacyPolish, experience: [] , courses: [] };
+  assert.doesNotThrow(() => reconcileResumeLanguageDocument(defaultWithIds, fewer), "an empty legacy collection has nothing to pair");
+});
+
+test("a legacy translation whose entries are in a different order is not linked automatically", async () => {
+  const { ResumeLegacyPairingError } = await import("../app/lib/resume-language-linkage.ts");
+  const english = ensureResumeEntryIds({
+    ...source,
+    experience: [
+      { period: "2020 - now", company: "OpenCiVera", role: "Writer", highlights: [] },
+      { period: "2015 - 2019", company: "Earlier Co", role: "Editor", highlights: [] },
+    ],
+  });
+  const polish = {
+    ...legacyPolish,
+    experience: [
+      { period: "2015 - 2019", company: "Earlier Co", role: "Redaktor", highlights: [] },
+      { period: "2020 - obecnie", company: "OpenCiVera", role: "Pisarz", highlights: [] },
+    ],
+  };
+
+  assert.throws(() => reconcileResumeLanguageDocument(english, polish), (error) => {
+    assert.ok(error instanceof ResumeLegacyPairingError);
+    assert.deepEqual(error.conflicts, [{ collection: "experience", reason: "order", index: 0 }]);
+    return true;
+  });
+  const sameOrder = { ...polish, experience: [...polish.experience].reverse() };
+  assert.equal(reconcileResumeLanguageDocument(english, sameOrder).experience[0].role, "Pisarz", "translated periods like 'obecnie' still pair by start year");
+});
+
 test("an already linked translation never has a missing ID guessed from its position", () => {
   const defaultWithIds = ensureResumeEntryIds({
     ...source,

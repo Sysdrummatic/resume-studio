@@ -13,7 +13,8 @@ import {
   type ResumeLocale,
   type ResumeRevisionItem,
 } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumeUserLocaleVersionRow, SynchronizedResumeDocument } from "../lib/resume-server";
+import type { ResumeDocumentRow, ResumeSynchronizationFailure, ResumeUserLocaleVersionRow, SynchronizedResumeDocument } from "../lib/resume-server";
+import { formatAppMessage } from "../i18n/locale";
 import type { OnboardingTestRun } from "../lib/onboarding-test";
 import {
   ensureResumeEntryIds,
@@ -23,7 +24,7 @@ import {
   reconcileResumeLanguageDocument,
   type ResumeLinkageIssue,
 } from "../lib/resume-language-linkage";
-import { planSynchronizedBuffer, saveLocalesInOrder } from "./locale-save-plan";
+import { planSynchronizedBuffer, saveLocalesInOrder, synchronizationFailureMessages } from "./locale-save-plan";
 
 const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
 
@@ -46,7 +47,8 @@ export type LocaleBuffer = {
 
 export type SaveAllResult = {
   succeeded: ResumeLocale[];
-  failed: Array<{ locale: ResumeLocale; message: string; docsUrl?: string }>;
+  /** `messageKey`/`messageParams` let the editor show `message` in the interface language. */
+  failed: Array<{ locale: ResumeLocale; message: string; docsUrl?: string; messageKey?: string; messageParams?: Record<string, string> }>;
 };
 
 export type ResumeLinkageStatus = {
@@ -66,7 +68,8 @@ type ApiDocumentResponse = {
   document?: ResumeDocumentRow;
   revisions?: ResumeRevisionItem[];
   synchronizedDocuments?: SynchronizedResumeDocument[];
-  synchronizationFailed?: ResumeLocale[];
+  synchronizationFailed?: ResumeSynchronizationFailure[];
+  synchronizationComplete?: boolean;
 };
 
 class ResumeSaveError extends Error {
@@ -546,9 +549,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       const defaultOutcome = outcomes[targets.indexOf(defaultLocale)];
       const defaultPayload = defaultOutcome?.status === "fulfilled" ? defaultOutcome.value.payload : null;
       const synchronized = defaultPayload?.synchronizedDocuments ?? [];
-      const unsynchronized = defaultPayload?.synchronizationFailed ?? [];
-      const unsynchronizedMessage = (code: ResumeLocale) =>
-        `${code}: not synchronized with the default language. Save again to retry.`;
+      const unsynchronized = defaultPayload ? synchronizationFailureMessages(defaultPayload, defaultLocale) : [];
 
       outcomes.forEach((outcome, index) => {
         if (outcome.status === "fulfilled") result.succeeded.push(targets[index]);
@@ -559,7 +560,9 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             docsUrl: outcome.reason instanceof ResumeSaveError ? outcome.reason.docsUrl : undefined,
           });
       });
-      unsynchronized.forEach((code) => result.failed.push({ locale: code, message: unsynchronizedMessage(code) }));
+      unsynchronized.forEach((failure) =>
+        result.failed.push({ locale: failure.locale, message: formatAppMessage(failure.key, failure.params), messageKey: failure.key, messageParams: failure.params }),
+      );
 
       setBuffers((prev) => {
         let next = { ...prev };
@@ -586,8 +589,8 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
           }
         });
         next = applySynchronizedDocuments(next, synchronized, defaultLocale, actor?.displayName || "");
-        unsynchronized.forEach((code) => {
-          if (next[code]) next[code] = { ...next[code], saveError: unsynchronizedMessage(code) };
+        unsynchronized.forEach((failure) => {
+          if (next[failure.locale]) next[failure.locale] = { ...next[failure.locale], saveError: formatAppMessage(failure.key, failure.params) };
         });
         return next;
       });

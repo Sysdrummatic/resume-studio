@@ -44,6 +44,19 @@ default-language document.
    parse it independently, produce IDs that pair. A legacy translation takes the
    canonical IDs at the same positions, including `tech_stack` and `interests`.
    A missing ID in an already linked document is never guessed from its position.
+   **Positions are trusted only when they are unambiguous** (amended 2026-09-26):
+   every non-empty collection of the legacy translation must have exactly as
+   many entries as the default, and where both sides carry a start year
+   (`experience`/`education` period, `courses` year) the years must agree at
+   each position. Otherwise the automatic migration stops with a
+   `legacy-pairing` conflict that names the collections, and the legacy
+   translation is left byte for byte unchanged. §4's "removed canonical slots
+   disappear" therefore never applies to unlinked legacy content. The language
+   sync reports the conflict for that locale; a save, a default switch or an
+   import returns `409 { legacyConflicts }`. The user resolves it by making the
+   translation's entries match (for example in YAML) and saving again. An
+   explicit, user-confirmed mapping UI was considered and deferred; import skips
+   the sync for stored locales it is about to replace.
 
 8. Concurrent saves never overwrite silently. Every write to `resume_documents`
    is a compare-and-swap on `updated_at` (bumped by the `touch_updated_at`

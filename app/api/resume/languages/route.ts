@@ -5,6 +5,7 @@ import {
   deleteResumeUserLocale,
   ensureResumeDocument,
   fetchResumeLanguageVersionsForUser,
+  RESUME_LEGACY_PAIRING_MESSAGE,
   setDefaultResumeLocaleForUser,
   switchDefaultResumeLocale,
   upsertResumeUserLocale,
@@ -120,7 +121,10 @@ export async function PATCH(request: Request): Promise<Response> {
 
   const updated = await switchDefaultResumeLocale(actorResult.accessToken, actorResult.actor.userId, String(body.code || ""));
   if (!updated.ok) {
-    return NextResponse.json({ error: "Default language could not be updated." }, { status: 400 });
+    if (updated.conflicts) {
+      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, legacyConflicts: updated.conflicts }, { status: 409 });
+    }
+    return NextResponse.json({ error: "Default language could not be updated.", synchronizationFailed: updated.failed ?? [] }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true, defaultLocale: normalizeLocale(body.code), synchronizedDocuments: updated.synchronized });

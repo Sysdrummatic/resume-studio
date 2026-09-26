@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import {
   RESUME_DOCUMENT_CONFLICT_MESSAGE,
+  RESUME_LEGACY_PAIRING_MESSAGE,
   ResumeDocumentConflictError,
   ResumeLanguageLinkageError,
+  ResumeLegacyPairingError,
   saveResumeDraftDocument,
   upgradeLegacyResumeYamlContent,
 } from "../../../lib/resume-server";
@@ -74,6 +76,9 @@ export async function POST(request: Request): Promise<Response> {
     }
     if (error instanceof ResumeDocumentConflictError) {
       return NextResponse.json({ error: RESUME_DOCUMENT_CONFLICT_MESSAGE, conflict: true }, { status: 409 });
+    }
+    if (error instanceof ResumeLegacyPairingError) {
+      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, legacyConflicts: error.conflicts }, { status: 409 });
     }
     throw error;
   }

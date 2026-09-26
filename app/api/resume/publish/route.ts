@@ -3,8 +3,10 @@ import { requireRequestActor } from "../../../lib/auth-request";
 import {
   publishResumeDocument,
   RESUME_DOCUMENT_CONFLICT_MESSAGE,
+  RESUME_LEGACY_PAIRING_MESSAGE,
   ResumeDocumentConflictError,
   ResumeLanguageLinkageError,
+  ResumeLegacyPairingError,
   upgradeLegacyResumeYamlContent,
 } from "../../../lib/resume-server";
 import { normalizeLocale, RESUME_LIMITS_DOC_URL, RESUME_YAML_MAX_BYTES } from "../../../lib/resume-schema";
@@ -85,6 +87,9 @@ export async function POST(request: Request): Promise<Response> {
     if (error instanceof ResumeDocumentConflictError) {
       return NextResponse.json({ error: RESUME_DOCUMENT_CONFLICT_MESSAGE, conflict: true }, { status: 409 });
     }
+    if (error instanceof ResumeLegacyPairingError) {
+      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, legacyConflicts: error.conflicts }, { status: 409 });
+    }
     throw error;
   }
 
@@ -106,5 +111,6 @@ export async function POST(request: Request): Promise<Response> {
     revisions: payload.revisions,
     synchronizedDocuments: payload.synchronized ?? [],
     synchronizationFailed: payload.synchronizationFailed ?? [],
+    synchronizationComplete: payload.synchronizationComplete ?? true,
   });
 }

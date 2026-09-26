@@ -657,6 +657,9 @@ editor:
     "Saved {count} language versions.": "Saved language versions: {count}."
     "Save failed: {message}": "Save failed: {message}"
     "Saved {saved}, failed {failed}: {message}": "Saved: {saved}; failed: {failed}. {message}"
+    "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again."
+    "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: not synchronized with the default language. Save again to retry."
+    "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.": "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization."
     "Rolling back to revision {number}...": "Rolling back to revision {number}…"
     "Rollback complete. Current document now matches revision {number}.": "Rollback complete. The document now matches revision {number}."
     "Rollback failed.": Rollback failed.

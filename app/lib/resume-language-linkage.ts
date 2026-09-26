@@ -271,26 +271,76 @@ function entryId(item: unknown): string | null {
   return validEntryId(id) ? id : null;
 }
 
+export type LegacyPairingConflict =
+  | { collection: LinkedResumeCollection; reason: "count"; defaultCount: number; translationCount: number }
+  | { collection: LinkedResumeCollection; reason: "order"; index: number };
+
+/** A legacy translation cannot be paired by position without guessing; nothing was changed. */
+export class ResumeLegacyPairingError extends Error {
+  readonly conflicts: LegacyPairingConflict[];
+
+  constructor(conflicts: LegacyPairingConflict[]) {
+    super("An older language version does not match the default language's entries.");
+    this.name = "ResumeLegacyPairingError";
+    this.conflicts = conflicts;
+  }
+}
+
+// Neutral fields every language shares; only their start year is compared, so a
+// translated period ("2020 - now" vs "2020 - obecnie") still pairs.
+const START_YEAR_FIELD: Partial<Record<LinkedResumeCollection, string>> = { experience: "period", education: "period", courses: "year" };
+
+function startYear(value: unknown): string | null {
+  return String(value ?? "").match(/\d{4}/)?.[0] ?? null;
+}
+
+/** Positions are only trusted when counts match and shared start years agree. */
+export function findLegacyPairingConflicts(canonicalValue: unknown, localeValue: unknown): LegacyPairingConflict[] {
+  const canonical = asObject(canonicalValue);
+  const source = asObject(localeValue);
+  const conflicts: LegacyPairingConflict[] = [];
+  for (const collection of LINKED_RESUME_COLLECTIONS) {
+    const items = Array.isArray(source[collection]) ? source[collection] : [];
+    const expected = Array.isArray(canonical[collection]) ? canonical[collection] : [];
+    if (items.length === 0) continue;
+    if (items.length !== expected.length) {
+      conflicts.push({ collection, reason: "count", defaultCount: expected.length, translationCount: items.length });
+      continue;
+    }
+    const field = START_YEAR_FIELD[collection];
+    if (!field) continue;
+    const index = items.findIndex((item, position) => {
+      const translated = startYear(asObject(item)[field]);
+      const canonicalYear = startYear(asObject(expected[position])[field]);
+      return Boolean(translated && canonicalYear && translated !== canonicalYear);
+    });
+    if (index >= 0) conflicts.push({ collection, reason: "order", index });
+  }
+  return conflicts;
+}
+
 /**
  * Gives a legacy translation the IDs of the canonical entries at the same
- * positions (ADR 0023 §7). Rows beyond the canonical inventory get fresh IDs and
- * are dropped by reconciliation as unpaired. Linked documents are returned as-is.
+ * positions (ADR 0023 §7). Throws `ResumeLegacyPairingError` instead of guessing
+ * when counts or order disagree. Linked documents are returned as-is.
  */
 export function linkLegacyResumeLanguageDocument(canonicalValue: unknown, localeValue: unknown): RawObject {
   const source = clone(asObject(localeValue));
   if (!isLegacyResumeDocument(source)) return source;
   const canonical = ensureResumeEntryIds(canonicalValue);
+  const conflicts = findLegacyPairingConflicts(canonical, source);
+  if (conflicts.length) throw new ResumeLegacyPairingError(conflicts);
   const canonicalEntries = asObject(asObject(canonical[RESUME_LINKAGE_KEY]).entries);
   const entries: Partial<Record<LinkedResumeCollection, string[]>> = {};
   for (const collection of LINKED_RESUME_COLLECTIONS) {
     const items = Array.isArray(source[collection]) ? source[collection] : [];
     if (collection === "tech_stack" || collection === "interests") {
       const expected = Array.isArray(canonicalEntries[collection]) ? canonicalEntries[collection] : [];
-      entries[collection] = items.map((_, index) => validEntryId(expected[index]) ? expected[index] : newEntryId());
+      entries[collection] = items.map((_, index) => expected[index] as string);
       continue;
     }
     const expected = Array.isArray(canonical[collection]) ? canonical[collection] : [];
-    source[collection] = items.map((item, index) => ({ ...asObject(item), entry_id: entryId(expected[index]) || newEntryId() }));
+    source[collection] = items.map((item, index) => ({ ...asObject(item), entry_id: entryId(expected[index]) }));
   }
   source[RESUME_LINKAGE_KEY] = { entries };
   return source;

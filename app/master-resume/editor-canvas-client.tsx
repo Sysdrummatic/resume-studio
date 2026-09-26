@@ -722,18 +722,21 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     showToast(editorText("Saving..."));
     try {
       const result = await saveAllDirty({ changeNote });
+      const failures = result.failed
+        .map((entry) => (entry.messageKey ? formatAppMessage(editorText(entry.messageKey), entry.messageParams ?? {}) : entry.message))
+        .join(" ");
       const docsUrl = result.failed.find((entry) => entry.docsUrl)?.docsUrl;
       const link = docsUrl ? { href: docsUrl, label: "Learn more" } : undefined;
       if (result.failed.length === 0) {
         showToast(formatAppMessage(editorText("Saved {count} language versions."), { count: result.succeeded.length }));
       } else if (result.succeeded.length === 0) {
-        showToast(`Save failed: ${result.failed.map((entry) => entry.message).join(" ")}`, "error", link);
+        showToast(`Save failed: ${failures}`, "error", link);
       } else {
         showToast(
           formatAppMessage(editorText("Saved {saved}, failed {failed}: {message}"), {
             saved: result.succeeded.length,
             failed: result.failed.length,
-            message: result.failed.map((entry) => entry.message).join(" "),
+            message: failures,
           }),
           "warning",
           link,

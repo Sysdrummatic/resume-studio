@@ -43,13 +43,13 @@ const legacyPolish = {
   experience: [{ period: "2020 - now", company: "Acme", role: "Inżynier", highlights: ["Zbudował edytor"] }],
 };
 
-function install(defaultLocale = "en", onRequest) {
+function install(defaultLocale = "en", onRequest, polish = legacyPolish) {
   return installFakePostgrest({
     resume_languages: LANGUAGES,
     resume_user_locales: ["en", "pl"].map((locale, index) => ({ user_id: USER, locale, label_override: null, short_label_override: null, is_default: locale === defaultLocale, sort_order: (index + 1) * 10 })),
     resume_documents: [
       { id: "doc-en", user_id: USER, locale: "en", title: "en", yaml_content: yaml.dump(legacyEnglish), schema_version: 1, updated_at: "2025-01-01T00:00:00.000Z" },
-      { id: "doc-pl", user_id: USER, locale: "pl", title: "pl", yaml_content: yaml.dump(legacyPolish), schema_version: 1, updated_at: "2025-01-01T00:00:00.000Z" },
+      { id: "doc-pl", user_id: USER, locale: "pl", title: "pl", yaml_content: yaml.dump(polish), schema_version: 1, updated_at: "2025-01-01T00:00:00.000Z" },
     ],
     profiles: [{ id: USER, display_name: "Jan Kowalski", person_slug: "jan-kowalski", name_sync_mode: "manual" }],
   }, { onRequest });
@@ -110,6 +110,54 @@ test("switching the default language of legacy documents keeps both languages' c
   assertTranslationKept(stored(fake, "pl"), legacyPolish, "pl as the new default");
   assertTranslationKept(stored(fake, "en"), legacyEnglish, "en as the new translation");
   assert.deepEqual(validateResumeLanguagePair(stored(fake, "pl"), stored(fake, "en")), []);
+});
+
+const polishWithExtraEntry = {
+  ...legacyPolish,
+  experience: [...legacyPolish.experience, { period: "2016 - 2019", company: "Earlier Co", role: "Stażysta", highlights: ["Tylko po polsku"] }],
+};
+const storedYaml = (fake, locale) => fake.rows("resume_documents").find((row) => row.locale === locale).yaml_content;
+
+test("first linking stops with a readable conflict when a legacy translation has more entries", async (t) => {
+  const fake = install("en", undefined, polishWithExtraEntry);
+  t.after(() => fake.restore());
+  const before = storedYaml(fake, "pl");
+  const { publishResumeDocument } = await load();
+
+  const saved = await publishResumeDocument("token", USER, "en", { yamlContent: yaml.dump(legacyEnglish), title: "Jan Kowalski", changeNote: "en" });
+
+  assert.ok(saved, "the default language itself is saved");
+  assert.equal(storedYaml(fake, "pl"), before, "the legacy translation is kept byte for byte");
+  assert.deepEqual(saved.synchronizationFailed, [
+    { locale: "pl", reason: "legacy-pairing", conflicts: [{ collection: "experience", reason: "count", defaultCount: 1, translationCount: 2 }] },
+  ]);
+});
+
+test("saving a mismatched legacy translation is refused without changing it", async (t) => {
+  const fake = install("en", undefined, polishWithExtraEntry);
+  t.after(() => fake.restore());
+  const before = storedYaml(fake, "pl");
+  const { publishResumeDocument, ResumeLegacyPairingError } = await load();
+
+  await assert.rejects(
+    publishResumeDocument("token", USER, "pl", { yamlContent: yaml.dump(polishWithExtraEntry), title: "Jan Kowalski", changeNote: "pl" }),
+    ResumeLegacyPairingError,
+  );
+  assert.equal(storedYaml(fake, "pl"), before);
+});
+
+test("switching the default to a mismatched legacy translation is refused without changing either document", async (t) => {
+  const fake = install("en", undefined, polishWithExtraEntry);
+  t.after(() => fake.restore());
+  const before = { en: storedYaml(fake, "en"), pl: storedYaml(fake, "pl") };
+  const { switchDefaultResumeLocale } = await load();
+
+  const result = await switchDefaultResumeLocale("token", USER, "pl");
+
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.conflicts, [{ collection: "experience", reason: "count", defaultCount: 1, translationCount: 2 }]);
+  assert.deepEqual({ en: storedYaml(fake, "en"), pl: storedYaml(fake, "pl") }, before);
+  assert.deepEqual(fake.rows("resume_user_locales").filter((row) => row.is_default).map((row) => row.locale), ["en"]);
 });
 
 test("switching the default after the first linking keeps both languages' content", async (t) => {
