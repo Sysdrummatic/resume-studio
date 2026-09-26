@@ -72,3 +72,18 @@ test("editor failure messages exist in both the English and the Polish dictionar
     for (const key of new Set(keys)) assert.ok(text.includes(JSON.stringify(key)), `${dictionary} translates ${key}`);
   }
 });
+
+test("a partial save gives the editor the stored version to retry from and a localized explanation", async () => {
+  const { partialSaveFailure, PARTIAL_SAVE_MESSAGE } = await import("../app/master-resume/locale-save-plan.ts");
+  const document = { id: "doc-pl", updated_at: "v2" };
+
+  assert.deepEqual(partialSaveFailure({ saved: true, document, incomplete: ["revision"], error: "x" }, "pl"), {
+    document,
+    message: { locale: "pl", key: PARTIAL_SAVE_MESSAGE, params: { locale: "pl" } },
+  });
+  assert.equal(partialSaveFailure({ error: "Publish failed." }, "pl"), null, "an ordinary failure keeps the old base");
+  assert.equal(partialSaveFailure({ saved: true }, "pl"), null, "no version, no rebase");
+  for (const dictionary of ["app/i18n/locales/en.yaml", "app/i18n/locales/pl.yaml"]) {
+    assert.ok(read(dictionary).includes(JSON.stringify(PARTIAL_SAVE_MESSAGE)), `${dictionary} translates the partial-save message`);
+  }
+});

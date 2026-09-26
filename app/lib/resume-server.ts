@@ -62,6 +62,9 @@ export class ResumeLanguageLinkageError extends Error {
 export const RESUME_LEGACY_PAIRING_MESSAGE =
   "This older language version does not match the default language's entries (a different number or order). It was left unchanged; make its entries match the default language, then save again.";
 
+export const RESUME_SAVE_INCOMPLETE_MESSAGE =
+  "The document was saved, but its revision history or public profile could not be updated. Save again to finish.";
+
 export const RESUME_DOCUMENT_CONFLICT_MESSAGE =
   "This language version was changed in another tab or session. Your edits were not saved; reload the editor to see the latest version.";
 
@@ -121,7 +124,11 @@ export type ResumeDocumentPayload = {
   synchronized?: SynchronizedResumeDocument[];
   synchronizationFailed?: ResumeSynchronizationFailure[];
   synchronizationComplete?: boolean;
+  /** Steps after the document write that did not complete; retrying the same save finishes them. */
+  incomplete?: ResumeSaveStep[];
 };
+
+export type ResumeSaveStep = "revision" | "profile" | "public-identity";
 
 export type ResumeLanguageRow = {
   code: ResumeLocale;
@@ -2003,12 +2010,37 @@ async function updateResumeDocumentIfUnchanged(
   return result.data[0] as unknown as ResumeDocumentRow;
 }
 
+/**
+ * Records a revision unless the latest one already holds this exact content,
+ * so a retry after a failed revision call completes the history without
+ * duplicating it. Returns false when the history could not be read or written.
+ */
+async function ensureResumeRevision(accessToken: string, document: ResumeDocumentRow, changeNote: string): Promise<boolean> {
+  const latest = await queryTable<{ yaml_content: string; title: string }>({
+    table: "resume_revisions",
+    select: "yaml_content,title",
+    accessToken,
+    query: `document_id=eq.${encodeURIComponent(document.id)}&order=revision_number.desc&limit=1`,
+  });
+  if (latest.error || !latest.data) return false;
+  const current = latest.data[0];
+  if (current && current.yaml_content === document.yaml_content && current.title === document.title) return true;
+  const revisionResult = await callRpc<number>({
+    functionName: "create_resume_revision",
+    payload: { input_document_id: document.id, input_change_note: changeNote },
+    accessToken,
+  });
+  if (revisionResult.error || !revisionResult.data) return false;
+  return true;
+}
+
 function assertResumeDocumentBase(locale: ResumeLocale, document: ResumeDocumentRow | null, baseUpdatedAt: string | null | undefined): void {
   if (baseUpdatedAt === undefined) return;
   if ((document?.updated_at ?? null) !== baseUpdatedAt) throw new ResumeDocumentConflictError(locale);
 }
 
 const SYNCHRONIZATION_ATTEMPTS = 3;
+const SYNCHRONIZATION_CHANGE_NOTE = "Synchronized with default language";
 
 /**
  * Reconciles every translation with the saved default (ADR 0023 §4). A
@@ -2066,7 +2098,13 @@ async function synchronizeResumeLanguageDocuments(
         document = reread.row;
       }
     }
-    if (upToDate) continue;
+    if (upToDate) {
+      // Completes a revision a previous sync wrote the YAML for but failed to record.
+      if (document && !(await ensureResumeRevision(accessToken, document, SYNCHRONIZATION_CHANGE_NOTE))) {
+        failed.push({ locale: initial.locale, reason: "revision" });
+      }
+      continue;
+    }
     if (readFailed) {
       failed.push({ locale: initial.locale, reason: "read" });
       continue;
@@ -2080,12 +2118,9 @@ async function synchronizeResumeLanguageDocuments(
       continue;
     }
     synchronized.push({ locale: written.locale, previousUpdatedAt: document.updated_at, document: written });
-    const revisionResult = await callRpc<number>({
-      functionName: "create_resume_revision",
-      payload: { input_document_id: written.id, input_change_note: "Synchronized with default language" },
-      accessToken,
-    });
-    if (revisionResult.error) failed.push({ locale: written.locale, reason: "revision" });
+    if (!(await ensureResumeRevision(accessToken, written, SYNCHRONIZATION_CHANGE_NOTE))) {
+      failed.push({ locale: written.locale, reason: "revision" });
+    }
   }
   return { synchronized, failed, complete: true };
 }
@@ -2186,7 +2221,7 @@ export async function publishResumeDocument(
       return null;
     }
     document = insertResult.data[0] as unknown as ResumeDocumentRow;
-  } else {
+  } else if (!isStoredResumeDocument(document, title, preparedYamlContent, payload.styleSettings)) {
     const updated = await updateResumeDocumentIfUnchanged(accessToken, document, {
       title,
       yaml_content: preparedYamlContent,
@@ -2198,16 +2233,11 @@ export async function publishResumeDocument(
     document = updated;
   }
 
-  const revisionResult = await callRpc<number>({
-    functionName: "create_resume_revision",
-    payload: {
-      input_document_id: document.id,
-      input_change_note: payload.changeNote || "Publish",
-    },
-    accessToken,
-  });
-  if (revisionResult.error || !revisionResult.data) {
-    return null;
+  // The document is stored from here on. Each remaining step is idempotent, so a
+  // failure is reported with the stored version and a plain retry finishes it.
+  const incomplete: ResumeSaveStep[] = [];
+  if (!(await ensureResumeRevision(accessToken, document, payload.changeNote || "Publish"))) {
+    incomplete.push("revision");
   }
 
   const synchronization = locale === defaultLocale
@@ -2216,14 +2246,10 @@ export async function publishResumeDocument(
 
   const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, preparedYamlContent, {
     updatePersonSlug: true,
-  });
-  if (!profileSynced) {
-    return null;
-  }
-  const publicIdentityReady = await refreshProfilePersonSlugForPublish(accessToken, userId);
-  if (!publicIdentityReady) {
-    return null;
-  }
+  }).catch(() => false);
+  if (!profileSynced) incomplete.push("profile");
+  const publicIdentityReady = await refreshProfilePersonSlugForPublish(accessToken, userId).catch(() => false);
+  if (!publicIdentityReady) incomplete.push("public-identity");
 
   const revisions = await fetchRevisions(accessToken, document.id);
   return {
@@ -2232,7 +2258,15 @@ export async function publishResumeDocument(
     synchronized: synchronization.synchronized,
     synchronizationFailed: synchronization.failed,
     synchronizationComplete: synchronization.complete,
+    incomplete,
   };
+}
+
+/** A retry of an already stored save must not write (and version) the document again. */
+function isStoredResumeDocument(document: ResumeDocumentRow, title: string, yamlContent: string, styleSettings: unknown): boolean {
+  return document.title === title
+    && document.yaml_content === yamlContent
+    && JSON.stringify(normalizeResumeStyle(document.style_settings)) === JSON.stringify(normalizeResumeStyle(styleSettings));
 }
 
 export async function saveResumeDraftDocument(

@@ -4,6 +4,7 @@ import {
   publishResumeDocument,
   RESUME_DOCUMENT_CONFLICT_MESSAGE,
   RESUME_LEGACY_PAIRING_MESSAGE,
+  RESUME_SAVE_INCOMPLETE_MESSAGE,
   ResumeDocumentConflictError,
   ResumeLanguageLinkageError,
   ResumeLegacyPairingError,
@@ -104,13 +105,17 @@ export async function POST(request: Request): Promise<Response> {
     source: "resume_publish_save",
   });
 
-  return NextResponse.json({
-    ok: true,
+  const result = {
     locale,
     document: payload.document,
     revisions: payload.revisions,
     synchronizedDocuments: payload.synchronized ?? [],
     synchronizationFailed: payload.synchronizationFailed ?? [],
     synchronizationComplete: payload.synchronizationComplete ?? true,
-  });
+  };
+  if (payload.incomplete?.length) {
+    // The document is stored; `document` is the base a retry must send.
+    return NextResponse.json({ ...result, error: RESUME_SAVE_INCOMPLETE_MESSAGE, saved: true, incomplete: payload.incomplete }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, ...result });
 }

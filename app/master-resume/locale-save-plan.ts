@@ -10,6 +10,22 @@ export const NOT_SYNCHRONIZED_MESSAGE = "{locale}: not synchronized with the def
 export const SYNCHRONIZATION_UNCHECKED_MESSAGE =
   "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.";
 
+export const PARTIAL_SAVE_MESSAGE =
+  "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish.";
+
+/**
+ * A save the server stored but could not finish (`saved: true`). The editor
+ * takes `document` as its new base so the retry is not a conflict, and keeps the
+ * language dirty so "save again" resends it.
+ */
+export function partialSaveFailure<T extends { updated_at: string }>(
+  payload: { saved?: boolean; document?: T },
+  locale: ResumeLocale,
+): { document: T; message: EditorFailureMessage } | null {
+  if (!payload.saved || !payload.document) return null;
+  return { document: payload.document, message: { locale, key: PARTIAL_SAVE_MESSAGE, params: { locale } } };
+}
+
 /** Turns the sync outcome of a default-language save into editor messages; empty only for a full sync. */
 export function synchronizationFailureMessages(
   payload: { synchronizationFailed?: ResumeSynchronizationFailure[]; synchronizationComplete?: boolean },

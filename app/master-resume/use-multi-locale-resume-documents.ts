@@ -24,7 +24,13 @@ import {
   reconcileResumeLanguageDocument,
   type ResumeLinkageIssue,
 } from "../lib/resume-language-linkage";
-import { planSynchronizedBuffer, saveLocalesInOrder, synchronizationFailureMessages } from "./locale-save-plan";
+import {
+  partialSaveFailure,
+  planSynchronizedBuffer,
+  saveLocalesInOrder,
+  synchronizationFailureMessages,
+  type EditorFailureMessage,
+} from "./locale-save-plan";
 
 const TEMPLATE_PATH = "/data/private/resume-en-template.yaml";
 
@@ -70,13 +76,17 @@ type ApiDocumentResponse = {
   synchronizedDocuments?: SynchronizedResumeDocument[];
   synchronizationFailed?: ResumeSynchronizationFailure[];
   synchronizationComplete?: boolean;
+  saved?: boolean;
 };
 
 class ResumeSaveError extends Error {
   docsUrl?: string;
-  constructor(message: string, docsUrl?: string) {
+  /** Set when the server stored the document but could not finish the save. */
+  partial?: { document: ResumeDocumentRow; message: EditorFailureMessage; payload: ApiDocumentResponse };
+  constructor(message: string, docsUrl?: string, partial?: ResumeSaveError["partial"]) {
     super(message);
     this.docsUrl = docsUrl;
+    this.partial = partial;
   }
 }
 
@@ -540,14 +550,20 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
           });
           const payload = (await response.json()) as ApiDocumentResponse;
           if (!response.ok || payload.error || !payload.document) {
-            throw new ResumeSaveError(`${code}: ${payload.error || "Save failed."}`, payload.docsUrl);
+            const stored = partialSaveFailure(payload, code);
+            const partial = stored ? { ...stored, payload } : undefined;
+            const message = partial ? formatAppMessage(partial.message.key, partial.message.params) : `${code}: ${payload.error || "Save failed."}`;
+            throw new ResumeSaveError(message, payload.docsUrl, partial);
           }
           return { code, payload, snapshot, styleSnapshot: buffer.cvStyle };
         },
       );
 
       const defaultOutcome = outcomes[targets.indexOf(defaultLocale)];
-      const defaultPayload = defaultOutcome?.status === "fulfilled" ? defaultOutcome.value.payload : null;
+      // A partially saved default still ran the sync, so its rewrites are adopted too.
+      const defaultPayload = defaultOutcome?.status === "fulfilled"
+        ? defaultOutcome.value.payload
+        : defaultOutcome?.reason instanceof ResumeSaveError ? defaultOutcome.reason.partial?.payload ?? null : null;
       const synchronized = defaultPayload?.synchronizedDocuments ?? [];
       const unsynchronized = defaultPayload ? synchronizationFailureMessages(defaultPayload, defaultLocale) : [];
 
@@ -558,6 +574,8 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             locale: targets[index],
             message: outcome.reason instanceof Error ? outcome.reason.message : "Save failed.",
             docsUrl: outcome.reason instanceof ResumeSaveError ? outcome.reason.docsUrl : undefined,
+            messageKey: outcome.reason instanceof ResumeSaveError ? outcome.reason.partial?.message.key : undefined,
+            messageParams: outcome.reason instanceof ResumeSaveError ? outcome.reason.partial?.message.params : undefined,
           });
       });
       unsynchronized.forEach((failure) =>
@@ -585,7 +603,10 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             }
           } else {
             const message = outcome.reason instanceof Error ? outcome.reason.message : "Save failed.";
-            if (next[code]) next[code] = { ...next[code], saveError: message };
+            const partial = outcome.reason instanceof ResumeSaveError ? outcome.reason.partial : undefined;
+            // A stored-but-unfinished save moves the base forward and stays dirty,
+            // so "save again" resends it and the server finishes the missing steps.
+            if (next[code]) next[code] = { ...next[code], saveError: message, ...(partial ? { documentRow: partial.document } : {}) };
           }
         });
         next = applySynchronizedDocuments(next, synchronized, defaultLocale, actor?.displayName || "");

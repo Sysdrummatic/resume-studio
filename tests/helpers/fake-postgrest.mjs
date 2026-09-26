@@ -77,7 +77,20 @@ export function installFakePostgrest(seed = {}, { triggers = {}, onRequest } = {
     if (path.startsWith("rpc/")) {
       const name = path.slice(4);
       calls.push({ method: "RPC", target: name });
-      return json(name === "create_resume_revision" ? 1 : true);
+      if (name === "create_resume_revision") {
+        // Mirrors public.create_resume_revision: snapshots the document as stored now.
+        const { input_document_id: documentId, input_change_note: changeNote } = JSON.parse(init.body || "{}");
+        const document = table("resume_documents").find((row) => row.id === documentId);
+        if (!document) return json(1);
+        const revisions = table("resume_revisions").filter((row) => row.document_id === documentId);
+        const revisionNumber = Math.max(0, ...revisions.map((row) => row.revision_number)) + 1;
+        table("resume_revisions").push({
+          id: randomUUID(), document_id: documentId, revision_number: revisionNumber, locale: document.locale,
+          title: document.title, yaml_content: document.yaml_content, change_note: changeNote ?? null, created_at: tick(),
+        });
+        return json(revisionNumber);
+      }
+      return json(true);
     }
 
     const rows = table(path);

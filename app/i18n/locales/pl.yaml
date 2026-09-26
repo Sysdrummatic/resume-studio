@@ -660,6 +660,7 @@ editor:
     "Saved {saved}, failed {failed}: {message}": "Zapisano: {saved}; błędy: {failed}. {message}"
     "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: starsza wersja językowa nie pasuje do wpisów języka domyślnego ({collections}), więc pozostała bez zmian. Dopasuj jej wpisy do języka domyślnego i zapisz ponownie."
     "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: brak synchronizacji z językiem domyślnym. Zapisz ponownie, aby ponowić próbę."
+    "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish.": "{locale}: zapisano, ale nie udało się zaktualizować historii zmian ani profilu publicznego. Zapisz ponownie, aby dokończyć."
     "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.": "{locale}: zapisano, ale nie udało się sprawdzić pozostałych wersji językowych. Zapisz ponownie, aby ponowić synchronizację."
     "Rolling back to revision {number}...": "Przywracanie wersji {number}…"
     "Rollback complete. Current document now matches revision {number}.": "Przywrócono wersję {number}."

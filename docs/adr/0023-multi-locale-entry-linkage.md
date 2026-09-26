@@ -70,6 +70,20 @@ default-language document.
    A failed read is never read as "nothing to do": if the translations cannot
    be listed the response says `synchronizationComplete: false`, and a failed
    re-read after a lost compare-and-swap reports that locale with reason `read`.
+9. Steps after the `resume_documents` write are recoverable, not atomic: the
+   revision, the profile-name sync and the public-identity refresh run after the
+   document is stored. If one fails, `POST /api/resume/publish` answers
+   `500 { saved: true, document, incomplete: [...] }`; the editor takes
+   `document` as its new base, keeps the language dirty and shows a localized
+   "save again to finish" message. A retry is idempotent: an unchanged document
+   is not written again, and a revision is recorded only when the latest one
+   does not already hold the same content and title. The same rule completes a
+   sync revision whose translation YAML was written but whose
+   `create_resume_revision` call failed. Consequences: saving an unchanged
+   language no longer adds a duplicate revision or bumps `updated_at`, and a
+   translation last written without a revision (a draft save or an import) gets
+   a "Synchronized with default language" revision on the next default save.
+   Making these steps atomic would need a new database function; deferred.
 
 ## Consequences
 
