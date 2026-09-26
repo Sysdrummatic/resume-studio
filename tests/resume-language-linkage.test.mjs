@@ -95,17 +95,14 @@ test("language pairing rejects changed and duplicate IDs with precise issues", (
   assert.ok(validation.issues.some((issue) => issue.kind === "duplicate-id" && issue.collection === "skills"));
 });
 
-// Legacy fixtures where every collection pairs unambiguously: single entries,
-// or entries with a shared, unique key (company + start year, contact value,
-// untranslated tech names).
-const legacyEnglish = { ...source, summary: [source.summary[0]] };
-const legacyPolish = {
-  ...source,
-  summary: [{ position: "Redaktor techniczny", description: "Pisze dokumentację", default: true }],
-  tech_stack: ["TypeScript (PL)"],
-  interests: ["Muzyka"],
-  experience: [{ period: "2020 - obecnie", company: "OpenCiVera", role: "Redaktor techniczny", highlights: ["Dokumentacja"] }],
-};
+// Legacy fixtures: a legacy default (no IDs) and a translation holding only the
+// collections under test; an empty translation collection has nothing to pair.
+const legacyEnglish = (parts = {}) => ({ ...source, summary: [source.summary[0]], ...parts });
+const legacyPolish = (parts = {}) => ({
+  brand_initials: "LM", first_name: "Lukasz", family_name: "Michta", gdpr_clause: "",
+  summary: [], contact: [], qr_codes: [], skills: [], tech_stack: [], languages: [], interests: [], experience: [], education: [], courses: [],
+  ...parts,
+});
 const experience = (company, period, role) => ({ period, company, role, highlights: [] });
 
 async function legacyConflicts(defaultValue, localeValue, options) {
@@ -119,17 +116,57 @@ async function legacyConflicts(defaultValue, localeValue, options) {
   }
 }
 
-test("a legacy translation keeps its tech_stack and interests values when first linked to the default", async () => {
-  const defaultWithIds = ensureResumeEntryIds({ ...legacyEnglish, tech_stack: ["TypeScript", "React"], interests: ["Music", "Chess"] });
-  const polish = { ...legacyPolish, tech_stack: ["TypeScript", "React"], interests: ["Muzyka", "Szachy"] };
+test("a single legacy entry pairs automatically only when its neutral fields confirm it", async () => {
+  const english = legacyEnglish({ experience: [experience("OpenCiVera", "2020 - now", "Writer")] });
+  const same = legacyPolish({ experience: [experience("OpenCiVera", "2020 - obecnie", "Pisarz")] });
 
-  assert.deepEqual(await legacyConflicts(defaultWithIds, polish), [{ collection: "interests", reason: "ambiguous" }], "translated interests have no key to compare");
-  const reconciled = reconcileResumeLanguageDocument(defaultWithIds, polish, { confirmLegacyPairing: true });
+  assert.deepEqual(await legacyConflicts(english, same), [], "company and start year confirm the identity");
+  assert.equal(reconcileResumeLanguageDocument(ensureResumeEntryIds(english), same).experience[0].role, "Pisarz");
+});
+
+test("a single legacy entry whose neutral fields contradict is refused, even when confirmed", async () => {
+  const english = legacyEnglish({ experience: [experience("Alpha", "2020 - now", "Engineer")] });
+  const other = legacyPolish({ experience: [experience("Beta", "2018 - 2019", "Inżynier")] });
+  const contact = [legacyEnglish({ contact: [{ label: "E-mail", value: "jan@example.com" }] }), legacyPolish({ contact: [{ label: "E-mail", value: "jan@example.pl" }] })];
+  const original = structuredClone(other);
+
+  for (const confirmLegacyPairing of [false, true]) {
+    assert.deepEqual(await legacyConflicts(english, other, { confirmLegacyPairing }), [{ collection: "experience", reason: "mismatch", index: 0 }]);
+    assert.deepEqual(await legacyConflicts(...contact, { confirmLegacyPairing }), [{ collection: "contact", reason: "mismatch", index: 0 }]);
+  }
+  assert.deepEqual(other, original, "nothing is changed");
+});
+
+test("one matching and one contradicting experience entry are refused, even when confirmed", async () => {
+  const english = legacyEnglish({ experience: [experience("Alpha", "2020 - 2021", "Engineer A"), experience("Beta", "2021 - 2022", "Engineer B")] });
+  const polish = legacyPolish({ experience: [experience("Alpha", "2020 - 2021", "Inżynier A"), experience("Gamma", "2019 - 2020", "Inżynier G")] });
+
+  for (const confirmLegacyPairing of [false, true]) {
+    assert.deepEqual(await legacyConflicts(english, polish, { confirmLegacyPairing }), [{ collection: "experience", reason: "mismatch", index: 1 }]);
+  }
+});
+
+test("a single legacy entry without a comparable field needs the user's confirmation", async () => {
+  const english = legacyEnglish({ interests: ["Music"], tech_stack: ["TypeScript"] });
+  const summaryOnly = legacyPolish({ summary: [{ position: "Redaktor", description: "Opis", default: true }] });
+  const translatedInterest = legacyPolish({ interests: ["Muzyka"] });
+
+  assert.deepEqual(await legacyConflicts(english, summaryOnly), [{ collection: "summary", reason: "ambiguous" }]);
+  assert.deepEqual(await legacyConflicts(english, translatedInterest), [{ collection: "interests", reason: "ambiguous" }]);
+  assert.deepEqual(await legacyConflicts(english, legacyPolish({ tech_stack: ["TypeScript"] })), [], "identical text confirms the identity");
+  assert.deepEqual(await legacyConflicts(english, summaryOnly, { confirmLegacyPairing: true }), []);
+  assert.equal(reconcileResumeLanguageDocument(ensureResumeEntryIds(english), summaryOnly, { confirmLegacyPairing: true }).summary[0].description, "Opis");
+});
+
+test("a confirmed legacy translation keeps its tech_stack and interests values", async () => {
+  const english = ensureResumeEntryIds(legacyEnglish({ tech_stack: ["TypeScript", "React"], interests: ["Music", "Chess"] }));
+  const polish = legacyPolish({ tech_stack: ["TypeScript", "React"], interests: ["Muzyka", "Szachy"] });
+
+  assert.deepEqual(await legacyConflicts(english, polish), [{ collection: "interests", reason: "ambiguous" }], "translated interests have no key to compare");
+  const reconciled = reconcileResumeLanguageDocument(english, polish, { confirmLegacyPairing: true });
 
   assert.deepEqual(reconciled.tech_stack, ["TypeScript", "React"]);
-  assert.deepEqual(reconciled.interests, ["Muzyka", "Szachy"], "a confirmed order keeps the translated values");
-  assert.equal(reconciled.experience[0].role, "Redaktor techniczny");
-  assert.deepEqual(validateResumeLanguagePair(defaultWithIds, reconciled), []);
+  assert.deepEqual(reconciled.interests, ["Muzyka", "Szachy"]);
 });
 
 test("legacy documents receive the same position-derived IDs each time they are parsed", () => {
@@ -138,59 +175,35 @@ test("legacy documents receive the same position-derived IDs each time they are 
   const first = ensureResumeEntryIds(source);
   const second = ensureResumeEntryIds(structuredClone(source));
   assert.deepEqual(second, first);
-  assert.deepEqual(ensureResumeEntryIds(legacyPolish).__ocv, ensureResumeEntryIds(legacyEnglish).__ocv);
-  assert.equal(ensureResumeEntryIds(legacyPolish).experience[0].entry_id, first.experience[0].entry_id);
-});
-
-test("unambiguous legacy collections pair by position without confirmation", async () => {
-  const english = { ...legacyEnglish, contact: [{ label: "E-mail", value: "jan@example.com" }, { label: "Phone", value: "+48 600 000 000" }] };
-  const polish = { ...legacyPolish, contact: [{ label: "E-mail", value: "jan@example.com" }, { label: "Telefon", value: "+48 600 000 000" }] };
-  assert.deepEqual(await legacyConflicts(english, polish), []);
-  assert.equal(reconcileResumeLanguageDocument(ensureResumeEntryIds(english), polish).experience[0].role, "Redaktor techniczny", "'obecnie' still pairs by start year and company");
 });
 
 test("Alpha/Beta: two experiences with the same start year in swapped order are never paired", async () => {
-  const english = { ...legacyEnglish, experience: [experience("Alpha", "2020 - 2021", "Engineer A"), experience("Beta", "2020 - 2022", "Engineer B")] };
-  const polish = { ...legacyPolish, experience: [experience("Beta", "2020 - 2022", "Inżynier B"), experience("Alpha", "2020 - 2021", "Inżynier A")] };
-  const original = structuredClone(polish);
+  const english = legacyEnglish({ experience: [experience("Alpha", "2020 - 2021", "Engineer A"), experience("Beta", "2020 - 2022", "Engineer B")] });
+  const polish = legacyPolish({ experience: [experience("Beta", "2020 - 2022", "Inżynier B"), experience("Alpha", "2020 - 2021", "Inżynier A")] });
 
-  assert.deepEqual(await legacyConflicts(english, polish), [{ collection: "experience", reason: "order", index: 0 }]);
-  assert.deepEqual(await legacyConflicts(english, polish, { confirmLegacyPairing: true }), [{ collection: "experience", reason: "order", index: 0 }], "a confirmation cannot override contradicting companies");
-  assert.deepEqual(polish, original, "the translation is left untouched");
+  for (const confirmLegacyPairing of [false, true]) {
+    assert.deepEqual(await legacyConflicts(english, polish, { confirmLegacyPairing }), [{ collection: "experience", reason: "order", index: 0 }]);
+  }
 });
 
 test("positions without a reliable comparison are ambiguous until the user confirms them", async () => {
   const noYear = [experience("Alpha", "", "Engineer A"), experience("Beta", "", "Engineer B")];
   const sameKey = [experience("Alpha", "2020", "Engineer A"), experience("Alpha", "2020 - 2021", "Engineer B")];
-  const cases = [
-    ["a missing start year", { experience: noYear }, { experience: noYear.map((row) => ({ ...row, role: "PL" })) }, "experience"],
-    ["two entries with the same key", { experience: sameKey }, { experience: sameKey.map((row) => ({ ...row, role: "PL" })) }, "experience"],
-    ["a collection without a comparable field", { summary: source.summary }, { summary: [{ position: "A", description: "", default: true }, { position: "B", description: "", default: false }] }, "summary"],
-  ];
-  for (const [label, englishPart, polishPart, collection] of cases) {
-    const english = { ...legacyEnglish, ...englishPart };
-    const polish = { ...legacyPolish, ...polishPart };
-    assert.deepEqual(await legacyConflicts(english, polish), [{ collection, reason: "ambiguous" }], label);
-    assert.deepEqual(await legacyConflicts(english, polish, { confirmLegacyPairing: true }), [], `${label}: a confirmed order is an explicit mapping`);
+  for (const [label, rows] of [["a missing start year", noYear], ["two entries with the same key", sameKey]]) {
+    const english = legacyEnglish({ experience: rows });
+    const polish = legacyPolish({ experience: rows.map((row) => ({ ...row, role: "PL" })) });
+    assert.deepEqual(await legacyConflicts(english, polish), [{ collection: "experience", reason: "ambiguous" }], label);
+    assert.deepEqual(await legacyConflicts(english, polish, { confirmLegacyPairing: true }), [], `${label}: confirmed`);
   }
 });
 
 test("a legacy translation with a different number of entries is not linked, even when confirmed", async () => {
-  const polish = { ...legacyPolish, experience: [...legacyPolish.experience, experience("Earlier Co", "2016 - 2019", "Młodszy redaktor")] };
+  const english = legacyEnglish({ experience: [experience("OpenCiVera", "2020 - now", "Writer")] });
+  const polish = legacyPolish({ experience: [experience("OpenCiVera", "2020 - now", "Pisarz"), experience("Earlier Co", "2016 - 2019", "Redaktor")] });
   const expected = [{ collection: "experience", reason: "count", defaultCount: 1, translationCount: 2 }];
 
-  assert.deepEqual(await legacyConflicts(legacyEnglish, polish), expected);
-  assert.deepEqual(await legacyConflicts(legacyEnglish, polish, { confirmLegacyPairing: true }), expected);
-  assert.deepEqual(await legacyConflicts(legacyEnglish, { ...legacyPolish, experience: [], courses: [] }), [], "an empty legacy collection has nothing to pair");
-});
-
-test("a legacy translation whose entries are in a different order is not linked automatically", async () => {
-  const english = { ...legacyEnglish, experience: [experience("OpenCiVera", "2020 - now", "Writer"), experience("Earlier Co", "2015 - 2019", "Editor")] };
-  const polish = { ...legacyPolish, experience: [experience("Earlier Co", "2015 - 2019", "Redaktor"), experience("OpenCiVera", "2020 - obecnie", "Pisarz")] };
-
-  assert.deepEqual(await legacyConflicts(english, polish), [{ collection: "experience", reason: "order", index: 0 }]);
-  const sameOrder = { ...polish, experience: [...polish.experience].reverse() };
-  assert.equal(reconcileResumeLanguageDocument(ensureResumeEntryIds(english), sameOrder).experience[0].role, "Pisarz");
+  assert.deepEqual(await legacyConflicts(english, polish), expected);
+  assert.deepEqual(await legacyConflicts(english, polish, { confirmLegacyPairing: true }), expected);
 });
 
 test("an already linked translation never has a missing ID guessed from its position", () => {
@@ -227,4 +240,28 @@ test("ID stability allows deliberate additions and removals but rejects replacem
   assert.ok(validation.issues.some((issue) => issue.kind === "changed-id" && issue.collection === "experience"));
   assert.equal(hasCompleteResumeLinkage(previous), true);
   assert.equal(hasCompleteResumeLinkage({ ...previous, experience: [{ ...previous.experience[0], entry_id: undefined }] }), false);
+});
+
+test("the editor does not block a stored legacy translation on its own position-derived IDs", async () => {
+  const { inspectTranslationLinkage } = await import("../app/lib/resume-language-linkage.ts");
+  const uuidDefault = ensureResumeEntryIds(legacyEnglish());
+  uuidDefault.summary = uuidDefault.summary.map((row) => ({ ...row, entry_id: "7d9c1e3a-uuid-summary" }));
+  const storedLegacy = legacyPolish({ summary: [{ position: "Redaktor", description: "Opis", default: true }] });
+  const editorBuffer = ensureResumeEntryIds(storedLegacy);
+
+  assert.equal(inspectTranslationLinkage(uuidDefault, editorBuffer, storedLegacy).ok, true, "the server checks the content and asks for confirmation");
+  const linkedStored = buildResumeLanguageTemplate(uuidDefault);
+  assert.equal(inspectTranslationLinkage(uuidDefault, editorBuffer, linkedStored).ok, false, "a linked translation keeps the strict ID check");
+});
+
+test("the editor can tell when a save gave its rows different linkage IDs", async () => {
+  const { resumeEntryIdsDiffer } = await import("../app/lib/resume-language-linkage.ts");
+  const editorBuffer = ensureResumeEntryIds(legacyPolish({ summary: [{ position: "Redaktor", description: "Opis", default: true }], interests: ["Muzyka"] }));
+  const storedCanonical = structuredClone(editorBuffer);
+  storedCanonical.summary[0].entry_id = "uuid-summary";
+  storedCanonical.__ocv.entries.interests = ["uuid-interest"];
+  const reformatted = { ...structuredClone(editorBuffer), gdpr_clause: "" };
+
+  assert.equal(resumeEntryIdsDiffer(editorBuffer, storedCanonical), true);
+  assert.equal(resumeEntryIdsDiffer(editorBuffer, reformatted), false, "formatting alone does not replace the buffer");
 });

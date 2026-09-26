@@ -5,6 +5,10 @@ import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import yaml from "js-yaml";
+import { randomUUID } from "node:crypto";
+import { register } from "node:module";
+
+register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
 // Isolated browser check of the real editor (tests/fixtures/dashboard-browser.tsx
 // in `?editor` mode) with mocked resume APIs: the save and retry flows for
@@ -63,6 +67,20 @@ test(
     const PARTIAL = "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish.";
     const SAVED = "Saved {count} language versions.";
 
+    const linkage = await import("../app/lib/resume-language-linkage.ts");
+    let uuidFixture = null;
+    const withUuidDefault = (fixture) => {
+      const english = linkage.ensureResumeEntryIds(yaml.load(fixture.documents[0].yaml_content));
+      for (const [key, value] of Object.entries(english)) {
+        if (Array.isArray(value) && value.every((row) => row && typeof row === "object")) english[key] = value.map((row) => ({ ...row, entry_id: randomUUID() }));
+      }
+      for (const key of Object.keys(english.__ocv.entries)) english.__ocv.entries[key] = english.__ocv.entries[key].map(() => randomUUID());
+      uuidFixture = { ...fixture, documents: [{ ...fixture.documents[0], yaml_content: yaml.dump(english) }, fixture.documents[1]] };
+      return uuidFixture;
+    };
+    const canonicalPolish = (yamlContent) => yaml.dump(linkage.reconcileResumeLanguageDocument(
+      yaml.load(uuidFixture.documents[0].yaml_content), linkage.withoutResumeEntryIds(yaml.load(yamlContent)), { confirmLegacyPairing: true }));
+    const entryIds = (yamlContent) => yaml.load(yamlContent).experience.map((row) => row.entry_id);
     let browser;
     try {
       browser = await chromium.launch({ headless: true });
@@ -76,11 +94,11 @@ test(
         await dialog.accept();
       });
 
-      async function openPolishTab(scenario) {
-        const fixture = await (async () => {
+      async function openPolishTab(scenario, prepare = (fixture) => fixture) {
+        const fixture = prepare(await (async () => {
           await page.goto(`${base}/?editor`);
           return page.evaluate(() => window.dashboardFixture);
-        })();
+        })());
         await page.unroute("**/api/resume/**").catch(() => {});
         await page.route("**/api/resume/languages?withDocuments=true", (route) => route.fulfill({ json: { ok: true, languages: fixture.languageRows } }));
         await page.route("**/api/resume/document?locale=*", (route) => {
@@ -148,6 +166,32 @@ test(
         await save();
         await toast(text(locale, SAVED, { count: "1" }));
         assert.deepEqual(partial.map((body) => body.baseUpdatedAt), ["2026-09-08T12:00:00Z", "v3"], `${locale}: the retry sends the stored version, not the stale one`);
+        // UUID default + legacy translation: Save stays available, the confirmed save links
+        // the rows to the default's UUIDs, and every later save sends those IDs.
+        for (const finish of ["success", "partial"]) {
+          dialogs.length = 0;
+          const uuid = await openPolishTab((body, count) => {
+            const legacyIds = /legacy-/.test(body.yamlContent);
+            if (legacyIds && !body.confirmLegacyPairing) return [409, conflict("ambiguous")];
+            const document = { ...uuidFixture.documents[1], yaml_content: canonicalPolish(body.yamlContent), updated_at: `v${count}` };
+            return count === 2 && finish === "partial"
+              ? [500, { error: "English server text", saved: true, incomplete: ["revision"], document, revisions: [] }]
+              : [200, { ok: true, document, revisions: [] }];
+          }, withUuidDefault);
+          const saveButton = page.getByRole("button", { name: dictionaries[locale].editor.text["Save MasterCV"], exact: true }).first();
+          assert.equal(await saveButton.isDisabled(), false, `${locale}/${finish}: a legacy translation can be saved against a UUID default`);
+          await save();
+          await toast(finish === "partial" ? text(locale, PARTIAL, params) : text(locale, SAVED, { count: "1" }));
+          if (finish === "success") await page.getByLabel(locale === "pl" ? "Imię" : "First name", { exact: true }).fill(`Ada again ${locale}`);
+          assert.equal(await saveButton.isDisabled(), false, `${locale}/${finish}: Save stays available after linking`);
+          await save();
+          await toast(text(locale, SAVED, { count: "1" }));
+          const retried = uuid.at(-1);
+          assert.equal(dialogs.length, 1, `${locale}/${finish}: asked once`);
+          assert.equal(retried.baseUpdatedAt, "v2", `${locale}/${finish}: the follow-up save starts from the stored version`);
+          assert.doesNotMatch(retried.yamlContent, /legacy-/, `${locale}/${finish}: the follow-up save sends the canonical IDs`);
+          assert.deepEqual(entryIds(retried.yamlContent), entryIds(uuidFixture.documents[0].yaml_content));
+        }
         await page.screenshot({ path: path.join(output, `editor-retry-${locale}.png`) });
       }
       assert.deepEqual(errors, []);

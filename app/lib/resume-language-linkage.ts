@@ -159,6 +159,24 @@ export function inspectResumeLanguagePair(defaultValue: unknown, localeValue: un
   return { ok: issues.length === 0, issues };
 }
 
+/**
+ * The editor's check of a translation. While the stored translation is still
+ * legacy its IDs are the editor's own position-derived ones and prove nothing,
+ * so the server decides on the content (and asks the user when it is ambiguous).
+ */
+export function inspectTranslationLinkage(defaultValue: unknown, currentValue: unknown, storedValue: unknown): ResumeLinkageValidation {
+  const stored = asObject(storedValue);
+  if (Object.keys(stored).length > 0 && isLegacyResumeDocument(stored)) return { ok: true, issues: [] };
+  return inspectResumeLanguagePair(defaultValue, currentValue);
+}
+
+/** True when two versions of a document carry different linkage IDs (e.g. a save assigned canonical ones). */
+export function resumeEntryIdsDiffer(leftValue: unknown, rightValue: unknown): boolean {
+  const left = asObject(leftValue);
+  const right = asObject(rightValue);
+  return LINKED_RESUME_COLLECTIONS.some((collection) => JSON.stringify(idsForCollection(left, collection)) !== JSON.stringify(idsForCollection(right, collection)));
+}
+
 /** Returns false for legacy documents until every linked row has a stable ID. */
 export function hasCompleteResumeLinkage(value: unknown): boolean {
   const source = asObject(value);
@@ -228,9 +246,14 @@ function ensureStringEntryIds(source: RawObject, collection: "tech_stack" | "int
 }
 
 /** Adds stable private IDs without changing the public resume fields. */
-export function ensureResumeEntryIds(value: unknown): RawObject {
+/**
+ * `positional: false` gives rows without an ID fresh random IDs even in an
+ * ID-less document: used when such content replaces an already linked
+ * document, whose position-derived IDs must not be reused for new entries.
+ */
+export function ensureResumeEntryIds(value: unknown, options: { positional?: boolean } = {}): RawObject {
   const source = clone(asObject(value));
-  const legacy = isLegacyResumeDocument(source);
+  const legacy = options.positional !== false && isLegacyResumeDocument(source);
   const linkage = asObject(source[RESUME_LINKAGE_KEY]) as LinkageMetadata;
   const entries = asObject(linkage.entries) as Partial<Record<LinkedResumeCollection, string[]>>;
 
@@ -243,6 +266,21 @@ export function ensureResumeEntryIds(value: unknown): RawObject {
   }
 
   source[RESUME_LINKAGE_KEY] = { ...linkage, entries };
+  return source;
+}
+
+/** Drops every linkage ID, e.g. the editor's position-derived "legacy-..." IDs, which prove nothing. */
+export function withoutResumeEntryIds(value: unknown): RawObject {
+  const source = clone(asObject(value));
+  delete source[RESUME_LINKAGE_KEY];
+  for (const collection of LINKED_RESUME_COLLECTIONS) {
+    if (collection === "tech_stack" || collection === "interests" || !Array.isArray(source[collection])) continue;
+    source[collection] = (source[collection] as unknown[]).map((item) => {
+      const row = { ...asObject(item) };
+      delete row.entry_id;
+      return row;
+    });
+  }
   return source;
 }
 
@@ -274,6 +312,7 @@ function entryId(item: unknown): string | null {
 export type LegacyPairingConflict =
   | { collection: LinkedResumeCollection; reason: "count"; defaultCount: number; translationCount: number }
   | { collection: LinkedResumeCollection; reason: "order"; index: number }
+  | { collection: LinkedResumeCollection; reason: "mismatch"; index: number }
   | { collection: LinkedResumeCollection; reason: "ambiguous" };
 
 /** `confirmLegacyPairing`: the user confirmed that ambiguous collections are in the same order. */
@@ -317,6 +356,8 @@ function pairingKey(collection: LinkedResumeCollection, item: unknown): string |
   return null;
 }
 
+const NEUTRAL_KEY_COLLECTIONS = new Set<LinkedResumeCollection>(["experience", "education", "contact", "qr_codes"]);
+
 function hasDuplicates(keys: Array<string | null>): boolean {
   const present = keys.filter((key): key is string => Boolean(key));
   return new Set(present).size !== present.length;
@@ -340,7 +381,6 @@ export function findLegacyPairingConflicts(canonicalValue: unknown, localeValue:
       conflicts.push({ collection, reason: "count", defaultCount: expected.length, translationCount: items.length });
       continue;
     }
-    if (items.length === 1) continue;
     const translatedKeys = items.map((item) => pairingKey(collection, item));
     const canonicalKeys = expected.map((item) => pairingKey(collection, item));
     const unique = !hasDuplicates(translatedKeys) && !hasDuplicates(canonicalKeys);
@@ -349,6 +389,16 @@ export function findLegacyPairingConflicts(canonicalValue: unknown, localeValue:
       conflicts.push({ collection, reason: "order", index: moved });
       continue;
     }
+    // Neutral fields (company/school + year, contact value) are the same in every
+    // language, so a difference is evidence of another entry, not a translation.
+    const contradicted = NEUTRAL_KEY_COLLECTIONS.has(collection)
+      ? translatedKeys.findIndex((key, index) => key !== null && canonicalKeys[index] !== null && key !== canonicalKeys[index])
+      : -1;
+    if (contradicted >= 0) {
+      conflicts.push({ collection, reason: "mismatch", index: contradicted });
+      continue;
+    }
+    // A single entry is not proof by itself: its identity must be confirmed by a key.
     const proven = unique && translatedKeys.every((key, index) => key !== null && key === canonicalKeys[index]);
     if (!proven && !options.confirmLegacyPairing) conflicts.push({ collection, reason: "ambiguous" });
   }

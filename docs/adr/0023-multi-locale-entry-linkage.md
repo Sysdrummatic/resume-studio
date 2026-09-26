@@ -43,26 +43,38 @@ default-language document.
    so the editor, a save, the language sync and a default switch, which each
    parse it independently, produce IDs that pair. A legacy translation takes the
    canonical IDs at the same positions, including `tech_stack` and `interests`.
-   A missing ID in an already linked document is never guessed from its position.
-   **Positions are trusted only when they are proven** (amended 2026-09-26).
+   A missing ID in an already linked document is never guessed from its position,
+   and ID-less content that replaces an already linked document (a template
+   reset, pasted YAML) gets fresh random IDs, so the stored position-derived IDs
+   are never reused for different entries.
+   **Positions are trusted only when they are proven** (amended 2026-09-27).
    For every non-empty collection of a legacy translation
    (`findLegacyPairingConflicts`):
    - the count must equal the default's, otherwise `count`;
-   - a single entry pairs;
-   - otherwise each entry needs a key that identifies it in every language:
+   - every entry, a single one included, needs a key that identifies it in every
+     language:
      company + start year (`experience`), school + start year (`education`),
      the value (`contact`, `qr_codes`) or the exact text (`tech_stack`,
      `interests`). When all keys are present, unique and equal at every
      position, the collection pairs. When a key appears in both lists at
      different positions, it is `order` (for example Alpha/Beta both starting in
-     2020 but swapped). Anything else is `ambiguous`: a missing start year,
-     duplicate keys, a translated key, or a collection with no comparable field
-     (`summary`, `skills`, `languages`, `courses`).
+     2020 but swapped). When neutral keys (company/school + year, contact or QR
+     value) differ at a position, it is `mismatch`: those fields are the same in
+     every language, so the entry is a different one. Anything else is
+     `ambiguous`: a missing start year, duplicate keys, a translated text key,
+     or a collection with no comparable field (`summary`, `skills`,
+     `languages`, `courses`), even with a single entry.
    Any conflict stops the automatic migration, and both documents stay unchanged
    (on a default save only the user's own default document is written). §4's
    "removed canonical slots disappear" never applies to unlinked legacy content.
    The check runs on the content, not on IDs, whenever the stored translation is
-   still legacy, because the editor gives a legacy document position-derived IDs.
+   still legacy, because the editor gives a legacy document position-derived
+   `legacy-...` IDs that prove nothing. After the check passes, those IDs are
+   dropped and the rows take the canonical IDs by position before reconciliation,
+   so the translation is kept even when the default already uses UUIDs. A
+   translation that is already linked is never re-mapped by position. In the
+   editor, a stored legacy translation is not blocked by its own IDs (the server
+   decides), and after the save the editor adopts the stored canonical IDs.
 
    **Resolution.** The sync reports `legacy-pairing` for the locale. A save,
    a default switch or an import returns `409 { code: "legacy-pairing",
@@ -70,7 +82,7 @@ default-language document.
    - `ambiguous`: the user can confirm that the collections are in the same order.
      The editor asks, then resends the save with `confirmLegacyPairing: true`.
      That confirmation is the explicit, user-approved mapping.
-   - `count` and `order` cannot be confirmed: the user makes the translation's
+   - `count`, `order` and `mismatch` cannot be confirmed: the user makes the translation's
      entries match the default (for example by reordering them in YAML) and saves
      again.
    - A data import replaces stored documents with its own linked content, so it

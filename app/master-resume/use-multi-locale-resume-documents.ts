@@ -20,7 +20,8 @@ import {
   ensureResumeEntryIds,
   hasCompleteResumeLinkage,
   inspectResumeEntryIdStability,
-  inspectResumeLanguagePair,
+  inspectTranslationLinkage,
+  resumeEntryIdsDiffer,
   reconcileResumeLanguageDocument,
   type ResumeLinkageIssue,
 } from "../lib/resume-language-linkage";
@@ -86,7 +87,7 @@ type ApiDocumentResponse = {
 class ResumeSaveError extends Error {
   docsUrl?: string;
   /** Set when the server stored the document but could not finish the save. */
-  partial?: { document: ResumeDocumentRow; message: EditorFailureMessage; payload: ApiDocumentResponse };
+  partial?: { document: ResumeDocumentRow; message: EditorFailureMessage; payload: ApiDocumentResponse; snapshot: string };
   /** A failure the editor shows from its EN/PL dictionaries instead of `message`. */
   keyed?: EditorFailureMessage;
   constructor(message: string, docsUrl?: string, partial?: ResumeSaveError["partial"], keyed?: EditorFailureMessage) {
@@ -268,6 +269,21 @@ function applySynchronizedDocuments(
     }
   }
   return next;
+}
+
+/**
+ * After a save that gave the rows canonical linkage IDs (a legacy translation
+ * paired by the server), the buffer takes the stored version so its IDs match
+ * the default again. Only when nothing was typed since the save was sent.
+ */
+function canonicalBufferAfterSave(current: LocaleBuffer, stored: ResumeDocumentRow, snapshot: string, fallbackName: string): LocaleBuffer | null {
+  if (current.yamlPanel !== snapshot || !stored.yaml_content) return null;
+  try {
+    if (!resumeEntryIdsDiffer(parseYamlValue(snapshot), parseYamlValue(stored.yaml_content))) return null;
+  } catch {
+    return null;
+  }
+  return { ...buildBuffer(current.locale, stored, current.revisions, fallbackName).buffer, revisions: current.revisions };
 }
 
 function buildFailedBuffer(locale: ResumeLocale, message: string, fallbackName: string): LocaleBuffer {
@@ -490,7 +506,8 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
           result[buffer.locale] = { ...validation, basis: "saved-default" };
         } else if (defaultBuffer) {
           const defaultRaw = parseYamlValue(defaultBuffer.yamlPanel);
-          const validation = inspectResumeLanguagePair(defaultRaw, currentRaw);
+          const storedRaw = buffer.documentRow?.yaml_content ? parseYamlValue(buffer.documentRow.yaml_content) : null;
+          const validation = inspectTranslationLinkage(defaultRaw, currentRaw, storedRaw);
           result[buffer.locale] = { ...validation, basis: "default-language" };
         }
       } catch (error) {
@@ -581,7 +598,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
           );
           if (status < 200 || status >= 300 || payload.error || !payload.document) {
             const stored = partialSaveFailure(payload, code);
-            const partial = stored ? { ...stored, payload } : undefined;
+            const partial = stored ? { ...stored, payload, snapshot } : undefined;
             const keyed = partial?.message ?? legacyConflictFailure(payload, code)?.message;
             const message = keyed ? formatAppMessage(keyed.key, keyed.params) : `${code}: ${payload.error || "Save failed."}`;
             throw new ResumeSaveError(message, payload.docsUrl, partial, keyed);
@@ -631,6 +648,8 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
                 savedCvStyle: styleSnapshot,
                 saveError: null,
               };
+              const canonical = canonicalBufferAfterSave(next[code], payload.document!, snapshot, actor?.displayName || "");
+              if (canonical) next[code] = canonical;
             }
           } else {
             const message = outcome.reason instanceof Error ? outcome.reason.message : "Save failed.";
@@ -638,6 +657,9 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             // A stored-but-unfinished save moves the base forward and stays dirty,
             // so "save again" resends it and the server finishes the missing steps.
             if (next[code]) next[code] = { ...next[code], saveError: message, ...(partial ? { documentRow: partial.document } : {}) };
+            const canonical = partial && next[code] ? canonicalBufferAfterSave(next[code], partial.document, partial.snapshot, actor?.displayName || "") : null;
+            // Keeps the language dirty so "save again" resends it and finishes the save.
+            if (canonical) next[code] = { ...canonical, savedYamlContent: next[code].savedYamlContent, savedCvStyle: next[code].savedCvStyle, saveError: message };
           }
         });
         next = applySynchronizedDocuments(next, synchronized, defaultLocale, actor?.displayName || "");

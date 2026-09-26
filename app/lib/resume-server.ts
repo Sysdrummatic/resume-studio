@@ -20,6 +20,7 @@ import {
   findLegacyPairingConflicts,
   isLegacyResumeDocument,
   linkLegacyResumeLanguageDocument,
+  withoutResumeEntryIds,
   reconcileResumeLanguageDocument,
   ResumeLegacyPairingError,
   type LegacyPairingConflict,
@@ -2143,7 +2144,11 @@ async function prepareResumeLanguageYaml(
   const defaultLocale = options.asDefault ? locale : locales.find((entry) => entry.is_default)?.code || locale;
   const document = await fetchDocumentByLocale(accessToken, userId, locale);
   const candidateRaw = parseRawResumeYaml(yamlContent);
-  const candidate = ensureResumeEntryIds(candidateRaw);
+  const storedIsLegacy = document ? isLegacyResumeDocument(parseRawResumeYaml(document.yaml_content)) : false;
+  // ID-less content replacing an already linked document is new content: its rows
+  // get fresh IDs, so the stored position-derived IDs are not reused and old
+  // translations are not attached to different entries.
+  const candidate = ensureResumeEntryIds(candidateRaw, { positional: !document || storedIsLegacy });
 
   if (locale === defaultLocale) {
     if (document && hasCompleteResumeLinkage(parseRawResumeYaml(document.yaml_content))) {
@@ -2160,10 +2165,13 @@ async function prepareResumeLanguageYaml(
 
   const defaultRaw = parseRawResumeYaml(defaultDocument.yaml_content);
   // A stored translation that was never linked is paired now. The editor sends it
-  // with position-derived IDs, so the positions are checked on the content itself;
-  // an import replaces the stored document with its own mapping instead.
-  if (document && !options.replacingStoredDocument && isLegacyResumeDocument(parseRawResumeYaml(document.yaml_content))) {
-    const conflicts = findLegacyPairingConflicts(ensureResumeEntryIds(defaultRaw), candidateRaw, options);
+  // with position-derived "legacy-..." IDs, which prove nothing: the content is
+  // checked, then the rows take the canonical IDs by position. An import replaces
+  // the stored document with its own mapping instead.
+  let pairingCandidate = candidateRaw;
+  if (document && storedIsLegacy && !options.replacingStoredDocument) {
+    pairingCandidate = withoutResumeEntryIds(candidateRaw);
+    const conflicts = findLegacyPairingConflicts(ensureResumeEntryIds(defaultRaw), pairingCandidate, options);
     if (conflicts.length) throw new ResumeLegacyPairingError(conflicts);
   }
   const existingLocaleIsLegacy = !document || !hasCompleteResumeLinkage(parseRawResumeYaml(document.yaml_content));
@@ -2179,7 +2187,7 @@ async function prepareResumeLanguageYaml(
 
   // One-time compatibility path for documents created before linkage IDs were introduced.
   return {
-    yamlContent: dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, candidateRaw, options)),
+    yamlContent: dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, pairingCandidate, options)),
     document,
     defaultLocale,
   };
