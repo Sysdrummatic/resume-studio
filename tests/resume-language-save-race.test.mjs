@@ -148,3 +148,78 @@ test("a default-language save reports which translations it rewrote and from whi
   assert.deepEqual(saved.synchronizationFailed, []);
   assert.deepEqual(saved.synchronized.map((entry) => [entry.locale, entry.previousUpdatedAt, entry.document.updated_at]), [["pl", OLD, polishRow(fake).updated_at]]);
 });
+
+const unavailable = () => new Response(JSON.stringify({ message: "upstream unavailable" }), { status: 503, headers: { "Content-Type": "application/json" } });
+const isTranslationListRead = (request) => request.method === "GET" && request.path === "resume_documents" && request.url.search.includes("order=updated_at.desc");
+const isReadOf = (request, id) => request.method === "GET" && request.path === "resume_documents" && request.url.search.includes(`id=eq.${id}`);
+const editedDefault = (docs) => yaml.dump({ ...docs.english, experience: [{ ...docs.english.experience[0], company: "Acme Corp" }] });
+
+test("a failed read of the translation list is reported instead of looking like a complete sync", async (t) => {
+  const docs = await linkedDocuments();
+  const fake = install(docs, (request) => (isTranslationListRead(request) ? unavailable() : undefined));
+  t.after(() => fake.restore());
+  const { publishResumeDocument } = await import("../app/lib/resume-server.ts");
+
+  const saved = await publishResumeDocument("token", USER, "en", { yamlContent: editedDefault(docs), title: "Jan Kowalski", changeNote: "Default edit" });
+
+  assert.ok(saved, "the default language itself is saved");
+  assert.equal(saved.synchronizationComplete, false);
+  assert.equal(yaml.load(polishRow(fake).yaml_content).experience[0].company, "Acme", "the translation was not touched");
+});
+
+test("a failed re-read after a lost compare-and-swap is reported as a failed translation", async (t) => {
+  const docs = await linkedDocuments();
+  let fake;
+  let conflicted = false;
+  fake = install(docs, (request) => {
+    if (!conflicted && isWriteTo(request, "doc-pl")) {
+      conflicted = true;
+      fake.update("resume_documents", (row) => row.id === "doc-pl", { yaml_content: docs.withRole("Inna karta") });
+      return undefined;
+    }
+    if (conflicted && isReadOf(request, "doc-pl")) return unavailable();
+  });
+  t.after(() => fake.restore());
+  const { publishResumeDocument } = await import("../app/lib/resume-server.ts");
+
+  const saved = await publishResumeDocument("token", USER, "en", { yamlContent: editedDefault(docs), title: "Jan Kowalski", changeNote: "Default edit" });
+
+  assert.deepEqual(saved.synchronizationFailed, [{ locale: "pl", reason: "read" }]);
+  assert.equal(polishRole(fake), "Inna karta", "the concurrent translation is kept");
+});
+
+test("the publish API and the editor message both report an incomplete sync", async () => {
+  const { synchronizationFailureMessages, NOT_SYNCHRONIZED_MESSAGE, SYNCHRONIZATION_UNCHECKED_MESSAGE } = await import("../app/master-resume/locale-save-plan.ts");
+  const ts = (await import("typescript")).default;
+  const { readFileSync } = await import("node:fs");
+  const js = ts.transpileModule(readFileSync(new URL("../app/api/resume/publish/route.ts", import.meta.url), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const route = {};
+  const resumeSchema = await import("../app/lib/resume-schema.ts");
+  const modules = {
+    "next/server": { NextResponse: { json: (body, init) => Response.json(body, init) } },
+    "../../../lib/auth-request": { requireRequestActor: async () => ({ ok: true, actor: { userId: USER }, accessToken: "token" }) },
+    "../../../lib/rate-limit": { rateLimit: async () => ({ success: true, reset: Date.now() }) },
+    "../../../lib/resume-schema": resumeSchema,
+    "../../../lib/supabase-http": { callRpc: async () => ({ data: true }) },
+    "../../../lib/content-safety-audit": { flagSuspiciousResumeContent: async () => {} },
+    "../../../lib/resume-server": {
+      upgradeLegacyResumeYamlContent: (value) => value,
+      publishResumeDocument: async () => ({
+        document: { id: "doc-en", updated_at: "v2" }, revisions: [], synchronized: [],
+        synchronizationFailed: [{ locale: "pl", reason: "read" }], synchronizationComplete: false,
+      }),
+    },
+  };
+  new Function("require", "exports", js)((name) => modules[name], route);
+
+  const response = await route.POST(new Request("http://localhost/api/resume/publish", { method: "POST", body: JSON.stringify({ locale: "en", yamlContent: "name: Jan" }) }));
+  const body = await response.json();
+
+  assert.deepEqual([body.synchronizationComplete, body.synchronizationFailed], [false, [{ locale: "pl", reason: "read" }]]);
+  assert.deepEqual(synchronizationFailureMessages(body, "en").map((message) => [message.locale, message.key]), [
+    ["pl", NOT_SYNCHRONIZED_MESSAGE],
+    ["en", SYNCHRONIZATION_UNCHECKED_MESSAGE],
+  ]);
+});

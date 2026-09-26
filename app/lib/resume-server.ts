@@ -960,18 +960,18 @@ export async function fetchResumeRevisionYaml(
 }
 
 export async function fetchResumeDocumentsForUser(userId: string): Promise<ResumeDocumentRow[]> {
+  return (await queryResumeDocumentsForUser(userId)) ?? [];
+}
+
+/** `null` when the query failed, as opposed to `[]` for an account without documents. */
+async function queryResumeDocumentsForUser(userId: string): Promise<ResumeDocumentRow[] | null> {
   const result = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
     select: RESUME_DOCUMENT_SELECT,
     useServiceRole: true,
     query: `user_id=eq.${encodeURIComponent(userId)}&order=updated_at.desc`,
   });
-
-  if (!result.data || result.error) {
-    return [];
-  }
-
-  return result.data;
+  return result.error || !result.data ? null : result.data;
 }
 
 async function ensureResumeDocumentRecord(
@@ -1706,6 +1706,17 @@ export async function switchDefaultResumeLocale(
   return presetsResult.error ? { ok: false } : { ok: true, synchronized };
 }
 
+/** Tells a deleted document (`row: null`) apart from a failed read (`ok: false`). */
+async function readResumeDocument(accessToken: string, documentId: string, userId: string): Promise<{ ok: true; row: ResumeDocumentRow | null } | { ok: false }> {
+  const result = await queryTable<ResumeDocumentRow>({
+    table: "resume_documents",
+    select: RESUME_DOCUMENT_SELECT,
+    accessToken,
+    query: `id=eq.${encodeURIComponent(documentId)}&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+  });
+  return result.error || !result.data ? { ok: false } : { ok: true, row: result.data[0] ?? null };
+}
+
 async function fetchDocumentById(accessToken: string, documentId: string, userId: string): Promise<ResumeDocumentRow | null> {
   const result = await queryTable<ResumeDocumentRow>({
     table: "resume_documents",
@@ -2015,7 +2026,8 @@ async function synchronizeResumeLanguageDocuments(
   const defaultRaw = parseLinkedResumeYaml(defaultYamlContent);
   const synchronized: SynchronizedResumeDocument[] = [];
   const failed: ResumeSynchronizationFailure[] = [];
-  const documents = await fetchResumeDocumentsForUser(userId);
+  const documents = await queryResumeDocumentsForUser(userId);
+  if (!documents) return { synchronized, failed, complete: false };
   for (const initial of documents) {
     if (normalizeLocale(initial.locale) === normalizeLocale(defaultLocale)) continue;
     if (skipLocales.includes(normalizeLocale(initial.locale))) continue;
@@ -2023,6 +2035,7 @@ async function synchronizeResumeLanguageDocuments(
     let written: ResumeDocumentRow | null = null;
     let upToDate = false;
     let conflicts: LegacyPairingConflict[] | null = null;
+    let readFailed = false;
     for (let attempt = 0; attempt < SYNCHRONIZATION_ATTEMPTS; attempt += 1) {
       if (!document) {
         upToDate = true;
@@ -2045,10 +2058,19 @@ async function synchronizeResumeLanguageDocuments(
         break;
       } catch (error) {
         if (!(error instanceof ResumeDocumentConflictError)) throw error;
-        document = await fetchDocumentById(accessToken, document.id, userId);
+        const reread = await readResumeDocument(accessToken, document.id, userId);
+        if (!reread.ok) {
+          readFailed = true;
+          break;
+        }
+        document = reread.row;
       }
     }
     if (upToDate) continue;
+    if (readFailed) {
+      failed.push({ locale: initial.locale, reason: "read" });
+      continue;
+    }
     if (conflicts) {
       failed.push({ locale: initial.locale, reason: "legacy-pairing", conflicts });
       continue;

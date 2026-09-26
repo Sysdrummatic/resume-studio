@@ -67,6 +67,9 @@ default-language document.
    translations before the default and adopts a synchronized translation only
    when the sync started from the version it holds (`synchronizedDocuments`);
    a translation the sync could not update is reported as a failed save.
+   A failed read is never read as "nothing to do": if the translations cannot
+   be listed the response says `synchronizationComplete: false`, and a failed
+   re-read after a lost compare-and-swap reports that locale with reason `read`.
 
 ## Consequences
 
