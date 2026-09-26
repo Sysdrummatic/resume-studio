@@ -70,9 +70,10 @@ async function saveTwice(fake, payload) {
 for (const scenario of [
   { step: "revision", options: {}, fails: (request) => isRevisionOf(request, "doc-pl") },
   { step: "profile", options: { nameSync: "auto" }, fails: (request) => request.method === "PATCH" && request.path === "profiles" },
+  { step: "profile", label: "profile read (transient)", options: { nameSync: "auto" }, fails: (request) => request.method === "GET" && request.path === "profiles" && request.url.searchParams.get("select") === "id,display_name,first_name,last_name,person_slug,name_sync_mode" },
   { step: "public-identity", options: {}, fails: (request) => request.method === "GET" && request.path === "profiles" && request.url.searchParams.get("select") === "id,display_name,person_slug" },
 ]) {
-  test(`a failed ${scenario.step} step after the document write is a recoverable partial save`, async (t) => {
+  test(`a failed ${scenario.label ?? scenario.step} step after the document write is a recoverable partial save`, async (t) => {
     const docs = await linkedDocuments();
     const failing = failOnce();
     const fake = install(docs, { ...scenario.options, onRequest: (request) => failing(scenario.fails(request)) });
@@ -141,4 +142,21 @@ test("a translation whose sync revision failed gets it on the next save, without
   assert.equal(row(fake, "doc-pl").updated_at, translationWrittenAt, "the translation is not rewritten");
   assert.deepEqual(revisionsOf(fake, "doc-pl").map((entry) => [entry.change_note, entry.yaml_content]), [["Synchronized with default language", row(fake, "doc-pl").yaml_content]]);
   assert.equal(revisionsOf(fake, "doc-en").length, 1, "the unchanged default is not recorded twice");
+});
+
+test("a missing profile and manual name sync are not profile failures", async (t) => {
+  const { publishResumeDocument } = await import("../app/lib/resume-server.ts");
+  const docs = await linkedDocuments();
+  const payload = { yamlContent: docs.withRole("Bez profilu"), title: "Jan Kowalski", changeNote: "profile", baseUpdatedAt: OLD };
+
+  const manual = install(docs, { nameSync: "manual" });
+  const withManualSync = await publishResumeDocument("token", USER, "pl", payload);
+  manual.restore();
+  assert.deepEqual(withManualSync.incomplete, [], "manual mode deliberately skips the name sync");
+
+  const missing = install(docs);
+  t.after(() => missing.restore());
+  missing.rows("profiles").length = 0;
+  const withoutProfile = await publishResumeDocument("token", USER, "pl", payload);
+  assert.equal(withoutProfile.incomplete.includes("profile"), false, "a missing profile has no name to sync");
 });

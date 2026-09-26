@@ -800,18 +800,15 @@ function extractResumeNamePartsFromYaml(yamlContent: string): { firstName: strin
   }
 }
 
-async function fetchProfileIdentity(userId: string): Promise<ProfileIdentityRow | null> {
+/** Tells a missing profile (`row: null`) apart from a failed read (`ok: false`). */
+async function fetchProfileIdentity(userId: string): Promise<{ ok: true; row: ProfileIdentityRow | null } | { ok: false }> {
   const result = await queryTable<ProfileIdentityRow>({
     table: "profiles",
     select: PROFILE_IDENTITY_SELECT,
     useServiceRole: true,
     query: `id=eq.${encodeURIComponent(userId)}&limit=1`,
   });
-
-  if (!result.data || result.error) {
-    return null;
-  }
-  return result.data[0] || null;
+  return !result.data || result.error ? { ok: false } : { ok: true, row: result.data[0] || null };
 }
 
 async function updateProfileIdentity(
@@ -839,7 +836,11 @@ async function syncProfileNameFromResumeYaml(
     return true;
   }
 
-  const profile = await fetchProfileIdentity(userId);
+  // No profile: nothing to sync. Manual mode: the user owns the name. A failed
+  // read is neither, so the save reports the step as incomplete.
+  const read = await fetchProfileIdentity(userId);
+  if (!read.ok) return false;
+  const profile = read.row;
   if (!profile || normalizeNameSyncMode(profile.name_sync_mode) === "manual") {
     return true;
   }
