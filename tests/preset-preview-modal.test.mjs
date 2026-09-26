@@ -67,7 +67,7 @@ const dependencies = {
       },
     }),
   },
-  "../lib/resume-style": { normalizeResumeStyle: () => ({}) },
+  "../lib/resume-style": { normalizeResumeStyle: () => ({}), presetStyleSource: (preset, document) => preset ?? document },
   "../components/status-toast": {
     StatusToast: () => null,
     useStatusToast: () => ({ toast: null, showToast() {}, closeToast() {} }),

@@ -10,7 +10,7 @@ import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode,
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
 import type { ResumePresetSelection } from "./preset-selection";
 import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
-import { normalizeResumeStyle, type ResumeStyleSettings } from "./resume-style";
+import { normalizeResumeStyle, presetStyleSource, type ResumeStyleSettings } from "./resume-style";
 import {
   buildResumeLanguageTemplate,
   ensureResumeEntryIds,
@@ -1537,7 +1537,7 @@ export async function fetchResumeExportByPresetId(
     personSlug: "user",
     publicId: preset.id,
     locale: preset.default_locale,
-    cvStyle: normalizeResumeStyle(preset.style_settings ?? document.style_settings),
+    cvStyle: normalizeResumeStyle(presetStyleSource(preset.style_settings, document.style_settings)),
     defaultLocale: preset.default_locale,
     availableLocales: [preset.default_locale],
     allowIndexing: false,
@@ -1721,7 +1721,7 @@ export async function saveResumePreset(
   }
 
   const title = payload.title.trim() || "Untitled preset";
-  const styleSettings = normalizeResumeStyle(payload.styleSettings ?? existingPreset?.style_settings ?? document.style_settings);
+  const styleSettings = normalizeResumeStyle(payload.styleSettings ?? presetStyleSource(existingPreset?.style_settings, document.style_settings));
   const values = {
     document_id: document.id,
     user_id: userId,

@@ -17,7 +17,7 @@ import PublishSavedVersionModal, { type PublishDraft } from "../components/Publi
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
 import { FileText, LockKeyhole, Plus, Search, ArrowUpRight } from "lucide-react";
-import { normalizeResumeStyle, RESUME_TEMPLATE_PALETTES, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
+import { normalizeResumeStyle, presetStyleSource, RESUME_TEMPLATE_PALETTES, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
 import { useAppI18n } from "../components/app-i18n-provider";
 import { formatAppMessage } from "../i18n/locale";
 import type { AppDictionary } from "../i18n/types";
@@ -221,7 +221,7 @@ function PresetModal({
     normalizeSummarySelection(preset?.selection || createSelectionFromOptions(options, masterResume.yaml_content), options),
   );
   const [styleSettings, setStyleSettings] = useState<ResumeStyleSettings>(
-    normalizeResumeStyle(preset?.style_settings ?? masterResume.style_settings),
+    normalizeResumeStyle(presetStyleSource(preset?.style_settings, masterResume.style_settings)),
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -409,7 +409,7 @@ export function PresetPreviewModal({
     () => buildLanguageOptions(availableDocuments, languages, locale),
     [availableDocuments, languages, locale],
   );
-  const cvStyle = normalizeResumeStyle(preset.style_settings ?? activeDocument.style_settings);
+  const cvStyle = normalizeResumeStyle(presetStyleSource(preset.style_settings, activeDocument.style_settings));
 
   return (
     <div
