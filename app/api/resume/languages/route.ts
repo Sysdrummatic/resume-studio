@@ -6,6 +6,7 @@ import {
   ensureResumeDocument,
   fetchResumeLanguageVersionsForUser,
   setDefaultResumeLocaleForUser,
+  switchDefaultResumeLocale,
   upsertResumeUserLocale,
   validateResumeUserLocaleInput,
 } from "../../../lib/resume-server";
@@ -117,12 +118,12 @@ export async function PATCH(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Unsupported language action." }, { status: 400 });
   }
 
-  const updated = await setDefaultResumeLocaleForUser(actorResult.accessToken, actorResult.actor.userId, String(body.code || ""));
-  if (!updated) {
+  const updated = await switchDefaultResumeLocale(actorResult.accessToken, actorResult.actor.userId, String(body.code || ""));
+  if (!updated.ok) {
     return NextResponse.json({ error: "Default language could not be updated." }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, defaultLocale: normalizeLocale(body.code) });
+  return NextResponse.json({ ok: true, defaultLocale: normalizeLocale(body.code), synchronizedDocuments: updated.synchronized });
 }
 
 export async function DELETE(request: Request): Promise<Response> {

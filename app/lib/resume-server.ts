@@ -54,6 +54,27 @@ export class ResumeLanguageLinkageError extends Error {
   }
 }
 
+export const RESUME_DOCUMENT_CONFLICT_MESSAGE =
+  "This language version was changed in another tab or session. Your edits were not saved; reload the editor to see the latest version.";
+
+/** The stored language version changed after the caller read it; nothing was written. */
+export class ResumeDocumentConflictError extends Error {
+  readonly locale: string;
+
+  constructor(locale: string) {
+    super(`The "${locale}" language version was changed elsewhere.`);
+    this.name = "ResumeDocumentConflictError";
+    this.locale = locale;
+  }
+}
+
+/** A translation rewritten by the default-language sync, and the version it was rewritten from. */
+export type SynchronizedResumeDocument = {
+  locale: ResumeLocale;
+  previousUpdatedAt: string;
+  document: ResumeDocumentRow;
+};
+
 export type ResumeDocumentRow = {
   id: string;
   user_id: string;
@@ -77,6 +98,8 @@ type ResumeRevisionRow = {
 export type ResumeDocumentPayload = {
   document: ResumeDocumentRow;
   revisions: ResumeRevisionItem[];
+  synchronized?: SynchronizedResumeDocument[];
+  synchronizationFailed?: ResumeLocale[];
 };
 
 export type ResumeLanguageRow = {
@@ -1553,16 +1576,26 @@ export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitem
 }
 
 export async function setDefaultResumeLocaleForUser(accessToken: string, userId: string, localeInput: string): Promise<boolean> {
+  return (await switchDefaultResumeLocale(accessToken, userId, localeInput)).ok;
+}
+
+/** Makes a language the default; `synchronized` lists every language version it rewrote. */
+export async function switchDefaultResumeLocale(
+  accessToken: string,
+  userId: string,
+  localeInput: string,
+): Promise<{ ok: false } | { ok: true; synchronized: SynchronizedResumeDocument[] }> {
   const locale = normalizeLocale(localeInput);
   const locales = await fetchResumeUserLocalesForUser(userId, { accessToken });
   if (!locales.some((entry) => entry.code === locale)) {
-    return false;
+    return { ok: false };
   }
 
+  const synchronized: SynchronizedResumeDocument[] = [];
   const currentDefault = locales.find((entry) => entry.is_default)?.code || null;
   if (currentDefault && currentDefault !== locale) {
     const targetDocument = await fetchDocumentByLocale(accessToken, userId, locale);
-    if (!targetDocument) return false;
+    if (!targetDocument) return { ok: false };
     const currentDefaultDocument = await fetchDocumentByLocale(accessToken, userId, currentDefault);
     let canonicalYaml: string;
     try {
@@ -1573,21 +1606,23 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
         : parseRawResumeYaml(targetDocument.yaml_content);
       canonicalYaml = dumpLinkedResumeYaml(target);
     } catch {
-      return false;
+      return { ok: false };
     }
-    const canonicalUpdate = canonicalYaml === targetDocument.yaml_content
-      ? null
-      : await updateTable({
-          table: "resume_documents",
-          accessToken,
-          query: `id=eq.${encodeURIComponent(targetDocument.id)}&user_id=eq.${encodeURIComponent(userId)}`,
-          values: { yaml_content: canonicalYaml, updated_at: new Date().toISOString() },
-        });
-    if (canonicalUpdate?.error || (canonicalUpdate && !canonicalUpdate.data?.[0])) return false;
+    if (canonicalYaml !== targetDocument.yaml_content) {
+      try {
+        const canonical = await updateResumeDocumentIfUnchanged(accessToken, targetDocument, { yaml_content: canonicalYaml });
+        if (!canonical) return { ok: false };
+        synchronized.push({ locale, previousUpdatedAt: targetDocument.updated_at, document: canonical });
+      } catch {
+        return { ok: false };
+      }
+    }
     try {
-      await synchronizeResumeLanguageDocuments(accessToken, userId, locale, canonicalYaml);
+      const synchronization = await synchronizeResumeLanguageDocuments(accessToken, userId, locale, canonicalYaml);
+      synchronized.push(...synchronization.synchronized);
+      if (synchronization.failed.length) return { ok: false };
     } catch {
-      return false;
+      return { ok: false };
     }
     const clearCurrent = await updateTable({
       table: "resume_user_locales",
@@ -1599,7 +1634,7 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
       },
     });
     if (clearCurrent.error) {
-      return false;
+      return { ok: false };
     }
   }
 
@@ -1613,7 +1648,7 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
     },
   });
   if (setNext.error || !setNext.data || !setNext.data[0]) {
-    return false;
+    return { ok: false };
   }
 
   const presetsResult = await updateTable({
@@ -1641,7 +1676,7 @@ export async function setDefaultResumeLocaleForUser(accessToken: string, userId:
     ),
   );
 
-  return !presetsResult.error;
+  return presetsResult.error ? { ok: false } : { ok: true, synchronized };
 }
 
 async function fetchDocumentById(accessToken: string, documentId: string, userId: string): Promise<ResumeDocumentRow | null> {
@@ -1909,36 +1944,87 @@ export async function ensureResumeDocument(
   return ensureResumeDocumentRecord(accessToken, userId, locale, fallbackName, sourceDocument?.yaml_content);
 }
 
+/**
+ * Writes only if the row is still the version that was read (compare-and-swap on
+ * `updated_at`, which the `touch_updated_at` trigger bumps on every write).
+ * Returns the new row, `null` on a database error, and throws on a lost race.
+ */
+async function updateResumeDocumentIfUnchanged(
+  accessToken: string,
+  document: ResumeDocumentRow,
+  values: Record<string, unknown>,
+): Promise<ResumeDocumentRow | null> {
+  const result = await updateTable({
+    table: "resume_documents",
+    accessToken,
+    query: `id=eq.${encodeURIComponent(document.id)}&updated_at=eq.${encodeURIComponent(document.updated_at)}`,
+    values: { ...values, updated_at: new Date().toISOString() },
+  });
+  if (result.error || !result.data) return null;
+  if (!result.data[0]) throw new ResumeDocumentConflictError(document.locale);
+  return result.data[0] as unknown as ResumeDocumentRow;
+}
+
+function assertResumeDocumentBase(locale: ResumeLocale, document: ResumeDocumentRow | null, baseUpdatedAt: string | null | undefined): void {
+  if (baseUpdatedAt === undefined) return;
+  if ((document?.updated_at ?? null) !== baseUpdatedAt) throw new ResumeDocumentConflictError(locale);
+}
+
+const SYNCHRONIZATION_ATTEMPTS = 3;
+
+/**
+ * Reconciles every translation with the saved default (ADR 0023 §4). A
+ * translation saved concurrently is re-read and reconciled again instead of
+ * being overwritten: reconciliation only changes structure and neutral fields,
+ * so it never discards the newer translated text.
+ */
 async function synchronizeResumeLanguageDocuments(
   accessToken: string,
   userId: string,
   defaultLocale: ResumeLocale,
   defaultYamlContent: string,
-): Promise<void> {
+): Promise<{ synchronized: SynchronizedResumeDocument[]; failed: ResumeLocale[] }> {
+  const defaultRaw = parseLinkedResumeYaml(defaultYamlContent);
+  const synchronized: SynchronizedResumeDocument[] = [];
+  const failed: ResumeLocale[] = [];
   const documents = await fetchResumeDocumentsForUser(userId);
-  for (const document of documents) {
-    if (normalizeLocale(document.locale) === normalizeLocale(defaultLocale)) continue;
-    const reconciledYaml = dumpLinkedResumeYaml(reconcileResumeLanguageDocument(parseLinkedResumeYaml(defaultYamlContent), parseRawResumeYaml(document.yaml_content)));
-    if (reconciledYaml === document.yaml_content) continue;
-
-    const updateResult = await updateTable({
-      table: "resume_documents",
-      accessToken,
-      query: `id=eq.${encodeURIComponent(document.id)}&user_id=eq.${encodeURIComponent(userId)}`,
-      values: { yaml_content: reconciledYaml, updated_at: new Date().toISOString() },
-    });
-    if (updateResult.error || !updateResult.data?.[0]) {
-      throw new Error(`Language synchronization failed for ${document.locale}.`);
+  for (const initial of documents) {
+    if (normalizeLocale(initial.locale) === normalizeLocale(defaultLocale)) continue;
+    let document: ResumeDocumentRow | null = initial;
+    let written: ResumeDocumentRow | null = null;
+    let upToDate = false;
+    for (let attempt = 0; attempt < SYNCHRONIZATION_ATTEMPTS; attempt += 1) {
+      if (!document) {
+        upToDate = true;
+        break;
+      }
+      const reconciledYaml = dumpLinkedResumeYaml(reconcileResumeLanguageDocument(defaultRaw, parseRawResumeYaml(document.yaml_content)));
+      if (reconciledYaml === document.yaml_content) {
+        upToDate = true;
+        break;
+      }
+      try {
+        written = await updateResumeDocumentIfUnchanged(accessToken, document, { yaml_content: reconciledYaml });
+        break;
+      } catch (error) {
+        if (!(error instanceof ResumeDocumentConflictError)) throw error;
+        document = await fetchDocumentById(accessToken, document.id, userId);
+      }
     }
+    if (upToDate) continue;
+    if (!written || !document) {
+      failed.push(initial.locale);
+      continue;
+    }
+    synchronized.push({ locale: written.locale, previousUpdatedAt: document.updated_at, document: written });
     const revisionResult = await callRpc<number>({
       functionName: "create_resume_revision",
-      payload: { input_document_id: document.id, input_change_note: "Synchronized with default language" },
+      payload: { input_document_id: written.id, input_change_note: "Synchronized with default language" },
       accessToken,
     });
-    if (revisionResult.error) {
-      throw new Error(`Language synchronization revision failed for ${document.locale}.`);
-    }
+    if (revisionResult.error) failed.push(written.locale);
   }
+  return { synchronized, failed };
 }
 
 async function prepareResumeLanguageYaml(
@@ -1999,6 +2085,8 @@ export async function publishResumeDocument(
     title: string;
     styleSettings?: unknown;
     changeNote: string;
+    /** `updated_at` of the version the editor changed; `null` when it had none. Omitted: no check. */
+    baseUpdatedAt?: string | null;
   },
 ): Promise<ResumeDocumentPayload | null> {
   const locale = normalizeLocale(localeInput);
@@ -2014,6 +2102,7 @@ export async function publishResumeDocument(
     if (error instanceof ResumeLanguageLinkageError) throw error;
     return null;
   }
+  assertResumeDocumentBase(locale, document, payload.baseUpdatedAt);
 
   const title = payload.title.trim() || "Master resume";
   if (!document) {
@@ -2035,21 +2124,15 @@ export async function publishResumeDocument(
     }
     document = insertResult.data[0] as unknown as ResumeDocumentRow;
   } else {
-    const updateResult = await updateTable({
-      table: "resume_documents",
-      accessToken,
-      query: `id=eq.${encodeURIComponent(document.id)}`,
-      values: {
-        title,
-        yaml_content: preparedYamlContent,
-        style_settings: normalizeResumeStyle(payload.styleSettings),
-        updated_at: new Date().toISOString(),
-      },
+    const updated = await updateResumeDocumentIfUnchanged(accessToken, document, {
+      title,
+      yaml_content: preparedYamlContent,
+      style_settings: normalizeResumeStyle(payload.styleSettings),
     });
-    if (!updateResult.data || updateResult.error) {
+    if (!updated) {
       return null;
     }
-    document = updateResult.data[0] as unknown as ResumeDocumentRow;
+    document = updated;
   }
 
   const revisionResult = await callRpc<number>({
@@ -2064,9 +2147,9 @@ export async function publishResumeDocument(
     return null;
   }
 
-  if (locale === defaultLocale) {
-    await synchronizeResumeLanguageDocuments(accessToken, userId, defaultLocale, preparedYamlContent);
-  }
+  const synchronization = locale === defaultLocale
+    ? await synchronizeResumeLanguageDocuments(accessToken, userId, defaultLocale, preparedYamlContent)
+    : { synchronized: [], failed: [] };
 
   const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, preparedYamlContent, {
     updatePersonSlug: true,
@@ -2083,6 +2166,8 @@ export async function publishResumeDocument(
   return {
     document,
     revisions,
+    synchronized: synchronization.synchronized,
+    synchronizationFailed: synchronization.failed,
   };
 }
 
@@ -2122,20 +2207,11 @@ export async function saveResumeDraftDocument(
     }
     document = insertResult.data[0] as unknown as ResumeDocumentRow;
   } else {
-    const updateResult = await updateTable({
-      table: "resume_documents",
-      accessToken,
-      query: `id=eq.${encodeURIComponent(document.id)}`,
-      values: {
-        title,
-        yaml_content: preparedYamlContent,
-        updated_at: new Date().toISOString(),
-      },
-    });
-    if (!updateResult.data || updateResult.error) {
+    const updated = await updateResumeDocumentIfUnchanged(accessToken, document, { title, yaml_content: preparedYamlContent });
+    if (!updated) {
       return null;
     }
-    document = updateResult.data[0] as unknown as ResumeDocumentRow;
+    document = updated;
   }
 
   const profileSynced = await syncProfileNameFromResumeYaml(accessToken, userId, preparedYamlContent, {
@@ -2216,6 +2292,9 @@ export async function importLanguagesAndDocuments(
           error: `Import failed because the "${document.locale}" language has invalid linked IDs.`,
           linkageIssues: error.issues,
         };
+      }
+      if (error instanceof ResumeDocumentConflictError) {
+        return { ok: false, status: 409, error: `Import stopped because the "${document.locale}" language version was changed during the import.` };
       }
       throw error;
     }

@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { publishResumeDocument, ResumeLanguageLinkageError, upgradeLegacyResumeYamlContent } from "../../../lib/resume-server";
+import {
+  publishResumeDocument,
+  RESUME_DOCUMENT_CONFLICT_MESSAGE,
+  ResumeDocumentConflictError,
+  ResumeLanguageLinkageError,
+  upgradeLegacyResumeYamlContent,
+} from "../../../lib/resume-server";
 import { normalizeLocale, RESUME_LIMITS_DOC_URL, RESUME_YAML_MAX_BYTES } from "../../../lib/resume-schema";
 import { callRpc } from "../../../lib/supabase-http";
 import { flagSuspiciousResumeContent } from "../../../lib/content-safety-audit";
@@ -12,6 +18,7 @@ type PublishBody = {
   title?: string;
   styleSettings?: unknown;
   changeNote?: string;
+  baseUpdatedAt?: unknown;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -36,6 +43,10 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const locale = normalizeLocale(body.locale);
+  const { baseUpdatedAt } = body;
+  if (baseUpdatedAt !== undefined && baseUpdatedAt !== null && typeof baseUpdatedAt !== "string") {
+    return NextResponse.json({ error: "baseUpdatedAt must be a string or null." }, { status: 400 });
+  }
   const submittedYamlContent = String(body.yamlContent || "").trim();
   if (!submittedYamlContent) {
     return NextResponse.json({ error: "YAML payload is required." }, { status: 400 });
@@ -65,10 +76,14 @@ export async function POST(request: Request): Promise<Response> {
       title: String(body.title || "Master resume"),
       styleSettings: body.styleSettings,
       changeNote: String(body.changeNote || "Publish"),
+      baseUpdatedAt,
     });
   } catch (error) {
     if (error instanceof ResumeLanguageLinkageError) {
       return NextResponse.json({ error: "Language entry IDs must match the default language.", linkageIssues: error.issues }, { status: 409 });
+    }
+    if (error instanceof ResumeDocumentConflictError) {
+      return NextResponse.json({ error: RESUME_DOCUMENT_CONFLICT_MESSAGE, conflict: true }, { status: 409 });
     }
     throw error;
   }
@@ -89,5 +104,7 @@ export async function POST(request: Request): Promise<Response> {
     locale,
     document: payload.document,
     revisions: payload.revisions,
+    synchronizedDocuments: payload.synchronized ?? [],
+    synchronizationFailed: payload.synchronizationFailed ?? [],
   });
 }

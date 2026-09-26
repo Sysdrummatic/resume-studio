@@ -10,7 +10,8 @@ const SUPABASE_URL = "http://fake-supabase.test";
 // string rejects the write like a PL/pgSQL `raise exception` (PostgREST: 400).
 // Every write stamps a strictly increasing `updated_at`, like the real
 // `touch_updated_at` BEFORE UPDATE triggers. `onRequest` runs before each
-// request so a test can interleave a concurrent write via `update()`.
+// request so a test can interleave a concurrent write via `update()`, or
+// return a Response to fail that one request.
 export function installFakePostgrest(seed = {}, { triggers = {}, onRequest } = {}) {
   process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE_URL;
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon";
@@ -70,7 +71,8 @@ export function installFakePostgrest(seed = {}, { triggers = {}, onRequest } = {
     const url = new URL(String(input));
     const method = (init.method || "GET").toUpperCase();
     const path = url.pathname.replace("/rest/v1/", "");
-    await onRequest?.({ method, path, url, body: init.body });
+    const injected = await onRequest?.({ method, path, url, body: init.body });
+    if (injected instanceof Response) return injected;
 
     if (path.startsWith("rpc/")) {
       const name = path.slice(4);
