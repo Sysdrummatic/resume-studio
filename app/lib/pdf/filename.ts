@@ -16,10 +16,12 @@ function slugifyName(name: string): string {
   return slug || "resume";
 }
 
-export function buildExportFilename(resume: ResumeDocument, publicId: string, extension: string): string {
+/** `format` tells apart exports sharing an extension, e.g. ATS YAML vs CVasCode YAML. */
+export function buildExportFilename(resume: ResumeDocument, publicId: string, extension: string, format?: string): string {
   const date = new Date().toISOString().split("T")[0];
   const idSegment = publicId.replace(/[^a-zA-Z0-9-]/g, "").slice(0, PUBLIC_ID_SEGMENT_LENGTH) || "draft";
-  return `${slugifyName(resumeFullName(resume))}-${date}-opencivera-${idSegment}.${extension}`;
+  const formatSegment = format ? `-${format}` : "";
+  return `${slugifyName(resumeFullName(resume))}-${date}-opencivera-${idSegment}${formatSegment}.${extension}`;
 }
 
 export function buildPdfFilename(resume: ResumeDocument, publicId: string): string {

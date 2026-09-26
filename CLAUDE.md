@@ -417,7 +417,7 @@ Durable "how things work" reference material for specific features, independent 
 - `sections/` — isolated section components receiving `(data, theme)`; shared card/timeline/dot-meter/pill/meter-item primitives in `primitives.tsx`. Employer blocks render with `wrap={false}` (never split across pages). **Every styled `<Text>` must set its own `lineHeight`** — react-pdf measures a Text's box from a `lineHeight` on that Text and only *paints* with an inherited one, so a Page-level value silently overlapped the hero role onto the name. `PdfSectionCard` draws no border, matching `.section`/`.card`, which use a soft `box-shadow` react-pdf cannot express; a substitute border read as a hard box.
 - `templates/TwoColumnTemplate.tsx` — A4 layout (main 2.5 : sidebar 1).
 - `CvPdfDocument.tsx` — entry point; `app/lib/CvPdfTemplate.tsx` is a backward-compat re-export only.
-- `filename.ts` — `buildPdfFilename()` → `{name-slug}-{YYYY-MM-DD}-opencivera-{publicId}.pdf`.
+- `filename.ts` — `buildPdfFilename()` → `{name-slug}-{YYYY-MM-DD}-opencivera-{publicId}.pdf`. The published ATS/CVasCode exports use the same `buildExportFilename()`: `….txt`, `…-ats.yaml` and `…-cvascode.yaml` (the suffix keeps the two YAML downloads from colliding). Contract: `tests/export-filenames.test.mjs`.
 - Draft PDF export is controlled by `platform_feature_flags.pdf_draft_enabled` (Supabase), read via `app/lib/pdf-feature-flags.ts` (`isPdfDraftEnabled()`, fail-open) and threaded as `draftPdfEnabled` prop into `BasicResumeDocument`.
 See [ADR 0014](docs/adr/0014-pdf-rendering-architecture.md).
 

@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(getRawYamlSource(exportData.yamlContent), {
     headers: {
       "Content-Type": "text/yaml; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${buildExportFilename(exportData.resume, publicId, "yaml")}"`,
+      "Content-Disposition": `attachment; filename="${buildExportFilename(exportData.resume, publicId, "yaml", "cvascode")}"`,
       "Cache-Control": "private, no-store, max-age=0",
     },
   });
