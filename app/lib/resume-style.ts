@@ -137,10 +137,6 @@ export function resumeStyleCssVariables(style: ResumeStyleSettings): Record<stri
 }
 
 /**
- * Accepts anything the database or a YAML import may hold and always returns a
- * complete, valid settings object — style must never be able to break a render.
- */
-/**
  * A saved CV version without its own style (`{}`, the column default) uses its
  * document's style, like the publish trigger
  * (20260926000000_preset_style_inherits_document.sql).
@@ -150,6 +146,10 @@ export function presetStyleSource(presetStyle: unknown, documentStyle: unknown):
   return hasOwnStyle ? presetStyle : documentStyle;
 }
 
+/**
+ * Accepts anything the database or a YAML import may hold and always returns a
+ * complete, valid settings object — style must never be able to break a render.
+ */
 export function normalizeResumeStyle(input: unknown): ResumeStyleSettings {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return { ...DEFAULT_RESUME_STYLE };
