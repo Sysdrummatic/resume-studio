@@ -1294,7 +1294,26 @@ export async function importResumePresetVariant(
   if (!document) {
     return false;
   }
-  await upsertResumePresetVariant(accessToken, userId, preset, document, selection);
+  // The bundle's selection indexes were built against the document as it
+  // stood in the export. Import synchronizes every non-default stored
+  // document to the new default's linkage before this runs (see
+  // switchDefaultResumeLocale), which can reorder that document's arrays —
+  // storing the selection verbatim could then point at a different,
+  // unselected entry. Re-clamp against the document actually being stored
+  // against, exactly like publishResumePreset does for the same reason.
+  let rawDocument: unknown;
+  try {
+    rawDocument = yaml.load(document.yaml_content);
+  } catch {
+    return false;
+  }
+  const clamped = clampResumeSelectionToRawDocument(rawDocument, selection, {
+    translation: locale !== normalizeLocale(preset.default_locale),
+  });
+  if (!clamped) {
+    return false;
+  }
+  await upsertResumePresetVariant(accessToken, userId, preset, document, clamped);
   return true;
 }
 
@@ -1709,6 +1728,9 @@ function planCanonicalChange(input: {
 
   let canonical: RawObject;
   if (input.replacementDefault) {
+    // preflightImport's caller (findInconsistentBundleDocument) already
+    // refused a duplicate-ID bundle default before this runs, so this can
+    // only fire for a caller that never checked the incoming document first.
     const broken = duplicateFailure(newDefault, input.replacementDefault);
     if (broken) return broken;
     canonical = ensureResumeEntryIds(input.replacementDefault);

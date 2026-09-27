@@ -445,6 +445,10 @@ test("an import that would synchronize a stored translation reusing an ID is ref
   assert.equal(result.status, 409);
   assert.equal(result.code, "duplicate-ids");
   assert.match(result.error, /"de"/);
+  // The broken document is the stored one, not the import file: the message
+  // must send the user to fix it in the app, not in the file.
+  assert.match(result.error, /stored/);
+  assert.doesNotMatch(result.error, /import file/);
   assert.ok(result.linkageIssues.every((issue) => issue.kind === "duplicate-id"));
   assert.deepEqual(fake.calls.filter((call) => call.method !== "GET"), [], "no language, document or revision is written");
   assert.deepEqual(fake.rows("resume_documents"), before.resume_documents);

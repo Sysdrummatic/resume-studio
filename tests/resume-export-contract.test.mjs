@@ -478,6 +478,56 @@ test("variant import surfaces failed database writes instead of reporting succes
   );
 });
 
+test("variant import re-clamps the selection against the document it is actually stored against", async (t) => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://stub.supabase.local";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "stub-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "stub-service-role-key";
+  const { importResumePresetVariant } = await import("../app/lib/resume-server.ts");
+  // Import synchronizes non-bundled locale documents to the new default's
+  // linkage before this runs (switchDefaultResumeLocale), so the "pl" document
+  // actually stored against can differ from whatever the bundle's variant
+  // selection was captured against. Index 0 here is a blank translation slot
+  // (entry_id present, no translated content) — a verbatim store would keep
+  // it selected; the re-clamp must drop it.
+  const preset = {
+    id: "preset-1", document_id: "doc-en", user_id: "user-1", title: "Test preset",
+    selection: { ...EMPTY_PRESET_SELECTION, experience: [0] },
+    is_public: false, allow_indexing: false, ai_generated: false, default_locale: "en", slug: null,
+    published_at: null, created_at: "2026-07-01T00:00:00Z", updated_at: "2026-07-01T00:00:00Z",
+  };
+  const document = {
+    id: "doc-pl", user_id: "user-1", locale: "pl", title: "Polish resume",
+    yaml_content: yaml.dump({
+      name: "Test Person",
+      summary: [{ position: "Test", description: "Test", default: true }],
+      experience: [{ entry_id: "e1", company: "Acme", period: "2020", role: "", highlights: [] }],
+    }),
+    schema_version: 1, is_public: false, allow_indexing: false, ai_generated: false, updated_at: "2026-07-01T00:00:00Z",
+  };
+  let storedSelection = null;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+    if (url.includes("/rest/v1/resume_documents")) return json([document]);
+    if (url.includes("/rest/v1/resume_preset_variants") && init?.method === "POST") {
+      storedSelection = JSON.parse(String(init.body)).selection;
+      return json([{ id: "variant-pl", locale: "pl", selection: storedSelection, is_default: false }]);
+    }
+    if (url.includes("/rest/v1/resume_preset_variants")) return json([]);
+    return json([]);
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const selection = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [0] };
+  const saved = await importResumePresetVariant("access-token", "user-1", preset, "pl", selection);
+  assert.equal(saved, true);
+  assert.deepEqual(storedSelection.experience, [], "a blank translation slot must never be stored as selected");
+  assert.deepEqual(storedSelection.summary, [0]);
+});
+
 test("public view and dashboard preview apply the selection on the raw document before normalization", () => {
   const server = read("app/lib/resume-server.ts");
   // buildPresetResumeDocument (the dashboard preview's raw-domain selection

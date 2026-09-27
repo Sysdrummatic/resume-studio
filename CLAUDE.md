@@ -454,8 +454,12 @@ returning `yaml_content` verbatim leaks content the user excluded (ADR 0008:
 master data is never exposed publicly). The resolver delegates to
 `buildPublishedExportContent` (`app/lib/published-export.ts`, pure/runtime-testable)
 → `applyResumeSelectionToRawDocument` (`app/lib/preset-selection.ts`), which
-filters the indexed arrays on the **raw** YAML object so schema-unknown
-extension fields survive the export. **Selection indexes are raw-domain**: the
+filters the indexed arrays on the **raw** YAML object so extension fields
+*inside a selected entry* survive the export. **Unknown top-level fields do
+not**: `selectPublishedDocument` (`app/lib/published-export.ts`) allowlists
+top-level keys via `PUBLIC_TOP_LEVEL_KEYS` and strips `entry_id`/`__ocv`
+before normalizing, so a private top-level extension field is never part of
+the public contract (2026-09-27, ADR 0002/0008). **Selection indexes are raw-domain**: the
 editor builds them against raw parsed YAML arrays, so every consumer — public
 view (`buildResumeDocumentFromPreset` → `buildPublishedResumeDocument`),
 dashboard preview (`buildPresetResumeDocument` in
