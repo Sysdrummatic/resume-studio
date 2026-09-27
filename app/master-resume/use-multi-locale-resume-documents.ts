@@ -26,6 +26,7 @@ import {
   type ResumeLinkageIssue,
 } from "../lib/resume-language-linkage";
 import {
+  defaultDuplicateIdsFailure,
   legacyConflictFailure,
   partialSaveFailure,
   planSynchronizedBuffer,
@@ -80,6 +81,7 @@ type ApiDocumentResponse = {
   synchronizationFailed?: ResumeSynchronizationFailure[];
   synchronizationComplete?: boolean;
   saved?: boolean;
+  defaultLocale?: string;
   code?: string;
   legacyConflicts?: Array<{ collection: string; reason: string }>;
 };
@@ -599,7 +601,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
           if (status < 200 || status >= 300 || payload.error || !payload.document) {
             const stored = partialSaveFailure(payload, code);
             const partial = stored ? { ...stored, payload, snapshot } : undefined;
-            const keyed = partial?.message ?? legacyConflictFailure(payload, code)?.message;
+            const keyed = partial?.message ?? legacyConflictFailure(payload, code)?.message ?? defaultDuplicateIdsFailure(payload, code) ?? undefined;
             const message = keyed ? formatAppMessage(keyed.key, keyed.params) : `${code}: ${payload.error || "Save failed."}`;
             throw new ResumeSaveError(message, payload.docsUrl, partial, keyed);
           }
@@ -765,12 +767,16 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       error?: string;
       code?: string;
       legacyConflicts?: Array<{ collection: string; reason: string }>;
+      linkageIssues?: Array<{ collection: string }>;
+      locale?: ResumeLocale;
       defaultLocale?: ResumeLocale;
       synchronizedDocuments?: SynchronizedResumeDocument[];
     };
     if (!response.ok || payload.error) {
       const conflict = legacyConflictFailure(payload, code);
       if (conflict) throw new KeyedEditorError(conflict.message);
+      const duplicate = defaultDuplicateIdsFailure({ ...payload, defaultLocale: payload.defaultLocale ?? defaultLocale }, code);
+      if (duplicate) throw new KeyedEditorError(duplicate);
       throw new Error(payload.error || "Default language update failed.");
     }
     const nextDefault = payload.defaultLocale || code;
@@ -780,7 +786,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     // The new default is rewritten first, so translations rebase against its stored version.
     const ordered = [...synchronized.filter((entry) => entry.locale === nextDefault), ...synchronized.filter((entry) => entry.locale !== nextDefault)];
     setBuffers((prev) => applySynchronizedDocuments(prev, ordered, nextDefault, actor?.displayName || ""));
-  }, [actor?.displayName, testRun]);
+  }, [actor?.displayName, defaultLocale, testRun]);
 
   const deleteLanguageVersion = useCallback(async (code: ResumeLocale) => {
     const response = await fetch("/api/resume/languages", {

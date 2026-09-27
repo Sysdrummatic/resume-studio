@@ -23,6 +23,17 @@ default-language document.
 3. Creating a locale clones the default-language structure. Translation fields are
    blank; neutral fields such as company, period, school and year are retained.
    Blank linked slots remain visible in the editor but are omitted by rendering.
+   A published CV version therefore never selects them: for a translated
+   locale, selection keeps only linked entries with translated content;
+   company/period, school/period and year alone do not make a linked entry
+   publishable. The public page and exports apply the same rule to older
+   snapshots, while source-document and unlinked legacy entries keep their
+   existing rendering behavior. The source document, not the public CV's
+   selectable default language, identifies a translated snapshot locale.
+   If the selected
+   summary is blank or absent in that language, publication is refused; it never
+   substitutes an unselected summary. The public resolver also rejects older
+   snapshots whose selected summary has no text (ADR 0008).
 4. Saving the default locale reconciles every other locale: missing slots are
    created, removed canonical slots disappear, neutral fields and ordering follow
    the default, and the default summary entry is mirrored by `entry_id`.
@@ -35,6 +46,24 @@ default-language document.
    document must keep its IDs stable; legacy documents receive a one-time ID
    upgrade. The default locale may intentionally add or remove records, while
    non-default locales must have exactly the same ID set as the default.
+   Every save of the default (publish, draft, import), including its first save
+   and a legacy one, rejects an ID used twice in a collection or in
+   `__ocv.entries` with `409 { linkageIssues: [duplicate-id] }` before anything
+   is written; saving unique IDs repairs a stored document with duplicates.
+   A stored default that already reuses an ID (possible after older code) is
+   never the canonical side of a reconciliation and is never renumbered
+   automatically: a translation save, a default switch and an import without
+   its own default document are refused with `409 { code:
+   "default-duplicate-ids", linkageIssues }` before anything is written, until
+   the user saves the default with unique IDs (or imports a complete, consistent
+   bundle that replaces it; a default switch skips the documents an import
+   replaces but checks every document it will synchronize).
+   The repair never re-pairs by ID alone: a translation whose stored rows share
+   an ID is left unchanged by the sync and reported as `duplicate-ids`
+   (a switch or import that would synchronize it is refused with
+   `409 { code: "duplicate-ids" }` before any write). The user then gives the
+   translation's entries the default's IDs in YAML and saves it, which is an
+   explicit mapping; a translation save that reuses an ID is refused.
 7. Legacy documents without IDs are paired by existing position during their
    first reconciliation, then retain generated IDs. Public snapshots continue to
    use the existing numeric selection contract after locale reconciliation.
@@ -130,6 +159,20 @@ default-language document.
   revision entries. A future structured content store may replace this YAML
   metadata without changing the user-facing contract.
 
+## Manual publication check
+
+1. In the source language, select two work entries for one CV version. Translate
+   only the first entry in a second language; leave the other linked slot blank.
+   Confirm the editor still offers both slots while its CV preview shows only
+   the translated entry.
+2. Publish both languages. Check the public page, PDF, ATS text/YAML and CVasCode
+   in each language: the source retains both selected entries; the translation
+   contains only the translated entry. Repeat with the translated language set
+   as the public CV's default; it must not become the source document.
+3. Clear the selected summary in the translation while leaving a different,
+   unselected summary translated. Publication must fail without changing the
+   existing public snapshot, profile or saved per-language selections.
+
 ## Implementation
 
 - Linkage helpers: `app/lib/resume-language-linkage.ts`
@@ -142,7 +185,9 @@ default-language document.
   `tests/resume-language-legacy-linkage.test.mjs`,
   `tests/resume-language-save-race.test.mjs`, `tests/locale-save-plan.test.mjs`,
   `tests/resume-save-partial-failure.test.mjs`, and the isolated editor browser
-  check `tests/editor-save-retry-browser.test.mjs` (`EDITOR_BROWSER_TEST=1`)
+  check `tests/editor-save-retry-browser.test.mjs` (`EDITOR_BROWSER_TEST=1`),
+  `tests/publish-blank-linked-slots.test.mjs`, and
+  `tests/publish-locale-preflight.test.mjs`
 - Editor save order and sync adoption: `app/master-resume/locale-save-plan.ts`,
   `app/master-resume/use-multi-locale-resume-documents.ts`
 - Data import (ADR 0018): `importLanguagesAndDocuments` in `app/lib/resume-server.ts`
@@ -151,8 +196,19 @@ default-language document.
   the default, and only then saves the other documents. Switching the default
   requires that language's document to exist, and a document is reconciled
   against the current default, so any other order fails or blanks the imported
-  translation. The bundle only has to be internally consistent: before anything
-  is written, every bundle translation that carries IDs must pair with the
+  translation. Before its first write, an import (and every default switch)
+  plans the canonical document in memory: the bundle's default, or the stored
+  new default; a stored new default that is still legacy takes its IDs by
+  position from the current default, which is then an ID source and may be
+  neither replaced by the import (`409 { code: "default-document-required" }`)
+  nor broken. Every bundle translation and every stored document the new
+  canonical document would synchronize is checked against it (duplicates,
+  legacy pairing, linked IDs), and an import is refused when a stored
+  translation outside the bundle would lose translated entries
+  (`409 { code: "translations-would-be-lost" }`). A refused import writes
+  nothing, languages included. The bundle only has to be internally consistent: before anything
+  is written, the bundle's default must not reuse an ID within a collection
+  (including `__ocv.entries`), and every bundle translation that carries IDs must pair with the
   bundle's default (otherwise `409 { linkageIssues }`), and the bundle's default
   may then replace the stored default with different IDs; the edit-time ID
   stability check still guards every ordinary save. Outside import, a new or

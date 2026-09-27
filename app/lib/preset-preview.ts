@@ -34,14 +34,18 @@ export async function saveOrReportError<T>(
   }
 }
 
-export function buildPresetResumeDocument(yamlContent: string, selection: ResumePresetSelection): PresetPreviewResult {
+export function buildPresetResumeDocument(
+  yamlContent: string,
+  selection: ResumePresetSelection,
+  options: { translation?: boolean } = {},
+): PresetPreviewResult {
   if (!yamlContent || !window.jsyaml) return { status: "error" };
   try {
     const rawDocument = window.jsyaml.load(yamlContent);
     if (!rawDocument || typeof rawDocument !== "object" || Array.isArray(rawDocument)) {
       return { status: "error" };
     }
-    const clampedSelection = clampResumeSelectionToRawDocument(rawDocument, selection);
+    const clampedSelection = clampResumeSelectionToRawDocument(rawDocument, selection, options);
     if (!clampedSelection) return { status: "empty" };
     const selectedRaw = applyResumeSelectionToRawDocument(rawDocument, clampedSelection);
     if (!selectedRaw) return { status: "error" };

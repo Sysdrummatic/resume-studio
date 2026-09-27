@@ -1,17 +1,17 @@
 const COUNTRY_HEADER_NAME = "x-opencivera-country-code";
 
-function isHtmlRequest(request) {
+function isPageRequest(request) {
   if (request.method !== "GET") {
     return false;
   }
 
   const accept = request.headers.get("accept") || "";
-  return accept.includes("text/html");
+  return accept.includes("text/html") || request.headers.get("rsc") === "1";
 }
 
 export default async function appLocale(request, context) {
   const countryCode = String(context.geo?.country?.code || "").trim().toUpperCase();
-  if (!countryCode || !isHtmlRequest(request)) {
+  if (!countryCode || !isPageRequest(request)) {
     return;
   }
 

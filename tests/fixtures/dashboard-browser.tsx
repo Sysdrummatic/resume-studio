@@ -30,7 +30,7 @@ const content = (locale: string) => ({
       period: "2020–2026",
       highlights: ["Selected experience"]
     },
-    { company: "PRIVATE COMPANY", role: "Hidden", highlights: ["UNSELECTED EXPERIENCE"] }
+    { company: "PRIVATE COMPANY", role: "Hidden", period: "", highlights: ["UNSELECTED EXPERIENCE"] }
   ],
   skills: [
     { name: "Research", level: 4 },
@@ -71,7 +71,7 @@ const presets = [
     is_public: true,
     canonical_public_path: "/ada-example/public-cv"
   },
-  { id: "private", title: "Private designer", is_public: false, canonical_public_path: null },
+  { id: "private", title: "Private designer", is_public: false, canonical_public_path: null, style_settings: {} },
   {
     id: "test",
     title: "Onboarding test",
@@ -99,6 +99,20 @@ if (query.has("pl-default")) {
   documents[1].yaml_content = yaml.dump(polishContent);
   presets[1].selection = { ...selection, summary: [1] };
 }
+if (query.has("linked-blank")) {
+  for (const document of documents) {
+    const resume = content(document.locale);
+    const linkedExperience = resume.experience.map((row, index) => ({
+      ...row, entry_id: index === 0 ? "selected-experience" : "private-experience"
+    }));
+    linkedExperience.push({
+      company: "Beta Company", role: document.locale === "en" ? "Linked-only role" : "",
+      period: "2018", highlights: [], entry_id: "linked-beta"
+    });
+    document.yaml_content = yaml.dump({ ...resume, experience: linkedExperience });
+  }
+  presets[0].selection = { ...selection, experience: [0, 2] };
+}
 const languageRows = documents.map((doc) => ({
   user_id: "owner",
   code: doc.locale,
@@ -113,7 +127,7 @@ const languageRows = documents.map((doc) => ({
   short_label_override: null
 }));
 Object.assign(window, { dashboardFixture: { documents, presets, languageRows } });
-fetch("/fixture-i18n.json")
+fetch(query.has("pl") ? "/fixture-i18n.json?locale=pl" : "/fixture-i18n.json")
   .then((response) => response.json())
   .then((appI18n: AppI18nContextValue) =>
     createRoot(document.getElementById("root")!).render(

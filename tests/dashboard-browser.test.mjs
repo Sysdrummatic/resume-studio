@@ -42,13 +42,15 @@ test(
     });
     const server = createServer(async (req, res) => {
       try {
-        if (req.url === "/fixture-i18n.json") {
-          const dictionary = yaml.load(await readFile("app/i18n/locales/en.yaml", "utf8"));
+        if (req.url?.startsWith("/fixture-i18n.json")) {
+          // The guide follows the application locale, so a Polish run needs the Polish dictionary.
+          const locale = new URL(req.url, "http://fixture").searchParams.get("locale") === "pl" ? "pl" : "en";
+          const dictionary = yaml.load(await readFile(`app/i18n/locales/${locale}.yaml`, "utf8"));
           res.setHeader("Content-Type", "application/json");
           res.end(
             JSON.stringify({
-              locale: "en",
-              locales: [{ code: "en", name: "English", nativeName: "English" }],
+              locale,
+              locales: [{ code: locale, name: locale, nativeName: locale }],
               dictionary
             })
           );
@@ -180,7 +182,7 @@ test(
           saved = { ...saved, is_public: true, canonical_public_path: "/ada-example/private-cv" };
         } else if (request.url().endsWith("/unpublish")) saved = { ...saved, is_public: false };
         else if (request.method() === "PATCH")
-          saved = { ...saved, title: body.title, selection: body.selection };
+          saved = { ...saved, title: body.title, selection: body.selection, style_settings: body.styleSettings };
         await route.fulfill({ json: { ok: true, preset: saved } });
       });
       await editSelectionFromSettings();
@@ -193,6 +195,13 @@ test(
         .waitFor();
       assert.deepEqual(requests.at(-1).body.selection, fixture.presets[1].selection);
       assert.equal(requests.at(-1).body.documentId, "document-en");
+      assert.deepEqual(requests.at(-1).body.styleSettings, {}, "renaming an inherited-style CV must keep its inheritance marker");
+      await editSelectionFromSettings();
+      const styleEdit = page.locator('.dashboard-modal[role="dialog"]');
+      await styleEdit.locator(".dashboard-preset-style select").selectOption("signal-grid");
+      await styleEdit.locator(".actions-row .button--primary").click();
+      await styleEdit.waitFor({ state: "hidden" });
+      assert.equal(requests.at(-1).body.styleSettings.template, "signal-grid", "an explicit style edit must save a preset-owned style");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
       const publish = page.getByRole("dialog", { name: "Publish CV version", exact: true });
       await publish.getByRole("button", { name: "Publish", exact: true }).click();
@@ -350,6 +359,13 @@ test(
       assert.equal(await edit.count(), 0, "Missing sources must not fall back to the account default");
       assert.equal(requests.length, requestCount);
 
+      await page.goto(`${base}/?linked-blank`);
+      await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
+      await preview.getByText("Linked-only role", { exact: true }).waitFor();
+      await preview.getByRole("button", { name: "Polski", exact: true }).click();
+      await preview.getByText("Projektantka", { exact: true }).waitFor();
+      assert.doesNotMatch(await preview.innerText(), /Beta Company|Linked-only role/);
+
       await page.goto(`${base}/?restricted&empty`);
       await page.getByRole("heading", { name: "Start with your Experience Base" }).waitFor();
       assert.equal(await page.getByRole("button", { name: "Import", exact: true }).count(), 0);
@@ -419,7 +435,7 @@ test(
         await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();
         assert.equal(progressWrites.at(-1).step, 13);
         await page.getByRole("button", { name: polish ? "Dalej" : "Continue", exact: true }).click();
-        await page.getByRole("heading", { name: polish ? "Czy chcesz opublikowaÄ‡ swoje pierwsze CV?" : "Publish your first CV?", exact: true }).waitFor();
+        await page.getByRole("heading", { name: polish ? "Czy chcesz opublikować swoje pierwsze CV?" : "Publish your first CV?", exact: true }).waitFor();
         assert.equal(progressWrites.at(-1).step, 14);
         await page.getByRole("button", { name: polish ? "Wstecz" : "Back", exact: true }).click();
         await page.getByRole("heading", { name: polish ? "Sprawdź swoje pierwsze CV" : "Review your first CV", exact: true }).waitFor();

@@ -170,6 +170,58 @@ export function inspectTranslationLinkage(defaultValue: unknown, currentValue: u
   return inspectResumeLanguagePair(defaultValue, currentValue);
 }
 
+/** A translation whose rows share an ID cannot be paired by ID without guessing; nothing was changed. */
+export class ResumeDuplicateEntryIdsError extends Error {
+  readonly issues: ResumeLinkageIssue[];
+
+  constructor(issues: ResumeLinkageIssue[]) {
+    super("A language version uses one entry ID for different entries.");
+    this.name = "ResumeDuplicateEntryIdsError";
+    this.issues = issues;
+  }
+}
+
+/** IDs used by more than one entry of a collection, including `__ocv.entries` text lists. */
+export function findDuplicateResumeEntryIds(value: unknown): ResumeLinkageIssue[] {
+  const source = asObject(value);
+  const issues: ResumeLinkageIssue[] = [];
+  for (const collection of LINKED_RESUME_COLLECTIONS) {
+    const ids = idsForCollection(source, collection);
+    const duplicates = duplicateIds(ids);
+    ids.forEach((id, index) => {
+      if (id && duplicates.has(id)) issues.push({ kind: "duplicate-id", collection, index, actualId: id });
+    });
+  }
+  return issues;
+}
+
+// Neutral fields are copied from the default into blank slots; they are not translated content.
+const NEUTRAL_FIELDS = new Set(["entry_id", "default", "period", "company", "school", "year", "level"]);
+
+function hasTranslatedContent(item: unknown): boolean {
+  if (typeof item === "string") return item.trim().length > 0;
+  return Object.entries(asObject(item)).some(([key, value]) =>
+    !NEUTRAL_FIELDS.has(key) && (Array.isArray(value) ? value.some((entry) => String(entry ?? "").trim()) : String(value ?? "").trim().length > 0));
+}
+
+/**
+ * IDs of translated entries that reconciling `translationValue` against
+ * `canonicalValue` would drop because the canonical document no longer has them.
+ */
+export function translatedEntriesMissingFrom(canonicalValue: unknown, translationValue: unknown): string[] {
+  const canonical = asObject(canonicalValue);
+  const translation = asObject(translationValue);
+  const missing: string[] = [];
+  for (const collection of LINKED_RESUME_COLLECTIONS) {
+    const canonicalIds = new Set(idsForCollection(canonical, collection).filter(Boolean));
+    const items = Array.isArray(translation[collection]) ? translation[collection] : [];
+    idsForCollection(translation, collection).forEach((id, index) => {
+      if (id && !canonicalIds.has(id) && hasTranslatedContent(items[index])) missing.push(id);
+    });
+  }
+  return missing;
+}
+
 /** True when two versions of a document carry different linkage IDs (e.g. a save assigned canonical ones). */
 export function resumeEntryIdsDiffer(leftValue: unknown, rightValue: unknown): boolean {
   const left = asObject(leftValue);
@@ -466,7 +518,12 @@ export function buildResumeLanguageTemplate(value: unknown): RawObject {
  */
 export function reconcileResumeLanguageDocument(defaultValue: unknown, localeValue: unknown, options: LegacyPairingOptions = {}): RawObject {
   const defaultSource = ensureResumeEntryIds(defaultValue);
-  const localeSource = ensureResumeEntryIds(linkLegacyResumeLanguageDocument(defaultSource, localeValue, options));
+  const linkedLocale = linkLegacyResumeLanguageDocument(defaultSource, localeValue, options);
+  // Two rows under one ID would both take the same translated entry (or one
+  // would be dropped): refuse instead of guessing which row belongs where.
+  const duplicateIssues = findDuplicateResumeEntryIds(linkedLocale);
+  if (duplicateIssues.length) throw new ResumeDuplicateEntryIdsError(duplicateIssues);
+  const localeSource = ensureResumeEntryIds(linkedLocale);
   const result = clone(localeSource);
 
   for (const collection of LINKED_RESUME_COLLECTIONS) {

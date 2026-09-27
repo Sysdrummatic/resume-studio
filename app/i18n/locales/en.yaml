@@ -658,6 +658,8 @@ editor:
     "Save failed: {message}": "Save failed: {message}"
     "Saved {saved}, failed {failed}: {message}": "Saved: {saved}; failed: {failed}. {message}"
     "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again."
+    "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first.": "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first."
+    "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again.": "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again."
     "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: not synchronized with the default language. Save again to retry."
     "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it.": "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it."
     "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order.": "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order."
@@ -824,6 +826,7 @@ onboarding:
     - Courses
     - Interests
     - Tech stack
+    - QR codes
     - GDPR clause
     - Review your first CV
     - Publish your first CV?
@@ -961,7 +964,7 @@ legal:
       - icon: undefined
         title: 6. Your Rights
         paragraphs:
-          - Under the GDPR, you have the right to:
+          - "Under the GDPR, you have the right to:"
         bullets:
           - Access the personal data we hold about you.
           - Request correction of inaccurate data.

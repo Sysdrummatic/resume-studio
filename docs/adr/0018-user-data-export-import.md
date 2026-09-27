@@ -41,13 +41,22 @@ platform-wide at any time. When disabled, users must not see the buttons.
 4. **Server-side validation, all-before-any-write.** Import validates the
    whole bundle before mutating anything: structural parse (unknown
    `format`/`version`, 1 MB cap, two-letter locale codes matching
-   `normalizeLocale`, locale cross-references between sections), CV version
-   selections (`validateResumePresetSelection`), and every document's
+   `normalizeLocale`, one default language, unique document and variant
+   locales, locale cross-references between sections), CV version
+   selections (`validateResumePresetSelection` and applicability to each
+   target document before the first write), and every document's
    `yaml_content` via the `validate_resume_document_yaml` RPC. Any failure
    rejects the entire import with 400 — existing data is untouched. There is
    no cross-request transaction, so a mid-import DB failure can still leave a
    partial import; the up-front validation makes that an infrastructure
-   failure mode, not an input one.
+   failure mode, not an input one. A failed private-CV delete, CV save, or
+   language-variant save returns an error rather than a partial-success 200;
+   the response tells the user to retry the same file. An existing-private-CV
+   read failure also stops the import before any write; an unreadable list is
+   not treated as an empty list.
+   If a bundle contains a variant for a CV's default locale, that variant's
+   selection becomes its restored default selection. The base selection may
+   belong to the original source language after a default-language switch.
 5. **Feature flag `user_data_transfer_enabled`.** A new row in the existing
    `platform_feature_flags` table (migration
    `20260703000000_user_data_transfer_flag.sql`), read by

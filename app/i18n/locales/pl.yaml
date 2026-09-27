@@ -659,6 +659,8 @@ editor:
     "Save failed: {message}": "Zapisywanie nie powiodło się: {message}"
     "Saved {saved}, failed {failed}: {message}": "Zapisano: {saved}; błędy: {failed}. {message}"
     "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: starsza wersja językowa nie pasuje do wpisów języka domyślnego ({collections}), więc pozostała bez zmian. Dopasuj jej wpisy do języka domyślnego i zapisz ponownie."
+    "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first.": "{locale}: domyślna wersja językowa ({defaultLocale}) używa jednego identyfikatora dla różnych wpisów, więc nie można z nią powiązać tego języka. Najpierw zapisz język domyślny z unikalnymi identyfikatorami."
+    "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again.": "{locale}: ta wersja językowa używa jednego identyfikatora dla różnych wpisów ({collections}), więc pozostała bez zmian. Nadaj jej wpisom identyfikatory z języka domyślnego i zapisz ją ponownie."
     "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: brak synchronizacji z językiem domyślnym. Zapisz ponownie, aby ponowić próbę."
     "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it.": "{locale}: nie da się potwierdzić kolejności wpisów tej starszej wersji językowej ({collections}), więc pozostała bez zmian. Zapisz tę wersję językową i potwierdź kolejność, aby ją powiązać."
     "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order.": "{locale}: czy wpisy w sekcjach {collections} są w tej samej kolejności co w języku domyślnym? Zostaną powiązane według kolejności."
@@ -824,6 +826,7 @@ onboarding:
     - Kursy
     - Zainteresowania
     - Technologie
+    - Kody QR
     - Klauzula RODO
     - Sprawdź swoje pierwsze CV
     - Czy chcesz opublikować swoje pierwsze CV?

@@ -95,7 +95,7 @@ test("authenticated workspace copy is sourced from the application dictionaries"
   assert.equal(typeof polish.user.text["Personal hub"], "string");
   assert.equal(typeof english.user.text["Personal hub"], "string");
   assert.equal(user.includes("dictionary.user"), true);
-  assert.equal(polish.onboarding.steps.length, 14);
+  assert.equal(polish.onboarding.steps.length, 15, "welcome, choice, 11 sections, review, publish");
   assert.equal(english.onboarding.steps.includes("Welcome to OpenCiVera"), true);
   assert.equal(onboarding.includes("dictionary.onboarding"), true);
   assert.equal(onboarding.includes("const t = (en: string, pl: string)"), false);
@@ -138,7 +138,7 @@ test("layout and sample resume use the resolved application locale", () => {
   assert.equal(sampleConfig.default_locale, "pl");
 });
 
-test("Netlify edge function forwards country only for HTML requests", async () => {
+test("Netlify edge function forwards country for HTML and RSC page requests", async () => {
   const edge = read("netlify/edge-functions/app-locale.js");
 
   assert.equal(edge.includes("context.geo?.country?.code"), true);
@@ -160,6 +160,18 @@ test("Netlify edge function forwards country only for HTML requests", async () =
   const response = await appLocale(new Request("https://example.test/", { headers: { accept: "text/html" } }), context);
   assert.equal(response.status, 200);
   assert.equal(forwardedRequest.headers.get("x-opencivera-country-code"), "PL");
+  forwardedRequest = undefined;
+  const rscResponse = await appLocale(new Request("https://example.test/privacy?_rsc=1", {
+    headers: { accept: "*/*", rsc: "1", "accept-language": "en" },
+  }), context);
+  assert.equal(rscResponse.status, 200);
+  assert.equal(forwardedRequest.headers.get("x-opencivera-country-code"), "PL", "client navigation must retain the country-based locale");
+  forwardedRequest = undefined;
+  assert.equal(
+    await appLocale(new Request("https://example.test/privacy", { headers: { accept: "application/json" } }), context),
+    undefined,
+  );
+  assert.equal(forwardedRequest, undefined, "ordinary non-page GET requests must not be forwarded");
   assert.equal(
     await appLocale(new Request("https://example.test/api", { method: "POST", headers: { accept: "application/json" } }), context),
     undefined,

@@ -48,6 +48,25 @@ export async function saveWithLegacyConfirmation<P extends LegacyConflictPayload
   return send(true);
 }
 
+export const TRANSLATION_DUPLICATE_IDS_MESSAGE =
+  "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again.";
+
+export const DEFAULT_DUPLICATE_IDS_MESSAGE =
+  "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first.";
+
+/** Reads `409 { code: "default-duplicate-ids" }` by its code, never by the server's English text. */
+export function defaultDuplicateIdsFailure(
+  payload: { code?: string; defaultLocale?: string; locale?: string; linkageIssues?: Array<{ collection: string }> },
+  locale: ResumeLocale,
+): EditorFailureMessage | null {
+  if (payload.code === "duplicate-ids") {
+    const blocked = payload.locale ?? locale;
+    return { locale: blocked, key: TRANSLATION_DUPLICATE_IDS_MESSAGE, params: { locale: blocked, collections: [...new Set((payload.linkageIssues ?? []).map((issue) => issue.collection))].join(", ") } };
+  }
+  if (payload.code !== "default-duplicate-ids") return null;
+  return { locale, key: DEFAULT_DUPLICATE_IDS_MESSAGE, params: { locale, defaultLocale: payload.defaultLocale ?? "" } };
+}
+
 export const NOT_SYNCHRONIZED_MESSAGE = "{locale}: not synchronized with the default language. Save again to retry.";
 export const SYNCHRONIZATION_UNCHECKED_MESSAGE =
   "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.";
@@ -76,7 +95,9 @@ export function synchronizationFailureMessages(
   const messages: EditorFailureMessage[] = (payload.synchronizationFailed ?? []).map((failure): EditorFailureMessage =>
     failure.reason === "legacy-pairing"
       ? legacyConflictMessages(failure.locale, failure.conflicts).message
-      : { locale: failure.locale, key: NOT_SYNCHRONIZED_MESSAGE, params: { locale: failure.locale } },
+      : failure.reason === "duplicate-ids"
+        ? { locale: failure.locale, key: TRANSLATION_DUPLICATE_IDS_MESSAGE, params: { locale: failure.locale, collections: [...new Set(failure.issues.map((issue) => issue.collection))].join(", ") } }
+        : { locale: failure.locale, key: NOT_SYNCHRONIZED_MESSAGE, params: { locale: failure.locale } },
   );
   if (payload.synchronizationComplete === false) {
     messages.push({ locale: defaultLocale, key: SYNCHRONIZATION_UNCHECKED_MESSAGE, params: { locale: defaultLocale } });

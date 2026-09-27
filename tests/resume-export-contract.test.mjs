@@ -6,9 +6,9 @@ import path from "node:path";
 import yaml from "js-yaml";
 import { register } from "node:module";
 
-import { EMPTY_PRESET_SELECTION, normalizeResumePresetSelection } from "../app/lib/preset-selection.ts";
-
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+
+const { EMPTY_PRESET_SELECTION, normalizeResumePresetSelection } = await import("../app/lib/preset-selection.ts");
 
 const { buildPublishedExportContent, buildPublishedResumeDocument } = await import("../app/lib/published-export.ts");
 const { parseCanonicalPublicPath, buildPublishedResumeExportUrls } = await import("../app/lib/resume-export.ts");
@@ -84,7 +84,7 @@ test("buildPublishedExportContent applies the saved-version selection to exporte
   }
 });
 
-test("buildPublishedExportContent preserves extension fields the schema does not know", () => {
+test("buildPublishedExportContent excludes unknown top-level fields but preserves selected entry extensions", () => {
   const masterYamlWithExtensions = `
 name: Test Person
 custom_top_level:
@@ -114,14 +114,15 @@ experience:
 
   assert.ok(exportContent, "export content must be produced");
   const exported = exportContent.yamlContent;
-  assert.equal(exported.includes("EXTENSION-TOP-LEVEL"), true, "unknown top-level fields must survive the export");
+  assert.equal(exported.includes("EXTENSION-TOP-LEVEL"), false, "unknown top-level fields must stay private");
   assert.equal(exported.includes("EXTENSION-SUMMARY-FIELD"), true, "unknown fields on selected summary items must survive");
   assert.equal(exported.includes("EXTENSION-NESTED-FIELD"), true, "unknown fields on selected experience items must survive");
   assert.equal(exported.includes("EXCLUDED-SUMMARY-POSITION"), false);
   assert.equal(exported.includes("EXCLUDED-CORP"), false);
 
   const roundTripped = yaml.load(exported);
-  assert.equal(roundTripped.custom_top_level.note, "EXTENSION-TOP-LEVEL");
+  assert.equal(Object.hasOwn(roundTripped, "custom_top_level"), false);
+  assert.equal(roundTripped.name, "Test Person", "legacy identity must remain available");
   assert.equal(roundTripped.summary.length, 1);
   assert.equal(roundTripped.summary[0].default, true, "first selected summary must be marked default");
   assert.equal(roundTripped.experience.length, 1);
@@ -488,7 +489,7 @@ test("public view and dashboard preview apply the selection on the raw document 
   assert.equal(presetPreview.includes("const rawDocument = window.jsyaml.load(yamlContent)"), true);
   assert.equal(presetPreview.includes("applyResumeSelectionToRawDocument(rawDocument"), true);
   assert.equal(
-    presetPreview.includes("clampResumeSelectionToRawDocument(rawDocument, selection)"),
+    presetPreview.includes("clampResumeSelectionToRawDocument(rawDocument, selection, options)"),
     true,
     "dashboard preview must clamp the base selection to the previewed locale document",
   );

@@ -124,11 +124,12 @@ test(
       await page.getByRole("button", { name: "Clear search" }).click();
       assert.equal(await page.locator(".docs-steps > li").count(), 4);
 
-      await search.fill("master");
+      // The product language is "Experience Base" (formerly Master Resume).
+      await search.fill("experience base");
       const found = await page
         .locator(".docs-resources a")
         .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-      assert.ok(found.length > 0);
+      assert.ok(found.some((href) => href?.endsWith("/docs/tutorials/master-resume-basics")), JSON.stringify(found));
       assert.equal(new Set(found).size, found.length);
       await page.goto(`${base}/docs?lang=pl`);
       await page.getByRole("heading", { name: "Stwórz swoje CV krok po kroku" }).waitFor();

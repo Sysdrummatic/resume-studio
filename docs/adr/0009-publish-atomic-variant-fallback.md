@@ -63,6 +63,10 @@ Follow-up refinements (same date):
   `resume_preset_variants` are checked before publication continues. Database,
   RLS, constraint, and zero-row failures abort the operation instead of letting
   the RPC copy a stale selection into a new snapshot.
+- **Do not mistake a failed variant read for missing variants.** The fallback
+  to a preset's base selection applies only after a successful read. If the
+  variant query fails, publication stops before it changes the profile,
+  variants, or snapshot, preserving saved per-language choices.
 - **Harden existing public snapshots.** The public page and export resolver
   validate locale rows before choosing a language. Invalid rows are excluded
   from language switching and the resolver falls back to a renderable default

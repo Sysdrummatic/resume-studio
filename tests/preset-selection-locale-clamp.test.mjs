@@ -2,12 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { register } from "node:module";
 
-import {
+// preset-selection imports resume-schema without an extension; register first.
+register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+const {
   applyResumeSelectionToRawDocument,
   clampResumeSelectionToRawDocument,
   normalizeResumePresetSelection,
-} from "../app/lib/preset-selection.ts";
+} = await import("../app/lib/preset-selection.ts");
 
 function read(relativePath) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
@@ -38,9 +41,13 @@ const secondLocaleDocument = {
   tech_stack: ["PL Tech"],
 };
 
-test("clamp drops out-of-range indexes and falls back to the document's default summary", () => {
-  const clamped = clampResumeSelectionToRawDocument(secondLocaleDocument, baseSelection);
-  assert.ok(clamped, "selection must clamp to a shorter locale document");
+test("clamp rejects an unavailable summary instead of selecting unapproved content", () => {
+  assert.equal(clampResumeSelectionToRawDocument(secondLocaleDocument, baseSelection), null);
+});
+
+test("clamp drops out-of-range non-summary indexes without adding entries", () => {
+  const clamped = clampResumeSelectionToRawDocument(secondLocaleDocument, { ...baseSelection, summary: [0] });
+  assert.ok(clamped, "an available chosen summary remains publishable");
   assert.deepEqual(clamped.summary, [0]);
   assert.deepEqual(clamped.experience, [0]);
   assert.deepEqual(clamped.education, []);
@@ -62,7 +69,7 @@ test("clamp never adds entries the base selection excluded", () => {
       { role: "Third", company: "C" },
     ],
   };
-  const clamped = clampResumeSelectionToRawDocument(document, baseSelection);
+  const clamped = clampResumeSelectionToRawDocument(document, { ...baseSelection, summary: [0] });
   assert.ok(clamped);
   assert.deepEqual(clamped.experience, [0, 2], "in-range indexes pass through unchanged");
   for (const key of Object.keys(baseSelection)) {
@@ -99,7 +106,7 @@ test("a plain-text summary counts as the single default summary in clamp and app
     summary: "Soy una Product Scientist creativa.",
   };
 
-  const clamped = clampResumeSelectionToRawDocument(legacyDocument, baseSelection);
+  const clamped = clampResumeSelectionToRawDocument(legacyDocument, { ...baseSelection, summary: [0] });
   assert.ok(clamped, "legacy string-summary documents must stay publishable");
   assert.deepEqual(clamped.summary, [0]);
 
@@ -113,23 +120,16 @@ test("a plain-text summary counts as the single default summary in clamp and app
     "a string summary is a virtual one-element array, so index 1 is out of range",
   );
   assert.equal(
-    clampResumeSelectionToRawDocument({ ...legacyDocument, summary: "   " }, baseSelection),
+    clampResumeSelectionToRawDocument({ ...legacyDocument, summary: "   " }, { ...baseSelection, summary: [0] }),
     null,
     "a blank summary cannot satisfy the one-summary invariant",
   );
 });
 
-test("publish materializes a clamped per-locale variant before the snapshot RPC", () => {
-  const server = read("app/lib/resume-server.ts");
-  const publishBody = server.slice(server.indexOf("export async function publishResumePreset"));
-
-  assert.equal(publishBody.includes("clampResumeSelectionToRawDocument"), true);
-  assert.equal(publishBody.includes("upsertResumePresetVariant(accessToken, userId, existingPreset, localeDocument!, effectiveSelection)"), true);
-  assert.equal(
-    publishBody.indexOf("upsertResumePresetVariant") < publishBody.indexOf("publish_resume_saved_version"),
-    true,
-    "variants must be materialized before the snapshot RPC copies their selections",
-  );
+test("a text item inside a summary array is not mistaken for a legacy plain-text summary", () => {
+  const invalid = { ...secondLocaleDocument, summary: ["String item"] };
+  const selected = { ...baseSelection, summary: [0] };
+  assert.equal(clampResumeSelectionToRawDocument(invalid, selected), null);
 });
 
 test("publish fails closed when any explicitly selected locale cannot render", () => {

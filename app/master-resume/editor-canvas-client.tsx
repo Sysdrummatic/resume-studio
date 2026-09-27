@@ -1181,7 +1181,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
           } finally { setIsBusy(false); }
         }}
         form={humanEditor}
-        preview={<ResumeLivePreview locale={locale} resume={previewResume} styleCode={selectedStyle} yamlContent={yamlPanel}
+        preview={<ResumeLivePreview locale={locale} resume={previewResume} translation={!isDefaultLanguage} styleCode={selectedStyle} yamlContent={yamlPanel}
           isExpanded={isPreviewExpanded} draftPdfEnabled={false} cvStyle={cvStyle}
           onExpand={() => setIsPreviewExpanded(true)} onClose={() => setIsPreviewExpanded(false)} />}
         importControl={<ImportCvBanner isBusy={isImporting} onFileSelected={(file) => void handleImportFile(file)} />}
@@ -1534,6 +1534,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <ResumeLivePreview
                     locale={locale}
                     resume={previewedRevision ? previewedRevision.resume : resume}
+                    translation={!isDefaultLanguage}
                     languages={languageOptions.map((language) => ({
                       code: language.code,
                       label: language.label,

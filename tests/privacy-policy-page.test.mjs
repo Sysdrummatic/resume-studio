@@ -74,6 +74,18 @@ test("privacy policy translations mention required processors and authority", ()
   }
 });
 
+// The pages render every item as a React child; an unquoted "text:" line in YAML
+// parses as an object and crashes the whole page with a 500.
+test("legal document text items are plain strings in every locale", () => {
+  for (const locale of ["en", "pl"]) {
+    for (const name of ["privacy", "terms"]) {
+      for (const item of flattenDocument(readDictionary(locale).legal[name])) {
+        assert.equal(typeof item, "string", `${locale} ${name}: ${JSON.stringify(item)}`);
+      }
+    }
+  }
+});
+
 test("privacy policy page is explicitly indexable", () => {
   const source = readSource(privacyPagePath);
 

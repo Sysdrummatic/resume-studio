@@ -30,8 +30,11 @@ owner-selected default would change canonical, hreflang, and snapshot behavior.
   3. Netlify country mapping (`PL` to `pl`, any other known country to `en`);
   4. `Accept-Language` when country is unavailable;
   5. configured default (`pl`).
-- A Netlify Edge Function forwards only the ISO country code to Next.js. The
-  locale mapping remains in the YAML config so there is one source of truth.
+- A Netlify Edge Function forwards only the ISO country code to Next.js for
+  HTML pages and App Router RSC page navigations. API and common static asset
+  paths are excluded, and other non-page requests are ignored. Both page
+  request types must resolve the same locale. The locale mapping remains in
+  the YAML config so there is one source of truth.
 - The manual language switch writes a SameSite=Lax cookie and reloads the current
   URL, preserving its route and query string.
 - Existing unprefixed routes remain stable. Locale-prefixed marketing routes may
@@ -57,8 +60,9 @@ owner-selected default would change canonical, hreflang, and snapshot behavior.
 2. The public shell, landing page, authentication, sample CV chrome, dashboard,
    editor, account, admin, onboarding, settings, and documentation shell use the
    shared dictionaries.
-3. Documentation articles remain English source material; the Polish shell
-   states this explicitly instead of presenting the articles as translated.
+3. Documentation articles have Polish and English source files. If an article
+   is missing in the selected locale, the English source is shown with a
+   visible fallback notice.
 4. Privacy Policy and Terms are available in Polish and English from the same
    locale dictionaries. The Polish wording is a faithful product translation
    and still requires review by qualified legal counsel before it is treated as

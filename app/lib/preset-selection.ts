@@ -1,3 +1,5 @@
+import { normalizeResumeDocument } from "./resume-schema";
+
 export type ResumePresetSelection = {
   summary: number[];
   experience: number[];
@@ -64,25 +66,54 @@ function rawSelectionItems(source: Record<string, unknown>, key: keyof ResumePre
   return [];
 }
 
-function defaultSummaryIndex(items: unknown[]): number {
-  const index = items.findIndex((item) => {
-    const row = item && typeof item === "object" && !Array.isArray(item) ? (item as Record<string, unknown>) : {};
-    return row.default === true || (typeof row.default === "string" && row.default.toLowerCase() === "true");
-  });
-  return index >= 0 ? index : 0;
+// normalizeResumeDocument is the single source of truth for what renders; a
+// summary also needs text (an empty entry carrying `default: true` does not count).
+export function isRenderableSelectionItem(
+  key: keyof ResumePresetSelection,
+  item: unknown,
+  options: { translation?: boolean } = {},
+): boolean {
+  if (key === "summary") {
+    const normalized = normalizeResumeDocument({ summary: [item] }).summary[0];
+    return Boolean(normalized && (normalized.position || normalized.description));
+  }
+  const normalized = normalizeResumeDocument({ [key]: [item] });
+  const entries = normalized[key] as unknown[];
+  if (entries.length === 0) return false;
+  if (!options.translation || !item || typeof item !== "object" || Array.isArray(item) || !(item as Record<string, unknown>).entry_id) {
+    return true;
+  }
+  if (key === "experience") return normalized.experience.some((row) => Boolean(row.role || row.highlights.length));
+  if (key === "education") return normalized.education.some((row) => Boolean(row.degree || row.detail));
+  if (key === "courses") return normalized.courses.some((row) => Boolean(row.name));
+  return true;
+}
+
+export function omitBlankLinkedTranslationSlots<T extends object>(document: T): T {
+  const source = document as Record<string, unknown>;
+  const visible: Record<string, unknown> = { ...source };
+  for (const key of PRESET_SELECTION_KEYS) {
+    if (!Array.isArray(source[key])) continue;
+    visible[key] = source[key].filter((item: unknown) => {
+      if (key === "summary") return isRenderableSelectionItem(key, item);
+      if (key === "tech_stack" || key === "interests") return typeof item !== "string" || Boolean(item.trim());
+      const linked = item && typeof item === "object" && !Array.isArray(item) && Boolean((item as Record<string, unknown>).entry_id);
+      return !linked || isRenderableSelectionItem(key, item, { translation: true });
+    });
+  }
+  return visible as T;
 }
 
 // Selection indexes are built against one specific document, so a selection
 // created on the default-locale document can point past the end of another
 // locale's arrays. Clamping keeps only the indexes that exist in the target
 // document — it can drop selected entries but never add unselected ones
-// (ADR 0008) — and falls back to the document's default summary when the
-// selected summary does not exist. Returns null when the document is not an
-// object or has no summary entries to satisfy the exactly-one-summary
-// publish invariant.
+// (ADR 0008). Returns null when the document is not an object or its selected
+// summary cannot satisfy the exactly-one-summary publish invariant.
 export function clampResumeSelectionToRawDocument(
   rawDocument: unknown,
   selection: ResumePresetSelection,
+  options: { translation?: boolean } = {},
 ): ResumePresetSelection | null {
   if (!rawDocument || typeof rawDocument !== "object" || Array.isArray(rawDocument)) {
     return null;
@@ -90,16 +121,18 @@ export function clampResumeSelectionToRawDocument(
 
   const source = rawDocument as Record<string, unknown>;
   const clamped: ResumePresetSelection = { ...EMPTY_PRESET_SELECTION };
+  // Translation templates retain neutral fields in blank linked slots, so
+  // translation-aware selection must omit them even though normalizing the
+  // row alone would otherwise render company/period, school or year.
   for (const key of PRESET_SELECTION_KEYS) {
     const items = rawSelectionItems(source, key);
-    clamped[key] = selection[key].filter((index) => index < items.length);
+    clamped[key] = selection[key].filter((index) =>
+      index < items.length && (key === "summary" && typeof source.summary === "string"
+        ? Boolean(source.summary.trim())
+        : isRenderableSelectionItem(key, items[index], options)));
   }
   if (clamped.summary.length !== 1) {
-    const summaryItems = rawSelectionItems(source, "summary");
-    if (summaryItems.length === 0) {
-      return null;
-    }
-    clamped.summary = [defaultSummaryIndex(summaryItems)];
+    return null;
   }
   return clamped;
 }

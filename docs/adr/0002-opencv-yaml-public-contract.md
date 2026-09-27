@@ -28,6 +28,9 @@ ADR 0001 establishes that public CV rendering must read immutable publish-time s
 - Historical snapshots are immutable and are never silently rewritten after schema updates.
 - Any migration of historical snapshots requires explicit migration logic and test coverage.
 - Public resolvers and future export/API surfaces read only Published CV snapshots, never live drafts.
+- Public exports exclude unknown top-level fields of the private Experience Base;
+  extension fields inside selected entries remain part of the selected YAML.
+  The raw snapshot tables are private even when their Public Link is active.
 
 ## Consequences
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type RefObject, type KeyboardEvent } from 
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
+import { omitBlankLinkedTranslationSlots } from "../lib/preset-selection";
 
 import { DEFAULT_RESUME_STYLE, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
 
@@ -12,6 +13,7 @@ export type ResumeEditorStyle = ResumeVisualTemplate | "empty";
 type Props = {
   locale: ResumeLocale;
   resume: ResumeDocument;
+  translation?: boolean;
   languages?: ResumeLanguageOption[];
   onLanguageSelect?: (locale: string) => void;
   styleCode: ResumeEditorStyle;
@@ -29,6 +31,7 @@ const BASIC_PREVIEW_WIDTH = 920;
 export default function ResumeLivePreview({
   locale,
   resume,
+  translation = false,
   languages,
   onLanguageSelect,
   styleCode,
@@ -43,6 +46,7 @@ export default function ResumeLivePreview({
   const frameRef = useRef<HTMLDivElement>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const visibleResume = translation ? omitBlankLinkedTranslationSlots(resume) : resume;
 
   function handleFrameKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "Enter" && event.key !== " ") {
@@ -95,7 +99,7 @@ export default function ResumeLivePreview({
         <div style={{ zoom: scale, width: `${BASIC_PREVIEW_WIDTH}px` }}>
           <BasicResumeDocument
             locale={locale}
-            resume={resume}
+            resume={visibleResume}
             languages={languages}
             onLanguageSelect={onLanguageSelect}
             status="draft"
@@ -119,7 +123,7 @@ export default function ResumeLivePreview({
             </button>
             <BasicResumeDocument
               locale={locale}
-              resume={resume}
+              resume={visibleResume}
               languages={languages}
               onLanguageSelect={onLanguageSelect}
               status="draft"

@@ -210,7 +210,7 @@ function PresetModal({
   preset: ResumePresetRow | null;
   options: PresetOption[];
   onClose: () => void;
-  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: ResumeStyleSettings; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
+  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: unknown; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
 }) {
   const { dictionary } = useAppI18n();
   const labels = dictionary.dashboard.preset_editor;
@@ -223,6 +223,7 @@ function PresetModal({
   const [styleSettings, setStyleSettings] = useState<ResumeStyleSettings>(
     normalizeResumeStyle(presetStyleSource(preset?.style_settings, masterResume.style_settings)),
   );
+  const [styleEdited, setStyleEdited] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -261,7 +262,7 @@ function PresetModal({
       // "Saving..." forever — the user's title/selection stay as entered so
       // they can retry without re-filling the form.
       const result = await saveOrReportError(
-        () => onSave({ presetId: preset?.id, title, selection: nextSelection, styleSettings, allowIndexing, aiGenerated }),
+        () => onSave({ presetId: preset?.id, title, selection: nextSelection, styleSettings: preset?.style_settings && !styleEdited ? preset.style_settings : styleSettings, allowIndexing, aiGenerated }),
         "Could not save. Check your connection and try again.",
       );
       if (!result.ok) setError(result.error);
@@ -298,6 +299,7 @@ function PresetModal({
               value={styleSettings.template}
               onChange={(event) => {
                 const template = event.target.value as ResumeVisualTemplate;
+                setStyleEdited(true);
                 setStyleSettings({
                   ...styleSettings,
                   template,
@@ -317,7 +319,10 @@ function PresetModal({
                 type="color"
                 value={styleSettings.accentColor}
                 aria-label={labels.primary_color}
-                onChange={(event) => setStyleSettings({ ...styleSettings, accentColor: event.target.value })}
+                onChange={(event) => {
+                  setStyleEdited(true);
+                  setStyleSettings({ ...styleSettings, accentColor: event.target.value });
+                }}
               />
               <code>{styleSettings.accentColor}</code>
             </span>
@@ -400,10 +405,13 @@ export function PresetPreviewModal({
     availableDocuments.find((document) => document.locale === activeLocale) ||
     availableDocuments.find((document) => document.locale === masterResume.locale) ||
     masterResume;
+  const sourceDocument = availableDocuments.find((document) => document.id === preset.document_id) || masterResume;
   const publicLink = parseCanonicalPublicPath(preset.canonical_public_path);
   const previewResult = useMemo(
-    () => buildPresetResumeDocument(activeDocument.yaml_content, preset.selection),
-    [activeDocument.yaml_content, preset.selection],
+    () => buildPresetResumeDocument(activeDocument.yaml_content, preset.selection, {
+      translation: activeDocument.locale !== sourceDocument.locale,
+    }),
+    [activeDocument.yaml_content, activeDocument.locale, sourceDocument.locale, preset.selection],
   );
   const cvLanguages = useMemo(
     () => buildLanguageOptions(availableDocuments, languages, locale),
@@ -653,7 +661,7 @@ export default function DashboardClient({
   }
 
 
-  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: ResumeStyleSettings; allowIndexing: boolean; aiGenerated: boolean }) {
+  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: unknown; allowIndexing: boolean; aiGenerated: boolean }) {
     if (!modalDocument) return;
     const response = await fetch(payload.presetId ? `/api/resume/presets/${encodeURIComponent(payload.presetId)}` : "/api/resume/presets", {
       method: payload.presetId ? "PATCH" : "POST",

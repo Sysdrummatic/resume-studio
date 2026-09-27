@@ -309,3 +309,144 @@ test("a normal save still cannot change the IDs of the stored default", async (t
   await assert.rejects(saveResumeDraftDocument("token", USER, "en", { yamlContent: yaml.dump(changedIds), title: "en" }), ResumeLanguageLinkageError);
   assert.equal(documentFor(fake, "en").yaml_content, yaml.dump(english));
 });
+
+// A bundle whose default reuses one entry_id for two different entries. Pairing
+// by that ID would copy one translated entry over the other, silently.
+async function importBundleYaml(seed, input) {
+  const { buildUserDataBundleYaml, parseUserDataBundle } = await import("../app/lib/user-data-transfer.ts");
+  const { importLanguagesAndDocuments, upgradeLegacyResumeYamlContent } = await import("../app/lib/resume-server.ts");
+  const parsed = parseUserDataBundle(buildUserDataBundleYaml({ cv_versions: [], ...input }));
+  assert.ok(parsed.bundle, parsed.error);
+  const bundle = { ...parsed.bundle, documents: parsed.bundle.documents.map((document) => ({ ...document, yaml_content: upgradeLegacyResumeYamlContent(document.yaml_content) })) };
+  const fake = installFakePostgrest(seed, { triggers: DATABASE_TRIGGERS });
+  const result = await importLanguagesAndDocuments("token", USER, bundle);
+  return { fake, result };
+}
+
+const duplicateBase = { ...yaml.load(legacyEnglishDocument), tech_stack: ["TypeScript", "React"] };
+const duplicateEnglish = {
+  ...duplicateBase,
+  experience: [
+    { entry_id: "dup-1", period: "2020 - 2021", company: "Alpha", role: "Engineer A", highlights: ["Alpha work"] },
+    { entry_id: "dup-1", period: "2021 - 2022", company: "Beta", role: "Engineer B", highlights: ["Beta work"] },
+  ],
+  summary: [{ ...duplicateBase.summary[0], entry_id: "summary-1" }],
+  __ocv: { entries: { tech_stack: ["tech-1", "tech-2"], interests: [] } },
+};
+// No summary, so pairing by company + year succeeds and the silent copy is reachable.
+const legacyPolishTranslation = {
+  ...duplicateBase,
+  summary: [],
+  experience: [
+    { period: "2020 - 2021", company: "Alpha", role: "Rola A", highlights: ["Praca w Alpha"] },
+    { period: "2021 - 2022", company: "Beta", role: "Rola B", highlights: ["Praca w Beta"] },
+  ],
+};
+const bundleLanguages = [
+  { code: "en", label: "English", short_label: "EN", is_default: true, sort_order: 0 },
+  { code: "pl", label: "Polski", short_label: "PL", is_default: false, sort_order: 1 },
+];
+const existingAccount = () => ({
+  resume_languages: GLOBAL_LANGUAGES,
+  resume_user_locales: [
+    { user_id: USER, locale: "en", label_override: null, short_label_override: null, is_default: true, sort_order: 10 },
+    { user_id: USER, locale: "pl", label_override: null, short_label_override: null, is_default: false, sort_order: 20 },
+  ],
+  resume_documents: [
+    { id: "doc-en", user_id: USER, locale: "en", title: "en", yaml_content: legacyEnglishDocument, schema_version: 1 },
+    { id: "doc-pl", user_id: USER, locale: "pl", title: "pl", yaml_content: legacyEnglishDocument, schema_version: 1 },
+  ],
+});
+const writes = (fake) => fake.calls.filter((call) => call.method !== "GET");
+
+for (const [label, input] of [
+  ["EN/PL with a legacy translation", { languages: bundleLanguages, documents: [
+    { locale: "en", title: "Master resume", yaml_content: yaml.dump(duplicateEnglish) },
+    { locale: "pl", title: "Master resume PL", yaml_content: yaml.dump(legacyPolishTranslation) },
+  ] }],
+  ["only the default language", { languages: [bundleLanguages[0]], documents: [
+    { locale: "en", title: "Master resume", yaml_content: yaml.dump(duplicateEnglish) },
+  ] }],
+  ["a duplicate text-list ID in __ocv.entries", { languages: [bundleLanguages[0]], documents: [
+    { locale: "en", title: "Master resume", yaml_content: yaml.dump({
+      ...duplicateEnglish,
+      experience: duplicateEnglish.experience.map((row, index) => ({ ...row, entry_id: `exp-${index}` })),
+      __ocv: { entries: { tech_stack: ["tech-1", "tech-1"], interests: [] } },
+    }) },
+  ] }],
+]) {
+  test(`an import whose default reuses an entry ID is refused before any write (${label})`, async (t) => {
+    const seed = existingAccount();
+    const before = structuredClone(seed);
+    const { fake, result } = await importBundleYaml(seed, input);
+    t.after(() => fake.restore());
+
+    assert.equal(result.ok, false);
+    assert.equal(result.status, 409);
+    assert.match(result.error, /"en"/);
+    assert.ok(result.linkageIssues.every((issue) => issue.kind === "duplicate-id"), JSON.stringify(result.linkageIssues));
+    assert.deepEqual(writes(fake), [], "no language, document or revision is written");
+    assert.deepEqual(fake.rows("resume_documents"), before.resume_documents, "no content is overwritten");
+    assert.deepEqual(fake.rows("resume_user_locales"), before.resume_user_locales);
+  });
+}
+
+// A stored default that reuses an ID (possible after older code). A complete,
+// consistent bundle that replaces it repairs it; a stored document the import
+// would still synchronize is refused before anything is written.
+const brokenEnglishDefault = yaml.dump({
+  ...yaml.load(legacyEnglishDocument),
+  experience: [
+    { entry_id: "dup-1", period: "2010 - 2011", company: "Old Co", role: "Old A", highlights: [] },
+    { entry_id: "dup-1", period: "2012 - 2013", company: "Other Co", role: "Old B", highlights: [] },
+  ],
+  __ocv: { entries: { tech_stack: [], interests: [] } },
+});
+
+test("a complete, consistent bundle repairs a stored default that reuses an ID", async (t) => {
+  const bundle = await parsedSeedBundle();
+  const { fake, result } = await importBundle({
+    resume_languages: GLOBAL_LANGUAGES,
+    resume_user_locales: [{ user_id: USER, locale: "en", label_override: null, short_label_override: null, is_default: true, sort_order: 10 }],
+    resume_documents: [{ id: "doc-en", user_id: USER, locale: "en", title: "Old", yaml_content: brokenEnglishDefault, schema_version: 1 }],
+  }, bundle);
+  t.after(() => fake.restore());
+
+  assert.deepEqual(result, { ok: true }, "the replaced broken default does not block the import");
+  const { findDuplicateResumeEntryIds, validateResumeLanguagePair } = await import("../app/lib/resume-language-linkage.ts");
+  for (const locale of ["pl", "en", "de"]) {
+    assert.deepEqual(roles(documentFor(fake, locale)), roles(bundle.documents.find((document) => document.locale === locale)), `${locale}: roles kept`);
+    assert.deepEqual(findDuplicateResumeEntryIds(yaml.load(documentFor(fake, locale).yaml_content)), [], `${locale}: unique IDs`);
+  }
+  assert.deepEqual(validateResumeLanguagePair(yaml.load(documentFor(fake, "pl").yaml_content), yaml.load(documentFor(fake, "en").yaml_content)), []);
+  assert.deepEqual(defaultLocaleOf(fake), ["pl"]);
+});
+
+test("an import that would synchronize a stored translation reusing an ID is refused before any write", async (t) => {
+  const bundle = await parsedSeedBundle();
+  // German is not in the bundle, so switching the default to PL would synchronize it.
+  const withoutGerman = { ...bundle, languages: bundle.languages.filter((language) => language.code !== "de"), documents: bundle.documents.filter((document) => document.locale !== "de") };
+  const seed = {
+    resume_languages: GLOBAL_LANGUAGES,
+    resume_user_locales: [
+      { user_id: USER, locale: "en", label_override: null, short_label_override: null, is_default: true, sort_order: 10 },
+      { user_id: USER, locale: "de", label_override: null, short_label_override: null, is_default: false, sort_order: 30 },
+    ],
+    resume_documents: [
+      { id: "doc-en", user_id: USER, locale: "en", title: "en", yaml_content: legacyEnglishDocument, schema_version: 1 },
+      { id: "doc-de", user_id: USER, locale: "de", title: "de", yaml_content: brokenEnglishDefault, schema_version: 1 },
+    ],
+  };
+  const before = structuredClone(seed);
+  const { fake, result } = await importBundle(seed, withoutGerman);
+  t.after(() => fake.restore());
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, 409);
+  assert.equal(result.code, "duplicate-ids");
+  assert.match(result.error, /"de"/);
+  assert.ok(result.linkageIssues.every((issue) => issue.kind === "duplicate-id"));
+  assert.deepEqual(fake.calls.filter((call) => call.method !== "GET"), [], "no language, document or revision is written");
+  assert.deepEqual(fake.rows("resume_documents"), before.resume_documents);
+  assert.deepEqual(fake.rows("resume_user_locales"), before.resume_user_locales);
+});

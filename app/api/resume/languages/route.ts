@@ -5,6 +5,8 @@ import {
   deleteResumeUserLocale,
   ensureResumeDocument,
   fetchResumeLanguageVersionsForUser,
+  RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE,
+  RESUME_TRANSLATION_DUPLICATE_IDS_MESSAGE,
   RESUME_LEGACY_PAIRING_MESSAGE,
   setDefaultResumeLocaleForUser,
   switchDefaultResumeLocale,
@@ -121,6 +123,14 @@ export async function PATCH(request: Request): Promise<Response> {
 
   const updated = await switchDefaultResumeLocale(actorResult.accessToken, actorResult.actor.userId, String(body.code || ""));
   if (!updated.ok) {
+    if (updated.duplicates?.length) {
+      return NextResponse.json(
+        updated.duplicateIsDefault
+          ? { error: RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE, code: "default-duplicate-ids", defaultLocale: updated.duplicateLocale, linkageIssues: updated.duplicates }
+          : { error: RESUME_TRANSLATION_DUPLICATE_IDS_MESSAGE, code: "duplicate-ids", locale: updated.duplicateLocale, linkageIssues: updated.duplicates },
+        { status: 409 },
+      );
+    }
     if (updated.conflicts) {
       return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, code: "legacy-pairing", legacyConflicts: updated.conflicts }, { status: 409 });
     }

@@ -12,6 +12,7 @@ globalThis.window = { jsyaml: yaml };
 const { buildPresetResumeDocument, saveOrReportError } = await import("../app/lib/preset-preview.ts");
 const { buildDefaultResumeYaml } = await import("../app/lib/resume-server.ts");
 const { EMPTY_PRESET_SELECTION } = await import("../app/lib/preset-selection.ts");
+const { buildResumeLanguageTemplate } = await import("../app/lib/resume-language-linkage.ts");
 
 test("a freshly seeded language version (the real onboarding/new-language template) previews as empty, not ok", () => {
   // ocv-0203: buildDefaultResumeYaml() is the exact function that seeds a new
@@ -39,6 +40,21 @@ test("a language version with real summary text previews as ok", () => {
   const result = buildPresetResumeDocument(filledYaml, selection);
   assert.equal(result.status, "ok");
   assert.equal(result.resume.summary[0].position, "QA Engineer");
+});
+
+test("translated CV preview omits linked work entries that have only neutral fields", () => {
+  const translation = buildResumeLanguageTemplate({
+    summary: [{ position: "Engineer", description: "Builds", default: true }],
+    experience: [{ period: "2020", company: "Acme", role: "Engineer", highlights: [] }],
+  });
+  translation.summary[0].position = "Inżynier";
+  translation.experience[0].role = "Inżynier";
+  translation.experience.push({ ...translation.experience[0], entry_id: "older-role", period: "2019", company: "Beta", role: "", highlights: [] });
+  const selection = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [0, 1] };
+
+  const preview = buildPresetResumeDocument(yaml.dump(translation), selection, { translation: true });
+  assert.equal(preview.status, "ok");
+  assert.deepEqual(preview.resume.experience.map(({ company }) => company), ["Acme"]);
 });
 
 test("saveOrReportError turns a rejected save into a reportable message instead of an unhandled rejection", async () => {

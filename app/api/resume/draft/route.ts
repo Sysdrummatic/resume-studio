@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import {
+  RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE,
   RESUME_DOCUMENT_CONFLICT_MESSAGE,
   RESUME_LEGACY_PAIRING_MESSAGE,
+  ResumeDefaultDuplicateIdsError,
   ResumeDocumentConflictError,
   ResumeLanguageLinkageError,
   ResumeLegacyPairingError,
@@ -76,6 +78,12 @@ export async function POST(request: Request): Promise<Response> {
     }
     if (error instanceof ResumeDocumentConflictError) {
       return NextResponse.json({ error: RESUME_DOCUMENT_CONFLICT_MESSAGE, conflict: true }, { status: 409 });
+    }
+    if (error instanceof ResumeDefaultDuplicateIdsError) {
+      return NextResponse.json(
+        { error: RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE, code: "default-duplicate-ids", defaultLocale: error.locale, linkageIssues: error.issues },
+        { status: 409 },
+      );
     }
     if (error instanceof ResumeLegacyPairingError) {
       return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, code: "legacy-pairing", legacyConflicts: error.conflicts }, { status: 409 });
