@@ -40,8 +40,10 @@ function asObject(value: unknown): RawObject {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as RawObject) : {};
 }
 
+// structuredClone (not a JSON round-trip) so a Date js-yaml parsed from an
+// unquoted date-shaped scalar in an extension field survives unchanged.
 function clone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
+  return structuredClone(value);
 }
 
 function newEntryId(): string {
@@ -111,13 +113,14 @@ export function inspectResumeLanguagePair(defaultValue: unknown, localeValue: un
     const missingExpected = new Set([...expectedSet].filter((id) => !actualSet.has(id)));
     const extraActual = new Set([...actualSet].filter((id) => !expectedSet.has(id)));
     const changedIndexes = new Set<number>();
+    const duplicateActualIds = duplicateIds(actual);
 
     actual.forEach((id, index) => {
       if (!id) {
         issues.push({ kind: "missing-id", collection, index });
         return;
       }
-      if (duplicateIds(actual).has(id)) {
+      if (duplicateActualIds.has(id)) {
         issues.push({ kind: "duplicate-id", collection, index, actualId: id });
       }
       const expectedId = expected[index];
@@ -247,6 +250,7 @@ export function inspectResumeEntryIdStability(previousValue: unknown, currentVal
     const expected = idsForCollection(previous, collection);
     const actual = idsForCollection(current, collection);
     const previousSet = new Set(expected.filter((id): id is string => Boolean(id)));
+    const duplicateActualIds = duplicateIds(actual);
     actual.forEach((id, index) => {
       if (!id) {
         const previousId = expected[index];
@@ -255,7 +259,7 @@ export function inspectResumeEntryIdStability(previousValue: unknown, currentVal
         }
         return;
       }
-      if (duplicateIds(actual).has(id)) {
+      if (duplicateActualIds.has(id)) {
         issues.push({ kind: "duplicate-id", collection, index, actualId: id });
       }
       const previousId = expected[index];

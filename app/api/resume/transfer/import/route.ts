@@ -220,6 +220,5 @@ export async function POST(request: Request): Promise<Response> {
       documents: bundle.documents.length,
       cvVersions: importedCvVersions,
     },
-    skippedCvVersions: [],
   });
 }

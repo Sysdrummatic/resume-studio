@@ -265,3 +265,16 @@ test("the editor can tell when a save gave its rows different linkage IDs", asyn
   assert.equal(resumeEntryIdsDiffer(editorBuffer, storedCanonical), true);
   assert.equal(resumeEntryIdsDiffer(editorBuffer, reformatted), false, "formatting alone does not replace the buffer");
 });
+
+test("a Date value in a schema-unknown extension field survives ensureResumeEntryIds unchanged", () => {
+  // js-yaml parses an unquoted date-shaped scalar (e.g. "2024-05-01") into a
+  // real Date, not a string. A JSON round-trip clone would silently rewrite
+  // it to an ISO string on every save/reconcile; structuredClone must not.
+  const startedOn = new Date("2024-05-01T00:00:00.000Z");
+  const withExtensionDate = { ...source, experience: [{ ...source.experience[0], started_on: startedOn }] };
+
+  const linked = ensureResumeEntryIds(withExtensionDate);
+
+  assert.ok(linked.experience[0].started_on instanceof Date, "extension field must stay a Date instance");
+  assert.equal(linked.experience[0].started_on.getTime(), startedOn.getTime());
+});
