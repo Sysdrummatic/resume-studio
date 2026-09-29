@@ -71,8 +71,6 @@ export type AppDictionary = {
     };
     animation: {
       title: string;
-      description: string;
-      detail: string;
       iframe_title: string;
     };
     experience_base: {
@@ -89,11 +87,6 @@ export type AppDictionary = {
         title: string;
         description: string;
       }>;
-    };
-    advantages: {
-      title: string;
-      description: string;
-      items: Array<{ title: string; description: string }>;
     };
     languages: {
       eyebrow: string;

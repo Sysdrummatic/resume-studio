@@ -39,7 +39,6 @@ export default async function HomePage() {
     animation,
     experience_base: experienceBase,
     how,
-    advantages,
     languages,
     structured_data: structuredData,
     privacy,
@@ -114,10 +113,6 @@ export default async function HomePage() {
       >
         <div className={styles.sectionHead}>
           <h2 id="animation-title">{animation.title}</h2>
-          <div className={styles.sectionCopy}>
-            <p>{animation.description}</p>
-            <p>{animation.detail}</p>
-          </div>
         </div>
         <OpenCiVeraAnimation
           locale={locale}
@@ -164,21 +159,6 @@ export default async function HomePage() {
             );
           })}
         </ol>
-      </section>
-
-      <section className={`${styles.valueSection} ${styles.container}`} aria-labelledby="advantages-title" data-reveal>
-        <div className={styles.sectionHead}>
-          <h2 id="advantages-title">{advantages.title}</h2>
-          <p>{advantages.description}</p>
-        </div>
-        <div className={styles.valueGrid}>
-          {advantages.items.map((item) => (
-            <article key={item.title}>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-            </article>
-          ))}
-        </div>
       </section>
 
       <section className={`${styles.storySection} ${styles.container}`} aria-labelledby="languages-title" data-reveal>

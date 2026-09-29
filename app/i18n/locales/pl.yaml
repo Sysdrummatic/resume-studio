@@ -76,13 +76,11 @@ landing:
     open_aria: Otwórz przykładowe CV
   animation:
     title: Jak to działa w praktyce?
-    description: Baza doświadczeń jest jednym źródłem prawdy o Twojej karierze — miejscem, które uzupełniasz na bieżąco przez kolejne lata. Gdy znajdziesz odpowiednią ofertę, wybierasz umiejętności i doświadczenia, które chcesz pokazać pracodawcy, i tworzysz z nich dopasowane CV.
-    detail: Zobacz, jak z prywatnej Bazy doświadczeń wybierasz informacje do osobnych CV dla konkretnych stanowisk.
     iframe_title: Animacja pokazująca proces tworzenia CV w OpenCiVera
   experience_base:
     eyebrow: Baza doświadczeń
     title: Koniec z wieloma plikami CV zapisanymi na dysku i zapomnianymi po wysłaniu oferty.
-    description: Baza doświadczeń przechowuje wszystkie informacje, które mogą przydać się w przyszłych rekrutacjach. Nie musisz skracać jej do dwóch stron ani za każdym razem zastanawiać się, którą wersję pliku ostatnio aktualizowałeś.
+    description: Baza doświadczeń przechowuje wszystkie informacje, które mogą przydać się w przyszłych rekrutacjach.
     items:
       - Jedno miejsce na pełną historię zawodową
       - Osobny wybór treści dla każdego CV
@@ -107,16 +105,6 @@ landing:
       - icon: refresh
         title: Zaktualizuj Bazę doświadczeń
         description: Dodawaj nowe projekty i osiągnięcia bez zmieniania wcześniej opublikowanych CV. Gdy zechcesz odświeżyć wybraną wersję, opublikujesz ją ponownie.
-  advantages:
-    title: Po co oddzielać Bazę doświadczeń od CV?
-    description: Baza przechowuje pełny materiał, a każde CV tylko to, co ma znaczenie w konkretnej rekrutacji.
-    items:
-      - title: Mniej duplikowania
-        description: Dane kontaktowe, doświadczenia i umiejętności zapisujesz raz, a później wybierasz je do kolejnych CV.
-      - title: Lepsze dopasowanie
-        description: Każda wersja może mieć własne podsumowanie, wybór doświadczeń, języki i wygląd.
-      - title: Więcej kontroli
-        description: Prywatna baza, zapisane wersje i opublikowane CV są oddzielone. Nic nie staje się publiczne bez Twojej decyzji.
   languages:
     eyebrow: Wersje językowe
     title: Jedna kariera. Różne wersje językowe.
@@ -132,7 +120,7 @@ landing:
       - Jedna struktura dla wielu zastosowań
   privacy:
     title: Twoja pełna historia pozostaje prywatna.
-    description: Baza doświadczeń jest dostępna tylko na Twoim koncie. Publiczny link pokazuje wyłącznie wybrane i opublikowane informacje. Zmiany w bazie nie pojawią się pod linkiem, dopóki ponownie nie opublikujesz CV.
+    description: Zmiany w Bazie doświadczeń nie pojawią się pod linkiem, dopóki ponownie nie opublikujesz CV.
     note: Publiczny link możesz w każdej chwili wyłączyć.
     action: Jak działa publikacja?
   vision:
@@ -142,8 +130,6 @@ landing:
   faq:
     title: Warto wiedzieć przed startem.
     items:
-      - question: Czym OpenCiVera różni się od zwykłego kreatora CV?
-        answer: Zwykły kreator pomaga przygotować pojedynczy dokument. W OpenCiVera najpierw tworzysz prywatną Bazę doświadczeń, a następnie wybierasz z niej treści do osobnych CV dopasowanych do konkretnych ofert.
       - question: Czy muszę przepisać moje obecne CV?
         answer: Nie. Możesz zaimportować plik PDF, DOCX, YAML lub TXT, sprawdzić odczytane informacje i uzupełnić brakujące dane.
       - question: Czy muszę znać YAML?
@@ -153,8 +139,6 @@ landing:
       - id: publication-faq
         question: Jak działa publikacja?
         answer: Baza doświadczeń pozostaje prywatna. Wybierasz treści do CV, a następnie świadomie je publikujesz. Edycja bazy nie zmienia już opublikowanego CV. Gdy chcesz udostępnić nowe informacje, publikujesz wybraną wersję ponownie. Publiczny link możesz w każdej chwili wyłączyć.
-      - question: Czy zmiana danych aktualizuje opublikowane CV?
-        answer: Nie. Edycja Bazy doświadczeń nie zmienia automatycznie publikacji. Aby udostępnić nowe informacje, ponownie publikujesz wybraną wersję CV.
       - question: Czy mogę utworzyć kilka wersji CV?
         answer: Tak. Możesz przygotować osobne wersje dla różnych stanowisk, ofert i języków, korzystając z tej samej Bazy doświadczeń.
   cta:
