@@ -20,7 +20,6 @@
   --app-theme-transition-easing: ease;
   --layout-canvas-max: 1600px;
   --layout-content-max: 1180px;
-  --layout-dashboard-max: 1500px;
   --layout-gutter: 16px;
   --workspace-page-bg: #0e1015;
 
@@ -2046,6 +2045,16 @@ a {
   --ed-warn-bg: rgba(217, 164, 94, 0.11);
   --ed-warn-border: rgba(217, 164, 94, 0.34);
   --ed-radius: 6px;
+}
+
+/* wide-shell-page opts the editor into the 1600px app-main canvas (for its
+   background theming, see body:has(...) above); the editor's own content
+   stays at the narrower --layout-content-max, same measure as the Dashboard
+   workspace (.dashboard-workspace). */
+.resume-editor-shell {
+  width: 100%;
+  max-width: var(--layout-content-max);
+  margin-inline: auto;
 }
 
 /* Day mode keeps the same flat, hairline structure with inverted surfaces —

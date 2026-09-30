@@ -26,7 +26,7 @@
 .dashboard-workspace {
   display: grid;
   gap: 28px;
-  max-width: var(--layout-dashboard-max);
+  max-width: var(--layout-content-max);
   margin: 0 auto;
   padding: 28px 36px 48px;
 }
