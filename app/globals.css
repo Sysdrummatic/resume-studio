@@ -4434,11 +4434,12 @@ a {
   display: block;
 }
 
-/* The footer shares the landing's canvas, so its brand mark lines up with the
-   first column of every section above it. */
+/* The footer shares the landing's own text measure (--layout-content-max,
+   not the app header's wider --layout-canvas-max), so its brand mark lines
+   up with the first column of every section above it. */
 .lp-container {
   width: min(
-    var(--layout-canvas-max),
+    var(--layout-content-max),
     calc(100% - var(--layout-gutter) - var(--layout-gutter))
   );
   margin-inline: auto;

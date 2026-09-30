@@ -32,11 +32,13 @@
   width: 100%;
 }
 
-/* Same canvas as the app header, so the landing's first column line sits
-   directly under the brand mark. */
+/* Landing is text-led, not header-aligned: --layout-content-max (DESIGN.md
+   Layout → Canvas widths), not the wider --layout-canvas-max app header/
+   dashboard share. Restored 2026-09-30 after --layout-canvas-max made the
+   redesign's sections read as sprawling. */
 .container {
   width: min(
-    var(--layout-canvas-max),
+    var(--layout-content-max),
     calc(100% - var(--layout-gutter) - var(--layout-gutter))
   );
   margin-inline: auto;

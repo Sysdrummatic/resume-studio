@@ -186,7 +186,7 @@ No ad-hoc spacing values. Use tokens exclusively.
 ### Canvas widths (`:root`, `app/globals.css`)
 
 ```
---layout-canvas-max:      1600px   Landing, app header, landing footer
+--layout-canvas-max:      1600px   App header only (landing's own sections use --layout-content-max)
 --layout-content-max:     1180px   Reading surfaces: docs, /privacy, /terms
 --layout-dashboard-max:   1500px   Dashboard workspace
 --layout-gutter:            16px   → 24px from 768px up
@@ -204,13 +204,19 @@ margin-inline: auto;
 **1600px is a canvas, not a measure.** It is the frame the header's brand mark
 aligns to; text inside it sits on the grid below, capped by its own `ch` measure.
 A paragraph that runs the full 1600px is a bug. If a surface is text-led and has
-no header to align with, use `--layout-content-max` instead.
+no header to align with, use `--layout-content-max` instead — this includes the
+landing page itself (2026-09-30): its sections read as sprawling at the header's
+1600px canvas, so `app/landing.module.css`'s `.container` and the shared
+`.lp-container` footer rule in `app/globals.css` both use `--layout-content-max`
+(1180px). The app header stays at `--layout-canvas-max`; the two no longer align
+at the far edges, which is expected.
 
 ### Grid
 
 12 columns, `column-gap: clamp(16px, 1.6vw, 26px)`, placed with explicit column
-lines (`grid-column: 1 / 8`). The landing page
-(`app/landing.module.css`) is the reference implementation.
+lines (`grid-column: 1 / 8`). The landing page (`app/landing.module.css`) is the
+reference implementation of the 12-column grid mechanics, at its own
+`--layout-content-max` width rather than the header's canvas.
 
 - Never fill a wide row with `justify-self: end` — that pushes body copy to the
   far edge and leaves a 400px void mid-row. Place it on a column line instead.
