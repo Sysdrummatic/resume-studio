@@ -41,6 +41,9 @@ test("layout resolves the portal theme from cookie and passes an active switch",
   assert.equal(source.includes('data-app-theme={initialTheme}'), true);
   assert.equal(source.includes("AppThemeSwitch"), true);
   assert.equal(source.includes("initialTheme={initialTheme}"), true);
-  assert.equal(source.includes("leadingAccessory={actor ? null : <AppThemeSwitch initialTheme={initialTheme} />}"), true);
-  assert.equal(source.includes("accessory={actor ? <AppThemeSwitch initialTheme={initialTheme} /> : null}"), true);
+  // Guest: theme switch sits in branding, next to the logo (left side).
+  // Signed in: theme switch moves into accessory, alongside the language
+  // menu, right before the account menu (right side).
+  assert.equal(source.includes("<AppThemeSwitch initialTheme={initialTheme} />"), true);
+  assert.equal(/accessory=\{\s*actor \? \(\s*<>\s*<AppThemeSwitch initialTheme=\{initialTheme\} \/>/.test(source), true);
 });

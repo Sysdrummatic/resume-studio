@@ -186,9 +186,8 @@ No ad-hoc spacing values. Use tokens exclusively.
 ### Canvas widths (`:root`, `app/globals.css`)
 
 ```
---layout-canvas-max:      1600px   Landing, app header, landing footer
---layout-content-max:     1180px   Reading surfaces: docs, /privacy, /terms
---layout-dashboard-max:   1500px   Dashboard workspace
+--layout-canvas-max:      1600px   App header only (opted into by wide-shell-page for background theming)
+--layout-content-max:     1180px   Reading surfaces: docs, /privacy, /terms, landing, Dashboard workspace, editor shell
 --layout-gutter:            16px   → 24px from 768px up
 --app-header-height:        56px
 --workspace-breadcrumbs-height: 42px
@@ -204,13 +203,25 @@ margin-inline: auto;
 **1600px is a canvas, not a measure.** It is the frame the header's brand mark
 aligns to; text inside it sits on the grid below, capped by its own `ch` measure.
 A paragraph that runs the full 1600px is a bug. If a surface is text-led and has
-no header to align with, use `--layout-content-max` instead.
+no header to align with, use `--layout-content-max` instead. As of 2026-09-30
+this is every page's content width except the app header itself: the landing
+page (`app/landing.module.css`'s `.container` and the `.lp-container` footer
+rule in `app/globals.css`), the Dashboard workspace (`.dashboard-workspace` in
+`app/dashboard/dashboard.css`) and the master-resume editor
+(`.resume-editor-shell` in `app/globals.css`) all read as sprawling at 1600px
+and were narrowed to 1180px. A page can still opt into the wider `.app-main`
+canvas via the `wide-shell-page` marker class (it also drives that page's
+workspace background theming) while capping its own content narrower inside
+it — the Dashboard and editor both do this; `--layout-dashboard-max` (formerly
+a separate 1500px token used only by `.dashboard-workspace`) was removed as
+redundant once that value became 1180px, the same as `--layout-content-max`.
 
 ### Grid
 
 12 columns, `column-gap: clamp(16px, 1.6vw, 26px)`, placed with explicit column
-lines (`grid-column: 1 / 8`). The landing page
-(`app/landing.module.css`) is the reference implementation.
+lines (`grid-column: 1 / 8`). The landing page (`app/landing.module.css`) is the
+reference implementation of the 12-column grid mechanics, at its own
+`--layout-content-max` width rather than the header's canvas.
 
 - Never fill a wide row with `justify-self: end` — that pushes body copy to the
   far edge and leaves a 400px void mid-row. Place it on a column line instead.

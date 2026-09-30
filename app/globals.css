@@ -20,7 +20,6 @@
   --app-theme-transition-easing: ease;
   --layout-canvas-max: 1600px;
   --layout-content-max: 1180px;
-  --layout-dashboard-max: 1500px;
   --layout-gutter: 16px;
   --workspace-page-bg: #0e1015;
 
@@ -712,7 +711,11 @@ a {
 
 .app-header__inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  /* Branding and nav links sit flush together on the left (both auto-sized
+     to their own content); controls take all remaining space and stretch to
+     the right edge. Was 1fr/auto/1fr, which centered nav in the header's
+     middle instead of anchoring it next to the logo. */
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   width: min(var(--layout-canvas-max), calc(100% - var(--layout-gutter) - var(--layout-gutter)));
   min-height: 56px;
@@ -767,7 +770,7 @@ a {
   display: flex;
   gap: 1.1rem;
   grid-column: 2;
-  justify-self: center;
+  justify-self: start;
   color: var(--muted);
   font-size: 0.95rem;
   font-weight: 500;
@@ -938,19 +941,17 @@ a {
   flex-wrap: nowrap;
 }
 
-.app-header__leading {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
 .app-header__account {
   flex-shrink: 0;
 }
 
+/* Holds the theme switch and, for signed-in users, the language menu right
+   next to it (see app/layout.tsx) — both moved here from the header's left
+   side once signed in, in that order, right before the account menu. */
 .app-header__accessory {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-xs);
   flex-shrink: 0;
 }
 
@@ -2046,6 +2047,16 @@ a {
   --ed-warn-bg: rgba(217, 164, 94, 0.11);
   --ed-warn-border: rgba(217, 164, 94, 0.34);
   --ed-radius: 6px;
+}
+
+/* wide-shell-page opts the editor into the 1600px app-main canvas (for its
+   background theming, see body:has(...) above); the editor's own content
+   stays at the narrower --layout-content-max, same measure as the Dashboard
+   workspace (.dashboard-workspace). */
+.resume-editor-shell {
+  width: 100%;
+  max-width: var(--layout-content-max);
+  margin-inline: auto;
 }
 
 /* Day mode keeps the same flat, hairline structure with inverted surfaces —
@@ -4434,11 +4445,12 @@ a {
   display: block;
 }
 
-/* The footer shares the landing's canvas, so its brand mark lines up with the
-   first column of every section above it. */
+/* The footer shares the landing's own text measure (--layout-content-max,
+   not the app header's wider --layout-canvas-max), so its brand mark lines
+   up with the first column of every section above it. */
 .lp-container {
   width: min(
-    var(--layout-canvas-max),
+    var(--layout-content-max),
     calc(100% - var(--layout-gutter) - var(--layout-gutter))
   );
   margin-inline: auto;

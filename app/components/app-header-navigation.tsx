@@ -17,7 +17,6 @@ type Props = {
   account: ReactNode;
   items: NavItem[];
   accessory?: ReactNode;
-  leadingAccessory?: ReactNode;
   forceInlineItems?: boolean;
 };
 
@@ -74,7 +73,6 @@ export default function AppHeaderNavigation({
   account,
   items,
   accessory = null,
-  leadingAccessory = null,
   forceInlineItems = false
 }: Props) {
   const { dictionary } = useAppI18n();
@@ -83,7 +81,9 @@ export default function AppHeaderNavigation({
   const [isCompact, setIsCompact] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const shouldUseCompactMenu = isCompact;
-  const shouldRenderCenteredNavigation = !isCompact && !forceInlineItems;
+  // Renders next to .app-header__branding (grid-column: 2), not centered —
+  // see .app-nav in app/globals.css.
+  const shouldRenderDesktopNav = !isCompact && !forceInlineItems;
   const shouldRenderInlineActions = !isCompact && forceInlineItems;
 
   const updateMode = useCallback(() => {
@@ -213,7 +213,7 @@ export default function AppHeaderNavigation({
 
   return (
     <>
-      {shouldRenderCenteredNavigation && items.length > 0 ? (
+      {shouldRenderDesktopNav && items.length > 0 ? (
         <nav className="app-nav" aria-label={dictionary.navigation.primary_aria}>
           {items.map((item) => renderNavItem(item))}
         </nav>
@@ -222,7 +222,6 @@ export default function AppHeaderNavigation({
       <div
         className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""} ${forceInlineItems ? "app-header__controls--inline" : ""}`}
       >
-        {leadingAccessory ? <div className="app-header__leading">{leadingAccessory}</div> : null}
         {shouldRenderInlineActions && items.length > 0 ? (
           <nav className="app-nav app-nav--actions" aria-label={dictionary.navigation.primary_aria}>
             {items.map((item) => renderNavItem(item))}

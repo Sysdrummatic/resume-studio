@@ -32,11 +32,13 @@
   width: 100%;
 }
 
-/* Same canvas as the app header, so the landing's first column line sits
-   directly under the brand mark. */
+/* Landing is text-led, not header-aligned: --layout-content-max (DESIGN.md
+   Layout → Canvas widths), not the wider --layout-canvas-max app header/
+   dashboard share. Restored 2026-09-30 after --layout-canvas-max made the
+   redesign's sections read as sprawling. */
 .container {
   width: min(
-    var(--layout-canvas-max),
+    var(--layout-content-max),
     calc(100% - var(--layout-gutter) - var(--layout-gutter))
   );
   margin-inline: auto;
@@ -134,7 +136,7 @@
 .primaryAction {
   border-color: var(--story-accent);
   background: var(--story-accent);
-  color: #fff;
+  color: var(--portal-on-accent, #fff);
 }
 
 .primaryAction:hover,
@@ -284,7 +286,7 @@
 }
 
 .stageMeta {
-  padding-block: 14px clamp(48px, 6vw, 80px);
+  padding-block: 14px clamp(24px, 3vw, 40px);
 }
 
 .stageMeta a {
@@ -296,7 +298,6 @@
 
 .animationSection,
 .howSection,
-.valueSection,
 .storySection,
 .visionSection {
   padding-block: clamp(64px, 7vw, 104px);
@@ -341,16 +342,10 @@
 /* Product narrative sections reuse the landing grid while keeping long-form
    explanations separate from compact process rows. */
 .storySection,
-.visionSection,
-.valueGrid {
+.visionSection {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--story-col-gap);
-}
-
-.storySection,
-.visionSection,
-.valueSection {
   border-top: 1px solid var(--story-line);
 }
 
@@ -359,8 +354,7 @@
 }
 
 .storyIntro h2,
-.visionSection h2,
-.valueGrid h3 {
+.visionSection h2 {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 520;
@@ -386,8 +380,7 @@
 
 .storyIntro > p:last-child,
 .storyBody > p,
-.visionSection > p:last-child,
-.valueGrid p {
+.visionSection > p:last-child {
   color: var(--story-muted);
   font-size: 0.92rem;
   line-height: 1.7;
@@ -429,20 +422,6 @@
   font-weight: 560;
 }
 
-.valueGrid article {
-  grid-column: span 4;
-  padding: 28px 28px 28px 0;
-  border-top: 1px solid var(--story-line-strong);
-}
-
-.valueGrid h3 {
-  font-size: 1.15rem;
-}
-
-.valueGrid p {
-  margin: 12px 0 0;
-}
-
 .visionSection > .sectionEyebrow,
 .visionSection h2 {
   grid-column: 1 / 7;
@@ -452,19 +431,6 @@
   grid-column: 8 / 13;
   align-self: end;
   margin: 0;
-}
-
-.sectionCopy {
-  grid-column: 1 / 7;
-  display: grid;
-  align-self: start;
-  max-width: none;
-  margin-top: 20px;
-  gap: 14px;
-}
-
-.sectionCopy p {
-  max-width: none;
 }
 
 /* ── How it works ─────────────────────────────── */
@@ -687,7 +653,6 @@
 @media (max-width: 979px) {
   .sectionHead h2,
   .sectionHead p,
-  .sectionCopy,
   .privacyHead,
   .privacyBody,
   .closingCopy,
@@ -761,10 +726,6 @@
   .stageMeta {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .valueGrid article {
-    grid-column: 1 / 13;
   }
 
   .featureIndex {
