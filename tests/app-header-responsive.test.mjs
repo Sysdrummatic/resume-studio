@@ -62,9 +62,7 @@ test("header exposes an active theme switch slot in the top bar", () => {
   const themeModel = read(path.join(process.cwd(), "app", "lib", "app-theme.ts"));
 
   assert.equal(navigation.includes("accessory?: ReactNode;"), true);
-  assert.equal(navigation.includes("leadingAccessory?: ReactNode;"), true);
   assert.equal(navigation.includes("forceInlineItems?: boolean;"), true);
-  assert.equal(navigation.includes("app-header__leading"), true);
   assert.equal(navigation.includes("app-header__accessory"), true);
   assert.equal(themeSwitch.includes('role="switch"'), true);
   assert.equal(themeSwitch.includes("dictionary.theme.aria_label"), true);
@@ -81,7 +79,6 @@ test("header exposes an active theme switch slot in the top bar", () => {
     true
   );
   assert.equal(styles.includes(".app-theme-switch"), true);
-  assert.equal(styles.includes(".app-header__leading"), true);
   assert.equal(styles.includes(".app-theme-switch__thumb"), true);
   assert.equal(styles.includes(".app-theme-switch--dark .app-theme-switch__thumb"), true);
 });

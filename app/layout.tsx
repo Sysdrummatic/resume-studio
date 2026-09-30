@@ -70,11 +70,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <div className="app-shell app-header__inner">
               <div className="app-header__branding">
                 <AppBrand />
-                <AppLanguageMenu />
+                {!actor ? (
+                  <>
+                    <AppLanguageMenu />
+                    <AppThemeSwitch initialTheme={initialTheme} />
+                  </>
+                ) : null}
               </div>
               <AppHeaderNavigation
                 items={navItems}
-                leadingAccessory={actor ? null : <AppThemeSwitch initialTheme={initialTheme} />}
                 account={
                   actor ? (
                     <AccountMenu
@@ -89,7 +93,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     />
                   ) : null
                 }
-                accessory={actor ? <AppThemeSwitch initialTheme={initialTheme} /> : null}
+                accessory={
+                  actor ? (
+                    <>
+                      <AppThemeSwitch initialTheme={initialTheme} />
+                      <AppLanguageMenu />
+                    </>
+                  ) : null
+                }
                 forceInlineItems={!actor}
               />
             </div>
