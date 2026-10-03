@@ -23,6 +23,17 @@ const module = { exports: {} };
 const dependencies = {
   "next/link": ({ children, ...props }) => createElement("a", props, children),
   "../components/app-brand": () => null,
+  "../components/app-i18n-provider": {
+    useAppI18n: () => ({
+      locale: "en",
+      dictionary: {
+        onboarding: {
+          steps: ["Welcome", "How would you like to start?", "Personal details", "Professional summary", "Experience", "Education", "Skills", "Languages", "Courses", "Interests", "Tech stack", "QR codes", "GDPR clause", "Review your first CV", "Ready to save your CV?"],
+          text: {},
+        },
+      },
+    }),
+  },
   "./onboarding-progress": OnboardingProgress,
   "../lib/resume-onboarding": domain,
   "../lib/resume-export": { buildPublishedResumeExportUrls: () => null },

@@ -7,14 +7,23 @@ import { fetchOnboardingTest } from "../lib/onboarding-test-server";
 import { isTestRunId } from "../lib/onboarding-test";
 import { notFound } from "next/navigation";
 import "./onboarding.css";
+import type { Metadata } from "next";
+import { getRequestAppI18n } from "../i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = {
-  title: "Your first CV | OpenCiVera",
-  robots: { index: false, follow: false }
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { dictionary } = await getRequestAppI18n();
+  return {
+    title: `${dictionary.onboarding.text["Your first CV"]} | OpenCiVera`,
+    robots: { index: false, follow: false }
+  };
+}
 
-export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ test?: string }> }) {
+export default async function OnboardingPage({
+  searchParams
+}: {
+  searchParams: Promise<{ test?: string }>;
+}) {
   const actor = await requireAuthenticatedActor();
   const testId = (await searchParams).test;
   if (testId !== undefined) {
@@ -23,7 +32,12 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
     const run = await fetchOnboardingTest(actor.accessToken, actor.userId, testId);
     if (!run) notFound();
     if (run.status === "completed") redirect("/settings");
-    return <><Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" /><EditorCanvasClient key={run.id} onboarding={run} testRun={run} draftPdfEnabled={false} /></>;
+    return (
+      <>
+        <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
+        <EditorCanvasClient key={run.id} onboarding={run} testRun={run} draftPdfEnabled={false} />
+      </>
+    );
   }
   const onboarding = await fetchOnboarding(actor.accessToken, actor.userId);
   if (!onboarding || onboarding.status === "completed") redirect("/dashboard");

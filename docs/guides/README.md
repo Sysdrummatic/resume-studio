@@ -8,6 +8,7 @@ Guides organized by category. Each section links back to the relevant phase in [
 
 For setting up a local environment or understanding code patterns.
 
+- [Brand Language and Terminology](brand-language-and-terminology.md) — Canonical PL/EN product vocabulary and information-architecture language
 - [Local Development Setup](development/local-development.md) — Prerequisites, database setup, running tests
 - [Environment Matrix](development/environment-matrix.md) — Env vars across preview/production
 - [Responsive UI & Drawer Patterns](development/responsive-ui-and-drawer-patterns.md) — UI component patterns

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAppI18n } from "./app-i18n-provider";
 
 export type StatusToastVariant = "success" | "warning" | "error";
 
@@ -46,7 +47,14 @@ export function StatusToast({ toast, onClose }: StatusToastProps) {
   return <StatusToastContent key={toast.id} toast={toast} onClose={onClose} />;
 }
 
-function StatusToastContent({ toast, onClose }: { toast: StatusToastMessage; onClose: () => void }) {
+function StatusToastContent({
+  toast,
+  onClose
+}: {
+  toast: StatusToastMessage;
+  onClose: () => void;
+}) {
+  const { dictionary } = useAppI18n();
   const [isClosing, setIsClosing] = useState(false);
   const closeTimer = useRef<number | null>(null);
 
@@ -93,7 +101,12 @@ function StatusToastContent({ toast, onClose }: { toast: StatusToastMessage; onC
           </>
         ) : null}
       </p>
-      <button type="button" className="status-toast__close" aria-label="Close notification" onClick={startClose}>
+      <button
+        type="button"
+        className="status-toast__close"
+        aria-label={dictionary.common.close_notification}
+        onClick={startClose}
+      >
         <span aria-hidden="true">&times;</span>
       </button>
     </div>

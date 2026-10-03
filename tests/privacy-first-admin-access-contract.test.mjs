@@ -51,7 +51,7 @@ test("personal hub navigation and route access are restricted to admin actors", 
   assert.equal(authServer.includes("export async function requireAdminActor(): Promise<SessionActor>"), true);
   assert.equal(authServer.includes("redirect(\"/dashboard?reason=forbidden\")"), true);
   assert.equal(userPage.includes("const actor = await requireAdminActor();"), true);
-  assert.equal(layout.includes('...(isAdmin ? [{ href: "/user", label: "Personal Hub" }] : []),'), true);
+  assert.equal(layout.includes('...(isAdmin ? [{ href: "/user", label: appI18n.dictionary.navigation.personal_hub }] : []),'), true);
   assert.equal(loginClient.includes('window.location.href = "/dashboard";'), true);
   assert.equal(loginClient.includes("personal hub"), false);
 });

@@ -13,9 +13,9 @@ test("dashboard separates master resume from preset configurations", () => {
 
   assert.equal(page.includes("fetchResumePresetsForUser"), true);
   assert.equal(page.includes("DashboardClient"), true);
-  assert.equal(client.includes("Master Resume"), true);
-  assert.equal(client.includes("Your CVs"), true);
-  assert.equal(client.includes("Create CV"), true);
+  assert.equal(client.includes("labels.main.master_title"), true);
+  assert.equal(client.includes("labels.library.title"), true);
+  assert.equal(client.includes("labels.main.create_version"), true);
   assert.equal(client.includes("PresetModal"), true);
 });
 
@@ -29,6 +29,16 @@ test("resume presets are stored as lightweight selection config", () => {
   assert.equal(migration.includes("create table if not exists public.resume_presets"), true);
   assert.equal(migration.includes("selection jsonb not null"), true);
   assert.equal(migration.includes("document_id uuid not null references public.resume_documents"), true);
+});
+
+test("saved version editor exposes independent template and primary color settings", () => {
+  const client = read("app/dashboard/dashboard-client.tsx");
+
+  assert.equal(client.includes("accentColor"), true);
+  assert.equal(client.includes('type="color"'), true);
+  assert.equal(client.includes("styleSettings"), true);
+  assert.equal(client.includes("preset?.style_settings"), true);
+  assert.equal(client.includes("cvStyle={cvStyle}"), true);
 });
 
 test("preset APIs expose create, update, publish and delete operations", () => {
@@ -56,7 +66,7 @@ test("preset cards can open a rendered CV preview based on master resume selecti
   const preview = read("app/master-resume/resume-live-preview.tsx");
   const page = read("app/dashboard/page.tsx");
 
-  assert.equal(client.includes("Open CV"), true);
+  assert.equal(client.includes("dictionary.dashboard.preview.open_cv"), true);
   assert.equal(client.includes("PresetPreviewModal"), true);
   assert.equal(client.includes("buildPresetResumeDocument"), true);
   assert.equal(client.includes("BasicResumeDocument"), true);
@@ -76,11 +86,11 @@ test("selected CV retains its settings menu and confirmed delete dialog", () => 
   const styles = read("app/globals.css");
 
   assert.equal(client.includes("PresetActionsMenu"), true);
-  assert.equal(client.includes("aria-label={`CV Version settings for ${preset.title}`}"), true);
-  assert.equal(client.includes("aria-label={`Delete CV Version ${preset.title}`}"), true);
-  assert.equal(client.includes('{preset.is_public ? "Unpublish" : "Publish"}'), true);
+  assert.equal(client.includes("formatAppMessage(labels.settings_aria, { title: preset.title })"), true);
+  assert.equal(client.includes("formatAppMessage(labels.delete_aria, { title: preset.title })"), true);
+  assert.equal(client.includes("preset.is_public ? labels.unpublish : labels.publish"), true);
   assert.equal(client.includes("dashboard-preset-menu__separator"), true);
-  assert.equal(client.includes("Delete CV Version confirmation"), true);
+  assert.equal(client.includes("labels.delete_modal.aria_label"), true);
   assert.equal(client.includes("dashboard-resume-list__secondary-actions"), false);
   assert.equal(styles.includes(".dashboard-preset-menu__panel"), true);
 });
@@ -96,8 +106,8 @@ test("dashboard exposes canonical link management only; editor shows only Publis
   assert.equal(client.includes("<dt>Compatibility</dt>"), false);
   assert.equal(client.includes("canonical_public_path"), true);
   assert.equal(client.includes("copyPublicLink"), true);
-  assert.equal(client.includes("Open CV"), true);
-  assert.equal(client.includes("Copy link"), true);
+  assert.equal(client.includes("dictionary.dashboard.preview.open_cv"), true);
+  assert.equal(client.includes("labels.library.copy_link"), true);
   assert.equal(client.includes("PublishSavedVersionModal"), true);
 
   assert.equal(editor.includes("Open public CV"), false);
@@ -122,7 +132,7 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
   assert.equal(editor.includes("presetId="), false);
   assert.equal(userPage.includes("UserClient"), true);
   assert.equal(userClient.includes("Primary Resume"), false);
-  assert.equal(userClient.includes('aria-label="Resume preview"'), true);
+  assert.equal(userClient.includes('aria-label={userText("Resume preview")}'), true);
   assert.equal(userClient.includes("presetId="), false);
 });
 
@@ -131,15 +141,18 @@ test("snapshot exports use canonical public paths only for dashboard and editor 
 // tests/preset-preview-modal.test.mjs — they execute buildPresetResumeDocument
 // and render PresetPreviewModal itself, rather than asserting on source text.
 
-test("CV version actions (Edit selection, Publish, settings menu) render above the CV preview", () => {
+test("CV version actions render in a compact toolbar above the CV preview", () => {
   // ocv-0174: these used to sit below the full inline CV render, which meant
   // scrolling past the whole CV to reach "Edit selection" or the settings
   // menu — both should be immediately visible next to "Open CV".
   const client = read("app/dashboard/dashboard-client.tsx");
 
-  const nextSectionIndex = client.indexOf('<section className="dashboard-next"');
+  const actionsIndex = client.indexOf('<div className="dashboard-library__actions">');
   const previewIndex = client.indexOf("<PresetPreviewModal");
-  assert.ok(nextSectionIndex > -1, "dashboard-next section not found");
+  assert.ok(actionsIndex > -1, "dashboard action toolbar not found");
   assert.ok(previewIndex > -1, "PresetPreviewModal render not found");
-  assert.ok(nextSectionIndex < previewIndex, "actions must render before the CV preview, not after it");
+  assert.ok(actionsIndex < previewIndex, "actions must render before the CV preview, not after it");
+  assert.equal(client.includes('className="dashboard-next"'), false, "The next-step panel is removed");
+  assert.equal(client.includes("labels.library.edit_selection"), false, "Edit is available only in settings");
+  assert.equal(client.includes("onEdit={() => openPresetEditor(selectedPreset)}"), true);
 });

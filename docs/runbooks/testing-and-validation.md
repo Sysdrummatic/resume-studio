@@ -77,6 +77,28 @@ Preserve existing development servers. Reuse an appropriate server or create an
 isolated test instance; do not stop the user's process merely to free a port/lock.
 Use test data for publication checks.
 
+### Landing animation
+
+With the application running, execute `node scripts/qa/landing-animation.mjs`.
+It defaults to `http://localhost:3000`; set `QA_BASE_URL` for another local/preview
+instance. The check uses the installed Playwright Chromium and writes screenshots
+to a new OS temporary directory, printed on success.
+
+Checks cover desktop/mobile, EN/PL, both themes, progressive collection and stable
+random ordering, the stationary source queue, arrival-only document filling,
+downward tracking, complete-base zoom, three distinct CV selections, final framing,
+named group outlines with real label gaps, one visible arrow before the first CV,
+keyboard pause/resume, playback completion and the reduced-motion overview. It
+also opens the real homepage iframe to check script loading and hidden controls.
+Inspect the screenshots and watch the standalone `/animations/opencivera-animation.html`
+preview for motion quality. These are local illustrative-data checks, not Supabase
+integration or production validation.
+
+The demo profile is Ariana Holt in the source and all three CVs, in both languages.
+Tiles transfer every 0.52 seconds with a 0.38-second flight, filling entries only
+on arrival. Playback lasts 38 seconds; the later scenes follow the shorter fill
+phase without an added idle pause.
+
 ## Reporting
 
 State the commands and outcomes, browser checks actually performed, and remaining

@@ -5,7 +5,11 @@ import {
   deleteResumeUserLocale,
   ensureResumeDocument,
   fetchResumeLanguageVersionsForUser,
+  RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE,
+  RESUME_TRANSLATION_DUPLICATE_IDS_MESSAGE,
+  RESUME_LEGACY_PAIRING_MESSAGE,
   setDefaultResumeLocaleForUser,
+  switchDefaultResumeLocale,
   upsertResumeUserLocale,
   validateResumeUserLocaleInput,
 } from "../../../lib/resume-server";
@@ -117,12 +121,23 @@ export async function PATCH(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Unsupported language action." }, { status: 400 });
   }
 
-  const updated = await setDefaultResumeLocaleForUser(actorResult.accessToken, actorResult.actor.userId, String(body.code || ""));
-  if (!updated) {
-    return NextResponse.json({ error: "Default language could not be updated." }, { status: 400 });
+  const updated = await switchDefaultResumeLocale(actorResult.accessToken, actorResult.actor.userId, String(body.code || ""));
+  if (!updated.ok) {
+    if (updated.duplicates?.length) {
+      return NextResponse.json(
+        updated.duplicateIsDefault
+          ? { error: RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE, code: "default-duplicate-ids", defaultLocale: updated.duplicateLocale, linkageIssues: updated.duplicates }
+          : { error: RESUME_TRANSLATION_DUPLICATE_IDS_MESSAGE, code: "duplicate-ids", locale: updated.duplicateLocale, linkageIssues: updated.duplicates },
+        { status: 409 },
+      );
+    }
+    if (updated.conflicts) {
+      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, code: "legacy-pairing", legacyConflicts: updated.conflicts }, { status: 409 });
+    }
+    return NextResponse.json({ error: "Default language could not be updated.", synchronizationFailed: updated.failed ?? [] }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, defaultLocale: normalizeLocale(body.code) });
+  return NextResponse.json({ ok: true, defaultLocale: normalizeLocale(body.code), synchronizedDocuments: updated.synchronized });
 }
 
 export async function DELETE(request: Request): Promise<Response> {

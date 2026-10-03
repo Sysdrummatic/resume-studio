@@ -1,17 +1,18 @@
 "use client";
 
 import { useRef } from "react";
+import { useAppI18n } from "../components/app-i18n-provider";
 
 type ImportCvBannerProps = {
-  language?: "en" | "pl";
   isBusy: boolean;
   onFileSelected: (file: File) => void;
 };
 
 // Matches the approved editor mockup's "already have a CV?" import panel —
 // see CLAUDE.md's mockup implementation notes / "iteration 2" scope.
-export default function ImportCvBanner({ isBusy, onFileSelected, language = "en" }: ImportCvBannerProps) {
-  const t = (en: string, pl: string) => language === "pl" ? pl : en;
+export default function ImportCvBanner({ isBusy, onFileSelected }: ImportCvBannerProps) {
+  const { dictionary } = useAppI18n();
+  const t = (text: string) => dictionary.editor.text[text] ?? text;
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -23,11 +24,18 @@ export default function ImportCvBanner({ isBusy, onFileSelected, language = "en"
   return (
     <div className="resume-editor-import-banner">
       <div>
-        <b>{t("Already have a CV?", "Masz już CV?")}</b>
-        <span>{t("Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.", "Wgraj PDF, DOCX, YAML lub TXT, a przeniesiemy dane do formularza.")}</span>
+        <b>{t("Already have a CV?")}</b>
+        <span>
+          {t("Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.")}
+        </span>
       </div>
-      <button type="button" className="button" onClick={() => inputRef.current?.click()} disabled={isBusy}>
-        {isBusy ? t("Reading file...", "Odczytywanie pliku…") : t("Upload file", "Wgraj plik")}
+      <button
+        type="button"
+        className="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={isBusy}
+      >
+        {isBusy ? t("Reading file…") : t("Upload file")}
       </button>
       <input
         ref={inputRef}

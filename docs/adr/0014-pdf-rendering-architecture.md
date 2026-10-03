@@ -94,7 +94,9 @@ page-break control, and hardcoded styles disconnected from the design token syst
 
 6. **Filename convention**: `{name-slug}-{YYYY-MM-DD}-opencivera-{publicId(14)}.pdf` via
    `buildPdfFilename()` (`app/lib/pdf/filename.ts`). Draft previews use `draft` as the id
-   segment. Polish diacritics (including `ł`) are transliterated.
+   segment. Polish diacritics (including `ł`) are transliterated. The published ATS TXT,
+   ATS YAML and CVasCode YAML exports share this pattern through `buildExportFilename()`;
+   the two YAML formats add `-ats` / `-cvascode` before the extension so they never collide.
 
 7. **Draft PDF feature flag**: `platform_feature_flags` table in Supabase
    (`20260610000000_pdf_feature_flags.sql`), admin-controlled via RLS, read server-side through

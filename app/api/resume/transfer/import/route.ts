@@ -1,28 +1,42 @@
 import { NextResponse } from "next/server";
+import yaml from "js-yaml";
 import { requireRequestActor } from "../../../../lib/auth-request";
 import { isUserDataTransferEnabled } from "../../../../lib/platform-feature-flags";
 import { normalizeLocale } from "../../../../lib/resume-schema";
 import {
   deleteResumePreset,
   fetchResumeDocumentsForUser,
-  fetchResumePresetsForUser,
+  fetchPrivateResumePresetIdsForUser,
+  importLanguagesAndDocuments,
   importResumePresetVariant,
   normalizeResumePresetSelection,
-  saveResumeDraftDocument,
   saveResumePreset,
-  upsertResumeUserLocale,
   upgradeLegacyResumeYamlContent,
   validateResumePresetSelection,
 } from "../../../../lib/resume-server";
 import { parseUserDataBundle } from "../../../../lib/user-data-transfer";
+import type { UserDataBundleCvVersion } from "../../../../lib/user-data-transfer";
 import { callRpc } from "../../../../lib/supabase-http";
 import { flagSuspiciousResumeContent } from "../../../../lib/content-safety-audit";
+import { applyResumeSelectionToRawDocument } from "../../../../lib/preset-selection";
 
 export const dynamic = "force-dynamic";
 
 type ImportBody = {
   yamlContent?: string;
 };
+
+function defaultSelectionForVersion(version: UserDataBundleCvVersion): unknown {
+  return version.variants.find((variant) => normalizeLocale(variant.locale) === normalizeLocale(version.default_locale))?.selection
+    ?? version.selection;
+}
+
+function importWriteFailure(step: string): Response {
+  return NextResponse.json({
+    ok: false,
+    error: `Import stopped while ${step}. Some changes may already have been saved; retry the same file.`,
+  }, { status: 500 });
+}
 
 /**
  * POST /api/resume/transfer/import
@@ -93,46 +107,64 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  for (const language of bundle.languages) {
-    const upserted = await upsertResumeUserLocale(
-      accessToken,
-      userId,
-      { code: language.code, label: language.label, shortLabel: language.short_label },
-      { setDefault: language.is_default },
-    );
-    if (!upserted) {
-      return NextResponse.json(
-        { error: `Import failed while saving the "${language.code}" language version.` },
-        { status: 400 },
-      );
+  const preflightDocuments = new Map(bundle.documents.map((document) => [normalizeLocale(document.locale), document]));
+  const missingVariantDocument = bundle.cv_versions.some((version) =>
+    version.variants.some((variant) => !preflightDocuments.has(normalizeLocale(variant.locale))));
+  if (missingVariantDocument) {
+    const existingDocuments = await fetchResumeDocumentsForUser(userId);
+    for (const document of existingDocuments) {
+      if (!preflightDocuments.has(normalizeLocale(document.locale))) {
+        preflightDocuments.set(normalizeLocale(document.locale), document);
+      }
+    }
+  }
+  for (const version of bundle.cv_versions) {
+    for (const { locale, selection } of [
+      { locale: version.default_locale, selection: defaultSelectionForVersion(version) },
+      ...version.variants.filter((variant) => normalizeLocale(variant.locale) !== normalizeLocale(version.default_locale)),
+    ]) {
+      const document = preflightDocuments.get(normalizeLocale(locale));
+      let rawDocument: unknown;
+      try {
+        rawDocument = document
+          ? yaml.load(document.yaml_content, { maxTotalMergeKeys: 50 } as yaml.LoadOptions)
+          : null;
+      } catch {
+        rawDocument = null;
+      }
+      if (!applyResumeSelectionToRawDocument(rawDocument, normalizeResumePresetSelection(selection))) {
+        return NextResponse.json(
+          { error: `CV version "${version.title}" has a selection that cannot be applied to "${locale}".` },
+          { status: 400 },
+        );
+      }
     }
   }
 
-  for (const document of bundle.documents) {
-    const saved = await saveResumeDraftDocument(accessToken, userId, document.locale, {
-      yamlContent: document.yaml_content,
-      title: document.title,
-    });
-    if (!saved) {
-      return NextResponse.json(
-        { error: `Import failed while saving the "${document.locale}" document.` },
-        { status: 500 },
-      );
-    }
+  const existingPrivatePresetIds = await fetchPrivateResumePresetIdsForUser(userId);
+  if (!existingPrivatePresetIds) {
+    return NextResponse.json({ ok: false, error: "Import stopped because existing private CV versions could not be read. No changes were saved." }, { status: 500 });
+  }
 
-    await flagSuspiciousResumeContent(document.yaml_content, {
+  const imported = await importLanguagesAndDocuments(accessToken, userId, bundle, ({ locale, documentId, yamlContent }) =>
+    flagSuspiciousResumeContent(yamlContent, {
       userId,
-      documentId: saved.document.id,
-      locale: document.locale,
+      documentId,
+      locale,
       source: "resume_import_save",
-    });
+    }),
+  );
+  if (!imported.ok) {
+    return NextResponse.json(
+      { error: imported.error, ...(imported.code ? { code: imported.code } : {}), ...(imported.linkageIssues ? { linkageIssues: imported.linkageIssues } : {}), ...(imported.legacyConflicts ? { legacyConflicts: imported.legacyConflicts } : {}) },
+      { status: imported.status },
+    );
   }
 
   // Replace private CV versions; published ones keep their links and snapshots.
-  const existingPresets = await fetchResumePresetsForUser(userId);
-  for (const preset of existingPresets) {
-    if (!preset.is_public) {
-      await deleteResumePreset(accessToken, userId, preset.id);
+  for (const presetId of existingPrivatePresetIds) {
+    if (!await deleteResumePreset(accessToken, userId, presetId)) {
+      return importWriteFailure("replacing private CV versions");
     }
   }
 
@@ -140,14 +172,12 @@ export async function POST(request: Request): Promise<Response> {
   const documentByLocale = new Map(documentsAfterImport.map((document) => [normalizeLocale(document.locale), document]));
 
   let importedCvVersions = 0;
-  const skippedCvVersions: string[] = [];
   for (const version of bundle.cv_versions) {
     const defaultLocale = normalizeLocale(version.default_locale);
     const document = documentByLocale.get(defaultLocale);
-    const selection = normalizeResumePresetSelection(version.selection);
+    const selection = normalizeResumePresetSelection(defaultSelectionForVersion(version));
     if (!document) {
-      skippedCvVersions.push(version.title);
-      continue;
+      return importWriteFailure(`loading the "${defaultLocale}" document`);
     }
 
     const preset = await saveResumePreset(accessToken, userId, {
@@ -157,11 +187,11 @@ export async function POST(request: Request): Promise<Response> {
       isPublic: false,
       allowIndexing: version.allow_indexing,
       aiGenerated: version.ai_generated,
+      styleSettings: version.style_settings,
       defaultLocale,
     });
     if (!preset) {
-      skippedCvVersions.push(version.title);
-      continue;
+      return importWriteFailure(`saving CV version "${version.title}"`);
     }
     importedCvVersions += 1;
 
@@ -170,13 +200,16 @@ export async function POST(request: Request): Promise<Response> {
       if (variantLocale === defaultLocale) {
         continue;
       }
-      await importResumePresetVariant(
+      const variantSaved = await importResumePresetVariant(
         accessToken,
         userId,
         preset,
         variantLocale,
         normalizeResumePresetSelection(variant.selection),
       );
+      if (!variantSaved) {
+        return importWriteFailure(`saving the "${variantLocale}" version of "${version.title}"`);
+      }
     }
   }
 
@@ -187,6 +220,5 @@ export async function POST(request: Request): Promise<Response> {
       documents: bundle.documents.length,
       cvVersions: importedCvVersions,
     },
-    skippedCvVersions,
   });
 }

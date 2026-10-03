@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import { useAppI18n } from "../components/app-i18n-provider";
 
 import type { SectionStatus } from "./resume-completion";
 
@@ -49,6 +50,8 @@ function SectionIcon({ id }: { id: string }) {
 // section the workspace renders; in the YAML editor it jumps the caret to the
 // matching block. See `handleSectionNavSelect` in editor-canvas-client.tsx.
 export default function EditorSectionNav({ groups, activeId, onSelect }: EditorSectionNavProps) {
+  const { dictionary } = useAppI18n();
+  const text = dictionary.editor.text;
   const navRef = useRef<HTMLElement>(null);
   const [indicator, setIndicator] = useState<{ top: number; height: number } | null>(null);
 
@@ -76,7 +79,7 @@ export default function EditorSectionNav({ groups, activeId, onSelect }: EditorS
   let ordinal = 0;
 
   return (
-    <nav className="resume-editor-nav" aria-label="Resume sections" ref={navRef}>
+    <nav className="resume-editor-nav" aria-label={text["Resume sections"]} ref={navRef}>
       {indicator ? (
         <span
           className="resume-editor-nav__indicator"
@@ -106,7 +109,7 @@ export default function EditorSectionNav({ groups, activeId, onSelect }: EditorS
                   <span
                     className="resume-editor-nav__status"
                     data-status={section.status}
-                    title={section.status === "ok" ? "Complete" : "Needs content"}
+                    title={section.status === "ok" ? text.Complete : text["Needs content"]}
                   />
                 ) : null}
               </button>

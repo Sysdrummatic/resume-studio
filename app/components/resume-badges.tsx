@@ -12,7 +12,7 @@ export default function ResumeBadges({ status, aiGenerated = false, labels = {} 
   const statusLabel = status === "public" ? labels.public || "Public" : labels.draft || "Draft";
 
   return (
-    <div className="resume-badges" aria-label="CV status">
+    <div className="resume-badges" aria-label="LiveCV">
       <span className={`resume-badge resume-badge--${status}`}>{statusLabel}</span>
       {aiGenerated ? <span className="resume-badge resume-badge--ai">{labels.aiGenerated || "AI generated"}</span> : null}
     </div>

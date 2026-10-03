@@ -33,6 +33,7 @@ export type UserDataBundleCvVersion = {
   default_locale: string;
   allow_indexing: boolean;
   ai_generated: boolean;
+  style_settings?: unknown;
   selection: unknown;
   variants: UserDataBundleCvVersionVariant[];
 };
@@ -133,8 +134,12 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
   if (languageCodes.size !== languages.length) {
     return { error: "Languages section contains duplicate locale codes." };
   }
+  if (languages.filter((language) => language.is_default).length !== 1) {
+    return { error: "Languages section must contain exactly one default language." };
+  }
 
   const documents: UserDataBundleDocument[] = [];
+  const documentLocales = new Set<string>();
   for (const entry of root.documents) {
     const row = asRecord(entry);
     const locale = normalizedLocaleCode(row?.locale);
@@ -145,6 +150,10 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
     if (!languageCodes.has(locale)) {
       return { error: `Document locale "${locale}" is not listed in the languages section.` };
     }
+    if (documentLocales.has(locale)) {
+      return { error: "Documents section contains duplicate document locales." };
+    }
+    documentLocales.add(locale);
     documents.push({
       locale,
       title: nonEmptyString(row.title) || "Master resume",
@@ -155,7 +164,6 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
     return { error: "Import file must contain at least one document." };
   }
 
-  const documentLocales = new Set(documents.map((document) => document.locale));
   const cvVersions: UserDataBundleCvVersion[] = [];
   for (const entry of root.cv_versions) {
     const row = asRecord(entry);
@@ -168,6 +176,7 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
       return { error: `CV version "${title}" default locale "${defaultLocale}" has no matching document.` };
     }
     const variants: UserDataBundleCvVersionVariant[] = [];
+    const variantLocales = new Set<string>();
     if (row.variants !== undefined && !Array.isArray(row.variants)) {
       return { error: `CV version "${title}" has an invalid variants section.` };
     }
@@ -180,6 +189,10 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
       if (!languageCodes.has(variantLocale)) {
         return { error: `CV version "${title}" variant locale "${variantLocale}" is not listed in the languages section.` };
       }
+      if (variantLocales.has(variantLocale)) {
+        return { error: `CV version "${title}" has duplicate variant locales.` };
+      }
+      variantLocales.add(variantLocale);
       variants.push({ locale: variantLocale, selection: variantRow.selection });
     }
     cvVersions.push({
@@ -189,6 +202,7 @@ export function parseUserDataBundle(yamlText: string): ParseResult {
       ai_generated: row.ai_generated === true,
       selection: row.selection,
       variants,
+      ...(row.style_settings === undefined ? {} : { style_settings: row.style_settings }),
     });
   }
 

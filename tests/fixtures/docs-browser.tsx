@@ -5,18 +5,27 @@ import DocsHub from "../../app/components/docs-hub";
 import AppBrand from "../../app/components/app-brand";
 import type { DocNavGroup } from "../../app/lib/docs/content";
 import type { DocHeading } from "../../app/lib/docs/markdown";
-import { resolveDocsLanguage } from "../../app/lib/docs/presentation";
+import type { AppDictionary } from "../../app/i18n/types";
+import { AppI18nProvider } from "../../app/components/app-i18n-provider";
 import "../../app/docs/docs.css";
 
-type Fixture = { groups: DocNavGroup[]; html: string; headings: DocHeading[] };
+type Fixture = {
+  groups: DocNavGroup[];
+  html: string;
+  headings: DocHeading[];
+  dictionary: AppDictionary;
+  locale: string;
+};
 const query = new URLSearchParams(location.search);
-const language = resolveDocsLanguage(query.get("lang") || undefined);
 const article = location.pathname !== "/docs";
+if (article) query.set("slug", location.pathname.split("/").at(-1)!);
 fetch(`/fixture.json?${query}`)
   .then((response) => response.json())
   .then((fixture: Fixture) => {
     createRoot(document.getElementById("root")!).render(
-      <>
+      <AppI18nProvider
+        value={{ locale: fixture.locale, locales: [], dictionary: fixture.dictionary }}
+      >
         <header className="app-header">
           <div className="app-shell app-header__inner">
             <AppBrand />
@@ -27,24 +36,25 @@ fetch(`/fixture.json?${query}`)
           <DocsLayout
             groups={fixture.groups}
             activeHref={location.pathname}
-            language={language}
+            locale={fixture.locale}
+            copy={fixture.dictionary.docs}
             toc={article ? fixture.headings : []}
           >
             {article ? (
               <article className="docs-article">
                 <div
                   className="docs-prose"
-                  lang="en"
+                  lang={fixture.locale}
                   dangerouslySetInnerHTML={{ __html: fixture.html }}
                 />
               </article>
             ) : (
-              <DocsHub groups={fixture.groups} language={language}>
+              <DocsHub groups={fixture.groups} copy={fixture.dictionary.docs}>
                 <p>Documentation overview</p>
               </DocsHub>
             )}
           </DocsLayout>
         </main>
-      </>
+      </AppI18nProvider>
     );
   });

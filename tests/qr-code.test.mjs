@@ -102,3 +102,34 @@ test("resume completion only credits qr-codes for an entry that actually generat
     assert.equal(computeResumeCompletion(valid).statuses["qr-codes"], "ok");
   });
 });
+
+test("QR section sits right after personal info on desktop and is ordered last on mobile", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const tsx = await readFile(new URL("../app/components/resume-renderer/ResumeRenderer.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/resume/resume.css", import.meta.url), "utf8");
+
+  const personal = tsx.indexOf("resume-section--personal");
+  const qr = tsx.indexOf("resume-section--qr-codes");
+  const skills = tsx.indexOf("resume-section--skills");
+  assert.ok(personal !== -1 && personal < qr && qr < skills, "DOM order: personal → QR → skills");
+
+  // Below 1024px .sidebar is `display: contents` and sections are placed by
+  // `order`; a missing order means 0, i.e. above personal info.
+  const orders = [...css.matchAll(/\.resume-section--([a-z-]+)\s*\{\s*order:\s*(\d+);/g)].map(([, name, n]) => [name, Number(n)]);
+  const qrOrder = orders.find(([name]) => name === "qr-codes")?.[1];
+  assert.ok(qrOrder !== undefined, "qr-codes needs an explicit mobile order");
+  assert.equal(qrOrder, Math.max(...orders.map(([, n]) => n)));
+});
+
+test("QrCodeLink makes the QR itself the link for http(s) and never paints the URL", async () => {
+  const { QrCodeLink } = await import("../app/components/resume-renderer/QrCodeSvg.tsx");
+  const child = createElement("i", null, "qr");
+
+  const http = renderToStaticMarkup(createElement(QrCodeLink, { value: "https://opencivera.com/a/very/long/path" }, child));
+  assert.match(http, /^<a href="https:\/\/opencivera\.com\/a\/very\/long\/path"[^>]*><i>qr<\/i><\/a>$/);
+  assert.doesNotMatch(http, /sr-only/);
+
+  const mail = renderToStaticMarkup(createElement(QrCodeLink, { value: "mailto:jane@example.com" }, child));
+  assert.doesNotMatch(mail, /<a /);
+  assert.match(mail, /class="[^"]*\bsr-only\b/);
+});

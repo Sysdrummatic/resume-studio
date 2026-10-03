@@ -61,7 +61,7 @@ export type ResumeRenderConfig = {
 };
 
 const DEFAULT_RENDERER_LABELS: ResumeRendererLabels = {
-  languageSwitcher: "CV language",
+  languageSwitcher: "LiveCV language",
   summary: "Summary",
   experience: "Experience",
   education: "Education",
@@ -110,6 +110,7 @@ export function buildResumeRendererLabels(
 
   return {
     ...DEFAULT_RENDERER_LABELS,
+    languageSwitcher: normalizeLocale(locale) === "pl" ? "Język LiveCV" : "LiveCV language",
     summary: previewLabels.summary,
     experience: previewLabels.experience,
     education: previewLabels.education,

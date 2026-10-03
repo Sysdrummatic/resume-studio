@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import yaml from "js-yaml";
 
 const privacyPagePath = path.join(process.cwd(), "app", "privacy", "page.tsx");
 const footerPath = path.join(process.cwd(), "app", "components", "footer.tsx");
@@ -12,32 +13,77 @@ function readSource(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-test("privacy policy page contains all required section headings", () => {
-  const source = readSource(privacyPagePath);
-  const requiredHeadings = [
-    "What Data We Collect",
-    "Why We Process Your Data",
-    "Who We Share Your Data With",
-    "Data Retention",
-    "Your Rights",
-    "Cookies",
-    "International Data Transfers",
-    "Children",
-    "Changes to This Policy",
-    "Contact",
-  ];
+function readDictionary(locale) {
+  return yaml.load(readSource(path.join(process.cwd(), "app", "i18n", "locales", `${locale}.yaml`)));
+}
 
-  for (const heading of requiredHeadings) {
-    assert.equal(source.includes(heading), true, `Missing heading: ${heading}`);
+function flattenDocument(document) {
+  return document.sections.flatMap((section) => [
+    section.title,
+    ...section.paragraphs,
+    ...(section.bullets || []),
+    ...(section.after || []),
+  ]);
+}
+
+test("privacy policy page renders the YAML-backed English and Polish documents", () => {
+  const source = readSource(privacyPagePath);
+  const requiredHeadings = {
+    en: [
+      "What Data We Collect",
+      "Why We Process Your Data",
+      "Who We Share Your Data With",
+      "Data Retention",
+      "Your Rights",
+      "Cookies",
+      "International Data Transfers",
+      "Children",
+      "Changes to This Policy",
+      "Contact",
+    ],
+    pl: [
+      "Jakie dane zbieramy",
+      "Dlaczego przetwarzamy dane",
+      "Komu udostępniamy dane",
+      "Przechowywanie danych",
+      "Twoje prawa",
+      "Pliki cookie",
+      "Międzynarodowe transfery danych",
+      "Dzieci",
+      "Zmiany w tej polityce",
+      "Kontakt",
+    ],
+  };
+
+  assert.equal(source.includes("dictionary.legal.privacy"), true);
+  for (const locale of ["en", "pl"]) {
+    const document = readDictionary(locale).legal.privacy;
+    assert.equal(document.sections.length, 11, locale);
+    for (const heading of requiredHeadings[locale]) {
+      assert.equal(document.sections.some((section) => section.title.endsWith(heading)), true, `${locale}: ${heading}`);
+    }
   }
 });
 
-test("privacy policy page mentions required processors and authority", () => {
-  const source = readSource(privacyPagePath);
+test("privacy policy translations mention required processors and authority", () => {
+  for (const locale of ["en", "pl"]) {
+    const content = flattenDocument(readDictionary(locale).legal.privacy).join(" ");
+    assert.equal(content.includes("Supabase"), true, locale);
+    assert.equal(content.includes("Netlify"), true, locale);
+    assert.equal(content.includes("UODO"), true, locale);
+  }
+});
 
-  assert.equal(source.includes("Supabase"), true);
-  assert.equal(source.includes("Netlify"), true);
-  assert.equal(source.includes("UODO"), true);
+// The pages render every item as a React child; an unquoted "text:" line in YAML
+// parses as an object and crashes the whole page with a 500.
+test("legal document text items are plain strings in every locale", () => {
+  for (const locale of ["en", "pl"]) {
+    for (const name of ["privacy", "terms"]) {
+      for (const item of flattenDocument(readDictionary(locale).legal[name])) {
+        assert.equal(typeof item, "string", `${locale} ${name}: ${JSON.stringify(item)}`);
+      }
+    }
+  }
 });
 
 test("privacy policy page is explicitly indexable", () => {

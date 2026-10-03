@@ -51,7 +51,7 @@ test("login flow uses separate modes for sign in, sign up, and reset", () => {
   assert.equal(client.includes('type InitialAuthMode = "signin" | "signup" | "reset";'), true);
   assert.equal(client.includes('type AuthMode = InitialAuthMode | "new-password";'), true);
   assert.equal(client.includes("auth-card__tabs"), false);
-  assert.equal(client.includes("Forgot password?"), true);
+  assert.equal(client.includes("auth.actions.forgot_password"), true);
   assert.equal(client.includes('router.replace(`/login?mode=${nextMode}`, { scroll: false });'), true);
   assert.equal(client.includes('setMode("signin");'), true);
 });

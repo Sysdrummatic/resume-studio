@@ -6,6 +6,8 @@ import DashboardClient from "../../app/dashboard/dashboard-client";
 import WorkspaceBreadcrumbs from "../../app/components/workspace-breadcrumbs";
 import EditorCanvasClient from "../../app/master-resume/editor-canvas-client";
 import { SearchParamsContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime";
+import { AppI18nProvider } from "../../app/components/app-i18n-provider";
+import type { AppI18nContextValue } from "../../app/i18n/types";
 
 window.jsyaml = yaml;
 const content = (locale: string) => ({
@@ -28,7 +30,7 @@ const content = (locale: string) => ({
       period: "2020–2026",
       highlights: ["Selected experience"]
     },
-    { company: "PRIVATE COMPANY", role: "Hidden", highlights: ["UNSELECTED EXPERIENCE"] }
+    { company: "PRIVATE COMPANY", role: "Hidden", period: "", highlights: ["UNSELECTED EXPERIENCE"] }
   ],
   skills: [
     { name: "Research", level: 4 },
@@ -69,7 +71,7 @@ const presets = [
     is_public: true,
     canonical_public_path: "/ada-example/public-cv"
   },
-  { id: "private", title: "Private designer", is_public: false, canonical_public_path: null },
+  { id: "private", title: "Private designer", is_public: false, canonical_public_path: null, style_settings: {} },
   {
     id: "test",
     title: "Onboarding test",
@@ -97,6 +99,20 @@ if (query.has("pl-default")) {
   documents[1].yaml_content = yaml.dump(polishContent);
   presets[1].selection = { ...selection, summary: [1] };
 }
+if (query.has("linked-blank")) {
+  for (const document of documents) {
+    const resume = content(document.locale);
+    const linkedExperience = resume.experience.map((row, index) => ({
+      ...row, entry_id: index === 0 ? "selected-experience" : "private-experience"
+    }));
+    linkedExperience.push({
+      company: "Beta Company", role: document.locale === "en" ? "Linked-only role" : "",
+      period: "2018", highlights: [], entry_id: "linked-beta"
+    });
+    document.yaml_content = yaml.dump({ ...resume, experience: linkedExperience });
+  }
+  presets[0].selection = { ...selection, experience: [0, 2] };
+}
 const languageRows = documents.map((doc) => ({
   user_id: "owner",
   code: doc.locale,
@@ -111,35 +127,44 @@ const languageRows = documents.map((doc) => ({
   short_label_override: null
 }));
 Object.assign(window, { dashboardFixture: { documents, presets, languageRows } });
-createRoot(document.getElementById("root")!).render(
-  <SearchParamsContext.Provider value={query}>
-    <header className="app-header">
-      <div className="app-shell app-header__inner">
-        <a href="/">OpenCiVera</a>
-        <nav>
-          <a href="/dashboard">Dashboard</a> <a href="/master-resume">Master Resume</a>
-        </nav>
-      </div>
-    </header>
-    <main className="app-main">
-      {query.has("editor") ? (
-        <EditorCanvasClient draftPdfEnabled={false} onboarding={query.has("onboarding") ? {
-          status: "paused", step: Number(query.get("onboarding")), locale: "en", method: "scratch",
-          ui_language: query.has("pl") ? "pl" : "en", imported: false, first_preset_id: null
-        } : undefined} />
-      ) : (
-        <div className="dashboard-page editor-theme wide-shell-page">
-          <WorkspaceBreadcrumbs current="Dashboard" />
-          <DashboardClient
-            masterResume={query.has("empty") ? null : documents[query.has("pl-default") ? 1 : 0]}
-            initialDocuments={query.has("empty") ? [] : documents.filter((doc) => !query.has("missing-source") || doc.locale !== "en")}
-            initialPresets={query.has("empty") ? [] : presets}
-            languageOptions={languageRows}
-            draftPdfEnabled={query.has("admin")}
-            dataTransferEnabled={!query.has("restricted")}
-          />
-        </div>
-      )}
-    </main>
-  </SearchParamsContext.Provider>
-);
+fetch(query.has("pl") ? "/fixture-i18n.json?locale=pl" : "/fixture-i18n.json")
+  .then((response) => response.json())
+  .then((appI18n: AppI18nContextValue) =>
+    createRoot(document.getElementById("root")!).render(
+      <AppI18nProvider value={appI18n}>
+        <SearchParamsContext.Provider value={query}>
+          <header className="app-header">
+            <div className="app-shell app-header__inner">
+              <a href="/">OpenCiVera</a>
+              <nav>
+                <a href="/dashboard">Dashboard</a> <a href="/master-resume">Master Resume</a>
+              </nav>
+            </div>
+          </header>
+          <main className="app-main">
+            {query.has("editor") ? (
+              <EditorCanvasClient
+                draftPdfEnabled={false}
+                onboarding={query.has("onboarding") ? {
+                  status: "paused", step: Number(query.get("onboarding")), locale: "en", method: "scratch",
+                  ui_language: query.has("pl") ? "pl" : "en", imported: false, first_preset_id: null
+                } : undefined}
+              />
+            ) : (
+              <div className="dashboard-page editor-theme wide-shell-page">
+                <WorkspaceBreadcrumbs current="Dashboard" />
+                <DashboardClient
+                  masterResume={query.has("empty") ? null : documents[query.has("pl-default") ? 1 : 0]}
+                  initialDocuments={query.has("empty") ? [] : documents.filter((doc) => !query.has("missing-source") || doc.locale !== "en")}
+                  initialPresets={query.has("empty") ? [] : presets}
+                  languageOptions={languageRows}
+                  draftPdfEnabled={query.has("admin")}
+                  dataTransferEnabled={!query.has("restricted")}
+                />
+              </div>
+            )}
+          </main>
+        </SearchParamsContext.Provider>
+      </AppI18nProvider>
+    )
+  );

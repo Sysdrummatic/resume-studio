@@ -5,7 +5,8 @@ import type { ResumeLanguageOption } from "../resume-language-switcher";
 import ResumeRenderer from "./ResumeRenderer";
 import { buildPublishedResumeExportUrls } from "../../lib/resume-export";
 import type { ResumeRenderAction, ResumeRendererLabels } from "./build-resume-render-model";
-import type { ResumeStyleSettings } from "../../lib/resume-style";
+import type { ResumeVisualTemplate } from "./ResumeRenderer";
+import { normalizeResumeStyle, type ResumeStyleSettings } from "../../lib/resume-style";
 
 type BasicResumeDocumentProps = {
   locale: ResumeLocale;
@@ -26,6 +27,7 @@ type BasicResumeDocumentProps = {
   scrollContainerRef?: React.RefObject<HTMLElement>;
   embedded?: boolean;
   cvStyle?: ResumeStyleSettings;
+  template?: ResumeVisualTemplate;
 };
 
 const LANGUAGE_LABELS: Record<string, string> = {
@@ -33,11 +35,11 @@ const LANGUAGE_LABELS: Record<string, string> = {
   pl: "Polski",
 };
 
-async function exportPreviewPdf(resume: ResumeDocument, locale: ResumeLocale) {
+async function exportPreviewPdf(resume: ResumeDocument, locale: ResumeLocale, cvStyle?: ResumeStyleSettings) {
   const res = await fetch("/api/resume/export/pdf/preview", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ resume, locale }),
+    body: JSON.stringify({ resume, locale, styleSettings: normalizeResumeStyle(cvStyle) }),
   });
   if (!res.ok) {
     throw new Error("Failed to generate preview PDF.");
@@ -72,7 +74,9 @@ export function BasicResumeDocument({
   scrollContainerRef,
   embedded = false,
   cvStyle,
+  template,
 }: BasicResumeDocumentProps) {
+  const normalizedCvStyle = normalizeResumeStyle(cvStyle);
   const languageOptions = languages?.length ? languages : [{ code: locale, label: LANGUAGE_LABELS[locale] || locale.toUpperCase() }];
   const exportUrls =
     personSlug && publicId
@@ -83,7 +87,7 @@ export function BasicResumeDocument({
   if (exportUrls?.pdfUrl) {
     pdfAction = { label: "PDF", href: exportUrls.pdfUrl };
   } else if (draftPdfEnabled) {
-    pdfAction = { label: "PDF", onClick: () => { void exportPreviewPdf(resume, locale); } };
+    pdfAction = { label: "PDF", onClick: () => { void exportPreviewPdf(resume, locale, normalizedCvStyle); } };
   } else {
     pdfAction = { label: "PDF", disabled: true, disabledReason: "Available after publish" };
   }
@@ -126,7 +130,8 @@ export function BasicResumeDocument({
       }}
       scrollContainerRef={scrollContainerRef}
       embedded={embedded}
-      cvStyle={cvStyle}
+      cvStyle={normalizedCvStyle}
+      template={template}
     />
   );
 }
