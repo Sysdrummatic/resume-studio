@@ -47,16 +47,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       ]
     : [
         {
-          href: "/login?mode=signup",
-          label: appI18n.dictionary.navigation.sign_up,
-          emphasis: "primary" as const,
+          href: "/login?mode=signin",
+          label: appI18n.dictionary.navigation.sign_in,
+          emphasis: "secondary" as const,
           disabled: restriction.restricted,
           disabledReason: restriction.reason,
         },
         {
-          href: "/login?mode=signin",
-          label: appI18n.dictionary.navigation.sign_in,
-          emphasis: "secondary" as const,
+          href: "/login?mode=signup",
+          label: appI18n.dictionary.navigation.sign_up,
+          emphasis: "primary" as const,
           disabled: restriction.restricted,
           disabledReason: restriction.reason,
         },
@@ -70,11 +70,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <div className="app-shell app-header__inner">
               <div className="app-header__branding">
                 <AppBrand />
-                <AppLanguageMenu />
               </div>
               <AppHeaderNavigation
                 items={navItems}
-                leadingAccessory={actor ? null : <AppThemeSwitch initialTheme={initialTheme} />}
+                leadingAccessory={<AppThemeSwitch initialTheme={initialTheme} />}
                 account={
                   actor ? (
                     <AccountMenu
@@ -89,7 +88,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     />
                   ) : null
                 }
-                accessory={actor ? <AppThemeSwitch initialTheme={initialTheme} /> : null}
+                accessory={<AppLanguageMenu />}
                 forceInlineItems={!actor}
               />
             </div>

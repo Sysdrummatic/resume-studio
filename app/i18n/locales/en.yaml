@@ -1,5 +1,5 @@
 meta:
-  description: OpenCiVera — a CV builder based on a private Experience Base. Create a separate CV tailored to each application.
+  description: OpenCiVera — a LiveCV builder based on a private Experience Base. Create a separate LiveCV tailored to each application.
 common:
   loading: Loading…
   close: Close
@@ -9,9 +9,9 @@ common:
   breadcrumb: Breadcrumb
   close_notification: Close notification
 navigation:
-  personal_hub: Profile and CVs
+  personal_hub: Profile and LiveCVs
   dashboard: Dashboard
-  sample_cv: Sample CV
+  sample_cv: Sample LiveCV
   docs: Docs
   sign_up: Sign up
   sign_in: Sign in
@@ -48,119 +48,107 @@ account:
     update_failed: Profile update failed.
     delete_title: Delete account and all data
     delete_action: Delete account and all data
-    delete_explanation: "This action cannot be undone. Your account and all CV data will be permanently deleted. To confirm, enter your email address below: {email}."
+    delete_explanation: "This action cannot be undone. Your account and all LiveCV data will be permanently deleted. To confirm, enter your email address below: {email}."
     delete_failed: Account deletion failed.
     cancel: Cancel
     deleting: Deleting…
     delete_forever: Delete account permanently
 landing:
   hero:
-    eyebrow: A CV builder designed differently
-    title:
-      - One Experience Base.
-      - A separate CV
-      - for every application.
-    description: Keep your full career history in one private place, then select the right content for a CV tailored to a specific role.
-    primary_action: Create your first CV
-    secondary_action: See a sample CV
-    privacy_note: Your Experience Base is private. You share only the CV you select.
-    process_aria: How OpenCiVera works
-    process:
-      - Collect your skills and experience
-      - Add language versions
-      - Create a CV
+    eyebrow: // LiveCV publication platform
+    title: Create your ultimate LiveCV.
+    title_prefix: Which
+    title_suffix: with you.
+    rotating_words:
+      - grows
+      - evolves
+      - adapts
+      - scales
+    description:
+      - Managing your CV is broken. One version for this job, another for that role, then translations, and six months later nobody knows which PDF a recruiter has.
+      - OpenCiVera fixes that. Build your career record once, publish a tailored version for each audience, and update all of them the instant anything changes.
+    primary_action: Create LiveCV
+    secondary_action: View sample LiveCV
+    meta:
+      - One master CV
+      - Multiple configurations
+      - LiveCV always up-to-date
   sample:
     data_note: An example created with OpenCiVera
-    open_action: View the full CV
+    open_action: View the full LiveCV
     loading_aria: Loading sample resume
     open_aria: Open sample resume
+    eyebrow: // public link in action
+    title: Your CV as your public business card.
+    description: The output layer is a clean structured view, designed for professional signal, not document formatting. This is what recipients see when they open your link.
   animation:
     title: How does it work in practice?
-    description: Your Experience Base is the single source of truth for your career — a place you keep current over the years. When you find the right opportunity, select the skills and experience you want to show the employer and create a tailored CV from them.
-    detail: See how you select information from your private Experience Base to create separate CVs for specific roles.
-    iframe_title: Animation showing how OpenCiVera creates tailored CVs
-  experience_base:
-    eyebrow: Experience Base
-    title: Stop leaving multiple CV files on your computer to be forgotten after each application.
-    description: Your Experience Base keeps every detail that may be useful in a future application. You do not have to cut it down to two pages or wonder which file you updated most recently.
+    detail: See how you select information from your private Experience Base to create separate LiveCVs for specific roles.
+    iframe_title: Animation showing how OpenCiVera creates tailored LiveCVs
+  features:
+    eyebrow: // OpenCiVera features
+    title: OpenCiVera features
+    description: One career record. The tools to turn it into a LiveCV for each opportunity.
+    aria_label: OpenCiVera features carousel
+    pause: Pause carousel
+    resume: Resume carousel
     items:
-      - Your full career history in one place
-      - A separate content selection for every CV
-      - Versions in different languages
-      - Changes under your control
-  how:
-    title: Do not start from scratch for every application.
-    description: In a traditional builder, every CV quickly becomes a separate document. In OpenCiVera, every version starts from the same Experience Base.
-    features:
-      - icon: file
-        title: Build your Experience Base
-        description: Add information manually or import an existing CV. Keep your projects, roles, achievements and skills in one private place.
-      - icon: globe
-        title: Create a language version
-        description: Add your information in another language. You create each version separately, so you stay in control of its meaning and tone.
-      - icon: layers
-        title: Prepare your CV for a specific role
-        description: Select the experience, summary and skills that match the requirements of the opportunity.
-      - icon: link
-        title: Download or share a LiveCV link
-        description: Download a ready-to-send file or publish the CV under a link you can share with a recruiter or employer.
-      - icon: refresh
-        title: Update your Experience Base
-        description: Add new projects and achievements without changing CVs you have already published. When you want to refresh one, publish that version again.
-  advantages:
-    title: Why separate your Experience Base from your CVs?
-    description: The base keeps the complete record. Each CV contains only what matters for a particular application.
-    items:
-      - title: Less duplication
-        description: Save contact details, experience and skills once, then select them for each new CV.
-      - title: Better targeting
-        description: Every version can have its own summary, selected experience, languages and appearance.
-      - title: More control
-        description: Your private base, saved versions and published CVs stay separate. Nothing becomes public without your decision.
-  languages:
-    eyebrow: Language versions
-    title: One career. Different language versions.
-    description: Maintain your CV content in several languages and decide which versions to share under a public link. You complete each language version separately, so you stay in control of its meaning and tone.
-  structured_data:
-    eyebrow: CV-as-Code
-    title: Your CV as structured data, not a locked document.
-    description: Behind the form, OpenCiVera stores your information in a lightweight, structured YAML format. You do not need to know the format to use the builder. It allows the same data to be checked, moved and reused across different CV versions.
-    detail: We call this approach CV-as-Code. Content stays separate from document design, so you can change the template or publishing method without rewriting your career history.
-    items:
-      - Content independent of the template
-      - Data you can export
-      - One structure for multiple uses
-  privacy:
-    title: Your full career history stays private.
-    description: Your Experience Base is available only in your account. A public link shows only the information you selected and published. Changes to the base stay private until you publish the CV again.
-    note: You can disable a public link at any time.
-    action: How does publishing work?
-  vision:
-    eyebrow: A CV is only the beginning
-    title: Your experience can support more than one document.
-    description: OpenCiVera is being built as a professional identity platform — one structured source of career information that can gradually support different professional materials and ways to present your work. We are starting with CVs because that is where repeated entry and outdated information create the clearest problem today.
+      - tag: Experience Base
+        chip: One source
+        title: Your career in one place
+        description: Keep projects, roles, achievements and skills in a private base. Select from it for each new LiveCV instead of maintaining disconnected files.
+      - tag: Import
+        chip: PDF / DOCX / YAML / TXT
+        title: Start with your existing CV
+        description: Import a document, review the extracted information and complete what is missing. You can also enter everything through the form.
+      - tag: Tailored versions
+        chip: Many LiveCVs
+        title: Choose what fits the role
+        description: Give each LiveCV its own summary, selected experience, skills and appearance. Your complete career record stays in the base.
+      - tag: Languages
+        chip: EN / PL
+        title: Your experience in more languages
+        description: Maintain separate language versions and choose which to publish. You control the meaning and tone of each translation.
+      - tag: LiveCV
+        chip: Public link
+        title: Share a LiveCV that opens in a browser
+        description: Publish selected content under a link for recruiters or download a ready-to-send file. Recipients see the LiveCV you chose to share.
+      - tag: Privacy
+        chip: Your decision
+        title: Keep the full record private
+        description: Nothing in your Experience Base becomes public automatically. Publish only selected information and disable the public link whenever you need.
+      - tag: Updates
+        chip: Controlled publication
+        title: Refresh the version you choose
+        description: Add new achievements without changing previously published LiveCVs. When a version is ready to share again, publish it again.
+      - tag: CV-as-Code
+        chip: Portable data
+        title: Content independent of design
+        description: Use the form or YAML to manage structured career data. Export it and reuse it without rewriting your history for each template.
   faq:
     title: Good to know before you start.
     items:
       - question: How is OpenCiVera different from a regular CV builder?
-        answer: A regular builder helps you prepare a single document. In OpenCiVera, you first create a private Experience Base, then select content from it for separate CVs tailored to specific opportunities.
+        answer: A regular builder helps you prepare a single document. In OpenCiVera, you first create a private Experience Base, then select content from it for separate LiveCVs tailored to specific opportunities.
       - question: Do I have to rewrite my current CV?
         answer: No. You can import a PDF, DOCX, YAML or TXT file, review the extracted information and complete anything that is missing.
       - question: Do I need to know YAML?
-        answer: No. You can complete your CV through a regular form. YAML is the technical foundation of the data and remains available to people who want additional control over it.
+        answer: No. You can complete your LiveCV through a regular form. YAML is the technical foundation of the data and remains available to people who want additional control over it.
       - question: Who can see my Experience Base?
-        answer: Your Experience Base is private. A public link recipient sees only the information selected for that published CV.
+        answer: Your Experience Base is private. A public link recipient sees only the information selected for that published LiveCV.
       - id: publication-faq
         question: How does publishing work?
-        answer: Your Experience Base stays private. Select the content for a CV, then choose to publish it. Editing the base does not change a CV you have already published. To share new information, publish that CV version again. You can disable the public link at any time.
-      - question: Does changing my data update a published CV?
-        answer: No. Editing your Experience Base does not automatically change a publication. To share new information, publish the selected CV version again.
-      - question: Can I create several CV versions?
+        answer: Your Experience Base stays private. Select the content for a LiveCV, then choose to publish it. Editing the base does not change a LiveCV you have already published. To share new information, publish that LiveCV version again. You can disable the public link at any time.
+      - question: Does changing my data update a published LiveCV?
+        answer: No. Editing your Experience Base does not automatically change a publication. To share new information, publish the selected LiveCV version again.
+      - question: Can I create several LiveCV versions?
         answer: Yes. You can prepare separate versions for different roles, opportunities and languages from the same Experience Base.
   cta:
-    title: Start with your experience. Create the CV when you need it.
-    description: Import an existing document or build your Experience Base step by step. You can prepare your first tailored version from the same data.
-    primary_action: Create your first CV
+    eyebrow: // get started
+    title: Build your LiveCV with OpenCiVera.
+    description: Open the sample LiveCV to see a published link in action, then sign in and build your own from one structured source.
+    primary_action: Create LiveCV
+    secondary_action: View sample LiveCV
   footer:
     sample_resume: Sample resume
     platform: Platform
@@ -180,7 +168,7 @@ auth:
     signup:
       eyebrow: Account setup
       title: Create your account
-      lead: Create an account to build a private Experience Base and prepare tailored CVs from it.
+      lead: Create an account to build a private Experience Base and prepare tailored LiveCVs from it.
       alternate_label: Already have an account?
       alternate_action: Sign in
     reset:
@@ -198,7 +186,7 @@ auth:
     signin:
       eyebrow: Account access
       title: Sign in
-      lead: Sign in to update your Experience Base and manage your CVs.
+      lead: Sign in to update your Experience Base and manage your LiveCVs.
       alternate_label: Need an account?
       alternate_action: Sign up
   fields:
@@ -256,18 +244,18 @@ dashboard:
     course_item: "Course {number}"
     item: "Item {number}"
   preset_editor:
-    title_required: CV version title is required.
+    title_required: LiveCV version title is required.
     summary_required: Select exactly one summary.
-    aria_label: CV version editor
-    close_aria: Close CV version editor
-    edit_title: Edit CV version
-    create_title: Create a tailored CV
+    aria_label: LiveCV version editor
+    close_aria: Close LiveCV version editor
+    edit_title: Edit LiveCV version
+    create_title: Create LiveCV
     close: Close
-    title_label: CV name
+    title_label: LiveCV name
     title_placeholder: Frontend Engineer — example company
     allow_indexing: Allow search engines to index the page after publication
     ai_generated: Mark as AI-generated content
-    style_aria: CV version appearance
+    style_aria: LiveCV version appearance
     template: Template
     primary_color: Primary color
     template_sample_two_column: Basic two-column
@@ -276,41 +264,44 @@ dashboard:
     template_terminal_stack: Terminal Stack
     no_items: No items in the Experience Base.
     saving: Saving…
-    save: Save CV
+    save: Save LiveCV
     cancel: Cancel
   preview:
-    aria_label: CV version preview
-    close_aria: Close CV preview
-    open_cv: Open CV
+    language_aria: Switch LiveCV language
+    empty_language: "This LiveCV version has no content in {language} yet. Add it in your Experience Base, or switch to a language you've filled in."
+    aria_label: LiveCV version preview
+    close_aria: Close LiveCV preview
+    open_cv: Open LiveCV
     close: Close
-    note: Preview of content selected from your current Experience Base. Public links and exports use the last published version.
+    note: Preview of content selected from your current Experience Base. The LiveCV link and exports use the last published version.
     render_error: The preview could not be rendered from the Experience Base.
   actions:
-    settings_aria: "CV version settings: {title}"
-    settings_title: CV version settings
+    settings_aria: "LiveCV version settings: {title}"
+    settings_title: LiveCV version settings
     edit: Edit
     unpublish: Unpublish
     publish: Publish
-    delete_aria: "Delete CV version: {title}"
+    delete_aria: "Delete LiveCV version: {title}"
     delete: Delete
   messages:
     reader_failed: The document reader could not load. Reload the page to try again.
+    source_unavailable: The Experience Base for this LiveCV version is unavailable. Reload the page to try again.
     master_read_failed: Your Experience Base could not be read. Open the editor to review the data.
     not_saved: Not saved yet
     language_versions: "Language versions: {count}"
-    save_failed: CV version save failed.
-    saved: CV version saved.
-    publish_failed: CV version publish failed.
-    published: CV version published.
-    unpublish_failed: CV version unpublish failed.
-    unpublished: CV version unpublished.
-    delete_failed: CV version delete failed.
-    deleted: CV version deleted.
-    publish_first: Publish this CV version first.
-    link_copied: Public link copied to the clipboard.
+    save_failed: LiveCV version save failed.
+    saved: LiveCV version saved.
+    publish_failed: LiveCV version publish failed.
+    published: LiveCV version published.
+    unpublish_failed: LiveCV version unpublish failed.
+    unpublished: LiveCV version unpublished.
+    delete_failed: LiveCV version delete failed.
+    deleted: LiveCV version deleted.
+    publish_first: Publish this LiveCV version first.
+    link_copied: LiveCV link copied to the clipboard.
     copy_failed: The link could not be copied.
-    publish_before_text: Publish this CV version before exporting a text snapshot.
-    publish_before_pdf: Publish this CV version before exporting a PDF snapshot.
+    publish_before_text: Publish this LiveCV version before exporting a text snapshot.
+    publish_before_pdf: Publish this LiveCV version before exporting a PDF snapshot.
     preparing_text: Preparing text export…
     preparing_pdf: Preparing PDF export…
     preparing_data: Preparing data export…
@@ -319,19 +310,19 @@ dashboard:
     no_languages: No language versions are available for publication.
   main:
     title: Dashboard
-    subtitle: One Experience Base. A separate CV for each application.
-    create_version: Create a tailored CV
+    subtitle: One Experience Base. A separate LiveCV for each application.
+    create_version: Create LiveCV
     create_master_first: Create your Experience Base first.
     master_title: Experience Base
     private: Private
     saved: "Saved: {date}"
-    start_story: Add information you can use in your CVs.
-    master_description: Your complete private record, from which you select content for each CV.
+    start_story: Add information you can use in your LiveCVs.
+    master_description: Your complete private record, from which you select content for each LiveCV.
     edit_master: Edit Experience Base
     export: Export
     import: Import
-    export_title: Download a YAML copy of your Experience Base and saved CV Versions.
-    import_title: Restore your Experience Base and private CV Versions from a YAML backup.
+    export_title: Download a YAML copy of your Experience Base and saved LiveCV versions.
+    import_title: Restore your Experience Base and private LiveCV versions from a YAML backup.
     completion: Experience Base completeness
     reading: Reading your saved content…
     completion_summary: "Completed sections: {done} of {total}."
@@ -344,59 +335,59 @@ dashboard:
     experience: Experience
     experience_note: Employment history
     skills: Skills
-    skills_note: Available for your CVs
+    skills_note: Available for your LiveCVs
     courses: Courses
     courses_note: Courses and certificates
-    cv_languages: CV languages
+    cv_languages: LiveCV languages
     stats_note: "Counts refer to the {locale} Experience Base. Language versions are counted separately."
   library:
-    title: Your CVs
+    title: Your LiveCVs
     versions: versions
     public: public
     private: private
-    no_versions: No tailored CVs yet
+    no_versions: No tailored LiveCVs yet
     start_master: Start with your Experience Base
-    empty_with_master: Select content from your Experience Base to create your first tailored CV.
-    empty_without_master: Add your experience first. You can then select content for your first CV.
-    search_aria: Search CV versions
-    search_placeholder: Search CV versions…
-    filter_aria: Filter CV versions
+    empty_with_master: Select content from your Experience Base to create your first tailored LiveCV.
+    empty_without_master: Add your experience first. You can then select content for your first LiveCV.
+    search_aria: Search LiveCV versions
+    search_placeholder: Search LiveCV versions…
+    filter_aria: Filter LiveCV versions
     filter_all: All
     filter_public: Public
     filter_private: Private
-    saved_aria: Saved CV versions
+    saved_aria: Saved LiveCV versions
     updated: "Updated: {date}"
     published: Published
     private_state: Private
     test: Test
     indexable: Indexable
     noindex: Noindex
-    no_matches: No matching CVs.
+    no_matches: No matching LiveCVs.
     clear_filters: Clear filters
-    next_aria: Next steps for the selected CV
+    next_aria: Next steps for the selected LiveCV
     next_title: Next step
-    next_published: Copy the public link, or change the content selection and publish the CV again.
+    next_published: Copy the LiveCV link, or change the content selection and publish LiveCV again.
     next_private: Review the selected content and choose which languages to publish.
     choose_content: Choose content
-    saved_selection: Content selected for this CV
+    saved_selection: Content selected for this LiveCV
     review_publish: Review and publish
-    public_link_available: This CV is available under a public link
+    public_link_available: This LiveCV is published and available under its public link
     check_content_languages: Check the content and languages
     master_private: Your Experience Base stays private.
     edit_selection: Edit selection
     publish_again: Publish again
     publish: Publish
-    copy_link: Copy link
-    test_draft: This CV uses a separate onboarding test draft.
-    open_test_cv: Open test CV
-    loading_preview: Loading CV preview…
+    copy_link: Copy LiveCV link
+    test_draft: This LiveCV uses a separate onboarding test draft.
+    open_test_cv: Open test LiveCV
+    loading_preview: Loading LiveCV preview…
     add_content: Open your Experience Base to add information for this version.
-    no_selected: No CV selected
-    choose_version: Select a CV from the list to review its content and available actions.
+    no_selected: No LiveCV selected
+    choose_version: Select a LiveCV from the list to review its content and available actions.
   delete_modal:
-    aria_label: Delete CV version confirmation
+    aria_label: Delete LiveCV version confirmation
     cancel_aria: Cancel deletion
-    title: Delete CV version
+    title: Delete LiveCV version
     before_title: This permanently deletes
     public_suffix: and takes its public link offline
     after_title: This cannot be undone.
@@ -408,7 +399,7 @@ dashboard:
     cancel_aria: Cancel import
     title: Import data
     before_file: Importing
-    explanation: overwrites your entire Experience Base, its language versions and all private CV Versions. Published CVs and their public links stay unchanged. Before continuing, make sure you selected the correct backup. This cannot be undone.
+    explanation: overwrites your entire Experience Base, its language versions and all private LiveCV versions. Published LiveCVs and their public links stay unchanged. Before continuing, make sure you selected the correct backup. This cannot be undone.
     cancel: Cancel
     importing: Importing…
     action: Import and replace
@@ -422,11 +413,11 @@ dashboard:
     edit_aria: Edit language version
     add_aria: Add language version
     close_aria: Close
-    eyebrow: CV language versions
+    eyebrow: LiveCV language versions
     edit_title: Edit language version
     add_title: Add language version
     edit_description: Update the name, short label or default language of your Experience Base.
-    add_description: Add a language in which you want to maintain experience and create CVs.
+    add_description: Add a language in which you want to maintain experience and create LiveCVs.
     code: Language code
     code_placeholder: e.g. en, pl, de
     name: Language name
@@ -441,30 +432,33 @@ dashboard:
     save: Save changes
     add: Add language
     cancel: Cancel
-    list_aria: CV language versions
+    list_aria: LiveCV language versions
     edit_item_aria: "Edit language version: {language}"
     default_label: Default
     add_item_aria: Add language version
   publish_modal:
-    aria_label: Publish CV version
+    aria_label: Publish LiveCV version
     close_aria: Close publish dialog
     close: Close
-    title: Publish CV version
-    description: Choose the languages available at the public link and set the default language.
+    title: Publish LiveCV version
+    description: Choose the languages available in your published LiveCV and set the default language.
     languages: Language versions
     default: Default
     select_one: Select at least one language.
     default_required: The default language must be one of the selected versions.
     allow_indexing: Allow search engines to index the public page
-    link_state: Link state after publication
-    canonical_note: This CV keeps the same public address when you publish it again.
+    link_state: LiveCV link after publication
+    canonical_note: This LiveCV keeps the same public address when you publish it again.
     active_link: The new publication will replace the content under the active link. The address will not change.
-    new_link: A new public link will be created.
+    new_link: A new public LiveCV link will be created.
     cancel: Cancel
     publishing: Publishing…
     publish: Publish
 editor:
   text:
+    "Open enlarged CV preview": Open enlarged LiveCV preview
+    "Enlarged CV preview": Enlarged LiveCV preview
+    "Close preview": Close preview
     "Tech stack": Tech stack
     "First name": First name
     "Family name": Family name
@@ -515,7 +509,7 @@ editor:
     "Use standard PL wording": Use standard PL wording
     "Use standard EN wording": Use standard EN wording
     "Clear": Clear
-    "Rendered as a small footer on the CV. Leave empty to omit it.": Rendered as a small footer on the CV. Leave empty to omit it.
+    "Rendered as a small footer on the CV. Leave empty to omit it.": Rendered as a small footer on the LiveCV. Leave empty to omit it.
     "Small": Small
     "Medium": Medium
     "Large": Large
@@ -528,12 +522,12 @@ editor:
     "Basics": Basics
     "Optional": Optional
     "Personal details": Personal details
-    "Name, brand initials and contact details. All of it lands in the CV header.": Name, brand initials and contact details. All of it appears in the CV header.
-    "Several variants; one is picked per CV version.": Several variants; one is picked per CV version.
+    "Name, brand initials and contact details. All of it lands in the CV header.": Name, brand initials and contact details. All of it appears in the LiveCV header.
+    "Several variants; one is picked per CV version.": Several variants; one is picked per LiveCV version.
     "Start with your most recent role.": Start with your most recent role.
     "List your highest completed level first.": List your highest completed level first.
     "Hard skills tied to the role you are targeting.": Hard skills tied to the role you are targeting.
-    "Proficiency renders as a meter in the CV.": Proficiency renders as a meter in the CV.
+    "Proficiency renders as a meter in the CV.": Proficiency renders as a meter in the LiveCV.
     "Certificates, training and licences.": Certificates, training and licences.
     "A short list, without elaboration.": A short list, without elaboration.
     "Technologies and tools you work with.": Technologies and tools you work with.
@@ -542,7 +536,7 @@ editor:
     "GDPR clause": GDPR clause
     "Common on the Polish job market, usually left empty for English CVs.": Common on the Polish job market, usually left empty for English CVs.
     "Master Resume": Experience Base
-    "Source for every CV version": The private content source for all your CVs
+    "Source for every CV version": The private content source for all your LiveCVs
     "Completion": Completeness
     "Resume completion": Experience Base completeness
     "Complete {section} to add {percent}%.": "Complete {section}. It accounts for {percent}% of the completeness score."
@@ -598,7 +592,7 @@ editor:
     "Text size": Text size
     "Density": Density
     "Details": Details
-    "Style is saved with the document and applies to the preview, the published CV and the PDF.": Style is saved with the document and applies to the preview, the published CV and the PDF.
+    "Style is saved with the document and applies to the preview, the published CV and the PDF.": Style is saved with the document and applies to the preview, the published LiveCV and the PDF.
     "Revision history": Revision history
     "No revisions yet.": The history is empty. Save a history point so you can return to it later.
     "Unsaved draft": Unsaved draft
@@ -670,7 +664,7 @@ editor:
     "Rollback failed.": Rollback failed.
     "Revision preview failed.": Revision preview failed.
     "Save failed": Save failed
-    "CV unavailable": CV unavailable
+    "CV unavailable": LiveCV unavailable
     "Already have a CV?": Already have a CV?
     "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Upload a PDF, DOCX, YAML or TXT file. You can review the extracted information before adding it to your Experience Base.
     "Reading file…": Reading file…
@@ -721,7 +715,7 @@ admin:
     "{total} total ({active} active)": "{total} total ({active} active)"
     "excluded: {test} test, {staff} staff": "excluded: {test} test, {staff} staff"
     "Resumes": Resumes
-    "Public Links": Public links
+    "Public Links": LiveCV links
     "Public Views": Public views
     "Email": Email
     "Display name": Display name
@@ -779,7 +773,7 @@ admin:
     "Save": Save
 user:
   text:
-    "Personal hub": Profile and CVs
+    "Personal hub": Profile and LiveCVs
     "Image could not be loaded.": Image could not be loaded.
     "Image editor is unavailable.": Image editor is unavailable.
     "Bio updated successfully.": Bio updated successfully.
@@ -788,9 +782,9 @@ user:
     "Avatar update failed.": Avatar update failed.
     "Profile photo updated.": Profile photo updated.
     "Failed to update profile photo.": Failed to update profile photo.
-    "Hide personal hub panel": Hide profile and CV panel
-    "Show personal hub panel": Show profile and CV panel
-    "Close personal hub panel": Close profile and CV panel
+    "Hide personal hub panel": Hide profile and LiveCV panel
+    "Show personal hub panel": Show profile and LiveCV panel
+    "Close personal hub panel": Close profile and LiveCV panel
     "Change profile photo": Change profile photo
     "Add profile photo": Add profile photo
     "Profile": Profile
@@ -804,15 +798,15 @@ user:
     "Edit short bio": Edit short bio
     "Add short bio": Add short bio
     "Edit Master Resume": Edit Experience Base
-    "Manage CV Versions": Manage your CVs
+    "Manage CV Versions": Manage your LiveCVs
     "Policies": Policies
     "Privacy Policy": Privacy policy
     "Terms of Service": Terms of service
-    "Resume preview": Resume preview
+    "Resume preview": LiveCV preview
     "{count} published": "{count} published"
     "Preview unavailable": Preview unavailable
-    "The resume preview could not be rendered in this view. Reload the page to try again.": The resume preview could not be rendered here. Reload the page and try again.
-    "Rendering your resume…": Rendering your resume…
+    "The resume preview could not be rendered in this view. Reload the page to try again.": The LiveCV preview could not be rendered here. Reload the page and try again.
+    "Rendering your resume…": Rendering your LiveCV…
 onboarding:
   steps:
     - Welcome to OpenCiVera
@@ -828,41 +822,43 @@ onboarding:
     - Tech stack
     - QR codes
     - GDPR clause
-    - Review your first CV
-    - Publish your first CV?
+    - Review your first LiveCV
+    - Publish your first LiveCV?
   text:
+    "Copy link or Open CV send/show the live page. Download PDF opens a printable copy in a new tab.": Copy LiveCV link or Open LiveCV shares or opens the published page. Download PDF opens a printable copy of LiveCV in a new tab.
+    "Manage this and every future CV version — edit, publish, or delete — from your dashboard.": Manage this and every future LiveCV version — edit, publish, or delete — from your dashboard.
     "Could not save or finish this step. Check your connection and try again; your entries remain on this screen.": Could not save or finish this step. Check your connection and try again; your entries remain on this screen.
     "Enter your name to continue.": Enter your first or family name to continue.
-    "Select and copy the link above.": Select and copy the link above.
+    "Select and copy the link above.": Select and copy the LiveCV link above.
     "Guide progress": Guide progress
     "Complete": Complete
-    "Your first CV": Your first CV
-    "Your CV is ready to send": Your CV is ready to send
+    "Your first CV": Your first LiveCV
+    "Your CV is ready to send": Your LiveCV is ready to send
     "Your test draft is saved": Your test draft is saved
     "Your Master CV is saved": Your Experience Base is saved
-    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": "Onboarding test: this is a separate draft. Your Experience Base and profile stay unchanged. Publishing creates a CV named Test onboardingu."
-    "Could not load your CV. Reload this page before continuing.": Could not load your CV. Reload this page before continuing.
-    "Loading your CV…": Loading your CV…
-    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Build your Experience Base step by step. At the end, select the information and create a CV you can share with a link.
-    "CV language": CV language
+    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": "Onboarding test: this is a separate draft. Your Experience Base and profile stay unchanged. Publishing creates a LiveCV named Test onboardingu."
+    "Could not load your CV. Reload this page before continuing.": Could not load your LiveCV. Reload this page before continuing.
+    "Loading your CV…": Loading your LiveCV…
+    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Build your Experience Base step by step. At the end, select the information and create a LiveCV you can share with a link.
+    "CV language": LiveCV language
     "Start from scratch": Start from scratch
     "Fill in each section with short prompts.": Fill in each section with short prompts.
     "Import my CV": Import my CV
     "Upload your file, check the imported details and fill in anything missing.": Upload your file, check the imported details, and fill in anything missing.
     "Import applied. Continue to check each section.": Import applied. Continue to check each section.
     "Optional. Add what is relevant, or continue to skip this section.": Optional. Add what is relevant, or continue to skip this section.
-    "Add the details you want in your CV. You can edit them later.": Add the details you want in your CV. You can edit them later.
+    "Add the details you want in your CV. You can edit them later.": Add the details you want in your LiveCV. You can edit them later.
     "This preview uses your selected professional summary and completed entries. Check the information before sharing.": This preview uses your selected professional summary and completed entries. Check the information before sharing.
-    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Create your first CV and publish it under a shareable link? It will appear in your dashboard, where you can later change its content or unpublish it.
-    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Anyone with the link can view this CV. Search engine indexing will be disabled. Your Experience Base stays private.
+    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Create your first LiveCV and publish it under a shareable link? It will appear in your dashboard, where you can later change its content or unpublish it.
+    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Anyone with the link can view this LiveCV. Search engine indexing will be disabled. Your Experience Base stays private.
     "Add your name and a professional summary before creating a link. You can also save and finish without publishing.": Add your name and a professional summary before creating a link. You can also save and finish without publishing.
-    "Your first CV is saved in your dashboard. Copy the link to send it.": Your first CV is saved in your dashboard. Copy the link to send it.
-    "The test is complete. No public CV was created. You can start another test in account settings.": The test is complete. No public CV was created. You can start another test in account settings.
-    "You can create a CV with a link from your dashboard whenever you are ready.": You can create a CV with a link from your dashboard whenever you are ready.
-    "CV link": CV link
+    "Your first CV is saved in your dashboard. Copy the link to send it.": Your first LiveCV is saved in your dashboard. Copy the link to send it.
+    "The test is complete. No public CV was created. You can start another test in account settings.": The test is complete. No public LiveCV was created. You can start another test in account settings.
+    "You can create a CV with a link from your dashboard whenever you are ready.": You can create a LiveCV with a link from your dashboard whenever you are ready.
+    "CV link": LiveCV link
     "Copied": Copied
-    "Copy link": Copy link
-    "Open CV": Open CV
+    "Copy link": Copy LiveCV link
+    "Open CV": Open LiveCV
     "Go to dashboard": Go to dashboard
     "Testing settings": Testing settings
     "Your entries are saved to your account when you change steps or finish later.": Your entries are saved to your account when you change steps or finish later.
@@ -870,16 +866,16 @@ onboarding:
     "Back": Back
     "Not now": Not now
     "Saving…": Saving…
-    "Yes, create my CV with a link": Yes, create my CV with a link
+    "Yes, create my CV with a link": Yes, publish my LiveCV
     "Let’s begin": Let’s begin
     "Continue / skip": Continue / skip
     "Continue": Continue
     "Onboarding test": Onboarding test
     "Resume test": Resume test
-    "Finish your first CV": Finish your first CV
+    "Finish your first CV": Finish your first LiveCV
     "Your saved details are ready. Continue the guide where you left off.": Your saved details are ready. Continue the guide where you left off.
     "Resume guide": Resume guide
-    "Onboarding test CV": Onboarding test CV
+    "Onboarding test CV": Onboarding test LiveCV
 settings:
   text:
     "Account settings": Account settings
@@ -894,14 +890,14 @@ settings:
     "Start onboarding on my next dashboard visit": Start onboarding on my next dashboard visit
     "Start now": Start now
     "Start a new blank test": Start a new blank test
-    "Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.": Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.
+    "Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.": Start now resumes an unfinished test. A new test keeps previous test drafts and published LiveCVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.
     "Settings saved.": Settings saved.
     "Could not save. Reload settings and retry.": Could not save. Reload settings and try again.
     "Go to dashboard": Go to dashboard
 legal:
   privacy:
     title: Privacy Policy
-    description: How OpenCiVera collects, uses, and protects your account and CV data.
+    description: How OpenCiVera collects, uses, and protects your account and LiveCV data.
     last_updated: "Last updated: 2026-07-24"
     sections:
       - icon: undefined
@@ -916,21 +912,21 @@ legal:
           - |
             Account data: email address, encrypted password (managed by our authentication provider), display name, profile photo (optional), account role.
           - |
-            CV content: any information you choose to add to your CV documents, which may include your name, job title, professional summary, contact details (email, phone, location, LinkedIn, website), skills, technologies, languages, work experience, education, and courses or certifications.
+            LiveCV content: any information you choose to add to your LiveCV documents, which may include your name, job title, professional summary, contact details (email, phone, location, LinkedIn, website), skills, technologies, languages, work experience, education, and courses or certifications.
           - |
-            Published CV data: snapshots of CV versions you choose to publish, and metadata about the public links you create (status, selected languages, visibility settings).
+            Published LiveCV data: snapshots of LiveCV versions you choose to publish, and metadata about the public links you create (status, selected languages, visibility settings).
           - |
-            Usage data: aggregated view counts for your published CV links, and administrative audit logs used for security purposes (account actions with timestamps).
+            Usage data: aggregated view counts for your published LiveCV links, and administrative audit logs used for security purposes (account actions with timestamps).
           - |
-            Security scanning: saved CV content is automatically scanned for signs of malicious script injection; if flagged, a hash of the matching fragment (not the raw content) plus a rule identifier is logged for staff review.
+            Security scanning: saved LiveCV content is automatically scanned for signs of malicious script injection; if flagged, a hash of the matching fragment (not the raw content) plus a rule identifier is logged for staff review.
       - icon: undefined
         title: 3. Why We Process Your Data
         paragraphs: []
         bullets:
           - |
-            To create and operate your account and provide the CV-management and publishing service. Legal basis: performance of a contract (GDPR Art. 6(1)(b)).
+            To create and operate your account and provide the LiveCV-management and publishing service. Legal basis: performance of a contract (GDPR Art. 6(1)(b)).
           - |
-            To generate and host public CV links at your request. Legal basis: performance of a contract.
+            To generate and host public LiveCV links at your request. Legal basis: performance of a contract.
           - |
             To maintain security, prevent abuse, and keep administrative audit logs. Legal basis: legitimate interest (GDPR Art. 6(1)(f)).
           - We do not use your data for advertising and we do not sell your data.
@@ -947,14 +943,14 @@ legal:
           - |
             Resend, for transactional emails (such as account-deletion confirmation and authentication emails). Resend is based in the United States; Resend's standard Data Processing Agreement and Standard Contractual Clauses apply to any transfer of personal data outside the European Economic Area.
         after:
-          - We do not share your CV content with any other third party unless you choose to make it publicly available via a Public Link that you create.
+          - We do not share your LiveCV content with any other third party unless you choose to make it publicly available via a Public Link that you create.
           - |
             OpenCiVera is currently an MVP (Minimum Viable Product) in a testing phase. We are not responsible for changes that Supabase or Netlify make to their own privacy policies, terms, or data-handling practices; please refer to their respective policies for the most current information.
       - icon: undefined
         title: 5. Data Retention
         paragraphs: []
         bullets:
-          - While your account is active, we retain your account and CV data for as long as you keep your account.
+          - While your account is active, we retain your account and LiveCV data for as long as you keep your account.
           - |
             If you delete your account yourself using the "Delete account and all data" option in your account settings, your personal data is deleted immediately.
           - |
@@ -982,7 +978,7 @@ legal:
       - icon: undefined
         title: 8. International Data Transfers
         paragraphs:
-          - Your account and CV data are stored within the European Economic Area (EU, Frankfurt). Where a service provider is located outside the EEA, appropriate safeguards (such as Standard Contractual Clauses) are in place.
+          - Your account and LiveCV data are stored within the European Economic Area (EU, Frankfurt). Where a service provider is located outside the EEA, appropriate safeguards (such as Standard Contractual Clauses) are in place.
       - icon: undefined
         title: 9. Children
         paragraphs:
@@ -1009,7 +1005,7 @@ legal:
         title: 2. The Service
         paragraphs:
           - |
-            OpenCiVera lets you create, manage, and optionally publish CV/resume content at a stable link that you control. Features may be experimental, in development, or may change over time. We provide the Service on a best-effort basis and do not guarantee uptime, availability, or that any particular feature will remain available.
+            OpenCiVera lets you create, manage, and optionally publish CV/resume content, called LiveCV, at a stable link that you control. Features may be experimental, in development, or may change over time. We provide the Service on a best-effort basis and do not guarantee uptime, availability, or that any particular feature will remain available.
       - icon: undefined
         title: 3. Eligibility and Accounts
         paragraphs:
@@ -1018,7 +1014,7 @@ legal:
         title: 4. Your Content
         paragraphs:
           - |
-            You retain ownership of the content you create or upload to your CV documents ("Your Content"). By using the Service, you grant us a limited license to host, store, process, and display Your Content as necessary to provide the Service to you.
+            You retain ownership of the content you create or upload to your LiveCV documents ("Your Content"). By using the Service, you grant us a limited license to host, store, process, and display Your Content as necessary to provide the Service to you.
           - |
             If you choose to publish Your Content via a Public Link, you grant us a license to make that content publicly accessible at the link you create, for as long as the link remains published. You are solely responsible for deciding what to publish, including ensuring you have the right to include any third-party information (such as references' contact details) in published content.
           - You may unpublish or delete Your Content at any time through the features provided in the Service.
@@ -1031,14 +1027,14 @@ legal:
           - Upload or publish unlawful, defamatory, or infringing content.
           - Impersonate any person or entity, or misrepresent your affiliation.
           - Attempt to gain unauthorized access to other accounts or to the Service's infrastructure.
-          - Use the Service to distribute spam or malware, or to scrape or harvest data from other users' public CV pages at scale.
+          - Use the Service to distribute spam or malware, or to scrape or harvest data from other users' public LiveCV pages at scale.
         after:
           - We may suspend or terminate accounts that violate these Terms.
       - icon: undefined
         title: 6. The OpenCiVera Brand, and the OpenCV Format
         paragraphs:
           - |
-            "OpenCiVera" and associated logos are our trademarks and may not be used without permission, except as necessary to refer to the Service (for example, linking to your published CV). These Terms govern your use of the OpenCiVera Service only; they do not restrict use of the OpenCV data format specification itself, which is documented and published separately.
+            "OpenCiVera" and associated logos are our trademarks and may not be used without permission, except as necessary to refer to the Service (for example, linking to your published LiveCV). These Terms govern your use of the OpenCiVera Service only; they do not restrict use of the OpenCV data format specification itself, which is documented and published separately.
       - icon: undefined
         title: 7. Free Use and Future Changes
         paragraphs:
@@ -1071,8 +1067,8 @@ legal:
           - "Questions about these Terms can be sent to support@opencivera.com."
 docs:
   workflow:
-    path: Create your CV step by step
-    more: Develop and update your CV
+    path: Create your LiveCV step by step
+    more: Develop and update your LiveCV
     help: Need help?
     intro: Explore the whole process
     start: Start with your Experience Base
@@ -1080,10 +1076,10 @@ docs:
     step: "Step {step} of {total}"
     previous: Previous step
     next: Next step
-    navigation: CV workflow navigation
+    navigation: LiveCV workflow navigation
     editor: Open the editor
     dashboard: Go to dashboard
-    back: Back to the CV workflow
+    back: Back to the LiveCV workflow
     optional: "Optional: prepare another language before publishing."
     language: Add a language version
     outcome: Result
@@ -1092,55 +1088,55 @@ docs:
   home: Home
   help_center: Help center
   overview: Overview
-  topics: Working with your CV
+  topics: Working with your LiveCV
   tutorials: Tutorials
   test_scenarios: Test scenarios
   menu: Docs menu
   outline: On this page
   development: Documentation in progress
   development_note: Guides evolve with the application.
-  heading: Create your CV step by step
-  lead: Build your private Experience Base, select the right content and share a finished CV.
+  heading: Create your LiveCV step by step
+  lead: Build your private Experience Base, select the right content and share a finished LiveCV.
   search: Search documentation
   placeholder: Find a topic or guide…
   results: Results
   clear: Clear search
-  no_results: No matching topic was found. Try CV, publishing, or language.
+  no_results: No matching topic was found. Try LiveCV, publishing, or language.
   start: Start here
-  first_cv: Your first CV — from editing to publication
-  first_cv_note: Build your Experience Base, select the right content and share a finished CV. The guide walks through every stage.
+  first_cv: Your first LiveCV — from editing to publication
+  first_cv_note: Build your Experience Base, select the right content and share a finished LiveCV. The guide walks through every stage.
   open_guide: Open the guide
   tools: Get to know the tools
   choose: Choose what you want to learn
   guides: Guides and answers
   privacy_tag: Your data, your choice
   privacy_title: Your Experience Base stays private
-  privacy_note: Only the content selected for a published CV is shared. Everything else remains available only in your account.
+  privacy_note: Only the content selected for a published LiveCV is shared. Everything else remains available only in your account.
   privacy_link: Learn how publication works
   about: About this documentation
   no_docs: No guides are available yet.
   article_fallback: This article is shown in English because a translation is not available yet.
   footer: Product documentation
   master: Experience Base
-  version: CV version
-  published: Published CV
+  version: LiveCV version
+  published: Published LiveCV
   master_note: Your private experience library
   version_note: Content selected for a specific role
-  published_note: A finished version available at a public link
+  published_note: A published LiveCV available under its public link
   topics_content:
     - title: Build your Experience Base
       description: Add experience, skills and contact details, then save your document.
       label: A private Experience Base saved in your account
     - title: Tailor a version for a role
       description: Select relevant content, choose its appearance and check the preview.
-      label: A tailored CV version ready to publish
+      label: A tailored LiveCV version ready to publish
     - title: Publish and share
-      description: Choose languages, decide on indexing and copy the public link.
-      label: A public link to your selected CV
-    - title: Download your finished CV
+      description: Choose languages, decide on indexing and copy the LiveCV link.
+      label: A public link to your published LiveCV
+    - title: Download your finished LiveCV
       description: Export the published version as PDF or ATS text and review the file.
       label: A file ready to send
 sample_resume:
-  title: Sample Resume | OpenCiVera
-  description: View a sample CV created and published with OpenCiVera.
-  loading: Loading sample resume…
+  title: Sample LiveCV | OpenCiVera
+  description: View a sample LiveCV created and published with OpenCiVera.
+  loading: Loading sample LiveCV…

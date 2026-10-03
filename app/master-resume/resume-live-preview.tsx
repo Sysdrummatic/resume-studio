@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type RefObject, type KeyboardEvent } from 
 import type { ResumeDocument, ResumeLocale } from "../lib/resume-schema";
 import type { ResumeLanguageOption } from "../components/resume-language-switcher";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
+import { useAppI18n } from "../components/app-i18n-provider";
 import { omitBlankLinkedTranslationSlots } from "../lib/preset-selection";
 
 import { DEFAULT_RESUME_STYLE, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
@@ -43,6 +44,8 @@ export default function ResumeLivePreview({
   onExpand,
   onClose,
 }: Props) {
+  const { dictionary } = useAppI18n();
+  const text = dictionary.editor.text;
   const frameRef = useRef<HTMLDivElement>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -94,7 +97,7 @@ export default function ResumeLivePreview({
         tabIndex={0}
         onClick={onExpand}
         onKeyDown={handleFrameKeyDown}
-        aria-label="Open enlarged CV preview"
+        aria-label={text["Open enlarged CV preview"]}
       >
         <div style={{ zoom: scale, width: `${BASIC_PREVIEW_WIDTH}px` }}>
           <BasicResumeDocument
@@ -115,11 +118,11 @@ export default function ResumeLivePreview({
       </div>
 
       {isExpanded ? (
-        <div className="resume-editor-preview-modal" role="dialog" aria-modal="true" aria-label="Enlarged CV preview">
-          <button type="button" className="resume-editor-preview-modal__backdrop" onClick={onClose} aria-label="Close preview"></button>
+        <div className="resume-editor-preview-modal" role="dialog" aria-modal="true" aria-label={text["Enlarged CV preview"]}>
+          <button type="button" className="resume-editor-preview-modal__backdrop" onClick={onClose} aria-label={text["Close preview"]}></button>
           <div ref={modalBodyRef} className="resume-editor-preview-modal__body">
             <button type="button" className="button button--ghost resume-editor-preview-modal__close" onClick={onClose}>
-              Close
+              {text["Close"]}
             </button>
             <BasicResumeDocument
               locale={locale}

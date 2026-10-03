@@ -6,10 +6,15 @@ agent's own config.
 
 **OpenCiVera** is a full-stack SaaS resume/CV builder: a private Master CV editor
 with a split-canvas YAML view, live preview, revisioning and rollback; a
-snapshot-based Published CV system with public links, SEO/AEO controls and audit
+snapshot-based LiveCV publication system with LiveCV links, SEO/AEO controls and audit
 logging; Supabase auth with 4 role tiers (`admin`, `manager`, `user`, `recruiter`);
 EN/PL multilingual documents with locale-aware rendering and fallback; and public
 sharing at the single canonical route `/{person-slug}/{public-id}`.
+
+In product copy, a saved or published tailored document is **LiveCV**, and its
+public URL is a **LiveCV link**. The private Master CV is the **Experience Base**.
+These names follow the [brand terminology](guides/brand-language-and-terminology.md);
+technical identifiers and publication snapshot semantics remain unchanged.
 
 React and TypeScript implement the UI and route handlers (Next.js App Router,
 single app under `app/`). Supabase provides authentication, roles, persistence,

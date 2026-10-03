@@ -225,12 +225,12 @@
   const copy = {
     en: {
       base: "Experience Base",
-      cvs: "Your CVs",
+      cvs: "Your LiveCVs",
       private: "Private career record",
       profession: "Product designer",
       highlights: "Additional highlights",
       description:
-        "Experiences appear over time, then fill a private Experience Base. Selected information from that base creates three CVs for different roles. All profile data is fictional.",
+        "Experiences appear over time, then fill a private Experience Base. Selected information from that base creates three LiveCVs for different roles. All profile data is fictional.",
       interaction: "Click or press Space to pause or resume the animation.",
       preview: "Animation preview",
       pause: "Pause",
@@ -246,7 +246,7 @@
         languages: "Languages",
         interests: "Interests"
       },
-      steps: ["Collect", "Build your base", "Complete base", "Create CVs", "Three roles"],
+      steps: ["Collect", "Build your base", "Complete base", "Create LiveCVs", "Three roles"],
       scenes: [
         [
           "01 / COLLECT",
@@ -261,28 +261,28 @@
         [
           "03 / COMPLETE BASE",
           "Your experience, organised.",
-          "Keep the full record. Choose what goes into each CV."
+          "Keep the full record. Choose what goes into each LiveCV."
         ],
         [
-          "04 / TAILORED CVS",
+          "04 / TAILORED LIVECV",
           "Choose what matters for the role.",
-          "Each CV contains a different selection from the same Experience Base."
+          "Each LiveCV contains a different selection from the same Experience Base."
         ],
         [
           "05 / THREE ROLES",
-          "One Experience Base. Three different CVs.",
+          "One Experience Base. Three different LiveCVs.",
           "Product Designer, Design Lead, Product Consultant."
         ]
       ]
     },
     pl: {
       base: "Baza doświadczeń",
-      cvs: "Twoje CV",
+      cvs: "Twoje LiveCV",
       private: "Prywatna historia zawodowa",
       profession: "Projektant produktu",
       highlights: "Dodatkowe atuty",
       description:
-        "Doświadczenia pojawiają się z czasem, a następnie wypełniają prywatną Bazę doświadczeń. Wybrane informacje z bazy tworzą trzy CV na różne stanowiska. Wszystkie dane profilu są fikcyjne.",
+        "Doświadczenia pojawiają się z czasem, a następnie wypełniają prywatną Bazę doświadczeń. Wybrane informacje z bazy tworzą trzy LiveCV na różne stanowiska. Wszystkie dane profilu są fikcyjne.",
       interaction: "Kliknij lub naciśnij spację, aby zatrzymać albo wznowić animację.",
       preview: "Podgląd animacji",
       pause: "Zatrzymaj animację",
@@ -298,7 +298,7 @@
         languages: "Języki",
         interests: "Zainteresowania"
       },
-      steps: ["Zbierz", "Uzupełnij bazę", "Pełna baza", "Utwórz CV", "Trzy role"],
+      steps: ["Zbierz", "Uzupełnij bazę", "Pełna baza", "Utwórz LiveCV", "Trzy role"],
       scenes: [
         [
           "01 / ZBIERANIE",
@@ -313,16 +313,16 @@
         [
           "03 / PEŁNA BAZA",
           "Twoje doświadczenie, uporządkowane.",
-          "Zachowujesz pełną historię. Wybierasz, co trafi do każdego CV."
+          "Zachowujesz pełną historię. Wybierasz, co trafi do każdego LiveCV."
         ],
         [
-          "04 / DOPASOWANE CV",
+          "04 / DOPASOWANE LiveCV",
           "Wybierz to, co pasuje do stanowiska.",
-          "Każde CV zawiera inny wybór treści z tej samej Bazy doświadczeń."
+          "Każde LiveCV zawiera inny wybór treści z tej samej Bazy doświadczeń."
         ],
         [
           "05 / TRZY ROLE",
-          "Jedna Baza doświadczeń. Trzy różne CV.",
+          "Jedna Baza doświadczeń. Trzy różne LiveCV.",
           "Projektant produktu, lider zespołu, konsultant produktowy."
         ]
       ]
@@ -336,21 +336,22 @@
     templateStart: 12,
     templateEnd: 13.2,
     fillStart: 14,
-    fillStep: 0.78,
-    flightDuration: 0.64,
-    zoomStart: 27,
-    zoomEnd: 29,
-    baseLeft: 30,
-    firstCV: 31,
-    secondCV: 34.5,
-    thirdCV: 37.5,
+    fillStep: 0.52,
+    flightDuration: 0.38,
+    zoomStart: 23,
+    zoomEnd: 25,
+    baseLeft: 26,
+    firstCV: 27,
+    secondCV: 30.5,
+    thirdCV: 33.5,
     cvDuration: 1.8,
-    duration: 42
+    duration: 38
   };
-  const stageTimes = [0, timing.moveStart, timing.zoomStart, timing.baseLeft, 39.5];
+  const stageTimes = [0, timing.moveStart, timing.zoomStart, timing.baseLeft, 35.5];
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const viewport = $("viewport");
   const master = $("master");
+  const profileName = master.querySelector(".identity h2").textContent;
   const seek = $("seek");
   const pause = $("pause");
   const clamp = (n, a = 0, b = 1) => Math.max(a, Math.min(b, n));
@@ -488,9 +489,11 @@
     wrap.innerHTML =
       '<div class="role-label"><span>' +
       escape(value.name) +
-      "</span><span>CV / 0" +
+      "</span><span>LiveCV / 0" +
       (index + 1) +
-      '</span></div><div class="paper output"><h3>Alex Harper</h3><div class="role">' +
+      '</span></div><div class="paper output"><h3>' +
+      escape(profileName) +
+      '</h3><div class="role">' +
       escape(value.name) +
       '</div><p class="summary">' +
       escape(value.summary) +
@@ -510,7 +513,7 @@
       copy.highlights +
       '</h4><div class="pills">' +
       pills(role.more) +
-      '</div><div class="paper-footer">OpenCiVera<span>CV / 0' +
+      '</div><div class="paper-footer">OpenCiVera<span>LiveCV / 0' +
       (index + 1) +
       "</span></div></div>";
     $("outputs").append(wrap);
@@ -645,7 +648,7 @@
       )
     };
     const base = blend(zoomed, left, progress(at, timing.baseLeft, timing.firstCV));
-    const shift = progress(at, 34, 35.5);
+    const shift = progress(at, 30, 31.5);
     const finalScale = Math.min(wholeScale, (w / 2 - spacing - 155 * outputScale - 92) / 440);
     const finalBase = {
       x: 20,
@@ -701,9 +704,9 @@
     const finalScale = layout.mobile
       ? Math.min(initialScale, (w - 80) / (310 * (motion.matches ? 3 : 2.2)))
       : initialScale;
-    const s = mix(initialScale, finalScale, progress(at, timing.thirdCV, 39.5));
+    const s = mix(initialScale, finalScale, progress(at, timing.thirdCV, 35.5));
     const spacing = 310 * s + 24;
-    const shift = progress(at, 34, 35.5);
+    const shift = progress(at, 30, 31.5);
     const destinations = [];
     roles.forEach((role, index) => {
       const center = index === 0 ? w / 2 - spacing * shift : w / 2 + (index - 1) * spacing;

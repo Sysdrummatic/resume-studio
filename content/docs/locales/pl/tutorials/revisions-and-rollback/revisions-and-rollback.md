@@ -1,7 +1,7 @@
 ---
 title: Przeglądaj zmiany i przywracaj rewizje
 description: Sprawdzaj historię zapisów i bezpiecznie przywracaj wcześniejszą wersję językową dokumentu.
-updatedAt: 2026-09-20
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 9
@@ -30,8 +30,8 @@ usuwa niezapisanych zmian.
 4. Sprawdź bieżący podgląd i zapisz ewentualne poprawki.
 
 Przywrócenie zmienia aktywny stan Bazy doświadczeń dla tego języka. Nie zmienia
-publicznej migawki. Aby publiczne CV odzwierciedlało przywrócony dokument,
-zaktualizuj wersję CV i opublikuj ją ponownie.
+publicznej migawki. Aby publiczne LiveCV odzwierciedlało przywrócony dokument,
+zaktualizuj wersję LiveCV i opublikuj ją ponownie.
 
 ## Lokalne szkice a rewizje
 

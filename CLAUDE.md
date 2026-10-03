@@ -84,7 +84,7 @@ Canonical, shared with Codex — edit `docs/CODE-MAP.md`, not a copy here.
 - Zainstalowany globalnie: `npm install -g supabase`
 - Use: `supabase db push` (push local migrations)
 - Use: `supabase pull` (pull schema z production)
-- **Known issue (as of 2026-09-07):** the migration ledger on `test`/`prod` has drifted from local `.sql` filenames — some migrations were applied directly (e.g. via an MCP `apply_migration` call) rather than via `db push`, and `test` has at least one orphan migration with no local file. `supabase db push` in this state is likely to fail on conflicts/duplicate objects. Prefer applying new migrations directly via `mcp__supabase-test__apply_migration` / `mcp__supabase-prod__apply_migration` (same SQL, same name on both) until the ledger is repaired.
+- **Ledger drift:** `supabase db push` is unreliable on `test`/`prod`. Apply new migrations via `mcp__supabase-test__apply_migration` / `mcp__supabase-prod__apply_migration` (same SQL, same name on both). Details in [TECH_DEBT.md](TECH_DEBT.md).
 
 **NEVER DO:**
 - Hardcode secrets (use env vars only)
@@ -242,6 +242,14 @@ return data;
 - Audit logging: Admin actions are logged
 - Self-escalation prevention: Users cannot escalate their own roles
 - Recursive policy issues: Avoid policies that reference the same table in `USING` clauses
+
+---
+
+## 🧾 Technical Debt
+
+Every known gap, limitation, deferred decision, drift or "not yet fixed" item goes
+in [TECH_DEBT.md](TECH_DEBT.md) — never inline in this file. Add new ones there
+as soon as you find them, and leave only a one-line pointer here if needed.
 
 ---
 
@@ -519,8 +527,8 @@ functions that consume one.
 (`app/user/user-client.tsx`), and the sign-up form
 (`app/login/account-access-client.tsx`). Listed as a static entry in
 `app/sitemap.ts`. The policy text is a founder-authored draft based on the current
-data model (Supabase EU hosting, Netlify hosting, no ad tracking); pending legal
-review. Data retention ADR, processor DPA checklist, and a data-subject-request
+data model (Supabase EU hosting, Netlify hosting, no ad tracking); legal review is
+tracked in [TECH_DEBT.md](TECH_DEBT.md). Data retention ADR, processor DPA checklist, and a data-subject-request
 runbook are tracked as a follow-up (PR2). Test contract:
 `tests/privacy-policy-page.test.mjs`.
 
@@ -531,10 +539,8 @@ homepage footer (`app/components/footer.tsx`), the Personal Hub "Policies" secti
 (`app/user/user-client.tsx`), and the sign-up form's policy-acceptance checkbox
 (`app/login/account-access-client.tsx`). Listed as a static entry in
 `app/sitemap.ts`. Section 6 references the OpenCV data format (ADR 0002/0008) as
-separate from the OpenCiVera trademark. **Sections 10 (Limitation of Liability) and
-11 (Governing Law) are placeholder text and require legal review before this
-Service has any paying customers or a significant user base — not verified against
-Polish or EU consumer-protection law.** Test contract:
+separate from the OpenCiVera trademark. Sections 10 and 11 are placeholder text
+([TECH_DEBT.md](TECH_DEBT.md)). Test contract:
 `tests/terms-of-service-page.test.mjs`.
 
 **Account Data Retention ADR + Runbook (PR2):**
@@ -544,12 +550,8 @@ account-deletion process and a verified cascade map from `auth.users` through
 `resume_presets`, `resume_preset_variants`, `resume_public_links`,
 `resume_published_cvs`, `resume_published_cv_locales`, `resume_user_locales`) — all
 cascade cleanly, no schema gaps. `admin_audit_logs` retention stays governed by ADR
-0007 and stores UUIDs/roles only (no PII). Two **Known Gaps** are tracked for future
-PRs: (1) the `user.deleted` audit entry is silently dropped because
-`writeAdminAuditLog` runs after the cascading delete and violates the
-`target_user_id` FK — `app/api/admin/users/[userId]/route.ts`; (2) staff accounts
-(`actor_user_id` on any audit row) cannot be deleted due to `ON DELETE RESTRICT`.
-Operational steps and sub-processor status live in the private `OpenCiVera-Project`
+0007 and stores UUIDs/roles only (no PII). Known gaps are in
+[TECH_DEBT.md](TECH_DEBT.md). Operational steps and sub-processor status live in the private `OpenCiVera-Project`
 repo (`docs/runbooks/data-subject-request.md`, `docs/guides/processor-compliance-checklist.md`).
 Test contract: `tests/docs-data-retention.test.mjs`.
 
@@ -579,12 +581,7 @@ from the 30-day manual/admin-mediated path; `docs/runbooks/data-subject-request.
 and `docs/guides/processor-compliance-checklist.md` (private `OpenCiVera-Project`
 repo) updated accordingly. Test
 contracts: `tests/account-deletion.test.mjs`, `tests/email-feature-flag.test.mjs`.
-**Known limitation (not yet fixed):** `requireRequestActor()` imposes no role
-restriction, so an admin/manager can call this route on their own account; if that
-account has ever been `actor_user_id` on an `admin_audit_logs` row, the cascading
-delete would likely fail at the Postgres level due to `ON DELETE RESTRICT` on
-`admin_audit_logs.actor_user_id`. RBAC does not currently prevent this — flagged as a
-follow-up, not handled in this change.
+Known limitation for admin/manager callers: see [TECH_DEBT.md](TECH_DEBT.md).
 
 **Test User / OCV Staff Account Flags (ADR 0019):** `profiles.is_test_user` and
 `profiles.is_ocv_staff` (independent booleans, default `false`) mark QA and
@@ -642,11 +639,8 @@ saves to a dedicated `content_safety_flags` table (migration
 would permanently block `DELETE /api/user/account` self-service deletion (GDPR
 Art. 17) for any user who ever triggers a detection, including a false positive;
 `content_safety_flags.user_id` uses `on delete cascade` instead, matching every
-other content table per ADR 0016. The editor-facing inline "this value looks
-unsafe" validator was scoped out and deferred to
-[Phase O](docs/phases/phase-o-opencv-standard.md) (O02), so that ruleset is
-designed once as part of the OpenCV standard rather than ad hoc in this app. Test
-contracts: `tests/jsonld-safe-serializer.test.mjs`,
+other content table per ADR 0016. The editor-facing inline validator is deferred
+([TECH_DEBT.md](TECH_DEBT.md)). Test contracts: `tests/jsonld-safe-serializer.test.mjs`,
 `tests/safe-url-protocol-allowlist.test.mjs`, `tests/content-safety-detector.test.mjs`,
 `tests/content-safety-flags-migration.test.js`. Manual/E2E scenarios:
 the manual/E2E scenario in the private `OpenCiVera-Project` repo
@@ -756,22 +750,8 @@ What's actually true as of 2026-08-26:
   — a real distributed, Postgres-backed limiter (`app/lib/rate-limit.ts`,
   `check_rate_limit()` RPC), not the `getClientKey`/`rateLimitResponse`
   in-memory helpers this section used to claim; those never existed.
-- **Still genuinely missing**, deferred to
-  [Phase M](docs/phases/phase-m-security-privacy-trust.md) M03/M08 as
-  lower-risk for a beta gated to a handful of invited testers: the
-  `before_user_created` Auth Hook (`hook_before_user_created_enabled: false`
-  live on prod), app-side MFA/AAL2 enforcement (Supabase-side TOTP is already
-  enabled on prod — `mfa_totp_enroll_enabled`/`verify_enabled: true` — this is
-  purely missing app code), CAPTCHA (`security_captcha_enabled: false`,
-  provider defaults to `hcaptcha` live, not Turnstile as previously assumed;
-  no secret configured), and `password_hibp_enabled` (leaked-password
-  protection — attempted via the Management API, rejected with `402`: Pro
-  plan required).
-- The Disify external verifier is **enabled by default** —
-  `app/lib/disposable-email.ts`'s `isDisposableEmailAddress()` calls
-  `https://www.disify.com/api/email` unless `DISPOSABLE_EMAIL_CHECK_URL` is
-  overridden. No local `DISPOSABLE_EMAIL_DOMAINS` list exists. Tracked in
-  Phase M M08, not fixed yet.
+- **Still missing** (Auth Hook, app-side MFA/AAL2, CAPTCHA, HIBP, Disify
+  default): see [TECH_DEBT.md](TECH_DEBT.md).
 - `docs/security/supabase-production-auth-checklist.md` does not exist.
   Superseded by querying the live Management API directly when this section
   was corrected — faster and can't drift from reality the way a static

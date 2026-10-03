@@ -1,7 +1,7 @@
 ---
 title: Review changes and roll back a revision
 description: Use revision history to inspect saved documents and restore an earlier language version safely.
-updatedAt: 2026-09-18
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 9
@@ -30,8 +30,8 @@ draft or discard unsaved edits.
 4. Review the current preview, then save any follow-up corrections.
 
 Restoring changes the active Experience Base state for that language. It does not
-rewrite a public snapshot. If the public CV should match the restored document,
-update the CV Version and publish it again.
+rewrite a public snapshot. If the public LiveCV should match the restored document,
+update the LiveCV version and publish it again.
 
 ## Local drafts versus revisions
 

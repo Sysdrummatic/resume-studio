@@ -1,17 +1,18 @@
 ---
-title: Dodaj wersję językową do CV
-description: Utrzymuj niezależnie polską i angielską treść CV oraz publikuj wybrane języki.
-updatedAt: 2026-09-20
+title: Dodaj wersję językową do LiveCV
+description: Utrzymuj niezależnie polską i angielską treść LiveCV oraz publikuj wybrane języki.
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 6
 ---
 
-# Dodaj wersję językową do CV
+# Dodaj wersję językową do LiveCV
 
-Każdy język CV jest zapisany jako osobny dokument. Dodanie `pl` nie tłumaczy
+Każdy język Bazy doświadczeń ma osobny dokument. Wybierasz, które języki opublikować
+w LiveCV. Dodanie `pl` nie tłumaczy
 dokumentu angielskiego, a zmiana języka interfejsu aplikacji nie przepisuje
-treści żadnej wersji CV.
+treści żadnej wersji LiveCV.
 
 ## Dodaj język
 
@@ -25,9 +26,9 @@ treści żadnej wersji CV.
 Zachowaj zgodność faktów między językami, ale dopasuj nagłówki, podsumowanie i
 opis roli do osób, które będą czytać daną wersję.
 
-## Dodaj język do wersji CV
+## Dodaj język do wersji LiveCV
 
-1. Wróć do **Panel** i otwórz menu ustawień wersji CV.
+1. Wróć do **Panel** i otwórz menu ustawień wersji LiveCV.
 2. Wybierz **Edytuj**.
 3. Zaznacz dokumenty językowe, które mają należeć do tej wersji.
 4. Zapisz wersję.
@@ -42,7 +43,7 @@ Uzupełnij i sprawdź podgląd każdej wersji przed publikacją. Zaznaczenie now
 języka, zanim treść będzie gotowa, może pozostawić pustą wersję publiczną.
 :::
 
-Język interfejsu aplikacji i język treści CV są niezależne. Zmiana jednego nie
+Język interfejsu aplikacji i język treści LiveCV są niezależne. Zmiana jednego nie
 zmienia drugiego.
 
-Następnie [przygotuj wersję CV](/docs/tutorials/create-cv-version) lub wróć do [publikacji](/docs/tutorials/publish-and-share-cv), jeśli masz już zapisany wybór.
+Następnie [przygotuj wersję LiveCV](/docs/tutorials/create-cv-version) lub wróć do [publikacji](/docs/tutorials/publish-and-share-cv), jeśli masz już zapisany wybór.

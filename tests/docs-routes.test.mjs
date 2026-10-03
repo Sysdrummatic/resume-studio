@@ -86,7 +86,7 @@ test("server-rendered docs and direct scenario URLs preserve all role/flag combi
         const pages = loadPages({ role, isTestUser }, flag);
         const allowed = role === "admin" || (isTestUser && flag);
         const html = renderToStaticMarkup(await pages.index({}));
-        assert.match(html, /Create your CV step by step/);
+        assert.match(html, /Create your LiveCV step by step/);
         assert.equal(
           [...html.matchAll(/<h1\b/g)].length,
           1,
@@ -110,7 +110,7 @@ test("article Markdown, outline and breadcrumbs keep real targets; unknown docs 
     })
   );
   assert.match(html, /href="\/docs"/);
-  assert.match(html, /aria-current="page">Publishing your first CV/);
+  assert.match(html, /aria-current="page">Publishing your first LiveCV/);
   assert.match(html, /id="four-steps"/);
   assert.match(html, /href="#four-steps"/);
   assert.match(html, /lang="en"/);

@@ -1,7 +1,7 @@
 ---
 title: Troubleshoot save and publish problems
 description: Diagnose the most common validation, limit and publication errors without losing your draft.
-updatedAt: 2026-09-18
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 10
@@ -18,7 +18,7 @@ and do not repeatedly click an action that has already failed.
 2. If you are in YAML mode, fix the invalid or incomplete YAML.
 3. Switch to the Human-friendly Editor if you need help finding a missing
    value.
-4. Try **Save MasterCV** once more.
+4. Try **Save Experience Base** once more.
 
 If the browser offers a local draft, restore it before reloading. That copy is
 not synchronized to another device, so save it to the server as soon as the
@@ -27,7 +27,7 @@ editor is usable.
 ## Why can I not create or publish a version?
 
 - Create and save an Experience Base first.
-- Ensure the CV Version has a title and at least one meaningful selected item.
+- Ensure the LiveCV version has a title and at least one meaningful selected item.
 - Confirm that each selected publication language has content.
 - Check that the selected default language is included in the publication.
 - If this version was published before, use its publish action again instead of
@@ -42,8 +42,8 @@ for the current values.
 
 ## Why is the public page showing older content?
 
-Public links show the last published state of a CV. Save the Experience Base, update
-the CV Version selection if necessary, and publish again. A private preview can
+Public links show the last published state of a LiveCV. Save the Experience Base, update
+the LiveCV version selection if necessary, and publish again. A private preview can
 show current content while the public link still shows its last published state.
 
 ## What should I include when asking for help?

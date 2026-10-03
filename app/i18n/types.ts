@@ -55,77 +55,44 @@ export type AppDictionary = {
   landing: {
     hero: {
       eyebrow: string;
-      title: string[];
-      description: string;
+      title: string;
+      title_prefix: string;
+      title_suffix: string;
+      rotating_words: string[];
+      description: string[];
       primary_action: string;
       secondary_action: string;
-      privacy_note: string;
-      process_aria: string;
-      process: string[];
+      meta: string[];
     };
     sample: {
+      eyebrow: string;
+      title: string;
+      description: string;
       data_note: string;
       open_action: string;
       loading_aria: string;
       open_aria: string;
     };
-    animation: {
-      title: string;
-      description: string;
-      detail: string;
-      iframe_title: string;
-    };
-    experience_base: {
+    animation: { title: string; detail: string; iframe_title: string };
+    features: {
       eyebrow: string;
       title: string;
       description: string;
-      items: string[];
-    };
-    how: {
-      title: string;
-      description: string;
-      features: Array<{
-        icon: "file" | "globe" | "layers" | "link" | "refresh";
-        title: string;
-        description: string;
-      }>;
-    };
-    advantages: {
-      title: string;
-      description: string;
-      items: Array<{ title: string; description: string }>;
-    };
-    languages: {
-      eyebrow: string;
-      title: string;
-      description: string;
-    };
-    structured_data: {
-      eyebrow: string;
-      title: string;
-      description: string;
-      detail: string;
-      items: string[];
-    };
-    privacy: {
-      title: string;
-      description: string;
-      note: string;
-      action: string;
-    };
-    vision: {
-      eyebrow: string;
-      title: string;
-      description: string;
+      aria_label: string;
+      pause: string;
+      resume: string;
+      items: Array<{ tag: string; chip: string; title: string; description: string }>;
     };
     faq: {
       title: string;
       items: Array<{ id?: string; question: string; answer: string }>;
     };
     cta: {
+      eyebrow: string;
       title: string;
       description: string;
       primary_action: string;
+      secondary_action: string;
     };
     footer: {
       sample_resume: string;

@@ -56,6 +56,8 @@ const dependencies = {
       dictionary: {
         dashboard: {
           preview: {
+            language_aria: "Switch LiveCV language",
+            empty_language: "This LiveCV version has no content in {language} yet. Add it in your Experience Base, or switch to a language you've filled in.",
             aria_label: "CV preview",
             close_aria: "Close preview",
             open_cv: "Open CV",

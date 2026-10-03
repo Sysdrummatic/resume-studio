@@ -1,17 +1,18 @@
 ---
-title: Add a language version to your CV
-description: Maintain English and Polish CV content independently and publish the locales you want to share.
-updatedAt: 2026-09-18
+title: Add a language version to your LiveCV
+description: Maintain English and Polish LiveCV content independently and publish the locales you want to share.
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 6
 ---
 
-# Add a language version to your CV
+# Add a language version to your LiveCV
 
-Each CV language is stored as its own document. Adding `pl` does not translate
+Each language in your Experience Base has its own document. You choose which
+languages to publish with LiveCV. Adding `pl` does not translate
 the English document, and changing the application's interface language does
-not rewrite the content of either CV.
+not rewrite the content of either LiveCV.
 
 ## Add the locale
 
@@ -25,9 +26,9 @@ not rewrite the content of either CV.
 Keep the facts consistent between locales, but adapt headings, summary wording,
 and role-specific phrasing for the people who will read each version.
 
-## Include it in a CV Version
+## Include it in a LiveCV version
 
-1. Return to **Dashboard** and open the CV Version settings menu.
+1. Return to **Dashboard** and open the LiveCV version settings menu.
 2. Select **Edit**.
 3. Check the language documents that belong in this version.
 4. Save the version.
@@ -43,7 +44,7 @@ new language before its content is ready, which leaves visitors with an empty
 version.
 :::
 
-The application interface and the CV content have independent language choices;
+The application interface and the LiveCV content have independent language choices;
 changing one does not rewrite the other.
 
-Next, [prepare a CV version](/docs/tutorials/create-cv-version), or return to [publishing](/docs/tutorials/publish-and-share-cv) if your selection is already saved.
+Next, [prepare a LiveCV version](/docs/tutorials/create-cv-version), or return to [publishing](/docs/tutorials/publish-and-share-cv) if your selection is already saved.

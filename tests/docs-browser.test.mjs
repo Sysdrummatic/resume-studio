@@ -132,11 +132,11 @@ test(
       assert.ok(found.some((href) => href?.endsWith("/docs/tutorials/master-resume-basics")), JSON.stringify(found));
       assert.equal(new Set(found).size, found.length);
       await page.goto(`${base}/docs?lang=pl`);
-      await page.getByRole("heading", { name: "Stwórz swoje CV krok po kroku" }).waitFor();
+      await page.getByRole("heading", { name: "Stwórz swoje LiveCV krok po kroku" }).waitFor();
       await page.getByRole("searchbox").fill("DODAJ WERSJE JEZYKOWA");
       assert.equal(await page.locator(".docs-resources a").count(), 1);
       await page.goto(`${base}/docs?lang=en`);
-      await page.getByRole("heading", { name: "Create your CV step by step", level: 1 }).waitFor();
+      await page.getByRole("heading", { name: "Create your LiveCV step by step", level: 1 }).waitFor();
 
       const slugs = [
         "master-resume-basics",
@@ -209,7 +209,7 @@ test(
       assert.equal(await menu.evaluate((el) => el === document.activeElement), true);
       assert.notEqual(await menu.evaluate((el) => getComputedStyle(el).outlineStyle), "none");
       await menu.click();
-      await page.getByRole("link", { name: "Publishing your first CV", exact: true }).click();
+      await page.getByRole("link", { name: "Publishing your first LiveCV", exact: true }).click();
       await page.locator(".docs-article").waitFor();
       assert.equal(await page.locator(".docs-sidebar").isVisible(), false);
       await page.setViewportSize({ width: 1440, height: 1000 });

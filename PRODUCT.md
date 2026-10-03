@@ -21,9 +21,12 @@ structured, reusable data layer — not a static document. Users maintain one
 YAML-powered source record and publish role-aware, locale-specific public 
 surfaces from it.
 
-The current market entry point is a CV builder based on an **Experience Base**
+The current market entry point is a LiveCV builder based on an **Experience Base**
 (`Baza doświadczeń` in Polish): a private, complete career record from which
-users select content for tailored CVs. The CV builder is the first useful
+users select content for tailored **LiveCVs**. LiveCV is the document users create
+and explicitly publish under a shareable link; private drafts remain private.
+Updating the Experience Base does not change a publication until it is republished.
+The LiveCV builder is the first useful
 surface of the broader professional identity platform, not its final boundary.
 
 Core value:

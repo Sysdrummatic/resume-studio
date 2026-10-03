@@ -1,7 +1,7 @@
 ---
 title: Manage your account and privacy
 description: Update your profile, protect your session and understand what happens when you delete your account.
-updatedAt: 2026-09-18
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 11
@@ -19,8 +19,8 @@ are working in an account with staff access.
 2. Select **Profile**.
 3. Change your first or last name and choose **Save**.
 
-Your profile name and the name printed on your CV are separate values. If the
-name on the CV should change too, update it in the Experience Base.
+Your profile name and the name printed on your LiveCV are separate values. If the
+name on the LiveCV should change too, update it in the Experience Base.
 
 ## Protect your account
 
@@ -34,7 +34,7 @@ never send someone your session link or access token.
 
 ## Understand what is public
 
-Your Experience Base and private CV Versions stay in your account. A public link
+Your Experience Base and private LiveCV versions stay in your account. A public link
 contains only the entries selected for its publication and the language
 versions you chose. `noindex` asks search engines not to list the page; it does
 not turn the link into a password-protected page.
@@ -45,11 +45,11 @@ Changing a draft does not change a public page until you publish again.
 
 Account deletion is permanent. Open **Profile**, choose **Delete account and
 all data**, type the exact email address, and submit the final confirmation.
-The application cannot recover the account or its CV data afterwards.
+The application cannot recover the account or its LiveCV data afterwards.
 
 :::danger
 Export any data you need before deleting the account. Do not use deletion as a
-way to remove one CV Version; delete or unpublish that version instead.
+way to remove one LiveCV version; delete or unpublish that version instead.
 :::
 
-For the publication-specific privacy model, see [Publish and share a CV](/docs/tutorials/publish-and-share-cv).
+For the publication-specific privacy model, see [Publish and share a LiveCV](/docs/tutorials/publish-and-share-cv).

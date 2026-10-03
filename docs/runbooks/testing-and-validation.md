@@ -94,6 +94,11 @@ Inspect the screenshots and watch the standalone `/animations/opencivera-animati
 preview for motion quality. These are local illustrative-data checks, not Supabase
 integration or production validation.
 
+The demo profile is Ariana Holt in the source and all three CVs, in both languages.
+Tiles transfer every 0.52 seconds with a 0.38-second flight, filling entries only
+on arrival. Playback lasts 38 seconds; the later scenes follow the shorter fill
+phase without an added idle pause.
+
 ## Reporting
 
 State the commands and outcomes, browser checks actually performed, and remaining

@@ -41,6 +41,6 @@ test("layout resolves the portal theme from cookie and passes an active switch",
   assert.equal(source.includes('data-app-theme={initialTheme}'), true);
   assert.equal(source.includes("AppThemeSwitch"), true);
   assert.equal(source.includes("initialTheme={initialTheme}"), true);
-  assert.equal(source.includes("leadingAccessory={actor ? null : <AppThemeSwitch initialTheme={initialTheme} />}"), true);
-  assert.equal(source.includes("accessory={actor ? <AppThemeSwitch initialTheme={initialTheme} /> : null}"), true);
+  assert.equal(source.includes("leadingAccessory={<AppThemeSwitch initialTheme={initialTheme} />}"), true);
+  assert.equal(source.includes("accessory={<AppLanguageMenu />}"), true);
 });

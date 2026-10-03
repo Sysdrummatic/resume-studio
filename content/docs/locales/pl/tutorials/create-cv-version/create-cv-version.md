@@ -1,37 +1,37 @@
 ---
-title: Utwórz wersję CV pod konkretną rolę
+title: Utwórz wersję LiveCV pod konkretną rolę
 description: Wybierz z Bazy doświadczeń informacje potrzebne w jednej rekrutacji, pozostawiając resztę prywatną.
-updatedAt: 2026-09-20
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 4
 ---
 
-# Utwórz wersję CV pod konkretną rolę
+# Utwórz wersję LiveCV pod konkretną rolę
 
-**Cel:** przygotować dopasowany wybór treści i wygląd CV, bez publikowania danych.
+**Cel:** przygotować dopasowany wybór treści i wygląd LiveCV, bez publikowania danych.
 
-**Zanim zaczniesz:** [uzupełnij i zapisz Bazę doświadczeń](/docs/tutorials/master-resume-basics). Przygotuj ofertę, pod którą dopasujesz CV.
+**Zanim zaczniesz:** [uzupełnij i zapisz Bazę doświadczeń](/docs/tutorials/master-resume-basics). Przygotuj ofertę, pod którą dopasujesz LiveCV.
 
-Baza doświadczeń zawiera pełną historię kariery. Wersja CV to krótszy wybór, który chcesz
+Baza doświadczeń zawiera pełną historię kariery. Wersja LiveCV to krótszy wybór, który chcesz
 wysłać w sprawie jednej roli lub projektu. Utworzenie wersji nie kopiuje całego
 dokumentu do przestrzeni publicznej: zapisuje tylko wybrane wpisy.
 
 ## Utwórz wersję
 
-1. Otwórz **Panel** i wybierz **Utwórz wersję CV**.
+1. Otwórz **Panel** i wybierz **Utwórz LiveCV**.
 2. Nadaj wersji rozpoznawalny tytuł, na przykład `Frontend Engineer - Acme`.
 3. Wybierz podsumowanie, role, doświadczenie, wykształcenie, kursy,
    umiejętności i zainteresowania, które pasują do zgłoszenia.
 4. W polach **Szablon** i **Kolor główny** dobierz wygląd wersji.
-5. Kliknij **Zapisz wersję CV**.
+5. Kliknij **Zapisz LiveCV**.
 
-Nowy wpis pojawi się w **Twoje wersje CV** jako prywatny szkic. Możesz go od razu
+Nowy wpis pojawi się w **Twoje wersje LiveCV** jako prywatny szkic. Możesz go od razu
 podglądać i edytować, ale publiczny URL powstanie dopiero po publikacji.
 
 ## Sprawdź wybór
 
-Otwórz podgląd i przełączaj dostępne języki CV. Czytaj go jak rekruter: czy
+Otwórz podgląd i przełączaj dostępne języki LiveCV. Czytaj go jak rekruter: czy
 podsumowanie pasuje do roli, czy najważniejsze osiągnięcia są wysoko i czy nie
 udostępniasz informacji, które powinny pozostać prywatne?
 

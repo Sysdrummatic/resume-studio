@@ -38,6 +38,10 @@ The optional language link is also shown after step one. Main-step articles
 include a goal, prerequisites, instructions and a result checklist. Previous/next
 links come from the same workflow list. Keep EN/PL content and UI labels aligned.
 
+Use [LiveCV terminology](../../docs/guides/brand-language-and-terminology.md) in
+both article sets: Experience Base → LiveCV version → published LiveCV and its
+link. Match current button labels and preserve slugs, image paths and API names.
+
 Validate navigation and access with `node --test tests/docs-workspace.test.mjs
 tests/docs-routes.test.mjs tests/beta-docs-site.test.mjs`. For isolated browser QA,
 set `$env:DOCS_BROWSER_TEST='1'` and run `node --test tests/docs-browser.test.mjs`.

@@ -50,6 +50,11 @@ try {
         );
         await page.locator("#tiles .tile").first().waitFor({ state: "attached" });
         await page.evaluate(() => document.fonts.ready);
+        assert.deepEqual(
+          await page.locator(".identity h2, .output h3").allTextContents(),
+          Array(4).fill("Ariana Holt"),
+          "the source and all CVs show the same demo profile"
+        );
         assert.equal(
           await page.locator(".transport").isVisible(),
           false,
@@ -91,7 +96,7 @@ try {
         );
         assert.equal(
           await page.locator("#cv-group text").textContent(),
-          lang === "pl" ? "Twoje CV" : "Your CVs"
+          lang === "pl" ? "Twoje LiveCV" : "Your LiveCVs"
         );
         const waiting = await tiles(page);
         const emptyBase = await rect(page, "#master");
@@ -124,16 +129,25 @@ try {
             "waiting tiles remain stationary"
           );
         }
-        await seek(page, 14.7);
+        await seek(page, 14.4);
         assert.equal(await page.locator(".entry.filled").count(), 1);
-        await seek(page, 26.5);
+        await seek(page, 14.75);
+        assert.equal(await page.locator(".entry.filled").count(), 1);
+        assert.equal(
+          (await tiles(page)).filter((tile) => tile.opacity === 0).length,
+          2,
+          "the next tile is already in flight at the faster cadence"
+        );
+        await seek(page, 14.95);
+        assert.equal(await page.locator(".entry.filled").count(), 2);
+        await seek(page, 22.5);
         assert.equal(await page.locator(".entry.filled").count(), 16);
         assert.ok(
           (await rect(page, "#master")).y < emptyBase.y,
           "base must pan to lower sections while filling"
         );
 
-        await seek(page, 29.5);
+        await seek(page, 25.5);
         const fullBase = await rect(page, "#master");
         const caption = await rect(page, ".scene-caption");
         assert.ok(
@@ -142,7 +156,7 @@ try {
         );
         assert.ok(fullBase.x >= 0 && fullBase.x + fullBase.width <= viewport.width);
 
-        await seek(page, 30.95);
+        await seek(page, 26.95);
         const arrowBeforeCV = await rect(page, "#group-arrow");
         assert.ok(
           (viewport.width < 768 ? arrowBeforeCV.height : arrowBeforeCV.width) >= 24,
@@ -159,13 +173,13 @@ try {
           "CVs have not appeared ahead of the arrow"
         );
 
-        await seek(page, 33.5);
+        await seek(page, 29.5);
         const firstCV = await rect(page, '[data-role="product-designer"]');
         assert.ok(
           Math.abs(firstCV.x + firstCV.width / 2 - viewport.width / 2) < 1,
           "first CV starts at the center"
         );
-        await seek(page, 41);
+        await seek(page, 37);
         for (const group of ["base-group", "cv-group"]) {
           assert.ok(
             await page.locator("#" + group).evaluate((el) => {
@@ -245,17 +259,17 @@ try {
           frozen,
           "keyboard pause stops the animation"
         );
-        await seek(page, 41.95);
+        await seek(page, 37.95);
         await page.keyboard.press("Space");
         await page.waitForFunction(
           () =>
-            document.querySelector("#seek").value === "42" &&
+            document.querySelector("#seek").value === "38" &&
             document.querySelector("#pause").textContent !== "Pause" &&
             document.querySelector("#pause").textContent !== "Zatrzymaj animację"
         );
         assert.equal(
           await page.locator("#seek").inputValue(),
-          "42",
+          "38",
           "animation ends rather than loops"
         );
 

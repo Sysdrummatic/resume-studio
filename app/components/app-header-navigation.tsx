@@ -83,7 +83,7 @@ export default function AppHeaderNavigation({
   const [isCompact, setIsCompact] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const shouldUseCompactMenu = isCompact;
-  const shouldRenderCenteredNavigation = !isCompact && !forceInlineItems;
+  const shouldRenderDesktopNavigation = !isCompact && !forceInlineItems;
   const shouldRenderInlineActions = !isCompact && forceInlineItems;
 
   const updateMode = useCallback(() => {
@@ -213,7 +213,8 @@ export default function AppHeaderNavigation({
 
   return (
     <>
-      {shouldRenderCenteredNavigation && items.length > 0 ? (
+      {!forceInlineItems ? navigationMenu : null}
+      {shouldRenderDesktopNavigation && items.length > 0 ? (
         <nav className="app-nav" aria-label={dictionary.navigation.primary_aria}>
           {items.map((item) => renderNavItem(item))}
         </nav>
@@ -223,14 +224,14 @@ export default function AppHeaderNavigation({
         className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""} ${forceInlineItems ? "app-header__controls--inline" : ""}`}
       >
         {leadingAccessory ? <div className="app-header__leading">{leadingAccessory}</div> : null}
+        {accessory ? <div className="app-header__accessory">{accessory}</div> : null}
         {shouldRenderInlineActions && items.length > 0 ? (
           <nav className="app-nav app-nav--actions" aria-label={dictionary.navigation.primary_aria}>
             {items.map((item) => renderNavItem(item))}
           </nav>
         ) : null}
-        {navigationMenu}
-        {accessory ? <div className="app-header__accessory">{accessory}</div> : null}
-        <div className="app-header__account">{account}</div>
+        {forceInlineItems ? navigationMenu : null}
+        {account ? <div className="app-header__account">{account}</div> : null}
       </div>
     </>
   );

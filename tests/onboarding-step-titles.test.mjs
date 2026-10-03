@@ -11,8 +11,8 @@ const { ONBOARDING_SECTIONS, ONBOARDING_REVIEW_STEP, ONBOARDING_PUBLISH_STEP } =
 // The guide shows dictionary.onboarding.steps[step] as each step's heading and
 // counts "step / steps.length": one title per step, in flow order.
 const expected = {
-  en: { "qr-codes": "QR codes", gdpr: "GDPR clause", review: "Review your first CV" },
-  pl: { "qr-codes": "Kody QR", gdpr: "Klauzula RODO", review: "Sprawdź swoje pierwsze CV" },
+  en: { "qr-codes": "QR codes", gdpr: "GDPR clause", review: "Review your first LiveCV" },
+  pl: { "qr-codes": "Kody QR", gdpr: "Klauzula RODO", review: "Sprawdź swoje pierwsze LiveCV" },
 };
 
 for (const language of ["en", "pl"]) {

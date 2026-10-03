@@ -1,7 +1,7 @@
 ---
 title: Poznaj i edytuj Bazę doświadczeń
 description: Dowiedz się, co należy do prywatnego dokumentu źródłowego i jak bezpiecznie go aktualizować.
-updatedAt: 2026-09-20
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 3
@@ -9,12 +9,12 @@ order: 3
 
 # Poznaj i edytuj Bazę doświadczeń
 
-**Cel:** utworzyć prywatną Bazę doświadczeń, z której przygotujesz CV pod konkretne oferty.
+**Cel:** utworzyć prywatną Bazę doświadczeń, z której przygotujesz LiveCV pod konkretne oferty.
 
 **Zanim zaczniesz:** zaloguj się i przygotuj dane kontaktowe oraz historię zatrudnienia.
 
 Baza doświadczeń to prywatny zbiór informacji o Twojej karierze, pełna historia,
-z której tworzysz krótsze wersje CV. Sam zapis nie publikuje żadnego pola.
+z której tworzysz krótsze wersje LiveCV. Sam zapis nie publikuje żadnego pola.
 
 ## Otwórz edytor
 
@@ -31,7 +31,7 @@ dokument zapisywany na serwerze.
 ## Zrozum stan edytora
 
 - Podgląd na żywo pokazuje wybrany język i aktualny szkic.
-- Procent kompletności jest wskazówką, a nie oceną CV ani warunkiem publikacji.
+- Procent kompletności jest wskazówką, a nie oceną LiveCV ani warunkiem publikacji.
 - Lokalny szkic można odzyskać po odświeżeniu, ale istnieje tylko w tej
   przeglądarce, dopóki nie klikniesz **Zapisz Bazę doświadczeń**.
 - Każda zapisana rewizja dotyczy jednej wersji językowej. Krótka notatka ułatwi
@@ -45,7 +45,7 @@ dokument zapisywany na serwerze.
 4. Kliknij **Zapisz Bazę doświadczeń** i poczekaj na potwierdzenie.
 
 Baza doświadczeń pozostaje prywatna. Gdy chcesz udostępnić tylko wybrane informacje,
-utwórz wersję CV z poziomu panelu.
+utwórz wersję LiveCV z poziomu panelu.
 
 :::warning
 Wskaźnik lokalnego szkicu nie oznacza zapisu na serwerze. Przed zamknięciem
@@ -54,9 +54,9 @@ karty albo zmianą urządzenia użyj **Zapisz Bazę doświadczeń**.
 
 ## Resetuj lub importuj dane
 
-Edytor może zaimportować obsługiwany plik CV i pokazać analizę przed zapisaniem.
-Import dodaje dane i nie publikuje CV. Pełną kopię zapasową konta opisuje poradnik
-[Import i eksport danych CV](/docs/tutorials/import-export-cv-data).
+Edytor może zaimportować obsługiwany plik LiveCV i pokazać analizę przed zapisaniem.
+Import dodaje dane i nie publikuje LiveCV. Pełną kopię zapasową konta opisuje poradnik
+[Import i eksport danych LiveCV](/docs/tutorials/import-export-cv-data).
 
 ## Sprawdź rezultat
 

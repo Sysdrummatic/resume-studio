@@ -455,13 +455,15 @@ export function PresetPreviewModal({
             <ResumeLanguageSwitcher
               languages={cvLanguages}
               activeLocale={activeLocale}
-              ariaLabel="Switch CV version language"
+              ariaLabel={labels.language_aria}
               onSelect={setActiveLocale}
             />
             <p className={previewResult.status === "empty" ? "dashboard-library-preview__note" : "status status--error"}>
               {previewResult.status === "empty"
-                ? `This CV version has no content in ${cvLanguages.find((language) => language.code === activeDocument.locale)?.label || activeDocument.locale.toUpperCase()} yet. Add it in your Experience Base, or switch to a language you've filled in.`
-                : "CV preview could not be rendered from the Experience Base."}
+                ? formatAppMessage(labels.empty_language, {
+                    language: cvLanguages.find((language) => language.code === activeDocument.locale)?.label || activeDocument.locale.toUpperCase(),
+                  })
+                : labels.render_error}
             </p>
           </div>
         ) : (
@@ -642,7 +644,7 @@ export default function DashboardClient({
   function openPresetEditor(preset: ResumePresetRow | null) {
     const source = preset ? documents.find((document) => document.id === preset.document_id) : masterResume;
     if (!source) {
-      showToast("The source document for this CV version is unavailable. Reload the page to try again.", "error");
+      showToast(labels.messages.source_unavailable, "error");
       return;
     }
     if (!window.jsyaml) {

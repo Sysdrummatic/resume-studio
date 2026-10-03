@@ -1,7 +1,7 @@
 ---
 title: Zarządzaj kontem i prywatnością
 description: Aktualizuj profil, chroń sesję i sprawdź, co dzieje się po usunięciu konta.
-updatedAt: 2026-09-20
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 11
@@ -19,8 +19,8 @@ z dostępem pracowniczym.
 2. Wybierz **Profil**.
 3. Zmień imię lub nazwisko i wybierz **Zapisz**.
 
-Nazwa profilu i nazwa drukowana na CV to osobne wartości. Jeśli chcesz zmienić
-nazwę na CV, zaktualizuj ją w Bazie doświadczeń.
+Nazwa profilu i nazwa drukowana na LiveCV to osobne wartości. Jeśli chcesz zmienić
+nazwę na LiveCV, zaktualizuj ją w Bazie doświadczeń.
 
 ## Chroń konto
 
@@ -34,7 +34,7 @@ linku sesji ani tokenu dostępu.
 
 ## Zrozum, co jest publiczne
 
-Baza doświadczeń i prywatne wersje CV pozostają na koncie. Publiczny link zawiera tylko
+Baza doświadczeń i prywatne wersje LiveCV pozostają na koncie. Publiczny link zawiera tylko
 elementy wybrane do publikacji oraz wybrane wersje językowe. `noindex` prosi
 wyszukiwarki o nieindeksowanie strony, ale nie zabezpiecza jej hasłem.
 
@@ -43,12 +43,12 @@ Zmiana szkicu nie zmieni publicznej strony, dopóki nie opublikujesz go ponownie
 ## Usuń konto
 
 Usunięcie konta jest nieodwracalne. Otwórz **Profil**, wybierz **Usuń konto i wszystkie dane**, wpisz dokładny adres e-mail i potwierdź. Aplikacja nie będzie
-mogła później odzyskać konta ani danych CV.
+mogła później odzyskać konta ani danych LiveCV.
 
 :::danger
 Przed usunięciem wyeksportuj potrzebne dane. Nie używaj usuwania konta do
-kasowania jednej wersji CV: usuń lub wycofaj publikację tej wersji.
+kasowania jednej wersji LiveCV: usuń lub wycofaj publikację tej wersji.
 :::
 
 Szczegóły modelu prywatności publikacji opisuje poradnik
-[Opublikuj i udostępnij CV](/docs/tutorials/publish-and-share-cv).
+[Opublikuj i udostępnij LiveCV](/docs/tutorials/publish-and-share-cv).

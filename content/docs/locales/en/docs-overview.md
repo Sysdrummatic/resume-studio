@@ -8,7 +8,7 @@ category: docs
 
 ## Overview
 
-This section collects the practical guides for OpenCiVera: creating a CV,
+This section collects the practical guides for OpenCiVera: creating a LiveCV,
 preparing versions for different roles, publishing, exporting, and managing
 your account.
 
@@ -18,17 +18,17 @@ This documentation is still in beta. Some features may be missing or incomplete,
 
 ## Start here!
 
-If this is your first visit, start with [Publishing your first CV](/docs/tutorials/publishing-your-first-cv). It takes you from a private Experience Base to a tailored CV and a public link.
+If this is your first visit, start with [Publishing your first LiveCV](/docs/tutorials/publishing-your-first-cv). It takes you from a private Experience Base to a tailored LiveCV and a public link.
 
 ## Tutorials
 
 These tutorials focus on one task at a time. Follow them in order when you are
 new to OpenCiVera, or jump directly to the part of the workflow you need.
 
-### CV creation workflow
+### LiveCV creation workflow
 
 1. [Build your Experience Base](/docs/tutorials/master-resume-basics)
-2. [Tailor a CV version](/docs/tutorials/create-cv-version)
+2. [Tailor a LiveCV version](/docs/tutorials/create-cv-version)
 3. [Publish and share](/docs/tutorials/publish-and-share-cv)
 4. [Download PDF or ATS](/docs/tutorials/export-pdf-and-ats)
 

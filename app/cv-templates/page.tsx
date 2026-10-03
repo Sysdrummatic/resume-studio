@@ -73,8 +73,8 @@ const templateCards: Array<{
 ];
 
 export const metadata: Metadata = {
-  title: "Propozycje szablonów CV | OpenCiVera",
-  description: "Trzy warianty CSS dla aktualnego modelu YAML CV.",
+  title: "Propozycje szablonów LiveCV | OpenCiVera",
+  description: "Trzy warianty CSS dla aktualnego modelu YAML LiveCV.",
 };
 
 export default async function CvTemplatesPage() {
@@ -85,8 +85,8 @@ export default async function CvTemplatesPage() {
   return (
     <div className={`${styles.showcase} wide-shell-page`}>
       <header className={styles.intro}>
-        <p className={styles.kicker}>OpenCiVera / CV studio</p>
-        <h1>Trzy dopracowane kierunki dla tego samego CV</h1>
+        <p className={styles.kicker}>OpenCiVera / LiveCV studio</p>
+        <h1>Trzy dopracowane kierunki dla tego samego LiveCV</h1>
         <p className={styles.lede}>
           To są trzy CSS-owe szablony nałożone na bieżący renderer i bieżący YAML. Zawartość, kolejność sekcji i dane kontaktowe
           pozostają identyczne — zmienia się tylko język wizualny.

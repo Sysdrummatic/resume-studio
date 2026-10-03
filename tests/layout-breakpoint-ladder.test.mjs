@@ -11,6 +11,7 @@ import path from "node:path";
  * blocks sit one pixel below the `min-width` block they hand over to.
  */
 const PORTAL_LADDER = new Set([640, 767, 768, 979, 980, 1279, 1280, 1439, 1440, 1599, 1600]);
+const LANDING_LADDER = new Set([...PORTAL_LADDER, 480]);
 
 /**
  * The CV renderer is a fixed-width document (210mm in plain/print mode), not a
@@ -84,7 +85,12 @@ test("every viewport breakpoint sits on the documented ladder", () => {
   const offLadder = [];
 
   for (const [file, widths] of breakpointsByFile) {
-    const ladder = file.startsWith(CV_DOMAIN_PREFIX) ? CV_LADDER : PORTAL_LADDER;
+    const ladder =
+      file === "app/landing.module.css"
+        ? LANDING_LADDER
+        : file.startsWith(CV_DOMAIN_PREFIX)
+          ? CV_LADDER
+          : PORTAL_LADDER;
     const excused = new Set(GRANDFATHERED[file] || []);
 
     for (const width of widths) {

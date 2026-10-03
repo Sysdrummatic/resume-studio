@@ -1,7 +1,7 @@
 ---
 title: Rozwiąż problemy z zapisem i publikacją
 description: Diagnozuj najczęstsze błędy walidacji, limitów i publikacji bez utraty szkicu.
-updatedAt: 2026-09-20
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 10
@@ -27,7 +27,7 @@ edytor będzie gotowy.
 ## Dlaczego nie mogę utworzyć lub opublikować wersji?
 
 - Najpierw utwórz i zapisz Bazę doświadczeń.
-- Upewnij się, że wersja CV ma tytuł i co najmniej jeden sensowny wybrany wpis.
+- Upewnij się, że wersja LiveCV ma tytuł i co najmniej jeden sensowny wybrany wpis.
 - Sprawdź, czy każdy wybrany język publikacji ma treść.
 - Sprawdź, czy język domyślny należy do publikacji.
 - Jeśli wersja była już publikowana, użyj ponownie akcji publikacji zamiast
@@ -42,7 +42,7 @@ Odczekaj około minuty, zwolnij automatyzację i spróbuj ponownie. Zobacz też
 
 ## Dlaczego publiczna strona pokazuje starszą treść?
 
-Publiczny link pokazuje ostatnio opublikowany stan CV. Zapisz Bazę doświadczeń,
+Publiczny link pokazuje ostatnio opublikowany stan LiveCV. Zapisz Bazę doświadczeń,
 zaktualizuj wybór wersji, jeśli trzeba, i opublikuj ponownie. Prywatny podgląd
 może pokazywać bieżącą treść, gdy publiczny link nadal pokazuje poprzedni stan.
 

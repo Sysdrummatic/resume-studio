@@ -1,15 +1,15 @@
 ---
-title: Importuj i eksportuj dane CV
+title: Importuj i eksportuj dane LiveCV
 description: Utwórz przenośną kopię YAML i bezpiecznie przywróć ją na swoim koncie.
-updatedAt: 2026-09-20
+updatedAt: 2026-10-03
 author: Łukasz Michta
 category: tutorials
 order: 7
 ---
 
-# Importuj i eksportuj dane CV
+# Importuj i eksportuj dane LiveCV
 
-Panel pozwala wyeksportować dane CV jako jeden pakiet YAML i zaimportować
+Panel pozwala wyeksportować dane LiveCV jako jeden pakiet YAML i zaimportować
 wcześniej utworzony pakiet. Przydaje się to przed większą edycją, zmianą
 przeglądarki albo przygotowaniem treści poza edytorem.
 
@@ -19,7 +19,7 @@ przeglądarki albo przygotowaniem treści poza edytorem.
 2. W karcie **Baza doświadczeń** wybierz **Eksportuj**.
 3. Zapisz pobrany plik YAML w prywatnym i trwałym miejscu.
 
-Plik zawiera dane konta, a nie tylko publiczne CV. Przechowuj go tak samo
+Plik zawiera dane konta, a nie tylko publiczne LiveCV. Przechowuj go tak samo
 ostrożnie jak każdą kopię z danymi osobowymi i zawodowymi.
 
 ## Importuj kopię
@@ -28,9 +28,9 @@ ostrożnie jak każdą kopię z danymi osobowymi i zawodowymi.
 2. Wskaż zaufany plik `.yaml` lub `.yml`.
 3. Przeczytaj okno potwierdzenia i zaakceptuj import.
 4. Po ponownym załadowaniu strony sprawdź Bazę doświadczeń, wersje językowe i wersje
-   CV.
+   LiveCV.
 
-Serwer sprawdza pakiet przed przyjęciem. Import nigdy nie publikuje CV: prywatne
+Serwer sprawdza pakiet przed przyjęciem. Import nigdy nie publikuje LiveCV: prywatne
 wersje zastępują istniejące prywatne dane, a opublikowane migawki i publiczne
 linki pozostają bez zmian. Przejrzyj wynik przed kolejną publikacją.
 

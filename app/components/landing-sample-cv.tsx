@@ -7,7 +7,7 @@ import type { AppDictionary } from "../i18n/types";
 type SampleLabels = AppDictionary["landing"]["sample"];
 
 /**
- * Keeps the preview fitted to whatever width the hero column happens to have.
+ * Keeps the preview fitted to the landing's sample stage.
  *
  * The CV is laid out at a fixed px width (the sample CV's own shell width), so
  * fitting it to a fluid column means dividing a length by a length — which CSS

@@ -186,7 +186,7 @@ No ad-hoc spacing values. Use tokens exclusively.
 ### Canvas widths (`:root`, `app/globals.css`)
 
 ```
---layout-canvas-max:      1600px   Landing, app header, landing footer
+--layout-canvas-max:      1600px   App header and product canvas
 --layout-content-max:     1180px   Reading surfaces: docs, /privacy, /terms
 --layout-dashboard-max:   1500px   Dashboard workspace
 --layout-gutter:            16px   → 24px from 768px up
@@ -209,8 +209,20 @@ no header to align with, use `--layout-content-max` instead.
 ### Grid
 
 12 columns, `column-gap: clamp(16px, 1.6vw, 26px)`, placed with explicit column
-lines (`grid-column: 1 / 8`). The landing page
-(`app/landing.module.css`) is the reference implementation.
+lines (`grid-column: 1 / 8`) on wide product surfaces.
+
+**Landing exception (2026-10-02):** restores the master composition: a 900px
+text container with 24px internal gutters inside a 1080px shell and CV/animation
+stage. The landing footer uses the text width. The shared header uses the same
+1600px canvas and portal gutters on every route, including `/`. Navigation sits
+to the left after the brand. Right-aligned controls are theme, language, then
+account menu or sign-in/sign-up actions (collapsed into a menu below 980px).
+Outer landing gutters match master:
+8px below 480px and 16px from 480px. Hero and final CTA retain the master typography and copy
+(English source plus Polish translation); hero copy is pending a separate review
+of the automatic-update claim. Publication behavior remains snapshot-based.
+The sequence is hero → sample CV → Experience Base animation → features → FAQ
+→ final CTA. The sample uses the existing inline renderer, with a full-CV link.
 
 - Never fill a wide row with `justify-self: end` — that pushes body copy to the
   far edge and leaves a 400px void mid-row. Place it on a column line instead.
@@ -223,7 +235,7 @@ lines (`grid-column: 1 / 8`). The landing page
 Body / paragraphs:     54–65ch     (never wider)
 Long-form prose:       64–72ch
 Supporting / captions: 44–48ch
-Display headings:      15–18ch     (forces a 2–3 line break, not a 5-line ladder)
+Display headings:      15–18ch     (product; landing restores master's wider heading)
 ```
 
 Caps go on the element in `ch`, not on the grid column — the column defines
@@ -246,6 +258,10 @@ and `landing.module.css`. Do not add values between these steps:
 `980px` is also `DESKTOP_NAVIGATION_BREAKPOINT_QUERY`, exported from
 `app/components/app-header-navigation.tsx`. In JS/TS **import it**; in CSS write
 `(min-width: 980px)` literally — never redefine the number in a constant of your own.
+
+Landing-only exception: `480px` in `app/landing.module.css` restores master's
+outer gutters. It changes only `/` and does not define a navigation breakpoint.
+The layout guard permits it only in this module, separately from legacy exceptions.
 
 ### Breakpoints — CV domain
 
@@ -383,13 +399,13 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   The hidden start state is gated behind the `.lp--reveal-ready` class the controller adds, so
   content stays visible without JS and for crawlers. The hero is never gated. The stagger
   applied to landing cards that no longer exist; only the base reveal remains.
-- **Sheet rise (landing hero)**: the published-CV preview starts one frame-height below the
-  hero's bottom rule and rises to rest over 1100ms on `--ease-out-expo`, clipped by that rule
-  so the document reads as coming up out of the line. Pure CSS `@keyframes` inside
-  `@media (prefers-reduced-motion: no-preference)` — no JS, no reveal class, no `animation-delay`
-  on anything a reader needs. This is the one entrance animation in a hero, allowed because it
-  moves a decorative artifact: the headline, lead, both CTAs and the process caption paint
-  immediately and never wait on it.
+- **Landing features carousel**: native horizontal scrolling at 30px/s from 768px
+  on devices with hover, only while visible. Hover or keyboard focus pauses movement; the
+  selected card enlarges slightly. A persistent pause/resume button is available.
+  Phones, touch and reduced motion use manual scrolling without duplicate cards; reduced
+  motion also disables enlargement. The repeated visual group is hidden from
+  assistive technology. Hero rotating words retain the master treatment and show
+  a static first word when reduced motion is requested.
 - **Experience Base explainer (landing)**: the isolated iframe collects career tiles in
   one randomly ordered column, tracks downward, moves the tiles into a stationary queue,
   and fills the empty Experience Base one item at a time. The document pans downward
@@ -412,7 +428,8 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 - Ambient animation only on non-content layers (background pseudo-elements)
 - Entrance animations must not delay information access. Below-the-fold content may be gated;
   in a hero, only a decorative artifact may animate, and never the copy or the CTAs
-- No looping animations on content elements at idle state
+- No looping animations on content elements at idle state, except the explicitly
+  requested landing features carousel and restored hero rotating words above
 - `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
   `app/globals.css` zeroes transition and animation durations; reveal targets are forced visible
 - Light source for ambient gradients: top-left only, never circular bloom
