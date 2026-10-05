@@ -1,0 +1,73 @@
+auth:
+  contextual:
+    verified: Email verification completed. You can sign in now.
+    account_deleted: Your account and all associated data have been permanently deleted.
+    inactive: Your account is inactive. Contact support or an administrator.
+    unverified: Email verification must be completed before access is granted.
+    session: Your session could not be restored. Please sign in again.
+    signed_out: Sign in to continue.
+    set_new_password: Set your new password below.
+  modes:
+    signup:
+      eyebrow: Account setup
+      title: Create your account
+      lead: Create an account to build a private Experience Base and prepare tailored LiveCVs from it.
+      alternate_label: Already have an account?
+      alternate_action: Sign in
+    reset:
+      eyebrow: Recovery
+      title: Reset your password
+      lead: Request a recovery link for the email address tied to your account.
+      alternate_label: Remembered your password?
+      alternate_action: Back to sign in
+    new_password:
+      eyebrow: Recovery
+      title: Set a new password
+      lead: Finish the recovery session opened from your email link.
+      alternate_label: ""
+      alternate_action: ""
+    signin:
+      eyebrow: Account access
+      title: Sign in
+      lead: Sign in to update your Experience Base and manage your LiveCVs.
+      alternate_label: Need an account?
+      alternate_action: Sign up
+  fields:
+    email: Email
+    password: Password
+    new_password: New password
+  actions:
+    forgot_password: Forgot password?
+    resend_verification: Resend verification email
+    sign_in: Sign in
+    signing_in: Signing in…
+    create_account: Create account
+    creating_account: Creating account…
+    send_reset_link: Send reset link
+    sending: Sending…
+    update_password: Update password
+    updating: Updating…
+  signup:
+    beta_tester: I'm joining as a beta tester
+    consent_before_privacy: I have read and accept the
+    privacy_policy: Privacy Policy
+    consent_between: and
+    terms: Terms of Service
+  messages:
+    pending_verification: "Pending verification email: {email}"
+    signing_in: Signing in…
+    signed_in: Signed in. Redirecting…
+    sign_in_error: Unexpected sign-in error. Try again.
+    creating_account: Creating account…
+    account_created: Account created. Verify your email before signing in.
+    sign_up_error: Unexpected sign-up error. Try again.
+    sending_reset: Sending reset link…
+    reset_sent: Password reset email sent.
+    reset_error: Unexpected password reset error. Try again.
+    provide_email: Provide an email in the sign-in form first.
+    sending_verification: Sending verification email…
+    verification_sent: Verification email sent.
+    verification_error: Unexpected verification error. Try again.
+    updating_password: Updating password…
+    password_updated: Password updated. You can sign in now.
+    unexpected_error: Unexpected error. Try again.

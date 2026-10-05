@@ -6,7 +6,7 @@ import path from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
-import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -48,7 +48,7 @@ function loadTsx(file, overrides = {}) {
 }
 
 function renderLanding(locale) {
-  const dictionary = yaml.load(readFileSync(`app/i18n/locales/${locale}.yaml`, "utf8"));
+  const dictionary = readAppDictionary(locale);
   const appI18n = {
     locale,
     locales: [{ code: locale, name: locale, nativeName: locale }],
@@ -82,7 +82,7 @@ function renderLanding(locale) {
 
 for (const locale of ["pl", "en"]) {
   test(`landing restores master sections with the current CV, animation, features and FAQ (${locale})`, async () => {
-    const dictionary = yaml.load(readFileSync(`app/i18n/locales/${locale}.yaml`, "utf8")).landing;
+    const dictionary = readAppDictionary(locale).landing;
     const html = await renderLanding(locale);
     const sections = [
       "lp-hero-title",

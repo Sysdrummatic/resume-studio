@@ -1,0 +1,18 @@
+settings:
+  text:
+    "Account settings": Account settings
+    "Testing tools": Testing tools
+    "Onboarding": Onboarding
+    "Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.": Test the first-use guide on a separate blank draft. Your Experience Base, language versions and profile remain unchanged.
+    "Status": Status
+    "Inactive": Inactive
+    "Completed": Completed
+    "Starts on the next dashboard visit": Starts on the next dashboard visit
+    "In progress / paused": In progress / paused
+    "Start onboarding on my next dashboard visit": Start onboarding on my next dashboard visit
+    "Start now": Start now
+    "Start a new blank test": Start a new blank test
+    "Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.": Start now resumes an unfinished test. A new test keeps previous test drafts and published LiveCVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.
+    "Settings saved.": Settings saved.
+    "Could not save. Reload settings and retry.": Could not save. Reload settings and try again.
+    "Go to dashboard": Go to dashboard

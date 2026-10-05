@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 
 const privacyPagePath = path.join(process.cwd(), "app", "privacy", "page.tsx");
 const footerPath = path.join(process.cwd(), "app", "components", "footer.tsx");
@@ -14,7 +14,7 @@ function readSource(filePath) {
 }
 
 function readDictionary(locale) {
-  return yaml.load(readSource(path.join(process.cwd(), "app", "i18n", "locales", `${locale}.yaml`)));
+  return readAppDictionary(locale);
 }
 
 function flattenDocument(document) {

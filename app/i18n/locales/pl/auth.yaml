@@ -1,0 +1,73 @@
+auth:
+  contextual:
+    verified: Adres e-mail został zweryfikowany. Możesz się teraz zalogować.
+    account_deleted: Twoje konto i wszystkie powiązane dane zostały trwale usunięte.
+    inactive: Twoje konto jest nieaktywne. Skontaktuj się z pomocą lub administratorem.
+    unverified: Przed uzyskaniem dostępu musisz zweryfikować adres e-mail.
+    session: Nie udało się przywrócić sesji. Zaloguj się ponownie.
+    signed_out: Zaloguj się, aby kontynuować.
+    set_new_password: Ustaw poniżej nowe hasło.
+  modes:
+    signup:
+      eyebrow: Konfiguracja konta
+      title: Utwórz konto
+      lead: Utwórz konto, aby prowadzić prywatną Bazę doświadczeń i przygotowywać z niej dopasowane LiveCV.
+      alternate_label: Masz już konto?
+      alternate_action: Zaloguj się
+    reset:
+      eyebrow: Odzyskiwanie dostępu
+      title: Zresetuj hasło
+      lead: Poproś o link odzyskiwania dla adresu e-mail przypisanego do konta.
+      alternate_label: Pamiętasz hasło?
+      alternate_action: Wróć do logowania
+    new_password:
+      eyebrow: Odzyskiwanie dostępu
+      title: Ustaw nowe hasło
+      lead: Dokończ proces odzyskiwania rozpoczęty przez link z wiadomości e-mail.
+      alternate_label: ""
+      alternate_action: ""
+    signin:
+      eyebrow: Dostęp do konta
+      title: Zaloguj się
+      lead: Zaloguj się, aby uzupełniać Bazę doświadczeń i zarządzać swoimi LiveCV.
+      alternate_label: Nie masz konta?
+      alternate_action: Załóż konto
+  fields:
+    email: E-mail
+    password: Hasło
+    new_password: Nowe hasło
+  actions:
+    forgot_password: Nie pamiętasz hasła?
+    resend_verification: Wyślij ponownie e-mail weryfikacyjny
+    sign_in: Zaloguj się
+    signing_in: Logowanie…
+    create_account: Utwórz konto
+    creating_account: Tworzenie konta…
+    send_reset_link: Wyślij link resetujący
+    sending: Wysyłanie…
+    update_password: Zmień hasło
+    updating: Aktualizowanie…
+  signup:
+    beta_tester: Chcę dołączyć do programu beta testów
+    consent_before_privacy: Przeczytałem(-am) i akceptuję
+    privacy_policy: Politykę prywatności
+    consent_between: oraz
+    terms: Warunki korzystania
+  messages:
+    pending_verification: "E-mail oczekujący na weryfikację: {email}"
+    signing_in: Logowanie…
+    signed_in: Zalogowano. Trwa przekierowanie…
+    sign_in_error: Wystąpił nieoczekiwany błąd logowania. Spróbuj ponownie.
+    creating_account: Tworzenie konta…
+    account_created: Konto zostało utworzone. Zweryfikuj e-mail przed zalogowaniem.
+    sign_up_error: Wystąpił nieoczekiwany błąd rejestracji. Spróbuj ponownie.
+    sending_reset: Wysyłanie linku resetującego…
+    reset_sent: E-mail z linkiem do resetowania hasła został wysłany.
+    reset_error: Wystąpił nieoczekiwany błąd resetowania hasła. Spróbuj ponownie.
+    provide_email: Najpierw podaj adres e-mail w formularzu logowania.
+    sending_verification: Wysyłanie wiadomości weryfikacyjnej…
+    verification_sent: E-mail weryfikacyjny został wysłany.
+    verification_error: Wystąpił nieoczekiwany błąd weryfikacji. Spróbuj ponownie.
+    updating_password: Aktualizowanie hasła…
+    password_updated: Hasło zostało zmienione. Możesz się teraz zalogować.
+    unexpected_error: Wystąpił nieoczekiwany błąd. Spróbuj ponownie.

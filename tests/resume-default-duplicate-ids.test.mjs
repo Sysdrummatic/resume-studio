@@ -5,6 +5,7 @@ import { register } from "node:module";
 import yaml from "js-yaml";
 
 import { installFakePostgrest } from "./helpers/fake-postgrest.mjs";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
@@ -245,8 +246,7 @@ test("the publish API reports a broken default with a code, the existing fields 
 
   const failure = plan.defaultDuplicateIdsFailure(body, "pl");
   assert.deepEqual(failure, { locale: "pl", key: plan.DEFAULT_DUPLICATE_IDS_MESSAGE, params: { locale: "pl", defaultLocale: "en" } });
-  const yamlLib = (await import("js-yaml")).default;
-  const rendered = ["en", "pl"].map((language) => yamlLib.load(readFileSync(new URL(`../app/i18n/locales/${language}.yaml`, import.meta.url), "utf8")).editor.text[failure.key]);
+  const rendered = ["en", "pl"].map((language) => readAppDictionary(language).editor.text[failure.key]);
   assert.ok(rendered.every(Boolean), "both dictionaries translate the message");
   assert.notEqual(rendered[0], rendered[1]);
 });
@@ -313,13 +313,11 @@ test("a translation save that itself reuses an ID is refused before reconciliati
 });
 
 test("the editor shows a sync conflict over duplicated translation IDs in English and Polish", async () => {
-  const { readFileSync } = await import("node:fs");
   const plan = await import("../app/master-resume/locale-save-plan.ts");
   const messages = plan.synchronizationFailureMessages({ synchronizationFailed: [{ locale: "pl", reason: "duplicate-ids", issues: [{ kind: "duplicate-id", collection: "experience", index: 1, actualId: "dup-1" }] }], synchronizationComplete: true }, "en");
 
   assert.deepEqual(messages, [{ locale: "pl", key: plan.TRANSLATION_DUPLICATE_IDS_MESSAGE, params: { locale: "pl", collections: "experience" } }]);
-  const yamlLib = (await import("js-yaml")).default;
-  const rendered = ["en", "pl"].map((language) => yamlLib.load(readFileSync(new URL(`../app/i18n/locales/${language}.yaml`, import.meta.url), "utf8")).editor.text[messages[0].key]);
+  const rendered = ["en", "pl"].map((language) => readAppDictionary(language).editor.text[messages[0].key]);
   assert.ok(rendered.every(Boolean));
   assert.notEqual(rendered[0], rendered[1]);
 });

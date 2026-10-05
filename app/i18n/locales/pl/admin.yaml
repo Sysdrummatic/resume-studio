@@ -1,0 +1,75 @@
+admin:
+  text:
+    "Admin panel": Panel administracyjny
+    "Role: {role}. Manage users, roles, activity and account deletion.": "Rola: {role}. Zarządzaj użytkownikami, rolami, aktywnością kont i ich usuwaniem."
+    "View Audit Logs": Zobacz dziennik audytu
+    "Failed to load users.": Nie udało się wczytać użytkowników.
+    "Role update failed.": Nie udało się zmienić roli.
+    "Role updated.": Rola została zmieniona.
+    "Status update failed.": Nie udało się zmienić statusu konta.
+    "Account status updated.": Status konta został zmieniony.
+    "Flag update failed.": Nie udało się zmienić oznaczenia użytkownika.
+    "User flag updated.": Oznaczenie użytkownika zostało zmienione.
+    "Delete this user account? This operation removes auth access.": Usunąć to konto użytkownika? Operacja odbierze dostęp do konta.
+    "Delete failed.": Nie udało się usunąć użytkownika.
+    "User deleted.": Użytkownik został usunięty.
+    "Users": Użytkownicy
+    "{total} total ({active} active)": "Łącznie: {total} (aktywni: {active})"
+    "excluded: {test} test, {staff} staff": "pominięci: konta testowe {test}, zespół {staff}"
+    "Resumes": Dokumenty LiveCV
+    "Public Links": Linki do LiveCV
+    "Public Views": Wyświetlenia publiczne
+    "Email": E-mail
+    "Display name": Nazwa wyświetlana
+    "Role": Rola
+    "Status": Status
+    "Test user": Konto testowe
+    "OCV Staff": Zespół OpenCiVera
+    "Storage": Pamięć
+    "Created": Utworzone
+    "Actions": Działania
+    "Deactivate": Dezaktywuj
+    "Activate": Aktywuj
+    "Delete": Usuń
+    "Audit Log Explorer": Dziennik audytu
+    "Monitor administrative actions with metadata-only filters and inspection tools.": Przeglądaj działania administracyjne za pomocą filtrów i metadanych, bez dostępu do prywatnych treści.
+    "Content Safety Flags": Zgłoszenia bezpieczeństwa treści
+    "Content safety explanation": System wykrywa zapisane treści przypominające próby wstrzyknięcia skryptu. Zgłoszenie nie oznacza skutecznego ataku. Przechowywane i widoczne są wyłącznie metadane oraz skrót dopasowania, bez treści użytkownika.
+    "Timestamp": Czas
+    "User": Użytkownik
+    "Locale": Język
+    "Rule": Reguła
+    "Match Hash": Skrót dopasowania
+    "No content safety flags recorded.": Brak zgłoszeń bezpieczeństwa treści.
+    "Failed to load audit logs.": Nie udało się wczytać dziennika audytu.
+    "Filters": Filtry
+    "Clear": Wyczyść
+    "Loading…": Ładowanie…
+    "Apply": Zastosuj
+    "Actor ID": Identyfikator wykonawcy
+    "Target User ID": Identyfikator użytkownika docelowego
+    "Action Type": Typ działania
+    "Actor Role": Rola wykonawcy
+    "Any": Dowolna
+    "Date From": Od
+    "Date To": Do
+    "Action": Działanie
+    "Actor": Wykonawca
+    "Target": Cel
+    "Metadata": Metadane
+    "No audit logs found.": Nie znaleziono wpisów dziennika audytu.
+    "Hide": Ukryj
+    "Inspect": Szczegóły
+    "Log Metadata: {id}": "Metadane wpisu: {id}"
+    "Close": Zamknij
+    "Beta test mode": Tryb testów beta
+    "Unable to load beta test settings.": Nie udało się wczytać ustawień trybu testowego.
+    "Select a restriction reason first.": Najpierw wybierz przyczynę ograniczenia dostępu.
+    "Unable to save beta test settings.": Nie udało się zapisać ustawień trybu testowego.
+    "Loading...": Ładowanie…
+    "Restrict access (block sign-in and sign-up for non-staff users)": Ogranicz dostęp użytkownikom spoza zespołu, blokując logowanie i rejestrację
+    "Reason shown to users": Komunikat wyświetlany użytkownikom
+    "Select a reason...": Wybierz komunikat…
+    "Cancel": Anuluj
+    "Saving...": Zapisywanie…
+    "Save": Zapisz

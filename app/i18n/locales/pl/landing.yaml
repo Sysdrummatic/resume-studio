@@ -1,0 +1,102 @@
+landing:
+  hero:
+    eyebrow: // Platforma publikacji LiveCV
+    title: Stwórz swoje idealne LiveCV.
+    title_prefix: Które
+    title_suffix: razem z Tobą.
+    rotating_words:
+      - rośnie
+      - ewoluuje
+      - adaptuje się
+      - rozwija się
+    description:
+      - Zarządzanie CV nie działa. Jedna wersja na tę ofertę, druga na inne stanowisko, potem tłumaczenia — a po sześciu miesiącach nikt już nie wie, który PDF ma rekruter.
+      - OpenCiVera to zmienia. Zbuduj swoją historię zawodową raz, opublikuj dopasowaną wersję dla każdego odbiorcy i aktualizuj je wszystkie, gdy tylko coś się zmieni.
+    primary_action: Utwórz LiveCV
+    secondary_action: Zobacz przykładowe LiveCV
+    meta:
+      - Jedno główne CV
+      - Wiele konfiguracji
+      - LiveCV zawsze aktualne
+  sample:
+    data_note: Przykład utworzony w OpenCiVera
+    open_action: Zobacz całe LiveCV
+    loading_aria: Ładowanie przykładowego LiveCV
+    open_aria: Otwórz przykładowe LiveCV
+    eyebrow: // Publiczny link w praktyce
+    title: Twoje CV jako publiczna wizytówka.
+    description: Efektem jest przejrzysty, uporządkowany widok, który prezentuje Twoje kompetencje zawodowe. To właśnie widzą odbiorcy po otwarciu Twojego linku.
+  animation:
+    title: Jak to działa w praktyce?
+    detail: Zobacz, jak z prywatnej Bazy doświadczeń wybierasz informacje do osobnych LiveCV dla konkretnych stanowisk.
+    iframe_title: Animacja pokazująca proces tworzenia LiveCV w OpenCiVera
+  features:
+    eyebrow: // Funkcje OpenCiVera
+    title: Funkcje OpenCiVera
+    description: Jedna historia zawodowa. Narzędzia, które pozwalają stworzyć z niej LiveCV na każdą ofertę.
+    aria_label: Karuzela funkcji OpenCiVera
+    pause: Zatrzymaj karuzelę
+    resume: Wznów karuzelę
+    items:
+      - tag: Baza doświadczeń
+        chip: Jedno źródło
+        title: Twoja kariera w jednym miejscu
+        description: Przechowuj projekty, stanowiska, osiągnięcia i umiejętności w prywatnej bazie. Wybieraj z niej treści do kolejnych LiveCV zamiast utrzymywać osobne pliki.
+      - tag: Import
+        chip: PDF / DOCX / YAML / TXT
+        title: Zacznij od obecnego CV
+        description: Zaimportuj dokument, sprawdź odczytane informacje i uzupełnij brakujące dane. Możesz też wpisać wszystko przez formularz.
+      - tag: Dopasowane wersje
+        chip: Wiele LiveCV
+        title: Wybierz to, co pasuje do roli
+        description: Każde LiveCV może mieć własne podsumowanie, wybór doświadczeń, umiejętności i wygląd. Pełna historia zawodowa pozostaje w bazie.
+      - tag: Języki
+        chip: EN / PL
+        title: Twoje doświadczenie w kilku językach
+        description: Prowadź osobne wersje językowe i wybierz, które opublikować. Zachowujesz kontrolę nad znaczeniem i stylem każdego tłumaczenia.
+      - tag: LiveCV
+        chip: Publiczny link
+        title: Udostępnij LiveCV otwierane w przeglądarce
+        description: Opublikuj wybrane treści pod linkiem dla rekrutera lub pobierz gotowy plik. Odbiorcy zobaczą LiveCV, które zdecydujesz się udostępnić.
+      - tag: Prywatność
+        chip: Twoja decyzja
+        title: Pełna historia pozostaje prywatna
+        description: Nic w Bazie doświadczeń nie staje się publiczne automatycznie. Publikujesz tylko wybrane informacje, a publiczny link możesz wyłączyć w dowolnej chwili.
+      - tag: Aktualizacje
+        chip: Kontrola publikacji
+        title: Odśwież wybraną wersję
+        description: Dodawaj nowe osiągnięcia bez zmieniania wcześniej opublikowanych LiveCV. Gdy wybrana wersja będzie gotowa do udostępnienia, opublikuj ją ponownie.
+      - tag: CV-as-Code
+        chip: Przenośne dane
+        title: Treść niezależna od wyglądu
+        description: Zarządzaj uporządkowanymi danymi przez formularz lub YAML. Eksportuj je i wykorzystuj ponownie bez przepisywania historii pod każdy szablon.
+  faq:
+    title: Warto wiedzieć przed startem.
+    items:
+      - question: Czym OpenCiVera różni się od zwykłego kreatora CV?
+        answer: Zwykły kreator pomaga przygotować pojedynczy dokument. W OpenCiVera najpierw tworzysz prywatną Bazę doświadczeń, a następnie wybierasz z niej treści do osobnych LiveCV dopasowanych do konkretnych ofert.
+      - question: Czy muszę przepisać moje obecne CV?
+        answer: Nie. Możesz zaimportować plik PDF, DOCX, YAML lub TXT, sprawdzić odczytane informacje i uzupełnić brakujące dane.
+      - question: Czy muszę znać YAML?
+        answer: Nie. LiveCV możesz uzupełniać za pomocą zwykłego formularza. YAML jest techniczną podstawą danych i pozostaje dostępny dla osób, które chcą mieć nad nimi dodatkową kontrolę.
+      - question: Kto może zobaczyć moją Bazę doświadczeń?
+        answer: Baza doświadczeń jest prywatna. Odbiorca publicznego linku widzi tylko informacje wybrane do konkretnego, opublikowanego LiveCV.
+      - id: publication-faq
+        question: Jak działa publikacja?
+        answer: Baza doświadczeń pozostaje prywatna. Wybierasz treści do LiveCV, a następnie świadomie je publikujesz. Edycja bazy nie zmienia już opublikowanego LiveCV. Gdy chcesz udostępnić nowe informacje, publikujesz wybraną wersję ponownie. Publiczny link możesz w każdej chwili wyłączyć.
+      - question: Czy zmiana danych aktualizuje opublikowane LiveCV?
+        answer: Nie. Edycja Bazy doświadczeń nie zmienia automatycznie publikacji. Aby udostępnić nowe informacje, ponownie publikujesz wybraną wersję LiveCV.
+      - question: Czy mogę utworzyć kilka wersji LiveCV?
+        answer: Tak. Możesz przygotować osobne wersje dla różnych stanowisk, ofert i języków, korzystając z tej samej Bazy doświadczeń.
+  cta:
+    eyebrow: // Zacznij tutaj
+    title: Zbuduj swoje LiveCV z OpenCiVera.
+    description: Otwórz przykładowe LiveCV, aby zobaczyć publiczny link w działaniu. Następnie zaloguj się i zbuduj własne CV z jednego uporządkowanego źródła.
+    primary_action: Utwórz LiveCV
+    secondary_action: Zobacz przykładowe LiveCV
+  footer:
+    sample_resume: Przykładowe LiveCV
+    platform: Platforma
+    privacy_policy: Polityka prywatności
+    terms: Warunki korzystania
+    contact: Kontakt

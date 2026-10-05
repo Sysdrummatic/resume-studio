@@ -1,0 +1,36 @@
+user:
+  text:
+    "Personal hub": Profile and LiveCVs
+    "Image could not be loaded.": Image could not be loaded.
+    "Image editor is unavailable.": Image editor is unavailable.
+    "Bio updated successfully.": Bio updated successfully.
+    "Failed to update bio.": Failed to update bio.
+    "Choose an image file.": Choose an image file.
+    "Avatar update failed.": Avatar update failed.
+    "Profile photo updated.": Profile photo updated.
+    "Failed to update profile photo.": Failed to update profile photo.
+    "Hide personal hub panel": Hide profile and LiveCV panel
+    "Show personal hub panel": Show profile and LiveCV panel
+    "Close personal hub panel": Close profile and LiveCV panel
+    "Change profile photo": Change profile photo
+    "Add profile photo": Add profile photo
+    "Profile": Profile
+    "User": User
+    "Role unavailable": No position provided
+    "Short bio": Short bio
+    "Share a bit about yourself…": Share a bit about yourself…
+    "Save": Save
+    "Cancel": Cancel
+    "No bio yet. Click the plus icon to add one.": Add a short bio to complete your profile.
+    "Edit short bio": Edit short bio
+    "Add short bio": Add short bio
+    "Edit Master Resume": Edit Experience Base
+    "Manage CV Versions": Manage your LiveCVs
+    "Policies": Policies
+    "Privacy Policy": Privacy policy
+    "Terms of Service": Terms of service
+    "Resume preview": LiveCV preview
+    "{count} published": "{count} published"
+    "Preview unavailable": Preview unavailable
+    "The resume preview could not be rendered in this view. Reload the page to try again.": The LiveCV preview could not be rendered here. Reload the page and try again.
+    "Rendering your resume…": Rendering your LiveCV…

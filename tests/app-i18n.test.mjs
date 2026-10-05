@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import yaml from "js-yaml";
+import { loadDictionaryModules } from "../app/i18n/dictionary-loader.ts";
 import { formatAppMessage, resolveAcceptLanguage, resolveAppLocale, selectEnabledLocale } from "../app/i18n/locale.ts";
 
 const root = process.cwd();
@@ -13,6 +14,10 @@ function read(relativePath) {
 
 function readYaml(relativePath) {
   return yaml.load(read(relativePath));
+}
+
+function readAppDictionary(locale, files = readYaml("app/i18n/config.yaml").dictionary_files) {
+  return loadDictionaryModules(path.join(root, "app/i18n/locales", locale), files, locale);
 }
 
 function shapePaths(value, prefix = "") {
@@ -35,19 +40,37 @@ test("application locale config enables Polish first with English fallback", () 
   assert.deepEqual(enabled, ["pl", "en"]);
   assert.equal(config.geo.country_locales.PL, "pl");
   assert.equal(config.geo.known_country_fallback, "en");
+  assert.deepEqual(config.dictionary_files, [
+    "app-shell.yaml",
+    "landing.yaml",
+    "auth.yaml",
+    "dashboard.yaml",
+    "editor.yaml",
+    "admin.yaml",
+    "user.yaml",
+    "onboarding.yaml",
+    "settings.yaml",
+    "legal.yaml",
+    "docs.yaml",
+    "sample-resume.yaml",
+  ]);
 
   for (const locale of config.locales) {
-    assert.equal(fs.existsSync(path.join(root, "app/i18n", locale.dictionary)), true);
+    const dictionaryDirectory = path.join(root, "app/i18n", locale.dictionary);
+    assert.equal(fs.statSync(dictionaryDirectory).isDirectory(), true);
+    for (const file of config.dictionary_files) {
+      assert.equal(fs.existsSync(path.join(dictionaryDirectory, file)), true, `${locale.code}/${file}`);
+    }
   }
 });
 
 test("every enabled application dictionary matches the fallback dictionary shape", () => {
   const config = readYaml("app/i18n/config.yaml");
   const fallback = config.locales.find((locale) => locale.code === config.fallback_locale);
-  const fallbackDictionary = readYaml(path.join("app/i18n", fallback.dictionary));
+  const fallbackDictionary = readAppDictionary(fallback.code, config.dictionary_files);
 
   for (const locale of config.locales.filter((entry) => entry.enabled)) {
-    const dictionary = readYaml(path.join("app/i18n", locale.dictionary));
+    const dictionary = readAppDictionary(locale.code, config.dictionary_files);
     assert.deepEqual(shapePaths(dictionary).sort(), shapePaths(fallbackDictionary).sort(), locale.code);
   }
 });
@@ -63,8 +86,8 @@ test("locale selection accepts supported regional variants and honors quality", 
 });
 
 test("authenticated workspace copy is sourced from the application dictionaries", () => {
-  const polish = readYaml("app/i18n/locales/pl.yaml");
-  const english = readYaml("app/i18n/locales/en.yaml");
+  const polish = readAppDictionary("pl");
+  const english = readAppDictionary("en");
   const accountMenu = read("app/components/account-menu.tsx");
   const dashboard = read("app/dashboard/dashboard-client.tsx");
   const editor = read("app/master-resume/editor-canvas-client.tsx");

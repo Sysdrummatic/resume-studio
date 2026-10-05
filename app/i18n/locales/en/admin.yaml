@@ -1,0 +1,75 @@
+admin:
+  text:
+    "Admin panel": Admin panel
+    "Role: {role}. Manage users, roles, activity and account deletion.": "Role: {role}. Manage users, roles, activity, and account deletion."
+    "View Audit Logs": View audit logs
+    "Failed to load users.": Failed to load users.
+    "Role update failed.": Role update failed.
+    "Role updated.": Role updated.
+    "Status update failed.": Status update failed.
+    "Account status updated.": Account status updated.
+    "Flag update failed.": Flag update failed.
+    "User flag updated.": User flag updated.
+    "Delete this user account? This operation removes auth access.": Delete this user account? This operation removes authentication access.
+    "Delete failed.": Delete failed.
+    "User deleted.": User deleted.
+    "Users": Users
+    "{total} total ({active} active)": "{total} total ({active} active)"
+    "excluded: {test} test, {staff} staff": "excluded: {test} test, {staff} staff"
+    "Resumes": Resumes
+    "Public Links": LiveCV links
+    "Public Views": Public views
+    "Email": Email
+    "Display name": Display name
+    "Role": Role
+    "Status": Status
+    "Test user": Test user
+    "OCV Staff": OpenCiVera staff
+    "Storage": Storage
+    "Created": Created
+    "Actions": Actions
+    "Deactivate": Deactivate
+    "Activate": Activate
+    "Delete": Delete
+    "Audit Log Explorer": Audit log explorer
+    "Monitor administrative actions with metadata-only filters and inspection tools.": Monitor administrative actions with metadata-only filters and inspection tools.
+    "Content Safety Flags": Content safety flags
+    "Content safety explanation": The system detects saved content that resembles script-injection attempts. A flag does not mean an attack succeeded. Staff can see metadata and a match hash only, never the submitted text.
+    "Timestamp": Timestamp
+    "User": User
+    "Locale": Locale
+    "Rule": Rule
+    "Match Hash": Match hash
+    "No content safety flags recorded.": No content safety flags recorded.
+    "Failed to load audit logs.": Failed to load audit logs.
+    "Filters": Filters
+    "Clear": Clear
+    "Loading…": Loading…
+    "Apply": Apply
+    "Actor ID": Actor ID
+    "Target User ID": Target user ID
+    "Action Type": Action type
+    "Actor Role": Actor role
+    "Any": Any
+    "Date From": Date from
+    "Date To": Date to
+    "Action": Action
+    "Actor": Actor
+    "Target": Target
+    "Metadata": Metadata
+    "No audit logs found.": No audit logs found.
+    "Hide": Hide
+    "Inspect": Inspect
+    "Log Metadata: {id}": "Log metadata: {id}"
+    "Close": Close
+    "Beta test mode": Beta test mode
+    "Unable to load beta test settings.": Unable to load beta test settings.
+    "Select a restriction reason first.": Select a restriction reason first.
+    "Unable to save beta test settings.": Unable to save beta test settings.
+    "Loading...": Loading…
+    "Restrict access (block sign-in and sign-up for non-staff users)": Restrict access by blocking sign-in and sign-up for non-staff users
+    "Reason shown to users": Message shown to users
+    "Select a reason...": Select a message…
+    "Cancel": Cancel
+    "Saving...": Saving…
+    "Save": Save

@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 import { register } from "node:module";
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { listDocNavGroups, getDoc } = await import("../app/lib/docs/content.ts");
@@ -9,9 +8,7 @@ const { renderMarkdownWithOutline } = await import("../app/lib/docs/markdown.ts"
 const { canViewTestScenarios } = await import("../app/lib/docs/access.ts");
 const { buildDocsTopics, buildDocsSections, filterDocs, docsHref } =
   await import("../app/lib/docs/presentation.ts");
-const dictionaries = ["en", "pl"].map((locale) =>
-  yaml.load(fs.readFileSync(`app/i18n/locales/${locale}.yaml`, "utf8"))
-);
+const dictionaries = ["en", "pl"].map(readAppDictionary);
 
 test("workflow steps resolve to current tutorial routes in both languages", () => {
   const topicSlugs = [

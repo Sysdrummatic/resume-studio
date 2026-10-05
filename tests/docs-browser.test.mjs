@@ -4,7 +4,7 @@ import { createRequire, register } from "node:module";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { listDocNavGroups, getDoc } = await import("../app/lib/docs/content.ts");
 const { renderMarkdownWithOutline } = await import("../app/lib/docs/markdown.ts");
@@ -47,7 +47,7 @@ test(
       const url = new URL(req.url, "http://localhost");
       if (url.pathname === "/fixture.json") {
         const locale = url.searchParams.get("lang") === "pl" ? "pl" : "en";
-        const dictionary = yaml.load(await readFile(`app/i18n/locales/${locale}.yaml`, "utf8"));
+        const dictionary = readAppDictionary(locale);
         const groups = url.searchParams.has("empty")
           ? []
           : listDocNavGroups(url.searchParams.has("eligible"), locale);

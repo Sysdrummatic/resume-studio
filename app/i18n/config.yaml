@@ -1,16 +1,29 @@
 default_locale: pl
 fallback_locale: en
+dictionary_files:
+  - app-shell.yaml
+  - landing.yaml
+  - auth.yaml
+  - dashboard.yaml
+  - editor.yaml
+  - admin.yaml
+  - user.yaml
+  - onboarding.yaml
+  - settings.yaml
+  - legal.yaml
+  - docs.yaml
+  - sample-resume.yaml
 locales:
   - code: pl
     enabled: true
     name: Polish
     native_name: Polski
-    dictionary: locales/pl.yaml
+    dictionary: locales/pl
   - code: en
     enabled: true
     name: English
     native_name: English
-    dictionary: locales/en.yaml
+    dictionary: locales/en
 geo:
   country_locales:
     PL: pl

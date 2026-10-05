@@ -1,0 +1,69 @@
+onboarding:
+  steps:
+    - Welcome to OpenCiVera
+    - How would you like to start?
+    - Personal details
+    - Professional summary
+    - Experience
+    - Education
+    - Skills
+    - Languages
+    - Courses
+    - Interests
+    - Tech stack
+    - QR codes
+    - GDPR clause
+    - Review your first LiveCV
+    - Publish your first LiveCV?
+  text:
+    "Copy link or Open CV send/show the live page. Download PDF opens a printable copy in a new tab.": Copy LiveCV link or Open LiveCV shares or opens the published page. Download PDF opens a printable copy of LiveCV in a new tab.
+    "Manage this and every future CV version — edit, publish, or delete — from your dashboard.": Manage this and every future LiveCV version — edit, publish, or delete — from your dashboard.
+    "Could not save or finish this step. Check your connection and try again; your entries remain on this screen.": Could not save or finish this step. Check your connection and try again; your entries remain on this screen.
+    "Enter your name to continue.": Enter your first or family name to continue.
+    "Select and copy the link above.": Select and copy the LiveCV link above.
+    "Guide progress": Guide progress
+    "Complete": Complete
+    "Your first CV": Your first LiveCV
+    "Your CV is ready to send": Your LiveCV is ready to send
+    "Your test draft is saved": Your test draft is saved
+    "Your Master CV is saved": Your Experience Base is saved
+    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": "Onboarding test: this is a separate draft. Your Experience Base and profile stay unchanged. Publishing creates a LiveCV named Test onboardingu."
+    "Could not load your CV. Reload this page before continuing.": Could not load your LiveCV. Reload this page before continuing.
+    "Loading your CV…": Loading your LiveCV…
+    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Build your Experience Base step by step. At the end, select the information and create a LiveCV you can share with a link.
+    "CV language": LiveCV language
+    "Start from scratch": Start from scratch
+    "Fill in each section with short prompts.": Fill in each section with short prompts.
+    "Import my CV": Import my CV
+    "Upload your file, check the imported details and fill in anything missing.": Upload your file, check the imported details, and fill in anything missing.
+    "Import applied. Continue to check each section.": Import applied. Continue to check each section.
+    "Optional. Add what is relevant, or continue to skip this section.": Optional. Add what is relevant, or continue to skip this section.
+    "Add the details you want in your CV. You can edit them later.": Add the details you want in your LiveCV. You can edit them later.
+    "This preview uses your selected professional summary and completed entries. Check the information before sharing.": This preview uses your selected professional summary and completed entries. Check the information before sharing.
+    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Create your first LiveCV and publish it under a shareable link? It will appear in your dashboard, where you can later change its content or unpublish it.
+    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Anyone with the link can view this LiveCV. Search engine indexing will be disabled. Your Experience Base stays private.
+    "Add your name and a professional summary before creating a link. You can also save and finish without publishing.": Add your name and a professional summary before creating a link. You can also save and finish without publishing.
+    "Your first CV is saved in your dashboard. Copy the link to send it.": Your first LiveCV is saved in your dashboard. Copy the link to send it.
+    "The test is complete. No public CV was created. You can start another test in account settings.": The test is complete. No public LiveCV was created. You can start another test in account settings.
+    "You can create a CV with a link from your dashboard whenever you are ready.": You can create a LiveCV with a link from your dashboard whenever you are ready.
+    "CV link": LiveCV link
+    "Copied": Copied
+    "Copy link": Copy LiveCV link
+    "Open CV": Open LiveCV
+    "Go to dashboard": Go to dashboard
+    "Testing settings": Testing settings
+    "Your entries are saved to your account when you change steps or finish later.": Your entries are saved to your account when you change steps or finish later.
+    "Finish later": Finish later
+    "Back": Back
+    "Not now": Not now
+    "Saving…": Saving…
+    "Yes, create my CV with a link": Yes, publish my LiveCV
+    "Let’s begin": Let’s begin
+    "Continue / skip": Continue / skip
+    "Continue": Continue
+    "Onboarding test": Onboarding test
+    "Resume test": Resume test
+    "Finish your first CV": Finish your first LiveCV
+    "Your saved details are ready. Continue the guide where you left off.": Your saved details are ready. Continue the guide where you left off.
+    "Resume guide": Resume guide
+    "Onboarding test CV": Onboarding test LiveCV

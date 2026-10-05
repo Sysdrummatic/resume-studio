@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 
 test(
   "dashboard browser regression (isolated data/API, real renderer)",
@@ -45,7 +45,7 @@ test(
         if (req.url?.startsWith("/fixture-i18n.json")) {
           // The guide follows the application locale, so a Polish run needs the Polish dictionary.
           const locale = new URL(req.url, "http://fixture").searchParams.get("locale") === "pl" ? "pl" : "en";
-          const dictionary = yaml.load(await readFile(`app/i18n/locales/${locale}.yaml`, "utf8"));
+          const dictionary = readAppDictionary(locale);
           res.setHeader("Content-Type", "application/json");
           res.end(
             JSON.stringify({

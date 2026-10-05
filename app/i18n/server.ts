@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { cookies, headers } from "next/headers";
 import yaml from "js-yaml";
+import { loadDictionaryModules } from "./dictionary-loader";
 import {
   APP_COUNTRY_HEADER_NAME,
   APP_LOCALE_COOKIE_NAME,
@@ -24,6 +25,7 @@ type LocaleConfigEntry = {
 type AppI18nConfig = {
   default_locale: string;
   fallback_locale: string;
+  dictionary_files: string[];
   locales: LocaleConfigEntry[];
   geo: {
     country_locales: Record<string, string>;
@@ -62,6 +64,9 @@ function loadConfig(): AppI18nConfig {
     native_name: String(entry.native_name || "").trim(),
     dictionary: String(entry.dictionary || "").trim()
   }));
+  const dictionaryFiles = Array.isArray(parsed.dictionary_files)
+    ? parsed.dictionary_files.map((file) => String(file).trim())
+    : [];
   const enabledCodes = locales.filter((locale) => locale.enabled).map((locale) => locale.code);
   const defaultLocale = selectEnabledLocale(parsed.default_locale, enabledCodes);
   const fallbackLocale = selectEnabledLocale(parsed.fallback_locale, enabledCodes);
@@ -79,6 +84,8 @@ function loadConfig(): AppI18nConfig {
     !defaultLocale ||
     !fallbackLocale ||
     !knownCountryFallback ||
+    dictionaryFiles.length === 0 ||
+    dictionaryFiles.some((file) => !/^[a-z0-9-]+\.yaml$/.test(file)) ||
     locales.some((locale) => !/^[a-z]{2}$/.test(locale.code) || !locale.dictionary)
   ) {
     throw new Error("Application locale configuration contains an invalid or disabled locale.");
@@ -87,6 +94,7 @@ function loadConfig(): AppI18nConfig {
   configCache = {
     default_locale: defaultLocale,
     fallback_locale: fallbackLocale,
+    dictionary_files: dictionaryFiles,
     locales,
     geo: {
       country_locales: countryLocales,
@@ -115,17 +123,14 @@ function loadRawDictionary(locale: string): AppDictionary {
     throw new Error(`Application dictionary is not enabled for locale "${locale}".`);
   }
 
-  const resolvedPath = path.resolve(I18N_ROOT, entry.dictionary);
-  if (!resolvedPath.startsWith(`${I18N_ROOT}${path.sep}`)) {
+  const resolvedDirectory = path.resolve(I18N_ROOT, entry.dictionary);
+  if (!resolvedDirectory.startsWith(`${I18N_ROOT}${path.sep}`)) {
     throw new Error(
       `Application dictionary path escapes the i18n directory for locale "${locale}".`
     );
   }
-  const parsed = readYamlFile(resolvedPath);
-  if (!isRecord(parsed)) {
-    throw new Error(`Invalid application dictionary for locale "${locale}".`);
-  }
-  return parsed as AppDictionary;
+
+  return loadDictionaryModules(resolvedDirectory, config.dictionary_files, locale) as AppDictionary;
 }
 
 export function getAppI18nConfig(): {

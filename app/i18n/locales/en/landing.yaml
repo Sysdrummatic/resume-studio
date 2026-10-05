@@ -1,0 +1,102 @@
+landing:
+  hero:
+    eyebrow: // LiveCV publication platform
+    title: Create your ultimate LiveCV.
+    title_prefix: Which
+    title_suffix: with you.
+    rotating_words:
+      - grows
+      - evolves
+      - adapts
+      - scales
+    description:
+      - Managing your CV is broken. One version for this job, another for that role, then translations, and six months later nobody knows which PDF a recruiter has.
+      - OpenCiVera fixes that. Build your career record once, publish a tailored version for each audience, and update all of them the instant anything changes.
+    primary_action: Create LiveCV
+    secondary_action: View sample LiveCV
+    meta:
+      - One master CV
+      - Multiple configurations
+      - LiveCV always up-to-date
+  sample:
+    data_note: An example created with OpenCiVera
+    open_action: View the full LiveCV
+    loading_aria: Loading sample resume
+    open_aria: Open sample resume
+    eyebrow: // public link in action
+    title: Your CV as your public business card.
+    description: The output layer is a clean structured view, designed for professional signal, not document formatting. This is what recipients see when they open your link.
+  animation:
+    title: How does it work in practice?
+    detail: See how you select information from your private Experience Base to create separate LiveCVs for specific roles.
+    iframe_title: Animation showing how OpenCiVera creates tailored LiveCVs
+  features:
+    eyebrow: // OpenCiVera features
+    title: OpenCiVera features
+    description: One career record. The tools to turn it into a LiveCV for each opportunity.
+    aria_label: OpenCiVera features carousel
+    pause: Pause carousel
+    resume: Resume carousel
+    items:
+      - tag: Experience Base
+        chip: One source
+        title: Your career in one place
+        description: Keep projects, roles, achievements and skills in a private base. Select from it for each new LiveCV instead of maintaining disconnected files.
+      - tag: Import
+        chip: PDF / DOCX / YAML / TXT
+        title: Start with your existing CV
+        description: Import a document, review the extracted information and complete what is missing. You can also enter everything through the form.
+      - tag: Tailored versions
+        chip: Many LiveCVs
+        title: Choose what fits the role
+        description: Give each LiveCV its own summary, selected experience, skills and appearance. Your complete career record stays in the base.
+      - tag: Languages
+        chip: EN / PL
+        title: Your experience in more languages
+        description: Maintain separate language versions and choose which to publish. You control the meaning and tone of each translation.
+      - tag: LiveCV
+        chip: Public link
+        title: Share a LiveCV that opens in a browser
+        description: Publish selected content under a link for recruiters or download a ready-to-send file. Recipients see the LiveCV you chose to share.
+      - tag: Privacy
+        chip: Your decision
+        title: Keep the full record private
+        description: Nothing in your Experience Base becomes public automatically. Publish only selected information and disable the public link whenever you need.
+      - tag: Updates
+        chip: Controlled publication
+        title: Refresh the version you choose
+        description: Add new achievements without changing previously published LiveCVs. When a version is ready to share again, publish it again.
+      - tag: CV-as-Code
+        chip: Portable data
+        title: Content independent of design
+        description: Use the form or YAML to manage structured career data. Export it and reuse it without rewriting your history for each template.
+  faq:
+    title: Good to know before you start.
+    items:
+      - question: How is OpenCiVera different from a regular CV builder?
+        answer: A regular builder helps you prepare a single document. In OpenCiVera, you first create a private Experience Base, then select content from it for separate LiveCVs tailored to specific opportunities.
+      - question: Do I have to rewrite my current CV?
+        answer: No. You can import a PDF, DOCX, YAML or TXT file, review the extracted information and complete anything that is missing.
+      - question: Do I need to know YAML?
+        answer: No. You can complete your LiveCV through a regular form. YAML is the technical foundation of the data and remains available to people who want additional control over it.
+      - question: Who can see my Experience Base?
+        answer: Your Experience Base is private. A public link recipient sees only the information selected for that published LiveCV.
+      - id: publication-faq
+        question: How does publishing work?
+        answer: Your Experience Base stays private. Select the content for a LiveCV, then choose to publish it. Editing the base does not change a LiveCV you have already published. To share new information, publish that LiveCV version again. You can disable the public link at any time.
+      - question: Does changing my data update a published LiveCV?
+        answer: No. Editing your Experience Base does not automatically change a publication. To share new information, publish the selected LiveCV version again.
+      - question: Can I create several LiveCV versions?
+        answer: Yes. You can prepare separate versions for different roles, opportunities and languages from the same Experience Base.
+  cta:
+    eyebrow: // get started
+    title: Build your LiveCV with OpenCiVera.
+    description: Open the sample LiveCV to see a published link in action, then sign in and build your own from one structured source.
+    primary_action: Create LiveCV
+    secondary_action: View sample LiveCV
+  footer:
+    sample_resume: Sample resume
+    platform: Platform
+    privacy_policy: Privacy Policy
+    terms: Terms of Service
+    contact: Contact

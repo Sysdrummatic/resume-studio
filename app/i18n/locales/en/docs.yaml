@@ -1,0 +1,71 @@
+docs:
+  workflow:
+    path: Create your LiveCV step by step
+    more: Develop and update your LiveCV
+    help: Need help?
+    intro: Explore the whole process
+    start: Start with your Experience Base
+    go: Go to step
+    step: "Step {step} of {total}"
+    previous: Previous step
+    next: Next step
+    navigation: LiveCV workflow navigation
+    editor: Open the editor
+    dashboard: Go to dashboard
+    back: Back to the LiveCV workflow
+    optional: "Optional: prepare another language before publishing."
+    language: Add a language version
+    outcome: Result
+    finished: This is the last guide step. Review your downloaded file before sending it.
+  title: Docs
+  home: Home
+  help_center: Help center
+  overview: Overview
+  topics: Working with your LiveCV
+  tutorials: Tutorials
+  test_scenarios: Test scenarios
+  menu: Docs menu
+  outline: On this page
+  development: Documentation in progress
+  development_note: Guides evolve with the application.
+  heading: Create your LiveCV step by step
+  lead: Build your private Experience Base, select the right content and share a finished LiveCV.
+  search: Search documentation
+  placeholder: Find a topic or guide…
+  results: Results
+  clear: Clear search
+  no_results: No matching topic was found. Try LiveCV, publishing, or language.
+  start: Start here
+  first_cv: Your first LiveCV — from editing to publication
+  first_cv_note: Build your Experience Base, select the right content and share a finished LiveCV. The guide walks through every stage.
+  open_guide: Open the guide
+  tools: Get to know the tools
+  choose: Choose what you want to learn
+  guides: Guides and answers
+  privacy_tag: Your data, your choice
+  privacy_title: Your Experience Base stays private
+  privacy_note: Only the content selected for a published LiveCV is shared. Everything else remains available only in your account.
+  privacy_link: Learn how publication works
+  about: About this documentation
+  no_docs: No guides are available yet.
+  article_fallback: This article is shown in English because a translation is not available yet.
+  footer: Product documentation
+  master: Experience Base
+  version: LiveCV version
+  published: Published LiveCV
+  master_note: Your private experience library
+  version_note: Content selected for a specific role
+  published_note: A published LiveCV available under its public link
+  topics_content:
+    - title: Build your Experience Base
+      description: Add experience, skills and contact details, then save your document.
+      label: A private Experience Base saved in your account
+    - title: Tailor a version for a role
+      description: Select relevant content, choose its appearance and check the preview.
+      label: A tailored LiveCV version ready to publish
+    - title: Publish and share
+      description: Choose languages, decide on indexing and copy the LiveCV link.
+      label: A public link to your published LiveCV
+    - title: Download your finished LiveCV
+      description: Export the published version as PDF or ATS text and review the file.
+      label: A file ready to send

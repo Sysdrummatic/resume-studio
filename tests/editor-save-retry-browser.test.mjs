@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 import { randomUUID } from "node:crypto";
 import { register } from "node:module";
 
@@ -37,8 +38,8 @@ test(
 
     let uiLocale = "en";
     const dictionaries = {
-      en: yaml.load(await readFile("app/i18n/locales/en.yaml", "utf8")),
-      pl: yaml.load(await readFile("app/i18n/locales/pl.yaml", "utf8")),
+      en: readAppDictionary("en"),
+      pl: readAppDictionary("pl"),
     };
     const server = createServer(async (req, res) => {
       try {

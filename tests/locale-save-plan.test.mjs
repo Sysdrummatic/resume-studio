@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { register } from "node:module";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
@@ -67,9 +68,9 @@ test("editor failure messages exist in both the English and the Polish dictionar
   const keys = [
     ...synchronizationFailureMessages({ synchronizationFailed: [{ locale: "pl", reason: "legacy-pairing", conflicts: [] }, { locale: "de", reason: "read" }], synchronizationComplete: false }, "en"),
   ].map((message) => message.key);
-  for (const dictionary of ["app/i18n/locales/en.yaml", "app/i18n/locales/pl.yaml"]) {
-    const text = read(dictionary);
-    for (const key of new Set(keys)) assert.ok(text.includes(JSON.stringify(key)), `${dictionary} translates ${key}`);
+  for (const locale of ["en", "pl"]) {
+    const text = readAppDictionary(locale).editor.text;
+    for (const key of new Set(keys)) assert.ok(text[key], `${locale} translates ${key}`);
   }
 });
 
@@ -83,8 +84,8 @@ test("a partial save gives the editor the stored version to retry from and a loc
   });
   assert.equal(partialSaveFailure({ error: "Publish failed." }, "pl"), null, "an ordinary failure keeps the old base");
   assert.equal(partialSaveFailure({ saved: true }, "pl"), null, "no version, no rebase");
-  for (const dictionary of ["app/i18n/locales/en.yaml", "app/i18n/locales/pl.yaml"]) {
-    assert.ok(read(dictionary).includes(JSON.stringify(PARTIAL_SAVE_MESSAGE)), `${dictionary} translates the partial-save message`);
+  for (const locale of ["en", "pl"]) {
+    assert.ok(readAppDictionary(locale).editor.text[PARTIAL_SAVE_MESSAGE], `${locale} translates the partial-save message`);
   }
 });
 
@@ -137,14 +138,13 @@ test("a direct save of an ambiguous legacy version is resent once the user confi
 });
 
 test("legacy-pairing messages render in English and Polish from the dictionaries, not from payload.error", async () => {
-  const yaml = (await import("js-yaml")).default;
   const { formatAppMessage } = await import("../app/i18n/locale.ts");
   const plan = await import("../app/master-resume/locale-save-plan.ts");
   const keys = [plan.LEGACY_PAIRING_MESSAGE, plan.LEGACY_PAIRING_AMBIGUOUS_MESSAGE, plan.LEGACY_PAIRING_CONFIRM_PROMPT];
   const params = { locale: "pl", collections: "interests" };
   const rendered = {};
   for (const language of ["en", "pl"]) {
-    const text = yaml.load(read(`app/i18n/locales/${language}.yaml`)).editor.text;
+    const text = readAppDictionary(language).editor.text;
     rendered[language] = keys.map((key) => {
       assert.ok(text[key], `${language} translates ${key}`);
       return formatAppMessage(text[key], params);

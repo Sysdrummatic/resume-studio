@@ -1,0 +1,36 @@
+user:
+  text:
+    "Personal hub": Profil i LiveCV
+    "Image could not be loaded.": Nie udało się wczytać obrazu.
+    "Image editor is unavailable.": Edytor obrazu jest niedostępny.
+    "Bio updated successfully.": Krótki opis został zaktualizowany.
+    "Failed to update bio.": Nie udało się zaktualizować krótkiego opisu.
+    "Choose an image file.": Wybierz plik graficzny.
+    "Avatar update failed.": Nie udało się zaktualizować zdjęcia profilowego.
+    "Profile photo updated.": Zdjęcie profilowe zostało zaktualizowane.
+    "Failed to update profile photo.": Nie udało się zaktualizować zdjęcia profilowego.
+    "Hide personal hub panel": Ukryj panel profilu i LiveCV
+    "Show personal hub panel": Pokaż panel profilu i LiveCV
+    "Close personal hub panel": Zamknij panel profilu i LiveCV
+    "Change profile photo": Zmień zdjęcie profilowe
+    "Add profile photo": Dodaj zdjęcie profilowe
+    "Profile": Profil
+    "User": Użytkownik
+    "Role unavailable": Nie podano stanowiska
+    "Short bio": Krótki opis
+    "Share a bit about yourself…": Napisz kilka słów o sobie…
+    "Save": Zapisz
+    "Cancel": Anuluj
+    "No bio yet. Click the plus icon to add one.": Dodaj krótki opis, aby uzupełnić profil.
+    "Edit short bio": Edytuj krótki opis
+    "Add short bio": Dodaj krótki opis
+    "Edit Master Resume": Edytuj Bazę doświadczeń
+    "Manage CV Versions": Zarządzaj swoimi LiveCV
+    "Policies": Dokumenty prawne
+    "Privacy Policy": Polityka prywatności
+    "Terms of Service": Warunki korzystania
+    "Resume preview": Podgląd LiveCV
+    "{count} published": "Opublikowane: {count}"
+    "Preview unavailable": Podgląd jest niedostępny
+    "The resume preview could not be rendered in this view. Reload the page to try again.": Nie udało się wyrenderować podglądu LiveCV. Odśwież stronę i spróbuj ponownie.
+    "Rendering your resume…": Przygotowywanie podglądu LiveCV…

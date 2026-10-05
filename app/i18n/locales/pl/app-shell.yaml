@@ -1,0 +1,55 @@
+meta:
+  description: OpenCiVera — kreator LiveCV oparty na prywatnej Bazie doświadczeń. Twórz osobne LiveCV dopasowane do konkretnych ofert.
+common:
+  loading: Ładowanie…
+  close: Zamknij
+  save: Zapisz
+  cancel: Anuluj
+  home: Strona główna
+  breadcrumb: Okruszki nawigacyjne
+  close_notification: Zamknij powiadomienie
+navigation:
+  personal_hub: Profil i LiveCV
+  dashboard: Panel
+  sample_cv: Przykładowe LiveCV
+  docs: Dokumentacja
+  sign_up: Załóż konto
+  sign_in: Zaloguj się
+  primary_aria: Główna nawigacja
+  open_primary_aria: Otwórz główną nawigację
+language_menu:
+  aria_label: Język aplikacji
+theme:
+  aria_label: "Motyw aplikacji: {theme}. Przełącz na motyw {nextTheme}."
+account:
+  open_menu_aria: Otwórz menu konta
+  actions_aria: Działania na koncie
+  profile: Profil
+  user_management: Zarządzanie użytkownikami
+  beta_test_mode: Tryb testów beta
+  settings: Ustawienia
+  signing_out: Wylogowywanie…
+  log_out: Wyloguj się
+  profile_modal:
+    title: Profil
+    close: Zamknij
+    first_name: Imię
+    last_name: Nazwisko
+    saving: Zapisywanie…
+    save: Zapisz
+    email: Adres e-mail
+    role: Rola
+    status: Status konta
+    email_verification: Weryfikacja adresu e-mail
+    active: Aktywne
+    inactive: Nieaktywne
+    verified: Potwierdzony
+    pending: Oczekuje na potwierdzenie
+    update_failed: Nie udało się zaktualizować profilu.
+    delete_title: Usuń konto i wszystkie dane
+    delete_action: Usuń konto i wszystkie dane
+    delete_explanation: "Tej operacji nie można cofnąć. Konto oraz wszystkie dane LiveCV zostaną trwale usunięte. Aby potwierdzić, wpisz poniżej swój adres e-mail: {email}."
+    delete_failed: Nie udało się usunąć konta.
+    cancel: Anuluj
+    deleting: Usuwanie…
+    delete_forever: Usuń konto bezpowrotnie

@@ -1,0 +1,18 @@
+settings:
+  text:
+    "Account settings": Ustawienia konta
+    "Testing tools": Narzędzia testowe
+    "Onboarding": Pierwsze uruchomienie
+    "Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.": Przetestuj przewodnik pierwszego uruchomienia na osobnym, pustym szkicu. Baza doświadczeń, wersje językowe i profil pozostaną bez zmian.
+    "Status": Stan
+    "Inactive": Nieaktywny
+    "Completed": Zakończony
+    "Starts on the next dashboard visit": Rozpocznie się przy następnym wejściu do panelu
+    "In progress / paused": W toku lub wstrzymany
+    "Start onboarding on my next dashboard visit": Uruchom przewodnik przy następnym wejściu do panelu
+    "Start now": Uruchom teraz
+    "Start a new blank test": Rozpocznij nowy pusty test
+    "Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.": Opcja „Uruchom teraz” wznawia niedokończony test. Nowy test zachowuje wcześniejsze szkice testowe i opublikowane LiveCV. Na końcu zdecydujesz, czy opublikować LiveCV „Test onboardingu”; automatyczne uruchamianie zostanie wtedy wyłączone.
+    "Settings saved.": Ustawienia zostały zapisane.
+    "Could not save. Reload settings and retry.": Nie udało się zapisać zmian. Odśwież ustawienia i spróbuj ponownie.
+    "Go to dashboard": Przejdź do panelu

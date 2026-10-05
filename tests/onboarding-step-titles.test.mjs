@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { register } from "node:module";
 
-import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { ONBOARDING_SECTIONS, ONBOARDING_REVIEW_STEP, ONBOARDING_PUBLISH_STEP } = await import("../app/lib/resume-onboarding.ts");
@@ -17,7 +16,7 @@ const expected = {
 
 for (const language of ["en", "pl"]) {
   test(`every onboarding step has its own title in ${language.toUpperCase()}`, () => {
-    const steps = yaml.load(readFileSync(new URL(`../app/i18n/locales/${language}.yaml`, import.meta.url), "utf8")).onboarding.steps;
+    const steps = readAppDictionary(language).onboarding.steps;
 
     assert.equal(steps.length, ONBOARDING_PUBLISH_STEP + 1, "welcome, choice, one per section, review and publish");
     assert.ok(steps.every((title) => typeof title === "string" && title.trim()), "no step is untitled");

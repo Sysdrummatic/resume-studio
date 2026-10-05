@@ -5,12 +5,12 @@ import { createRequire, register } from "node:module";
 import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
-import yaml from "js-yaml";
+import { readAppDictionary } from "./helpers/app-i18n.mjs";
 
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { canViewTestScenarios } = await import("../app/lib/docs/access.ts");
 const require = createRequire(import.meta.url);
-const dictionary = yaml.load(readFileSync("app/i18n/locales/en.yaml", "utf8"));
+const dictionary = readAppDictionary("en");
 const appI18n = {
   locale: "en",
   locales: [{ code: "en", name: "English", nativeName: "English" }],

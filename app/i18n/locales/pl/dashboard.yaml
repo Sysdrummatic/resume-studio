@@ -1,0 +1,226 @@
+dashboard:
+  option_labels:
+    summary: Podsumowanie
+    experience: Doświadczenie
+    education: Wykształcenie
+    courses: Kursy
+    skills: Umiejętności
+    interests: Zainteresowania
+    languages: Języki
+    tech_stack: Technologie
+    summary_item: "Podsumowanie {number}"
+    experience_item: "Doświadczenie {number}"
+    education_item: "Wykształcenie {number}"
+    course_item: "Kurs {number}"
+    item: "Pozycja {number}"
+  preset_editor:
+    title_required: Podaj nazwę wersji LiveCV.
+    summary_required: Wybierz dokładnie jedno podsumowanie.
+    aria_label: Edycja wersji LiveCV
+    close_aria: Zamknij edycję wersji LiveCV
+    edit_title: Edytuj wersję LiveCV
+    create_title: Utwórz LiveCV
+    close: Zamknij
+    title_label: Nazwa LiveCV
+    title_placeholder: Frontend Developer — przykładowa firma
+    allow_indexing: Zezwól wyszukiwarkom na indeksowanie po publikacji
+    ai_generated: Oznacz jako treść wygenerowaną przez AI
+    style_aria: Wygląd wersji LiveCV
+    template: Szablon
+    primary_color: Kolor główny
+    template_sample_two_column: Podstawowy dwukolumnowy
+    template_signal_grid: Signal Grid
+    template_atelier_noir: Atelier Noir
+    template_terminal_stack: Terminal Stack
+    no_items: Brak pozycji w Bazie doświadczeń.
+    saving: Zapisywanie…
+    save: Zapisz LiveCV
+    cancel: Anuluj
+  preview:
+    language_aria: Zmień język LiveCV
+    empty_language: "Ta wersja LiveCV nie ma jeszcze treści w języku {language}. Dodaj je w Bazie doświadczeń albo wybierz uzupełniony język."
+    aria_label: Podgląd wersji LiveCV
+    close_aria: Zamknij podgląd LiveCV
+    open_cv: Otwórz LiveCV
+    close: Zamknij
+    note: Podgląd treści wybranych z bieżącej Bazy doświadczeń. Link do LiveCV i eksport korzystają z ostatnio opublikowanej wersji.
+    render_error: Nie udało się przygotować podglądu na podstawie Bazy doświadczeń.
+  actions:
+    settings_aria: "Ustawienia wersji LiveCV: {title}"
+    settings_title: Ustawienia wersji LiveCV
+    edit: Edytuj
+    unpublish: Wycofaj publikację
+    publish: Opublikuj
+    delete_aria: "Usuń wersję LiveCV: {title}"
+    delete: Usuń
+  messages:
+    reader_failed: Nie udało się uruchomić odczytu dokumentu. Odśwież stronę i spróbuj ponownie.
+    source_unavailable: Baza doświadczeń dla tej wersji LiveCV jest niedostępna. Odśwież stronę i spróbuj ponownie.
+    master_read_failed: Nie udało się odczytać Bazy doświadczeń. Otwórz edytor i sprawdź dane.
+    not_saved: Jeszcze nie zapisano
+    language_versions: "Wersje językowe: {count}"
+    save_failed: Nie udało się zapisać wersji LiveCV.
+    saved: Wersja LiveCV została zapisana.
+    publish_failed: Nie udało się opublikować wersji LiveCV.
+    published: Wersja LiveCV została opublikowana.
+    unpublish_failed: Nie udało się wycofać publikacji wersji LiveCV.
+    unpublished: Publikacja wersji LiveCV została wycofana.
+    delete_failed: Nie udało się usunąć wersji LiveCV.
+    deleted: Wersja LiveCV została usunięta.
+    publish_first: Najpierw opublikuj tę wersję LiveCV.
+    link_copied: Link do LiveCV został skopiowany.
+    copy_failed: Nie udało się skopiować linku.
+    publish_before_text: Przed eksportem tekstu opublikuj tę wersję LiveCV.
+    publish_before_pdf: Przed eksportem PDF opublikuj tę wersję LiveCV.
+    preparing_text: Przygotowywanie eksportu tekstowego…
+    preparing_pdf: Przygotowywanie pliku PDF…
+    preparing_data: Przygotowywanie eksportu danych…
+    import_failed: Nie udało się zaimportować danych.
+    import_success: Dane zostały zaimportowane. Trwa odświeżanie…
+    no_languages: Brak wersji językowych dostępnych do publikacji.
+  main:
+    title: Panel
+    subtitle: Jedna Baza doświadczeń. Osobne LiveCV dla konkretnych ofert.
+    create_version: Utwórz LiveCV
+    create_master_first: Najpierw utwórz Bazę doświadczeń.
+    master_title: Baza doświadczeń
+    private: Prywatne
+    saved: "Zapisano: {date}"
+    start_story: Dodaj informacje, które wykorzystasz w swoich LiveCV.
+    master_description: Pełny, prywatny zbiór informacji, z którego wybierasz treści do kolejnych LiveCV.
+    edit_master: Edytuj Bazę doświadczeń
+    export: Eksportuj
+    import: Importuj
+    export_title: Pobierz kopię Bazy doświadczeń i zapisanych wersji w jednym pliku YAML.
+    import_title: Przywróć Bazę doświadczeń i prywatne wersje LiveCV z kopii YAML.
+    completion: Kompletność Bazy doświadczeń
+    reading: Odczytywanie zapisanych treści…
+    completion_summary: "Uzupełnione sekcje: {done} z {total}."
+    add_details: Dodaj informacje, aby uzupełnić Bazę doświadczeń.
+    continue_editing: Kontynuuj edycję
+    review_content: Sprawdź treść
+    stats_aria: Statystyki Bazy doświadczeń
+    roles: Podsumowania zawodowe
+    roles_note: Warianty do różnych ról
+    experience: Doświadczenie
+    experience_note: Historia zatrudnienia
+    skills: Umiejętności
+    skills_note: Dostępne w wersjach LiveCV
+    courses: Kursy
+    courses_note: Kursy i certyfikaty
+    cv_languages: Języki LiveCV
+    stats_note: "Liczby dotyczą Bazy doświadczeń w języku {locale}. Wersje językowe są liczone osobno."
+  library:
+    title: Twoje LiveCV
+    versions: wersje
+    public: publiczne
+    private: prywatne
+    no_versions: Nie masz jeszcze dopasowanego LiveCV
+    start_master: Zacznij od Bazy doświadczeń
+    empty_with_master: Wybierz treści z Bazy doświadczeń i utwórz pierwsze dopasowane LiveCV.
+    empty_without_master: Najpierw dodaj doświadczenie. Potem wybierzesz z niego treści do pierwszego LiveCV.
+    search_aria: Szukaj wersji LiveCV
+    search_placeholder: Szukaj wersji LiveCV…
+    filter_aria: Filtruj wersje LiveCV
+    filter_all: Wszystkie
+    filter_public: Publiczne
+    filter_private: Prywatne
+    saved_aria: Zapisane wersje LiveCV
+    updated: "Aktualizacja: {date}"
+    published: Opublikowane
+    private_state: Prywatne
+    test: Test
+    indexable: Indeksowane
+    noindex: Bez indeksowania
+    no_matches: Brak wersji LiveCV spełniających kryteria.
+    clear_filters: Wyczyść filtry
+    next_aria: Następne kroki dla wybranej wersji LiveCV
+    next_title: Następny krok
+    next_published: Skopiuj link do LiveCV albo zmień wybór treści i opublikuj LiveCV ponownie.
+    next_private: Sprawdź wybrane treści i zdecyduj, w których językach opublikować LiveCV.
+    choose_content: Wybierz treści
+    saved_selection: Treści wybrane do tego LiveCV
+    review_publish: Sprawdź i opublikuj
+    public_link_available: To LiveCV jest opublikowane i dostępne pod publicznym linkiem
+    check_content_languages: Sprawdź treść i języki
+    master_private: Baza doświadczeń pozostaje prywatna.
+    edit_selection: Edytuj wybór
+    publish_again: Opublikuj ponownie
+    publish: Opublikuj
+    copy_link: Kopiuj link do LiveCV
+    test_draft: To LiveCV korzysta z osobnego szkicu testu onboardingu.
+    open_test_cv: Otwórz testowe LiveCV
+    loading_preview: Ładowanie podglądu LiveCV…
+    add_content: Otwórz Bazę doświadczeń i dodaj informacje potrzebne w tej wersji.
+    no_selected: Nie wybrano wersji LiveCV
+    choose_version: Wybierz LiveCV z listy, aby zobaczyć jego treść i dostępne działania.
+  delete_modal:
+    aria_label: Potwierdzenie usunięcia wersji LiveCV
+    cancel_aria: Anuluj usuwanie
+    title: Usuń wersję LiveCV
+    before_title: Ta operacja trwale usunie
+    public_suffix: i wyłączy jej publiczny link
+    after_title: Tej operacji nie można cofnąć.
+    cancel: Anuluj
+    deleting: Usuwanie…
+    delete: Usuń
+  import_modal:
+    aria_label: Potwierdzenie importu danych
+    cancel_aria: Anuluj import
+    title: Import danych
+    before_file: Import pliku
+    explanation: zastąpi całą Bazę doświadczeń, jej wersje językowe oraz wszystkie prywatne wersje LiveCV. Opublikowane LiveCV i ich publiczne linki pozostaną bez zmian. Przed kontynuowaniem upewnij się, że wybrany plik jest właściwą kopią. Tej operacji nie można cofnąć.
+    cancel: Anuluj
+    importing: Importowanie…
+    action: Importuj i zastąp
+  language_modal:
+    code_length: Kod języka musi mieć dwie litery, np. pl, en lub de.
+    code_letters: Kod języka może zawierać wyłącznie litery.
+    exists: Ten język już istnieje.
+    name_required: Podaj nazwę języka.
+    add_failed: Nie udało się dodać języka.
+    network_error: Błąd połączenia. Spróbuj ponownie.
+    edit_aria: Edycja wersji językowej
+    add_aria: Dodawanie wersji językowej
+    close_aria: Zamknij
+    eyebrow: Wersje językowe LiveCV
+    edit_title: Edytuj wersję językową
+    add_title: Dodaj wersję językową
+    edit_description: Zmień nazwę, skrót lub domyślny język Bazy doświadczeń.
+    add_description: Dodaj język, w którym chcesz uzupełniać doświadczenie i tworzyć LiveCV.
+    code: Kod języka
+    code_placeholder: np. pl, en, de
+    name: Nazwa języka
+    name_placeholder: np. Polski, English
+    short_label: Skrót
+    short_placeholder: np. PL, EN
+    removing: Usuwanie…
+    remove: Usuń
+    set_default: Ustaw jako domyślny
+    saving: Zapisywanie…
+    adding: Dodawanie…
+    save: Zapisz zmiany
+    add: Dodaj język
+    cancel: Anuluj
+    list_aria: Wersje językowe LiveCV
+    edit_item_aria: "Edytuj wersję językową: {language}"
+    default_label: Domyślny
+    add_item_aria: Dodaj wersję językową
+  publish_modal:
+    aria_label: Publikowanie wersji LiveCV
+    close_aria: Zamknij okno publikacji
+    close: Zamknij
+    title: Opublikuj wersję LiveCV
+    description: Wybierz języki dostępne w opublikowanym LiveCV i ustaw język domyślny.
+    languages: Wersje językowe
+    default: Domyślny
+    select_one: Wybierz co najmniej jeden język.
+    default_required: Język domyślny musi należeć do wybranych wersji.
+    allow_indexing: Zezwól wyszukiwarkom na indeksowanie publicznej strony
+    link_state: Link do LiveCV po publikacji
+    canonical_note: To LiveCV zachowa ten sam publiczny adres przy kolejnych publikacjach.
+    active_link: Treść pod aktywnym linkiem zostanie zastąpiona nową publikacją. Sam adres się nie zmieni.
+    new_link: Zostanie utworzony nowy publiczny link do LiveCV.
+    cancel: Anuluj
+    publishing: Publikowanie…
+    publish: Opublikuj
