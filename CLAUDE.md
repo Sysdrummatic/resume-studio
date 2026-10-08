@@ -650,7 +650,7 @@ See [Phase G](docs/phases/phase-g-community-beta-testing.md) G-P0-01.
 **Dependency Security Gate:** `js-yaml` pinned to `^4.3.0` (not the 5.x rewrite —
 breaking schema/API changes across every `yaml.load`/`dump` call site for no
 extra CVE coverage; 4.3.0 backports the merge-key fix). `next` pinned to
-`^16.2.11` (bumped from `16.2.10` for GHSA-6gpp-xcg3-4w24 and related
+`^16.3.8` (bumped for GHSA-vcvr-r3jv-pc5j, RCE in `next/og`, affecting 16.2.0–16.3.5; earlier GHSA-6gpp-xcg3-4w24 and related
 high-severity advisories; `postcss` additionally forced to `^8.5.23` via
 `overrides` since next's own dependency still resolved a vulnerable nested
 copy). `public/vendor/js-yaml.min.js` is the browser copy used by the

@@ -32,10 +32,17 @@ export default async function HomePage() {
             {hero.title_prefix} <RotatingWord words={hero.rotating_words} /> {hero.title_suffix}
           </h1>
           <p className={styles.heroLead}>
-            {hero.description[0]}
-            <br />
-            <br />
-            {hero.description[1]}
+            {hero.description.map((paragraph, index) => (
+              <span key={`${index}-${paragraph}`}>
+                {index > 0 && (
+                  <>
+                    <br />
+                    <br />
+                  </>
+                )}
+                {paragraph}
+              </span>
+            ))}
           </p>
           <div className={styles.actions}>
             <Link href="/login?mode=signup" className={styles.primaryAction}>
@@ -78,6 +85,7 @@ export default async function HomePage() {
       </section>
       <section className={styles.section} id="story-animation" aria-labelledby="animation-title">
         <div className={`${styles.sectionHead} ${styles.container}`} data-reveal>
+          <p className={styles.eyebrow}>{animation.eyebrow}</p>
           <h2 id="animation-title" className={styles.heading}>
             {animation.title}
           </h2>

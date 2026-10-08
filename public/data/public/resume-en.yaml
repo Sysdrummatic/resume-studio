@@ -2,10 +2,7 @@ brand_initials: "AH"
 first_name: "Ariana"
 family_name: "Holt"
 summary: |
-  I am an inventive Product Scientist blending UX research and data science to deliver humane AI tools.
-  During the past seven years I have led cross-functional teams for developer platforms, building frameworks
-  that balance experimentation with governance. I communicate clearly with stakeholders, prototype quickly,
-  and never stop learning.
+  Software developer with 10 years of experience building web applications, internal platforms, and software for robotics. I work across the development lifecycle, from designing APIs and implementing features to testing and deployment. I value readable code, reliable systems, and close collaboration with product and design teams.
 contact:
   - label: Location
     value: "Portland, OR"
@@ -26,21 +23,21 @@ qr_codes:
     value: https://arianaholt.dev
     size: 130
 skills:
-  - name: Product Discovery
-    level: 4
-  - name: Data Storytelling
-    level: 4
-  - name: Experiment Design
+  - name: Software Development
     level: 5
+  - name: System Design
+    level: 4
+  - name: Testing and Debugging
+    level: 4
 tech_stack:
   - Python
   - TypeScript
+  - JavaScript
   - React
-  - Snowflake
-  - Looker
-  - Linear
-  - Figma
-  - Notion
+  - Node.js
+  - PostgreSQL
+  - Docker
+  - Git
 languages:
   - name: English
     level_text: Native
@@ -50,35 +47,35 @@ languages:
     level: 3
 interests:
   - Urban hiking
-  - Ceramic design
-  - Sci-fi literature
+  - Ceramics
+  - Science fiction
   - Volunteering
 experience:
   - period: "2022-03 – now"
     company: Nova Labs
-    role: Lead Product Scientist
+    role: Senior Software Developer
     highlights:
-      - Shipped experimentation platform adopted company-wide, reducing validation time by 40%
-      - Mentored 6 researchers and analysts on data storytelling and stakeholder facilitation
-      - Co-created ethical AI framework applied to 5 flagship products
+      - Built an internal testing platform adopted company-wide, reducing release validation time by 40%
+      - Developed shared APIs and components used across five flagship products
+      - Added privacy and audit controls to the company's AI features
   - period: "2019-07 – 2022-02"
     company: Interlink Systems
-    role: Senior UX Researcher
+    role: Software Developer
     highlights:
-      - Led discovery for developer tooling suite used by 1500+ engineers
-      - Introduced continuous interview practice and mixed-method dashboards
-      - Partnered with PMs to build roadmap prioritization model with 93% stakeholder alignment
+      - Built developer tools used by more than 1,500 engineers
+      - Introduced automated tests and system monitoring to detect regressions sooner
+      - Worked with product teams to prioritize improvements to the platform
   - period: "2016-01 – 2019-06"
     company: Harbor Robotics
-    role: Research Engineer
+    role: Software Engineer
     highlights:
-      - Designed safety telemetry instrumentation for warehouse robots
-      - Built experimentation playbook adopted across 4 business units
-      - Presented quarterly insights directly to executive staff and investors
+      - Developed software for warehouse robots, including safety telemetry
+      - Built test automation tools adopted across four business units
+      - Presented quarterly engineering updates to executives and investors
 education:
   - period: "2014-09 – 2015-12"
-    school: New York Institute of Technology, Master of Human-Computer Interaction
-    detail: "Thesis: Interpretable analytics for autonomous systems"
+    school: New York Institute of Technology, M.S. in Computer Science
+    detail: "Thesis: Reliable software for autonomous systems"
   - period: "2010-09 – 2014-06"
     school: Oregon State University, Bachelor of Computer Science
     detail: "Minor in Cognitive Science"
@@ -86,10 +83,10 @@ courses:
   - year: 2025
     name: Responsible AI Systems Certification – Gradient School
   - year: 2024
-    name: Product Strategy Sprint – Reforge
+    name: Software Architecture Foundations – Reforge
   - year: 2023
-    name: Narrative Visualization – Stanford Continuing Studies
+    name: Data Visualization – Stanford Continuing Studies
   - year: 2021
-    name: Advanced Experimentation – Udacity
+    name: Advanced Python Programming – Udacity
   - year: 2020
     name: Leadership Intensive – On Deck

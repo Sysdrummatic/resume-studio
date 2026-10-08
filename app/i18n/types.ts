@@ -73,7 +73,7 @@ export type AppDictionary = {
       loading_aria: string;
       open_aria: string;
     };
-    animation: { title: string; detail: string; iframe_title: string };
+    animation: { eyebrow: string; title: string; detail: string; iframe_title: string };
     features: {
       eyebrow: string;
       title: string;
