@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import type { ResumeLocale } from "../lib/resume-schema";
 import type { ResumeLanguageMetadata } from "./use-multi-locale-resume-documents";
+import { useAppI18n } from "../components/app-i18n-provider";
+import { formatAppMessage } from "../i18n/locale";
 
 function TrashIcon() {
   return (
@@ -39,6 +41,8 @@ export default function LanguageVersionModal({
   onDelete,
   onError,
 }: LanguageVersionModalProps) {
+  const { dictionary } = useAppI18n();
+  const t = (text: string) => dictionary.editor.text[text] ?? text;
   const [newLanguageCode, setNewLanguageCode] = useState("");
   const [newLanguageLabel, setNewLanguageLabel] = useState("");
   const [newLanguageShortLabel, setNewLanguageShortLabel] = useState("");
@@ -62,19 +66,19 @@ export default function LanguageVersionModal({
 
   async function handleSave() {
     if (!/^[a-z]{2}$/.test(normalizedCode)) {
-      onError("Use a two-letter language code.");
+      onError(t("Use a two-letter language code."));
       return;
     }
     if (!newLanguageLabel.trim()) {
-      onError("Language name is required.");
+      onError(t("Language name is required."));
       return;
     }
     if (!/^[A-Z]{2}$/.test(normalizedShortLabel)) {
-      onError("Short label must contain two letters.");
+      onError(t("Short label must contain two letters."));
       return;
     }
     if (!editingLanguageCode && languageOptions.some((language) => language.code === normalizedCode)) {
-      onError("This language already exists.");
+      onError(t("This language already exists."));
       return;
     }
 
@@ -84,7 +88,7 @@ export default function LanguageVersionModal({
       resetForm();
       onClose();
     } catch (error) {
-      onError(error instanceof Error ? error.message : "Language version save failed.");
+      onError(error instanceof Error ? error.message : t("Language version save failed."));
     } finally {
       setIsSaving(false);
     }
@@ -94,7 +98,7 @@ export default function LanguageVersionModal({
     try {
       await onSetDefault(code);
     } catch (error) {
-      onError(error instanceof Error ? error.message : "Default language update failed.");
+      onError(error instanceof Error ? error.message : t("Default language update failed."));
     }
   }
 
@@ -102,7 +106,7 @@ export default function LanguageVersionModal({
     try {
       await onDelete(code);
     } catch (error) {
-      onError(error instanceof Error ? error.message : "Language version delete failed.");
+      onError(error instanceof Error ? error.message : t("Language version delete failed."));
     }
   }
 
@@ -111,7 +115,7 @@ export default function LanguageVersionModal({
       className="dashboard-modal"
       role="dialog"
       aria-modal="true"
-      aria-label={editingLanguageCode ? `Edit language version ${editingLanguageCode}` : "Add language version"}
+      aria-label={editingLanguageCode ? formatAppMessage(t("Edit language version {code}"), { code: editingLanguageCode }) : t("Add language version")}
     >
       <button
         type="button"
@@ -120,11 +124,11 @@ export default function LanguageVersionModal({
           resetForm();
           onClose();
         }}
-        aria-label="Close language version modal"
+        aria-label={t("Close language version modal")}
       ></button>
       <div className={`dashboard-modal__body${editingLanguageCode ? " is-editing" : ""}`}>
         <div className="section-row">
-          <h2>{editingLanguageCode ? "Edit language version" : "Add language version"}</h2>
+          <h2>{editingLanguageCode ? t("Edit language version") : t("Add language version")}</h2>
           <button
             type="button"
             className="button button--ghost button--small"
@@ -133,22 +137,22 @@ export default function LanguageVersionModal({
               onClose();
             }}
           >
-            Close
+            {t("Close")}
           </button>
         </div>
         <p className="card-lead">
-          Selected now: <strong>{languageOptions.find((language) => language.code === activeLocale)?.short_label || activeLocale.toUpperCase()}</strong>
+          {t("Selected now")}: <strong>{languageOptions.find((language) => language.code === activeLocale)?.short_label || activeLocale.toUpperCase()}</strong>
         </p>
         <label>
-          Code
+          {t("Code")}
           <input value={newLanguageCode} onChange={(event) => setNewLanguageCode(event.target.value)} placeholder="de" maxLength={8} />
         </label>
         <label>
-          Language name
+          {t("Language name")}
           <input value={newLanguageLabel} onChange={(event) => setNewLanguageLabel(event.target.value)} placeholder="Deutsch" />
         </label>
         <label>
-          Short label
+          {t("Short label")}
           <input
             value={newLanguageShortLabel}
             onChange={(event) => setNewLanguageShortLabel(event.target.value)}
@@ -157,8 +161,8 @@ export default function LanguageVersionModal({
           />
         </label>
         <section className="stack">
-          <h3>Versions</h3>
-          <p className="card-lead">{languageOptions.length} configured languages</p>
+          <h3>{t("Versions")}</h3>
+          <p className="card-lead">{formatAppMessage(t("{count} configured languages"), { count: languageOptions.length })}</p>
           <ul className="language-versions__list">
             {languageOptions.map((language) => (
               <li key={language.code}>
@@ -171,9 +175,9 @@ export default function LanguageVersionModal({
                 </div>
                 <div className="language-versions__meta">
                   {language.code === activeLocale && language.code !== defaultLocale ? (
-                    <span className="dashboard-resume-list__badge">Selected</span>
+                    <span className="dashboard-resume-list__badge">{t("Selected")}</span>
                   ) : null}
-                  {language.code === defaultLocale ? <span className="dashboard-resume-list__badge">Default</span> : null}
+                  {language.code === defaultLocale ? <span className="dashboard-resume-list__badge">{t("Default")}</span> : null}
                 </div>
                 <div className="dashboard-resume-list__actions">
                   <div className="actions-row">
@@ -183,7 +187,7 @@ export default function LanguageVersionModal({
                       onClick={() => void handleSetDefault(language.code)}
                       disabled={language.code === defaultLocale}
                     >
-                      Set default
+                      {t("Set default")}
                     </button>
                     <button
                       type="button"
@@ -195,15 +199,15 @@ export default function LanguageVersionModal({
                         setNewLanguageShortLabel(language.short_label);
                       }}
                     >
-                      Edit
+                      {t("Edit")}
                     </button>
                   </div>
                   <div className="dashboard-resume-list__delete-separator">
                     <button
                       type="button"
                       className="button button--ghost button--small button--icon button--danger"
-                      aria-label={`Delete language version ${language.label}`}
-                      title="Delete language version"
+                      aria-label={formatAppMessage(t("Delete language version {language}"), { language: language.label })}
+                      title={t("Delete language version")}
                       onClick={() => void handleDelete(language.code)}
                     >
                       <TrashIcon />
@@ -216,11 +220,11 @@ export default function LanguageVersionModal({
         </section>
         <div className="actions-row">
           <button type="button" className="button button--primary" onClick={() => void handleSave()} disabled={isSaving}>
-            {isSaving ? "Saving..." : editingLanguageCode ? "Save changes" : "Create version"}
+            {isSaving ? t("Saving…") : editingLanguageCode ? t("Save changes") : t("Create version")}
           </button>
           {editingLanguageCode ? (
             <button type="button" className="button button--ghost" onClick={resetForm}>
-              Cancel edit
+              {t("Cancel edit")}
             </button>
           ) : null}
         </div>

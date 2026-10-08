@@ -8,6 +8,8 @@ import { isPdfDraftEnabled } from "../../../../../lib/pdf-feature-flags";
 import { normalizeResumeDocument, resumeFullName } from "../../../../../lib/resume-schema";
 import { requireRequestActor } from "../../../../../lib/auth-request";
 import { rateLimit } from "../../../../../lib/rate-limit";
+import { applyResumeStyleToTheme, normalizeResumeStyle } from "../../../../../lib/resume-style";
+import { cvBasicDotTheme } from "../../../../../lib/pdf/theme";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const doc = normalizeResumeDocument(body.resume, "");
     const locale = typeof body.locale === "string" ? body.locale : "en";
+    const cvStyle = normalizeResumeStyle(body.styleSettings);
 
     // Metrics have to be readable before render: pagination measures text to
 
@@ -49,6 +52,7 @@ export async function POST(req: NextRequest) {
         resume: doc,
         title: resumeFullName(doc) || "Resume",
         locale,
+        theme: applyResumeStyleToTheme(cvBasicDotTheme, cvStyle),
       })
     );
 

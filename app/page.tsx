@@ -1,142 +1,151 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import LandingPageFooter from "./components/footer";
+import LandingFeatures from "./components/landing-features";
 import LandingSampleCv from "./components/landing-sample-cv";
+import OpenCiVeraAnimation from "./components/open-civera-animation";
 import RecoveryRedirect from "./components/recovery-redirect";
 import RotatingWord from "./components/rotating-word";
 import ScrollReveal from "./components/scroll-reveal";
+import { getRequestAppI18n } from "./i18n/server";
+import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
+import styles from "./landing.module.css";
 
-// Words cycled in the hero headline — edit this list to taste.
-const heroRotatingWords = ["grows", "evolves", "adapts", "scales"];
+export default async function HomePage() {
+  const [{ locale, dictionary }, cookieStore] = await Promise.all([getRequestAppI18n(), cookies()]);
+  const { hero, sample, animation, features, faq, cta, footer } = dictionary.landing;
+  const initialTheme = resolveAppTheme(
+    cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME
+  );
 
-const publishingModel = [
-  {
-    tag: "master resume",
-    chip: "1 record",
-    chipType: "t" as const,
-    title: "One structured career record",
-    copy: "Maintain one authoritative source instead of managing disconnected CV files that diverge every time you apply.",
-  },
-  {
-    tag: "publication path",
-    chip: "Multi-view",
-    chipType: "a" as const,
-    title: "Shape different public narratives",
-    copy: "Present distinct professional profiles for different audiences without fragmenting your underlying source data.",
-  },
-  {
-    tag: "locale-aware output",
-    chip: "EN / PL",
-    chipType: "t" as const,
-    title: "Language-specific delivery",
-    copy: "Preserve locale-appropriate presentation while keeping the publishing model coherent and the source unified.",
-  },
-];
-
-const ArrowIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M5 12h14M12 5l7 7-7 7" />
-  </svg>
-);
-
-export default function HomePage() {
   return (
-    <div className="lp">
+    <div className={`lp ${styles.page}`}>
       <RecoveryRedirect />
-      {/* HERO */}
-      <section className="lp-hero" aria-labelledby="lp-hero-title">
-        <div className="lp-hero__in lp-container">
-          <div>
-            <div className="lp-hero__lbl">{"// LiveCV publication platform"}</div>
-            <h1 id="lp-hero-title" className="lp-hero__title">
-              Create your ultimate LiveCV. <br />
-              Which <RotatingWord words={heroRotatingWords} /> with you.
-            </h1>
-            <p className="lp-hero__lead">
-              Managing your CV is broken. One version for this job, another for that role,
-              then translations, and six months later nobody knows which PDF a recruiter has.
-              <br /><br />
-              OpenCiVera fixes that. Build your career record once, publish a tailored version
-              for each audience, and update all of them the instant anything changes.
-            </p>
-            <div className="lp-hero__acts">
-              <Link href="/login?mode=signup" className="btn btn-p btn-lg">
-                Create LiveCV
-                <ArrowIcon />
-              </Link>
-              <Link href="/resume" className="btn btn-o btn-lg">
-                View sample LiveCV
-              </Link>
-            </div>
-            <div className="lp-hero__meta">
-              <span className="lp-hm"><span className="lp-hm__dot" />One master CV</span>
-              <span className="lp-hm"><span className="lp-hm__dot" />Multiple configurations</span>
-              <span className="lp-hm"><span className="lp-hm__dot" />LiveCV always up-to-date</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="lp-div" />
-
-      {/* CV PREVIEW */}
-      <section className="lp-sec lp-cv-sec" id="resume" aria-labelledby="lp-resume-title">
-        <div className="lp-sechdr lp-container" data-reveal>
-          <div className="lp-tag">{"// public link in action"}</div>
-          <h2 id="lp-resume-title" className="lp-h">Your CV as your public business card.</h2>
-          <p className="lp-p">
-            The output layer is a clean structured view, designed for professional signal, not document formatting.
-            This is what recipients see when they open your link.
-          </p>
-        </div>
-
-        <LandingSampleCv />
-      </section>
-
-      <div className="lp-div" />
-
-      {/* PUBLISHING MODEL */}
-      <section className="lp-sec" id="model" aria-labelledby="lp-model-title">
-        <div className="lp-sechdr lp-container" data-reveal>
-          <div className="lp-tag">{"// CV as Code model"}</div>
-          <h2 id="lp-model-title" className="lp-h">Focus on your career record.</h2>
-          <p className="lp-p">Manage your career information in one structured, consistent record. Don&apos;t think about layout or fitting your data to a given template. Edit YAML or use the editor, and leave the rest to us.</p>
-        </div>
-
-        <div className="lp-grid3 lp-container">
-          {publishingModel.map((card) => (
-            <article key={card.title} className="lp-card" data-reveal>
-              <div className="lp-card__tag">{card.tag}</div>
-              <span className={`lp-chip lp-chip--${card.chipType}`}>{card.chip}</span>
-              <h3>{card.title}</h3>
-              <p>{card.copy}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <div className="lp-div" />
-
-      {/* FINAL CTA */}
-      <section className="lp-cta-sec" aria-labelledby="lp-cta-title">
-        <div className="lp-cta lp-container" data-reveal>
-          <div className="lp-cta__lbl">{"// get started"}</div>
-          <h2 id="lp-cta-title">Build your LiveCV with OpenCiVera.</h2>
-          <p className="lp-cta__p">
-            Open the sample LiveCV to see a published link in action, then sign in and build your own
-            from one structured source.
-          </p>
-          <div className="lp-cta__acts">
-            <Link href="/login?mode=signup" className="btn btn-p btn-lg">
-              Create LiveCV
-              <ArrowIcon />
-            </Link>
-            <Link href="/resume" className="btn btn-o btn-lg">View sample LiveCV ↗</Link>
-          </div>
-        </div>
-      </section>
-
-      <LandingPageFooter />
       <ScrollReveal />
+      <section className={styles.hero} aria-labelledby="lp-hero-title">
+        <div className={styles.container}>
+          <p className={styles.heroEyebrow}>{hero.eyebrow}</p>
+          <h1 id="lp-hero-title" className={styles.heroTitle}>
+            {hero.title}
+            <br />
+            {hero.title_prefix} <RotatingWord words={hero.rotating_words} /> {hero.title_suffix}
+          </h1>
+          <p className={styles.heroLead}>
+            {hero.description.map((paragraph, index) => (
+              <span key={`${index}-${paragraph}`}>
+                {index > 0 && (
+                  <>
+                    <br />
+                    <br />
+                  </>
+                )}
+                {paragraph}
+              </span>
+            ))}
+          </p>
+          <div className={styles.actions}>
+            <Link href="/login?mode=signup" className={styles.primaryAction}>
+              {hero.primary_action}
+              <ArrowRight aria-hidden="true" size={14} />
+            </Link>
+            <Link href="/resume" className={styles.secondaryAction}>
+              {hero.secondary_action}
+            </Link>
+          </div>
+          <ul className={styles.heroMeta}>
+            {hero.meta.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+      <section className={styles.section} id="resume" aria-labelledby="lp-resume-title">
+        <div className={`${styles.sectionHead} ${styles.container}`} data-reveal>
+          <p className={styles.eyebrow}>{sample.eyebrow}</p>
+          <h2 id="lp-resume-title" className={styles.heading}>
+            {sample.title}
+          </h2>
+          <p className={styles.description}>{sample.description}</p>
+        </div>
+        <div className={styles.preview}>
+          <div className={styles.sheetFrame} data-sheet-frame>
+            <div className={styles.sheet}>
+              <LandingSampleCv labels={sample} locale={locale} />
+            </div>
+          </div>
+          <div className={styles.stageMeta}>
+            <span>{sample.data_note}</span>
+            <Link href="/resume" className={styles.secondaryAction} aria-label={sample.open_aria}>
+              {sample.open_action}
+              <ArrowRight aria-hidden="true" size={14} />
+            </Link>
+          </div>
+        </div>
+      </section>
+      <section className={styles.section} id="story-animation" aria-labelledby="animation-title">
+        <div className={`${styles.sectionHead} ${styles.container}`} data-reveal>
+          <p className={styles.eyebrow}>{animation.eyebrow}</p>
+          <h2 id="animation-title" className={styles.heading}>
+            {animation.title}
+          </h2>
+          <p className={styles.description}>{animation.detail}</p>
+        </div>
+        <div className={styles.preview}>
+          <OpenCiVeraAnimation
+            locale={locale}
+            initialTheme={initialTheme}
+            title={animation.iframe_title}
+          />
+        </div>
+      </section>
+      <section className={styles.section} id="model" aria-labelledby="lp-model-title">
+        <div className={`${styles.sectionHead} ${styles.container}`} data-reveal>
+          <p className={styles.eyebrow}>{features.eyebrow}</p>
+          <h2 id="lp-model-title" className={styles.heading}>
+            {features.title}
+          </h2>
+          <p className={styles.description}>{features.description}</p>
+        </div>
+        <div className={styles.container}>
+          <LandingFeatures labels={features} />
+        </div>
+      </section>
+      <section className={styles.section} id="faq" aria-labelledby="faq-title">
+        <div className={styles.container}>
+          <div className={styles.sectionHead} data-reveal>
+            <p className={styles.eyebrow}>{"// FAQ"}</p>
+            <h2 id="faq-title" className={styles.heading}>
+              {faq.title}
+            </h2>
+          </div>
+          <div className={styles.faq}>
+            {faq.items.map((item) => (
+              <details id={item.id} key={item.question}>
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className={styles.section} aria-labelledby="lp-cta-title">
+        <div className={`${styles.cta} ${styles.container}`} data-reveal>
+          <p className={styles.ctaEyebrow}>{cta.eyebrow}</p>
+          <h2 id="lp-cta-title">{cta.title}</h2>
+          <p className={styles.ctaLead}>{cta.description}</p>
+          <div className={styles.actions}>
+            <Link href="/login?mode=signup" className={styles.primaryAction}>
+              {cta.primary_action}
+              <ArrowRight aria-hidden="true" size={14} />
+            </Link>
+            <Link href="/resume" className={styles.secondaryAction}>
+              {cta.secondary_action} ↗
+            </Link>
+          </div>
+        </div>
+      </section>
+      <LandingPageFooter labels={footer} />
     </div>
   );
 }

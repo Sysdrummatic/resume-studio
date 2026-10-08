@@ -130,7 +130,15 @@ Given direct database/RPC access through user-scoped auth.
 
 Then owners can read and write their private Saved Versions.
 
-And anonymous users can read only active public snapshots through approved public access paths.
+And anonymous users cannot read raw Published CV snapshot tables through the
+Data API, even when a Public Link is active. Public access is limited to
+selection-filtered pages and export routes. Authenticated owners can still read
+their own snapshots; other users and staff without explicit access cannot.
+
+For staging QA, request `resume_published_cv_locales?select=yaml_content&limit=0`
+with the anonymous key and `Prefer: count=exact`: the response must not count
+any raw snapshot rows. Also verify an active public CV page and its YAML export
+still render only the selected entries, while an inactive link returns 404.
 
 ## Data Integrity Contract
 

@@ -63,6 +63,7 @@ export async function GET(): Promise<Response> {
       default_locale: preset.default_locale,
       allow_indexing: preset.allow_indexing,
       ai_generated: preset.ai_generated,
+      style_settings: preset.style_settings,
       selection: preset.selection,
       variants: (variantsByPresetId.get(preset.id) || []).map((variant) => ({
         locale: variant.locale,

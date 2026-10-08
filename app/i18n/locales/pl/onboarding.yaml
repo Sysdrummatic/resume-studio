@@ -1,0 +1,69 @@
+onboarding:
+  steps:
+    - Witaj w OpenCiVera
+    - Jak chcesz zacząć?
+    - Dane osobowe
+    - Podsumowanie zawodowe
+    - Doświadczenie
+    - Wykształcenie
+    - Umiejętności
+    - Języki
+    - Kursy
+    - Zainteresowania
+    - Technologie
+    - Kody QR
+    - Klauzula RODO
+    - Sprawdź swoje pierwsze LiveCV
+    - Czy chcesz opublikować swoje pierwsze LiveCV?
+  text:
+    "Copy link or Open CV send/show the live page. Download PDF opens a printable copy in a new tab.": Kopiuj link do LiveCV i Otwórz LiveCV udostępniają lub otwierają opublikowaną stronę. Pobierz PDF otwiera w nowej karcie kopię LiveCV do wydruku.
+    "Manage this and every future CV version — edit, publish, or delete — from your dashboard.": W panelu zarządzasz tym i każdym kolejnym LiveCV — edytujesz, publikujesz lub usuwasz.
+    "Could not save or finish this step. Check your connection and try again; your entries remain on this screen.": Nie udało się zapisać ani zakończyć tego kroku. Sprawdź połączenie i spróbuj ponownie. Wpisane dane pozostaną na tym ekranie.
+    "Enter your name to continue.": Wpisz imię lub nazwisko, aby przejść dalej.
+    "Select and copy the link above.": Zaznacz i skopiuj powyższy link do LiveCV.
+    "Guide progress": Postęp przewodnika
+    "Complete": Gotowe
+    "Your first CV": Twoje pierwsze LiveCV
+    "Your CV is ready to send": Twoje LiveCV jest gotowe do wysłania
+    "Your test draft is saved": Szkic testowy został zapisany
+    "Your Master CV is saved": Baza doświadczeń została zapisana
+    "Onboarding test: this is a separate draft. Your Master CV and profile stay unchanged. Publishing creates a CV named Test onboardingu.": Test onboardingu odbywa się na osobnym szkicu. Baza doświadczeń i profil pozostają bez zmian. Publikacja utworzy LiveCV o nazwie „Test onboardingu”.
+    "Could not load your CV. Reload this page before continuing.": Nie udało się wczytać LiveCV. Odśwież stronę przed przejściem dalej.
+    "Loading your CV…": Wczytywanie LiveCV…
+    "Tell your story, one section at a time. We’ll help you build your Master CV and turn it into a CV you can share with a link.": Uzupełnij Bazę doświadczeń krok po kroku. Na końcu wybierzesz informacje i utworzysz LiveCV, które możesz udostępnić za pomocą linku.
+    "CV language": Język LiveCV
+    "Start from scratch": Zaczynam od zera
+    "Fill in each section with short prompts.": Uzupełnij kolejne sekcje z pomocą krótkich wskazówek.
+    "Import my CV": Importuję moje CV
+    "Upload your file, check the imported details and fill in anything missing.": Wgraj plik, sprawdź odczytane dane i uzupełnij brakujące informacje.
+    "Import applied. Continue to check each section.": Dane zostały zaimportowane. Przejdź dalej i sprawdź każdą sekcję.
+    "Optional. Add what is relevant, or continue to skip this section.": Ta sekcja jest opcjonalna. Dodaj potrzebne informacje albo przejdź dalej.
+    "Add the details you want in your CV. You can edit them later.": Dodaj informacje, które chcesz umieścić w LiveCV. Możesz je później zmienić.
+    "This preview uses your selected professional summary and completed entries. Check the information before sharing.": Podgląd zawiera wybrane podsumowanie zawodowe i uzupełnione wpisy. Sprawdź dane przed udostępnieniem.
+    "Create your first saved CV and a link you can send immediately? It will appear in your dashboard.": Czy chcesz utworzyć pierwsze LiveCV i opublikować je pod linkiem? LiveCV pojawi się w panelu, gdzie możesz później zmienić jego treść lub wycofać publikację.
+    "Anyone with the link can view this CV. Search engine indexing will be disabled. Your Master CV stays private.": Każda osoba posiadająca link będzie mogła zobaczyć to LiveCV. Indeksowanie w wyszukiwarkach pozostanie wyłączone, a Baza doświadczeń będzie prywatna.
+    "Add your name and a professional summary before creating a link. You can also save and finish without publishing.": Przed utworzeniem linku uzupełnij imię lub nazwisko oraz podsumowanie zawodowe. Możesz też zakończyć bez publikowania LiveCV.
+    "Your first CV is saved in your dashboard. Copy the link to send it.": Pierwsze LiveCV zostało zapisane w panelu. Skopiuj link, aby je udostępnić.
+    "The test is complete. No public CV was created. You can start another test in account settings.": Test został zakończony. Nie utworzono publicznego LiveCV. Kolejny test możesz uruchomić w ustawieniach konta.
+    "You can create a CV with a link from your dashboard whenever you are ready.": Gdy zechcesz, możesz utworzyć LiveCV z linkiem w panelu.
+    "CV link": Link do LiveCV
+    "Copied": Skopiowano
+    "Copy link": Kopiuj link do LiveCV
+    "Open CV": Otwórz LiveCV
+    "Go to dashboard": Przejdź do panelu
+    "Testing settings": Ustawienia testów
+    "Your entries are saved to your account when you change steps or finish later.": Dane są zapisywane na koncie po zmianie kroku lub wybraniu opcji dokończenia później.
+    "Finish later": Dokończę później
+    "Back": Wstecz
+    "Not now": Nie teraz
+    "Saving…": Zapisywanie…
+    "Yes, create my CV with a link": Tak, opublikuj moje LiveCV
+    "Let’s begin": Zaczynamy
+    "Continue / skip": Dalej / pomiń
+    "Continue": Dalej
+    "Onboarding test": Test onboardingu
+    "Resume test": Wznów test
+    "Finish your first CV": Dokończ swoje pierwsze LiveCV
+    "Your saved details are ready. Continue the guide where you left off.": Twoje dane są zapisane. Wróć do przewodnika w miejscu, w którym został przerwany.
+    "Resume guide": Wznów przewodnik
+    "Onboarding test CV": Testowe LiveCV z onboardingu

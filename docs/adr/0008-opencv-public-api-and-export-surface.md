@@ -60,6 +60,21 @@ content. Serving unselected master content through these endpoints violates
 the "Draft/master/private data is never exposed" decision above (risk R09 in
 `docs/security/security-and-risk-plan.md`, private `OpenCiVera-Project` repo).
 
+## Privacy hardening (2026-09-27)
+
+The snapshot tables contain the full private Experience Base YAML. They are
+not public database resources: anonymous and other non-owner clients must use
+the public page/export resolvers, which apply the saved selection before
+returning content. Direct PostgREST reads of raw snapshot rows are denied by
+RLS and anonymous SELECT privileges. Owners retain access to their own rows;
+the server-side resolver retains its service-role read and active-link checks.
+
+Public YAML contains only recognized top-level resume fields (including the
+legacy `name` identity field). Unknown top-level fields cannot be selected and
+remain private. Extension fields within selected entries are preserved. This
+narrows the v1 export to its documented selected-CV boundary; consumers must
+not treat private top-level extensions as part of the public contract.
+
 ## Consequences
 
 - Safer foundation for OpenCV ecosystem integrations.

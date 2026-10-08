@@ -2,10 +2,7 @@ brand_initials: "AH"
 first_name: "Ariana"
 family_name: "Holt"
 summary: |
-  Jestem pomysłową Product Scientist, która łączy badania UX z analizą danych, aby tworzyć odpowiedzialne narzędzia AI.
-  Przez ostatnie siedem lat prowadziłam interdyscyplinarne zespoły pracujące nad platformami deweloperskimi,
-  budując procesy, które równoważą eksperymentowanie z nadzorem i odpowiedzialnością. Jasno komunikuję się
-  z interesariuszami, szybko prototypuję i stale się uczę.
+  Programistka z 10-letnim doświadczeniem w tworzeniu aplikacji internetowych, platform wewnętrznych i oprogramowania dla robotów. Pracuję na każdym etapie rozwoju oprogramowania — projektuję interfejsy programistyczne, wdrażam funkcje, testuję i przygotowuję je do uruchomienia. Stawiam na czytelny kod, niezawodne systemy i dobrą współpracę z zespołami produktowymi oraz projektowymi.
 contact:
   - label: Lokalizacja
     value: "Portland, OR"
@@ -26,21 +23,21 @@ qr_codes:
     value: https://arianaholt.dev
     size: 130
 skills:
-  - name: Odkrywanie potrzeb produktowych
-    level: 4
-  - name: Opowiadanie historii danymi
-    level: 4
-  - name: Projektowanie eksperymentów
+  - name: Programowanie
     level: 5
+  - name: Projektowanie systemów
+    level: 4
+  - name: Testowanie i diagnozowanie błędów
+    level: 4
 tech_stack:
   - Python
   - TypeScript
+  - JavaScript
   - React
-  - Snowflake
-  - Looker
-  - Linear
-  - Figma
-  - Notion
+  - Node.js
+  - PostgreSQL
+  - Docker
+  - Git
 languages:
   - name: Angielski
     level_text: Język ojczysty
@@ -49,47 +46,47 @@ languages:
     level_text: Poziom zawodowy
     level: 3
 interests:
-  - Miejskie wędrówki
-  - Projektowanie ceramiki
+  - Spacery i wędrówki
+  - Ceramika
   - Literatura science fiction
   - Wolontariat
 experience:
   - period: "2022-03 – obecnie"
     company: Nova Labs
-    role: Lead Product Scientist
+    role: Starsza programistka
     highlights:
-      - Wdrożyłam platformę eksperymentów przyjętą w całej firmie, skracając czas walidacji o 40%
-      - Mentoringowałam 6 badaczy i analityków w zakresie opowiadania historii danymi oraz pracy z interesariuszami
-      - Współtworzyłam ramy etycznego wykorzystania AI zastosowane w 5 kluczowych produktach
+      - Stworzyłam wewnętrzną platformę do testowania, z której korzysta cała firma. Dzięki niej czas sprawdzania nowych wersji skrócił się o 40%
+      - Opracowałam wspólne interfejsy i komponenty wykorzystywane w pięciu głównych produktach
+      - Dodałam mechanizmy ochrony prywatności i rejestrowania działań do funkcji AI w produktach firmy
   - period: "2019-07 – 2022-02"
     company: Interlink Systems
-    role: Senior UX Researcher
+    role: Programistka
     highlights:
-      - Prowadziłam discovery dla pakietu narzędzi deweloperskich używanego przez ponad 1500 inżynierów
-      - Wprowadziłam stałą praktykę wywiadów oraz dashboardy łączące metody jakościowe i ilościowe
-      - Współpracowałam z product managerami nad modelem priorytetyzacji roadmapy, osiągając 93% zgodności interesariuszy
+      - Tworzyłam narzędzia dla programistów używane przez ponad 1500 inżynierów
+      - Wprowadziłam automatyczne testy i monitorowanie działania, by szybciej wykrywać błędy po zmianach
+      - Współpracowałam z zespołem produktowym przy ustalaniu kolejności usprawnień platformy
   - period: "2016-01 – 2019-06"
     company: Harbor Robotics
-    role: Research Engineer
+    role: Inżynierka oprogramowania
     highlights:
-      - Zaprojektowałam instrumentację telemetryczną bezpieczeństwa dla robotów magazynowych
-      - Stworzyłam podręcznik eksperymentowania przyjęty w 4 jednostkach biznesowych
-      - Prezentowałam kwartalne wnioski bezpośrednio kadrze zarządzającej i inwestorom
+      - Tworzyłam oprogramowanie dla robotów magazynowych, w tym rozwiązania śledzące ich bezpieczne działanie
+      - Zautomatyzowałam testy, z których korzystają cztery działy firmy
+      - Przedstawiałam zarządowi i inwestorom kwartalne podsumowania prac technicznych
 education:
   - period: "2014-09 – 2015-12"
-    school: New York Institute of Technology, magister Human-Computer Interaction
-    detail: "Praca magisterska: Interpretowalne analizy dla systemów autonomicznych"
+    school: New York Institute of Technology, studia magisterskie na kierunku informatyka
+    detail: "Praca magisterska: Niezawodne oprogramowanie dla systemów autonomicznych"
   - period: "2010-09 – 2014-06"
     school: Oregon State University, licencjat z informatyki
     detail: "Specjalizacja dodatkowa: nauki kognitywne"
 courses:
   - year: 2025
-    name: Certyfikacja Responsible AI Systems – Gradient School
+    name: Certyfikat z projektowania odpowiedzialnych systemów AI – Gradient School
   - year: 2024
-    name: Product Strategy Sprint – Reforge
+    name: Podstawy architektury oprogramowania – Reforge
   - year: 2023
-    name: Narrative Visualization – Stanford Continuing Studies
+    name: Wizualizacja danych – Stanford Continuing Studies
   - year: 2021
-    name: Advanced Experimentation – Udacity
+    name: Zaawansowane programowanie w Pythonie – Udacity
   - year: 2020
-    name: Leadership Intensive – On Deck
+    name: Intensywny kurs przywództwa – On Deck

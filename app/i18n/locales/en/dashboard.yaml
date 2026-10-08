@@ -1,0 +1,226 @@
+dashboard:
+  option_labels:
+    summary: Summary
+    experience: Experience
+    education: Education
+    courses: Courses
+    skills: Skills
+    interests: Interests
+    languages: Languages
+    tech_stack: Tech stack
+    summary_item: "Summary {number}"
+    experience_item: "Experience {number}"
+    education_item: "Education {number}"
+    course_item: "Course {number}"
+    item: "Item {number}"
+  preset_editor:
+    title_required: LiveCV version title is required.
+    summary_required: Select exactly one summary.
+    aria_label: LiveCV version editor
+    close_aria: Close LiveCV version editor
+    edit_title: Edit LiveCV version
+    create_title: Create LiveCV
+    close: Close
+    title_label: LiveCV name
+    title_placeholder: Frontend Engineer — example company
+    allow_indexing: Allow search engines to index the page after publication
+    ai_generated: Mark as AI-generated content
+    style_aria: LiveCV version appearance
+    template: Template
+    primary_color: Primary color
+    template_sample_two_column: Basic two-column
+    template_signal_grid: Signal Grid
+    template_atelier_noir: Atelier Noir
+    template_terminal_stack: Terminal Stack
+    no_items: No items in the Experience Base.
+    saving: Saving…
+    save: Save LiveCV
+    cancel: Cancel
+  preview:
+    language_aria: Switch LiveCV language
+    empty_language: "This LiveCV version has no content in {language} yet. Add it in your Experience Base, or switch to a language you've filled in."
+    aria_label: LiveCV version preview
+    close_aria: Close LiveCV preview
+    open_cv: Open LiveCV
+    close: Close
+    note: Preview of content selected from your current Experience Base. The LiveCV link and exports use the last published version.
+    render_error: The preview could not be rendered from the Experience Base.
+  actions:
+    settings_aria: "LiveCV version settings: {title}"
+    settings_title: LiveCV version settings
+    edit: Edit
+    unpublish: Unpublish
+    publish: Publish
+    delete_aria: "Delete LiveCV version: {title}"
+    delete: Delete
+  messages:
+    reader_failed: The document reader could not load. Reload the page to try again.
+    source_unavailable: The Experience Base for this LiveCV version is unavailable. Reload the page to try again.
+    master_read_failed: Your Experience Base could not be read. Open the editor to review the data.
+    not_saved: Not saved yet
+    language_versions: "Language versions: {count}"
+    save_failed: LiveCV version save failed.
+    saved: LiveCV version saved.
+    publish_failed: LiveCV version publish failed.
+    published: LiveCV version published.
+    unpublish_failed: LiveCV version unpublish failed.
+    unpublished: LiveCV version unpublished.
+    delete_failed: LiveCV version delete failed.
+    deleted: LiveCV version deleted.
+    publish_first: Publish this LiveCV version first.
+    link_copied: LiveCV link copied to the clipboard.
+    copy_failed: The link could not be copied.
+    publish_before_text: Publish this LiveCV version before exporting a text snapshot.
+    publish_before_pdf: Publish this LiveCV version before exporting a PDF snapshot.
+    preparing_text: Preparing text export…
+    preparing_pdf: Preparing PDF export…
+    preparing_data: Preparing data export…
+    import_failed: Import failed.
+    import_success: Data imported. Reloading…
+    no_languages: No language versions are available for publication.
+  main:
+    title: Dashboard
+    subtitle: One Experience Base. A separate LiveCV for each application.
+    create_version: Create LiveCV
+    create_master_first: Create your Experience Base first.
+    master_title: Experience Base
+    private: Private
+    saved: "Saved: {date}"
+    start_story: Add information you can use in your LiveCVs.
+    master_description: Your complete private record, from which you select content for each LiveCV.
+    edit_master: Edit Experience Base
+    export: Export
+    import: Import
+    export_title: Download a YAML copy of your Experience Base and saved LiveCV versions.
+    import_title: Restore your Experience Base and private LiveCV versions from a YAML backup.
+    completion: Experience Base completeness
+    reading: Reading your saved content…
+    completion_summary: "Completed sections: {done} of {total}."
+    add_details: Add information to complete your Experience Base.
+    continue_editing: Continue editing
+    review_content: Review your content
+    stats_aria: Experience Base statistics
+    roles: Professional summaries
+    roles_note: Variants for different roles
+    experience: Experience
+    experience_note: Employment history
+    skills: Skills
+    skills_note: Available for your LiveCVs
+    courses: Courses
+    courses_note: Courses and certificates
+    cv_languages: LiveCV languages
+    stats_note: "Counts refer to the {locale} Experience Base. Language versions are counted separately."
+  library:
+    title: Your LiveCVs
+    versions: versions
+    public: public
+    private: private
+    no_versions: No tailored LiveCVs yet
+    start_master: Start with your Experience Base
+    empty_with_master: Select content from your Experience Base to create your first tailored LiveCV.
+    empty_without_master: Add your experience first. You can then select content for your first LiveCV.
+    search_aria: Search LiveCV versions
+    search_placeholder: Search LiveCV versions…
+    filter_aria: Filter LiveCV versions
+    filter_all: All
+    filter_public: Public
+    filter_private: Private
+    saved_aria: Saved LiveCV versions
+    updated: "Updated: {date}"
+    published: Published
+    private_state: Private
+    test: Test
+    indexable: Indexable
+    noindex: Noindex
+    no_matches: No matching LiveCVs.
+    clear_filters: Clear filters
+    next_aria: Next steps for the selected LiveCV
+    next_title: Next step
+    next_published: Copy the LiveCV link, or change the content selection and publish LiveCV again.
+    next_private: Review the selected content and choose which languages to publish.
+    choose_content: Choose content
+    saved_selection: Content selected for this LiveCV
+    review_publish: Review and publish
+    public_link_available: This LiveCV is published and available under its public link
+    check_content_languages: Check the content and languages
+    master_private: Your Experience Base stays private.
+    edit_selection: Edit selection
+    publish_again: Publish again
+    publish: Publish
+    copy_link: Copy LiveCV link
+    test_draft: This LiveCV uses a separate onboarding test draft.
+    open_test_cv: Open test LiveCV
+    loading_preview: Loading LiveCV preview…
+    add_content: Open your Experience Base to add information for this version.
+    no_selected: No LiveCV selected
+    choose_version: Select a LiveCV from the list to review its content and available actions.
+  delete_modal:
+    aria_label: Delete LiveCV version confirmation
+    cancel_aria: Cancel deletion
+    title: Delete LiveCV version
+    before_title: This permanently deletes
+    public_suffix: and takes its public link offline
+    after_title: This cannot be undone.
+    cancel: Cancel
+    deleting: Deleting…
+    delete: Delete
+  import_modal:
+    aria_label: Import data confirmation
+    cancel_aria: Cancel import
+    title: Import data
+    before_file: Importing
+    explanation: overwrites your entire Experience Base, its language versions and all private LiveCV versions. Published LiveCVs and their public links stay unchanged. Before continuing, make sure you selected the correct backup. This cannot be undone.
+    cancel: Cancel
+    importing: Importing…
+    action: Import and replace
+  language_modal:
+    code_length: Language code must be two letters, for example en, pl, or de.
+    code_letters: Language code must contain letters only.
+    exists: This language already exists.
+    name_required: Language name is required.
+    add_failed: Failed to add the language.
+    network_error: Network error. Try again.
+    edit_aria: Edit language version
+    add_aria: Add language version
+    close_aria: Close
+    eyebrow: LiveCV language versions
+    edit_title: Edit language version
+    add_title: Add language version
+    edit_description: Update the name, short label or default language of your Experience Base.
+    add_description: Add a language in which you want to maintain experience and create LiveCVs.
+    code: Language code
+    code_placeholder: e.g. en, pl, de
+    name: Language name
+    name_placeholder: e.g. English, Polish
+    short_label: Short label
+    short_placeholder: e.g. EN, PL
+    removing: Removing…
+    remove: Remove
+    set_default: Set as default
+    saving: Saving…
+    adding: Adding…
+    save: Save changes
+    add: Add language
+    cancel: Cancel
+    list_aria: LiveCV language versions
+    edit_item_aria: "Edit language version: {language}"
+    default_label: Default
+    add_item_aria: Add language version
+  publish_modal:
+    aria_label: Publish LiveCV version
+    close_aria: Close publish dialog
+    close: Close
+    title: Publish LiveCV version
+    description: Choose the languages available in your published LiveCV and set the default language.
+    languages: Language versions
+    default: Default
+    select_one: Select at least one language.
+    default_required: The default language must be one of the selected versions.
+    allow_indexing: Allow search engines to index the public page
+    link_state: LiveCV link after publication
+    canonical_note: This LiveCV keeps the same public address when you publish it again.
+    active_link: The new publication will replace the content under the active link. The address will not change.
+    new_link: A new public LiveCV link will be created.
+    cancel: Cancel
+    publishing: Publishing…
+    publish: Publish

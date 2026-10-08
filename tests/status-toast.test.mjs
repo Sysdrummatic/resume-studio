@@ -17,7 +17,7 @@ test("status toast renders status messages as a reusable browser-corner popup", 
   assert.equal(component.includes("status-toast"), true);
   assert.equal(component.includes("window.setTimeout(startClose, 5000)"), true);
   assert.equal(component.includes("window.setTimeout(onClose, 180)"), true);
-  assert.equal(component.includes('aria-label="Close notification"'), true);
+  assert.equal(component.includes("aria-label={dictionary.common.close_notification}"), true);
   assert.equal(component.includes('role={toast.variant === "error" ? "alert" : "status"}'), true);
   assert.equal(component.includes('isClosing ? " status-toast--leaving" : ""'), true);
   assert.equal(styles.includes(".status-toast"), true);
@@ -56,10 +56,10 @@ test("destructive and warning statuses are routed to the expected toast variants
   const editor = read("app/master-resume/editor-canvas-client.tsx");
   const login = read("app/login/account-access-client.tsx");
 
-  assert.equal(dashboard.includes('showToast("CV Version deleted.", "error")'), true);
-  assert.equal(admin.includes('showToast("User deleted.", "error")'), true);
+  assert.equal(dashboard.includes('showToast(labels.messages.deleted, "error")'), true);
+  assert.equal(admin.includes('showToast(text["User deleted."], "error")'), true);
   assert.equal(editor.includes('showToast(loadError, "error")'), true);
-  assert.equal(editor.includes('showToast("Language version deleted.")'), true);
+  assert.equal(editor.includes('showToast(editorText("Language version deleted."))'), true);
   assert.equal(login.includes("const contextualVariant ="), true);
   assert.equal(
     login.includes('reason === "account_deleted" || reason === "signed-out" ? "success" : contextualMessage ? "warning" : "success";'),

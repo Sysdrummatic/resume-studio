@@ -6,9 +6,9 @@ import path from "node:path";
 import yaml from "js-yaml";
 import { register } from "node:module";
 
-import { EMPTY_PRESET_SELECTION, normalizeResumePresetSelection } from "../app/lib/preset-selection.ts";
-
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+
+const { EMPTY_PRESET_SELECTION, normalizeResumePresetSelection } = await import("../app/lib/preset-selection.ts");
 
 const { buildPublishedExportContent, buildPublishedResumeDocument } = await import("../app/lib/published-export.ts");
 const { parseCanonicalPublicPath, buildPublishedResumeExportUrls } = await import("../app/lib/resume-export.ts");
@@ -84,7 +84,7 @@ test("buildPublishedExportContent applies the saved-version selection to exporte
   }
 });
 
-test("buildPublishedExportContent preserves extension fields the schema does not know", () => {
+test("buildPublishedExportContent excludes unknown top-level fields but preserves selected entry extensions", () => {
   const masterYamlWithExtensions = `
 name: Test Person
 custom_top_level:
@@ -114,14 +114,15 @@ experience:
 
   assert.ok(exportContent, "export content must be produced");
   const exported = exportContent.yamlContent;
-  assert.equal(exported.includes("EXTENSION-TOP-LEVEL"), true, "unknown top-level fields must survive the export");
+  assert.equal(exported.includes("EXTENSION-TOP-LEVEL"), false, "unknown top-level fields must stay private");
   assert.equal(exported.includes("EXTENSION-SUMMARY-FIELD"), true, "unknown fields on selected summary items must survive");
   assert.equal(exported.includes("EXTENSION-NESTED-FIELD"), true, "unknown fields on selected experience items must survive");
   assert.equal(exported.includes("EXCLUDED-SUMMARY-POSITION"), false);
   assert.equal(exported.includes("EXCLUDED-CORP"), false);
 
   const roundTripped = yaml.load(exported);
-  assert.equal(roundTripped.custom_top_level.note, "EXTENSION-TOP-LEVEL");
+  assert.equal(Object.hasOwn(roundTripped, "custom_top_level"), false);
+  assert.equal(roundTripped.name, "Test Person", "legacy identity must remain available");
   assert.equal(roundTripped.summary.length, 1);
   assert.equal(roundTripped.summary[0].default, true, "first selected summary must be marked default");
   assert.equal(roundTripped.experience.length, 1);
@@ -477,6 +478,56 @@ test("variant import surfaces failed database writes instead of reporting succes
   );
 });
 
+test("variant import re-clamps the selection against the document it is actually stored against", async (t) => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "https://stub.supabase.local";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= "stub-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "stub-service-role-key";
+  const { importResumePresetVariant } = await import("../app/lib/resume-server.ts");
+  // Import synchronizes non-bundled locale documents to the new default's
+  // linkage before this runs (switchDefaultResumeLocale), so the "pl" document
+  // actually stored against can differ from whatever the bundle's variant
+  // selection was captured against. Index 0 here is a blank translation slot
+  // (entry_id present, no translated content) — a verbatim store would keep
+  // it selected; the re-clamp must drop it.
+  const preset = {
+    id: "preset-1", document_id: "doc-en", user_id: "user-1", title: "Test preset",
+    selection: { ...EMPTY_PRESET_SELECTION, experience: [0] },
+    is_public: false, allow_indexing: false, ai_generated: false, default_locale: "en", slug: null,
+    published_at: null, created_at: "2026-07-01T00:00:00Z", updated_at: "2026-07-01T00:00:00Z",
+  };
+  const document = {
+    id: "doc-pl", user_id: "user-1", locale: "pl", title: "Polish resume",
+    yaml_content: yaml.dump({
+      name: "Test Person",
+      summary: [{ position: "Test", description: "Test", default: true }],
+      experience: [{ entry_id: "e1", company: "Acme", period: "2020", role: "", highlights: [] }],
+    }),
+    schema_version: 1, is_public: false, allow_indexing: false, ai_generated: false, updated_at: "2026-07-01T00:00:00Z",
+  };
+  let storedSelection = null;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+    if (url.includes("/rest/v1/resume_documents")) return json([document]);
+    if (url.includes("/rest/v1/resume_preset_variants") && init?.method === "POST") {
+      storedSelection = JSON.parse(String(init.body)).selection;
+      return json([{ id: "variant-pl", locale: "pl", selection: storedSelection, is_default: false }]);
+    }
+    if (url.includes("/rest/v1/resume_preset_variants")) return json([]);
+    return json([]);
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const selection = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [0] };
+  const saved = await importResumePresetVariant("access-token", "user-1", preset, "pl", selection);
+  assert.equal(saved, true);
+  assert.deepEqual(storedSelection.experience, [], "a blank translation slot must never be stored as selected");
+  assert.deepEqual(storedSelection.summary, [0]);
+});
+
 test("public view and dashboard preview apply the selection on the raw document before normalization", () => {
   const server = read("app/lib/resume-server.ts");
   // buildPresetResumeDocument (the dashboard preview's raw-domain selection
@@ -488,7 +539,7 @@ test("public view and dashboard preview apply the selection on the raw document 
   assert.equal(presetPreview.includes("const rawDocument = window.jsyaml.load(yamlContent)"), true);
   assert.equal(presetPreview.includes("applyResumeSelectionToRawDocument(rawDocument"), true);
   assert.equal(
-    presetPreview.includes("clampResumeSelectionToRawDocument(rawDocument, selection)"),
+    presetPreview.includes("clampResumeSelectionToRawDocument(rawDocument, selection, options)"),
     true,
     "dashboard preview must clamp the base selection to the previewed locale document",
   );

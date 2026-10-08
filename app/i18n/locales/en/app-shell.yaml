@@ -1,0 +1,55 @@
+meta:
+  description: OpenCiVera — a LiveCV builder based on a private Experience Base. Create a separate LiveCV tailored to each application.
+common:
+  loading: Loading…
+  close: Close
+  save: Save
+  cancel: Cancel
+  home: Home
+  breadcrumb: Breadcrumb
+  close_notification: Close notification
+navigation:
+  personal_hub: Profile and LiveCVs
+  dashboard: Dashboard
+  sample_cv: Sample LiveCV
+  docs: Docs
+  sign_up: Sign up
+  sign_in: Sign in
+  primary_aria: Primary navigation
+  open_primary_aria: Open primary navigation
+language_menu:
+  aria_label: Application language
+theme:
+  aria_label: "Application theme: {theme}. Switch to {nextTheme} theme."
+account:
+  open_menu_aria: Open account menu
+  actions_aria: Account actions
+  profile: Profile
+  user_management: User management
+  beta_test_mode: Beta test mode
+  settings: Settings
+  signing_out: Signing out…
+  log_out: Log out
+  profile_modal:
+    title: Profile
+    close: Close
+    first_name: First name
+    last_name: Last name
+    saving: Saving…
+    save: Save
+    email: Email address
+    role: Role
+    status: Account status
+    email_verification: Email verification
+    active: Active
+    inactive: Inactive
+    verified: Verified
+    pending: Pending
+    update_failed: Profile update failed.
+    delete_title: Delete account and all data
+    delete_action: Delete account and all data
+    delete_explanation: "This action cannot be undone. Your account and all LiveCV data will be permanently deleted. To confirm, enter your email address below: {email}."
+    delete_failed: Account deletion failed.
+    cancel: Cancel
+    deleting: Deleting…
+    delete_forever: Delete account permanently

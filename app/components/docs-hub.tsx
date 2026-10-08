@@ -2,47 +2,35 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import {
-  ArrowRight,
-  ChevronRight,
-  FileText,
-  Flag,
-  Globe,
-  Layers,
-  LockKeyhole,
-  Search,
-  X
-} from "lucide-react";
+import { ArrowRight, ChevronRight, Search, X } from "lucide-react";
 import type { DocNavGroup } from "../lib/docs/content";
+import type { AppDictionary } from "../i18n/types";
 import {
+  buildDocsSections,
   buildDocsTopics,
-  docsCopy,
-  docsHref,
   filterDocs,
-  FIRST_CV_GUIDE,
-  type DocsLanguage
+  FIRST_CV_GUIDE
 } from "../lib/docs/presentation";
-
-const topicIcons = [FileText, Layers, Globe];
 
 export default function DocsHub({
   groups,
-  language = "en",
+  copy,
   children
 }: {
   groups: DocNavGroup[];
-  language?: DocsLanguage;
+  copy: AppDictionary["docs"];
   children?: ReactNode;
 }) {
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const copy = docsCopy[language];
-  const topics = buildDocsTopics(groups, language);
-  const visibleTopics = filterDocs(topics, query);
+  const topics = buildDocsTopics(groups, copy);
+  const sections = buildDocsSections(groups, copy);
   const documents = groups.flatMap((group) => group.items);
-  const visibleDocuments = filterDocs(documents, query);
-  const count = visibleTopics.length + visibleDocuments.length;
-  const hasGuide = documents.some((item) => item.href === FIRST_CV_GUIDE);
+  const results = filterDocs(documents, query);
+  const searching = Boolean(query.trim());
+  const languageGuide = documents.find(
+    (item) => item.href === "/docs/tutorials/add-language-version"
+  );
 
   useEffect(() => {
     function focusSearch(event: KeyboardEvent) {
@@ -54,6 +42,22 @@ export default function DocsHub({
     document.addEventListener("keydown", focusSearch);
     return () => document.removeEventListener("keydown", focusSearch);
   }, []);
+
+  function resourceList(items: typeof documents) {
+    return (
+      <div className="docs-resources">
+        {items.map((item) => (
+          <Link key={item.href} href={item.href}>
+            <span>
+              {item.title}
+              <small>{item.description}</small>
+            </span>
+            <ChevronRight size={16} aria-hidden="true" />
+          </Link>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="docs-hub">
@@ -88,102 +92,79 @@ export default function DocsHub({
           )}
         </div>
       </header>
-
-      {hasGuide ? (
-        <section className="docs-feature" aria-labelledby="docs-start-title">
-          <div className="docs-feature__copy">
-            <span className="docs-tag">
-              <Flag size={13} aria-hidden="true" />
-              {copy.start}
-            </span>
-            <h2 id="docs-start-title">{copy.firstCv}</h2>
-            <p>{copy.firstCvNote}</p>
-            <Link
-              className="docs-button docs-button--primary"
-              href={docsHref(FIRST_CV_GUIDE, language)}
-            >
-              {copy.openGuide}
+      <div role="status" className="docs-search-status">
+        {searching ? `${copy.results}: ${results.length}` : ""}
+      </div>
+      {searching ? (
+        resourceList(results)
+      ) : (
+        <>
+          {documents.some((item) => item.href === FIRST_CV_GUIDE) ? (
+            <Link className="docs-intro" href={FIRST_CV_GUIDE}>
+              {copy.workflow.intro}
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
-          </div>
-          <ol className="docs-flow">
-            {[
-              { title: copy.master, note: copy.masterNote },
-              { title: copy.version, note: copy.versionNote },
-              { title: copy.published, note: copy.publishedNote }
-            ].map((item, index) => {
-              const Icon = topicIcons[index];
-              return (
-                <li key={item.title}>
-                  <span className="docs-flow__icon">
-                    <Icon size={20} aria-hidden="true" />
-                  </span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <small>{item.note}</small>
+          ) : null}
+          {topics.length > 0 ? (
+            <section aria-labelledby="docs-path-title">
+              <div className="docs-section-heading">
+                <h2 id="docs-path-title">{copy.workflow.path}</h2>
+              </div>
+              <ol className="docs-steps">
+                {topics.map((topic) => (
+                  <li key={topic.href}>
+                    <div className="docs-step">
+                      <span className="docs-step__number" aria-hidden="true">
+                        {topic.step}
+                      </span>
+                      <div>
+                        <h3>
+                          <Link href={topic.href}>{topic.title}</Link>
+                        </h3>
+                        <p>{topic.description}</p>
+                        <p className="docs-step__result">
+                          {copy.workflow.outcome}: {topic.label}
+                        </p>
+                        <Link
+                          className={`docs-button${topic.step === 1 ? " docs-button--primary" : ""}`}
+                          href={topic.href}
+                        >
+                          {topic.step === 1
+                            ? copy.workflow.start
+                            : `${copy.workflow.go} ${topic.step}`}
+                          <ArrowRight size={16} aria-hidden="true" />
+                        </Link>
+                      </div>
+                    </div>
+                    {topic.step === 1 && languageGuide ? (
+                      <p className="docs-optional">
+                        {copy.workflow.optional}{" "}
+                        <Link href={languageGuide.href}>{copy.workflow.language}</Link>
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
+          <div className="docs-support">
+            {sections
+              .filter((section) => !["start", "workflow"].includes(section.key))
+              .map((section) => (
+                <section key={section.key}>
+                  <div className="docs-section-heading">
+                    <h2>{section.title}</h2>
                   </div>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-      ) : null}
-
-      <div className="docs-section-heading">
-        <h2>{copy.tools}</h2>
-        <span role="status">{query.trim() ? `${copy.results}: ${count}` : copy.choose}</span>
-      </div>
-      {visibleTopics.length > 0 ? (
-        <div className="docs-topics">
-          {visibleTopics.map((topic) => {
-            const Icon = topicIcons[topics.indexOf(topic)];
-            return (
-              <Link key={topic.href} className="docs-topic" href={topic.href}>
-                <Icon size={21} aria-hidden="true" />
-                <h3>{topic.title}</h3>
-                <p>{topic.description}</p>
-                <span>
-                  {topic.label}
-                  <ArrowRight size={15} aria-hidden="true" />
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      ) : null}
-      {count === 0 ? (
-        <p className="docs-empty">{query.trim() ? copy.noResults : copy.noDocs}</p>
-      ) : null}
-
-      <div className="docs-hub__bottom">
-        <section>
-          <div className="docs-section-heading">
-            <h2>{copy.guides}</h2>
+                  {resourceList(section.items)}
+                </section>
+              ))}
           </div>
-          <div className="docs-resources">
-            {visibleDocuments.map((item) => (
-              <Link key={item.href} href={docsHref(item.href, language)}>
-                <FileText size={16} aria-hidden="true" />
-                <span>
-                  {item.title}
-                  <small>{item.description}</small>
-                </span>
-                <ChevronRight size={16} aria-hidden="true" />
-              </Link>
-            ))}
-          </div>
-        </section>
-        <aside className="docs-privacy">
-          <span className="docs-tag docs-tag--success">
-            <LockKeyhole size={13} aria-hidden="true" />
-            {copy.privacyTag}
-          </span>
-          <h3>{copy.privacyTitle}</h3>
-          <p>{copy.privacyNote}</p>
-          {hasGuide ? <Link href={topics[2].href}>{copy.privacyLink}</Link> : null}
-        </aside>
-      </div>
-      {children ? (
+        </>
+      )}
+      {(searching ? results.length === 0 : documents.length === 0) ? (
+        <p className="docs-empty">{searching ? copy.no_results : copy.no_docs}</p>
+      ) : null}
+      {!searching && children ? (
         <details className="docs-about">
           <summary>{copy.about}</summary>
           <div className="docs-prose">{children}</div>

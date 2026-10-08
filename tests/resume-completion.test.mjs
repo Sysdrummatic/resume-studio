@@ -92,5 +92,8 @@ test("the side panel exposes Preview, History and Style tabs", () => {
   assert.equal(editor.includes("resume-editor-style-panel"), true);
   // The template control is the one style setting backed by real rendering
   // behaviour, so it lives in the Style tab rather than beside the preview.
-  assert.equal(editor.includes("setSelectedStyle(event.target.value as ResumeEditorStyle)"), true);
+  assert.equal(editor.includes('"signal-grid"'), true);
+  assert.equal(editor.includes('"atelier-noir"'), true);
+  assert.equal(editor.includes('"terminal-stack"'), true);
+  assert.equal(editor.includes("setCvStyle({ ...cvStyle, template: nextStyle as ResumeVisualTemplate })"), true);
 });

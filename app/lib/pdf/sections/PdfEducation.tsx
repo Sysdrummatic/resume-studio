@@ -1,6 +1,7 @@
 import React from "react";
 import type { ResumeEducation } from "../../resume-schema";
 import type { PdfTheme } from "../theme";
+import { splitTextBlocks } from "../../bullet-text";
 import { PdfSectionCard, PdfTimelineBlocks, PdfTimelineItem } from "../primitives";
 import { planTimelineSection, type PdfTimelineBlock } from "../pagination";
 
@@ -26,16 +27,31 @@ function educationBlocks(entry: ResumeEducation, theme: PdfTheme): PdfTimelineBl
       marginTop: components.timelineItemGap,
       marginBottom: spacing.spaceXs,
     },
-    {
-      text: entry.detail ?? "",
-      fontSize: typography.sizes.sm,
-      color: colors.muted,
-      // .timeline-item__subheading's 8px bottom margin collapses with this
-      // rule's 6px top margin on the web; react-pdf does not collapse margins,
-      // so only the larger one is applied.
-      marginTop: entry.degree ? 0 : components.timelineItemGap,
-    },
+    ...detailBlocks(entry.detail ?? "", !entry.degree, theme),
   ];
+}
+
+// Mirrors BulletText: "- item" lines become bullet rows, prose stays one block.
+// Blocks are 6px apart on the web (.bullet-text), list items by .item-list li.
+function detailBlocks(detail: string, firstOnTop: boolean, theme: PdfTheme): PdfTimelineBlock[] {
+  const { components, typography, colors } = theme;
+  const base = { fontSize: typography.sizes.sm, color: colors.muted };
+  // .timeline-item__subheading's 8px bottom margin collapses with this rule's
+  // 6px top margin on the web; react-pdf does not collapse margins, so only
+  // the larger one is applied.
+  const firstMargin = firstOnTop ? components.timelineItemGap : 0;
+
+  return splitTextBlocks(detail).flatMap((block, index): PdfTimelineBlock[] => {
+    const marginTop = index === 0 ? firstMargin : components.timelineItemGap;
+    if (block.kind === "paragraph") return [{ ...base, text: block.text, marginTop }];
+
+    return block.items.map((item, itemIndex) => ({
+      ...base,
+      text: item,
+      bullet: true,
+      marginTop: itemIndex === 0 ? marginTop : components.listItemGap,
+    }));
+  });
 }
 
 export function PdfEducation({ education, title, theme }: PdfEducationProps) {

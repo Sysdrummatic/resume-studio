@@ -1,4 +1,5 @@
 import yaml from "js-yaml";
+import { splitTextBlocks } from "./bullet-text";
 import { resumeFullName, type ResumeDocument } from "./resume-schema";
 import {
   ATS_DATE_OPEN_END,
@@ -139,7 +140,10 @@ export function convertResumeToPlainText(doc: ResumeDocument): string {
 
   const summary = getAtsSummary(doc);
   if (summary) {
-    sections.push([ATS_SECTION_HEADERS.summary, wrapText(summary).join("\n")].join("\n"));
+    const summaryLines = splitTextBlocks(summary).flatMap((block) =>
+      block.kind === "list" ? block.items.map((item) => `- ${item}`) : wrapText(block.text),
+    );
+    sections.push([ATS_SECTION_HEADERS.summary, summaryLines.join("\n")].join("\n"));
   }
 
   if (doc.experience.length > 0) {

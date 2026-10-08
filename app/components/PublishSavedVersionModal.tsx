@@ -4,13 +4,7 @@ import { useMemo, useState } from "react";
 import { Button } from "./design-system/atoms/Button";
 import type { ResumeLocale } from "../lib/resume-schema";
 import type { ResumePresetRow } from "../lib/resume-server";
-
-function getFallbackLanguageLabel(locale: string): { label: string; shortLabel: string } {
-  if (locale === "en") return { label: "English", shortLabel: "EN" };
-  if (locale === "pl") return { label: "Polski", shortLabel: "PL" };
-  if (locale === "de") return { label: "Deutsch", shortLabel: "DE" };
-  return { label: locale.toUpperCase(), shortLabel: locale.slice(0, 2).toUpperCase() };
-}
+import { useAppI18n } from "./app-i18n-provider";
 
 type LanguageMetadata = {
   code: ResumeLocale;
@@ -44,6 +38,8 @@ export default function PublishSavedVersionModal({
   onClose,
   onPublish,
 }: Props) {
+  const { locale: appLocale, dictionary } = useAppI18n();
+  const labels = dictionary.dashboard.publish_modal;
   const [selectedLocales, setSelectedLocales] = useState<ResumeLocale[]>(draft.selectedLocales);
   const [defaultLocale, setDefaultLocale] = useState<ResumeLocale>(draft.defaultLocale);
   const [allowIndexing, setAllowIndexing] = useState(draft.allowIndexing);
@@ -52,8 +48,9 @@ export default function PublishSavedVersionModal({
 
   const languageLabel = useMemo(() => {
     const map = new Map(languageOptions.map((item) => [item.code, item.label]));
-    return (locale: ResumeLocale) => map.get(locale) || getFallbackLanguageLabel(locale).label;
-  }, [languageOptions]);
+    const displayNames = new Intl.DisplayNames([appLocale], { type: "language" });
+    return (locale: ResumeLocale) => map.get(locale) || displayNames.of(locale) || locale.toUpperCase();
+  }, [appLocale, languageOptions]);
 
   function toggleLocale(nextLocale: ResumeLocale) {
     setSelectedLocales((current) => {
@@ -73,11 +70,11 @@ export default function PublishSavedVersionModal({
 
   async function submit() {
     if (selectedLocales.length === 0) {
-      setError("Select at least one language version.");
+      setError(labels.select_one);
       return;
     }
     if (!selectedLocales.includes(defaultLocale)) {
-      setError("Default language must be included in selected languages.");
+      setError(labels.default_required);
       return;
     }
     setError("");
@@ -87,20 +84,20 @@ export default function PublishSavedVersionModal({
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Publish CV Version">
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label="Close publish modal"></button>
+    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={labels.aria_label}>
+      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label={labels.close_aria}></button>
       <div className="dashboard-modal__body">
         <div className="section-row">
-          <h2>Publish CV Version</h2>
+          <h2>{labels.title}</h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
+            {labels.close}
           </Button>
         </div>
 
         <p className="card-lead">{draft.preset.title}</p>
 
         <section className="stack">
-          <h3>Language Versions</h3>
+          <h3>{labels.languages}</h3>
           {locales.map((nextLocale) => (
             <label key={nextLocale} className="checkbox-row">
               <input type="checkbox" checked={selectedLocales.includes(nextLocale)} onChange={() => toggleLocale(nextLocale)} />
@@ -110,7 +107,7 @@ export default function PublishSavedVersionModal({
         </section>
 
         <label>
-          Default language
+          {labels.default}
           <select value={defaultLocale} onChange={(event) => setDefaultLocale(event.target.value as ResumeLocale)}>
             {selectedLocales.map((nextLocale) => (
               <option key={nextLocale} value={nextLocale}>
@@ -122,22 +119,23 @@ export default function PublishSavedVersionModal({
 
         <label className="checkbox-row">
           <input type="checkbox" checked={allowIndexing} disabled={Boolean(draft.preset.onboarding_test_run_id)} onChange={(event) => setAllowIndexing(event.target.checked)} />
-          Allow indexing for this Published CV
+          {labels.allow_indexing}
         </label>
 
         <div className="card stack">
-          <strong>Link state after publish</strong>
-          <p className="card-lead">Canonical URL is the permanent public link for this version.</p>
+          <strong>{labels.link_state}</strong>
+          <p className="card-lead">{labels.canonical_note}</p>
+          <p className="card-lead">{draft.preset.canonical_public_path ? labels.active_link : labels.new_link}</p>
         </div>
 
         {error ? <p className="status status--error">{error}</p> : null}
 
         <div className="actions-row">
           <Button variant="primary" onClick={() => void submit()} disabled={isSubmitting}>
-            {isSubmitting ? "Publishing..." : "Publish CV Version"}
+            {isSubmitting ? labels.publishing : labels.publish}
           </Button>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            {labels.cancel}
           </Button>
         </div>
       </div>

@@ -1,0 +1,202 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import test from "node:test";
+import yaml from "js-yaml";
+import { loadDictionaryModules } from "../app/i18n/dictionary-loader.ts";
+import { formatAppMessage, resolveAcceptLanguage, resolveAppLocale, selectEnabledLocale } from "../app/i18n/locale.ts";
+
+const root = process.cwd();
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(root, relativePath), "utf8");
+}
+
+function readYaml(relativePath) {
+  return yaml.load(read(relativePath));
+}
+
+function readAppDictionary(locale, files = readYaml("app/i18n/config.yaml").dictionary_files) {
+  return loadDictionaryModules(path.join(root, "app/i18n/locales", locale), files, locale);
+}
+
+function shapePaths(value, prefix = "") {
+  if (Array.isArray(value)) {
+    const paths = [`${prefix}[]`];
+    return value.length > 0 ? paths.concat(shapePaths(value[0], `${prefix}[]`)) : paths;
+  }
+  if (value && typeof value === "object") {
+    return Object.keys(value).flatMap((key) => shapePaths(value[key], prefix ? `${prefix}.${key}` : key));
+  }
+  return [prefix];
+}
+
+test("application locale config enables Polish first with English fallback", () => {
+  const config = readYaml("app/i18n/config.yaml");
+  const enabled = config.locales.filter((locale) => locale.enabled).map((locale) => locale.code);
+
+  assert.equal(config.default_locale, "pl");
+  assert.equal(config.fallback_locale, "en");
+  assert.deepEqual(enabled, ["pl", "en"]);
+  assert.equal(config.geo.country_locales.PL, "pl");
+  assert.equal(config.geo.known_country_fallback, "en");
+  assert.deepEqual(config.dictionary_files, [
+    "app-shell.yaml",
+    "landing.yaml",
+    "auth.yaml",
+    "dashboard.yaml",
+    "editor.yaml",
+    "admin.yaml",
+    "user.yaml",
+    "onboarding.yaml",
+    "settings.yaml",
+    "legal.yaml",
+    "docs.yaml",
+    "sample-resume.yaml",
+  ]);
+
+  for (const locale of config.locales) {
+    const dictionaryDirectory = path.join(root, "app/i18n", locale.dictionary);
+    assert.equal(fs.statSync(dictionaryDirectory).isDirectory(), true);
+    for (const file of config.dictionary_files) {
+      assert.equal(fs.existsSync(path.join(dictionaryDirectory, file)), true, `${locale.code}/${file}`);
+    }
+  }
+});
+
+test("every enabled application dictionary matches the fallback dictionary shape", () => {
+  const config = readYaml("app/i18n/config.yaml");
+  const fallback = config.locales.find((locale) => locale.code === config.fallback_locale);
+  const fallbackDictionary = readAppDictionary(fallback.code, config.dictionary_files);
+
+  for (const locale of config.locales.filter((entry) => entry.enabled)) {
+    const dictionary = readAppDictionary(locale.code, config.dictionary_files);
+    assert.deepEqual(shapePaths(dictionary).sort(), shapePaths(fallbackDictionary).sort(), locale.code);
+  }
+});
+
+test("locale selection accepts supported regional variants and honors quality", () => {
+  const enabled = ["pl", "en"];
+
+  assert.equal(selectEnabledLocale("pl-PL", enabled), "pl");
+  assert.equal(selectEnabledLocale("de-DE", enabled), null);
+  assert.equal(resolveAcceptLanguage("de-DE,de;q=0.9,en;q=0.8,pl;q=0.7", enabled), "en");
+  assert.equal(resolveAcceptLanguage("en;q=0.5,pl-PL;q=0.9", enabled), "pl");
+  assert.equal(resolveAcceptLanguage("pl;q=0,en;q=0.7", enabled), "en");
+});
+
+test("authenticated workspace copy is sourced from the application dictionaries", () => {
+  const polish = readAppDictionary("pl");
+  const english = readAppDictionary("en");
+  const accountMenu = read("app/components/account-menu.tsx");
+  const dashboard = read("app/dashboard/dashboard-client.tsx");
+  const editor = read("app/master-resume/editor-canvas-client.tsx");
+  const admin = read("app/admin/admin-users-client.tsx");
+  const docsPresentation = read("app/lib/docs/presentation.ts");
+  const user = read("app/user/user-client.tsx");
+  const onboarding = read("app/onboarding/onboarding-client.tsx");
+  const settings = read("app/settings/onboarding-test-settings.tsx");
+
+  assert.equal(typeof polish.account.profile_modal.first_name, "string");
+  assert.equal(typeof english.account.profile_modal.first_name, "string");
+  assert.equal(typeof polish.dashboard.main.title, "string");
+  assert.equal(typeof english.dashboard.main.title, "string");
+  assert.equal(accountMenu.includes("profileLabels.first_name"), true);
+  assert.equal(dashboard.includes("dictionary.dashboard"), true);
+  assert.equal(dashboard.includes(">Dashboard<"), false);
+  assert.equal(dashboard.includes(">Your CVs<"), false);
+  assert.equal(typeof polish.editor.text["Master Resume"], "string");
+  assert.equal(typeof english.editor.text["Master Resume"], "string");
+  assert.equal(editor.includes("dictionary.editor"), true);
+  assert.equal(editor.includes("onboardingEditorText"), false);
+  assert.equal(typeof polish.admin.text["Admin panel"], "string");
+  assert.equal(typeof english.admin.text["Admin panel"], "string");
+  assert.equal(admin.includes("dictionary.admin"), true);
+  assert.equal(typeof polish.docs.heading, "string");
+  assert.equal(typeof english.docs.heading, "string");
+  assert.equal(docsPresentation.includes("docsCopy"), false);
+  assert.equal(typeof polish.user.text["Personal hub"], "string");
+  assert.equal(typeof english.user.text["Personal hub"], "string");
+  assert.equal(user.includes("dictionary.user"), true);
+  assert.equal(polish.onboarding.steps.length, 15, "welcome, choice, 11 sections, review, publish");
+  assert.equal(english.onboarding.steps.includes("Welcome to OpenCiVera"), true);
+  assert.equal(onboarding.includes("dictionary.onboarding"), true);
+  assert.equal(onboarding.includes("const t = (en: string, pl: string)"), false);
+  assert.equal(typeof polish.settings.text["Account settings"], "string");
+  assert.equal(typeof english.settings.text["Account settings"], "string");
+  assert.equal(settings.includes("dictionary.settings"), true);
+});
+
+test("application messages support named interpolation without changing unknown placeholders", () => {
+  assert.equal(formatAppMessage("Saved {date}", { date: "18.09.2026" }), "Saved 18.09.2026");
+  assert.equal(formatAppMessage("{done} of {total}; {unknown}", { done: 3, total: 5 }), "3 of 5; {unknown}");
+});
+
+test("application locale resolution follows cookie, header, country, browser and default precedence", () => {
+  const base = {
+    enabledLocales: ["pl", "en"],
+    countryLocales: { PL: "pl" },
+    knownCountryFallback: "en",
+    defaultLocale: "pl",
+  };
+
+  assert.equal(
+    resolveAppLocale({ ...base, cookieLocale: "pl", headerLocale: "en", countryCode: "US", acceptLanguage: "en" }),
+    "pl",
+  );
+  assert.equal(resolveAppLocale({ ...base, headerLocale: "en", countryCode: "PL", acceptLanguage: "pl" }), "en");
+  assert.equal(resolveAppLocale({ ...base, countryCode: "pl", acceptLanguage: "en" }), "pl");
+  assert.equal(resolveAppLocale({ ...base, countryCode: "US", acceptLanguage: "pl" }), "en");
+  assert.equal(resolveAppLocale({ ...base, acceptLanguage: "de-DE,de;q=0.9,en;q=0.8" }), "en");
+  assert.equal(resolveAppLocale({ ...base, acceptLanguage: "de-DE" }), "pl");
+});
+
+test("layout and sample resume use the resolved application locale", () => {
+  const layout = read("app/layout.tsx");
+  const samplePage = read("app/resume/page.tsx");
+  const sampleConfig = readYaml("public/data/public/locales.yaml");
+
+  assert.equal(layout.includes("<html lang={appI18n.locale}"), true);
+  assert.equal(samplePage.includes("initialLocale={locale}"), true);
+  assert.equal(sampleConfig.default_locale, "pl");
+});
+
+test("Netlify edge function forwards country for HTML and RSC page requests", async () => {
+  const edge = read("netlify/edge-functions/app-locale.js");
+
+  assert.equal(edge.includes("context.geo?.country?.code"), true);
+  assert.equal(edge.includes('accept.includes("text/html")'), true);
+  assert.equal(edge.includes("headers.set(COUNTRY_HEADER_NAME, countryCode)"), true);
+  assert.equal(edge.includes("context.next(new Request(request, { headers }))"), true);
+
+  const moduleUrl = `data:text/javascript;base64,${Buffer.from(edge).toString("base64")}`;
+  const { default: appLocale } = await import(moduleUrl);
+  let forwardedRequest;
+  const context = {
+    geo: { country: { code: "pl" } },
+    next(request) {
+      forwardedRequest = request;
+      return new Response("ok");
+    },
+  };
+
+  const response = await appLocale(new Request("https://example.test/", { headers: { accept: "text/html" } }), context);
+  assert.equal(response.status, 200);
+  assert.equal(forwardedRequest.headers.get("x-opencivera-country-code"), "PL");
+  forwardedRequest = undefined;
+  const rscResponse = await appLocale(new Request("https://example.test/privacy?_rsc=1", {
+    headers: { accept: "*/*", rsc: "1", "accept-language": "en" },
+  }), context);
+  assert.equal(rscResponse.status, 200);
+  assert.equal(forwardedRequest.headers.get("x-opencivera-country-code"), "PL", "client navigation must retain the country-based locale");
+  forwardedRequest = undefined;
+  assert.equal(
+    await appLocale(new Request("https://example.test/privacy", { headers: { accept: "application/json" } }), context),
+    undefined,
+  );
+  assert.equal(forwardedRequest, undefined, "ordinary non-page GET requests must not be forwarded");
+  assert.equal(
+    await appLocale(new Request("https://example.test/api", { method: "POST", headers: { accept: "application/json" } }), context),
+    undefined,
+  );
+});

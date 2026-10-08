@@ -1,0 +1,612 @@
+format: opencivera-user-data
+version: 1
+exported_at: "2026-09-19T12:00:00.000Z"
+languages:
+  - code: pl
+    label: Polski
+    short_label: PL
+    is_default: true
+    sort_order: 0
+  - code: en
+    label: English
+    short_label: EN
+    is_default: false
+    sort_order: 1
+  - code: de
+    label: Deutsch
+    short_label: DE
+    is_default: false
+    sort_order: 2
+documents:
+  - locale: pl
+    title: Master Resume – Aleksandra Wrońska (PL)
+    yaml_content: |
+      brand_initials: AW
+      first_name: Aleksandra
+      family_name: Wrońska
+      summary:
+        - entry_id: 335549e6-0c22-4011-b8fa-38f80bc9075c
+          position: Product Owner
+          description: |-
+            Product Owner z 5-letnim doświadczeniem w produktach SaaS, łączący dyscyplinę dokumentacji technicznej z myśleniem produktowym. Odpowiadam za strategię, backlog i współpracę z zespołami inżynierskimi.
+            - Prowadzę discovery i priorytetyzację w oparciu o dane
+            - Buduję spójną dokumentację i komunikację produktową
+            - Dbam o jakość dzięki doświadczeniu z testowania
+          default: true
+        - entry_id: a4a4dbad-9d2f-456a-a2e8-3d469a3837e5
+          position: Technical Writer
+          description: Technical Writer z ponad 5-letnim doświadczeniem w dokumentacji API i przewodnikach dla użytkowników końcowych. Pracuję w modelu docs-as-code (Git, Markdown, OpenAPI) i dbam o to, aby dokumentacja była aktualna, spójna i łatwa w nawigacji.
+          default: false
+        - entry_id: 230d6054-0b0b-490b-9710-400db312f9d1
+          position: Inżynier jakości (QA)
+          description: Inżynier jakości z doświadczeniem w projektowaniu przypadków testowych, testach regresji i automatyzacji w Playwright. Łączę testowanie z analizą wymagań, dzięki czemu wykrywam problemy, zanim trafią do implementacji.
+          default: false
+      contact:
+        - entry_id: c04ae505-d318-466e-8b00-972ff3062ba3
+          label: Lokalizacja
+          value: Warszawa, Polska
+        - entry_id: 8ede8e97-961a-420d-9bb9-47d7176c28cb
+          label: Telefon
+          value: +48 000 000 000
+          link: tel:+48000000000
+        - entry_id: 6bc06e84-ffc8-4b14-8230-8f605a7918b8
+          label: E-mail
+          value: aleksandra.wronska@example.com
+          link: mailto:aleksandra.wronska@example.com
+        - entry_id: bc5fe3f4-2ffb-4ad3-94bd-dc6006e51bc9
+          label: Strona internetowa
+          value: example.com/aleksandra-wronska
+          link: https://example.com/aleksandra-wronska
+      qr_codes:
+        - entry_id: 56ee949e-b0d5-47a4-a244-b347c8c75df8
+          label: Portfolio
+          value: https://example.com/aleksandra-wronska
+          size: 130
+        - entry_id: 368a581e-885d-461c-b2f4-156decaf240d
+          label: CV online
+          value: https://example.com/aleksandra-wronska/cv
+          size: 110
+      skills:
+        - entry_id: 2f737b92-a1e2-4ce7-a47d-331987c74f1b
+          name: Discovery produktowe
+          level: 5
+        - entry_id: 31677991-1cb3-4fb1-b335-369420028852
+          name: Zarządzanie backlogiem
+          level: 5
+        - entry_id: 339f0ac6-0bb9-4ec6-a141-3efdd852bc6f
+          name: Dokumentacja techniczna
+          level: 5
+        - entry_id: 7f20ccaf-ea7e-4af2-9737-120259618c04
+          name: Dokumentacja API
+          level: 4
+        - entry_id: ced66c1b-522b-4526-82bc-b15d2cfa108a
+          name: Projektowanie testów
+          level: 4
+        - entry_id: bb876162-86ff-45ad-926d-964b93b5f54a
+          name: Badania użytkowników
+          level: 3
+        - entry_id: 0efbe9f4-1cc5-4015-b01d-25be3c1d9e8e
+          name: SQL
+          level: 3
+        - entry_id: d36abac4-8137-4532-941c-469af78eee5e
+          name: Komunikacja z interesariuszami
+          level: 5
+      tech_stack:
+        - Jira
+        - Confluence
+        - Figma
+        - Postman
+        - OpenAPI / Swagger
+        - Markdown / Docs-as-Code
+        - Git
+        - Playwright
+        - SQL
+        - Amplitude
+      languages:
+        - entry_id: b118f796-328b-4881-82bd-52d6a8e17f8a
+          name: Polski
+          level_text: ojczysty
+          level: 5
+        - entry_id: 4361d5db-b33d-49e3-8c40-8872831ae4b4
+          name: Angielski
+          level_text: C1
+          level: 4
+        - entry_id: 89470d35-c6e9-4c01-8a54-784812206c1c
+          name: Niemiecki
+          level_text: B1
+          level: 2
+      interests:
+        - Wycieczki rowerowe
+        - Fotografia analogowa
+        - Szachy
+        - Gry planszowe
+        - Wolontariat w bibliotece
+      experience:
+        - entry_id: d4351960-0820-4fca-9785-b0063845e9de
+          period: 2024-03 - now
+          company: OpenCiVera
+          role: Product Owner i administratorka platformy
+          highlights:
+            - Zarządzam backlogiem platformy do tworzenia CV i priorytetyzuję prace na podstawie opinii beta-testerów
+            - Administruję kontami, rolami i wersjami językowymi w panelu administracyjnym
+            - Wprowadziłam wielojęzyczne Master Resume z powiązanymi wpisami między językami
+            - Prowadzę scenariusze testowe i akceptację funkcji przed wdrożeniem na produkcję
+        - entry_id: 79f71e3f-bdbb-4223-9d29-347648342ce9
+          period: 2021-09 - 2024-02
+          company: Kestrel Software
+          role: Product Owner
+          highlights:
+            - Odpowiadałam za produkt B2B SaaS dla 40 000 aktywnych użytkowników oraz roadmapę na cztery kwartały
+            - Skróciłam czas wdrożenia nowych klientów o 35% dzięki przebudowie procesu onboardingu
+            - Wprowadziłam cotygodniowe sesje discovery z klientami i zespołem wsparcia
+            - Współpracowałam z trzema zespołami deweloperskimi w Scrumie
+        - entry_id: bc4afa15-643e-45be-90e4-e452df1a8ff5
+          period: 2019-02 - 2021-08
+          company: Harbor & Pine Systems
+          role: Starszy Technical Writer
+          highlights:
+            - Stworzyłam od podstaw portal dokumentacji API oparty na OpenAPI i Markdown
+            - Zmniejszyłam liczbę zgłoszeń do wsparcia o 28% dzięki nowym przewodnikom dla użytkowników końcowych
+            - "Wdrożyłam docs-as-code: przegląd dokumentacji w pull requestach i automatyczną publikację"
+            - Mentorowałam dwie osoby w zespole dokumentacji
+        - entry_id: 7dee1ae4-efe0-4dbb-9277-59b365bcc0ee
+          period: 2016-10 - 2019-01
+          company: Lumen Docs Studio
+          role: Technical Writer
+          highlights:
+            - Przygotowywałam instrukcje obsługi i artykuły bazy wiedzy dla klientów z sektora fintech
+            - Ujednoliciłam styl i słownik terminów w projektach dla pięciu klientów
+            - Współpracowałam z inżynierami przy weryfikacji opisów interfejsów
+        - entry_id: c7d8d659-bf27-499e-8e6a-1be8c810945b
+          period: 2014-06 - 2016-09
+          company: Brightpath Labs
+          role: Inżynier jakości (QA)
+          highlights:
+            - Projektowałam przypadki testowe i prowadziłam testy regresji aplikacji webowych
+            - Zautomatyzowałam testy krytycznych ścieżek w Selenium, skracając regresję z dwóch dni do czterech godzin
+            - Analizowałam defekty w Jirze i współpracowałam z deweloperami nad ich odtworzeniem
+      education:
+        - entry_id: 709e9eeb-9f77-4847-b650-30d613a226ab
+          period: 2010-10 - 2014-06
+          school: Politechnika Warszawska
+          degree: Informatyka, studia I stopnia (inżynier)
+          detail: |-
+            Specjalność: inżynieria oprogramowania
+            - Praca dyplomowa: system zgłaszania i śledzenia defektów
+            - Koło naukowe testowania oprogramowania
+        - entry_id: bcaa418e-b1e3-4ba1-87db-59b8934598b2
+          period: 2015-10 - 2016-06
+          school: Uniwersytet Warszawski
+          degree: "Studia podyplomowe: Komunikacja techniczna"
+          detail: Warsztaty z pisania instrukcji, terminologii i lokalizacji dokumentacji.
+      courses:
+        - entry_id: 5e278c72-d0aa-4519-bc77-99c61f4d86fe
+          year: 2024
+          name: Certified Scrum Product Owner (CSPO)
+        - entry_id: b6bd537d-4e54-4c18-a6ff-c8618a10ae8e
+          year: 2022
+          name: Continuous Discovery – warsztat praktyczny
+        - entry_id: eb84ddb8-0c06-48b6-91b1-7e98a1901362
+          year: 2020
+          name: Dokumentacja REST API z OpenAPI
+        - entry_id: a468f349-324f-4a2f-8572-b79820ad71d1
+          year: 2017
+          name: ISTQB Certified Tester – Foundation Level
+        - entry_id: 24608c11-8f6e-4b70-8f35-2a673c771291
+          year: 2016
+          name: "Docs as code: Git i Markdown w praktyce"
+      gdpr_clause: Wyrażam zgodę na przetwarzanie moich danych osobowych zawartych w niniejszym dokumencie do realizacji procesu rekrutacji zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO).
+      __ocv:
+        entries:
+          tech_stack:
+            - fe13c7d8-a306-42d8-aa93-3d567fb0d113
+            - e4f03cfe-d484-4910-a870-4606a21a7625
+            - 93f930f5-553d-4f06-8c2a-98a1413cf8fd
+            - 0b63ac08-0542-4677-82d7-c5831137ef0a
+            - 654bb1cd-6163-412b-b63c-1b412099c1f7
+            - c36014e4-e9d5-4ab8-8636-7417427cdb6a
+            - 05ad78f8-d05f-4f30-808a-6a605f574af2
+            - 12ee1937-96bd-4fb0-b549-fc3a17829e21
+            - 89757590-b00b-4b3b-a45b-7a893364f7e9
+            - fce28c7a-015f-4543-ad77-0cb559725e79
+          interests:
+            - 4642dac3-fb2b-4aee-a49d-07d5bdfee15e
+            - 1b9654f2-ae86-4d8f-86a9-62425e7aff42
+            - 55f4b66e-22f5-461e-aa9e-2ea2640bf79e
+            - a955425a-06c2-4519-870b-0fc3994dc8b1
+            - 2d1838a3-4556-4123-a607-6e48e1498d7f
+  - locale: en
+    title: Master Resume – Aleksandra Wrońska (EN)
+    yaml_content: |
+      brand_initials: AW
+      first_name: Aleksandra
+      family_name: Wrońska
+      summary:
+        - entry_id: 335549e6-0c22-4011-b8fa-38f80bc9075c
+          position: Product Owner
+          description: |-
+            Product Owner with 5 years of experience in SaaS products, combining the discipline of technical documentation with product thinking. I own strategy, backlog and collaboration with engineering teams.
+            - I run discovery and data-informed prioritisation
+            - I build consistent documentation and product communication
+            - I protect quality thanks to a testing background
+          default: true
+        - entry_id: a4a4dbad-9d2f-456a-a2e8-3d469a3837e5
+          position: Technical Writer
+          description: Technical Writer with over 5 years of experience in API documentation and end-user guides. I work in a docs-as-code model (Git, Markdown, OpenAPI) and keep documentation current, consistent and easy to navigate.
+          default: false
+        - entry_id: 230d6054-0b0b-490b-9710-400db312f9d1
+          position: QA Engineer
+          description: QA engineer experienced in test case design, regression testing and Playwright automation. I combine testing with requirements analysis, so problems are caught before they reach implementation.
+          default: false
+      contact:
+        - entry_id: c04ae505-d318-466e-8b00-972ff3062ba3
+          label: Location
+          value: Warsaw, Poland
+        - entry_id: 8ede8e97-961a-420d-9bb9-47d7176c28cb
+          label: Phone
+          value: +48 000 000 000
+          link: tel:+48000000000
+        - entry_id: 6bc06e84-ffc8-4b14-8230-8f605a7918b8
+          label: E-mail
+          value: aleksandra.wronska@example.com
+          link: mailto:aleksandra.wronska@example.com
+        - entry_id: bc5fe3f4-2ffb-4ad3-94bd-dc6006e51bc9
+          label: Website
+          value: example.com/aleksandra-wronska
+          link: https://example.com/aleksandra-wronska
+      qr_codes:
+        - entry_id: 56ee949e-b0d5-47a4-a244-b347c8c75df8
+          label: Portfolio
+          value: https://example.com/aleksandra-wronska
+          size: 130
+        - entry_id: 368a581e-885d-461c-b2f4-156decaf240d
+          label: CV online
+          value: https://example.com/aleksandra-wronska/cv
+          size: 110
+      skills:
+        - entry_id: 2f737b92-a1e2-4ce7-a47d-331987c74f1b
+          name: Product discovery
+          level: 5
+        - entry_id: 31677991-1cb3-4fb1-b335-369420028852
+          name: Backlog management
+          level: 5
+        - entry_id: 339f0ac6-0bb9-4ec6-a141-3efdd852bc6f
+          name: Technical documentation
+          level: 5
+        - entry_id: 7f20ccaf-ea7e-4af2-9737-120259618c04
+          name: API documentation
+          level: 4
+        - entry_id: ced66c1b-522b-4526-82bc-b15d2cfa108a
+          name: Test design
+          level: 4
+        - entry_id: bb876162-86ff-45ad-926d-964b93b5f54a
+          name: User research
+          level: 3
+        - entry_id: 0efbe9f4-1cc5-4015-b01d-25be3c1d9e8e
+          name: SQL
+          level: 3
+        - entry_id: d36abac4-8137-4532-941c-469af78eee5e
+          name: Stakeholder communication
+          level: 5
+      tech_stack:
+        - Jira
+        - Confluence
+        - Figma
+        - Postman
+        - OpenAPI / Swagger
+        - Markdown / Docs-as-Code
+        - Git
+        - Playwright
+        - SQL
+        - Amplitude
+      languages:
+        - entry_id: b118f796-328b-4881-82bd-52d6a8e17f8a
+          name: Polish
+          level_text: native
+          level: 5
+        - entry_id: 4361d5db-b33d-49e3-8c40-8872831ae4b4
+          name: English
+          level_text: C1
+          level: 4
+        - entry_id: 89470d35-c6e9-4c01-8a54-784812206c1c
+          name: German
+          level_text: B1
+          level: 2
+      interests:
+        - Cycling trips
+        - Film photography
+        - Chess
+        - Board games
+        - Library volunteering
+      experience:
+        - entry_id: d4351960-0820-4fca-9785-b0063845e9de
+          period: 2024-03 - now
+          company: OpenCiVera
+          role: Product Owner & Platform Administrator
+          highlights:
+            - Manage the backlog of the CV-building platform and prioritise work based on beta-tester feedback
+            - Administer accounts, roles and language versions in the admin panel
+            - Introduced the multilingual Master Resume with entries linked across languages
+            - Run test scenarios and feature acceptance before production releases
+        - entry_id: 79f71e3f-bdbb-4223-9d29-347648342ce9
+          period: 2021-09 - 2024-02
+          company: Kestrel Software
+          role: Product Owner
+          highlights:
+            - Owned a B2B SaaS product used by 40,000 active users and a four-quarter roadmap
+            - Cut new-customer onboarding time by 35% by redesigning the onboarding process
+            - Introduced weekly discovery sessions with customers and the support team
+            - Worked with three development teams in Scrum
+        - entry_id: bc4afa15-643e-45be-90e4-e452df1a8ff5
+          period: 2019-02 - 2021-08
+          company: Harbor & Pine Systems
+          role: Senior Technical Writer
+          highlights:
+            - Built the API documentation portal from scratch on OpenAPI and Markdown
+            - Reduced support tickets by 28% with new end-user guides
+            - "Introduced docs-as-code: documentation review in pull requests and automated publishing"
+            - Mentored two people on the documentation team
+        - entry_id: 7dee1ae4-efe0-4dbb-9277-59b365bcc0ee
+          period: 2016-10 - 2019-01
+          company: Lumen Docs Studio
+          role: Technical Writer
+          highlights:
+            - Wrote user manuals and knowledge-base articles for fintech clients
+            - Unified style and terminology across projects for five clients
+            - Worked with engineers to verify interface descriptions
+        - entry_id: c7d8d659-bf27-499e-8e6a-1be8c810945b
+          period: 2014-06 - 2016-09
+          company: Brightpath Labs
+          role: QA Engineer
+          highlights:
+            - Designed test cases and ran regression testing of web applications
+            - Automated critical-path tests in Selenium, cutting regression from two days to four hours
+            - Analysed defects in Jira and worked with developers to reproduce them
+      education:
+        - entry_id: 709e9eeb-9f77-4847-b650-30d613a226ab
+          period: 2010-10 - 2014-06
+          school: Politechnika Warszawska
+          degree: Computer Science, B.Eng.
+          detail: |-
+            Specialisation: software engineering
+            - Thesis: a defect reporting and tracking system
+            - Software testing student society
+        - entry_id: bcaa418e-b1e3-4ba1-87db-59b8934598b2
+          period: 2015-10 - 2016-06
+          school: Uniwersytet Warszawski
+          degree: "Postgraduate studies: Technical Communication"
+          detail: Workshops on writing instructions, terminology and documentation localisation.
+      courses:
+        - entry_id: 5e278c72-d0aa-4519-bc77-99c61f4d86fe
+          year: 2024
+          name: Certified Scrum Product Owner (CSPO)
+        - entry_id: b6bd537d-4e54-4c18-a6ff-c8618a10ae8e
+          year: 2022
+          name: Continuous Discovery – hands-on workshop
+        - entry_id: eb84ddb8-0c06-48b6-91b1-7e98a1901362
+          year: 2020
+          name: REST API documentation with OpenAPI
+        - entry_id: a468f349-324f-4a2f-8572-b79820ad71d1
+          year: 2017
+          name: ISTQB Certified Tester – Foundation Level
+        - entry_id: 24608c11-8f6e-4b70-8f35-2a673c771291
+          year: 2016
+          name: "Docs as code: Git and Markdown in practice"
+      gdpr_clause: I hereby give consent for my personal data included in this document to be processed for the purposes of the current recruitment process.
+      __ocv:
+        entries:
+          tech_stack:
+            - fe13c7d8-a306-42d8-aa93-3d567fb0d113
+            - e4f03cfe-d484-4910-a870-4606a21a7625
+            - 93f930f5-553d-4f06-8c2a-98a1413cf8fd
+            - 0b63ac08-0542-4677-82d7-c5831137ef0a
+            - 654bb1cd-6163-412b-b63c-1b412099c1f7
+            - c36014e4-e9d5-4ab8-8636-7417427cdb6a
+            - 05ad78f8-d05f-4f30-808a-6a605f574af2
+            - 12ee1937-96bd-4fb0-b549-fc3a17829e21
+            - 89757590-b00b-4b3b-a45b-7a893364f7e9
+            - fce28c7a-015f-4543-ad77-0cb559725e79
+          interests:
+            - 4642dac3-fb2b-4aee-a49d-07d5bdfee15e
+            - 1b9654f2-ae86-4d8f-86a9-62425e7aff42
+            - 55f4b66e-22f5-461e-aa9e-2ea2640bf79e
+            - a955425a-06c2-4519-870b-0fc3994dc8b1
+            - 2d1838a3-4556-4123-a607-6e48e1498d7f
+  - locale: de
+    title: Master Resume – Aleksandra Wrońska (DE)
+    yaml_content: |
+      brand_initials: AW
+      first_name: Aleksandra
+      family_name: Wrońska
+      summary:
+        - entry_id: 335549e6-0c22-4011-b8fa-38f80bc9075c
+          position: Product Owner
+          description: |-
+            Product Owner mit 5 Jahren Erfahrung in SaaS-Produkten, der die Disziplin der technischen Dokumentation mit Produktdenken verbindet. Ich verantworte Strategie, Backlog und die Zusammenarbeit mit Entwicklungsteams.
+            - Ich führe Discovery und datenbasierte Priorisierung durch
+            - Ich baue konsistente Dokumentation und Produktkommunikation auf
+            - Ich sichere die Qualität dank meines Hintergrunds im Testen
+          default: true
+        - entry_id: a4a4dbad-9d2f-456a-a2e8-3d469a3837e5
+          position: Technical Writer
+          description: Technical Writer mit mehr als 5 Jahren Erfahrung in API-Dokumentation und Anwenderhandbüchern. Ich arbeite nach dem Docs-as-Code-Prinzip (Git, Markdown, OpenAPI) und sorge für aktuelle, konsistente und leicht navigierbare Dokumentation.
+          default: false
+        - entry_id: 230d6054-0b0b-490b-9710-400db312f9d1
+          position: QA-Ingenieurin
+          description: QA-Ingenieurin mit Erfahrung in Testfallentwurf, Regressionstests und Playwright-Automatisierung. Ich verbinde Testen mit Anforderungsanalyse, sodass Probleme erkannt werden, bevor sie in die Umsetzung gelangen.
+          default: false
+      contact:
+        - entry_id: c04ae505-d318-466e-8b00-972ff3062ba3
+          label: Standort
+          value: Warschau, Polen
+        - entry_id: 8ede8e97-961a-420d-9bb9-47d7176c28cb
+          label: Telefon
+          value: +48 000 000 000
+          link: tel:+48000000000
+        - entry_id: 6bc06e84-ffc8-4b14-8230-8f605a7918b8
+          label: E-Mail
+          value: aleksandra.wronska@example.com
+          link: mailto:aleksandra.wronska@example.com
+        - entry_id: bc5fe3f4-2ffb-4ad3-94bd-dc6006e51bc9
+          label: Webseite
+          value: example.com/aleksandra-wronska
+          link: https://example.com/aleksandra-wronska
+      qr_codes:
+        - entry_id: 56ee949e-b0d5-47a4-a244-b347c8c75df8
+          label: Portfolio
+          value: https://example.com/aleksandra-wronska
+          size: 130
+        - entry_id: 368a581e-885d-461c-b2f4-156decaf240d
+          label: Lebenslauf online
+          value: https://example.com/aleksandra-wronska/cv
+          size: 110
+      skills:
+        - entry_id: 2f737b92-a1e2-4ce7-a47d-331987c74f1b
+          name: Produkt-Discovery
+          level: 5
+        - entry_id: 31677991-1cb3-4fb1-b335-369420028852
+          name: Backlog-Management
+          level: 5
+        - entry_id: 339f0ac6-0bb9-4ec6-a141-3efdd852bc6f
+          name: Technische Dokumentation
+          level: 5
+        - entry_id: 7f20ccaf-ea7e-4af2-9737-120259618c04
+          name: API-Dokumentation
+          level: 4
+        - entry_id: ced66c1b-522b-4526-82bc-b15d2cfa108a
+          name: Testdesign
+          level: 4
+        - entry_id: bb876162-86ff-45ad-926d-964b93b5f54a
+          name: Nutzerforschung
+          level: 3
+        - entry_id: 0efbe9f4-1cc5-4015-b01d-25be3c1d9e8e
+          name: SQL
+          level: 3
+        - entry_id: d36abac4-8137-4532-941c-469af78eee5e
+          name: Stakeholder-Kommunikation
+          level: 5
+      tech_stack:
+        - Jira
+        - Confluence
+        - Figma
+        - Postman
+        - OpenAPI / Swagger
+        - Markdown / Docs-as-Code
+        - Git
+        - Playwright
+        - SQL
+        - Amplitude
+      languages:
+        - entry_id: b118f796-328b-4881-82bd-52d6a8e17f8a
+          name: Polnisch
+          level_text: Muttersprache
+          level: 5
+        - entry_id: 4361d5db-b33d-49e3-8c40-8872831ae4b4
+          name: Englisch
+          level_text: C1
+          level: 4
+        - entry_id: 89470d35-c6e9-4c01-8a54-784812206c1c
+          name: Deutsch
+          level_text: B1
+          level: 2
+      interests:
+        - Radtouren
+        - Analogfotografie
+        - Schach
+        - Brettspiele
+        - Ehrenamt in der Bibliothek
+      experience:
+        - entry_id: d4351960-0820-4fca-9785-b0063845e9de
+          period: 2024-03 - now
+          company: OpenCiVera
+          role: Product Owner und Plattformadministratorin
+          highlights:
+            - Verwalte das Backlog der Plattform zur CV-Erstellung und priorisiere Arbeiten anhand des Feedbacks von Beta-Testern
+            - Administriere Konten, Rollen und Sprachversionen im Admin-Bereich
+            - Habe das mehrsprachige Master Resume mit sprachübergreifend verknüpften Einträgen eingeführt
+            - Führe Testszenarien und Funktionsabnahmen vor Produktionsreleases durch
+        - entry_id: 79f71e3f-bdbb-4223-9d29-347648342ce9
+          period: 2021-09 - 2024-02
+          company: Kestrel Software
+          role: Product Owner
+          highlights:
+            - Verantwortete ein B2B-SaaS-Produkt mit 40.000 aktiven Nutzern und eine Roadmap über vier Quartale
+            - Verkürzte die Einführungszeit neuer Kunden um 35 % durch die Neugestaltung des Onboardings
+            - Führte wöchentliche Discovery-Sessions mit Kunden und dem Support-Team ein
+            - Arbeitete in Scrum mit drei Entwicklungsteams zusammen
+        - entry_id: bc4afa15-643e-45be-90e4-e452df1a8ff5
+          period: 2019-02 - 2021-08
+          company: Harbor & Pine Systems
+          role: Senior Technical Writer
+          highlights:
+            - Baute das API-Dokumentationsportal von Grund auf auf Basis von OpenAPI und Markdown auf
+            - Reduzierte die Support-Tickets um 28 % durch neue Anwenderhandbücher
+            - "Führte Docs-as-Code ein: Dokumentationsreview in Pull Requests und automatische Veröffentlichung"
+            - Betreute zwei Personen im Dokumentationsteam
+        - entry_id: 7dee1ae4-efe0-4dbb-9277-59b365bcc0ee
+          period: 2016-10 - 2019-01
+          company: Lumen Docs Studio
+          role: Technical Writer
+          highlights:
+            - Erstellte Bedienungsanleitungen und Wissensdatenbank-Artikel für Fintech-Kunden
+            - Vereinheitlichte Stil und Terminologie in Projekten für fünf Kunden
+            - Arbeitete mit Ingenieuren an der Überprüfung von Schnittstellenbeschreibungen
+        - entry_id: c7d8d659-bf27-499e-8e6a-1be8c810945b
+          period: 2014-06 - 2016-09
+          company: Brightpath Labs
+          role: QA-Ingenieurin
+          highlights:
+            - Entwarf Testfälle und führte Regressionstests von Webanwendungen durch
+            - Automatisierte kritische Pfade in Selenium und verkürzte die Regression von zwei Tagen auf vier Stunden
+            - Analysierte Defekte in Jira und arbeitete mit Entwicklern an deren Reproduktion
+      education:
+        - entry_id: 709e9eeb-9f77-4847-b650-30d613a226ab
+          period: 2010-10 - 2014-06
+          school: Politechnika Warszawska
+          degree: Informatik, B.Eng.
+          detail: |-
+            Schwerpunkt: Softwaretechnik
+            - Abschlussarbeit: ein System zur Meldung und Verfolgung von Fehlern
+            - Studentische Gruppe für Softwaretests
+        - entry_id: bcaa418e-b1e3-4ba1-87db-59b8934598b2
+          period: 2015-10 - 2016-06
+          school: Uniwersytet Warszawski
+          degree: "Postgraduales Studium: Technische Kommunikation"
+          detail: Workshops zu Anleitungserstellung, Terminologie und Lokalisierung von Dokumentation.
+      courses:
+        - entry_id: 5e278c72-d0aa-4519-bc77-99c61f4d86fe
+          year: 2024
+          name: Certified Scrum Product Owner (CSPO)
+        - entry_id: b6bd537d-4e54-4c18-a6ff-c8618a10ae8e
+          year: 2022
+          name: Continuous Discovery – Praxisworkshop
+        - entry_id: eb84ddb8-0c06-48b6-91b1-7e98a1901362
+          year: 2020
+          name: REST-API-Dokumentation mit OpenAPI
+        - entry_id: a468f349-324f-4a2f-8572-b79820ad71d1
+          year: 2017
+          name: ISTQB Certified Tester – Foundation Level
+        - entry_id: 24608c11-8f6e-4b70-8f35-2a673c771291
+          year: 2016
+          name: "Docs as Code: Git und Markdown in der Praxis"
+      gdpr_clause: Ich willige in die Verarbeitung der in diesem Dokument enthaltenen personenbezogenen Daten für die Zwecke des aktuellen Bewerbungsverfahrens ein.
+      __ocv:
+        entries:
+          tech_stack:
+            - fe13c7d8-a306-42d8-aa93-3d567fb0d113
+            - e4f03cfe-d484-4910-a870-4606a21a7625
+            - 93f930f5-553d-4f06-8c2a-98a1413cf8fd
+            - 0b63ac08-0542-4677-82d7-c5831137ef0a
+            - 654bb1cd-6163-412b-b63c-1b412099c1f7
+            - c36014e4-e9d5-4ab8-8636-7417427cdb6a
+            - 05ad78f8-d05f-4f30-808a-6a605f574af2
+            - 12ee1937-96bd-4fb0-b549-fc3a17829e21
+            - 89757590-b00b-4b3b-a45b-7a893364f7e9
+            - fce28c7a-015f-4543-ad77-0cb559725e79
+          interests:
+            - 4642dac3-fb2b-4aee-a49d-07d5bdfee15e
+            - 1b9654f2-ae86-4d8f-86a9-62425e7aff42
+            - 55f4b66e-22f5-461e-aa9e-2ea2640bf79e
+            - a955425a-06c2-4519-870b-0fc3994dc8b1
+            - 2d1838a3-4556-4123-a607-6e48e1498d7f
+cv_versions: []

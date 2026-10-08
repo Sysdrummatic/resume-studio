@@ -1,0 +1,242 @@
+editor:
+  text:
+    "Open enlarged CV preview": Otwórz powiększony podgląd LiveCV
+    "Enlarged CV preview": Powiększony podgląd LiveCV
+    "Close preview": Zamknij podgląd
+    "Tech stack": Technologie
+    "First name": Imię
+    "Family name": Nazwisko
+    "Auto-generate brand initials": Twórz inicjały automatycznie
+    "Location": Lokalizacja
+    "Phone": Telefon
+    "E-mail": E-mail
+    "LinkedIn": LinkedIn
+    "Portfolio": Portfolio
+    "Position": Stanowisko
+    "Description": Opis
+    "Default summary": Domyślne podsumowanie
+    "Default": Domyślny
+    "Summary description": Treść podsumowania
+    "Remove entry": Usuń wpis
+    "+ Add summary": + Dodaj podsumowanie
+    "Untitled summary": Nowe podsumowanie
+    "Label": Etykieta
+    "Image path": Ścieżka obrazu
+    "Size": Rozmiar
+    "Remove": Usuń
+    "+ Add QR code": + Dodaj kod QR
+    "Skill": Umiejętność
+    "Level": Poziom
+    "+ Add skill": + Dodaj umiejętność
+    "Technology": Technologia
+    "+ Add technology": + Dodaj technologię
+    "Language": Język
+    "Level text": Opis poziomu
+    "+ Add language": + Dodaj język
+    "Interest": Zainteresowanie
+    "+ Add interest": + Dodaj zainteresowanie
+    "Untitled role": Nowe stanowisko
+    "Period": Okres
+    "Company": Firma
+    "Role": Stanowisko
+    "Highlights, one per line": Osiągnięcia, każde w osobnej linii
+    "+ Add position": + Dodaj stanowisko
+    "Untitled school": Nowa szkoła lub uczelnia
+    "School": Szkoła lub uczelnia
+    "Degree": Tytuł lub stopień
+    "Detail": Szczegóły
+    "+ Add education": + Dodaj wykształcenie
+    "Year": Rok
+    "Course name": Nazwa kursu
+    "+ Add course": + Dodaj kurs
+    "Clause text": Treść klauzuli
+    "No clause": Brak klauzuli
+    "Use standard PL wording": Wstaw standardową polską klauzulę
+    "Use standard EN wording": Wstaw standardową angielską klauzulę
+    "Clear": Wyczyść
+    "Rendered as a small footer on the CV. Leave empty to omit it.": Klauzula pojawi się w stopce LiveCV. Pozostaw puste pole, aby ją pominąć.
+    "Small": Mały
+    "Medium": Średni
+    "Large": Duży
+    "Compact": Zwarty
+    "Normal": Standardowy
+    "Relaxed": Luźny
+    "Section dividers": Separatory sekcji
+    "Initials badge in header": Inicjały w nagłówku
+    "QR code to the live link": Kod QR prowadzący do publicznego LiveCV
+    "Basics": Podstawowe
+    "Optional": Opcjonalne
+    "Personal details": Dane osobowe
+    "Name, brand initials and contact details. All of it lands in the CV header.": Imię, nazwisko, inicjały i dane kontaktowe wyświetlane w nagłówku LiveCV.
+    "Several variants; one is picked per CV version.": Możesz przygotować kilka wariantów i wybrać jeden dla danej wersji LiveCV.
+    "Start with your most recent role.": Zacznij od najnowszego doświadczenia.
+    "List your highest completed level first.": Zacznij od najwyższego ukończonego poziomu edukacji.
+    "Hard skills tied to the role you are targeting.": Dodaj umiejętności związane z rolą, o którą się ubiegasz.
+    "Proficiency renders as a meter in the CV.": Poziom znajomości języka jest widoczny na LiveCV.
+    "Certificates, training and licences.": Certyfikaty, szkolenia i uprawnienia.
+    "A short list, without elaboration.": Krótka lista bez dodatkowych opisów.
+    "Technologies and tools you work with.": Technologie i narzędzia, z których korzystasz.
+    "QR codes": Kody QR
+    "Links encoded as QR codes in the printed version.": Linki zapisane jako kody QR w wersji do druku.
+    "GDPR clause": Klauzula RODO
+    "Common on the Polish job market, usually left empty for English CVs.": Stosowana głównie na polskim rynku pracy; w angielskiej wersji CV zwykle pozostaje pusta.
+    "Master Resume": Baza doświadczeń
+    "Source for every CV version": Prywatne źródło treści dla wszystkich Twoich LiveCV
+    "Completion": Kompletność
+    "Resume completion": Kompletność Bazy doświadczeń
+    "Complete {section} to add {percent}%.": "Uzupełnij sekcję „{section}”. Jej udział w wyniku kompletności to {percent}%."
+    "Every section has content.": Wszystkie sekcje Bazy doświadczeń są uzupełnione.
+    "Language version updated.": Wersja językowa została zaktualizowana.
+    "Language version created.": Wersja językowa została utworzona.
+    "Default language updated.": Zmieniono język domyślny.
+    "Language version deleted.": Wersja językowa została usunięta.
+    "Publish update": Zapisz zmiany na koncie
+    "Saved in this browser only, not on our servers — click Save MasterCV to save it for real.": Zapisano tylko w tej przeglądarce. Użyj przycisku „Zapisz Bazę doświadczeń”, aby zachować zmiany na koncie.
+    "Draft saved locally {time}": "Szkic zapisano lokalnie: {time}"
+    "Preview": Podgląd
+    "Resume editor mode": Sposób edycji Bazy doświadczeń
+    "Human-friendly Editor": Formularz
+    "Form": Formularz
+    "YAML Editor": Edytor YAML
+    "Language linkage status": Spójność wersji językowych
+    "OK": OK
+    "Needs attention": Wymaga uwagi
+    "Checking": Sprawdzanie
+    "Checking linked IDs...": Sprawdzanie powiązanych ID...
+    "All linked IDs match the default language.": Wpisy są prawidłowo powiązane z wersją w języku domyślnym.
+    "All IDs are stable in the saved default language.": Powiązania z zapisanym językiem domyślnym są prawidłowe.
+    "Fix the following ID issues before saving:": "Przed zapisaniem popraw następujące problemy z ID:"
+    "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": ID są widoczne w YAML i nie można ich zmieniać. Wpisy można dodawać i usuwać tylko w języku domyślnym.
+    "Changed ID": Zmienione ID
+    "Missing ID": Brak ID
+    "Duplicate ID": Zduplikowane ID
+    "Missing linked entry": Brak powiązanego wpisu
+    "Unpaired entry": Niepowiązany wpis
+    "Default entry is not paired": Domyślny wpis nie jest sparowany
+    "Expected": Oczekiwano
+    "missing": brak
+    "Save MasterCV": Zapisz Bazę doświadczeń
+    "Resume section": Sekcja LiveCV
+    "Unsaved local draft from {time} found for this language version.": "Znaleziono lokalny szkic tej wersji językowej z godziny {time}."
+    "Restore": Przywróć
+    "Delete": Usuń
+    "the same document": ten sam dokument
+    "entries": pozycji
+    "The sidebar jumps to the matching block.": Wybór sekcji przenosi do odpowiedniego fragmentu YAML.
+    "Load template": Wczytaj szablon
+    "Download YAML": Pobierz YAML
+    "Side panel": Panel boczny
+    "History": Historia
+    "Style": Styl
+    "Close": Zamknij
+    "Revision #{number} preview": "Podgląd wersji #{number}"
+    "Exit": Zakończ podgląd
+    "Loading preview…": Ładowanie podglądu…
+    "Template": Szablon
+    "Primary color": Kolor główny
+    "Text size": Rozmiar tekstu
+    "Density": Gęstość
+    "Details": Szczegóły
+    "Style is saved with the document and applies to the preview, the published CV and the PDF.": Styl jest zapisywany z dokumentem i stosowany w podglądzie, opublikowanym LiveCV oraz pliku PDF.
+    "Revision history": Historia zmian
+    "No revisions yet.": Historia zmian jest pusta. Zapisz punkt w historii, aby móc później do niego wrócić.
+    "Unsaved draft": Niezapisany szkic
+    "unsaved": niezapisany
+    "Saved only in this browser — not yet part of your revision history.": Ten szkic istnieje tylko w tej przeglądarce. Zapisz Bazę doświadczeń, aby zachować go na koncie.
+    "just now": przed chwilą
+    "Revision #{number}": "Wersja #{number}"
+    "current": bieżąca
+    "No note": Brak opisu
+    "Viewing": Wyświetlana
+    "Rollback": Przywróć ten stan
+    "Resume sections": Sekcje LiveCV
+    "Complete": Uzupełniona
+    "Needs content": Wymaga uzupełnienia
+    "Save MasterCV version": Zapisz punkt w historii
+    "Close save version dialog": Zamknij okno zapisywania
+    "This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.": Zapisz obecny stan Bazy doświadczeń w historii. W razie potrzeby możesz go później przywrócić.
+    "Change note": Opis zmian
+    "e.g. Added CDQ experience": np. dodano doświadczenie w firmie CDQ
+    "Cancel": Anuluj
+    "Saving…": Zapisywanie…
+    "Use a two-letter language code.": Użyj dwuliterowego kodu języka.
+    "Language name is required.": Podaj nazwę języka.
+    "Short label must contain two letters.": Skrót musi składać się z dwóch liter.
+    "This language already exists.": Ten język już istnieje.
+    "Language version save failed.": Nie udało się zapisać wersji językowej.
+    "Default language update failed.": Nie udało się zmienić języka domyślnego.
+    "Language version delete failed.": Nie udało się usunąć wersji językowej.
+    "Edit language version {code}": "Edytuj wersję językową: {code}"
+    "Add language version": Dodaj wersję językową
+    "Close language version modal": Zamknij okno wersji językowych
+    "Edit language version": Edytuj wersję językową
+    "Selected now": Obecnie wybrana
+    "Code": Kod
+    "Language name": Nazwa języka
+    "Short label": Skrót
+    "Versions": Wersje
+    "{count} configured languages": "Liczba skonfigurowanych języków: {count}"
+    "Selected": Wybrana
+    "Set default": Ustaw jako domyślną
+    "Edit": Edytuj
+    "Delete language version {language}": "Usuń wersję językową: {language}"
+    "Delete language version": Usuń wersję językową
+    "Save changes": Zapisz zmiany
+    "Create version": Utwórz wersję
+    "Cancel edit": Anuluj edycję
+    "Local draft restored.": Przywrócono lokalny szkic.
+    "Unsaved changes discarded.": Odrzucono niezapisane zmiany.
+    "Could not read this file.": Nie udało się odczytać pliku.
+    "Import failed. Check your connection and try again.": Import nie powiódł się. Sprawdź połączenie i spróbuj ponownie.
+    "Added content from {file}.": "Dodano treści z pliku {file}."
+    "Template YAML loaded.": Wczytano szablon YAML.
+    "Template load failed.": Nie udało się wczytać szablonu.
+    "Downloaded {file}.": "Pobrano plik {file}."
+    "Saving...": Zapisywanie…
+    "Saved {count} language versions.": "Zapisane wersje językowe: {count}."
+    "Save failed: {message}": "Zapisywanie nie powiodło się: {message}"
+    "Saved {saved}, failed {failed}: {message}": "Zapisano: {saved}; błędy: {failed}. {message}"
+    "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: starsza wersja językowa nie pasuje do wpisów języka domyślnego ({collections}), więc pozostała bez zmian. Dopasuj jej wpisy do języka domyślnego i zapisz ponownie."
+    "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first.": "{locale}: domyślna wersja językowa ({defaultLocale}) używa jednego identyfikatora dla różnych wpisów, więc nie można z nią powiązać tego języka. Najpierw zapisz język domyślny z unikalnymi identyfikatorami."
+    "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again.": "{locale}: ta wersja językowa używa jednego identyfikatora dla różnych wpisów ({collections}), więc pozostała bez zmian. Nadaj jej wpisom identyfikatory z języka domyślnego i zapisz ją ponownie."
+    "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: brak synchronizacji z językiem domyślnym. Zapisz ponownie, aby ponowić próbę."
+    "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it.": "{locale}: nie da się potwierdzić kolejności wpisów tej starszej wersji językowej ({collections}), więc pozostała bez zmian. Zapisz tę wersję językową i potwierdź kolejność, aby ją powiązać."
+    "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order.": "{locale}: czy wpisy w sekcjach {collections} są w tej samej kolejności co w języku domyślnym? Zostaną powiązane według kolejności."
+    "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish.": "{locale}: zapisano, ale nie udało się zaktualizować historii zmian ani profilu publicznego. Zapisz ponownie, aby dokończyć."
+    "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.": "{locale}: zapisano, ale nie udało się sprawdzić pozostałych wersji językowych. Zapisz ponownie, aby ponowić synchronizację."
+    "Rolling back to revision {number}...": "Przywracanie wersji {number}…"
+    "Rollback complete. Current document now matches revision {number}.": "Przywrócono wersję {number}."
+    "Rollback failed.": Nie udało się przywrócić wersji.
+    "Revision preview failed.": Nie udało się wyświetlić podglądu wersji.
+    "Save failed": Zapisywanie nie powiodło się
+    "CV unavailable": LiveCV jest niedostępne
+    "Already have a CV?": Masz już CV?
+    "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Wgraj plik PDF, DOCX, YAML lub TXT. Przed dodaniem danych do Bazy doświadczeń zobaczysz ich podgląd.
+    "Reading file…": Odczytywanie pliku…
+    "Upload file": Wgraj plik
+    "Review imported CV": Sprawdź zaimportowane CV
+    "Close import review": Zamknij podgląd importu
+    "Review import": Sprawdź import
+    "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.": Rozwiń sekcję i wybierz wpisy do dodania. Import nie usuwa ani nie zastępuje informacji zapisanych wcześniej.
+    "Name": Imię i nazwisko
+    "Contact details": Dane kontaktowe
+    "Summary": Podsumowanie
+    "Experience": Doświadczenie
+    "Education": Wykształcenie
+    "Skills": Umiejętności
+    "Languages": Języki
+    "Courses": Kursy
+    "Interests": Zainteresowania
+    "of": z
+    "selected": wybranych
+    "Untitled degree": Wykształcenie bez nazwy
+    "Untitled skill": Umiejętność bez nazwy
+    "Untitled language": Język bez nazwy
+    "Untitled course": Kurs bez nazwy
+    "Nothing usable was found in this file.": Nie znaleziono w tym pliku danych, które można zaimportować.
+    "Not found, left as-is:": "Nie znaleziono — bez zmian:"
+    "Name in the file:": "Imię i nazwisko w pliku:"
+    "Name in your draft:": "Imię i nazwisko w formularzu:"
+    "Adding this content will combine details from both people in the current draft.": Dodanie tych wpisów połączy dane obu osób w bieżącym formularzu.
+    "Add anyway, even though the names don't match": Dodaj mimo różnicy w imieniu i nazwisku
+    "Add to draft": Dodaj do formularza

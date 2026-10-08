@@ -13,10 +13,14 @@ function read(filePath) {
 test("app header uses hamburger navigation below desktop width", () => {
   const source = read(navigationPath);
 
-  assert.equal(source.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
+  assert.equal(
+    source.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'),
+    true
+  );
   assert.equal(source.includes("window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY)"), true);
   assert.equal(source.includes('className="app-nav-menu__trigger"'), true);
-  assert.equal(source.includes("className={`app-nav ${forceInlineItems ? \"app-nav--actions\" : \"\"}`}"), true);
+  assert.equal(source.includes("const shouldUseCompactMenu = isCompact;"), true);
+  assert.equal(source.includes('className="app-nav app-nav--actions"'), true);
 });
 
 test("hamburger menu auto-closes after hover leave and outside click", () => {
@@ -25,7 +29,10 @@ test("hamburger menu auto-closes after hover leave and outside click", () => {
   assert.equal(source.includes("const MENU_AUTO_CLOSE_DELAY_MS = 1000;"), true);
   assert.equal(source.includes("onMouseLeave={scheduleMenuAutoClose}"), true);
   assert.equal(source.includes("onMouseEnter={cancelMenuAutoClose}"), true);
-  assert.equal(source.includes('document.addEventListener("pointerdown", handlePointerDown, true);'), true);
+  assert.equal(
+    source.includes('document.addEventListener("pointerdown", handlePointerDown, true);'),
+    true
+  );
   assert.equal(source.includes("menuRef.current?.contains(target)"), true);
 });
 
@@ -60,8 +67,8 @@ test("header exposes an active theme switch slot in the top bar", () => {
   assert.equal(navigation.includes("app-header__leading"), true);
   assert.equal(navigation.includes("app-header__accessory"), true);
   assert.equal(themeSwitch.includes('role="switch"'), true);
-  assert.equal(themeSwitch.includes("Application theme:"), true);
-  assert.equal(themeSwitch.includes("Switch to ${nextTheme} theme."), true);
+  assert.equal(themeSwitch.includes("dictionary.theme.aria_label"), true);
+  assert.equal(themeSwitch.includes('.replace("{nextTheme}", nextTheme)'), true);
   assert.equal(themeSwitch.includes("disabled={!canToggle}"), true);
   assert.equal(themeSwitch.includes("MoonIcon"), true);
   assert.equal(themeSwitch.includes("SunIcon"), true);
@@ -69,7 +76,10 @@ test("header exposes an active theme switch slot in the top bar", () => {
   assert.equal(themeModel.includes('export const DEFAULT_APP_THEME: AppTheme = "dark";'), true);
   assert.equal(themeModel.includes("light: {"), true);
   assert.equal(themeModel.includes("enabled: true"), true);
-  assert.equal(themeModel.includes('export const APP_THEME_COOKIE_NAME = "OpenCiVera-theme";'), true);
+  assert.equal(
+    themeModel.includes('export const APP_THEME_COOKIE_NAME = "OpenCiVera-theme";'),
+    true
+  );
   assert.equal(styles.includes(".app-theme-switch"), true);
   assert.equal(styles.includes(".app-header__leading"), true);
   assert.equal(styles.includes(".app-theme-switch__thumb"), true);

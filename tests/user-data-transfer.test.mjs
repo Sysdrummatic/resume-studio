@@ -127,6 +127,25 @@ test("parseUserDataBundle rejects duplicate language codes", () => {
   assert.match(result.error, /duplicate locale codes/);
 });
 
+test("parseUserDataBundle rejects ambiguous locale mappings before import", () => {
+  const duplicateDocuments = { ...sampleInput, documents: [...sampleInput.documents, { ...sampleInput.documents[0] }] };
+  assert.match(parseUserDataBundle(buildUserDataBundleYaml(duplicateDocuments)).error, /duplicate document locales/);
+
+  const duplicateVariants = {
+    ...sampleInput,
+    cv_versions: [{
+      ...sampleInput.cv_versions[0],
+      variants: [...sampleInput.cv_versions[0].variants, { ...sampleInput.cv_versions[0].variants[0] }],
+    }],
+  };
+  assert.match(parseUserDataBundle(buildUserDataBundleYaml(duplicateVariants)).error, /duplicate variant locales/);
+
+  for (const defaults of [[false, false], [true, true]]) {
+    const languages = sampleInput.languages.map((language, index) => ({ ...language, is_default: defaults[index] }));
+    assert.match(parseUserDataBundle(buildUserDataBundleYaml({ ...sampleInput, languages })).error, /exactly one default language/);
+  }
+});
+
 test("parseUserDataBundle rejects a merge-key bomb (CVE GHSA-h67p-54hq-rp68)", () => {
   // The advisory's shape: one anchor with K keys, referenced R times in a
   // single merge list (`<<: [*base, *base, ...]`). Source text is O(K+R),

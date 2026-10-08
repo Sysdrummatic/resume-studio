@@ -1,0 +1,242 @@
+editor:
+  text:
+    "Open enlarged CV preview": Open enlarged LiveCV preview
+    "Enlarged CV preview": Enlarged LiveCV preview
+    "Close preview": Close preview
+    "Tech stack": Tech stack
+    "First name": First name
+    "Family name": Family name
+    "Auto-generate brand initials": Auto-generate brand initials
+    "Location": Location
+    "Phone": Phone
+    "E-mail": E-mail
+    "LinkedIn": LinkedIn
+    "Portfolio": Portfolio
+    "Position": Position
+    "Description": Description
+    "Default summary": Default summary
+    "Default": Default
+    "Summary description": Summary description
+    "Remove entry": Remove entry
+    "+ Add summary": + Add summary
+    "Untitled summary": Untitled summary
+    "Label": Label
+    "Image path": Image path
+    "Size": Size
+    "Remove": Remove
+    "+ Add QR code": + Add QR code
+    "Skill": Skill
+    "Level": Level
+    "+ Add skill": + Add skill
+    "Technology": Technology
+    "+ Add technology": + Add technology
+    "Language": Language
+    "Level text": Level text
+    "+ Add language": + Add language
+    "Interest": Interest
+    "+ Add interest": + Add interest
+    "Period": Period
+    "Company": Company
+    "Role": Role
+    "Highlights, one per line": Highlights, one per line
+    "+ Add position": + Add position
+    "Untitled school": Untitled school
+    "School": School
+    "Degree": Degree
+    "Detail": Detail
+    "+ Add education": + Add education
+    "Year": Year
+    "Course name": Course name
+    "+ Add course": + Add course
+    "Clause text": Clause text
+    "No clause": No clause
+    "Use standard PL wording": Use standard PL wording
+    "Use standard EN wording": Use standard EN wording
+    "Clear": Clear
+    "Rendered as a small footer on the CV. Leave empty to omit it.": Rendered as a small footer on the LiveCV. Leave empty to omit it.
+    "Small": Small
+    "Medium": Medium
+    "Large": Large
+    "Compact": Compact
+    "Normal": Normal
+    "Relaxed": Relaxed
+    "Section dividers": Section dividers
+    "Initials badge in header": Initials badge in header
+    "QR code to the live link": QR code to the live link
+    "Basics": Basics
+    "Optional": Optional
+    "Personal details": Personal details
+    "Name, brand initials and contact details. All of it lands in the CV header.": Name, brand initials and contact details. All of it appears in the LiveCV header.
+    "Several variants; one is picked per CV version.": Several variants; one is picked per LiveCV version.
+    "Start with your most recent role.": Start with your most recent role.
+    "List your highest completed level first.": List your highest completed level first.
+    "Hard skills tied to the role you are targeting.": Hard skills tied to the role you are targeting.
+    "Proficiency renders as a meter in the CV.": Proficiency renders as a meter in the LiveCV.
+    "Certificates, training and licences.": Certificates, training and licences.
+    "A short list, without elaboration.": A short list, without elaboration.
+    "Technologies and tools you work with.": Technologies and tools you work with.
+    "QR codes": QR codes
+    "Links encoded as QR codes in the printed version.": Links encoded as QR codes in the printed version.
+    "GDPR clause": GDPR clause
+    "Common on the Polish job market, usually left empty for English CVs.": Common on the Polish job market, usually left empty for English CVs.
+    "Master Resume": Experience Base
+    "Source for every CV version": The private content source for all your LiveCVs
+    "Completion": Completeness
+    "Resume completion": Experience Base completeness
+    "Complete {section} to add {percent}%.": "Complete {section}. It accounts for {percent}% of the completeness score."
+    "Every section has content.": Every section of your Experience Base has content.
+    "Language version updated.": Language version updated.
+    "Language version created.": Language version created.
+    "Default language updated.": Default language updated.
+    "Language version deleted.": Language version deleted.
+    "Publish update": Save changes to your account
+    "Saved in this browser only, not on our servers — click Save MasterCV to save it for real.": Saved in this browser only. Select Save Experience Base to keep the changes in your account.
+    "Draft saved locally {time}": "Draft saved locally: {time}"
+    "Preview": Preview
+    "Resume editor mode": Experience Base editing mode
+    "Human-friendly Editor": Form
+    "Form": Form
+    "YAML Editor": YAML editor
+    "Language linkage status": Language version consistency
+    "OK": OK
+    "Needs attention": Needs attention
+    "Checking": Checking
+    "Checking linked IDs...": Checking linked IDs...
+    "All linked IDs match the default language.": Entries are correctly linked to the default language version.
+    "All IDs are stable in the saved default language.": Links to the saved default language are valid.
+    "Fix the following ID issues before saving:": Fix the following ID issues before saving.
+    "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.
+    "Changed ID": Changed ID
+    "Missing ID": Missing ID
+    "Duplicate ID": Duplicate ID
+    "Missing linked entry": Missing linked entry
+    "Unpaired entry": Unpaired entry
+    "Default entry is not paired": Default entry is not paired
+    "Expected": Expected
+    "missing": missing
+    "Save MasterCV": Save Experience Base
+    "Resume section": Resume section
+    "Unsaved local draft from {time} found for this language version.": "An unsaved local draft from {time} was found for this language version."
+    "Restore": Restore
+    "Delete": Delete
+    "the same document": the same document
+    "entries": entries
+    "The sidebar jumps to the matching block.": The sidebar jumps to the matching YAML block.
+    "Load template": Load template
+    "Download YAML": Download YAML
+    "Side panel": Side panel
+    "History": History
+    "Style": Style
+    "Close": Close
+    "Revision #{number} preview": "Revision #{number} preview"
+    "Exit": Exit
+    "Loading preview…": Loading preview…
+    "Template": Template
+    "Primary color": Primary color
+    "Text size": Text size
+    "Density": Density
+    "Details": Details
+    "Style is saved with the document and applies to the preview, the published CV and the PDF.": Style is saved with the document and applies to the preview, the published LiveCV and the PDF.
+    "Revision history": Revision history
+    "No revisions yet.": The history is empty. Save a history point so you can return to it later.
+    "Unsaved draft": Unsaved draft
+    "unsaved": unsaved
+    "Saved only in this browser — not yet part of your revision history.": This draft exists only in this browser. Save the Experience Base to keep it in your account.
+    "just now": just now
+    "Revision #{number}": "Revision #{number}"
+    "current": current
+    "No note": No note
+    "Viewing": Viewing
+    "Rollback": Restore this state
+    "Resume sections": Resume sections
+    "Complete": Complete
+    "Needs content": Needs content
+    "Save MasterCV version": Save history point
+    "Close save version dialog": Close save version dialog
+    "This creates a new entry in the revision history — a point you can roll back to later. Your draft is already kept in sync.": Save the current state of your Experience Base in its history. You can restore it later if needed.
+    "Change note": Change note
+    "e.g. Added CDQ experience": e.g. Added CDQ experience
+    "Cancel": Cancel
+    "Saving…": Saving…
+    "Use a two-letter language code.": Use a two-letter language code.
+    "Language name is required.": Language name is required.
+    "Short label must contain two letters.": Short label must contain two letters.
+    "This language already exists.": This language already exists.
+    "Language version save failed.": Language version save failed.
+    "Default language update failed.": Default language update failed.
+    "Language version delete failed.": Language version delete failed.
+    "Edit language version {code}": "Edit language version {code}"
+    "Add language version": Add language version
+    "Close language version modal": Close language version modal
+    "Edit language version": Edit language version
+    "Selected now": Selected now
+    "Code": Code
+    "Language name": Language name
+    "Short label": Short label
+    "Versions": Versions
+    "{count} configured languages": "{count} configured languages"
+    "Selected": Selected
+    "Set default": Set default
+    "Edit": Edit
+    "Delete language version {language}": "Delete language version {language}"
+    "Delete language version": Delete language version
+    "Save changes": Save changes
+    "Create version": Create version
+    "Cancel edit": Cancel edit
+    "Local draft restored.": Local draft restored.
+    "Unsaved changes discarded.": Unsaved changes discarded.
+    "Could not read this file.": Could not read this file.
+    "Import failed. Check your connection and try again.": Import failed. Check your connection and try again.
+    "Added content from {file}.": "Added content from {file}."
+    "Template YAML loaded.": Template YAML loaded.
+    "Template load failed.": Template load failed.
+    "Downloaded {file}.": "Downloaded {file}."
+    "Saving...": Saving…
+    "Saved {count} language versions.": "Saved language versions: {count}."
+    "Save failed: {message}": "Save failed: {message}"
+    "Saved {saved}, failed {failed}: {message}": "Saved: {saved}; failed: {failed}. {message}"
+    "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again."
+    "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first.": "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first."
+    "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again.": "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again."
+    "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: not synchronized with the default language. Save again to retry."
+    "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it.": "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it."
+    "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order.": "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order."
+    "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish.": "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish."
+    "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.": "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization."
+    "Rolling back to revision {number}...": "Rolling back to revision {number}…"
+    "Rollback complete. Current document now matches revision {number}.": "Rollback complete. The document now matches revision {number}."
+    "Rollback failed.": Rollback failed.
+    "Revision preview failed.": Revision preview failed.
+    "Save failed": Save failed
+    "CV unavailable": LiveCV unavailable
+    "Already have a CV?": Already have a CV?
+    "Upload a PDF, DOCX, YAML, or TXT file and we'll transfer the content into the form.": Upload a PDF, DOCX, YAML or TXT file. You can review the extracted information before adding it to your Experience Base.
+    "Reading file…": Reading file…
+    "Upload file": Upload file
+    "Review imported CV": Review imported CV
+    "Close import review": Close import review
+    "Review import": Review import
+    "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced.": Expand a section to choose which entries to add. Importing does not remove or replace information you saved earlier.
+    "Name": Name
+    "Contact details": Contact details
+    "Summary": Summary
+    "Experience": Experience
+    "Education": Education
+    "Skills": Skills
+    "Languages": Languages
+    "Courses": Courses
+    "Interests": Interests
+    "of": of
+    "selected": selected
+    "Untitled role": Untitled role
+    "Untitled degree": Untitled degree
+    "Untitled skill": Untitled skill
+    "Untitled language": Untitled language
+    "Untitled course": Untitled course
+    "Nothing usable was found in this file.": Nothing usable was found in this file.
+    "Not found, left as-is:": "Not found, left as-is:"
+    "Name in the file:": "Name in the file:"
+    "Name in your draft:": "Name in your draft:"
+    "Adding this content will combine details from both people in the current draft.": Adding this content will combine details from both people in the current draft.
+    "Add anyway, even though the names don't match": Add anyway, even though the names don't match
+    "Add to draft": Add to draft

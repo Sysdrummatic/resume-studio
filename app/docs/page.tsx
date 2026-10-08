@@ -4,32 +4,29 @@ import { requireAuthenticatedActor } from "../lib/auth-server";
 import { canViewTestScenarios } from "../lib/docs/access";
 import { getOverviewDoc, listDocNavGroups } from "../lib/docs/content";
 import { renderMarkdownToHtml } from "../lib/docs/markdown";
-import { resolveDocsLanguage } from "../lib/docs/presentation";
+import { getRequestAppI18n } from "../i18n/server";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "Docs | OpenCiVera",
-  description: "Tutorials and beta-testing documentation for OpenCiVera."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { dictionary } = await getRequestAppI18n();
+  return { title: `${dictionary.docs.title} | OpenCiVera`, description: dictionary.docs.lead };
+}
 
 export const dynamic = "force-dynamic";
 
-export default async function DocsIndexPage({
-  searchParams
-}: {
-  searchParams?: Promise<{ lang?: string | string[] }>;
-}) {
+export default async function DocsIndexPage() {
   const actor = await requireAuthenticatedActor();
+  const { locale, dictionary } = await getRequestAppI18n();
   const showTestScenarios = await canViewTestScenarios(actor);
-  const overview = getOverviewDoc();
-  const language = resolveDocsLanguage((await searchParams)?.lang);
-  const groups = listDocNavGroups(showTestScenarios);
+  const overview = getOverviewDoc(locale);
+  const groups = listDocNavGroups(showTestScenarios, locale);
 
   return (
-    <DocsLayout groups={groups} activeHref="/docs" language={language}>
-      <DocsHub groups={groups} language={language}>
+    <DocsLayout groups={groups} activeHref="/docs" locale={locale} copy={dictionary.docs}>
+      <DocsHub groups={groups} copy={dictionary.docs}>
         {overview ? (
           <div
-            lang="en"
+            lang={overview.locale}
             dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(overview.markdown) }}
           />
         ) : null}

@@ -14,21 +14,27 @@ test("editor canvas is a three-column grid with a full-height sidebar", () => {
   assert.match(styles, /\.resume-editor-sidebar\s*\{[\s\S]*?grid-row:\s*1\s*\/\s*3/);
   assert.match(styles, /\.resume-editor-toolbar\s*\{[\s\S]*?grid-column:\s*2\s*\/\s*4/);
   // Breakpoint ladder from the mockup:
-  //   761px+  sidebar returns as a column (two columns)
-  //   1021px+ preview joins the grid as a third column
-  //   1241px+ preview column widens
-  // and below 1021px the preview is a slide-over instead.
-  assert.equal(styles.includes("@media (min-width: 761px)"), true);
-  assert.equal(styles.includes("@media (min-width: 1021px)"), true);
-  assert.equal(styles.includes("@media (min-width: 1241px)"), true);
-  assert.equal(styles.includes("@media (max-width: 1020px)"), true);
-  assert.equal(styles.includes("@media (max-width: 760px)"), true);
+  //   768px+  sidebar returns as a column (two columns)
+  //   1440px+ preview joins the grid as a third column
+  //   1600px+ preview column widens
+  // and below 1440px the preview is a slide-over instead.
+  assert.equal(styles.includes("@media (min-width: 768px)"), true);
+  assert.equal(styles.includes("@media (min-width: 1440px)"), true);
+  assert.equal(styles.includes("@media (min-width: 1600px)"), true);
+  assert.equal(styles.includes("@media (max-width: 1439px)"), true);
+  assert.equal(styles.includes("@media (max-width: 767px)"), true);
 
-  const layout = styles.slice(styles.indexOf("@media (min-width: 761px)"));
+  const layout = styles.slice(styles.indexOf("@media (min-width: 768px)"));
   // Two columns before the preview column appears, three after.
   assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\);/);
-  assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\) min\(540px, calc\(100% - 720px\)\);/);
-  assert.match(layout, /grid-template-columns:\s*246px minmax\(0, 1fr\) min\(630px, calc\(100% - 720px\)\);/);
+  assert.match(
+    layout,
+    /grid-template-columns:\s*246px minmax\(0, 1fr\) min\(540px, calc\(100% - 720px\)\);/
+  );
+  assert.match(
+    layout,
+    /grid-template-columns:\s*246px minmax\(0, 1fr\) min\(630px, calc\(100% - 720px\)\);/
+  );
 });
 
 test("section navigation groups sections and numbers only the basics", () => {
@@ -42,7 +48,10 @@ test("section navigation groups sections and numbers only the basics", () => {
   assert.equal(editor.includes('label: "Document"'), false);
   assert.equal(editor.includes("numbered: true"), true);
   // One source of truth drives the sidebar, the workspace heading and the YAML jumps.
-  assert.equal(editor.includes("const EDITOR_SECTIONS: EditorSection[] = EDITOR_SECTION_GROUPS.flatMap"), true);
+  assert.equal(
+    editor.includes("const EDITOR_SECTIONS: EditorSection[] = EDITOR_SECTION_GROUPS.flatMap"),
+    true
+  );
   assert.equal(nav.includes("SECTION_ICON_PATHS"), true);
   assert.equal(nav.includes("resume-editor-nav__indicator"), true);
 });
@@ -50,7 +59,10 @@ test("section navigation groups sections and numbers only the basics", () => {
 test("toolbar carries language, mode toggle and the primary save action", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
 
-  const toolbar = editor.slice(editor.indexOf('className="resume-editor-toolbar"'), editor.indexOf('className="resume-editor-workspace"'));
+  const toolbar = editor.slice(
+    editor.indexOf('className="resume-editor-toolbar"'),
+    editor.indexOf('className="resume-editor-workspace"')
+  );
   assert.equal(toolbar.includes("LocaleTabStrip"), true);
   assert.equal(toolbar.includes("resume-editor-draft-indicator"), true);
   assert.equal(toolbar.includes("Human-friendly Editor"), true);
@@ -68,7 +80,10 @@ test("only one entry card is open at a time", () => {
   assert.equal(editor.includes("function handleEntryToggle"), true);
   for (const field of ["summary", "experience", "education"]) {
     assert.equal(editor.includes(`open={isEntryOpen("${field}", index)}`), true);
-    assert.equal(editor.includes(`handleEntryToggle("${field}", index, event.currentTarget.open)`), true);
+    assert.equal(
+      editor.includes(`handleEntryToggle("${field}", index, event.currentTarget.open)`),
+      true
+    );
   }
   // The close echo React fires on the previously-open sibling must not clear the
   // freshly opened card, so the reset has to be a functional update.
@@ -92,7 +107,14 @@ test("preview zoom cannot feed back into its own measurement", () => {
 test("add actions sit at the end of each list", () => {
   const editor = read("app/master-resume/editor-canvas-client.tsx");
 
-  for (const label of ["+ Add summary", "+ Add position", "+ Add education", "+ Add skill", "+ Add language", "+ Add course"]) {
+  for (const label of [
+    "+ Add summary",
+    "+ Add position",
+    "+ Add education",
+    "+ Add skill",
+    "+ Add language",
+    "+ Add course"
+  ]) {
     assert.equal(editor.includes(label), true, `missing add action: ${label}`);
   }
   assert.equal(editor.includes('className="resume-human-editor__add"'), true);
@@ -115,9 +137,21 @@ test("compact rows put the wide field before the narrow field", () => {
   // (wide, narrow, remove button) — every field pair using it must follow that
   // order, or the first field renders wide when it should be narrow (ocv-0165:
   // the course row had Year before Course name, so Year got the wide column).
-  const skillsRow = editor.slice(editor.indexOf("resume.skills.map"), editor.indexOf("+ Add skill"));
-  assert.ok(skillsRow.indexOf('aria-label={editorText("Skill")}') < skillsRow.indexOf('aria-label={editorText("Level")}'));
+  const skillsRow = editor.slice(
+    editor.indexOf("resume.skills.map"),
+    editor.indexOf("+ Add skill")
+  );
+  assert.ok(
+    skillsRow.indexOf('aria-label={editorText("Skill")}') <
+      skillsRow.indexOf('aria-label={editorText("Level")}')
+  );
 
-  const coursesRow = editor.slice(editor.indexOf("resume.courses.map"), editor.indexOf("+ Add course"));
-  assert.ok(coursesRow.indexOf('aria-label={editorText("Course name")}') < coursesRow.indexOf('aria-label={editorText("Year")}'));
+  const coursesRow = editor.slice(
+    editor.indexOf("resume.courses.map"),
+    editor.indexOf("+ Add course")
+  );
+  assert.ok(
+    coursesRow.indexOf('aria-label={editorText("Course name")}') <
+      coursesRow.indexOf('aria-label={editorText("Year")}')
+  );
 });

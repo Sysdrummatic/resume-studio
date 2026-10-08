@@ -81,6 +81,10 @@ test("publication foundation extends resume_public_links without removing legacy
   assert.equal(sql.includes("resume_public_links_legacy_slug_idx"), true);
 });
 
+// The anon-facing policy this test checks for was later revoked (raw
+// snapshots are private even on an active Public Link) — see
+// tests/restrict-raw-resume-snapshot-access.test.mjs. This test still checks
+// the original migration file, unchanged, as authored.
 test("publication foundation defines RLS around active public snapshots and owner metadata", () => {
   const sql = migration();
 

@@ -25,7 +25,7 @@ test("theme switch is interactive and persists the selected theme", () => {
   assert.equal(switchSource.includes("const APP_THEME_TRANSITION_MS = 200;"), true);
   assert.equal(switchSource.includes('role="switch"'), true);
   assert.equal(switchSource.includes('aria-checked={theme === "light"}'), true);
-  assert.equal(switchSource.includes("Switch to ${nextTheme} theme."), true);
+  assert.equal(switchSource.includes("dictionary.theme.aria_label"), true);
   assert.equal(switchSource.includes("document.cookie"), true);
   assert.equal(switchSource.includes('window.matchMedia("(prefers-reduced-motion: reduce)")'), true);
   assert.equal(switchSource.includes('root.dataset.themeTransition = "active";'), true);

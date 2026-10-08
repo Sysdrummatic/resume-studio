@@ -10,6 +10,7 @@ register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const { defaultResumeDocument, normalizeLocale } = await import("../app/lib/resume-schema.ts");
 const { upgradeLegacyResumeYamlContent } = await import("../app/lib/resume-server.ts");
 const { buildUserDataBundleYaml, parseUserDataBundle } = await import("../app/lib/user-data-transfer.ts");
+const { applyResumeSelectionToRawDocument } = await import("../app/lib/preset-selection.ts");
 
 const routeSource = readFileSync(new URL("../app/api/resume/transfer/import/route.ts", import.meta.url), "utf8");
 const routeJs = ts.transpileModule(routeSource, {
@@ -43,6 +44,7 @@ function importRoute({ validationSucceeds = true } = {}) {
   const localeWrites = [];
   const modules = {
     "next/server": { NextResponse: { json: (body, options) => Response.json(body, options) } },
+    "js-yaml": yaml,
     "../../../../lib/auth-request": {
       requireRequestActor: async () => ({ ok: true, accessToken: "test-token", actor: { userId: "test-user" } }),
     },
@@ -58,14 +60,18 @@ function importRoute({ validationSucceeds = true } = {}) {
     "../../../../lib/content-safety-audit": {
       flagSuspiciousResumeContent: async (content) => audited.push(content),
     },
+    "../../../../lib/preset-selection": { applyResumeSelectionToRawDocument },
     "../../../../lib/resume-server": {
       upgradeLegacyResumeYamlContent,
-      upsertResumeUserLocale: async (...args) => { localeWrites.push(args); return true; },
-      saveResumeDraftDocument: async (_token, _userId, _locale, payload) => {
-        saved.push(payload.yamlContent);
-        return { document: { id: "document-id" } };
+      importLanguagesAndDocuments: async (_token, _userId, importedBundle, onDocumentSaved) => {
+        importedBundle.languages.forEach((language) => localeWrites.push(language));
+        for (const document of importedBundle.documents) {
+          saved.push(document.yaml_content);
+          await onDocumentSaved?.({ locale: document.locale, documentId: "document-id", yamlContent: document.yaml_content });
+        }
+        return { ok: true };
       },
-      fetchResumePresetsForUser: async () => [],
+      fetchPrivateResumePresetIdsForUser: async () => [],
       fetchResumeDocumentsForUser: async () => [],
     },
   };

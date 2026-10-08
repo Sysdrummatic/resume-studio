@@ -2,6 +2,10 @@
 
 This repository contains the React/Next.js OpenCiVera codebase. The former static HTML/CSS/JS frontend has been retired; `public/` now holds data files, images, vendor runtime assets, and migration helpers only.
 
+Users build a private Experience Base, create tailored **LiveCVs**, then publish
+and share a LiveCV link. Published content changes only after explicit republication.
+See the [canonical product terminology](docs/guides/brand-language-and-terminology.md).
+
 ## Structure
 
 - `app/` - Next.js App Router implementation.

@@ -2,6 +2,7 @@ import { requireStaffActor } from "../../lib/auth-server";
 import { hasCapability } from "../../lib/rbac";
 import { queryTable } from "../../lib/supabase-http";
 import AuditLogsClient from "./audit-logs-client";
+import { getRequestAppI18n } from "../../i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ type ContentSafetyFlag = {
 };
 
 export default async function AuditLogsPage() {
+  const { locale, dictionary } = await getRequestAppI18n();
+  const text = dictionary.admin.text;
   const actor = await requireStaffActor();
 
   if (!hasCapability(actor.role, "admin.audit.read")) {
@@ -53,8 +56,8 @@ export default async function AuditLogsPage() {
     <section className="stack">
       <header className="card-header">
         <div>
-          <h1>Audit Log Explorer</h1>
-          <p className="card-lead">Monitor administrative actions with metadata-only filters and inspection tools.</p>
+          <h1>{text["Audit Log Explorer"]}</h1>
+          <p className="card-lead">{text["Monitor administrative actions with metadata-only filters and inspection tools."]}</p>
         </div>
       </header>
 
@@ -63,14 +66,8 @@ export default async function AuditLogsPage() {
       <section className="stack">
         <header className="card-header">
           <div>
-            <h2 style={{ margin: 0, fontSize: "1.1rem" }}>Content Safety Flags</h2>
-            <p className="card-lead">
-              Server-side detections of likely script-injection attempts in saved CV content (see{" "}
-              <code>app/lib/content-safety.ts</code>). A flag here does not mean an attack succeeded &mdash; output
-              escaping and the URL protocol allowlist already prevent execution &mdash; it means a user submitted
-              content matching a known injection shape and is worth reviewing. Per ADR 0003, staff see metadata only
-              &mdash; the matched text itself is hashed, not stored or displayed.
-            </p>
+            <h2 style={{ margin: 0, fontSize: "1.1rem" }}>{text["Content Safety Flags"]}</h2>
+            <p className="card-lead">{text["Content safety explanation"]}</p>
           </div>
         </header>
 
@@ -78,25 +75,25 @@ export default async function AuditLogsPage() {
           <table className="users-table">
             <thead>
               <tr>
-                <th style={{ width: "180px" }}>Timestamp</th>
-                <th>User</th>
-                <th>Locale</th>
-                <th>Rule</th>
-                <th>Match Hash</th>
+                <th style={{ width: "180px" }}>{text.Timestamp}</th>
+                <th>{text.User}</th>
+                <th>{text.Locale}</th>
+                <th>{text.Rule}</th>
+                <th>{text["Match Hash"]}</th>
               </tr>
             </thead>
             <tbody>
               {contentSafetyFlags.length === 0 ? (
                 <tr>
                   <td colSpan={5} style={{ textAlign: "center", padding: "2rem", color: "var(--muted)" }}>
-                    No content safety flags recorded.
+                    {text["No content safety flags recorded."]}
                   </td>
                 </tr>
               ) : (
                 contentSafetyFlags.map((flag) => (
                   <tr key={flag.id}>
                     <td style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
-                      {new Date(flag.created_at).toLocaleString()}
+                      {new Date(flag.created_at).toLocaleString(locale)}
                     </td>
                     <td style={{ fontSize: "0.85rem" }}>{flag.user_id.slice(0, 8)}...</td>
                     <td style={{ fontSize: "0.85rem" }}>{flag.locale || "-"}</td>
