@@ -108,7 +108,7 @@ for (const locale of ["pl", "en"]) {
     assert.ok(html.includes(dictionary.cta.description));
     assert.ok(html.includes(dictionary.cta.secondary_action));
     assert.ok(html.includes(dictionary.features.aria_label));
-    assert.equal(dictionary.features.items.length, 8);
+    assert.equal(dictionary.features.items.length, 11);
     for (const item of dictionary.features.items) assert.ok(html.includes(item.title));
     const duplicate = html.match(
       /<ul class="carouselGroup carouselDuplicate" aria-hidden="true">([\s\S]*?)<\/ul>/
