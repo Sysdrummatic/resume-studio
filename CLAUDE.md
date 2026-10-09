@@ -466,7 +466,9 @@ filters the indexed arrays on the **raw** YAML object so extension fields
 *inside a selected entry* survive the export. **Unknown top-level fields do
 not**: `selectPublishedDocument` (`app/lib/published-export.ts`) allowlists
 top-level keys via `PUBLIC_TOP_LEVEL_KEYS` and strips `entry_id`/`__ocv`
-before normalizing, so a private top-level extension field is never part of
+(the latter only still exists in documents and snapshots stored before ocv-0211;
+`tech_stack`/`interests` are flattened back to plain strings, so the public
+contract is unchanged) before normalizing, so a private top-level extension field is never part of
 the public contract (2026-09-27, ADR 0002/0008). **Selection indexes are raw-domain**: the
 editor builds them against raw parsed YAML arrays, so every consumer — public
 view (`buildResumeDocumentFromPreset` → `buildPublishedResumeDocument`),
@@ -729,7 +731,15 @@ a preset, or an account under ADR 0016's cascade, aborted with "Published CV
 snapshots are immutable." Migration `20260717000000_allow_snapshot_source_detach.sql`
 narrows the trigger to permit an `UPDATE` only when it nulls out one or more of
 those source-pointer columns; snapshot content (`yaml_content`, `selection`,
-`locale`, `title`, ...) stays immutable. Test contracts:
+`locale`, `title`, ...) stays immutable. **One documented exception (ocv-0211,
+ADR 0023 addendum):** the one-off text-list shape migration may rewrite
+`resume_published_cv_locales.yaml_content` only, through the service-role-only
+`rewrite_published_snapshot_yaml()` opened by
+`20261010000000_snapshot_shape_migration_open.sql` and closed again by
+`20261010010000_snapshot_shape_migration_close.sql`; the script
+(`scripts/migrate/text-list-entries.mjs --snapshots`) writes a snapshot only if its
+public export stays byte-identical. Outside that window the rule above holds.
+Test contracts:
 `tests/preset-selection-locale-clamp.test.mjs`, `tests/cv-publication-schema.test.mjs`.
 
 **Auth Boundary Hardening (G-P0-04) — corrected 2026-08-26:** this section
