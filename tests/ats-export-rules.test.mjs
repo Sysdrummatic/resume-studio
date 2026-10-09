@@ -32,7 +32,7 @@ test("plain text uses ALLCAPS ATS section headers without decorations", () => {
 
 test("plain text merges skills and tech_stack into one line without rating leak", () => {
   const text = convertResumeToPlainText(doc);
-  const expectedSkills = [...doc.skills.map(({ name }) => name), ...doc.tech_stack].join(", ");
+  const expectedSkills = [...doc.skills.map(({ name }) => name), ...doc.tech_stack.map(({ name }) => name)].join(", ");
 
   assert.equal(text.includes(expectedSkills), true);
   assert.equal(text.includes("Python"), true);

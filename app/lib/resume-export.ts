@@ -58,7 +58,7 @@ function getAtsSummary(doc: ResumeDocument): string {
 }
 
 function getAtsSkills(doc: ResumeDocument): string[] {
-  return [...doc.skills.map((item) => item.name), ...doc.tech_stack].map((item) => item.trim()).filter(Boolean);
+  return [...doc.skills.map((item) => item.name), ...doc.tech_stack.map((item) => item.name)].map((item) => item.trim()).filter(Boolean);
 }
 
 function wrapText(text: string, maxLength = 88): string[] {
@@ -205,7 +205,7 @@ export function convertResumeToAtsYaml(doc: ResumeDocument, locale: string): str
     .map((item) => (isSummaryPositionNoise(item.position) ? { ...item, position: "" } : item));
   const skills = doc.skills.map((item) => ({ name: item.name }));
 
-  const atsDoc = stripAtsSections({ ...doc, summary, skills });
+  const atsDoc = stripAtsSections({ ...doc, summary, skills, tech_stack: doc.tech_stack.map((item) => item.name) });
 
   return yaml.dump(atsDoc, { indent: 2, lineWidth: 100, noRefs: true });
 }

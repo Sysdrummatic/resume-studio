@@ -314,7 +314,7 @@ function buildResult(sourceKind: ResumeImportResult["sourceKind"], preamble: str
   if (sections.skills) resume.skills = parseSkillsBody(sections.skills);
   if (sections.courses) resume.courses = parseCoursesBody(sections.courses);
   if (sections.languages) resume.languages = parseLanguagesBody(sections.languages);
-  if (sections.interests) resume.interests = parseInterestsBody(sections.interests);
+  if (sections.interests) resume.interests = parseInterestsBody(sections.interests).map((name) => ({ name }));
 
   const foundSections = Object.keys(sections).length;
   if (foundSections === 0) {

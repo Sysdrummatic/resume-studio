@@ -40,7 +40,7 @@ test("new language keeps linked rows and neutral experience fields but clears tr
   assert.equal(template.summary[0].position, "");
   assert.equal(template.summary[0].default, true);
   assert.equal(template.skills[0].name, "");
-  assert.equal(template.tech_stack[0], "");
+  assert.equal(template.tech_stack[0].name, "");
   assert.equal(template.gdpr_clause, "");
   assert.ok(template.summary[0].entry_id);
   assert.notEqual(template.summary[0].entry_id, template.experience[0].entry_id);
@@ -165,8 +165,8 @@ test("a confirmed legacy translation keeps its tech_stack and interests values",
   assert.deepEqual(await legacyConflicts(english, polish), [{ collection: "interests", reason: "ambiguous" }], "translated interests have no key to compare");
   const reconciled = reconcileResumeLanguageDocument(english, polish, { confirmLegacyPairing: true });
 
-  assert.deepEqual(reconciled.tech_stack, ["TypeScript", "React"]);
-  assert.deepEqual(reconciled.interests, ["Muzyka", "Szachy"]);
+  assert.deepEqual(reconciled.tech_stack.map((row) => row.name), ["TypeScript", "React"]);
+  assert.deepEqual(reconciled.interests.map((row) => row.name), ["Muzyka", "Szachy"]);
 });
 
 test("legacy documents receive the same position-derived IDs each time they are parsed", () => {
@@ -259,7 +259,7 @@ test("the editor can tell when a save gave its rows different linkage IDs", asyn
   const editorBuffer = ensureResumeEntryIds(legacyPolish({ summary: [{ position: "Redaktor", description: "Opis", default: true }], interests: ["Muzyka"] }));
   const storedCanonical = structuredClone(editorBuffer);
   storedCanonical.summary[0].entry_id = "uuid-summary";
-  storedCanonical.__ocv.entries.interests = ["uuid-interest"];
+  storedCanonical.interests[0].entry_id = "uuid-interest";
   const reformatted = { ...structuredClone(editorBuffer), gdpr_clause: "" };
 
   assert.equal(resumeEntryIdsDiffer(editorBuffer, storedCanonical), true);

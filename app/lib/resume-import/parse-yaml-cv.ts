@@ -168,7 +168,7 @@ function mapJsonResume(source: Record<string, unknown>): ResumeImportResult {
   if (languages.length > 0) resume.languages = languages;
 
   const interests = asArray(source.interests).map((item) => pickText(asObject(item) ?? {}, ["name"])).filter(Boolean);
-  if (interests.length > 0) resume.interests = interests;
+  if (interests.length > 0) resume.interests = interests.map((name) => ({ name }));
 
   const certificates = mapJsonResumeCertificates(asArray(source.certificates));
   if (certificates.length > 0) resume.courses = certificates;
@@ -310,7 +310,7 @@ function parseGenericYamlCv(source: Record<string, unknown>): ResumeImportResult
   if (languages.length > 0) resume.languages = languages;
 
   const interests = asArray(findKeyCaseInsensitive(source, KEY_ALIASES.interests)).map(asText).filter(Boolean);
-  if (interests.length > 0) resume.interests = interests;
+  if (interests.length > 0) resume.interests = interests.map((name) => ({ name }));
 
   if (Object.keys(resume).length === 0) {
     warnings.push("Could not find any recognisable CV fields in this file.");

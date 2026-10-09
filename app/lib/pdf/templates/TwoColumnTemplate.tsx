@@ -68,13 +68,13 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
             <PdfSkills skills={resume.skills} title={labels.skills} theme={theme} />
           ) : null}
           {resume.tech_stack.length > 0 ? (
-            <PdfTechStack techStack={resume.tech_stack} title={labels.techStack} theme={theme} />
+            <PdfTechStack techStack={resume.tech_stack.map((item) => item.name)} title={labels.techStack} theme={theme} />
           ) : null}
           {resume.languages.length > 0 ? (
             <PdfLanguages languages={resume.languages} title={labels.languages} theme={theme} />
           ) : null}
           {resume.interests.length > 0 ? (
-            <PdfInterests interests={resume.interests} title={labels.interests} theme={theme} />
+            <PdfInterests interests={resume.interests.map((item) => item.name)} title={labels.interests} theme={theme} />
           ) : null}
           {resume.qr_codes.length > 0 ? (
             <PdfQrCodes qrCodes={resume.qr_codes} title={labels.qrCodes} theme={theme} />

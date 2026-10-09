@@ -19,6 +19,7 @@ import type { OnboardingTestRun } from "../lib/onboarding-test";
 import {
   ensureResumeEntryIds,
   hasCompleteResumeLinkage,
+  hasLegacyTextListShape,
   inspectResumeEntryIdStability,
   inspectTranslationLinkage,
   resumeEntryIdsDiffer,
@@ -152,7 +153,7 @@ function normalizeYamlForEditor(yamlContent: string, fallbackName: string): { re
   const source = ensureResumeEntryIds(parsed);
   const resume = normalizeResumeDocument(source, fallbackName, { preserveLinkedEntries: true });
   const shouldMigrateYaml = !Array.isArray(source.summary);
-  const shouldPersistLinkageIds = !hasCompleteResumeLinkage(parsed);
+  const shouldPersistLinkageIds = !hasCompleteResumeLinkage(parsed) || hasLegacyTextListShape(parsed);
   // A stored document with two defaults is re-serialized from the normalized
   // one (which keeps the first), so opening it does not raise the YAML error
   // reserved for edits made in the YAML tab.
