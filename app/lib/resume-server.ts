@@ -1937,7 +1937,6 @@ export async function saveResumePreset(
     title: string;
     selection: ResumePresetSelection;
     styleSettings?: unknown;
-    isPublic?: boolean;
     allowIndexing?: boolean;
     aiGenerated?: boolean;
     defaultLocale?: ResumeLocale;
@@ -1966,7 +1965,8 @@ export async function saveResumePreset(
     title,
     selection: payload.selection as unknown as Record<string, unknown>,
     style_settings: styleSettings,
-    is_public: payload.isPublic ?? existingPreset?.is_public ?? false,
+    // Only the publish and unpublish RPCs change this, together with the link.
+    is_public: existingPreset?.is_public ?? false,
     allow_indexing: Boolean(payload.allowIndexing),
     ai_generated: Boolean(payload.aiGenerated),
     default_locale: normalizeLocale(payload.defaultLocale || document.locale),

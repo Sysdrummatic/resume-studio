@@ -1,19 +1,49 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../../../lib/auth-request";
 import { republishResumePreset } from "../../../../../lib/resume-server";
-import { RESUME_LIMITS_DOC_URL } from "../../../../../lib/resume-schema";
+import { normalizeLocale, RESUME_LIMITS_DOC_URL } from "../../../../../lib/resume-schema";
 import { rateLimit } from "../../../../../lib/rate-limit";
-
-type RepublishBody = {
-  selectedLocales?: unknown;
-  defaultLocale?: unknown;
-};
 
 type RepublishRouteContext = {
   params: Promise<{
     presetId: string;
   }>;
 };
+
+type LanguageChoice = { selectedLocales: string[]; defaultLocale: string };
+type ParsedChoice = { ok: true; choice?: LanguageChoice } | { ok: false; error: string };
+
+// normalizeLocale turns anything unrecognised into "en", which would silently
+// replace a language the caller asked for, so the shape is checked first.
+const LOCALE_CODE = /^[a-z]{2}(-[a-z0-9]+)*$/i;
+
+function isLocaleCode(value: unknown): value is string {
+  return typeof value === "string" && LOCALE_CODE.test(value.trim());
+}
+
+/** An empty body keeps the languages the link already serves; anything else must be a complete, valid choice. */
+async function parseLanguageChoice(request: Request): Promise<ParsedChoice> {
+  const text = await request.text();
+  if (!text.trim()) return { ok: true };
+
+  let body: unknown;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return { ok: false, error: "Invalid JSON payload." };
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: false, error: "Invalid JSON payload." };
+
+  const { selectedLocales, defaultLocale } = body as Record<string, unknown>;
+  if (selectedLocales === undefined && defaultLocale === undefined) return { ok: true };
+  if (!Array.isArray(selectedLocales) || selectedLocales.length === 0 || !selectedLocales.every(isLocaleCode) || !isLocaleCode(defaultLocale)) {
+    return { ok: false, error: "selectedLocales (a non-empty list of language codes) and defaultLocale must be sent together." };
+  }
+  const chosen = Array.from(new Set(selectedLocales.map((locale) => normalizeLocale(locale))));
+  const fallback = normalizeLocale(defaultLocale);
+  if (!chosen.includes(fallback)) return { ok: false, error: "defaultLocale must be one of selectedLocales." };
+  return { ok: true, choice: { selectedLocales: chosen, defaultLocale: fallback } };
+}
 
 export async function POST(request: Request, context: RepublishRouteContext): Promise<Response> {
   const actorResult = await requireRequestActor({ anyCapability: "resume.preset.publish_own" });
@@ -35,15 +65,13 @@ export async function POST(request: Request, context: RepublishRouteContext): Pr
     return NextResponse.json({ error: "CV Version id is required." }, { status: 400 });
   }
 
-  // An empty body keeps the languages the link already serves.
-  const body = (await request.json().catch(() => ({}))) as RepublishBody;
-  const choice =
-    Array.isArray(body.selectedLocales) && typeof body.defaultLocale === "string"
-      ? { selectedLocales: body.selectedLocales.map(String), defaultLocale: body.defaultLocale }
-      : undefined;
+  const parsed = await parseLanguageChoice(request);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
 
   try {
-    const preset = await republishResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId, choice);
+    const preset = await republishResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId, parsed.choice);
     if (!preset) {
       return NextResponse.json({ error: "CV Version update failed." }, { status: 500 });
     }
