@@ -36,3 +36,10 @@ export function getSelectedDashboardPreset<T extends { id: string }>(
 ): T | null {
   return presets.find((preset) => preset.id === selectedId) ?? presets[0] ?? null;
 }
+
+/** API responses differ in which link-derived fields they carry, so fields they omit are kept. */
+export function mergePreset<T extends { id: string }>(current: T[], nextPreset: T): T[] {
+  const exists = current.some((preset) => preset.id === nextPreset.id);
+  if (!exists) return [nextPreset, ...current];
+  return current.map((preset) => (preset.id === nextPreset.id ? { ...preset, ...nextPreset } : preset));
+}

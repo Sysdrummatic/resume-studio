@@ -24,7 +24,7 @@ dokumentu do przestrzeni publicznej: zapisuje tylko wybrane wpisy.
 3. Wybierz podsumowanie, role, doświadczenie, wykształcenie, kursy,
    umiejętności i zainteresowania, które pasują do zgłoszenia.
 4. W polach **Szablon** i **Kolor główny** dobierz wygląd wersji.
-5. Kliknij **Zapisz LiveCV**.
+5. Kliknij **Utwórz LiveCV**.
 
 Nowy wpis pojawi się w **Twoje wersje LiveCV** jako prywatny szkic. Możesz go od razu
 podglądać i edytować, ale publiczny URL powstanie dopiero po publikacji.
@@ -41,7 +41,10 @@ czasu kolejnej publikacji pokazuje ostatnią niezmienną migawkę.
 ## Edytuj lub usuń wersję
 
 W menu ustawień wersji wybierz **Edytuj**, **Opublikuj**, eksport albo **Usuń**.
-Usunięcie wersji kasuje tylko ten wybór; Baza doświadczeń pozostaje bez zmian. Jeśli
+Główny przycisk edytora zależy od stanu wersji: **Zapisz LiveCV** przy wersji prywatnej
+(nic nie staje się publiczne) i **Zaktualizuj LiveCV** przy opublikowanej. **Zaktualizuj
+LiveCV** zapisuje zmiany i podmienia treść pod istniejącym publicznym linkiem; po
+najechaniu myszką zobaczysz tę podpowiedź. Usunięcie wersji kasuje tylko ten wybór; Baza doświadczeń pozostaje bez zmian. Jeśli
 wersja jest publiczna i chcesz zachować ją na później, wybierz **Wycofaj publikację**.
 
 :::tip

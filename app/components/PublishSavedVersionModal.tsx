@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "./design-system/atoms/Button";
 import type { ResumeLocale } from "../lib/resume-schema";
 import type { ResumePresetRow } from "../lib/resume-server";
 import { useAppI18n } from "./app-i18n-provider";
+import PublicationLanguageFields, { validatePublicationLanguages } from "./PublicationLanguageFields";
 
 type LanguageMetadata = {
   code: ResumeLocale;
@@ -38,48 +39,22 @@ export default function PublishSavedVersionModal({
   onClose,
   onPublish,
 }: Props) {
-  const { locale: appLocale, dictionary } = useAppI18n();
+  const { dictionary } = useAppI18n();
   const labels = dictionary.dashboard.publish_modal;
-  const [selectedLocales, setSelectedLocales] = useState<ResumeLocale[]>(draft.selectedLocales);
-  const [defaultLocale, setDefaultLocale] = useState<ResumeLocale>(draft.defaultLocale);
+  const [languages, setLanguages] = useState({ selectedLocales: draft.selectedLocales, defaultLocale: draft.defaultLocale });
   const [allowIndexing, setAllowIndexing] = useState(draft.allowIndexing);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const languageLabel = useMemo(() => {
-    const map = new Map(languageOptions.map((item) => [item.code, item.label]));
-    const displayNames = new Intl.DisplayNames([appLocale], { type: "language" });
-    return (locale: ResumeLocale) => map.get(locale) || displayNames.of(locale) || locale.toUpperCase();
-  }, [appLocale, languageOptions]);
-
-  function toggleLocale(nextLocale: ResumeLocale) {
-    setSelectedLocales((current) => {
-      const set = new Set(current);
-      if (set.has(nextLocale)) {
-        set.delete(nextLocale);
-      } else {
-        set.add(nextLocale);
-      }
-      const next = Array.from(set).sort();
-      if (!next.includes(defaultLocale) && next.length > 0) {
-        setDefaultLocale(next[0]);
-      }
-      return next;
-    });
-  }
-
   async function submit() {
-    if (selectedLocales.length === 0) {
-      setError(labels.select_one);
-      return;
-    }
-    if (!selectedLocales.includes(defaultLocale)) {
-      setError(labels.default_required);
+    const invalid = validatePublicationLanguages(languages, labels);
+    if (invalid) {
+      setError(invalid);
       return;
     }
     setError("");
     setIsSubmitting(true);
-    await onPublish({ preset: draft.preset, selectedLocales, defaultLocale, allowIndexing });
+    await onPublish({ preset: draft.preset, ...languages, allowIndexing });
     setIsSubmitting(false);
   }
 
@@ -96,26 +71,7 @@ export default function PublishSavedVersionModal({
 
         <p className="card-lead">{draft.preset.title}</p>
 
-        <section className="stack">
-          <h3>{labels.languages}</h3>
-          {locales.map((nextLocale) => (
-            <label key={nextLocale} className="checkbox-row">
-              <input type="checkbox" checked={selectedLocales.includes(nextLocale)} onChange={() => toggleLocale(nextLocale)} />
-              {languageLabel(nextLocale)}
-            </label>
-          ))}
-        </section>
-
-        <label>
-          {labels.default}
-          <select value={defaultLocale} onChange={(event) => setDefaultLocale(event.target.value as ResumeLocale)}>
-            {selectedLocales.map((nextLocale) => (
-              <option key={nextLocale} value={nextLocale}>
-                {languageLabel(nextLocale)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <PublicationLanguageFields locales={locales} languageOptions={languageOptions} value={languages} onChange={setLanguages} />
 
         <label className="checkbox-row">
           <input type="checkbox" checked={allowIndexing} disabled={Boolean(draft.preset.onboarding_test_run_id)} onChange={(event) => setAllowIndexing(event.target.checked)} />

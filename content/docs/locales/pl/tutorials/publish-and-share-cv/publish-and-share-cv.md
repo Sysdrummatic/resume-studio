@@ -40,8 +40,16 @@ publikacji. Nieobsługiwany parametr `?lang=` wraca do języka domyślnego.
 
 ## Zaktualizuj lub wycofaj publikację
 
-Po zmianie Bazy doświadczeń albo wyboru treści opublikuj LiveCV ponownie, aby utworzyć
-nową migawkę. Aby wyłączyć stronę, wybierz **Wycofaj publikację**. Zapisana wersja
+Aby zmienić opublikowane LiveCV, otwórz menu ustawień wersji, wybierz **Edytuj**, popraw
+wybór treści i kliknij **Zaktualizuj LiveCV**. Zmiany zostaną zapisane, a treść pod tym
+samym linkiem podmieniona. W edytorze wybierzesz też, które wersje językowe udostępnia link
+i która otwiera się domyślnie (zaznaczone są języki już opublikowane), oraz czy
+wyszukiwarki mogą indeksować stronę. Wersja pozostaje opublikowana. Jeśli zobaczysz komunikat „Zmiany zapisano, ale link do LiveCV nie został
+zaktualizowany", zmiany są bezpieczne, ale link nadal pokazuje poprzednią treść; otwórz
+**Edytuj** i kliknij **Zaktualizuj LiveCV** ponownie. Sama zmiana Bazy doświadczeń nie
+aktualizuje linku: pokazuje on ostatni opublikowany stan, dopóki nie zaktualizujesz wersji.
+
+Aby wyłączyć stronę, wybierz **Wycofaj publikację**. Zapisana wersja
 pozostanie na koncie i można ją później opublikować ponownie.
 
 :::warning

@@ -60,14 +60,27 @@ journey is: build an Experience Base → create LiveCV → publish LiveCV → sh
 the LiveCV link. In English, `LiveCVs` is the ordinary plural.
 
 Name actions explicitly: `Utwórz LiveCV` / `Create LiveCV`, `Zapisz LiveCV` /
-`Save LiveCV`, `Otwórz LiveCV` / `Open LiveCV`, and `Kopiuj link do LiveCV` /
-`Copy LiveCV link`. Explain at first use that LiveCV is a tailored CV that can
-be published as a browser page and downloaded as PDF or ATS text.
+`Save LiveCV`, `Zaktualizuj LiveCV` / `Update LiveCV`, `Otwórz LiveCV` /
+`Open LiveCV`, and `Kopiuj link do LiveCV` / `Copy LiveCV link`. Explain at
+first use that LiveCV is a tailored CV that can be published as a browser page
+and downloaded as PDF or ATS text.
 
 LiveCV does not mean automatic publication: editing the Experience Base or a
 private selection does not update published content. Republish explicitly to
 replace the content under the existing link. Keep the base and unpublished
 versions private.
+
+The version editor shows exactly one submit action, chosen by state:
+`Create LiveCV` creates a private version (publishing is a separate `Publish`
+step), `Save LiveCV` saves an unpublished version without touching any link, and
+`Update LiveCV` appears only for a published version. `Update LiveCV` is the
+explicit republish: it saves the changes and replaces the content under the
+existing link. The same editor holds the publication languages and the default
+language; they start as the languages already published there, so an update never
+adds one unless the user checks it. Its hover hint says so. There is no separate
+`Publish again` action.
+If the save succeeds but the link update fails, say that both facts are true:
+the changes are saved and the link still shows the previous content.
 
 Use generic `CV` for an existing external CV being imported, general job-market
 advice and third-party documents. Keep `CV-as-Code`, the OpenCV format, technical

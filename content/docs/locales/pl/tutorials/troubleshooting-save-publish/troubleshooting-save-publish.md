@@ -43,7 +43,8 @@ Odczekaj około minuty, zwolnij automatyzację i spróbuj ponownie. Zobacz też
 ## Dlaczego publiczna strona pokazuje starszą treść?
 
 Publiczny link pokazuje ostatnio opublikowany stan LiveCV. Zapisz Bazę doświadczeń,
-zaktualizuj wybór wersji, jeśli trzeba, i opublikuj ponownie. Prywatny podgląd
+zaktualizuj wybór wersji, jeśli trzeba, a potem otwórz wersję przez **Edytuj** i kliknij
+**Zaktualizuj LiveCV** (dla wersji, która nie była publikowana, użyj **Opublikuj**). Prywatny podgląd
 może pokazywać bieżącą treść, gdy publiczny link nadal pokazuje poprzedni stan.
 
 ## Co przekazać przy zgłoszeniu problemu?
