@@ -113,3 +113,30 @@ mniejsze ryzyko przy becie dla garstki zaproszonych testerów:
 
 Pominięty w Phase G (G-P0-01) i odroczony do [Phase O](docs/phases/phase-o-opencv-standard.md)
 (O02), żeby reguły zaprojektować raz w ramach standardu OpenCV, a nie doraźnie w aplikacji.
+
+## Edycja Bazy doświadczeń nie sygnalizuje nieaktualnego linku do LiveCV (stan z 2026-10-10)
+
+**Status:** otwarte. Zakres [#214](https://github.com/Sysdrummatic/resume-studio/issues/214)
+objął tylko edycję z poziomu wersji LiveCV ("Zaktualizuj LiveCV").
+
+Opublikowany link czyta niezmienną migawkę, więc zmiana wpisu w Bazie doświadczeń
+(Master CV), który jest w wyborze opublikowanej wersji, nie zmienia linku. Edycja tej
+wersji zapisuje i aktualizuje link, ale sama edycja Bazy doświadczeń nie zostawia żadnego
+śladu, że link jest starszy.
+
+### Do zrobienia
+
+Znacznik "zmiany nieopublikowane w linku" przy opublikowanej wersji, z przyciskiem
+"Zaktualizuj". Wykrywanie: `published_at` linku starsze niż `updated_at` dokumentów
+wybranych języków albo samej wersji (`resume_presets`, `resume_preset_variants`).
+Prostsza wersja daje fałszywe alarmy przy edycji wpisu spoza wyboru. Dokładna wymaga
+porównania YAML po zastosowaniu wyboru na surowym dokumencie (kontrakt R09). Nie publikować
+automatycznie przy zapisie Bazy doświadczeń: szkic trafiłby od razu do publicznego linku.
+
+## ADR 0001 mówi, że ponowna publikacja po wycofaniu tworzy nowy `public-id` (stan z 2026-10-10)
+
+Migracja `20260604000000_reactivate_revoked_public_link_on_publish.sql` robi odwrotnie:
+`publish_resume_saved_version` przywraca unieważniony link z tym samym `public_id`
+(chroni test `tests/publish-republish-contract.test.mjs`). ADR 0001 (reguła 8 i PR4)
+opisuje zachowanie sprzed tej migracji. Decyzja: poprawić ADR zgodnie z kodem albo
+przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.

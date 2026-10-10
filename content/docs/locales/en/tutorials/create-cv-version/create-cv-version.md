@@ -25,7 +25,7 @@ the whole document into public view: it stores which entries should be shown.
 3. Select the summary, roles, experience, education, courses, skills, and
    interests that support this application.
 4. Choose the appearance with **Template** and **Primary color**.
-5. Click **Save LiveCV**.
+5. Click **Create LiveCV**.
 
 The new entry appears under **Your LiveCVs** as a private draft. You can preview and
 edit it immediately, but there is no public URL until you publish it.
@@ -43,7 +43,10 @@ publish the version again.
 ## Edit or remove a version
 
 Use the version's settings menu to **Edit**, **Publish**, export, or
-**Delete** it. Deleting the version removes only that selection; your Experience Base stays intact. If the version is public and you want to keep it for later,
+**Delete** it. The editor's main button depends on the version's state: **Save LiveCV**
+for a private version (nothing becomes public), **Update LiveCV** for a published one.
+**Update LiveCV** saves your changes and replaces the content under the existing public
+link; hover over it to see this hint. Deleting the version removes only that selection; your Experience Base stays intact. If the version is public and you want to keep it for later,
 choose **Unpublish** instead of deleting it.
 
 :::tip
