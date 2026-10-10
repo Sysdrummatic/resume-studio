@@ -50,6 +50,8 @@ test("the parity panel, its Match button and every parity message are translated
     "Language version consistency",
     "{percent}% different from the other versions",
     "Match",
+    "Show details",
+    "Hide details",
     "All language versions have the same entries.",
     "The other language versions do not have the same entries as this one. Match brings them to this version's structure.",
     "Adding, removing or moving an entry in the form changes every language version at once. Match is for changes made by hand in YAML.",

@@ -313,6 +313,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   // is the primary interaction, and it only applies to the form. YAML stays one
   // click away in the toolbar.
   const [editorTab, setEditorTab] = useState<EditorTab>("human");
+  const [isParityDetailsOpen, setIsParityDetailsOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<ResumeEditorStyle>(cvStyle.template);
   const [isBusy, setIsBusy] = useState(false);
   const { toast, showToast, closeToast } = useStatusToast();
@@ -1402,15 +1403,32 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                     >
                       {formatAppMessage(editorText("{percent}% different from the other versions"), { percent: String(parityStatus.difference.percent) })}
                     </span>
-                    <button
-                      type="button"
-                      className="button button--small"
-                      disabled={parityStatus.ok || isBusy || isLoading}
-                      onClick={handleMatchOthers}
-                    >
-                      {editorText("Match")}
-                    </button>
+                    <span className="resume-editor-linkage-status__actions">
+                      <button
+                        type="button"
+                        className="button button--small"
+                        disabled={parityStatus.ok || isBusy || isLoading}
+                        onClick={handleMatchOthers}
+                      >
+                        {editorText("Match")}
+                      </button>
+                      <button
+                        type="button"
+                        className="resume-editor-linkage-status__toggle"
+                        aria-expanded={isParityDetailsOpen}
+                        aria-controls="resume-editor-parity-details"
+                        aria-label={isParityDetailsOpen ? editorText("Hide details") : editorText("Show details")}
+                        title={isParityDetailsOpen ? editorText("Hide details") : editorText("Show details")}
+                        onClick={() => setIsParityDetailsOpen((open) => !open)}
+                      >
+                        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+                          <path d="M3.5 6 8 10.5 12.5 6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    </span>
                   </div>
+                  {isParityDetailsOpen ? (
+                  <div id="resume-editor-parity-details" className="resume-editor-linkage-status__details">
                   {parityStatus.parseError ? (
                     <p>{parityStatus.parseError}</p>
                   ) : parityStatus.ok ? (
@@ -1426,6 +1444,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                     </>
                   )}
                   <small>{editorText("Adding, removing or moving an entry in the form changes every language version at once. Match is for changes made by hand in YAML.")}</small>
+                  </div>
+                  ) : null}
                 </section>
                 <textarea
                   ref={yamlTextareaRef}
