@@ -31,14 +31,6 @@ function stripPrivateLinkage(value: unknown): unknown {
   );
 }
 
-function flattenTextLists(document: Record<string, unknown>): void {
-  for (const key of ["tech_stack", "interests"]) {
-    const items = document[key];
-    if (!Array.isArray(items)) continue;
-    document[key] = items.map((item) => (typeof item === "string" ? item : (item as { name?: unknown } | null)?.name ?? ""));
-  }
-}
-
 function selectedRecordCount(key: (typeof PRESET_SELECTION_KEYS)[number], value: unknown): number | null {
   if (key === "summary" && typeof value === "string") {
     return value.trim() ? 1 : null;
@@ -69,7 +61,6 @@ function selectPublishedDocument(
     const publicRaw = stripPrivateLinkage(Object.fromEntries(
       Object.entries(visibleRaw).filter(([key]) => PUBLIC_TOP_LEVEL_KEYS.has(key)),
     )) as Record<string, unknown>;
-    flattenTextLists(publicRaw);
     const resume = normalizeResumeDocument(publicRaw, "");
     if (!resume.summary[0]?.position && !resume.summary[0]?.description) {
       return null;

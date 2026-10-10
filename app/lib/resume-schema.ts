@@ -59,13 +59,9 @@ export type ResumeCourse = {
   name: string;
 };
 
-/** A plain-text list row (tech stack, interests) carrying its own linkage ID. */
-export type ResumeNamedEntry = {
-  entry_id?: string;
-  name: string;
-};
-
 export type ResumeDocument = {
+  /** Private locale-linkage metadata; stripped from public CV exports. */
+  __ocv?: { entries?: Record<string, string[]> };
   brand_initials: string;
   first_name: string;
   family_name: string;
@@ -73,9 +69,9 @@ export type ResumeDocument = {
   contact: ResumeContactItem[];
   qr_codes: ResumeQrCode[];
   skills: ResumeSkill[];
-  tech_stack: ResumeNamedEntry[];
+  tech_stack: string[];
   languages: ResumeLanguage[];
-  interests: ResumeNamedEntry[];
+  interests: string[];
   experience: ResumeExperience[];
   education: ResumeEducation[];
   courses: ResumeCourse[];
@@ -138,20 +134,10 @@ function optionalEntryId(row: Record<string, unknown>): { entry_id?: string } {
   return value ? { entry_id: value } : {};
 }
 
-/**
- * Reads a text list in either shape: `{ entry_id, name }` rows, or the older
- * plain strings whose IDs lived in `__ocv.entries` (stored documents, snapshots
- * and old bundles still have it).
- */
-function normalizeNamedEntries(source: Record<string, unknown>, collection: "tech_stack" | "interests", preserveLinkedEntries: boolean): ResumeNamedEntry[] {
-  const stringListIds = asArray(asObject(asObject(source.__ocv).entries)[collection]);
-  return asArray(source[collection])
-    .map((item, index) => {
-      const row = asObject(item);
-      const id = asText(typeof item === "string" ? stringListIds[index] : row.entry_id);
-      return { ...(id ? { entry_id: id } : {}), name: asText(typeof item === "string" ? item : row.name) };
-    })
-    .filter((row) => row.name || (preserveLinkedEntries && Boolean(row.entry_id)));
+function hasLinkedSlot(source: Record<string, unknown>, collection: string, index: number): boolean {
+  const linkage = asObject(source.__ocv);
+  const entries = asObject(linkage.entries);
+  return Array.isArray(entries[collection]) && typeof entries[collection][index] === "string" && entries[collection][index].trim().length > 0;
 }
 
 function clampLevel(value: unknown, fallback = 3): number {
@@ -187,9 +173,9 @@ export function defaultResumeDocument(fullName = ""): ResumeDocument {
     ],
     qr_codes: [],
     skills: [{ name: "", level: 3 }],
-    tech_stack: [{ name: "" }],
+    tech_stack: [""],
     languages: [{ name: "", level_text: "", level: 3 }],
-    interests: [{ name: "" }],
+    interests: [""],
     experience: [{ period: "", company: "", role: "", highlights: [""] }],
     education: [{ period: "", school: "", degree: "", detail: "" }],
     courses: [{ year: 0, name: "" }],
@@ -343,6 +329,7 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
   }
 
   return {
+    ...(source.__ocv && typeof source.__ocv === "object" && !Array.isArray(source.__ocv) ? { __ocv: source.__ocv as { entries?: Record<string, string[]> } } : {}),
     brand_initials: asText(source.brand_initials) || initialsFromNameParts(firstName, familyName),
     first_name: firstName,
     family_name: familyName,
@@ -357,7 +344,7 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
           link: asText(row.link) || undefined,
         };
       })
-      .filter((row) => row.label && row.value),
+      .filter((row, index) => (row.label && row.value) || (preserveLinkedEntries && hasLinkedSlot(source, "contact", index))),
     qr_codes: asArray(source.qr_codes)
       .map((item) => {
         const row = asObject(item);
@@ -371,7 +358,7 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
           size: clampQrSize(asInt(row.size, QR_CODE_LIMITS.defaultSize)),
         };
       })
-      .filter((row) => row.label || row.value)
+      .filter((row, index) => row.label || row.value || (preserveLinkedEntries && hasLinkedSlot(source, "qr_codes", index)))
       .slice(0, QR_CODE_LIMITS.maxCount),
     skills: asArray(source.skills)
       .map((item) => {
@@ -385,8 +372,8 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
           level: clampLevel(row.level, 3),
         };
       })
-      .filter((row) => row.name || (preserveLinkedEntries && Boolean(row.entry_id))),
-    tech_stack: normalizeNamedEntries(source, "tech_stack", preserveLinkedEntries),
+      .filter((row, index) => row.name || (preserveLinkedEntries && (Boolean(row.entry_id) || hasLinkedSlot(source, "skills", index)))),
+    tech_stack: asArray(source.tech_stack).map(asText).filter((value, index) => value || (preserveLinkedEntries && hasLinkedSlot(source, "tech_stack", index))),
     languages: asArray(source.languages)
       .map((item) => {
         if (typeof item === "string") {
@@ -400,8 +387,8 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
           level: clampLevel(row.level, 3),
         };
       })
-      .filter((row) => row.name || (preserveLinkedEntries && Boolean(row.entry_id))),
-    interests: normalizeNamedEntries(source, "interests", preserveLinkedEntries),
+      .filter((row, index) => row.name || (preserveLinkedEntries && (Boolean(row.entry_id) || hasLinkedSlot(source, "languages", index)))),
+    interests: asArray(source.interests).map(asText).filter((value, index) => value || (preserveLinkedEntries && hasLinkedSlot(source, "interests", index))),
     experience: asArray(source.experience)
       .map((item) => {
         if (typeof item === "string") {

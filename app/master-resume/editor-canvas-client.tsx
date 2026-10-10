@@ -63,7 +63,6 @@ import type {
   ResumeExperience,
   ResumeLanguage,
   ResumeQrCode,
-  ResumeNamedEntry,
   ResumeSkill,
   ResumeSummaryItem,
 } from "../lib/resume-schema";
@@ -533,9 +532,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   function addArrayItem(field: "summary", item: ResumeSummaryItem): void;
   function addArrayItem(field: "qr_codes", item: ResumeQrCode): void;
   function addArrayItem(field: "skills", item: ResumeSkill): void;
-  function addArrayItem(field: "tech_stack", item: ResumeNamedEntry): void;
+  function addArrayItem(field: "tech_stack", item: string): void;
   function addArrayItem(field: "languages", item: ResumeLanguage): void;
-  function addArrayItem(field: "interests", item: ResumeNamedEntry): void;
+  function addArrayItem(field: "interests", item: string): void;
   function addArrayItem(field: "experience", item: ResumeExperience): void;
   function addArrayItem(field: "education", item: ResumeEducation): void;
   function addArrayItem(field: "courses", item: ResumeCourse): void;
@@ -612,7 +611,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
 
   function updateStringList(field: "tech_stack" | "interests", index: number, value: string) {
     const next = [...resume[field]];
-    next[index] = { ...next[index], name: value };
+    next[index] = value;
     updateResumeFromHuman({ ...resume, [field]: next });
   }
 
@@ -976,13 +975,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 <section className="resume-human-editor__section">
                   {resume.tech_stack.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`tech-${index}`}>
-                      <input aria-label={editorText("Technology")} placeholder={editorText("Technology")} value={item.name} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
+                      <input aria-label={editorText("Technology")} placeholder={editorText("Technology")} value={item} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
                       <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("tech_stack", index)} onClick={() => removeArrayItem("tech_stack", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("tech_stack", { name: "" })}>
+                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("tech_stack", "")}>
                     {editorText("+ Add technology")}
                   </button>
                 </section>
@@ -1010,13 +1009,13 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                 <section className="resume-human-editor__section">
                   {resume.interests.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`interest-${index}`}>
-                      <input aria-label={editorText("Interest")} placeholder={editorText("Interest")} value={item.name} onChange={(event) => updateStringList("interests", index, event.target.value)} />
+                      <input aria-label={editorText("Interest")} placeholder={editorText("Interest")} value={item} onChange={(event) => updateStringList("interests", index, event.target.value)} />
                       <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("interests", index)} onClick={() => removeArrayItem("interests", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("interests", { name: "" })}>
+                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("interests", "")}>
                     {editorText("+ Add interest")}
                   </button>
                 </section>

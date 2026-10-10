@@ -46,9 +46,9 @@ function isSectionComplete(id: string, resume: ResumeDocument): boolean {
     case "courses":
       return resume.courses.some((item) => hasText(item.name));
     case "interests":
-      return resume.interests.some((item) => hasText(item.name));
+      return resume.interests.some(hasText);
     case "tech-stack":
-      return resume.tech_stack.some((item) => hasText(item.name));
+      return resume.tech_stack.some(hasText);
     case "qr-codes":
       // A QR that fails to generate (garbled/unsupported text) is not
       // progress — the printed CV would carry a code that never renders.

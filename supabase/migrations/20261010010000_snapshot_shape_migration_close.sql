@@ -1,3 +1,6 @@
+-- SUPERSEDED (ADR 0024): see the note in 20261010000000_snapshot_shape_migration_open.sql.
+-- Applying this restores the 20260717 trigger and removes the helper function.
+--
 -- ocv-0211: closes the door opened by 20261010000000_snapshot_shape_migration_open.sql.
 -- Apply only after the snapshot rewrite has finished on this environment.
 -- Restores prevent_published_cv_mutation() to its 20260717000000 definition:

@@ -215,35 +215,3 @@ default-language document.
   legacy-stored translation that carries its own IDs must pair with the default
   by ID too, instead of being reconciled into blank slots.
   Regression: `tests/import-default-language-switch.test.mjs`.
-
-## Addendum 2026-10-10 (ocv-0211): text lists are entry objects, `__ocv` is gone
-
-`tech_stack` and `interests` were the only linked collections whose IDs lived
-outside their rows, in `__ocv.entries.<collection>[i]`, paired by index. Removing
-an entry did not remove its ID, so every later ID shifted onto the wrong text.
-
-- Both lists are now `{ entry_id, name }` rows like every other collection. The
-  editor still shows plain fields; the IDs are visible only in the YAML view.
-- `__ocv` is no longer written. Readers still accept the old shape (plain
-  strings plus `__ocv.entries`) because stored documents, revisions, snapshots and
-  old export bundles contain it; `ensureResumeEntryIds` upgrades it on every
-  parse and the editor rewrites an old document when it opens it.
-- A document is legacy (§7) when no collection has any `entry_id`. The former
-  "no `__ocv` key" clause is gone with the key. An account with no rows has
-  nothing to pair, so the distinction is moot.
-- **The public contract is unchanged.** Public exports (OpenCV API v1, CVasCode,
-  ATS YAML) flatten both lists back to plain strings; `stripPrivateLinkage` keeps
-  removing `entry_id` and `__ocv`.
-- **Migration exception to §7.** The runtime never guesses a pairing. The one-off
-  migration (`app/lib/resume-entry-id-migration.ts`, `scripts/migrate/text-list-entries.mjs`)
-  must finish without asking the user, so it pairs a legacy translation with the
-  default by position, also where the content did not prove it. It never deletes
-  or overwrites content: rows without a counterpart keep their text under their
-  own UUID, list order and length are preserved (stored selection indexes stay
-  valid), and every pairing that was a guess is written to the migration report.
-  An account whose default reuses an ID is skipped, not renumbered (§6).
-- **Snapshots.** The migration may rewrite `resume_published_cv_locales.yaml_content`
-  once, only if the snapshot's public export stays byte-identical (see the
-  Published CV Snapshot section in `CLAUDE.md`). Tests:
-  `tests/resume-text-list-entries.test.mjs`, `tests/published-text-list-shape.test.mjs`,
-  `tests/resume-entry-id-migration.test.mjs`.

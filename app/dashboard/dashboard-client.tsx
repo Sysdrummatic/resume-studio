@@ -116,7 +116,7 @@ function formatOptionItem(
       return itemText(row.name, `${labels[key]} ${number}`);
     case "interests":
     case "tech_stack":
-      return itemText(typeof item === "string" ? item : row.name, `${labels[key]} ${number}`);
+      return itemText(item, `${labels[key]} ${number}`);
     default:
       return formatAppMessage(labels.item, { number });
   }

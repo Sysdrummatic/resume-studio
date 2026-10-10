@@ -161,7 +161,7 @@ function describeImportItem(
       };
     }
     case "interests":
-      return { title: (item as { name: string }).name, meta: "" };
+      return { title: String(item), meta: "" };
   }
 }
 

@@ -36,11 +36,13 @@ const polish = {
 
 /** A default the app has already linked with random UUIDs. */
 async function withUuids(document) {
-  const { ensureResumeEntryIds } = await load();
+  const { ensureResumeEntryIds, RESUME_LINKAGE_KEY } = await load();
   const linked = ensureResumeEntryIds(document);
   for (const [key, value] of Object.entries(linked)) {
     if (Array.isArray(value) && value.every((row) => row && typeof row === "object")) linked[key] = value.map((row) => ({ ...row, entry_id: randomUUID() }));
   }
+  const entries = linked[RESUME_LINKAGE_KEY].entries;
+  for (const key of Object.keys(entries)) entries[key] = entries[key].map(() => randomUUID());
   return linked;
 }
 
@@ -76,8 +78,8 @@ function assertTranslationKept(document, label) {
   assert.equal(document.summary[0].description, "Buduje narzędzia", `${label}: summary description`);
   assert.equal(document.experience[0].role, "Inżynier", `${label}: experience role`);
   assert.deepEqual(document.experience[0].highlights, ["Zbudował edytor"], `${label}: highlights`);
-  assert.deepEqual(document.tech_stack.map((row) => row.name), ["TypeScript", "React"], `${label}: tech_stack`);
-  assert.deepEqual(document.interests.map((row) => row.name), ["Muzyka"], `${label}: interests`);
+  assert.deepEqual(document.tech_stack, ["TypeScript", "React"], `${label}: tech_stack`);
+  assert.deepEqual(document.interests, ["Muzyka"], `${label}: interests`);
 }
 
 test("first linking leaves an unconfirmed legacy translation unchanged and asks for confirmation", async (t) => {

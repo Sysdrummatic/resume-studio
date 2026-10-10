@@ -1,3 +1,8 @@
+-- SUPERSEDED (ADR 0024): the inline-ID approach was dropped before any snapshot
+-- was rewritten. This migration was applied to the `test` project only and is
+-- undone by 20261010010000_snapshot_shape_migration_close.sql; the pair nets to
+-- zero and is kept so the `test` ledger stays explainable. Do not apply to prod.
+--
 -- ADR 0023 addendum / ocv-0211: one-off, content-preserving rewrite of
 -- resume_published_cv_locales.yaml_content (tech_stack/interests string lists ->
 -- { entry_id, name } rows, __ocv removed).

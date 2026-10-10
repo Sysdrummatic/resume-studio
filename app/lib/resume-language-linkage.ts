@@ -32,6 +32,10 @@ export type ResumeLinkageValidation = {
 
 type RawObject = Record<string, unknown>;
 
+type LinkageMetadata = {
+  entries?: Partial<Record<LinkedResumeCollection, string[]>>;
+};
+
 function asObject(value: unknown): RawObject {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as RawObject) : {};
 }
@@ -50,22 +54,17 @@ function validEntryId(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-// Text lists used to be plain strings with their IDs in `__ocv.entries`. That
-// shape is still read (stored documents, snapshots, old bundles), never written.
-function legacyTextListIds(source: RawObject, collection: LinkedResumeCollection): unknown[] {
-  const ids = asObject(asObject(source[RESUME_LINKAGE_KEY]).entries)[collection];
-  return Array.isArray(ids) ? ids : [];
-}
-
-function textOf(item: unknown): string {
-  return typeof item === "string" ? item : String(asObject(item).name ?? "");
-}
-
 function idsForCollection(source: RawObject, collection: LinkedResumeCollection): Array<string | null> {
+  if (collection === "tech_stack" || collection === "interests") {
+    const items = Array.isArray(source[collection]) ? source[collection] : [];
+    const linkage = asObject(source[RESUME_LINKAGE_KEY]);
+    const entries = asObject(linkage.entries);
+    const ids = Array.isArray(entries[collection]) ? entries[collection] : [];
+    return items.map((_, index) => validEntryId(ids[index]) ? ids[index] : null);
+  }
   const items = Array.isArray(source[collection]) ? source[collection] : [];
-  const stringListIds = legacyTextListIds(source, collection);
-  return items.map((item, index) => {
-    const id = typeof item === "string" ? stringListIds[index] : asObject(item).entry_id;
+  return items.map((item) => {
+    const id = asObject(item).entry_id;
     return validEntryId(id) ? id : null;
   });
 }
@@ -83,7 +82,7 @@ function duplicateIds(ids: Array<string | null>): Set<string> {
 
 function linkageFingerprint(source: RawObject, collection: LinkedResumeCollection, index: number): string {
   const item = Array.isArray(source[collection]) ? source[collection][index] : undefined;
-  if (typeof item === "string") return item.trim();
+  if (collection === "tech_stack" || collection === "interests") return String(item ?? "").trim();
   const row = asObject(item);
   const fields: Record<LinkedResumeCollection, string[]> = {
     summary: ["position", "description"],
@@ -94,8 +93,8 @@ function linkageFingerprint(source: RawObject, collection: LinkedResumeCollectio
     experience: ["company", "period", "role"],
     education: ["school", "period", "degree"],
     courses: ["year", "name"],
-    tech_stack: ["name"],
-    interests: ["name"],
+    tech_stack: [],
+    interests: [],
   };
   return fields[collection].map((field) => String(row[field] ?? "").trim()).join("\u001f");
 }
@@ -278,31 +277,8 @@ export function inspectResumeEntryIdStability(previousValue: unknown, currentVal
  * linked document is never guessed from its position.
  */
 export function isLegacyResumeDocument(source: RawObject): boolean {
+  if (RESUME_LINKAGE_KEY in source) return false;
   return LINKED_RESUME_COLLECTIONS.every((collection) => idsForCollection(source, collection).every((id) => !id));
-}
-
-/** True while a document still has the old text-list shape: plain strings or an `__ocv` block. */
-export function hasLegacyTextListShape(value: unknown): boolean {
-  const source = asObject(value);
-  return RESUME_LINKAGE_KEY in source || (["tech_stack", "interests"] as const).some((collection) => Array.isArray(source[collection]) && source[collection].some((item) => typeof item === "string"));
-}
-
-/**
- * Turns the old string lists into `{ entry_id, name }` rows and drops `__ocv`.
- * A string keeps the ID `__ocv.entries` gave it; a string without one gets
- * `fallbackId`, or no ID at all when that is null.
- */
-export function upgradeTextListsToEntries(source: RawObject, fallbackId: (collection: LinkedResumeCollection, index: number) => string | null): void {
-  for (const collection of ["tech_stack", "interests"] as const) {
-    if (!Array.isArray(source[collection])) continue;
-    const ids = legacyTextListIds(source, collection);
-    source[collection] = source[collection].map((item, index) => {
-      if (typeof item !== "string") return item;
-      const id = validEntryId(ids[index]) ? ids[index] : fallbackId(collection, index);
-      return id ? { entry_id: id, name: item } : { name: item };
-    });
-  }
-  delete source[RESUME_LINKAGE_KEY];
 }
 
 // Deterministic, so every independent parse of the same legacy document (editor,
@@ -311,12 +287,18 @@ function legacyEntryId(collection: LinkedResumeCollection, index: number): strin
   return `legacy-${collection}-${index}`;
 }
 
-function ensureObjectEntryIds(source: RawObject, collection: LinkedResumeCollection, legacy: boolean): void {
+function ensureObjectEntryIds(source: RawObject, collection: Exclude<LinkedResumeCollection, "tech_stack" | "interests">, legacy: boolean): void {
   const items = Array.isArray(source[collection]) ? source[collection] : [];
   source[collection] = items.map((item, index) => {
     const row = asObject(item);
     return { ...row, entry_id: validEntryId(row.entry_id) ? row.entry_id : legacy ? legacyEntryId(collection, index) : newEntryId() };
   });
+}
+
+function ensureStringEntryIds(source: RawObject, collection: "tech_stack" | "interests", entries: Partial<Record<LinkedResumeCollection, string[]>>, legacy: boolean): void {
+  const items = Array.isArray(source[collection]) ? source[collection] : [];
+  const previous = Array.isArray(entries[collection]) ? entries[collection] || [] : [];
+  entries[collection] = items.map((_, index) => validEntryId(previous[index]) ? previous[index] : legacy ? legacyEntryId(collection, index) : newEntryId());
 }
 
 /** Adds stable private IDs without changing the public resume fields. */
@@ -328,18 +310,27 @@ function ensureObjectEntryIds(source: RawObject, collection: LinkedResumeCollect
 export function ensureResumeEntryIds(value: unknown, options: { positional?: boolean } = {}): RawObject {
   const source = clone(asObject(value));
   const legacy = options.positional !== false && isLegacyResumeDocument(source);
-  upgradeTextListsToEntries(source, (collection, index) => (legacy ? legacyEntryId(collection, index) : null));
+  const linkage = asObject(source[RESUME_LINKAGE_KEY]) as LinkageMetadata;
+  const entries = asObject(linkage.entries) as Partial<Record<LinkedResumeCollection, string[]>>;
 
-  for (const collection of LINKED_RESUME_COLLECTIONS) ensureObjectEntryIds(source, collection, legacy);
+  for (const collection of LINKED_RESUME_COLLECTIONS) {
+    if (collection === "tech_stack" || collection === "interests") {
+      ensureStringEntryIds(source, collection, entries, legacy);
+    } else {
+      ensureObjectEntryIds(source, collection, legacy);
+    }
+  }
+
+  source[RESUME_LINKAGE_KEY] = { ...linkage, entries };
   return source;
 }
 
 /** Drops every linkage ID, e.g. the editor's position-derived "legacy-..." IDs, which prove nothing. */
 export function withoutResumeEntryIds(value: unknown): RawObject {
   const source = clone(asObject(value));
-  upgradeTextListsToEntries(source, () => null);
+  delete source[RESUME_LINKAGE_KEY];
   for (const collection of LINKED_RESUME_COLLECTIONS) {
-    if (!Array.isArray(source[collection])) continue;
+    if (collection === "tech_stack" || collection === "interests" || !Array.isArray(source[collection])) continue;
     source[collection] = (source[collection] as unknown[]).map((item) => {
       const row = { ...asObject(item) };
       delete row.entry_id;
@@ -349,7 +340,7 @@ export function withoutResumeEntryIds(value: unknown): RawObject {
   return source;
 }
 
-function emptyTranslationRow(collection: LinkedResumeCollection, source: RawObject): RawObject {
+function emptyTranslationRow(collection: Exclude<LinkedResumeCollection, "tech_stack" | "interests">, source: RawObject): RawObject {
   const row = { ...source };
   switch (collection) {
     case "summary":
@@ -361,8 +352,6 @@ function emptyTranslationRow(collection: LinkedResumeCollection, source: RawObje
     case "courses":
       return { ...row, name: "" };
     case "skills":
-    case "tech_stack":
-    case "interests":
       return { ...row, name: "" };
     case "languages":
       return { ...row, name: "", level_text: "" };
@@ -419,7 +408,7 @@ function pairingKey(collection: LinkedResumeCollection, item: unknown): string |
     return name && year ? `${name}\u001f${year}` : null;
   }
   if (collection === "contact" || collection === "qr_codes") return normalizedText(row.value);
-  if (collection === "tech_stack" || collection === "interests") return normalizedText(textOf(item));
+  if (collection === "tech_stack" || collection === "interests") return normalizedText(item);
   return null;
 }
 
@@ -483,12 +472,19 @@ export function linkLegacyResumeLanguageDocument(canonicalValue: unknown, locale
   const canonical = ensureResumeEntryIds(canonicalValue);
   const conflicts = findLegacyPairingConflicts(canonical, source, options);
   if (conflicts.length) throw new ResumeLegacyPairingError(conflicts);
-  upgradeTextListsToEntries(source, () => null);
+  const canonicalEntries = asObject(asObject(canonical[RESUME_LINKAGE_KEY]).entries);
+  const entries: Partial<Record<LinkedResumeCollection, string[]>> = {};
   for (const collection of LINKED_RESUME_COLLECTIONS) {
     const items = Array.isArray(source[collection]) ? source[collection] : [];
+    if (collection === "tech_stack" || collection === "interests") {
+      const expected = Array.isArray(canonicalEntries[collection]) ? canonicalEntries[collection] : [];
+      entries[collection] = items.map((_, index) => expected[index] as string);
+      continue;
+    }
     const expected = Array.isArray(canonical[collection]) ? canonical[collection] : [];
     source[collection] = items.map((item, index) => ({ ...asObject(item), entry_id: entryId(expected[index]) }));
   }
+  source[RESUME_LINKAGE_KEY] = { entries };
   return source;
 }
 
@@ -507,6 +503,10 @@ export function buildResumeLanguageTemplate(value: unknown): RawObject {
   const template = clone(source);
 
   for (const collection of LINKED_RESUME_COLLECTIONS) {
+    if (collection === "tech_stack" || collection === "interests") {
+      template[collection] = Array.isArray(source[collection]) ? source[collection].map(() => "") : [];
+      continue;
+    }
     const sourceItems = Array.isArray(source[collection]) ? source[collection] : [];
     template[collection] = sourceItems.map((item) => emptyTranslationRow(collection, asObject(item)));
   }
@@ -531,6 +531,23 @@ export function reconcileResumeLanguageDocument(defaultValue: unknown, localeVal
   const result = clone(localeSource);
 
   for (const collection of LINKED_RESUME_COLLECTIONS) {
+    if (collection === "tech_stack" || collection === "interests") {
+      const defaultItems = Array.isArray(defaultSource[collection]) ? defaultSource[collection] : [];
+      const localeItems = Array.isArray(localeSource[collection]) ? localeSource[collection] : [];
+      const localeEntries = asObject(asObject(localeSource[RESUME_LINKAGE_KEY]).entries);
+      const defaultEntries = asObject(asObject(defaultSource[RESUME_LINKAGE_KEY]).entries);
+      const defaultIds = Array.isArray(defaultEntries[collection]) ? defaultEntries[collection] : [];
+      const localeIds = Array.isArray(localeEntries[collection]) ? localeEntries[collection] : [];
+      const localeById = new Map(localeIds.map((id, index) => [id, localeItems[index]]));
+      const nextIds = defaultIds.map((id) => id);
+      result[collection] = defaultIds.map((id) => localeById.get(id) ?? "");
+      const nextLinkage = asObject(result[RESUME_LINKAGE_KEY]);
+      const nextEntries = asObject(nextLinkage.entries);
+      result[RESUME_LINKAGE_KEY] = { ...nextLinkage, entries: { ...nextEntries, [collection]: nextIds } };
+      void defaultItems;
+      continue;
+    }
+
     const defaultItems = Array.isArray(defaultSource[collection]) ? defaultSource[collection].map(asObject) : [];
     const localeItems = Array.isArray(localeSource[collection]) ? localeSource[collection].map(asObject) : [];
     const localeById = new Map(localeItems.map((item) => [entryId(item), item]));

@@ -29,8 +29,8 @@ async function linkedDocuments() {
   const polish = buildResumeLanguageTemplate(english);
   polish.summary[0].position = "Inżynier";
   polish.experience[0].role = "Inżynier";
-  polish.tech_stack[0].name = "TypeScript";
-  polish.interests[0].name = "Muzyka";
+  polish.tech_stack = ["TypeScript"];
+  polish.interests = ["Muzyka"];
   const withRole = (role) => yaml.dump({ ...polish, experience: [{ ...polish.experience[0], role }] });
   return { english, polish, withRole };
 }

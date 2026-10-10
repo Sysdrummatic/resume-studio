@@ -113,18 +113,3 @@ mniejsze ryzyko przy becie dla garstki zaproszonych testerów:
 
 Pominięty w Phase G (G-P0-01) i odroczony do [Phase O](docs/phases/phase-o-opencv-standard.md)
 (O02), żeby reguły zaprojektować raz w ramach standardu OpenCV, a nie doraźnie w aplikacji.
-
-## Odczyt starego kształtu `tech_stack`/`interests` i `__ocv` zostaje na stałe
-
-**Status (2026-10-10):** otwarte, celowe (ocv-0211).
-
-Po zamianie `tech_stack`/`interests` na `{ entry_id, name }` i przestaniu zapisu `__ocv`
-czytniki nadal akceptują listy stringów i `__ocv.entries` (`normalizeResumeDocument`,
-`idsForCollection`, `stripPrivateLinkage`), bo takie dane mogą wrócić z eksportów
-użytkowników, starych paczek importu i środowisk, na których migracja jeszcze się nie
-odbyła. Usunąć dopiero po migracji na `test` i `prod` oraz po okresie, w którym nie
-przychodzą już paczki w starym kształcie.
-
-Migracja paruje tłumaczenia po pozycji także tam, gdzie treść tego nie dowodzi (ADR 0023,
-aneks). Każde takie zgadywanie trafia do raportu (`ocv-0211-report.json`, pole `guessed`);
-raport z `prod` należy przejrzeć po uruchomieniu i dopisać tutaj konta do ręcznej weryfikacji.

@@ -559,7 +559,7 @@ export default function ResumeRenderer({
                 </div>
                 <ul className="pill-list">
                   {resume.tech_stack.map((item, index) => (
-                    <li key={`${item.name}-${index}`}>{item.name}</li>
+                    <li key={`${item}-${index}`}>{item}</li>
                   ))}
                 </ul>
               </section>
@@ -593,7 +593,7 @@ export default function ResumeRenderer({
                 </div>
                 <ul className="pill-list">
                   {resume.interests.map((item, index) => (
-                    <li key={`${item.name}-${index}`}>{item.name}</li>
+                    <li key={`${item}-${index}`}>{item}</li>
                   ))}
                 </ul>
               </section>

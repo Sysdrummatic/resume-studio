@@ -41,6 +41,13 @@ function mergeSummary(current: ResumeSummaryItem[], imported: ResumeSummaryItem[
   return [...kept, ...additions];
 }
 
+function mergeStringList(current: string[], imported: string[]): string[] {
+  const kept = dropBlank(current, isBlank);
+  const existing = new Set(kept.map((item) => item.trim().toLowerCase()));
+  const additions = imported.filter((item) => !isBlank(item) && !existing.has(item.trim().toLowerCase()));
+  return [...kept, ...additions];
+}
+
 function mergeExperience(current: ResumeExperience[], imported: ResumeExperience[]): ResumeExperience[] {
   const kept = dropBlank(current, (item) => isBlank(item.period) && isBlank(item.company) && isBlank(item.role) && item.highlights.every(isBlank));
   return [...kept, ...imported];
@@ -86,8 +93,8 @@ export function mergeImportedResume(current: ResumeDocument, imported: ImportedR
   if (imported.skills) next.skills = mergeByName(current.skills, imported.skills);
   if (imported.languages) next.languages = mergeByName(current.languages, imported.languages);
   if (imported.courses) next.courses = mergeCourses(current.courses, imported.courses);
-  if (imported.interests) next.interests = mergeByName(current.interests, imported.interests);
-  if (imported.tech_stack) next.tech_stack = mergeByName(current.tech_stack, imported.tech_stack);
+  if (imported.interests) next.interests = mergeStringList(current.interests, imported.interests);
+  if (imported.tech_stack) next.tech_stack = mergeStringList(current.tech_stack, imported.tech_stack);
 
   return next;
 }

@@ -22,7 +22,7 @@ Chess
   assert.equal(result.resume.experience[0].company, "Acme");
   assert.equal(result.resume.summary[0].description, "Builds software.");
   assert.deepEqual(result.resume.skills.map((item) => item.name), ["Go"]);
-  assert.deepEqual(result.resume.interests, [{ name: "Chess" }]);
+  assert.deepEqual(result.resume.interests, ["Chess"]);
 });
 
 test("round-trips our own ATS .txt export losslessly (high-confidence path)", () => {

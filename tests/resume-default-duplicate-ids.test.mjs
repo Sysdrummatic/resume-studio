@@ -94,8 +94,7 @@ test("a legacy default without IDs still gets its position-derived IDs on first 
 
   const stored = yaml.load(fake.rows("resume_documents").find((row) => row.locale === "en").yaml_content);
   assert.deepEqual(stored.experience.map((row) => row.entry_id), ["legacy-experience-0", "legacy-experience-1"]);
-  assert.deepEqual(stored.tech_stack.map((row) => row.entry_id), ["legacy-tech_stack-0", "legacy-tech_stack-1"]);
-  assert.equal("__ocv" in stored, false);
+  assert.deepEqual(stored.__ocv.entries.tech_stack, ["legacy-tech_stack-0", "legacy-tech_stack-1"]);
   assert.deepEqual(polishRows(fake), [["Alpha", "Rola A", "Praca w Alpha"], ["Beta", "Rola B", "Praca w Beta"]], "the PL entries are paired, not copied");
 });
 
