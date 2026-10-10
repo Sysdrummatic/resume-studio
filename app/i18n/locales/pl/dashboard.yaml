@@ -34,7 +34,10 @@ dashboard:
     template_terminal_stack: Terminal Stack
     no_items: Brak pozycji w Bazie doświadczeń.
     saving: Zapisywanie…
+    create: Utwórz LiveCV
     save: Zapisz LiveCV
+    update: Zaktualizuj LiveCV
+    update_hint: Zapisze zmiany i zaktualizuje opublikowany link do LiveCV.
     cancel: Anuluj
   preview:
     language_aria: Zmień język LiveCV
@@ -61,6 +64,9 @@ dashboard:
     language_versions: "Wersje językowe: {count}"
     save_failed: Nie udało się zapisać wersji LiveCV.
     saved: Wersja LiveCV została zapisana.
+    updated: Wersja LiveCV została zapisana, a jej link zaktualizowany.
+    update_failed: Nie udało się zaktualizować linku do LiveCV.
+    saved_not_updated: "Zmiany zapisano, ale link do LiveCV nie został zaktualizowany: {reason}"
     publish_failed: Nie udało się opublikować wersji LiveCV.
     published: Wersja LiveCV została opublikowana.
     unpublish_failed: Nie udało się wycofać publikacji wersji LiveCV.

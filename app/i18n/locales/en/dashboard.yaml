@@ -34,7 +34,10 @@ dashboard:
     template_terminal_stack: Terminal Stack
     no_items: No items in the Experience Base.
     saving: Saving…
+    create: Create LiveCV
     save: Save LiveCV
+    update: Update LiveCV
+    update_hint: Saves your changes and updates the published LiveCV link.
     cancel: Cancel
   preview:
     language_aria: Switch LiveCV language
@@ -61,6 +64,9 @@ dashboard:
     language_versions: "Language versions: {count}"
     save_failed: LiveCV version save failed.
     saved: LiveCV version saved.
+    updated: LiveCV version saved and its link updated.
+    update_failed: LiveCV link update failed.
+    saved_not_updated: "Changes were saved, but the LiveCV link was not updated: {reason}"
     publish_failed: LiveCV version publish failed.
     published: LiveCV version published.
     unpublish_failed: LiveCV version unpublish failed.

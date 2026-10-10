@@ -199,6 +199,16 @@ function mergePreset(current: ResumePresetRow[], nextPreset: ResumePresetRow) {
   return current.map((preset) => (preset.id === nextPreset.id ? nextPreset : preset));
 }
 
+type PresetSavePayload = {
+  presetId?: string;
+  title: string;
+  selection: ResumePresetSelection;
+  styleSettings: unknown;
+  allowIndexing: boolean;
+  aiGenerated: boolean;
+  republish: boolean;
+};
+
 function PresetModal({
   masterResume,
   preset,
@@ -210,7 +220,7 @@ function PresetModal({
   preset: ResumePresetRow | null;
   options: PresetOption[];
   onClose: () => void;
-  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: unknown; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
+  onSave: (payload: PresetSavePayload) => Promise<void>;
 }) {
   const { dictionary } = useAppI18n();
   const labels = dictionary.dashboard.preset_editor;
@@ -226,6 +236,8 @@ function PresetModal({
   const [styleEdited, setStyleEdited] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const isPublished = Boolean(preset?.is_public);
+  const submitLabel = isPublished ? labels.update : preset ? labels.save : labels.create;
 
   function toggleIndex(key: PresetOptionKey, index: number) {
     setSelection((current) => {
@@ -262,7 +274,7 @@ function PresetModal({
       // "Saving..." forever — the user's title/selection stay as entered so
       // they can retry without re-filling the form.
       const result = await saveOrReportError(
-        () => onSave({ presetId: preset?.id, title, selection: nextSelection, styleSettings: preset?.style_settings && !styleEdited ? preset.style_settings : styleSettings, allowIndexing, aiGenerated }),
+        () => onSave({ presetId: preset?.id, title, selection: nextSelection, styleSettings: preset?.style_settings && !styleEdited ? preset.style_settings : styleSettings, allowIndexing, aiGenerated, republish: isPublished }),
         "Could not save. Check your connection and try again.",
       );
       if (!result.ok) setError(result.error);
@@ -364,8 +376,14 @@ function PresetModal({
         {error ? <p className="status status--error">{error}</p> : null}
 
         <div className="actions-row">
-          <button type="button" className="button button--primary" onClick={() => void handleSave()} disabled={isSaving}>
-            {isSaving ? labels.saving : labels.save}
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={() => void handleSave()}
+            disabled={isSaving}
+            title={isPublished ? labels.update_hint : undefined}
+          >
+            {isSaving ? labels.saving : submitLabel}
           </button>
           <button type="button" className="button button--ghost" onClick={onClose}>
             {labels.cancel}
@@ -663,7 +681,7 @@ export default function DashboardClient({
   }
 
 
-  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: unknown; allowIndexing: boolean; aiGenerated: boolean }) {
+  async function savePreset(payload: PresetSavePayload) {
     if (!modalDocument) return;
     const response = await fetch(payload.presetId ? `/api/resume/presets/${encodeURIComponent(payload.presetId)}` : "/api/resume/presets", {
       method: payload.presetId ? "PATCH" : "POST",
@@ -676,7 +694,6 @@ export default function DashboardClient({
         allowIndexing: payload.allowIndexing,
         aiGenerated: payload.aiGenerated,
         defaultLocale: activePreset?.default_locale || defaultLanguageVersion?.code || modalDocument.locale,
-        isPublic: false,
       }),
     });
     const result = (await response.json()) as PresetApiResponse;
@@ -692,9 +709,30 @@ export default function DashboardClient({
     setSelectedPresetId(result.preset.id);
     setSearch("");
     setFilter("all");
-    showToast(labels.messages.saved);
     setIsModalOpen(false);
     setActivePreset(null);
+    if (!payload.republish) {
+      showToast(labels.messages.saved);
+      return;
+    }
+    const failure = await republishPreset(result.preset);
+    if (failure) {
+      showToast(formatAppMessage(labels.messages.saved_not_updated, { reason: failure }), "error");
+      return;
+    }
+    showToast(labels.messages.updated);
+  }
+
+  async function republishPreset(preset: ResumePresetRow): Promise<string | null> {
+    try {
+      const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/republish`, { method: "POST" });
+      const result = (await response.json()) as PresetApiResponse;
+      if (!response.ok || result.error || !result.preset) return result.error || labels.messages.update_failed;
+      setPresets((current) => mergePreset(current, result.preset!));
+      return null;
+    } catch {
+      return labels.messages.update_failed;
+    }
   }
 
   async function publishPreset(payload: {

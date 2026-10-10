@@ -1963,7 +1963,7 @@ export async function saveResumePreset(
     title,
     selection: payload.selection as unknown as Record<string, unknown>,
     style_settings: styleSettings,
-    is_public: Boolean(payload.isPublic),
+    is_public: payload.isPublic ?? existingPreset?.is_public ?? false,
     allow_indexing: Boolean(payload.allowIndexing),
     ai_generated: Boolean(payload.aiGenerated),
     default_locale: normalizeLocale(payload.defaultLocale || document.locale),
@@ -1999,6 +1999,16 @@ export async function saveResumePreset(
   return preset;
 }
 
+async function fetchActivePresetLink(userId: string, presetId: string): Promise<ResumePublicLinkRow | null> {
+  const linkResult = await queryTable<ResumePublicLinkRow>({
+    table: "resume_public_links",
+    select: RESUME_PUBLIC_LINK_SELECT,
+    useServiceRole: true,
+    query: `preset_id=eq.${encodeURIComponent(presetId)}&user_id=eq.${encodeURIComponent(userId)}&status=eq.active&is_active=eq.true&limit=1`,
+  });
+  return linkResult.data?.[0] ?? null;
+}
+
 async function fetchResumePresetById(accessToken: string, userId: string, presetId: string): Promise<ResumePresetRow | null> {
   const result = await queryTable<ResumePresetRow>({
     table: "resume_presets",
@@ -2016,13 +2026,7 @@ async function fetchResumePresetById(accessToken: string, userId: string, preset
     style_settings: result.data[0].style_settings,
   };
 
-  const linkResult = await queryTable<ResumePublicLinkRow>({
-    table: "resume_public_links",
-    select: RESUME_PUBLIC_LINK_SELECT,
-    useServiceRole: true,
-    query: `preset_id=eq.${encodeURIComponent(presetId)}&user_id=eq.${encodeURIComponent(userId)}&status=eq.active&is_active=eq.true&limit=1`,
-  });
-  const link = linkResult.data?.[0] ?? null;
+  const link = await fetchActivePresetLink(userId, presetId);
   return {
     ...preset,
     canonical_public_path:
@@ -2124,6 +2128,29 @@ export async function publishResumePreset(
   if (!rpcResult.data) throw new Error("[publish:step=rpc] publish_resume_saved_version returned no data");
 
   return fetchResumePresetById(accessToken, userId, presetId);
+}
+
+/**
+ * Replaces the content under a version's existing link with its current saved
+ * state. Languages and indexing come from what is already published, so an
+ * update can never expose a language the link did not carry before.
+ */
+export async function republishResumePreset(accessToken: string, userId: string, presetId: string): Promise<ResumePresetRow | null> {
+  const preset = await fetchResumePresetById(accessToken, userId, presetId);
+  if (!preset) throw new Error("[republish] preset not found or access denied");
+  const link = preset.is_public ? await fetchActivePresetLink(userId, presetId) : null;
+  if (!link?.available_locales?.length) throw new Error("This LiveCV version is not published, so there is no link to update.");
+
+  const selectedLocales = normalizeLocales(link.available_locales, preset.default_locale);
+  const defaultLocale = selectedLocales.includes(preset.default_locale)
+    ? preset.default_locale
+    : normalizeLocale(link.default_locale || selectedLocales[0]);
+  return publishResumePreset(accessToken, userId, presetId, {
+    allowIndexing: preset.allow_indexing,
+    aiGenerated: preset.ai_generated,
+    defaultLocale,
+    selectedLocales,
+  });
 }
 
 export async function unpublishResumePreset(accessToken: string, userId: string, presetId: string): Promise<ResumePresetRow | null> {
