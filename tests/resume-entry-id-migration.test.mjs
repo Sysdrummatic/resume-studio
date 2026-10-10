@@ -143,3 +143,39 @@ test("list order and length are preserved, so stored selection indexes stay vali
 
   assert.deepEqual(rowsOf(load(result, "en"), "tech_stack").map((row) => row.name), ["", "Git", ""]);
 });
+
+test("a document whose summary is still a plain string is skipped instead of losing it", () => {
+  const stringSummary = yaml.dump({ ...yaml.load(legacyEnglish()), summary: "A one-line summary" });
+
+  assert.deepEqual(planAccountMigration([{ locale: "en", yamlContent: stringSummary }], "en"), { status: "skipped", reason: "unsupported-shape", locale: "en" });
+  assert.equal(rewriteStoredYaml(stringSummary, new Map()), stringSummary, "a revision in that shape is left as it is");
+});
+
+test("a snapshot rewrite changes only the text lists: no IDs, no filled-in keys, same public export", async () => {
+  const { rewriteSnapshotYaml } = await import("../app/lib/resume-entry-id-migration.ts");
+  const { buildPublishedExportContent } = await import("../app/lib/published-export.ts");
+  const snapshot = yaml.dump({
+    first_name: "Jan", family_name: "Kowalski", brand_initials: "JK",
+    summary: [{ position: "Engineer", description: "Builds", default: true }],
+    tech_stack: ["TypeScript", "React"], interests: ["Music"],
+    __ocv: { entries: { tech_stack: ["t-1", "t-2"], interests: ["i-1"] } },
+  });
+  const selection = { summary: [0], tech_stack: [0, 1], interests: [0] };
+
+  const rewritten = rewriteSnapshotYaml(snapshot);
+  const parsed = yaml.load(rewritten);
+
+  assert.equal("__ocv" in parsed, false);
+  assert.equal("gdpr_clause" in parsed, false, "missing keys are not filled in");
+  assert.equal("entry_id" in parsed.summary[0], false, "other collections are untouched");
+  assert.deepEqual(parsed.tech_stack, [{ entry_id: "t-1", name: "TypeScript" }, { entry_id: "t-2", name: "React" }]);
+  assert.deepEqual(buildPublishedExportContent(rewritten, selection), buildPublishedExportContent(snapshot, selection));
+  assert.equal(rewriteSnapshotYaml(rewritten), rewritten, "idempotent");
+});
+
+test("a legacy snapshot with a string summary is left byte-for-byte alone", async () => {
+  const { rewriteSnapshotYaml } = await import("../app/lib/resume-entry-id-migration.ts");
+  const legacy = yaml.dump({ first_name: "Jan", family_name: "Kowalski", summary: "Plain summary", skills: [] });
+
+  assert.equal(rewriteSnapshotYaml(legacy), legacy);
+});

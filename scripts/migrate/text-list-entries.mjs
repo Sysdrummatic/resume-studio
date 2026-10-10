@@ -14,7 +14,7 @@ import { register } from "node:module";
 
 register("../../tests/helpers/ts-extension-resolve.mjs", import.meta.url);
 
-const { planAccountMigration, rewriteStoredYaml } = await import("../../app/lib/resume-entry-id-migration.ts");
+const { planAccountMigration, rewriteSnapshotYaml, rewriteStoredYaml } = await import("../../app/lib/resume-entry-id-migration.ts");
 const { buildPublishedExportContent } = await import("../../app/lib/published-export.ts");
 
 const args = new Map(process.argv.slice(2).map((arg) => {
@@ -120,8 +120,7 @@ for (const run of onboardingRuns) {
 if (includeSnapshots) {
   const snapshots = await fetchAll("resume_published_cv_locales", "id,user_id,locale,yaml_content,selection");
   for (const snapshot of snapshots) {
-    const idMap = idMapsByUser.get(snapshot.user_id)?.[snapshot.locale] ?? new Map();
-    const next = rewriteStoredYaml(snapshot.yaml_content, idMap);
+    const next = rewriteSnapshotYaml(snapshot.yaml_content);
     if (next === snapshot.yaml_content) continue;
     // The public output of a snapshot must stay byte-identical; otherwise it is left alone.
     const identical = [false, true].every((translation) => {

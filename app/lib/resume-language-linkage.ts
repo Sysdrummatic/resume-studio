@@ -292,7 +292,7 @@ export function hasLegacyTextListShape(value: unknown): boolean {
  * A string keeps the ID `__ocv.entries` gave it; a string without one gets
  * `fallbackId`, or no ID at all when that is null.
  */
-function upgradeTextListsToEntries(source: RawObject, fallbackId: (collection: LinkedResumeCollection, index: number) => string | null): void {
+export function upgradeTextListsToEntries(source: RawObject, fallbackId: (collection: LinkedResumeCollection, index: number) => string | null): void {
   for (const collection of ["tech_stack", "interests"] as const) {
     if (!Array.isArray(source[collection])) continue;
     const ids = legacyTextListIds(source, collection);

@@ -5,6 +5,7 @@ import {
   findDuplicateResumeEntryIds,
   findLegacyPairingConflicts,
   LINKED_RESUME_COLLECTIONS,
+  upgradeTextListsToEntries,
   type LegacyPairingConflict,
   type LinkedResumeCollection,
 } from "./resume-language-linkage";
@@ -31,7 +32,7 @@ export type PairingGuess = { locale: string; collection: LinkedResumeCollection;
 export type MigratedDocument = { locale: string; yamlContent: string; changed: boolean };
 
 export type AccountMigration =
-  | { status: "skipped"; reason: "no-default" | "unparseable" | "duplicate-ids"; locale?: string }
+  | { status: "skipped"; reason: "no-default" | "unparseable" | "duplicate-ids" | "unsupported-shape"; locale?: string }
   | {
       status: "migrated" | "unchanged";
       documents: MigratedDocument[];
@@ -112,6 +113,11 @@ function pairingGuesses(locale: string, defaultDocument: RawObject, document: Ra
   return findLegacyPairingConflicts(defaultDocument, document).map((conflict) => ({ locale, collection: conflict.collection, reason: conflict.reason }));
 }
 
+/** A linked collection that is present but not a list (e.g. a legacy `summary` string): ensuring IDs would replace it with `[]`. */
+function hasNonListCollection(document: RawObject): boolean {
+  return LINKED_RESUME_COLLECTIONS.some((collection) => document[collection] != null && !Array.isArray(document[collection]));
+}
+
 function hasLegacyIds(document: RawObject): boolean {
   return LINKED_RESUME_COLLECTIONS.some((collection) => rowsOf(document, collection).some((row) => isLegacyId(row.entry_id)));
 }
@@ -125,6 +131,7 @@ export function planAccountMigration(documents: MigrationDocument[], defaultLoca
   for (const document of documents) {
     const raw = parseDocument(document.yamlContent);
     if (!raw) return { status: "skipped", reason: "unparseable", locale: document.locale };
+    if (hasNonListCollection(raw)) return { status: "skipped", reason: "unsupported-shape", locale: document.locale };
     parsed.set(document.locale, ensureResumeEntryIds(raw));
   }
   const defaultDocument = parsed.get(defaultLocale);
@@ -159,7 +166,7 @@ export function planAccountMigration(documents: MigrationDocument[], defaultLoca
  */
 export function rewriteStoredYaml(yamlContent: string, idMap: Map<string, string>): string {
   const raw = parseDocument(yamlContent);
-  if (!raw) return yamlContent;
+  if (!raw || hasNonListCollection(raw)) return yamlContent;
   const document = ensureResumeEntryIds(raw);
   for (const collection of LINKED_RESUME_COLLECTIONS) {
     setRowIds(document, collection, rowsOf(document, collection).map((row) => {
@@ -170,4 +177,18 @@ export function rewriteStoredYaml(yamlContent: string, idMap: Map<string, string
     }));
   }
   return dumpDocument(document);
+}
+
+/**
+ * Minimal rewrite of an immutable published snapshot: only the text lists change
+ * shape and `__ocv` goes. Nothing else is touched (no IDs, no filled-in keys), so
+ * the snapshot's public export stays byte-identical.
+ */
+export function rewriteSnapshotYaml(yamlContent: string): string {
+  const raw = parseDocument(yamlContent);
+  if (!raw) return yamlContent;
+  const hasStringList = (["tech_stack", "interests"] as const).some((collection) => Array.isArray(raw[collection]) && raw[collection].some((item) => typeof item === "string"));
+  if (!hasStringList && !("__ocv" in raw)) return yamlContent;
+  upgradeTextListsToEntries(raw, () => null);
+  return yaml.dump(raw, { lineWidth: 120, noRefs: true, sortKeys: false, quotingType: '"' });
 }
