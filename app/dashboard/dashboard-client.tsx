@@ -25,6 +25,7 @@ import {
   summarizeMasterResume,
   filterDashboardPresets,
   getSelectedDashboardPreset,
+  mergePreset,
   type DashboardFilter,
 } from "./dashboard-model";
 import "./dashboard.css";
@@ -191,12 +192,6 @@ function buildLanguageOptions(
       };
     })
     .sort((left, right) => left.code.localeCompare(right.code));
-}
-
-function mergePreset(current: ResumePresetRow[], nextPreset: ResumePresetRow) {
-  const exists = current.some((preset) => preset.id === nextPreset.id);
-  if (!exists) return [nextPreset, ...current];
-  return current.map((preset) => (preset.id === nextPreset.id ? nextPreset : preset));
 }
 
 type PresetSavePayload = {

@@ -126,3 +126,26 @@ test("terminology guide names Update LiveCV and keeps Save from touching the lin
   const guide = read("docs/guides/brand-language-and-terminology.md");
   assert.match(guide, /`Zaktualizuj LiveCV` \/ `Update LiveCV`/);
 });
+
+test("a saved version keeps its public link path in the library when the save response omits it", async () => {
+  const { mergePreset } = await import("../app/dashboard/dashboard-model.ts");
+  const current = [
+    { id: "a", title: "Old", is_public: true, canonical_public_path: "/jan/abc" },
+    { id: "b", title: "Other", is_public: false },
+  ];
+  // PATCH /presets/[id] returns the row without the link-derived path.
+  const merged = mergePreset(current, { id: "a", title: "New", is_public: true });
+  assert.equal(merged[0].title, "New");
+  assert.equal(merged[0].canonical_public_path, "/jan/abc", "Copy/Open link must survive an edit that fails to republish");
+  assert.equal(mergePreset(current, { id: "a", is_public: false, canonical_public_path: null })[0].canonical_public_path, null, "an explicit null from unpublish still clears it");
+  assert.equal(mergePreset(current, { id: "c", title: "Fresh" })[0].id, "c", "unknown versions are prepended");
+});
+
+test("repair migration only aligns is_public with an active link and never un-publishes", () => {
+  const sql = read("supabase/migrations/20261010000000_repair_preset_is_public_with_active_link.sql").toLowerCase();
+  assert.match(sql, /update public\.resume_presets p\s+set is_public = true/);
+  assert.match(sql, /where p\.is_public = false/);
+  assert.match(sql, /l\.status = 'active'\s+and l\.is_active = true/);
+  assert.doesNotMatch(sql, /is_public = false\s*(,|where p\.id)/, "must not set is_public to false");
+  assert.doesNotMatch(sql, /\b(delete|drop|alter policy|create policy)\b/);
+});
