@@ -114,6 +114,29 @@ mniejsze ryzyko przy becie dla garstki zaproszonych testerów:
 Pominięty w Phase G (G-P0-01) i odroczony do [Phase O](docs/phases/phase-o-opencv-standard.md)
 (O02), żeby reguły zaprojektować raz w ramach standardu OpenCV, a nie doraźnie w aplikacji.
 
+## Wersje językowe bez ID: dane, testy i odczyt starego kształtu
+
+**Status (2026-10-11):** otwarte (ocv-0211, ADR 0024).
+
+- **Istniejące dokumenty** zostały zmigrowane na `test` (2026-10-11, skrypt
+  `scripts/migrate/parallel-language-versions.mjs`: usunięcie `entry_id`/`__ocv`, konwersja starego
+  tekstowego `summary`, dopełnienie krótszych wersji pustymi slotami). **`prod` czeka**: backup
+  `resume_documents`, dry-run, przegląd raportu, dopiero `--apply`. Do tego czasu czytnik akceptuje stary
+  kształt, a każdy zapis go czyści; edytor blokuje zapis konta, którego wersje nie są równoległe, dopóki
+  użytkownik nie użyje „Dopasuj”. Różnice, których skrypt nie naprawia (inne okresy lub szkoły w tłumaczeniu),
+  są tylko w raporcie dry-runu. Schemat `ocv0211_backup` na `test` (kopie danych użytkowników) do usunięcia
+  po akceptacji PR.
+- **Odczyt starego kształtu** (`entry_id`, `__ocv` w dokumentach, rewizjach, snapshotach i paczkach
+  eksportu) zostaje na stałe; `stripPrivateLinkage` w `published-export.ts` też.
+- **Brak testu przeglądarkowego** nowych przepływów edytora (dodaj/usuń wpis i punkt we wszystkich
+  wersjach, „Dopasuj” i wskaźnik procentowy, blokada zapisu). Poprzedni opt-in test
+  (`editor-save-retry-browser`) dotyczył konfliktów legacy-pairing i został usunięty.
+- **Brak testu** odmowy publikacji wersji CV przy niezgodnych wersjach (`publishResumePreset`,
+  `409 parity`); pokrycie jest tylko dla importu, rollbacku i zmiany wersji domyślnej.
+- **Edycja punktów w polu tekstowym** zmienia ich liczbę we wszystkich wersjach; gdy punktów ubywa,
+  obcinany jest koniec listy w pozostałych wersjach (z potwierdzeniem, jeśli ma tam tekst), bo pole
+  tekstowe nie mówi, która linia zniknęła.
+
 ## Edycja Bazy doświadczeń nie sygnalizuje nieaktualnego linku do LiveCV (stan z 2026-10-10)
 
 **Status:** otwarte. Zakres [#214](https://github.com/Sysdrummatic/resume-studio/issues/214)

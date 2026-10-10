@@ -2,14 +2,9 @@ import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
 import {
   publishResumeDocument,
-  RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE,
   RESUME_DOCUMENT_CONFLICT_MESSAGE,
-  RESUME_LEGACY_PAIRING_MESSAGE,
   RESUME_SAVE_INCOMPLETE_MESSAGE,
-  ResumeDefaultDuplicateIdsError,
   ResumeDocumentConflictError,
-  ResumeLanguageLinkageError,
-  ResumeLegacyPairingError,
   upgradeLegacyResumeYamlContent,
 } from "../../../lib/resume-server";
 import { normalizeLocale, RESUME_LIMITS_DOC_URL, RESUME_YAML_MAX_BYTES } from "../../../lib/resume-schema";
@@ -24,7 +19,6 @@ type PublishBody = {
   styleSettings?: unknown;
   changeNote?: string;
   baseUpdatedAt?: unknown;
-  confirmLegacyPairing?: unknown;
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -83,23 +77,10 @@ export async function POST(request: Request): Promise<Response> {
       styleSettings: body.styleSettings,
       changeNote: String(body.changeNote || "Publish"),
       baseUpdatedAt,
-      confirmLegacyPairing: body.confirmLegacyPairing === true,
     });
   } catch (error) {
-    if (error instanceof ResumeLanguageLinkageError) {
-      return NextResponse.json({ error: "Language entry IDs must match the default language.", linkageIssues: error.issues }, { status: 409 });
-    }
     if (error instanceof ResumeDocumentConflictError) {
       return NextResponse.json({ error: RESUME_DOCUMENT_CONFLICT_MESSAGE, conflict: true }, { status: 409 });
-    }
-    if (error instanceof ResumeDefaultDuplicateIdsError) {
-      return NextResponse.json(
-        { error: RESUME_DEFAULT_DUPLICATE_IDS_MESSAGE, code: "default-duplicate-ids", defaultLocale: error.locale, linkageIssues: error.issues },
-        { status: 409 },
-      );
-    }
-    if (error instanceof ResumeLegacyPairingError) {
-      return NextResponse.json({ error: RESUME_LEGACY_PAIRING_MESSAGE, code: "legacy-pairing", legacyConflicts: error.conflicts }, { status: 409 });
     }
     throw error;
   }
@@ -119,9 +100,6 @@ export async function POST(request: Request): Promise<Response> {
     locale,
     document: payload.document,
     revisions: payload.revisions,
-    synchronizedDocuments: payload.synchronized ?? [],
-    synchronizationFailed: payload.synchronizationFailed ?? [],
-    synchronizationComplete: payload.synchronizationComplete ?? true,
   };
   if (payload.incomplete?.length) {
     // The document is stored; `document` is the base a retry must send.

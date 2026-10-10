@@ -97,23 +97,26 @@ editor:
     "Human-friendly Editor": Form
     "Form": Form
     "YAML Editor": YAML editor
-    "Language linkage status": Language version consistency
+    "Language version consistency": "Language version consistency"
+    "{percent}% different from the other versions": "{percent}% different from the other versions"
+    "Match": "Match"
+    "Show details": "Show details"
+    "Hide details": "Hide details"
+    "All language versions have the same entries.": "All language versions have the same entries."
+    "The other language versions do not have the same entries as this one. Match brings them to this version's structure.": "The other language versions do not have the same entries as this one. Match brings them to this version's structure."
+    "Adding, removing or moving an entry in the form changes every language version at once. Match is for changes made by hand in YAML.": "Adding, removing or moving an entry in the form changes every language version at once. Match is for changes made by hand in YAML."
+    "The language versions do not have the same entries. Use Match in the YAML editor before saving.": "The language versions do not have the same entries. Use Match in the YAML editor before saving."
+    "{where}: {actual} entries, this version has {expected}": "{where}: {actual} entries, this version has {expected}"
+    "{where}: {field} differs from this version": "{where}: {field} differs from this version"
+    "{where}: {actual} bullets, this version has {expected}": "{where}: {actual} bullets, this version has {expected}"
+    "{where}: a different summary is marked as default": "{where}: a different summary is marked as default"
+    "Matching removes text from {locales}, because this version has fewer entries or bullets. Continue?": "Matching removes text from {locales}, because this version has fewer entries or bullets. Continue?"
+    "Removing this entry also removes its text in {locales}. Continue?": "Removing this entry also removes its text in {locales}. Continue?"
+    "Removing this bullet also removes text in {locales}. Continue?": "Removing this bullet also removes text in {locales}. Continue?"
+    "{locale}: the language versions do not have the same entries ({collections}). Use Match in the YAML editor, then save again.": "{locale}: the language versions do not have the same entries ({collections}). Use Match in the YAML editor, then save again."
     "OK": OK
     "Needs attention": Needs attention
     "Checking": Checking
-    "Checking linked IDs...": Checking linked IDs...
-    "All linked IDs match the default language.": Entries are correctly linked to the default language version.
-    "All IDs are stable in the saved default language.": Links to the saved default language are valid.
-    "Fix the following ID issues before saving:": Fix the following ID issues before saving.
-    "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.
-    "Changed ID": Changed ID
-    "Missing ID": Missing ID
-    "Duplicate ID": Duplicate ID
-    "Missing linked entry": Missing linked entry
-    "Unpaired entry": Unpaired entry
-    "Default entry is not paired": Default entry is not paired
-    "Expected": Expected
-    "missing": missing
     "Save MasterCV": Save Experience Base
     "Resume section": Resume section
     "Unsaved local draft from {time} found for this language version.": "An unsaved local draft from {time} was found for this language version."
@@ -195,14 +198,7 @@ editor:
     "Saved {count} language versions.": "Saved language versions: {count}."
     "Save failed: {message}": "Save failed: {message}"
     "Saved {saved}, failed {failed}: {message}": "Saved: {saved}; failed: {failed}. {message}"
-    "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again."
-    "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first.": "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first."
-    "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again.": "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again."
-    "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: not synchronized with the default language. Save again to retry."
-    "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it.": "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it."
-    "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order.": "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order."
     "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish.": "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish."
-    "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.": "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization."
     "Rolling back to revision {number}...": "Rolling back to revision {number}…"
     "Rollback complete. Current document now matches revision {number}.": "Rollback complete. The document now matches revision {number}."
     "Rollback failed.": Rollback failed.

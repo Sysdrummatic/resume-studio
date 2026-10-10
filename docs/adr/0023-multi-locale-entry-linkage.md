@@ -1,6 +1,6 @@
 # ADR 0023: Linked Master Resume Language Entries
 
-Status: Accepted
+Status: Superseded by [ADR 0024](0024-language-versions-as-parallel-lists.md) (the `entry_id`/`__ocv` mechanism; the compare-and-swap rules in §8-9 still apply)
 Date: 2026-09-19
 
 ## Context

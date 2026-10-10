@@ -98,23 +98,26 @@ editor:
     "Human-friendly Editor": Formularz
     "Form": Formularz
     "YAML Editor": Edytor YAML
-    "Language linkage status": Spójność wersji językowych
+    "Language version consistency": "Spójność wersji językowych"
+    "{percent}% different from the other versions": "{percent}% różnicy względem pozostałych wersji"
+    "Match": "Dopasuj"
+    "Show details": "Pokaż szczegóły"
+    "Hide details": "Ukryj szczegóły"
+    "All language versions have the same entries.": "Wszystkie wersje językowe mają te same wpisy."
+    "The other language versions do not have the same entries as this one. Match brings them to this version's structure.": "Pozostałe wersje językowe nie mają tych samych wpisów co ta. Dopasuj dostosuje je do struktury tej wersji."
+    "Adding, removing or moving an entry in the form changes every language version at once. Match is for changes made by hand in YAML.": "Dodanie, usunięcie lub przesunięcie wpisu w formularzu zmienia wszystkie wersje językowe naraz. Dopasuj służy do zmian wprowadzonych ręcznie w YAML-u."
+    "The language versions do not have the same entries. Use Match in the YAML editor before saving.": "Wersje językowe nie mają tych samych wpisów. Przed zapisaniem użyj Dopasuj w edytorze YAML."
+    "{where}: {actual} entries, this version has {expected}": "{where}: {actual} wpisów, ta wersja ma {expected}"
+    "{where}: {field} differs from this version": "{where}: pole {field} różni się od tej wersji"
+    "{where}: {actual} bullets, this version has {expected}": "{where}: {actual} punktów, ta wersja ma {expected}"
+    "{where}: a different summary is marked as default": "{where}: inne podsumowanie jest oznaczone jako domyślne"
+    "Matching removes text from {locales}, because this version has fewer entries or bullets. Continue?": "Dopasowanie usunie tekst z wersji: {locales}, ponieważ ta wersja ma mniej wpisów lub punktów. Kontynuować?"
+    "Removing this entry also removes its text in {locales}. Continue?": "Usunięcie tego wpisu usunie też jego tekst w wersjach: {locales}. Kontynuować?"
+    "Removing this bullet also removes text in {locales}. Continue?": "Usunięcie tego punktu usunie też tekst w wersjach: {locales}. Kontynuować?"
+    "{locale}: the language versions do not have the same entries ({collections}). Use Match in the YAML editor, then save again.": "{locale}: wersje językowe nie mają tych samych wpisów ({collections}). Użyj Dopasuj w edytorze YAML i zapisz ponownie."
     "OK": OK
     "Needs attention": Wymaga uwagi
     "Checking": Sprawdzanie
-    "Checking linked IDs...": Sprawdzanie powiązanych ID...
-    "All linked IDs match the default language.": Wpisy są prawidłowo powiązane z wersją w języku domyślnym.
-    "All IDs are stable in the saved default language.": Powiązania z zapisanym językiem domyślnym są prawidłowe.
-    "Fix the following ID issues before saving:": "Przed zapisaniem popraw następujące problemy z ID:"
-    "IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.": ID są widoczne w YAML i nie można ich zmieniać. Wpisy można dodawać i usuwać tylko w języku domyślnym.
-    "Changed ID": Zmienione ID
-    "Missing ID": Brak ID
-    "Duplicate ID": Zduplikowane ID
-    "Missing linked entry": Brak powiązanego wpisu
-    "Unpaired entry": Niepowiązany wpis
-    "Default entry is not paired": Domyślny wpis nie jest sparowany
-    "Expected": Oczekiwano
-    "missing": brak
     "Save MasterCV": Zapisz Bazę doświadczeń
     "Resume section": Sekcja LiveCV
     "Unsaved local draft from {time} found for this language version.": "Znaleziono lokalny szkic tej wersji językowej z godziny {time}."
@@ -196,14 +199,7 @@ editor:
     "Saved {count} language versions.": "Zapisane wersje językowe: {count}."
     "Save failed: {message}": "Zapisywanie nie powiodło się: {message}"
     "Saved {saved}, failed {failed}: {message}": "Zapisano: {saved}; błędy: {failed}. {message}"
-    "{locale}: this older language version does not match the default language's entries ({collections}), so it was left unchanged. Make its entries match the default language, then save again.": "{locale}: starsza wersja językowa nie pasuje do wpisów języka domyślnego ({collections}), więc pozostała bez zmian. Dopasuj jej wpisy do języka domyślnego i zapisz ponownie."
-    "{locale}: the default language version ({defaultLocale}) uses one entry ID for different entries, so this language cannot be linked to it. Save the default language with unique IDs first.": "{locale}: domyślna wersja językowa ({defaultLocale}) używa jednego identyfikatora dla różnych wpisów, więc nie można z nią powiązać tego języka. Najpierw zapisz język domyślny z unikalnymi identyfikatorami."
-    "{locale}: this language version uses one entry ID for different entries ({collections}), so it was left unchanged. Give its entries the default language's IDs, then save it again.": "{locale}: ta wersja językowa używa jednego identyfikatora dla różnych wpisów ({collections}), więc pozostała bez zmian. Nadaj jej wpisom identyfikatory z języka domyślnego i zapisz ją ponownie."
-    "{locale}: not synchronized with the default language. Save again to retry.": "{locale}: brak synchronizacji z językiem domyślnym. Zapisz ponownie, aby ponowić próbę."
-    "{locale}: the order of this older language version's entries cannot be verified ({collections}), so it was left unchanged. Save this language version and confirm the order to link it.": "{locale}: nie da się potwierdzić kolejności wpisów tej starszej wersji językowej ({collections}), więc pozostała bez zmian. Zapisz tę wersję językową i potwierdź kolejność, aby ją powiązać."
-    "{locale}: are the entries in {collections} in the same order as in the default language? They will be linked by their order.": "{locale}: czy wpisy w sekcjach {collections} są w tej samej kolejności co w języku domyślnym? Zostaną powiązane według kolejności."
     "{locale}: saved, but the revision history or public profile could not be updated. Save again to finish.": "{locale}: zapisano, ale nie udało się zaktualizować historii zmian ani profilu publicznego. Zapisz ponownie, aby dokończyć."
-    "{locale}: saved, but the other language versions could not be checked. Save again to retry the synchronization.": "{locale}: zapisano, ale nie udało się sprawdzić pozostałych wersji językowych. Zapisz ponownie, aby ponowić synchronizację."
     "Rolling back to revision {number}...": "Przywracanie wersji {number}…"
     "Rollback complete. Current document now matches revision {number}.": "Przywrócono wersję {number}."
     "Rollback failed.": Nie udało się przywrócić wersji.

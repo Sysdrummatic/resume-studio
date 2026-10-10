@@ -2915,6 +2915,41 @@ a {
   color: var(--ed-t1);
 }
 
+.resume-editor-linkage-status__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.resume-editor-linkage-status__toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--ed-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ed-t1);
+  cursor: pointer;
+}
+
+.resume-editor-linkage-status__toggle:hover {
+  background: var(--ed-raised);
+}
+
+.resume-editor-linkage-status__toggle svg {
+  transition: transform 0.15s ease;
+}
+
+.resume-editor-linkage-status__toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.resume-editor-linkage-status__details {
+  display: grid;
+  gap: 7px;
+}
+
 .resume-editor-linkage-status__badge {
   border-radius: 999px;
   padding: 3px 8px;

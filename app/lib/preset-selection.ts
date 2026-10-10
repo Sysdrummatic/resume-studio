@@ -80,7 +80,7 @@ export function isRenderableSelectionItem(
   const normalized = normalizeResumeDocument({ [key]: [item] });
   const entries = normalized[key] as unknown[];
   if (entries.length === 0) return false;
-  if (!options.translation || !item || typeof item !== "object" || Array.isArray(item) || !(item as Record<string, unknown>).entry_id) {
+  if (!options.translation || !item || typeof item !== "object" || Array.isArray(item)) {
     return true;
   }
   if (key === "experience") return normalized.experience.some((row) => Boolean(row.role || row.highlights.length));
@@ -97,8 +97,7 @@ export function omitBlankLinkedTranslationSlots<T extends object>(document: T): 
     visible[key] = source[key].filter((item: unknown) => {
       if (key === "summary") return isRenderableSelectionItem(key, item);
       if (key === "tech_stack" || key === "interests") return typeof item !== "string" || Boolean(item.trim());
-      const linked = item && typeof item === "object" && !Array.isArray(item) && Boolean((item as Record<string, unknown>).entry_id);
-      return !linked || isRenderableSelectionItem(key, item, { translation: true });
+      return isRenderableSelectionItem(key, item, { translation: true });
     });
   }
   return visible as T;

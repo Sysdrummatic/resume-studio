@@ -3,21 +3,18 @@ import { splitProfileName } from "./profile-name";
 import { QR_CODE_LIMITS, clampQrSize } from "./qr-code";
 
 export type ResumeContactItem = {
-  entry_id?: string;
   label: string;
   value: string;
   link?: string;
 };
 
 export type ResumeSummaryItem = {
-  entry_id?: string;
   position: string;
   description: string;
   default: boolean;
 };
 
 export type ResumeQrCode = {
-  entry_id?: string;
   label: string;
   /** Free text or a link, rendered as a generated QR code — never a stored image. */
   value: string;
@@ -25,20 +22,17 @@ export type ResumeQrCode = {
 };
 
 export type ResumeSkill = {
-  entry_id?: string;
   name: string;
   level: number;
 };
 
 export type ResumeLanguage = {
-  entry_id?: string;
   name: string;
   level_text: string;
   level: number;
 };
 
 export type ResumeExperience = {
-  entry_id?: string;
   period: string;
   company: string;
   role: string;
@@ -46,7 +40,6 @@ export type ResumeExperience = {
 };
 
 export type ResumeEducation = {
-  entry_id?: string;
   period: string;
   school: string;
   degree: string;
@@ -54,14 +47,11 @@ export type ResumeEducation = {
 };
 
 export type ResumeCourse = {
-  entry_id?: string;
   year: number;
   name: string;
 };
 
 export type ResumeDocument = {
-  /** Private locale-linkage metadata; stripped from public CV exports. */
-  __ocv?: { entries?: Record<string, string[]> };
   brand_initials: string;
   first_name: string;
   family_name: string;
@@ -127,17 +117,6 @@ function asText(value: unknown): string {
 function asInt(value: unknown, fallback = 0): number {
   const parsed = Number.parseInt(String(value ?? "").trim(), 10);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function optionalEntryId(row: Record<string, unknown>): { entry_id?: string } {
-  const value = asText(row.entry_id);
-  return value ? { entry_id: value } : {};
-}
-
-function hasLinkedSlot(source: Record<string, unknown>, collection: string, index: number): boolean {
-  const linkage = asObject(source.__ocv);
-  const entries = asObject(linkage.entries);
-  return Array.isArray(entries[collection]) && typeof entries[collection][index] === "string" && entries[collection][index].trim().length > 0;
 }
 
 function clampLevel(value: unknown, fallback = 3): number {
@@ -329,7 +308,6 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
   }
 
   return {
-    ...(source.__ocv && typeof source.__ocv === "object" && !Array.isArray(source.__ocv) ? { __ocv: source.__ocv as { entries?: Record<string, string[]> } } : {}),
     brand_initials: asText(source.brand_initials) || initialsFromNameParts(firstName, familyName),
     first_name: firstName,
     family_name: familyName,
@@ -338,13 +316,12 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
       .map((item) => {
         const row = asObject(item);
         return {
-          ...optionalEntryId(row),
           label: asText(row.label),
           value: asText(row.value),
           link: asText(row.link) || undefined,
         };
       })
-      .filter((row, index) => (row.label && row.value) || (preserveLinkedEntries && hasLinkedSlot(source, "contact", index))),
+      .filter((row) => (row.label && row.value) || preserveLinkedEntries),
     qr_codes: asArray(source.qr_codes)
       .map((item) => {
         const row = asObject(item);
@@ -352,13 +329,12 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
         // read: an image path is not a sensible QR payload, and no CV has ever
         // populated it.
         return {
-          ...optionalEntryId(row),
           label: asText(row.label),
           value: asText(row.value).slice(0, QR_CODE_LIMITS.maxValueLength),
           size: clampQrSize(asInt(row.size, QR_CODE_LIMITS.defaultSize)),
         };
       })
-      .filter((row, index) => row.label || row.value || (preserveLinkedEntries && hasLinkedSlot(source, "qr_codes", index)))
+      .filter((row) => row.label || row.value || preserveLinkedEntries)
       .slice(0, QR_CODE_LIMITS.maxCount),
     skills: asArray(source.skills)
       .map((item) => {
@@ -367,13 +343,12 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
           return { name: asText(item), level: 3 };
         }
         return {
-          ...optionalEntryId(row),
           name: asText(row.name),
           level: clampLevel(row.level, 3),
         };
       })
-      .filter((row, index) => row.name || (preserveLinkedEntries && (Boolean(row.entry_id) || hasLinkedSlot(source, "skills", index)))),
-    tech_stack: asArray(source.tech_stack).map(asText).filter((value, index) => value || (preserveLinkedEntries && hasLinkedSlot(source, "tech_stack", index))),
+      .filter((row) => row.name || preserveLinkedEntries),
+    tech_stack: asArray(source.tech_stack).map(asText).filter((value) => value || preserveLinkedEntries),
     languages: asArray(source.languages)
       .map((item) => {
         if (typeof item === "string") {
@@ -381,14 +356,13 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
         }
         const row = asObject(item);
         return {
-          ...optionalEntryId(row),
           name: asText(row.name),
           level_text: asText(row.level_text),
           level: clampLevel(row.level, 3),
         };
       })
-      .filter((row, index) => row.name || (preserveLinkedEntries && (Boolean(row.entry_id) || hasLinkedSlot(source, "languages", index)))),
-    interests: asArray(source.interests).map(asText).filter((value, index) => value || (preserveLinkedEntries && hasLinkedSlot(source, "interests", index))),
+      .filter((row) => row.name || preserveLinkedEntries),
+    interests: asArray(source.interests).map(asText).filter((value) => value || preserveLinkedEntries),
     experience: asArray(source.experience)
       .map((item) => {
         if (typeof item === "string") {
@@ -396,14 +370,13 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
         }
         const row = asObject(item);
         return {
-          ...optionalEntryId(row),
           period: asText(row.period),
           company: asText(row.company),
           role: asText(row.role),
           highlights: asArray(row.highlights).map(asText).map(stripBulletMarker).filter(Boolean),
         };
       })
-      .filter((row) => row.period || row.company || row.role || row.highlights.length > 0 || (preserveLinkedEntries && Boolean(row.entry_id))),
+      .filter((row) => row.period || row.company || row.role || row.highlights.length > 0 || preserveLinkedEntries),
     education: asArray(source.education)
       .map((item) => {
         if (typeof item === "string") {
@@ -411,14 +384,13 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
         }
         const row = asObject(item);
         return {
-          ...optionalEntryId(row),
           period: asText(row.period),
           school: asText(row.school),
           degree: asText(row.degree),
           detail: asText(row.detail),
         };
       })
-      .filter((row) => row.period || row.school || row.degree || row.detail || (preserveLinkedEntries && Boolean(row.entry_id))),
+      .filter((row) => row.period || row.school || row.degree || row.detail || preserveLinkedEntries),
     courses: asArray(source.courses)
       .map((item) => {
         if (typeof item === "string") {
@@ -426,12 +398,11 @@ export function normalizeResumeDocument(value: unknown, fallbackName = "", optio
         }
         const row = asObject(item);
         return {
-          ...optionalEntryId(row),
           year: Math.max(0, asInt(row.year, 0)),
           name: asText(row.name),
         };
       })
-      .filter((row) => row.name || row.year > 0 || (preserveLinkedEntries && Boolean(row.entry_id))),
+      .filter((row) => row.name || row.year > 0 || preserveLinkedEntries),
     gdpr_clause: asText(source.gdpr_clause),
   };
 }
@@ -457,13 +428,12 @@ function normalizeSummaryItems(value: unknown, preserveLinkedEntries = false): R
       const isDefault = asBoolean(row.default) && !hasDefault;
       if (isDefault) hasDefault = true;
       return {
-        ...optionalEntryId(row),
         position: asText(row.position),
         description: asText(row.description),
         default: isDefault,
       };
     })
-    .filter((row) => row.position || row.description || row.default || (preserveLinkedEntries && Boolean(row.entry_id)));
+    .filter((row) => row.position || row.description || row.default || preserveLinkedEntries);
 }
 
 export function getDefaultSummary(summary: ResumeSummaryItem[]): ResumeSummaryItem | null {

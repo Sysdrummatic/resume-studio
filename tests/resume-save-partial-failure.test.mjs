@@ -20,15 +20,15 @@ const OLD = "2025-06-01T00:00:00.000Z";
 const LANGUAGES = ["en", "pl"].map((code, index) => ({ code, label: code, short_label: code.toUpperCase(), labels: {}, is_enabled: true, sort_order: (index + 1) * 10 }));
 
 async function linkedDocuments() {
-  const { ensureResumeEntryIds, buildResumeLanguageTemplate } = await import("../app/lib/resume-language-linkage.ts");
-  const english = ensureResumeEntryIds({
+  const { buildLanguageTemplate } = await import("../app/lib/resume-language-parity.ts");
+  const english = ({
     brand_initials: "JK", first_name: "Jan", family_name: "Kowalski",
     summary: [{ position: "Engineer", description: "Builds tools", default: true }],
     contact: [], qr_codes: [], skills: [], languages: [], education: [], courses: [], gdpr_clause: "",
     tech_stack: ["TypeScript"], interests: ["Music"],
     experience: [{ period: "2020 - now", company: "Acme", role: "Engineer", highlights: ["Built the editor"] }],
   });
-  const polish = buildResumeLanguageTemplate(english);
+  const polish = buildLanguageTemplate(english);
   polish.experience[0].role = "Inżynier";
   return { english, polish, withRole: (role) => yaml.dump({ ...polish, experience: [{ ...polish.experience[0], role }] }) };
 }
@@ -120,28 +120,6 @@ test("the publish API answers a partial save with the stored document and what i
   assert.deepEqual(body.document, { id: "doc-pl", updated_at: "v2" });
   assert.deepEqual(body.incomplete, ["revision"]);
   assert.equal(body.error, server.RESUME_SAVE_INCOMPLETE_MESSAGE);
-});
-
-test("a translation whose sync revision failed gets it on the next save, without a second rewrite", async (t) => {
-  const docs = await linkedDocuments();
-  const failing = failOnce();
-  const fake = install(docs, { onRequest: (request) => failing(isRevisionOf(request, "doc-pl")) });
-  t.after(() => fake.restore());
-  const { publishResumeDocument } = await import("../app/lib/resume-server.ts");
-  const edited = yaml.dump({ ...docs.english, experience: [{ ...docs.english.experience[0], company: "Acme Corp" }] });
-
-  const first = await publishResumeDocument("token", USER, "en", { yamlContent: edited, title: "Jan Kowalski", changeNote: "default", baseUpdatedAt: OLD });
-  assert.deepEqual(first.synchronizationFailed, [{ locale: "pl", reason: "revision" }]);
-  assert.equal(yaml.load(row(fake, "doc-pl").yaml_content).experience[0].company, "Acme Corp", "the translation YAML was written");
-  const translationWrittenAt = row(fake, "doc-pl").updated_at;
-  assert.equal(revisionsOf(fake, "doc-pl").length, 0);
-
-  const retry = await publishResumeDocument("token", USER, "en", { yamlContent: edited, title: "Jan Kowalski", changeNote: "default", baseUpdatedAt: first.document.updated_at });
-
-  assert.deepEqual(retry.synchronizationFailed, []);
-  assert.equal(row(fake, "doc-pl").updated_at, translationWrittenAt, "the translation is not rewritten");
-  assert.deepEqual(revisionsOf(fake, "doc-pl").map((entry) => [entry.change_note, entry.yaml_content]), [["Synchronized with default language", row(fake, "doc-pl").yaml_content]]);
-  assert.equal(revisionsOf(fake, "doc-en").length, 1, "the unchanged default is not recorded twice");
 });
 
 test("a missing profile and manual name sync are not profile failures", async (t) => {

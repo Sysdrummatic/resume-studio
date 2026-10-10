@@ -8,9 +8,9 @@ import { installFakePostgrest } from "./helpers/fake-postgrest.mjs";
 
 register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
-// Import preflight: every document an import will replace, synchronize or use as
-// the source of linkage IDs is checked before the first write. A refused import
-// leaves languages, documents and revisions exactly as they were.
+// Import preflight: the versions that remain after an import (the bundle's documents
+// plus the stored ones it does not replace) must be parallel lists (ADR 0024).
+// A refused import leaves languages, documents and revisions exactly as they were.
 // Isolated: the real resume-server code runs against an in-memory PostgREST
 // (no RLS, no triggers), so this proves the app's writes, not Supabase.
 
@@ -21,14 +21,12 @@ const rows = [
   { period: "2020 - 2021", company: "Alpha", highlights: [] },
   { period: "2021 - 2022", company: "Beta", highlights: [] },
 ];
-const withRoles = (roles, ids) => ({ ...person, experience: rows.map((row, index) => ({ ...row, role: roles[index], ...(ids ? { entry_id: ids[index] } : {}) })), ...(ids ? { __ocv: { entries: { tech_stack: [], interests: [] } } } : {}) });
+const withRoles = (roles, extraRows = []) => ({ ...person, experience: [...rows, ...extraRows].map((row, index) => ({ ...row, role: roles[index] ?? "" })) });
 
-const english = (ids) => withRoles(["Engineer A", "Engineer B"], ids);
-const polish = (ids) => withRoles(["Rola A", "Rola B"], ids);
-const german = (ids) => withRoles(["Rolle A", "Rolle B"], ids);
-const brokenIds = ["dup-1", "dup-1"];
-const linkedIds = ["alpha-1", "beta-1"];
-const foreignIds = ["foreign-a", "foreign-b"];
+const english = (extraRows) => withRoles(["Engineer A", "Engineer B", "Engineer C"], extraRows);
+const polish = (extraRows) => withRoles(["Rola A", "Rola B", "Rola C"], extraRows);
+const german = (extraRows) => withRoles(["Rolle A", "Rolle B", "Rolle C"], extraRows);
+const third = [{ period: "2022 - 2023", company: "Gamma", highlights: [] }];
 
 function account(defaultLocale, documents) {
   return {
@@ -57,67 +55,35 @@ const storedRoles = (fake, locale) => stored(fake, locale).experience.map((row) 
 
 const refusals = [
   {
-    name: "broken EN default, legacy PL, bundle makes PL the default and carries only a replacement EN (last confirmed bug)",
-    seed: account("en", { en: english(brokenIds), pl: polish() }),
-    bundle: bundleOf("pl", { en: english(linkedIds) }),
+    name: "a bundle whose translation has fewer entries than its default",
+    seed: account("en", { en: english() }),
+    bundle: bundleOf("en", { en: english(third), pl: polish() }),
     status: 409,
-    code: "default-document-required",
-    mentions: /"pl"/,
+    code: "parity",
+    mentions: /do not have the same entries/,
   },
   {
-    name: "sound EN default, legacy PL, bundle makes PL the default and replaces EN (the ID source would be replaced)",
-    seed: account("en", { en: english(linkedIds), pl: polish() }),
-    bundle: bundleOf("pl", { en: english(linkedIds) }),
+    name: "a stored translation outside the bundle that the replaced default no longer matches",
+    seed: account("en", { en: english(), de: german() }),
+    bundle: bundleOf("en", { en: english(third) }),
     status: 409,
-    code: "default-document-required",
-    mentions: /"pl"/,
+    code: "parity",
+    mentions: /do not have the same entries/,
   },
   {
-    name: "mirror: broken PL default, legacy EN, bundle makes EN the default and carries only a replacement PL",
-    seed: account("pl", { pl: polish(brokenIds), en: english() }),
-    bundle: bundleOf("en", { pl: polish(linkedIds) }),
-    status: 409,
-    code: "default-document-required",
-    mentions: /"en"/,
-  },
-  {
-    name: "new default has neither a bundle document nor a stored one",
-    seed: account("en", { en: english(linkedIds) }),
-    bundle: bundleOf("pl", { en: english(linkedIds) }),
+    name: "the new default has neither a bundle document nor a stored one",
+    seed: account("en", { en: english() }),
+    bundle: bundleOf("pl", { en: english() }),
     status: 400,
     mentions: /"pl"/,
   },
   {
-    name: "a legacy bundle translation that cannot be paired unambiguously with the bundle default",
-    seed: account("en", { en: english(linkedIds) }),
-    bundle: bundleOf("en", { en: english(linkedIds), pl: { ...polish(), summary: [{ position: "Rola", description: "", default: true }] } }),
+    name: "the default switches to a language whose stored document has a different number of entries",
+    seed: account("en", { en: english(), de: german(third) }),
+    bundle: bundleOf("de", { en: english() }),
     status: 409,
-    code: "legacy-pairing",
-    mentions: /"pl"/,
-  },
-  {
-    name: "a stored translation outside the bundle whose entries the replaced default no longer has (same default language)",
-    seed: account("en", { en: english(linkedIds), de: german(linkedIds) }),
-    bundle: bundleOf("en", { en: english(foreignIds) }),
-    status: 409,
-    code: "translations-would-be-lost",
-    mentions: /"de"/,
-  },
-  {
-    name: "a stored translation outside the bundle whose entries the new default does not have (default switches EN to PL)",
-    seed: account("en", { en: english(linkedIds), de: german(linkedIds) }),
-    bundle: bundleOf("pl", { pl: polish(foreignIds), en: english(foreignIds) }),
-    status: 409,
-    code: "translations-would-be-lost",
-    mentions: /"de"/,
-  },
-  {
-    name: "a stored translation outside the bundle that reuses an ID while the default switches",
-    seed: account("en", { en: english(linkedIds), de: german(brokenIds) }),
-    bundle: bundleOf("pl", { pl: polish(linkedIds), en: english(linkedIds) }),
-    status: 409,
-    code: "duplicate-ids",
-    mentions: /"de"/,
+    code: "parity",
+    mentions: /do not have the same entries/,
   },
 ];
 
@@ -135,37 +101,35 @@ for (const scenario of refusals) {
   });
 }
 
-test("a bundle without the new default's document succeeds when that document is already linked", async (t) => {
+test("a bundle without the new default's document succeeds when that document is already parallel", async (t) => {
   const { fake, result } = await runImport(
-    account("en", { en: english(linkedIds), pl: polish(linkedIds) }),
-    bundleOf("pl", { en: { ...english(linkedIds), experience: english(linkedIds).experience.map((row) => ({ ...row, role: `${row.role} (new)` })) } }),
+    account("en", { en: english(), pl: polish() }),
+    bundleOf("pl", { en: { ...english(), experience: english().experience.map((row) => ({ ...row, role: `${row.role} (new)` })) } }),
   );
   t.after(() => fake.restore());
 
   assert.deepEqual(result, { ok: true });
   assert.deepEqual(fake.rows("resume_user_locales").filter((row) => row.is_default).map((row) => row.locale), ["pl"]);
   assert.deepEqual(storedRoles(fake, "pl"), ["Rola A", "Rola B"], "the new default keeps its content");
-  assert.deepEqual(storedRoles(fake, "en"), ["Engineer A (new)", "Engineer B (new)"], "the replacement EN is stored, linked by ID");
-  assert.deepEqual(stored(fake, "en").experience.map((row) => row.entry_id), linkedIds);
+  assert.deepEqual(storedRoles(fake, "en"), ["Engineer A (new)", "Engineer B (new)"], "the replacement EN is stored");
 });
 
-test("a full bundle replaces every document, including stored ones with duplicate IDs, and keeps EN/PL/DE roles", async (t) => {
+test("a full bundle replaces every document and keeps EN/PL/DE roles", async (t) => {
   const { fake, result } = await runImport(
-    account("en", { en: english(brokenIds), pl: polish(), de: german(brokenIds) }),
-    bundleOf("pl", { pl: polish(foreignIds), en: english(foreignIds), de: german(foreignIds) }),
+    account("en", { en: english(), pl: polish(), de: german() }),
+    bundleOf("pl", { pl: polish(third), en: english(third), de: german(third) }),
   );
   t.after(() => fake.restore());
 
   assert.deepEqual(result, { ok: true });
-  assert.deepEqual(storedRoles(fake, "pl"), ["Rola A", "Rola B"]);
-  assert.deepEqual(storedRoles(fake, "en"), ["Engineer A", "Engineer B"]);
-  assert.deepEqual(storedRoles(fake, "de"), ["Rolle A", "Rolle B"]);
-  for (const locale of ["pl", "en", "de"]) assert.deepEqual(stored(fake, locale).experience.map((row) => row.entry_id), foreignIds, locale);
+  assert.deepEqual(storedRoles(fake, "pl"), ["Rola A", "Rola B", "Rola C"]);
+  assert.deepEqual(storedRoles(fake, "en"), ["Engineer A", "Engineer B", "Engineer C"]);
+  assert.deepEqual(storedRoles(fake, "de"), ["Rolle A", "Rolle B", "Rolle C"]);
 });
 
 test("an import that fails on a document write can be retried to the same final state", async (t) => {
-  const seed = account("en", { en: english(linkedIds), pl: polish(linkedIds) });
-  const bundle = bundleOf("en", { en: english(foreignIds), pl: polish(foreignIds) });
+  const seed = account("en", { en: english(), pl: polish() });
+  const bundle = bundleOf("en", { en: english(), pl: polish() });
   let failed = false;
   const fake = installFakePostgrest(seed, {
     onRequest: (request) => {
@@ -185,5 +149,4 @@ test("an import that fails on a document write can be retried to the same final 
   assert.deepEqual(retry, { ok: true });
   assert.deepEqual(storedRoles(fake, "en"), ["Engineer A", "Engineer B"]);
   assert.deepEqual(storedRoles(fake, "pl"), ["Rola A", "Rola B"]);
-  assert.deepEqual(stored(fake, "pl").experience.map((row) => row.entry_id), foreignIds);
 });

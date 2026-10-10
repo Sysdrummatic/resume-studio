@@ -13,26 +13,27 @@ import {
   type ResumeLocale,
   type ResumeRevisionItem,
 } from "../lib/resume-schema";
-import type { ResumeDocumentRow, ResumeSynchronizationFailure, ResumeUserLocaleVersionRow, SynchronizedResumeDocument } from "../lib/resume-server";
+import type { ResumeDocumentRow, ResumeUserLocaleVersionRow } from "../lib/resume-server";
 import { formatAppMessage } from "../i18n/locale";
 import type { OnboardingTestRun } from "../lib/onboarding-test";
 import {
-  ensureResumeEntryIds,
-  hasCompleteResumeLinkage,
-  inspectResumeEntryIdStability,
-  inspectTranslationLinkage,
-  resumeEntryIdsDiffer,
-  reconcileResumeLanguageDocument,
-  type ResumeLinkageIssue,
-} from "../lib/resume-language-linkage";
+  applyStructuralOpToAll,
+  hasEntryIds,
+  inspectParity,
+  matchOthersToVersion,
+  parityDifference,
+  rowHasTranslatedContent,
+  setHighlightsInAll,
+  stripEntryIds,
+  type LanguageDocuments,
+  type ParityDifference,
+  type ParityIssue,
+  type StructuralOp,
+  type TruncatedEntry,
+} from "../lib/resume-language-parity";
 import {
-  defaultDuplicateIdsFailure,
-  legacyConflictFailure,
+  parityFailure,
   partialSaveFailure,
-  planSynchronizedBuffer,
-  saveWithLegacyConfirmation,
-  saveLocalesInOrder,
-  synchronizationFailureMessages,
   type EditorFailureMessage,
 } from "./locale-save-plan";
 
@@ -61,12 +62,17 @@ export type SaveAllResult = {
   failed: Array<{ locale: ResumeLocale; message: string; docsUrl?: string; messageKey?: string; messageParams?: Record<string, string> }>;
 };
 
-export type ResumeLinkageStatus = {
+export type ResumeParityStatus = {
+  /** Every loaded version has the same structure as the active one. */
   ok: boolean;
-  issues: ResumeLinkageIssue[];
-  basis: "saved-default" | "default-language";
+  /** What differs between the active version and each other version: what "Match" would fix. */
+  issues: ParityIssue[];
+  difference: ParityDifference;
   parseError?: string;
 };
+
+/** A stored entry that matching the others (or removing an entry) would cut although it already has text. */
+export type StructuralLoss = { locale: ResumeLocale; collection?: string; index?: number; bulletIndex?: number };
 
 type Actor = { userId: string; displayName: string; role: string };
 
@@ -77,13 +83,10 @@ type ApiDocumentResponse = {
   actor?: Actor;
   document?: ResumeDocumentRow;
   revisions?: ResumeRevisionItem[];
-  synchronizedDocuments?: SynchronizedResumeDocument[];
-  synchronizationFailed?: ResumeSynchronizationFailure[];
-  synchronizationComplete?: boolean;
   saved?: boolean;
   defaultLocale?: string;
   code?: string;
-  legacyConflicts?: Array<{ collection: string; reason: string }>;
+  parityIssues?: ParityIssue[];
 };
 
 class ResumeSaveError extends Error {
@@ -127,11 +130,20 @@ function parseYamlValue(yamlContent: string): unknown {
   return window.jsyaml?.load(yamlContent);
 }
 
+function asRawObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+/** The parsed YAML of a buffer without any entry ID (older documents still carry them). */
+function parseBufferRaw(buffer: LocaleBuffer): Record<string, unknown> {
+  return stripEntryIds(asRawObject(parseYamlValue(buffer.yamlPanel)));
+}
+
 function parseYamlToResumeDocument(yamlContent: string, fallbackName: string): ResumeDocument {
   if (!hasYamlRuntime()) {
     throw new Error("YAML runtime is not loaded.");
   }
-  const parsed = ensureResumeEntryIds(window.jsyaml?.load(yamlContent));
+  const parsed = stripEntryIds(asRawObject(window.jsyaml?.load(yamlContent)));
   return normalizeResumeDocument(parsed, fallbackName, { preserveLinkedEntries: true });
 }
 
@@ -149,10 +161,10 @@ function serializeResumeToYaml(resume: unknown): string {
 
 function normalizeYamlForEditor(yamlContent: string, fallbackName: string): { resume: ResumeDocument; yamlContent: string; migrated: boolean } {
   const parsed = window.jsyaml?.load(yamlContent);
-  const source = ensureResumeEntryIds(parsed);
+  const source = stripEntryIds(asRawObject(parsed));
   const resume = normalizeResumeDocument(source, fallbackName, { preserveLinkedEntries: true });
   const shouldMigrateYaml = !Array.isArray(source.summary);
-  const shouldPersistLinkageIds = !hasCompleteResumeLinkage(parsed);
+  const shouldDropEntryIds = hasEntryIds(parsed);
   // A stored document with two defaults is re-serialized from the normalized
   // one (which keeps the first), so opening it does not raise the YAML error
   // reserved for edits made in the YAML tab.
@@ -161,7 +173,7 @@ function normalizeYamlForEditor(yamlContent: string, fallbackName: string): { re
     resume,
     yamlContent: shouldMigrateYaml || hasDuplicateDefault
       ? serializeResumeToYaml(resume)
-      : shouldPersistLinkageIds
+      : shouldDropEntryIds
         ? serializeResumeToYaml(source)
         : yamlContent,
     migrated: shouldMigrateYaml,
@@ -192,7 +204,7 @@ function buildBuffer(
   let migrated = false;
 
   if (!yamlContent) {
-    resume = normalizeResumeDocument(ensureResumeEntryIds(defaultResumeDocument(fallbackName)), fallbackName, { preserveLinkedEntries: true });
+    resume = normalizeResumeDocument(defaultResumeDocument(fallbackName), fallbackName, { preserveLinkedEntries: true });
     if (hasYamlRuntime()) {
       try {
         yamlContent = serializeResumeToYaml(resume);
@@ -231,61 +243,6 @@ function buildBuffer(
     },
     migrated,
   };
-}
-
-/**
- * Adopts translations the server rewrote while syncing with the default. A
- * clean buffer takes the stored version; an edited one keeps its text,
- * reconciled against the saved default exactly as the server would. A buffer
- * that also changed elsewhere is left stale, so its next save is a conflict.
- */
-function applySynchronizedDocuments(
-  buffers: Record<ResumeLocale, LocaleBuffer>,
-  synchronized: SynchronizedResumeDocument[],
-  defaultLocale: ResumeLocale,
-  fallbackName: string,
-): Record<ResumeLocale, LocaleBuffer> {
-  const next = { ...buffers };
-  for (const entry of synchronized) {
-    const current = next[entry.locale];
-    if (!current) continue;
-    const plan = planSynchronizedBuffer(current, entry.previousUpdatedAt);
-    if (plan === "replace") {
-      next[entry.locale] = { ...buildBuffer(entry.locale, entry.document, current.revisions, fallbackName).buffer, saveError: current.saveError };
-    } else if (plan === "rebase") {
-      try {
-        const rebased = entry.locale === defaultLocale
-          ? parseYamlValue(current.yamlPanel)
-          : reconcileResumeLanguageDocument(parseYamlValue(next[defaultLocale]?.savedYamlContent ?? ""), parseYamlValue(current.yamlPanel));
-        const linked = ensureResumeEntryIds(rebased);
-        next[entry.locale] = {
-          ...current,
-          documentRow: entry.document,
-          savedYamlContent: entry.document.yaml_content,
-          yamlPanel: serializeResumeToYaml(linked),
-          resume: normalizeResumeDocument(linked, fallbackName, { preserveLinkedEntries: true }),
-        };
-      } catch {
-        // Unparseable local edits cannot be rebased; the next save reports the conflict.
-      }
-    }
-  }
-  return next;
-}
-
-/**
- * After a save that gave the rows canonical linkage IDs (a legacy translation
- * paired by the server), the buffer takes the stored version so its IDs match
- * the default again. Only when nothing was typed since the save was sent.
- */
-function canonicalBufferAfterSave(current: LocaleBuffer, stored: ResumeDocumentRow, snapshot: string, fallbackName: string): LocaleBuffer | null {
-  if (current.yamlPanel !== snapshot || !stored.yaml_content) return null;
-  try {
-    if (!resumeEntryIdsDiffer(parseYamlValue(snapshot), parseYamlValue(stored.yaml_content))) return null;
-  } catch {
-    return null;
-  }
-  return { ...buildBuffer(current.locale, stored, current.revisions, fallbackName).buffer, revisions: current.revisions };
 }
 
 function buildFailedBuffer(locale: ResumeLocale, message: string, fallbackName: string): LocaleBuffer {
@@ -439,10 +396,9 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     (nextResume: ResumeDocument) => {
       patchBuffer(activeLocale, () => {
         try {
-          const linkedResume = ensureResumeEntryIds(nextResume);
           return {
-            resume: normalizeResumeDocument(linkedResume, "", { preserveLinkedEntries: true }),
-            yamlPanel: serializeResumeToYaml(linkedResume),
+            resume: normalizeResumeDocument(nextResume, "", { preserveLinkedEntries: true }),
+            yamlPanel: serializeResumeToYaml(nextResume),
             yamlError: null,
           };
         } catch {
@@ -452,6 +408,107 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     },
     [activeLocale, patchBuffer],
   );
+
+  const parseAllRaw = useCallback((): LanguageDocuments | null => {
+    const documents: LanguageDocuments = {};
+    for (const buffer of Object.values(buffers)) {
+      try {
+        documents[buffer.locale] = parseBufferRaw(buffer);
+      } catch {
+        return null;
+      }
+    }
+    return documents;
+  }, [buffers]);
+
+  const adoptRawDocuments = useCallback((documents: LanguageDocuments, locales: ResumeLocale[]) => {
+    setBuffers((prev) => {
+      const next = { ...prev };
+      for (const locale of locales) {
+        const current = next[locale];
+        const raw = documents[locale];
+        if (!current || !raw) continue;
+        try {
+          next[locale] = {
+            ...current,
+            resume: normalizeResumeDocument(raw, "", { preserveLinkedEntries: true }),
+            yamlPanel: serializeResumeToYaml(raw),
+            yamlError: null,
+          };
+        } catch {
+          // A version that cannot be serialized keeps its current text.
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  /** Versions whose text would be lost if this operation ran: they already have text where it removes something. */
+  const structuralOpLosses = useCallback(
+    (op: StructuralOp): StructuralLoss[] => {
+      if (op.kind !== "remove" && op.kind !== "highlight-remove") return [];
+      const documents = parseAllRaw();
+      if (!documents) return [];
+      const losses: StructuralLoss[] = [];
+      for (const [locale, document] of Object.entries(documents)) {
+        if (locale === activeLocale) continue;
+        if (op.kind === "remove") {
+          const rows = Array.isArray(document[op.collection]) ? (document[op.collection] as unknown[]) : [];
+          if (rowHasTranslatedContent(op.collection, rows[op.index])) losses.push({ locale, collection: op.collection, index: op.index });
+        } else {
+          const experience = Array.isArray(document.experience) ? (document.experience as Array<Record<string, unknown>>) : [];
+          const bullets = Array.isArray(experience[op.entryIndex]?.highlights) ? (experience[op.entryIndex].highlights as unknown[]) : [];
+          if (String(bullets[op.index] ?? "").trim()) losses.push({ locale, collection: "experience", index: op.entryIndex, bulletIndex: op.index });
+        }
+      }
+      return losses;
+    },
+    [activeLocale, parseAllRaw],
+  );
+
+  /** Adds, removes or moves an entry (or a bullet) in every version at once; the others get empty slots. */
+  const applyStructuralOp = useCallback(
+    (op: StructuralOp) => {
+      const documents = parseAllRaw();
+      if (!documents) return;
+      adoptRawDocuments(applyStructuralOpToAll(documents, activeLocale, op), Object.keys(documents));
+    },
+    [activeLocale, adoptRawDocuments, parseAllRaw],
+  );
+
+  /** Bullets the other versions would lose if the active entry had `count` bullets, although they hold text. */
+  const highlightLosses = useCallback(
+    (entryIndex: number, count: number): TruncatedEntry[] => {
+      const documents = parseAllRaw();
+      return documents ? setHighlightsInAll(documents, activeLocale, entryIndex, new Array<string>(count).fill("")).truncated.filter((entry) => entry.hasContent) : [];
+    },
+    [activeLocale, parseAllRaw],
+  );
+
+  /** Sets the bullets of an experience entry; every other version gets the same number of (empty) bullets. */
+  const setActiveHighlights = useCallback(
+    (entryIndex: number, bullets: string[]) => {
+      const documents = parseAllRaw();
+      if (!documents) return;
+      const result = setHighlightsInAll(documents, activeLocale, entryIndex, bullets).documents;
+      adoptRawDocuments(result, Object.keys(result));
+    },
+    [activeLocale, adoptRawDocuments, parseAllRaw],
+  );
+
+  /** What "Match" would cut from the other versions although it already has text. */
+  const matchOthersLosses = useCallback((): TruncatedEntry[] => {
+    const documents = parseAllRaw();
+    return documents ? matchOthersToVersion(documents, activeLocale).truncated.filter((entry) => entry.hasContent) : [];
+  }, [activeLocale, parseAllRaw]);
+
+  /** Brings the other versions to the structure of the active one: the platform's way to make the versions consistent again. */
+  const matchOthersToActive = useCallback(() => {
+    const documents = parseAllRaw();
+    if (!documents) return;
+    const matched = matchOthersToVersion(documents, activeLocale).documents;
+    adoptRawDocuments(matched, Object.keys(matched).filter((locale) => locale !== activeLocale));
+  }, [activeLocale, adoptRawDocuments, parseAllRaw]);
 
   // Keeps `resume` in sync with manual YAML edits on the active tab only — the
   // textarea is the only mounted editor surface, so other locales' buffers are
@@ -496,33 +553,25 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
   );
   const isAnyDirty = dirtyLocales.length > 0;
 
-  const linkageStatuses = useMemo<Record<ResumeLocale, ResumeLinkageStatus>>(() => {
-    const result = {} as Record<ResumeLocale, ResumeLinkageStatus>;
-    const defaultBuffer = buffers[defaultLocale];
+  const parityStatus = useMemo<ResumeParityStatus>(() => {
+    const noDifference: ParityDifference = { percent: 0, worst: null, perLocale: [] };
+    if (testRun) return { ok: true, issues: [], difference: noDifference };
+    const documents: LanguageDocuments = {};
     for (const buffer of Object.values(buffers)) {
+      // A version with no stored document yet is not compared: it still holds the empty starter.
+      if (!buffer.documentRow && buffer.locale !== activeLocale) continue;
       try {
-        const currentRaw = parseYamlValue(buffer.yamlPanel);
-        if (buffer.locale === defaultLocale) {
-          const savedRaw = parseYamlValue(buffer.savedYamlContent);
-          const validation = inspectResumeEntryIdStability(savedRaw, currentRaw);
-          result[buffer.locale] = { ...validation, basis: "saved-default" };
-        } else if (defaultBuffer) {
-          const defaultRaw = parseYamlValue(defaultBuffer.yamlPanel);
-          const storedRaw = buffer.documentRow?.yaml_content ? parseYamlValue(buffer.documentRow.yaml_content) : null;
-          const validation = inspectTranslationLinkage(defaultRaw, currentRaw, storedRaw);
-          result[buffer.locale] = { ...validation, basis: "default-language" };
-        }
+        documents[buffer.locale] = parseBufferRaw(buffer);
       } catch (error) {
-        result[buffer.locale] = {
-          ok: false,
-          issues: [],
-          basis: buffer.locale === defaultLocale ? "saved-default" : "default-language",
-          parseError: error instanceof Error ? error.message : "Invalid YAML",
-        };
+        return { ok: false, issues: [], difference: noDifference, parseError: `${buffer.locale}: ${error instanceof Error ? error.message : "Invalid YAML"}` };
       }
     }
-    return result;
-  }, [buffers, defaultLocale]);
+    const current = documents[activeLocale];
+    const others = Object.fromEntries(Object.entries(documents).filter(([locale]) => locale !== activeLocale));
+    if (!current || Object.keys(others).length === 0) return { ok: true, issues: [], difference: noDifference };
+    const issues = inspectParity(documents, activeLocale);
+    return { ok: issues.length === 0, issues, difference: parityDifference(current, others) };
+  }, [buffers, activeLocale, testRun]);
 
   const resetActiveToTemplate = useCallback(async (): Promise<boolean> => {
     const current = buffers[activeLocale];
@@ -541,29 +590,23 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
   );
 
   const saveAllDirty = useCallback(
-    async ({
-      changeNote,
-      confirmLegacyPairing,
-    }: {
-      changeNote: string;
-      /** Asks the user to confirm the order of an ambiguous legacy translation (ADR 0023 §7). */
-      confirmLegacyPairing?: (prompt: EditorFailureMessage) => boolean | Promise<boolean>;
-    }): Promise<SaveAllResult> => {
+    async ({ changeNote }: { changeNote: string }): Promise<SaveAllResult> => {
       const targets = Array.from(new Set([activeLocale, ...dirtyLocales]));
       const result: SaveAllResult = { succeeded: [], failed: [] };
 
-      const outcomes = await saveLocalesInOrder(
-        targets,
-        defaultLocale,
-        async (code) => {
+      const outcomes = await Promise.allSettled(
+        targets.map(async (code) => {
           const buffer = buffers[code];
           if (!buffer) throw new Error(`${code}: not loaded.`);
           if (buffer.loadFailed) {
             throw new Error(`${code}: this language version failed to load — reload the page before saving it.`);
           }
           if (buffer.yamlError) throw new Error(`${code}: ${buffer.yamlError}`);
-          const linkageStatus = linkageStatuses[code];
-          if (linkageStatus && !linkageStatus.ok) throw new Error(`${code}: linked entry IDs are not valid.`);
+          if (parityStatus.parseError) throw new Error(parityStatus.parseError);
+          if (!parityStatus.ok) {
+            const keyed = parityFailure({ code: "parity", parityIssues: parityStatus.issues }, code) as EditorFailureMessage;
+            throw new ResumeSaveError(formatAppMessage(keyed.key, keyed.params), undefined, undefined, keyed);
+          }
           const validation = validateResumeDocument(buffer.resume);
           if (!validation.valid) throw new Error(`${code}: ${validation.errors.join(" ")}`);
 
@@ -578,44 +621,29 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
               title: "Test onboardingu", yaml_content: snapshot, schema_version: 1, updated_at: "" }, revisions: [] };
             return { code, payload, snapshot, styleSnapshot: buffer.cvStyle };
           }
-          const { status, payload } = await saveWithLegacyConfirmation<ApiDocumentResponse>(
-            code,
-            async (confirmLegacyPairing) => {
-              const response = await fetch("/api/resume/publish", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  locale: code,
-                  yamlContent: snapshot,
-                  title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Experience Base` : "Experience Base",
-                  styleSettings: buffer.cvStyle,
-                  changeNote: changeNote || "Saved update",
-                  baseUpdatedAt: buffer.documentRow?.updated_at ?? null,
-                  ...(confirmLegacyPairing ? { confirmLegacyPairing: true } : {}),
-                }),
-              });
-              return { status: response.status, payload: (await response.json()) as ApiDocumentResponse };
-            },
-            confirmLegacyPairing,
-          );
-          if (status < 200 || status >= 300 || payload.error || !payload.document) {
+          const response = await fetch("/api/resume/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              locale: code,
+              yamlContent: snapshot,
+              title: resumeFullName(buffer.resume) ? `${resumeFullName(buffer.resume)} - Experience Base` : "Experience Base",
+              styleSettings: buffer.cvStyle,
+              changeNote: changeNote || "Saved update",
+              baseUpdatedAt: buffer.documentRow?.updated_at ?? null,
+            }),
+          });
+          const payload = (await response.json()) as ApiDocumentResponse;
+          if (response.status < 200 || response.status >= 300 || payload.error || !payload.document) {
             const stored = partialSaveFailure(payload, code);
             const partial = stored ? { ...stored, payload, snapshot } : undefined;
-            const keyed = partial?.message ?? legacyConflictFailure(payload, code)?.message ?? defaultDuplicateIdsFailure(payload, code) ?? undefined;
+            const keyed = partial?.message ?? parityFailure(payload, code) ?? undefined;
             const message = keyed ? formatAppMessage(keyed.key, keyed.params) : `${code}: ${payload.error || "Save failed."}`;
             throw new ResumeSaveError(message, payload.docsUrl, partial, keyed);
           }
           return { code, payload, snapshot, styleSnapshot: buffer.cvStyle };
-        },
+        }),
       );
-
-      const defaultOutcome = outcomes[targets.indexOf(defaultLocale)];
-      // A partially saved default still ran the sync, so its rewrites are adopted too.
-      const defaultPayload = defaultOutcome?.status === "fulfilled"
-        ? defaultOutcome.value.payload
-        : defaultOutcome?.reason instanceof ResumeSaveError ? defaultOutcome.reason.partial?.payload ?? null : null;
-      const synchronized = defaultPayload?.synchronizedDocuments ?? [];
-      const unsynchronized = defaultPayload ? synchronizationFailureMessages(defaultPayload, defaultLocale) : [];
 
       outcomes.forEach((outcome, index) => {
         if (outcome.status === "fulfilled") result.succeeded.push(targets[index]);
@@ -628,12 +656,9 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             messageParams: outcome.reason instanceof ResumeSaveError ? outcome.reason.keyed?.params : undefined,
           });
       });
-      unsynchronized.forEach((failure) =>
-        result.failed.push({ locale: failure.locale, message: formatAppMessage(failure.key, failure.params), messageKey: failure.key, messageParams: failure.params }),
-      );
 
       setBuffers((prev) => {
-        let next = { ...prev };
+        const next = { ...prev };
         outcomes.forEach((outcome, index) => {
           const code = targets[index];
           if (outcome.status === "fulfilled") {
@@ -650,8 +675,6 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
                 savedCvStyle: styleSnapshot,
                 saveError: null,
               };
-              const canonical = canonicalBufferAfterSave(next[code], payload.document!, snapshot, actor?.displayName || "");
-              if (canonical) next[code] = canonical;
             }
           } else {
             const message = outcome.reason instanceof Error ? outcome.reason.message : "Save failed.";
@@ -659,21 +682,14 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
             // A stored-but-unfinished save moves the base forward and stays dirty,
             // so "save again" resends it and the server finishes the missing steps.
             if (next[code]) next[code] = { ...next[code], saveError: message, ...(partial ? { documentRow: partial.document } : {}) };
-            const canonical = partial && next[code] ? canonicalBufferAfterSave(next[code], partial.document, partial.snapshot, actor?.displayName || "") : null;
-            // Keeps the language dirty so "save again" resends it and finishes the save.
-            if (canonical) next[code] = { ...canonical, savedYamlContent: next[code].savedYamlContent, savedCvStyle: next[code].savedCvStyle, saveError: message };
           }
-        });
-        next = applySynchronizedDocuments(next, synchronized, defaultLocale, actor?.displayName || "");
-        unsynchronized.forEach((failure) => {
-          if (next[failure.locale]) next[failure.locale] = { ...next[failure.locale], saveError: formatAppMessage(failure.key, failure.params) };
         });
         return next;
       });
 
       return result;
     },
-    [activeLocale, actor?.displayName, buffers, defaultLocale, dirtyLocales, linkageStatuses, testRun],
+    [activeLocale, buffers, dirtyLocales, parityStatus, testRun],
   );
 
   const rollbackActiveToRevision = useCallback(
@@ -689,6 +705,8 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       });
       const payload = (await response.json()) as ApiDocumentResponse;
       if (!response.ok || payload.error || !payload.document) {
+        const parity = parityFailure(payload, targetLocale);
+        if (parity) throw new KeyedEditorError(parity);
         throw new Error(payload.error || "Rollback failed.");
       }
       const { buffer } = buildBuffer(targetLocale, payload.document, payload.revisions || [], actor?.displayName || "");
@@ -763,30 +781,14 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code, setDefault: true }),
     });
-    const payload = (await response.json()) as {
-      error?: string;
-      code?: string;
-      legacyConflicts?: Array<{ collection: string; reason: string }>;
-      linkageIssues?: Array<{ collection: string }>;
-      locale?: ResumeLocale;
-      defaultLocale?: ResumeLocale;
-      synchronizedDocuments?: SynchronizedResumeDocument[];
-    };
+    const payload = (await response.json()) as { error?: string; defaultLocale?: ResumeLocale };
     if (!response.ok || payload.error) {
-      const conflict = legacyConflictFailure(payload, code);
-      if (conflict) throw new KeyedEditorError(conflict.message);
-      const duplicate = defaultDuplicateIdsFailure({ ...payload, defaultLocale: payload.defaultLocale ?? defaultLocale }, code);
-      if (duplicate) throw new KeyedEditorError(duplicate);
       throw new Error(payload.error || "Default language update failed.");
     }
     const nextDefault = payload.defaultLocale || code;
     setDefaultLocale(nextDefault);
     setLanguageOptions((prev) => prev.map((language) => ({ ...language, is_default: language.code === nextDefault })));
-    const synchronized = payload.synchronizedDocuments ?? [];
-    // The new default is rewritten first, so translations rebase against its stored version.
-    const ordered = [...synchronized.filter((entry) => entry.locale === nextDefault), ...synchronized.filter((entry) => entry.locale !== nextDefault)];
-    setBuffers((prev) => applySynchronizedDocuments(prev, ordered, nextDefault, actor?.displayName || ""));
-  }, [actor?.displayName, defaultLocale, testRun]);
+  }, [testRun]);
 
   const deleteLanguageVersion = useCallback(async (code: ResumeLocale) => {
     const response = await fetch("/api/resume/languages", {
@@ -824,7 +826,7 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     loadNotice,
     dirtyLocales,
     errorLocales,
-    linkageStatuses,
+    parityStatus,
     isAnyDirty,
     setActiveLocale,
     updateActiveYaml,
@@ -832,6 +834,12 @@ export function useMultiLocaleResumeDocuments(initialLocale: ResumeLocale | null
     setActiveCvStyle,
     resetActiveToTemplate,
     saveAllDirty,
+    applyStructuralOp,
+    structuralOpLosses,
+    matchOthersToActive,
+    matchOthersLosses,
+    setActiveHighlights,
+    highlightLosses,
     rollbackActiveToRevision,
     loadRevisionSnapshot,
     saveLanguageVersion,

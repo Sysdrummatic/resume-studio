@@ -757,6 +757,25 @@ What's actually true as of 2026-08-26:
   was corrected — faster and can't drift from reality the way a static
   checklist can.
 
+**Language Versions as Parallel Lists (ADR 0024):** the versions of one
+Master Resume (EN/PL/…) have no IDs in the YAML. Entry N of every version is the
+same entry; every version has the same number of entries in each section and of
+`highlights` in each experience entry. `app/lib/resume-language-parity.ts` (pure)
+holds the template for a new language, the structural operations the editor applies
+to every version at once (add/remove/move an entry or bullet), `inspectParity`,
+`parityDifference` (the percentage next to the YAML tab's **Match** button) and
+`matchOthersToVersion`. Saving a version never rewrites the others; the server
+refuses publishing, an import and a rollback that would leave the versions out of
+step (`409 { code: "parity", parityIssues }`), and strips `entry_id`/`__ocv` from
+every saved document while still reading them from older data. Neutral fields
+(experience `period`/`company`, education `period`/`school`, courses `year`,
+skills/languages `level`) are copied between versions; contact and QR rows have
+none. A translation row with no translated content is a blank slot and is omitted
+from the public CV (`translation` option of `buildPublishedExportContent`).
+Test contracts: `tests/resume-language-parity.test.mjs`,
+`tests/language-parity-server.test.mjs`, `tests/import-language-parity.test.mjs`.
+See [ADR 0024](docs/adr/0024-language-versions-as-parallel-lists.md).
+
 **First-Use Master CV Onboarding:** `/onboarding` walks a newly registered
 account through welcome → scratch/import choice → the eleven Master Resume
 sections → preview → an explicit publish choice, reusing `EditorCanvasClient`
