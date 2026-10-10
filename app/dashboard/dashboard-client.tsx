@@ -14,6 +14,7 @@ import type {
 import { buildPublishedResumeExportUrls, parseCanonicalPublicPath } from "../lib/resume-export";
 import { StatusToast, useStatusToast } from "../components/status-toast";
 import PublishSavedVersionModal, { type PublishDraft } from "../components/PublishSavedVersionModal";
+import PublicationLanguageFields, { validatePublicationLanguages, type PublicationLanguages } from "../components/PublicationLanguageFields";
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
 import { FileText, LockKeyhole, Plus, Search, ArrowUpRight } from "lucide-react";
@@ -25,6 +26,7 @@ import {
   summarizeMasterResume,
   filterDashboardPresets,
   getSelectedDashboardPreset,
+  mergePreset,
   type DashboardFilter,
 } from "./dashboard-model";
 import "./dashboard.css";
@@ -193,24 +195,34 @@ function buildLanguageOptions(
     .sort((left, right) => left.code.localeCompare(right.code));
 }
 
-function mergePreset(current: ResumePresetRow[], nextPreset: ResumePresetRow) {
-  const exists = current.some((preset) => preset.id === nextPreset.id);
-  if (!exists) return [nextPreset, ...current];
-  return current.map((preset) => (preset.id === nextPreset.id ? nextPreset : preset));
-}
+type PresetSavePayload = {
+  presetId?: string;
+  title: string;
+  selection: ResumePresetSelection;
+  styleSettings: unknown;
+  allowIndexing: boolean;
+  aiGenerated: boolean;
+  /** Set for a published version: saving also replaces the content under its link in these languages. */
+  publication?: PublicationLanguages;
+};
 
 function PresetModal({
   masterResume,
   preset,
   options,
+  publishableLocales,
+  languageOptions,
   onClose,
   onSave,
 }: {
   masterResume: ResumeDocumentRow;
   preset: ResumePresetRow | null;
   options: PresetOption[];
+  publishableLocales: ResumeLocale[];
+  languageOptions: ResumeUserLocaleRow[];
   onClose: () => void;
-  onSave: (payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: unknown; allowIndexing: boolean; aiGenerated: boolean }) => Promise<void>;
+  /** A returned message is shown in the editor, which then stays open. */
+  onSave: (payload: PresetSavePayload) => Promise<string | void>;
 }) {
   const { dictionary } = useAppI18n();
   const labels = dictionary.dashboard.preset_editor;
@@ -226,6 +238,14 @@ function PresetModal({
   const [styleEdited, setStyleEdited] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const isPublished = Boolean(preset?.is_public);
+  const [publication, setPublication] = useState<PublicationLanguages>(() => {
+    const selectedLocales = preset?.published_locales?.length ? preset.published_locales : [preset?.default_locale ?? masterResume.locale];
+    const defaultLocale = selectedLocales.includes(preset?.default_locale as ResumeLocale) ? (preset!.default_locale as ResumeLocale) : selectedLocales[0];
+    return { selectedLocales, defaultLocale };
+  });
+  const publicationLocales = Array.from(new Set([...publishableLocales, ...publication.selectedLocales])).sort();
+  const submitLabel = isPublished ? labels.update : preset ? labels.save : labels.create;
 
   function toggleIndex(key: PresetOptionKey, index: number) {
     setSelection((current) => {
@@ -255,6 +275,11 @@ function PresetModal({
       setError(labels.summary_required);
       return;
     }
+    const invalidPublication = isPublished ? validatePublicationLanguages(publication, dictionary.dashboard.publish_modal) : null;
+    if (invalidPublication) {
+      setError(invalidPublication);
+      return;
+    }
     setError("");
     setIsSaving(true);
     try {
@@ -262,10 +287,11 @@ function PresetModal({
       // "Saving..." forever — the user's title/selection stay as entered so
       // they can retry without re-filling the form.
       const result = await saveOrReportError(
-        () => onSave({ presetId: preset?.id, title, selection: nextSelection, styleSettings: preset?.style_settings && !styleEdited ? preset.style_settings : styleSettings, allowIndexing, aiGenerated }),
+        () => onSave({ presetId: preset?.id, title, selection: nextSelection, styleSettings: preset?.style_settings && !styleEdited ? preset.style_settings : styleSettings, allowIndexing, aiGenerated, publication: isPublished ? publication : undefined }),
         "Could not save. Check your connection and try again.",
       );
       if (!result.ok) setError(result.error);
+      else if (result.value) setError(result.value);
     } finally {
       setIsSaving(false);
     }
@@ -329,6 +355,13 @@ function PresetModal({
           </label>
         </div>
 
+        {isPublished ? (
+          <section className="stack" aria-label={dictionary.dashboard.publish_modal.link_state}>
+            <PublicationLanguageFields locales={publicationLocales} languageOptions={languageOptions} value={publication} onChange={setPublication} />
+            <p className="card-lead">{dictionary.dashboard.publish_modal.active_link}</p>
+          </section>
+        ) : null}
+
         <label className="checkbox-row">
           <input type="checkbox" checked={aiGenerated} onChange={(event) => setAiGenerated(event.target.checked)} />
           {labels.ai_generated}
@@ -364,8 +397,14 @@ function PresetModal({
         {error ? <p className="status status--error">{error}</p> : null}
 
         <div className="actions-row">
-          <button type="button" className="button button--primary" onClick={() => void handleSave()} disabled={isSaving}>
-            {isSaving ? labels.saving : labels.save}
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={() => void handleSave()}
+            disabled={isSaving}
+            title={isPublished ? labels.update_hint : undefined}
+          >
+            {isSaving ? labels.saving : submitLabel}
           </button>
           <button type="button" className="button button--ghost" onClick={onClose}>
             {labels.cancel}
@@ -663,7 +702,7 @@ export default function DashboardClient({
   }
 
 
-  async function savePreset(payload: { presetId?: string; title: string; selection: ResumePresetSelection; styleSettings: unknown; allowIndexing: boolean; aiGenerated: boolean }) {
+  async function savePreset(payload: PresetSavePayload): Promise<string | void> {
     if (!modalDocument) return;
     const response = await fetch(payload.presetId ? `/api/resume/presets/${encodeURIComponent(payload.presetId)}` : "/api/resume/presets", {
       method: payload.presetId ? "PATCH" : "POST",
@@ -675,8 +714,7 @@ export default function DashboardClient({
         styleSettings: payload.styleSettings,
         allowIndexing: payload.allowIndexing,
         aiGenerated: payload.aiGenerated,
-        defaultLocale: activePreset?.default_locale || defaultLanguageVersion?.code || modalDocument.locale,
-        isPublic: false,
+        defaultLocale: payload.publication?.defaultLocale || activePreset?.default_locale || defaultLanguageVersion?.code || modalDocument.locale,
       }),
     });
     const result = (await response.json()) as PresetApiResponse;
@@ -692,9 +730,29 @@ export default function DashboardClient({
     setSelectedPresetId(result.preset.id);
     setSearch("");
     setFilter("all");
-    showToast(labels.messages.saved);
+    if (payload.publication) {
+      const failure = await republishPreset(result.preset, payload.publication);
+      if (failure) return formatAppMessage(labels.messages.saved_not_updated, { reason: failure });
+    }
     setIsModalOpen(false);
     setActivePreset(null);
+    showToast(payload.publication ? labels.messages.updated : labels.messages.saved);
+  }
+
+  async function republishPreset(preset: ResumePresetRow, publication: PublicationLanguages): Promise<string | null> {
+    try {
+      const response = await fetch(`/api/resume/presets/${encodeURIComponent(preset.id)}/republish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(publication),
+      });
+      const result = (await response.json()) as PresetApiResponse;
+      if (!response.ok || result.error || !result.preset) return result.error || labels.messages.update_failed;
+      setPresets((current) => mergePreset(current, result.preset!));
+      return null;
+    } catch {
+      return labels.messages.update_failed;
+    }
   }
 
   async function publishPreset(payload: {
@@ -1101,13 +1159,9 @@ export default function DashboardClient({
                           {dictionary.dashboard.preview.open_cv}
                         </button>
                       )}
-                      {!selectedPreset.onboarding_test_run_id ? (
-                        <button
-                          type="button"
-                          className={`button ${selectedPreset.is_public ? "button--ghost" : "button--primary"}`}
-                          onClick={() => openPublishSavedVersion(selectedPreset)}
-                        >
-                          {selectedPreset.is_public ? labels.library.publish_again : labels.library.publish}
+                      {!selectedPreset.onboarding_test_run_id && !selectedPreset.is_public ? (
+                        <button type="button" className="button button--primary" onClick={() => openPublishSavedVersion(selectedPreset)}>
+                          {labels.library.publish}
                         </button>
                       ) : null}
                       {selectedPreset.is_public ? (
@@ -1241,6 +1295,8 @@ export default function DashboardClient({
           masterResume={modalDocument}
           preset={activePreset}
           options={options}
+          publishableLocales={publishableLocales}
+          languageOptions={languageVersions}
           onClose={() => {
             setIsModalOpen(false);
             setActivePreset(null);

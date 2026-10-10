@@ -43,7 +43,8 @@ for the current values.
 ## Why is the public page showing older content?
 
 Public links show the last published state of a LiveCV. Save the Experience Base, update
-the LiveCV version selection if necessary, and publish again. A private preview can
+the LiveCV version selection if necessary, then open the version with **Edit** and click
+**Update LiveCV** (for a version that was never published, use **Publish**). A private preview can
 show current content while the public link still shows its last published state.
 
 ## What should I include when asking for help?

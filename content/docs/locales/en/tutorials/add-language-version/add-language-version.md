@@ -30,9 +30,9 @@ and role-specific phrasing for the people who will read each version.
 
 1. Return to **Dashboard** and open the LiveCV version settings menu.
 2. Select **Edit**.
-3. Check the language documents that belong in this version.
-4. Save the version.
-5. Publish it again and select those locales in the publication dialog.
+3. For a version that is not published yet, publish it with **Publish** and check the languages in the publication dialog.
+4. For a published version, check the languages under the language versions in the editor and choose the default one.
+5. Click **Update LiveCV**.
 
 The public language switcher shows only locales included in the latest
 publication. A language version can exist in the Experience Base and still remain

@@ -184,7 +184,6 @@ export async function POST(request: Request): Promise<Response> {
       documentId: document.id,
       title: version.title,
       selection,
-      isPublic: false,
       allowIndexing: version.allow_indexing,
       aiGenerated: version.ai_generated,
       styleSettings: version.style_settings,

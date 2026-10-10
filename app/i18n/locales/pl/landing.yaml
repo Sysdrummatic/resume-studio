@@ -11,7 +11,7 @@ landing:
       - rozwija się
     description:
       - Klasyczne CV jest nieaktualne zaraz po jego publikacji. Każda najmniejsza zmiana powoduje, że musisz wygenerować kolejny plik. A co jeśli twoje doświadczenie zawodowe umożliwia Ci aplikowanie na trzy odrębne ścieżki kariery? Kończysz z trzema osobnymi edytowalnymi wersjami i dokumentami dopasowanymi pod konkretne oferty. 
-      - OpenCiVera pozwala Ci stworzyć jedno uporządkowane źródło danych, z którego wybierasz treści do osobnych LiveCV. Każde z nich możesz opublikować pod własnym linkiem i w dowolnym momencie odświeżyć, gdy dodasz nowe doświadczenia. Jeżeli będziesz potrzebować wersji w PDF, 
+      - OpenCiVera pozwala Ci stworzyć jedno uporządkowane źródło danych, z którego wybierasz treści do osobnych LiveCV. Każde z nich możesz opublikować pod publicznym linkiem i w dowolnym momencie odświeżyć, gdy dodasz nowe doświadczenia. Jeżeli będziesz potrzebować wersji w PDF, możesz ją pobrać w dowolnym momencie.
       - Platforma jest darmowa, a Twoje dane pozostają prywatne. Publikujesz tylko to, co chcesz pokazać.
     primary_action: Utwórz LiveCV
     secondary_action: Zobacz przykładowe LiveCV
@@ -23,7 +23,7 @@ landing:
   sample:
     eyebrow: // Publiczny link w praktyce
     title: Twoje LiveCV jako publiczna wizytówka.
-    description: Stworzone i opublikowane w OpenCiVera LiveCV jest dostępne pod własnym linkiem. Rekruterzy i współpracownicy mogą je otworzyć w przeglądarce, a Ty decydujesz, które informacje udostępnić. W każdej chwili możesz pobrać swoje CV w formacie PDF, YAML lub TXT.
+    description: Stworzone i opublikowane w OpenCiVera LiveCV jest dostępne pod publicznym linkiem. Rekruterzy i współpracownicy mogą je otworzyć w przeglądarce, a Ty decydujesz, które informacje udostępnić. W każdej chwili możesz pobrać swoje CV w formacie PDF, YAML lub TXT.
     data_note: Przykład utworzony w OpenCiVera
     open_action: Zobacz całe LiveCV
     loading_aria: Ładowanie przykładowego LiveCV
@@ -31,7 +31,7 @@ landing:
   animation:
     eyebrow: // Od jednego źródła wiedzy do ukierunkowanych zawodowo LiveCV
     title: Jak to działa w praktyce?
-    detail: Aby stworzyć swoje LiveCV, najpierw tworzysz prywatną Bazę doświadczeń. Baza doświadczeń gromadzi twoje wszystkie umiejętności, kursy czy doświadczenia zawodowe. Następnie wybierasz z niej treści do osobnych LiveCV dopasowanych do konkretnych ofert. Każde z nich możesz opublikować pod własnym linkiem i w dowolnym momencie odświeżyć, gdy dodasz nowe doświadczenia.
+    detail: Aby stworzyć swoje LiveCV, najpierw tworzysz prywatną Bazę doświadczeń. Baza doświadczeń gromadzi twoje wszystkie umiejętności, kursy czy doświadczenia zawodowe. Następnie wybierasz z niej treści do osobnych LiveCV dopasowanych do konkretnych ofert.
     iframe_title: Animacja pokazująca proces tworzenia LiveCV w OpenCiVera
   features:
     eyebrow: // Funkcje OpenCiVera
@@ -103,9 +103,9 @@ landing:
       - question: Kto może zobaczyć moją Bazę doświadczeń?
         answer: Baza doświadczeń jest prywatna. Odbiorca publicznego linku widzi tylko informacje wybrane do konkretnego, opublikowanego LiveCV.
       - question: Jak działa publikacja?
-        answer: Baza doświadczeń pozostaje prywatna. Wybierasz treści do LiveCV, a następnie świadomie je publikujesz. Edycja bazy nie zmienia już opublikowanego LiveCV. Gdy chcesz udostępnić nowe informacje, publikujesz wybraną wersję ponownie. Publiczny link możesz w każdej chwili wyłączyć.
+        answer: Baza doświadczeń pozostaje prywatna. Wybierasz treści do LiveCV, a następnie świadomie je publikujesz. Edycja bazy nie zmienia już opublikowanego LiveCV. Gdy chcesz udostępnić nowe informacje, aktualizujesz wybraną wersję.
       - question: Czy zmiana danych aktualizuje opublikowane LiveCV?
-        answer: Nie. Edycja Bazy doświadczeń nie zmienia automatycznie publikacji. Aby udostępnić nowe informacje, ponownie publikujesz wybraną wersję LiveCV.
+        answer: Nie. Edycja Bazy doświadczeń nie zmienia automatycznie publikacji. Aby udostępnić nowe informacje, aktualizujesz wybraną wersję LiveCV.
       - question: Czy mogę utworzyć kilka wersji LiveCV?
         answer: Tak. Możesz przygotować osobne wersje dla różnych stanowisk, ofert i języków, korzystając z tej samej Bazy doświadczeń.
       - question: Czy OpenCiVera jest zgodna z RODO?

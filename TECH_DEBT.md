@@ -118,11 +118,14 @@ Pominięty w Phase G (G-P0-01) i odroczony do [Phase O](docs/phases/phase-o-open
 
 **Status (2026-10-11):** otwarte (ocv-0211, ADR 0024).
 
-- **Istniejące dokumenty** nadal mają `entry_id`/`__ocv` i wersje językowe zapisane w starym modelu.
-  Czytnik je akceptuje, a każdy zapis je usuwa. Skrypt migracji (wyrównanie liczby wpisów i punktów
-  przez dopełnienie pustymi slotami, potem usunięcie ID; raport niezgodności) nie jest jeszcze napisany ani
-  uruchomiony na `test` ani `prod`. Do tego czasu edytor blokuje zapis konta, którego wersje nie są
-  równoległe, dopóki użytkownik nie użyje „Dopasuj”.
+- **Istniejące dokumenty** zostały zmigrowane na `test` (2026-10-11, skrypt
+  `scripts/migrate/parallel-language-versions.mjs`: usunięcie `entry_id`/`__ocv`, konwersja starego
+  tekstowego `summary`, dopełnienie krótszych wersji pustymi slotami). **`prod` czeka**: backup
+  `resume_documents`, dry-run, przegląd raportu, dopiero `--apply`. Do tego czasu czytnik akceptuje stary
+  kształt, a każdy zapis go czyści; edytor blokuje zapis konta, którego wersje nie są równoległe, dopóki
+  użytkownik nie użyje „Dopasuj”. Różnice, których skrypt nie naprawia (inne okresy lub szkoły w tłumaczeniu),
+  są tylko w raporcie dry-runu. Schemat `ocv0211_backup` na `test` (kopie danych użytkowników) do usunięcia
+  po akceptacji PR.
 - **Odczyt starego kształtu** (`entry_id`, `__ocv` w dokumentach, rewizjach, snapshotach i paczkach
   eksportu) zostaje na stałe; `stripPrivateLinkage` w `published-export.ts` też.
 - **Brak testu przeglądarkowego** nowych przepływów edytora (dodaj/usuń wpis i punkt we wszystkich
@@ -133,3 +136,30 @@ Pominięty w Phase G (G-P0-01) i odroczony do [Phase O](docs/phases/phase-o-open
 - **Edycja punktów w polu tekstowym** zmienia ich liczbę we wszystkich wersjach; gdy punktów ubywa,
   obcinany jest koniec listy w pozostałych wersjach (z potwierdzeniem, jeśli ma tam tekst), bo pole
   tekstowe nie mówi, która linia zniknęła.
+
+## Edycja Bazy doświadczeń nie sygnalizuje nieaktualnego linku do LiveCV (stan z 2026-10-10)
+
+**Status:** otwarte. Zakres [#214](https://github.com/Sysdrummatic/resume-studio/issues/214)
+objął tylko edycję z poziomu wersji LiveCV ("Zaktualizuj LiveCV").
+
+Opublikowany link czyta niezmienną migawkę, więc zmiana wpisu w Bazie doświadczeń
+(Master CV), który jest w wyborze opublikowanej wersji, nie zmienia linku. Edycja tej
+wersji zapisuje i aktualizuje link, ale sama edycja Bazy doświadczeń nie zostawia żadnego
+śladu, że link jest starszy.
+
+### Do zrobienia
+
+Znacznik "zmiany nieopublikowane w linku" przy opublikowanej wersji, z przyciskiem
+"Zaktualizuj". Wykrywanie: `published_at` linku starsze niż `updated_at` dokumentów
+wybranych języków albo samej wersji (`resume_presets`, `resume_preset_variants`).
+Prostsza wersja daje fałszywe alarmy przy edycji wpisu spoza wyboru. Dokładna wymaga
+porównania YAML po zastosowaniu wyboru na surowym dokumencie (kontrakt R09). Nie publikować
+automatycznie przy zapisie Bazy doświadczeń: szkic trafiłby od razu do publicznego linku.
+
+## ADR 0001 mówi, że ponowna publikacja po wycofaniu tworzy nowy `public-id` (stan z 2026-10-10)
+
+Migracja `20260604000000_reactivate_revoked_public_link_on_publish.sql` robi odwrotnie:
+`publish_resume_saved_version` przywraca unieważniony link z tym samym `public_id`
+(chroni test `tests/publish-republish-contract.test.mjs`). ADR 0001 (reguła 8 i PR4)
+opisuje zachowanie sprzed tej migracji. Decyzja: poprawić ADR zgodnie z kodem albo
+przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
