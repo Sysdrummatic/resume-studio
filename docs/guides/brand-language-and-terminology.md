@@ -75,7 +75,10 @@ The version editor shows exactly one submit action, chosen by state:
 step), `Save LiveCV` saves an unpublished version without touching any link, and
 `Update LiveCV` appears only for a published version. `Update LiveCV` is the
 explicit republish: it saves the changes and replaces the content under the
-existing link, in the languages already published there. Its hover hint says so.
+existing link. The same editor holds the publication languages and the default
+language; they start as the languages already published there, so an update never
+adds one unless the user checks it. Its hover hint says so. There is no separate
+`Publish again` action.
 If the save succeeds but the link update fails, say that both facts are true:
 the changes are saved and the link still shows the previous content.
 

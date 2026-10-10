@@ -43,7 +43,9 @@ publication. An unsupported `?lang=` value falls back to the published default.
 
 To change a published LiveCV, open its settings menu, select **Edit**, adjust the
 selection and click **Update LiveCV**. This saves your changes and replaces the content
-under the same link, in the languages already published there. The version stays published.
+under the same link. The editor also lets you choose which language versions the link serves and
+which one opens by default (the languages already published are checked), and whether search
+engines may index the page. The version stays published.
 If you see "Changes were saved, but the LiveCV link was not updated", your changes are
 safe but the link still shows the previous content; open **Edit** and click
 **Update LiveCV** again. Changing only the Experience Base does not update the link;

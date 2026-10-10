@@ -30,9 +30,9 @@ opis roli do osób, które będą czytać daną wersję.
 
 1. Wróć do **Panel** i otwórz menu ustawień wersji LiveCV.
 2. Wybierz **Edytuj**.
-3. Zaznacz dokumenty językowe, które mają należeć do tej wersji.
-4. Zapisz wersję.
-5. Opublikuj ją ponownie i wybierz te języki w oknie publikacji.
+3. Wersję jeszcze nieopublikowaną opublikuj przyciskiem **Opublikuj** i zaznacz języki w oknie publikacji.
+4. W wersji opublikowanej zaznacz języki w edytorze, w sekcji wersji językowych, i wybierz język domyślny.
+5. Kliknij **Zaktualizuj LiveCV**.
 
 Publiczny przełącznik pokazuje tylko języki zawarte w ostatniej publikacji. Język
 może istnieć w Bazie doświadczeń, a mimo to pozostać prywatny, jeśli nie zaznaczysz go
