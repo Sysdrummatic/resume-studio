@@ -156,7 +156,7 @@ export async function POST(request: Request): Promise<Response> {
   );
   if (!imported.ok) {
     return NextResponse.json(
-      { error: imported.error, ...(imported.code ? { code: imported.code } : {}), ...(imported.linkageIssues ? { linkageIssues: imported.linkageIssues } : {}), ...(imported.legacyConflicts ? { legacyConflicts: imported.legacyConflicts } : {}) },
+      { error: imported.error, ...(imported.code ? { code: imported.code } : {}), ...(imported.parityIssues ? { parityIssues: imported.parityIssues } : {}) },
       { status: imported.status },
     );
   }

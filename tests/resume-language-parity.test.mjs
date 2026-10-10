@@ -184,3 +184,27 @@ test("stripEntryIds removes entry_id from rows and the __ocv block and keeps eve
   assert.deepEqual(clean.tech_stack, ["TypeScript", "React"]);
   assert.equal("entry_id" in dirty.skills[0], true, "the input is not mutated");
 });
+
+test("hasEntryIds spots entry_id fields and the __ocv block, and nothing else", async () => {
+  const { hasEntryIds } = await import("../app/lib/resume-language-parity.ts");
+
+  assert.equal(hasEntryIds(english()), false);
+  assert.equal(hasEntryIds({ ...english(), __ocv: { entries: {} } }), true);
+  assert.equal(hasEntryIds({ ...english(), skills: [{ entry_id: "x", name: "A", level: 1 }] }), true);
+  assert.equal(hasEntryIds(null), false);
+});
+
+test("setting the bullets of an entry fits the other versions to the new count and reports cut text", async () => {
+  const { setHighlightsInAll } = await import("../app/lib/resume-language-parity.ts");
+  const docs = { en: english(), pl: polish() };
+
+  const longer = setHighlightsInAll(docs, "en", 1, ["Shipped", "Reviewed", "Mentored"]);
+  assert.deepEqual(longer.documents.en.experience[1].highlights, ["Shipped", "Reviewed", "Mentored"]);
+  assert.deepEqual(longer.documents.pl.experience[1].highlights, ["", "", ""]);
+  assert.deepEqual(longer.truncated, []);
+  assert.equal(inspectParity(longer.documents, "en").length, 0);
+
+  const shorter = setHighlightsInAll(docs, "en", 0, ["Only one"]);
+  assert.deepEqual(shorter.documents.pl.experience[0].highlights, ["Zbudowałem edytor"]);
+  assert.deepEqual(shorter.truncated, [{ locale: "pl", collection: "experience", index: 0, bulletIndex: 1, hasContent: true }]);
+});

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { rollbackResumeDocument } from "../../../lib/resume-server";
+import { RESUME_PARITY_MESSAGE, ResumeParityError, rollbackResumeDocument } from "../../../lib/resume-server";
 import { normalizeLocale } from "../../../lib/resume-schema";
 
 type RollbackBody = {
@@ -33,13 +33,21 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "revisionNumber must be a positive integer." }, { status: 400 });
   }
 
-  const payload = await rollbackResumeDocument(
-    actorResult.accessToken,
-    actorResult.actor.userId,
-    locale,
-    documentId,
-    revisionNumber,
-  );
+  let payload;
+  try {
+    payload = await rollbackResumeDocument(
+      actorResult.accessToken,
+      actorResult.actor.userId,
+      locale,
+      documentId,
+      revisionNumber,
+    );
+  } catch (error) {
+    if (error instanceof ResumeParityError) {
+      return NextResponse.json({ error: RESUME_PARITY_MESSAGE, code: "parity", parityIssues: error.issues }, { status: 409 });
+    }
+    throw error;
+  }
 
   if (!payload) {
     return NextResponse.json({ error: "Rollback failed." }, { status: 500 });

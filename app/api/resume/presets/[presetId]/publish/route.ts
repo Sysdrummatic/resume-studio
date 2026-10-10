@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../../../lib/auth-request";
-import { publishResumePreset } from "../../../../../lib/resume-server";
+import { publishResumePreset, RESUME_PARITY_MESSAGE, ResumeParityError } from "../../../../../lib/resume-server";
 import { normalizeLocale, RESUME_LIMITS_DOC_URL } from "../../../../../lib/resume-schema";
 import { rateLimit } from "../../../../../lib/rate-limit";
 
@@ -66,6 +66,9 @@ export async function POST(request: Request, context: PublishRouteContext): Prom
 
     return NextResponse.json({ ok: true, preset });
   } catch (error) {
+    if (error instanceof ResumeParityError) {
+      return NextResponse.json({ error: RESUME_PARITY_MESSAGE, code: "parity", parityIssues: error.issues }, { status: 409 });
+    }
     const message = error instanceof Error ? error.message : "CV Version publish failed.";
     console.error("[publish-route-error]", error);
     return NextResponse.json({ error: message }, { status: 500 });

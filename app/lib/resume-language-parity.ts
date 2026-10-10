@@ -44,10 +44,11 @@ export type ParityIssue =
 
 export type TruncatedEntry = { locale: string; collection: ParallelCollection; index: number; hasContent: boolean; bulletIndex?: number };
 
-/** Fields that are identical in every version; the saved version wins when they are copied. */
+/**
+ * Fields that are identical in every version; the saved version wins when they are
+ * copied. Contact and QR rows have none: a location or a link may be translated.
+ */
 const NEUTRAL_FIELDS: Partial<Record<ParallelCollection, string[]>> = {
-  contact: ["value", "link"],
-  qr_codes: ["value", "size"],
   skills: ["level"],
   languages: ["level"],
   experience: ["period", "company"],
@@ -330,4 +331,47 @@ export function untranslatedFieldCount(source: RawObject, version: RawObject): n
     });
   }
   return count;
+}
+
+/** True while a document still carries `entry_id` fields or an `__ocv` block from before ADR 0024. */
+export function hasEntryIds(document: unknown): boolean {
+  const source = asObject(document);
+  if ("__ocv" in source) return true;
+  return PARALLEL_COLLECTIONS.some((collection) => rowsOf(source, collection).some((row) => Boolean(row) && typeof row === "object" && "entry_id" in (row as RawObject)));
+}
+
+/**
+ * Sets the bullets of one experience entry in the source version and fits every
+ * other version to the new count: missing bullets become empty ones at the end,
+ * surplus ones are cut from the end (reported, so the caller can ask first).
+ */
+export function setHighlightsInAll(
+  documents: LanguageDocuments,
+  sourceLocale: string,
+  entryIndex: number,
+  bullets: string[],
+): { documents: LanguageDocuments; truncated: TruncatedEntry[] } {
+  const truncated: TruncatedEntry[] = [];
+  const result: LanguageDocuments = {};
+  for (const [locale, value] of Object.entries(documents)) {
+    const document = structuredClone(asObject(value));
+    const rows = [...rowsOf(document, "experience")];
+    if (rows[entryIndex]) {
+      const current = highlightsOf(rows[entryIndex]);
+      let next: string[];
+      if (locale === sourceLocale) {
+        next = bullets;
+      } else {
+        current.slice(bullets.length).forEach((bullet, offset) => {
+          truncated.push({ locale, collection: "experience", index: entryIndex, bulletIndex: bullets.length + offset, hasContent: isFilled(bullet) });
+        });
+        next = current.slice(0, bullets.length);
+        while (next.length < bullets.length) next.push("");
+      }
+      rows[entryIndex] = { ...asObject(rows[entryIndex]), highlights: next };
+      document.experience = rows;
+    }
+    result[locale] = document;
+  }
+  return { documents: result, truncated };
 }

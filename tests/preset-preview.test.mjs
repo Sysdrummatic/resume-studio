@@ -12,7 +12,7 @@ globalThis.window = { jsyaml: yaml };
 const { buildPresetResumeDocument, saveOrReportError } = await import("../app/lib/preset-preview.ts");
 const { buildDefaultResumeYaml } = await import("../app/lib/resume-server.ts");
 const { EMPTY_PRESET_SELECTION } = await import("../app/lib/preset-selection.ts");
-const { buildResumeLanguageTemplate } = await import("../app/lib/resume-language-linkage.ts");
+const { buildLanguageTemplate: buildResumeLanguageTemplate } = await import("../app/lib/resume-language-parity.ts");
 
 test("a freshly seeded language version (the real onboarding/new-language template) previews as empty, not ok", () => {
   // ocv-0203: buildDefaultResumeYaml() is the exact function that seeds a new
@@ -49,7 +49,7 @@ test("translated CV preview omits linked work entries that have only neutral fie
   });
   translation.summary[0].position = "Inżynier";
   translation.experience[0].role = "Inżynier";
-  translation.experience.push({ ...translation.experience[0], entry_id: "older-role", period: "2019", company: "Beta", role: "", highlights: [] });
+  translation.experience.push({ ...translation.experience[0], period: "2019", company: "Beta", role: "", highlights: [] });
   const selection = { ...EMPTY_PRESET_SELECTION, summary: [0], experience: [0, 1] };
 
   const preview = buildPresetResumeDocument(yaml.dump(translation), selection, { translation: true });

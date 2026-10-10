@@ -8,13 +8,13 @@ register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 
 const { clampResumeSelectionToRawDocument, omitBlankLinkedTranslationSlots } = await import("../app/lib/preset-selection.ts");
 const { buildPublishedExportContent } = await import("../app/lib/published-export.ts");
-const { ensureResumeEntryIds, buildResumeLanguageTemplate } = await import("../app/lib/resume-language-linkage.ts");
+const { buildLanguageTemplate: buildResumeLanguageTemplate } = await import("../app/lib/resume-language-parity.ts");
 
-// A language added through linkage starts with a blank slot for every default
-// entry (ADR 0023 §3: "omitted by rendering"). Publishing that language with the
+// A language added as a template starts with a blank slot for every default
+// entry (ADR 0024: "omitted by rendering"). Publishing that language with the
 // version's selection must not keep indexes of blank slots: the public resolver
 // would then drop them, see a count mismatch and 404 the whole language.
-const english = ensureResumeEntryIds({
+const english = ({
   first_name: "Jan", family_name: "Kowalski", brand_initials: "JK", gdpr_clause: "",
   summary: [{ position: "Engineer", description: "Builds", default: true }, { position: "Lead", description: "Leads", default: false }],
   contact: [{ label: "E-mail", value: "jan@example.com" }], qr_codes: [],
@@ -51,7 +51,7 @@ test("a partly translated language publishes its translated entries instead of 4
   assert.deepEqual(published.resume.education, []);
   assert.deepEqual(published.resume.courses, []);
   assert.equal(published.resume.experience[0].role, "Inżynier");
-  assert.doesNotMatch(published.yamlContent, /entry_id|__ocv/, "private linkage metadata stays out of public exports");
+  assert.doesNotMatch(published.yamlContent, /entry_id|__ocv/, "older snapshots may still carry IDs; they stay out of public exports");
 });
 
 test("a blank selected summary never falls back to an unselected translated one", () => {
@@ -86,17 +86,17 @@ test("an older translated snapshot omits blank linked slots without discarding t
   assert.equal(base.resume.experience.length, 2, "the canonical document keeps its selected entries");
 });
 
-test("sparse source entries and unlinked legacy entries retain their previous rendering", () => {
+test("sparse source entries keep their rendering, while a translation omits an entry with neutral fields only", () => {
   const source = { ...english, experience: [{ ...english.experience[0], role: "", highlights: [] }] };
   const selected = { ...everything, experience: [0] };
   const sourceExport = buildPublishedExportContent(yaml.dump(source), selected);
   assert.ok(sourceExport);
   assert.deepEqual(sourceExport.resume.experience.map(({ company }) => company), ["Acme"]);
 
-  const legacy = { ...source, experience: [{ period: "2020", company: "Legacy", role: "", highlights: [] }] };
-  const legacyExport = buildPublishedExportContent(yaml.dump(legacy), selected, { translation: true });
-  assert.ok(legacyExport);
-  assert.deepEqual(legacyExport.resume.experience.map(({ company }) => company), ["Legacy"]);
+  const translation = { ...source, experience: [{ period: "2020", company: "Legacy", role: "", highlights: [] }] };
+  const translationExport = buildPublishedExportContent(yaml.dump(translation), selected, { translation: true });
+  assert.ok(translationExport);
+  assert.deepEqual(translationExport.resume.experience.map(({ company }) => company), [], "a translation row with neutral fields only is a blank slot");
 });
 
 test("the editor preview can hide untranslated linked slots without removing editable source rows", () => {

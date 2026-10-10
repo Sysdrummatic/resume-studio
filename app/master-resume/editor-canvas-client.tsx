@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import OnboardingClient from "../onboarding/onboarding-client";
 import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
 import { firstCvSelection, ONBOARDING_SECTIONS, type OnboardingState } from "../lib/resume-onboarding";
@@ -35,7 +35,7 @@ import {
 } from "../lib/resume-style";
 import { useAppI18n } from "../components/app-i18n-provider";
 import { formatAppMessage } from "../i18n/locale";
-import type { ResumeLinkageIssue } from "../lib/resume-language-linkage";
+import type { ParallelCollection, ParityIssue, StructuralOp } from "../lib/resume-language-parity";
 
 const TEXT_SIZE_OPTIONS: Array<{ value: ResumeTextSize; label: string }> = [
   { value: "small", label: "Small" },
@@ -234,8 +234,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   const { locale: appLocale, dictionary } = useAppI18n();
   const editorText = (text: string) => dictionary.editor.text[text] ?? text;
   const keyedText = (message: EditorFailureMessage) => formatAppMessage(editorText(message.key), message.params);
-  // Legacy-pairing conflicts are shown from the EN/PL dictionaries, never from the server's English text.
-  const confirmLegacyPairing = (prompt: EditorFailureMessage) => window.confirm(keyedText(prompt));
   const translateKeyedError = (error: unknown): never => {
     throw error instanceof KeyedEditorError ? new Error(keyedText(error.keyed)) : error;
   };
@@ -266,44 +264,49 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     saveLanguageVersion,
     setDefaultLanguage,
     deleteLanguageVersion,
-    linkageStatuses,
+    parityStatus,
+    applyStructuralOp,
+    structuralOpLosses,
+    matchOthersToActive,
+    matchOthersLosses,
+    setActiveHighlights,
+    highlightLosses,
   } = useMultiLocaleResumeDocuments(onboarding?.locale ?? searchParams.get("locale"), testRun);
 
   const activeBuffer = buffers[locale];
   const resume = activeBuffer?.resume ?? defaultResumeDocument("");
   const yamlPanel = activeBuffer?.yamlPanel ?? "";
   const yamlError = activeBuffer?.yamlError ?? null;
-  const linkageStatus = linkageStatuses[locale];
   const revisions = activeBuffer?.revisions ?? [];
   // Style lives on the document buffer, so it survives a reload and is saved
   // with the rest of the document rather than only living in this component.
   const cvStyle = activeBuffer?.cvStyle ?? DEFAULT_RESUME_STYLE;
   const setCvStyle = setActiveCvStyle;
   const documentRow = activeBuffer?.documentRow ?? null;
-  const defaultBuffer = buffers[defaultLocale];
   const isDefaultLanguage = locale === defaultLocale;
 
-  function formatLinkageIssue(issue: ResumeLinkageIssue): ReactNode {
-    const field = `${issue.collection}${typeof issue.index === "number" ? `[${issue.index}]` : ""}`;
-    if (issue.kind === "changed-id") {
-      return <>{field}: {editorText("Changed ID")} <code className="resume-editor-linkage-status__id resume-editor-linkage-status__id--changed">{issue.actualId || editorText("missing")}</code> ({editorText("Expected")} <code>{issue.expectedId || editorText("missing")}</code>).</>;
+  function formatParityIssue(issue: ParityIssue): string {
+    const where = `${issue.locale}: ${issue.collection}${"index" in issue && typeof issue.index === "number" ? `[${issue.index}]` : ""}`;
+    switch (issue.kind) {
+      case "count":
+        return formatAppMessage(editorText("{where}: {actual} entries, this version has {expected}"), { where, actual: String(issue.actual), expected: String(issue.expected) });
+      case "neutral":
+        return formatAppMessage(editorText("{where}: {field} differs from this version"), { where, field: issue.field });
+      case "highlights":
+        return formatAppMessage(editorText("{where}: {actual} bullets, this version has {expected}"), { where, actual: String(issue.actual), expected: String(issue.expected) });
+      default:
+        return formatAppMessage(editorText("{where}: a different summary is marked as default"), { where });
     }
-    if (issue.kind === "missing-id") return <>{field}: {editorText("Missing ID")}</>;
-    if (issue.kind === "duplicate-id") return <>{field}: {editorText("Duplicate ID")} <code className="resume-editor-linkage-status__id resume-editor-linkage-status__id--changed">{issue.actualId}</code>.</>;
-    if (issue.kind === "missing-entry") return <>{field}: {editorText("Missing linked entry")} <code>{issue.expectedId}</code>.</>;
-    if (issue.kind === "extra-entry") return <>{field}: {editorText("Unpaired entry")} <code className="resume-editor-linkage-status__id resume-editor-linkage-status__id--changed">{issue.actualId}</code>.</>;
-    return <>{field}: {editorText("Default entry is not paired")}.</>;
   }
 
-  function isProtectedLinkedEntry(field: keyof ResumeDocument, index: number): boolean {
-    if (isDefaultLanguage || !defaultBuffer || !Array.isArray(defaultBuffer.resume[field])) return false;
-    const currentItems = resume[field] as unknown[];
-    const defaultItems = defaultBuffer.resume[field] as unknown[];
-    const currentId = currentItems[index] && typeof currentItems[index] === "object"
-      ? (currentItems[index] as { entry_id?: string }).entry_id
-      : undefined;
-    if (!currentId) return index < defaultItems.length;
-    return defaultItems.some((item) => item && typeof item === "object" && (item as { entry_id?: string }).entry_id === currentId);
+  function lostIn(losses: Array<{ locale: string }>): string {
+    return [...new Set(losses.map((loss) => loss.locale))].join(", ");
+  }
+
+  function handleMatchOthers() {
+    const losses = matchOthersLosses();
+    if (losses.length && !window.confirm(formatAppMessage(editorText("Matching removes text from {locales}, because this version has fewer entries or bullets. Continue?"), { locales: lostIn(losses) }))) return;
+    matchOthersToActive();
   }
 
   // Form-first, matching the redesigned editor: the sidebar's section switching
@@ -538,15 +541,11 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   function addArrayItem(field: "experience", item: ResumeExperience): void;
   function addArrayItem(field: "education", item: ResumeEducation): void;
   function addArrayItem(field: "courses", item: ResumeCourse): void;
-  function addArrayItem(field: keyof ResumeDocument, item: unknown) {
-    if (!isDefaultLanguage) return;
+  function addArrayItem(field: ParallelCollection, item: unknown) {
     const currentValue = resume[field];
     if (!Array.isArray(currentValue)) return;
     setOpenEntryKey(`${String(field)}:${currentValue.length}`);
-    updateResumeFromHuman({
-      ...resume,
-      [field]: [...currentValue, item],
-    } as ResumeDocument);
+    applyStructuralOp({ kind: "add", collection: field, item });
   }
 
   // `null` means "no explicit choice yet", which shows the first entry open;
@@ -567,14 +566,18 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     setOpenEntryKey((current) => (current === key || (current === null && index === 0) ? "" : current));
   }
 
-  function removeArrayItem(field: keyof ResumeDocument, index: number) {
-    if (isProtectedLinkedEntry(field, index)) return;
-    const currentValue = resume[field];
-    if (!Array.isArray(currentValue)) return;
-    updateResumeFromHuman({
-      ...resume,
-      [field]: currentValue.filter((_, itemIndex) => itemIndex !== index),
-    } as ResumeDocument);
+  function removeArrayItem(field: ParallelCollection, index: number) {
+    const op: StructuralOp = { kind: "remove", collection: field, index };
+    const losses = structuralOpLosses(op);
+    if (losses.length && !window.confirm(formatAppMessage(editorText("Removing this entry also removes its text in {locales}. Continue?"), { locales: lostIn(losses) }))) return;
+    applyStructuralOp(op);
+  }
+
+  function updateHighlights(index: number, value: string) {
+    const bullets = parseBulletLines(value);
+    const losses = highlightLosses(index, bullets.length);
+    if (losses.length && !window.confirm(formatAppMessage(editorText("Removing this bullet also removes text in {locales}. Continue?"), { locales: lostIn(losses) }))) return;
+    setActiveHighlights(index, bullets);
   }
 
   function updateContactValue(label: string, linkKind: ContactLinkKind | undefined, value: string) {
@@ -624,11 +627,11 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     updateResumeFromHuman({ ...resume, languages: next });
   }
 
-  function updateExperience(index: number, key: keyof ResumeExperience, value: string) {
+  function updateExperience(index: number, key: "period" | "company" | "role", value: string) {
     const next = [...resume.experience];
     next[index] = {
       ...next[index],
-      [key]: key === "highlights" ? parseBulletLines(value) : value,
+      [key]: value,
     };
     updateResumeFromHuman({ ...resume, experience: next });
   }
@@ -728,7 +731,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     setIsBusy(true);
     showToast(editorText("Saving..."));
     try {
-      const result = await saveAllDirty({ changeNote, confirmLegacyPairing });
+      const result = await saveAllDirty({ changeNote });
       const failures = result.failed
         .map((entry) => (entry.messageKey ? formatAppMessage(editorText(entry.messageKey), entry.messageParams ?? {}) : entry.message))
         .join(" ");
@@ -885,7 +888,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                             {editorText("Default summary")}
                           </label>
                           <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" disabled={isProtectedLinkedEntry("summary", index)} onClick={() => removeArrayItem("summary", index)}>
+                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("summary", index)}>
                               {editorText("Remove entry")}
                             </button>
                           </div>
@@ -896,7 +899,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
-                    disabled={!isDefaultLanguage}
                     onClick={() => addArrayItem("summary", { position: "", description: "", default: resume.summary.length === 0 })}
                   >
                     {editorText("+ Add summary")}
@@ -934,7 +936,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                           value={item.size}
                           onChange={(event) => updateQrCode(index, "size", event.target.value)}
                         />
-                        <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("qr_codes", index)} onClick={() => removeArrayItem("qr_codes", index)}>
+                        <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
                           {editorText("Remove")}
                         </button>
                         {errorText ? <p className="status status--error resume-human-editor__row-error">{errorText}</p> : null}
@@ -944,7 +946,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
-                    disabled={!isDefaultLanguage || resume.qr_codes.length >= QR_CODE_LIMITS.maxCount}
+                    disabled={resume.qr_codes.length >= QR_CODE_LIMITS.maxCount}
                     onClick={() => addArrayItem("qr_codes", { label: "", value: "", size: QR_CODE_LIMITS.defaultSize })}
                   >
                     {resume.qr_codes.length >= QR_CODE_LIMITS.maxCount
@@ -960,12 +962,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                     <div className="resume-human-editor__row resume-human-editor__row--compact" key={`skill-${index}`}>
                       <input aria-label={editorText("Skill")} placeholder={editorText("Skill")} value={item.name} onChange={(event) => updateSkill(index, "name", event.target.value)} />
                       <input disabled={!isDefaultLanguage} type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateSkill(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("skills", index)} onClick={() => removeArrayItem("skills", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("skills", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("skills", { name: "", level: 3 })}>
                     {editorText("+ Add skill")}
                   </button>
                 </section>
@@ -976,12 +978,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.tech_stack.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`tech-${index}`}>
                       <input aria-label={editorText("Technology")} placeholder={editorText("Technology")} value={item} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("tech_stack", index)} onClick={() => removeArrayItem("tech_stack", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("tech_stack", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("tech_stack", "")}>
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("tech_stack", "")}>
                     {editorText("+ Add technology")}
                   </button>
                 </section>
@@ -994,12 +996,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                       <input aria-label={editorText("Language")} placeholder={editorText("Language")} value={item.name} onChange={(event) => updateLanguage(index, "name", event.target.value)} />
                       <input aria-label={editorText("Level text")} placeholder={editorText("Level text")} value={item.level_text} onChange={(event) => updateLanguage(index, "level_text", event.target.value)} />
                       <input disabled={!isDefaultLanguage} type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateLanguage(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("languages", index)} onClick={() => removeArrayItem("languages", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("languages", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("languages", { name: "", level_text: "", level: 3 })}>
                     {editorText("+ Add language")}
                   </button>
                 </section>
@@ -1010,12 +1012,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.interests.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`interest-${index}`}>
                       <input aria-label={editorText("Interest")} placeholder={editorText("Interest")} value={item} onChange={(event) => updateStringList("interests", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("interests", index)} onClick={() => removeArrayItem("interests", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("interests", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("interests", "")}>
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("interests", "")}>
                     {editorText("+ Add interest")}
                   </button>
                 </section>
@@ -1038,9 +1040,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         <input disabled={!isDefaultLanguage} aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
                         <input disabled={!isDefaultLanguage} aria-label={editorText("Company")} placeholder={editorText("Company")} value={item.company} onChange={(event) => updateExperience(index, "company", event.target.value)} />
                         <input aria-label={editorText("Role")} placeholder={editorText("Role")} value={item.role} onChange={(event) => updateExperience(index, "role", event.target.value)} />
-                        <BulletListTextarea rows={3} ariaLabel={editorText("Highlights, one per line")} placeholder={editorText("Highlights, one per line")} items={item.highlights} onChange={(text) => updateExperience(index, "highlights", text)} />
+                        <BulletListTextarea rows={3} ariaLabel={editorText("Highlights, one per line")} placeholder={editorText("Highlights, one per line")} items={item.highlights} onChange={(text) => updateHighlights(index, text)} />
                         <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" disabled={isProtectedLinkedEntry("experience", index)} onClick={() => removeArrayItem("experience", index)}>
+                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("experience", index)}>
                             {editorText("Remove entry")}
                           </button>
                         </div>
@@ -1050,7 +1052,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
-                    disabled={!isDefaultLanguage}
                     onClick={() => addArrayItem("experience", { period: "", company: "", role: "", highlights: [] })}
                   >
                     {editorText("+ Add position")}
@@ -1077,7 +1078,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         <input aria-label={editorText("Degree")} placeholder={editorText("Degree")} value={item.degree} onChange={(event) => updateEducation(index, "degree", event.target.value)} />
                         <textarea rows={2} aria-label={editorText("Detail")} placeholder={editorText("Detail")} value={item.detail} onKeyDown={(event) => continueBulletsOnEnter(event, (text) => updateEducation(index, "detail", text))} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
                         <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" disabled={isProtectedLinkedEntry("education", index)} onClick={() => removeArrayItem("education", index)}>
+                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("education", index)}>
                             {editorText("Remove entry")}
                           </button>
                         </div>
@@ -1087,7 +1088,6 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   <button
                     type="button"
                     className="resume-human-editor__add"
-                    disabled={!isDefaultLanguage}
                     onClick={() => addArrayItem("education", { period: "", school: "", degree: "", detail: "" })}
                   >
                     {editorText("+ Add education")}
@@ -1101,12 +1101,12 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                     <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
                       <input aria-label={editorText("Course name")} placeholder={editorText("Course name")} value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
                       <input disabled={!isDefaultLanguage} type="number" min={0} aria-label={editorText("Year")} placeholder={editorText("Year")} value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" disabled={isProtectedLinkedEntry("courses", index)} onClick={() => removeArrayItem("courses", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
                         {editorText("Remove")}
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="resume-human-editor__add" disabled={!isDefaultLanguage} onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
+                  <button type="button" className="resume-human-editor__add" onClick={() => addArrayItem("courses", { year: 0, name: "" })}>
                     {editorText("+ Add course")}
                   </button>
                 </section>
@@ -1163,7 +1163,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
         onLocale={async (code) => {
           if (code === locale) return;
           if (isAnyDirty) {
-            const saved = await saveAllDirty({ changeNote: "First CV guide", confirmLegacyPairing });
+            const saved = await saveAllDirty({ changeNote: "First CV guide" });
             if (saved.failed.length) throw new Error(editorText("Save failed"));
           }
           if (languageOptions.some((language) => language.code === code)) setActiveLocale(code);
@@ -1176,7 +1176,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
           if (!isAnyDirty) return;
           setIsBusy(true);
           try {
-            const saved = await saveAllDirty({ changeNote: "First CV guide", confirmLegacyPairing });
+            const saved = await saveAllDirty({ changeNote: "First CV guide" });
             if (saved.failed.length) throw new Error(editorText("Save failed"));
           } finally { setIsBusy(false); }
         }}
@@ -1322,8 +1322,8 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
               className="button button--primary"
               type="button"
               onClick={() => setIsSaveVersionModalOpen(true)}
-              disabled={isBusy || isLoading || Boolean(linkageStatus && !linkageStatus.ok)}
-              title={linkageStatus && !linkageStatus.ok ? editorText("Fix the following ID issues before saving:") : undefined}
+              disabled={isBusy || isLoading || !parityStatus.ok}
+              title={!parityStatus.ok ? editorText("The language versions do not have the same entries. Use Match in the YAML editor before saving.") : undefined}
             >
               {editorText("Save MasterCV")}
             </button>
@@ -1387,37 +1387,45 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
             <div className="stack">
                 <section
                   className="resume-editor-linkage-status"
-                  data-status={!linkageStatus ? "pending" : linkageStatus.ok ? "ok" : "error"}
+                  data-status={parityStatus.ok ? "ok" : "error"}
                   aria-live="polite"
-                  aria-label={editorText("Language linkage status")}
+                  aria-label={editorText("Language version consistency")}
                 >
                   <div className="resume-editor-linkage-status__heading">
-                    <strong>{editorText("Language linkage status")}</strong>
+                    <strong>{editorText("Language version consistency")}</strong>
                     <span className="resume-editor-linkage-status__badge">
-                      {!linkageStatus ? editorText("Checking") : linkageStatus.ok ? editorText("OK") : editorText("Needs attention")}
+                      {parityStatus.ok ? editorText("OK") : editorText("Needs attention")}
                     </span>
+                    <span
+                      className="resume-editor-linkage-status__badge"
+                      title={parityStatus.difference.perLocale.map((entry) => `${entry.locale}: ${entry.percent}%`).join(", ")}
+                    >
+                      {formatAppMessage(editorText("{percent}% different from the other versions"), { percent: String(parityStatus.difference.percent) })}
+                    </span>
+                    <button
+                      type="button"
+                      className="button button--small"
+                      disabled={parityStatus.ok || isBusy || isLoading}
+                      onClick={handleMatchOthers}
+                    >
+                      {editorText("Match")}
+                    </button>
                   </div>
-                  {!linkageStatus ? (
-                    <p>{editorText("Checking linked IDs...")}</p>
-                  ) : linkageStatus.parseError ? (
-                    <p>{linkageStatus.parseError}</p>
-                  ) : linkageStatus?.ok ? (
-                    <p>
-                      {isDefaultLanguage
-                        ? editorText("All IDs are stable in the saved default language.")
-                        : editorText("All linked IDs match the default language.")}
-                    </p>
+                  {parityStatus.parseError ? (
+                    <p>{parityStatus.parseError}</p>
+                  ) : parityStatus.ok ? (
+                    <p>{editorText("All language versions have the same entries.")}</p>
                   ) : (
                     <>
-                      <p>{editorText("Fix the following ID issues before saving:")}</p>
+                      <p>{editorText("The other language versions do not have the same entries as this one. Match brings them to this version's structure.")}</p>
                       <ul className="resume-editor-linkage-status__issues">
-                        {(linkageStatus?.issues || []).map((issue, index) => (
-                          <li key={`${issue.collection}-${issue.index ?? "all"}-${issue.kind}-${index}`}>{formatLinkageIssue(issue)}</li>
+                        {parityStatus.issues.map((issue, index) => (
+                          <li key={`${issue.locale}-${issue.collection}-${issue.kind}-${index}`}>{formatParityIssue(issue)}</li>
                         ))}
                       </ul>
                     </>
                   )}
-                  <small>{editorText("IDs are shown in YAML and cannot be changed. Add or remove linked entries only in the default language.")}</small>
+                  <small>{editorText("Adding, removing or moving an entry in the form changes every language version at once. Match is for changes made by hand in YAML.")}</small>
                 </section>
                 <textarea
                   ref={yamlTextareaRef}
