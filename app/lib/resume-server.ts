@@ -241,6 +241,8 @@ export type ResumePresetRow = {
   created_at: string;
   updated_at: string;
   canonical_public_path?: string | null;
+  /** Languages the active link serves; absent while the version is unpublished. */
+  published_locales?: ResumeLocale[];
 };
 
 export type ResumePresetVariantRow = {
@@ -1175,6 +1177,7 @@ export async function fetchResumePresetsForUser(userId: string): Promise<ResumeP
       // this version inherits its source document's style.
       style_settings: preset.style_settings,
       canonical_public_path: canonicalPublicPath,
+      published_locales: link ? normalizePublishedLocales(link) : undefined,
     };
   });
 }
@@ -1999,6 +2002,10 @@ export async function saveResumePreset(
   return preset;
 }
 
+function normalizePublishedLocales(link: ResumePublicLinkRow): ResumeLocale[] {
+  return Array.from(new Set((link.available_locales ?? []).map((locale) => normalizeLocale(locale))));
+}
+
 async function fetchActivePresetLink(userId: string, presetId: string): Promise<ResumePublicLinkRow | null> {
   const linkResult = await queryTable<ResumePublicLinkRow>({
     table: "resume_public_links",
@@ -2033,6 +2040,7 @@ async function fetchResumePresetById(accessToken: string, userId: string, preset
       link?.person_slug && link?.public_id
         ? `/${encodeURIComponent(link.person_slug)}/${encodeURIComponent(link.public_id)}`
         : null,
+    published_locales: link ? normalizePublishedLocales(link) : undefined,
   };
 }
 
@@ -2132,19 +2140,29 @@ export async function publishResumePreset(
 
 /**
  * Replaces the content under a version's existing link with its current saved
- * state. Languages and indexing come from what is already published, so an
- * update can never expose a language the link did not carry before.
+ * state. Without an explicit choice the languages come from what is already
+ * published, so an update never exposes a language the link did not carry.
  */
-export async function republishResumePreset(accessToken: string, userId: string, presetId: string): Promise<ResumePresetRow | null> {
+export async function republishResumePreset(
+  accessToken: string,
+  userId: string,
+  presetId: string,
+  choice?: { selectedLocales: string[]; defaultLocale: string },
+): Promise<ResumePresetRow | null> {
   const preset = await fetchResumePresetById(accessToken, userId, presetId);
   if (!preset) throw new Error("[republish] preset not found or access denied");
   const link = preset.is_public ? await fetchActivePresetLink(userId, presetId) : null;
   if (!link?.available_locales?.length) throw new Error("This LiveCV version is not published, so there is no link to update.");
 
-  const selectedLocales = normalizeLocales(link.available_locales, preset.default_locale);
-  const defaultLocale = selectedLocales.includes(preset.default_locale)
-    ? preset.default_locale
-    : normalizeLocale(link.default_locale || selectedLocales[0]);
+  const fromLink = normalizeLocales(link.available_locales, preset.default_locale);
+  const selectedLocales = choice ? Array.from(new Set(choice.selectedLocales.map((locale) => normalizeLocale(locale)))) : fromLink;
+  if (selectedLocales.length === 0) throw new Error("At least one selectedLocales entry is required.");
+  const defaultLocale = choice
+    ? normalizeLocale(choice.defaultLocale)
+    : fromLink.includes(preset.default_locale)
+      ? preset.default_locale
+      : normalizeLocale(link.default_locale || fromLink[0]);
+  if (!selectedLocales.includes(defaultLocale)) throw new Error("defaultLocale must be one of selectedLocales.");
   return publishResumePreset(accessToken, userId, presetId, {
     allowIndexing: preset.allow_indexing,
     aiGenerated: preset.ai_generated,

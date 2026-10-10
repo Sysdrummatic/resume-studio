@@ -75,10 +75,11 @@ const dependencies = {
     useStatusToast: () => ({ toast: null, showToast() {}, closeToast() {} }),
   },
   "../components/PublishSavedVersionModal": () => null,
+  "../components/PublicationLanguageFields": { default: () => null, validatePublicationLanguages: () => null },
   "../components/resume-renderer/BasicResumeDocument": {
     BasicResumeDocument: ({ resume }) => createElement("div", { "data-testid": "basic-resume-document" }, resume.summary[0]?.description || ""),
   },
-  "./dashboard-model": { summarizeMasterResume: () => "", filterDashboardPresets: (presets) => presets, getSelectedDashboardPreset: () => null },
+  "./dashboard-model": { summarizeMasterResume: () => "", filterDashboardPresets: (presets) => presets, getSelectedDashboardPreset: () => null, mergePreset: (presets) => presets },
   "lucide-react": new Proxy({}, { get: () => () => null }),
 };
 new Function("require", "module", "exports", outputText)(

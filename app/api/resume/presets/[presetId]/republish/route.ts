@@ -4,13 +4,18 @@ import { republishResumePreset } from "../../../../../lib/resume-server";
 import { RESUME_LIMITS_DOC_URL } from "../../../../../lib/resume-schema";
 import { rateLimit } from "../../../../../lib/rate-limit";
 
+type RepublishBody = {
+  selectedLocales?: unknown;
+  defaultLocale?: unknown;
+};
+
 type RepublishRouteContext = {
   params: Promise<{
     presetId: string;
   }>;
 };
 
-export async function POST(_request: Request, context: RepublishRouteContext): Promise<Response> {
+export async function POST(request: Request, context: RepublishRouteContext): Promise<Response> {
   const actorResult = await requireRequestActor({ anyCapability: "resume.preset.publish_own" });
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
@@ -30,8 +35,15 @@ export async function POST(_request: Request, context: RepublishRouteContext): P
     return NextResponse.json({ error: "CV Version id is required." }, { status: 400 });
   }
 
+  // An empty body keeps the languages the link already serves.
+  const body = (await request.json().catch(() => ({}))) as RepublishBody;
+  const choice =
+    Array.isArray(body.selectedLocales) && typeof body.defaultLocale === "string"
+      ? { selectedLocales: body.selectedLocales.map(String), defaultLocale: body.defaultLocale }
+      : undefined;
+
   try {
-    const preset = await republishResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId);
+    const preset = await republishResumePreset(actorResult.accessToken, actorResult.actor.userId, presetId, choice);
     if (!preset) {
       return NextResponse.json({ error: "CV Version update failed." }, { status: 500 });
     }

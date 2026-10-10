@@ -151,7 +151,6 @@ dashboard:
     check_content_languages: Check the content and languages
     master_private: Your Experience Base stays private.
     edit_selection: Edit selection
-    publish_again: Publish again
     publish: Publish
     copy_link: Copy LiveCV link
     test_draft: This LiveCV uses a separate onboarding test draft.

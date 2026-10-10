@@ -149,3 +149,56 @@ test("repair migration only aligns is_public with an active link and never un-pu
   assert.doesNotMatch(sql, /is_public = false\s*(,|where p\.id)/, "must not set is_public to false");
   assert.doesNotMatch(sql, /\b(delete|drop|alter policy|create policy)\b/);
 });
+
+// ── "Publish again" folded into the version editor ─────────────────────────
+
+test("republish can change the published languages and default, and rejects an unusable choice", async (t) => {
+  const { fake, rpcBodies } = installPublished();
+  t.after(fake.restore);
+  const { republishResumePreset } = await import("../app/lib/resume-server.ts");
+
+  assert.ok(await republishResumePreset("token", USER, "preset-1", { selectedLocales: ["en", "pl"], defaultLocale: "pl" }));
+  assert.deepEqual(rpcBodies[0].input_selected_locales, ["en", "pl"]);
+  assert.equal(rpcBodies[0].input_default_locale, "pl");
+
+  await assert.rejects(republishResumePreset("token", USER, "preset-1", { selectedLocales: ["pl"], defaultLocale: "en" }), /defaultLocale/);
+  await assert.rejects(republishResumePreset("token", USER, "preset-1", { selectedLocales: [], defaultLocale: "en" }), /selectedLocales/);
+  assert.equal(rpcBodies.length, 1, "a rejected choice must not publish");
+});
+
+test("the library knows which languages each link currently serves", async (t) => {
+  const { fake } = installPublished();
+  t.after(fake.restore);
+  const { fetchResumePresetsForUser } = await import("../app/lib/resume-server.ts");
+
+  const [preset] = await fetchResumePresetsForUser(USER);
+  assert.deepEqual(preset.published_locales, ["en"]);
+});
+
+test("the republish route forwards the chosen languages", () => {
+  const route = read("app/api/resume/presets/[presetId]/republish/route.ts");
+  assert.match(route, /selectedLocales/);
+  assert.match(route, /defaultLocale/);
+});
+
+test("Publish again is gone and the version editor owns publication languages", () => {
+  const client = read("app/dashboard/dashboard-client.tsx");
+  const modal = read("app/components/PublishSavedVersionModal.tsx");
+  const fields = read("app/components/PublicationLanguageFields.tsx");
+  assert.doesNotMatch(client, /publish_again/);
+  assert.match(client, /PublicationLanguageFields/, "the version editor renders the shared language fields");
+  assert.match(modal, /PublicationLanguageFields/, "the first-publication dialog uses the same fields");
+  assert.match(fields, /validatePublicationLanguages/);
+  assert.match(client, /!selectedPreset\.onboarding_test_run_id && !selectedPreset\.is_public/, "only an unpublished version offers the Publish button");
+  for (const locale of ["en", "pl"]) {
+    assert.equal("publish_again" in readAppDictionary(locale).dashboard.library, false, `${locale} dictionary`);
+  }
+});
+
+test("tutorials no longer send readers to a Publish again button", () => {
+  for (const [locale, text] of [["en", "Publish it again"], ["pl", "Opublikuj ją ponownie"]]) {
+    const tutorial = read(`content/docs/locales/${locale}/tutorials/add-language-version/add-language-version.md`);
+    assert.equal(tutorial.includes(text), false, `${locale} add-language-version still points at the removed dialog`);
+    assert.match(tutorial, locale === "en" ? /Update LiveCV/ : /Zaktualizuj LiveCV/);
+  }
+});
