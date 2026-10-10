@@ -208,3 +208,25 @@ test("setting the bullets of an entry fits the other versions to the new count a
   assert.deepEqual(shorter.documents.pl.experience[0].highlights, ["Zbudowałem edytor"]);
   assert.deepEqual(shorter.truncated, [{ locale: "pl", collection: "experience", index: 0, bulletIndex: 1, hasContent: true }]);
 });
+
+test("padVersionsToLongest only adds empty slots and bullets, never removes anything", async () => {
+  const { padVersionsToLongest } = await import("../app/lib/resume-language-parity.ts");
+  const longEnglish = english();
+  longEnglish.skills.push({ name: "Reviewing", level: 5 });
+  longEnglish.experience.push({ period: "2015", company: "Gamma", role: "Intern", highlights: ["Learned"] });
+  const shortPolish = polish();
+  shortPolish.experience[0].highlights = ["Zbudowałem edytor"];
+  const docs = { en: longEnglish, pl: shortPolish };
+
+  const padded = padVersionsToLongest(docs);
+
+  assert.deepEqual(padded.pl.skills.map((row) => row.name), ["Pisanie", "Testowanie", ""]);
+  assert.equal(padded.pl.skills[2].level, 5, "the slot carries the longest version's neutral fields");
+  assert.equal(padded.pl.experience.length, 3);
+  assert.deepEqual(padded.pl.experience[2], { period: "2015", company: "Gamma", role: "", highlights: [""] });
+  assert.deepEqual(padded.pl.experience[0].highlights, ["Zbudowałem edytor", ""], "a shorter bullet list is padded");
+  assert.deepEqual(padded.en.experience[0].highlights, longEnglish.experience[0].highlights, "the longer version is unchanged");
+  assert.deepEqual(padded.pl.experience[1].role, "Programista", "existing text is kept");
+  assert.equal(inspectParity(padded, "en").filter((issue) => issue.kind !== "neutral").length, 0);
+  assert.equal(shortPolish.skills.length, 2, "inputs are not mutated");
+});

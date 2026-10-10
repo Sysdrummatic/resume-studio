@@ -375,3 +375,40 @@ export function setHighlightsInAll(
   }
   return { documents: result, truncated };
 }
+
+/**
+ * Brings versions of different length to the length of the longest one by adding
+ * empty slots at the end; nothing is ever removed (data migration). The slots are
+ * built from the longest version's rows, so they carry its neutral fields.
+ */
+export function padVersionsToLongest(documents: LanguageDocuments): LanguageDocuments {
+  const result: LanguageDocuments = {};
+  for (const [locale, value] of Object.entries(documents)) result[locale] = structuredClone(asObject(value));
+
+  for (const collection of PARALLEL_COLLECTIONS) {
+    const longest = Object.values(documents).reduce<unknown[]>((top, document) => {
+      const rows = rowsOf(asObject(document), collection);
+      return rows.length > top.length ? rows : top;
+    }, []);
+    for (const document of Object.values(result)) {
+      const rows = [...rowsOf(document, collection)];
+      for (let index = rows.length; index < longest.length; index += 1) rows.push(blankSlot(collection, longest[index]));
+      document[collection] = rows;
+    }
+  }
+
+  const experience = (document: RawObject) => rowsOf(document, "experience");
+  const count = Math.max(0, ...Object.values(result).map((document) => experience(document).length));
+  for (let index = 0; index < count; index += 1) {
+    const bullets = Math.max(0, ...Object.values(result).map((document) => highlightsOf(experience(document)[index]).length));
+    for (const document of Object.values(result)) {
+      const rows = [...experience(document)];
+      const row = asObject(rows[index]);
+      const own = highlightsOf(row);
+      while (own.length < bullets) own.push("");
+      rows[index] = { ...row, highlights: own };
+      document.experience = rows;
+    }
+  }
+  return result;
+}
