@@ -9,6 +9,7 @@ import AppThemeSwitch from "./components/app-theme-switch";
 import AccountMenu from "./components/account-menu";
 import { AppI18nProvider } from "./components/app-i18n-provider";
 import { getRequestAppI18n } from "./i18n/server";
+import { getAppBaseUrl } from "./lib/env";
 import { getCurrentActor } from "./lib/auth-server";
 import { getAccessRestriction } from "./lib/access-restriction";
 import { isAdminRole } from "./lib/rbac";
@@ -18,6 +19,7 @@ import "./globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
   return {
+    metadataBase: new URL(getAppBaseUrl()),
     title: "OpenCiVera",
     description: dictionary.meta.description,
     icons: {
