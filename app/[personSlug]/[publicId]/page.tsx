@@ -5,6 +5,7 @@ import { getAppBaseUrl } from "../../lib/env";
 import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
 import type { PublishedResumePreset } from "../../lib/resume-server";
 import { safeJsonLdScript } from "../../lib/jsonld";
+import { buildPublicPersonJsonLd } from "../../lib/jsonld-schemas";
 import { resumeFullName } from "../../lib/resume-schema";
 
 type PublicResumeByPublicIdPageProps = {
@@ -24,12 +25,7 @@ function absoluteUrl(path: string): string {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-function compactJsonLd<T extends Record<string, unknown>>(value: T): T {
-  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined && entry !== "")) as T;
-}
-
 function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl: string) {
-  const defaultSummary = published.resume.summary.find((summary) => summary.default);
   const displayName = resumeFullName(published.resume) || published.preset.title;
 
   return {
@@ -43,13 +39,7 @@ function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl:
       name: "OpenCiVera",
       url: getAppBaseUrl(),
     },
-    mainEntity: compactJsonLd({
-      "@type": "Person",
-      name: displayName,
-      jobTitle: defaultSummary?.position,
-      url: canonicalUrl,
-      mainEntityOfPage: canonicalUrl,
-    }),
+    mainEntity: buildPublicPersonJsonLd(published.resume, { name: displayName, canonicalUrl }),
   };
 }
 
