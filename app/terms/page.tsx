@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LegalDocumentView } from "../components/legal-document";
 import { getRequestAppI18n } from "../i18n/server";
+import { getLanguageAlternatesMetadata } from "../lib/language-alternates";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
@@ -8,6 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${document.title} | OpenCiVera`,
     description: document.description,
+    alternates: await getLanguageAlternatesMetadata("/terms"),
     robots: {
       index: true,
       follow: true,

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import DocsLayout from "../../../components/docs-layout";
 import { requireAuthenticatedActor } from "../../../lib/auth-server";
@@ -10,6 +11,7 @@ import {
 } from "../../../lib/docs/content";
 import { renderMarkdownWithOutline } from "../../../lib/docs/markdown";
 import { getRequestAppI18n } from "../../../i18n/server";
+import { getLanguageAlternatesMetadata } from "../../../lib/language-alternates";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,11 @@ type DocPageProps = {
     slug: string;
   }>;
 };
+
+export async function generateMetadata({ params }: DocPageProps): Promise<Metadata> {
+  const { category, slug } = await params;
+  return { alternates: await getLanguageAlternatesMetadata(`/docs/${category}/${slug}`) };
+}
 
 export default async function DocPage({ params }: DocPageProps) {
   const { category, slug } = await params;

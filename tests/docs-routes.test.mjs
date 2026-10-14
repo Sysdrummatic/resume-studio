@@ -41,7 +41,7 @@ function loadPages(actor, flag = false) {
       if (specifier.endsWith("/lib/docs/access"))
         return { canViewTestScenarios: (value) => canViewTestScenarios(value, async () => flag) };
       if (specifier.endsWith("/i18n/server")) return { getRequestAppI18n: async () => appI18n };
-      if (specifier.endsWith("/app-i18n-provider")) return { useAppI18n: () => appI18n };
+      if (specifier.endsWith("/app-i18n-provider")) return { useAppI18n: () => appI18n, useOptionalAppI18n: () => appI18n };
       if (specifier === "next/navigation")
         return {
           notFound: () => {

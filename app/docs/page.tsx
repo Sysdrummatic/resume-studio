@@ -5,11 +5,16 @@ import { canViewTestScenarios } from "../lib/docs/access";
 import { getOverviewDoc, listDocNavGroups } from "../lib/docs/content";
 import { renderMarkdownToHtml } from "../lib/docs/markdown";
 import { getRequestAppI18n } from "../i18n/server";
+import { getLanguageAlternatesMetadata } from "../lib/language-alternates";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
-  return { title: `${dictionary.docs.title} | OpenCiVera`, description: dictionary.docs.lead };
+  return {
+    title: `${dictionary.docs.title} | OpenCiVera`,
+    description: dictionary.docs.lead,
+    alternates: await getLanguageAlternatesMetadata("/docs")
+  };
 }
 
 export const dynamic = "force-dynamic";

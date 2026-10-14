@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { FocusEvent } from "react";
-import { APP_LOCALE_COOKIE_MAX_AGE, APP_LOCALE_COOKIE_NAME } from "../i18n/locale";
+import { APP_LANG_QUERY_PARAM, APP_LOCALE_COOKIE_MAX_AGE, APP_LOCALE_COOKIE_NAME } from "../i18n/locale";
 import { useAppI18n } from "./app-i18n-provider";
 
 const MENU_AUTO_CLOSE_DELAY_MS = 1000;
@@ -87,7 +87,9 @@ export default function AppLanguageMenu() {
     }
 
     persistAppLocale(nextLocale);
-    window.location.reload();
+    const url = new URL(window.location.href);
+    url.searchParams.set(APP_LANG_QUERY_PARAM, nextLocale);
+    window.location.assign(url.toString());
   }
 
   const activeLocale = locales.find((option) => option.code === locale) || locales[0];

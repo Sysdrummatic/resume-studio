@@ -11,7 +11,9 @@ const { outputText } = ts.transpileModule(readFileSync("app/components/workspace
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
 });
 const module = { exports: {} };
-const localRequire = (specifier) => specifier === "./app-i18n-provider"
+const localRequire = (specifier) => specifier === "./localized-link"
+  ? ({ __esModule: true, default: ({ href, children, ...props }) => createElement("a", { href, ...props }, children) })
+  : specifier === "./app-i18n-provider"
   ? {
       useAppI18n: () => ({
         dictionary: {

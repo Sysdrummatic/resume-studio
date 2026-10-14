@@ -1,5 +1,6 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Link from "next/link";
+import Link from "./components/localized-link";
 import { ArrowRight } from "lucide-react";
 import LandingPageFooter from "./components/footer";
 import LandingFeatures from "./components/landing-features";
@@ -9,8 +10,13 @@ import RecoveryRedirect from "./components/recovery-redirect";
 import RotatingWord from "./components/rotating-word";
 import ScrollReveal from "./components/scroll-reveal";
 import { getRequestAppI18n } from "./i18n/server";
+import { getLanguageAlternatesMetadata } from "./lib/language-alternates";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
 import styles from "./landing.module.css";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { alternates: await getLanguageAlternatesMetadata("/") };
+}
 
 export default async function HomePage() {
   const [{ locale, dictionary }, cookieStore] = await Promise.all([getRequestAppI18n(), cookies()]);

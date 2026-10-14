@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import ResumeViewClient from "./resume-view-client";
 import { getRequestAppI18n } from "../i18n/server";
+import { getLanguageAlternatesMetadata } from "../lib/language-alternates";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
   return {
     title: dictionary.sample_resume.title,
     description: dictionary.sample_resume.description,
+    alternates: await getLanguageAlternatesMetadata("/resume"),
   };
 }
 

@@ -16,3 +16,7 @@ export function useAppI18n(): AppI18nContextValue {
   }
   return value;
 }
+
+export function useOptionalAppI18n(): AppI18nContextValue | null {
+  return useContext(AppI18nContext);
+}

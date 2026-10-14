@@ -8,6 +8,7 @@ import {
   setAuthCookies,
 } from "./app/lib/auth-cookies";
 import { refreshSession } from "./app/lib/supabase-http";
+import { APP_LANG_QUERY_HEADER_NAME, APP_LANG_QUERY_PARAM } from "./app/i18n/locale";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/onboarding", "/settings", "/user", "/admin"];
 const ACCESS_TOKEN_SKEW_MS = 30_000;
@@ -102,6 +103,16 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   const contentSecurityPolicy = buildContentSecurityPolicy();
   request.headers.set("Content-Security-Policy", contentSecurityPolicy);
+
+  // ?lang= wins over cookie and Accept-Language. The header is always overwritten
+  // so a client can never inject it directly; the locale is validated against the
+  // enabled locales when it is resolved.
+  const langQuery = request.nextUrl.searchParams.get(APP_LANG_QUERY_PARAM)?.trim() ?? "";
+  if (/^[A-Za-z]{2}([-_][A-Za-z]{2})?$/.test(langQuery)) {
+    request.headers.set(APP_LANG_QUERY_HEADER_NAME, langQuery);
+  } else {
+    request.headers.delete(APP_LANG_QUERY_HEADER_NAME);
+  }
 
   function withCsp(response: NextResponse): NextResponse {
     response.headers.set("Content-Security-Policy", contentSecurityPolicy);

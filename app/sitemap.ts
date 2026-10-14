@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { buildLanguageAlternates } from "./i18n/locale";
+import { getAppI18nConfig } from "./i18n/server";
 import { getAppBaseUrl } from "./lib/env";
 import { fetchIndexablePublicLinksForSitemap } from "./lib/resume-server";
 
@@ -12,14 +14,18 @@ function buildPublicUrl(base: string, personSlug: string, publicId: string, loca
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getAppBaseUrl().replace(/\/+$/, "");
-  const entries: MetadataRoute.Sitemap = [
-    {
-      url: `${base}/privacy`,
-    },
-    {
-      url: `${base}/terms`,
-    },
-  ];
+  const appLocales = getAppI18nConfig().locales.map((locale) => locale.code);
+  const entries: MetadataRoute.Sitemap = ["/", "/resume", "/privacy", "/terms"].flatMap((pathname) =>
+    appLocales.map((locale) => {
+      const { canonical, languages } = buildLanguageAlternates({
+        baseUrl: base,
+        pathname,
+        locale,
+        locales: appLocales,
+      });
+      return { url: canonical, alternates: { languages } };
+    }),
+  );
 
   let links = [];
   try {
