@@ -53,3 +53,15 @@ account:
     cancel: Anuluj
     deleting: Usuwanie…
     delete_forever: Usuń konto bezpowrotnie
+errors:
+  not_found:
+    eyebrow: "404"
+    title: Nie znaleziono strony
+    description: Strona, której szukasz, nie istnieje lub została przeniesiona.
+  server:
+    eyebrow: Błąd
+    title: Coś poszło nie tak
+    description: Nie udało się wczytać tej strony. Spróbuj ponownie lub wróć na stronę główną.
+    retry: Spróbuj ponownie
+  home: Wróć na stronę główną
+  docs: Przeglądaj dokumentację
