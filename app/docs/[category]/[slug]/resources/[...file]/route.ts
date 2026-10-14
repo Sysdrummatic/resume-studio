@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { requireAuthenticatedActor } from "../../../../../lib/auth-server";
+import { getCurrentActor, requireAuthenticatedActor } from "../../../../../lib/auth-server";
 import { canViewTestScenarios } from "../../../../../lib/docs/access";
-import { getDocResourcePath, isDocCategory } from "../../../../../lib/docs/content";
+import { getDoc, getDocResourcePath, isDocCategory } from "../../../../../lib/docs/content";
 import { getRequestAppI18n } from "../../../../../i18n/server";
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -35,12 +35,18 @@ export async function GET(_req: Request, { params }: { params: Promise<RoutePara
 
   // Same visibility gate as the doc page itself (app/docs/[category]/[slug]/page.tsx) —
   // resources must not be reachable when the parent doc is 404'd.
-  const actor = await requireAuthenticatedActor();
-  if (category === "test-scenarios" && !(await canViewTestScenarios(actor))) {
+  const { locale } = await getRequestAppI18n();
+  const doc = getDoc(category, slug, locale);
+  if (!doc) {
     return new Response("Not found", { status: 404 });
   }
+  if (!doc.isPublic) {
+    const actor = (await getCurrentActor()) ?? (await requireAuthenticatedActor());
+    if (category === "test-scenarios" && !(await canViewTestScenarios(actor))) {
+      return new Response("Not found", { status: 404 });
+    }
+  }
 
-  const { locale } = await getRequestAppI18n();
   const resource = getDocResourcePath(category, slug, locale, file);
   if (!resource) {
     return new Response("Not found", { status: 404 });
@@ -56,7 +62,7 @@ export async function GET(_req: Request, { params }: { params: Promise<RoutePara
   return new Response(new Uint8Array(data), {
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": "private, max-age=3600",
+      "Cache-Control": doc.isPublic ? "public, max-age=3600" : "private, max-age=3600",
     },
   });
 }

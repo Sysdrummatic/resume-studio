@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAppBaseUrl } from "./lib/env";
+import { listDocs } from "./lib/docs/content";
 import { fetchIndexablePublicLinksForSitemap } from "./lib/resume-server";
 
 function buildPublicUrl(base: string, personSlug: string, publicId: string, locale?: string): string {
@@ -19,6 +20,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${base}/terms`,
     },
+    { url: `${base}/docs` },
+    ...listDocs("tutorials")
+      .filter((doc) => doc.isPublic)
+      .map((doc) => ({ url: `${base}/docs/tutorials/${doc.slug}` })),
   ];
 
   let links = [];
