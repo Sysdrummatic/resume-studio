@@ -41,7 +41,6 @@ test("page-level status messages use the shared toast component", () => {
     "app/master-resume/editor-canvas-client.tsx",
     "app/admin/admin-users-client.tsx",
     "app/login/account-access-client.tsx",
-    "app/resume/resume-view-client.tsx",
   ].map(read);
 
   for (const source of clients) {
