@@ -24,6 +24,7 @@ dashboard:
     title_label: Nazwa LiveCV
     title_placeholder: Frontend Developer — przykładowa firma
     allow_indexing: Zezwól wyszukiwarkom na indeksowanie po publikacji
+    link_only_note: Opublikowane LiveCV są dostępne wyłącznie przez swój link i nie pojawiają się w wyszukiwarkach.
     ai_generated: Oznacz jako treść wygenerowaną przez AI
     style_aria: Wygląd wersji LiveCV
     template: Szablon
@@ -222,6 +223,7 @@ dashboard:
     select_one: Wybierz co najmniej jeden język.
     default_required: Język domyślny musi należeć do wybranych wersji.
     allow_indexing: Zezwól wyszukiwarkom na indeksowanie publicznej strony
+    link_only_note: Opublikowane LiveCV są dostępne wyłącznie przez swój link i nie pojawiają się w wyszukiwarkach.
     link_state: Link do LiveCV po publikacji
     canonical_note: To LiveCV zachowa ten sam publiczny adres przy kolejnych publikacjach.
     active_link: Treść pod aktywnym linkiem zostanie zastąpiona nową publikacją. Sam adres się nie zmieni.

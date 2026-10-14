@@ -29,6 +29,8 @@ Public CV pages require stable indexing rules and machine-readable metadata alig
 
 ## Robots Matrix
 
+Indexing is paused (2026-10-13): `allow_indexing` below means the effective value `allow_indexing && platform_feature_flags.public_cv_indexing_enabled` (resolved in `resolveEffectiveAllowIndexing`, `app/lib/resume-server.ts`; fail-closed, default off). While the flag is off every row is `noindex,nofollow` and the sitemap holds no CVs.
+
 - `active + allow_indexing=true` => `index,follow`
 - `active + allow_indexing=false` => `noindex,nofollow`
 - `missing/revoked/private` => `noindex,nofollow` or route-level not found semantics with non-indexable metadata

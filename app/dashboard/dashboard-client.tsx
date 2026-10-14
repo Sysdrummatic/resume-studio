@@ -38,6 +38,7 @@ type Props = {
   initialPresets: ResumePresetRow[];
   draftPdfEnabled?: boolean;
   dataTransferEnabled?: boolean;
+  indexingEnabled?: boolean;
 };
 
 type PresetOptionKey = keyof ResumePresetSelection;
@@ -212,6 +213,7 @@ function PresetModal({
   options,
   publishableLocales,
   languageOptions,
+  indexingEnabled,
   onClose,
   onSave,
 }: {
@@ -220,6 +222,7 @@ function PresetModal({
   options: PresetOption[];
   publishableLocales: ResumeLocale[];
   languageOptions: ResumeUserLocaleRow[];
+  indexingEnabled: boolean;
   onClose: () => void;
   /** A returned message is shown in the editor, which then stays open. */
   onSave: (payload: PresetSavePayload) => Promise<string | void>;
@@ -313,10 +316,14 @@ function PresetModal({
           <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={labels.title_placeholder} />
         </label>
 
-        <label className="checkbox-row">
-          <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
-          {labels.allow_indexing}
-        </label>
+        {indexingEnabled ? (
+          <label className="checkbox-row">
+            <input type="checkbox" checked={allowIndexing} onChange={(event) => setAllowIndexing(event.target.checked)} />
+            {labels.allow_indexing}
+          </label>
+        ) : (
+          <p className="card-lead">{labels.link_only_note}</p>
+        )}
 
         <div className="dashboard-preset-style" aria-label={labels.style_aria}>
           <label>
@@ -615,6 +622,7 @@ export default function DashboardClient({
   initialPresets,
   draftPdfEnabled = true,
   dataTransferEnabled = true,
+  indexingEnabled = false,
 }: Props) {
   const { locale, dictionary } = useAppI18n();
   const labels = dictionary.dashboard;
@@ -1115,7 +1123,7 @@ export default function DashboardClient({
                             <span className="dashboard-state">{preset.default_locale.toUpperCase()}</span>
                             {preset.onboarding_test_run_id ? <span className="dashboard-state">{labels.library.test}</span> : null}
                           </span>
-                          <small>{preset.allow_indexing ? labels.library.indexable : labels.library.noindex}</small>
+                          <small>{indexingEnabled && preset.allow_indexing ? labels.library.indexable : labels.library.noindex}</small>
                         </span>
                       </button>
                     </li>
@@ -1297,6 +1305,7 @@ export default function DashboardClient({
           options={options}
           publishableLocales={publishableLocales}
           languageOptions={languageVersions}
+          indexingEnabled={indexingEnabled}
           onClose={() => {
             setIsModalOpen(false);
             setActivePreset(null);
@@ -1327,6 +1336,7 @@ export default function DashboardClient({
               : Array.from(new Set(publishableLocales))
           }
           languageOptions={languageVersions}
+          indexingEnabled={indexingEnabled}
           onClose={() => setPublishDraft(null)}
           onPublish={publishPreset}
         />
