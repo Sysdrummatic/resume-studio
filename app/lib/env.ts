@@ -33,10 +33,20 @@ export function getSupabaseServerConfig(): SupabaseServerConfig {
   };
 }
 
+const DEV_BASE_URL = "http://localhost:3000";
+
 export function getAppBaseUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.URL;
-  if (explicit) {
-    return explicit;
+  const explicit = (process.env.NEXT_PUBLIC_APP_BASE_URL || process.env.URL || "").trim();
+  if (!explicit) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Missing NEXT_PUBLIC_APP_BASE_URL (or Netlify URL): a production build needs the public https origin");
+    }
+    return DEV_BASE_URL;
   }
-  return "http://localhost:3000";
+  const url = new URL(explicit);
+  const isLocalhost = url.hostname === "localhost";
+  if (process.env.NODE_ENV === "production" && url.protocol !== "https:" && !isLocalhost) {
+    throw new Error("NEXT_PUBLIC_APP_BASE_URL must use https:// in production");
+  }
+  return url.origin;
 }
