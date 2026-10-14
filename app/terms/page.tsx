@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
 import { LegalDocumentView } from "../components/legal-document";
 import { getRequestAppI18n } from "../i18n/server";
+import { publicPageMetadata } from "../lib/seo-metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
-  const document = dictionary.legal.terms;
-  return {
-    title: `${document.title} | OpenCiVera`,
-    description: document.description,
-    robots: {
-      index: true,
-      follow: true,
-    },
-  };
+  return publicPageMetadata({ ...dictionary.meta.pages.terms, path: "/terms" });
 }
 
 export default async function TermsOfServicePage() {

@@ -72,7 +72,8 @@ test("terms of service page renders the YAML-backed English and Polish documents
 test("terms of service page is explicitly indexable", () => {
   const source = readSource(termsPagePath);
 
-  assert.match(source, /robots:\s*\{\s*index:\s*true,\s*follow:\s*true,?\s*\}/);
+  assert.match(source, /publicPageMetadata\(/);
+  assert.match(readSource("app/lib/seo-metadata.ts"), /robots:\s*\{\s*index:\s*true,\s*follow:\s*true\s*\}/);
 });
 
 test("terms of service minimum age matches the privacy policy", () => {

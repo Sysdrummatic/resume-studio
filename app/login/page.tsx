@@ -1,5 +1,8 @@
 import AccountAccessClient from "./account-access-client";
+import type { Metadata } from "next";
+import { getRequestAppI18n } from "../i18n/server";
 import { getAccessRestriction } from "../lib/access-restriction";
+import { publicPageMetadata } from "../lib/seo-metadata";
 
 type InitialAuthMode = "signin" | "signup" | "reset";
 
@@ -12,6 +15,11 @@ type LoginPageProps = {
 };
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { dictionary } = await getRequestAppI18n();
+  return publicPageMetadata({ ...dictionary.meta.pages.login, path: "/login" });
+}
 
 function resolveAuthMode(value?: string): InitialAuthMode {
   if (value === "signup" || value === "reset") {

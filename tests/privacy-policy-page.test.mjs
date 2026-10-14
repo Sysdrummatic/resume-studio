@@ -89,7 +89,8 @@ test("legal document text items are plain strings in every locale", () => {
 test("privacy policy page is explicitly indexable", () => {
   const source = readSource(privacyPagePath);
 
-  assert.match(source, /robots:\s*\{\s*index:\s*true,\s*follow:\s*true,?\s*\}/);
+  assert.match(source, /publicPageMetadata\(/);
+  assert.match(readSource("app/lib/seo-metadata.ts"), /robots:\s*\{\s*index:\s*true,\s*follow:\s*true\s*\}/);
 });
 
 test("homepage footer links to the privacy policy page", () => {

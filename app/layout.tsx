@@ -18,7 +18,7 @@ import "./globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
   return {
-    title: "OpenCiVera",
+    title: { default: dictionary.meta.default_title, template: "%s | OpenCiVera" },
     description: dictionary.meta.description,
     icons: {
       icon: "/favicon.svg",

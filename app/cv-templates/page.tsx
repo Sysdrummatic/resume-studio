@@ -73,8 +73,9 @@ const templateCards: Array<{
 ];
 
 export const metadata: Metadata = {
-  title: "Propozycje szablonów LiveCV | OpenCiVera",
+  title: "Propozycje szablonów LiveCV",
   description: "Trzy warianty CSS dla aktualnego modelu YAML LiveCV.",
+  robots: { index: false, follow: false },
 };
 
 export default async function CvTemplatesPage() {

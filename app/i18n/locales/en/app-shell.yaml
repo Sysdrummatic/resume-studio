@@ -1,5 +1,22 @@
 meta:
-  description: OpenCiVera — a LiveCV builder based on a private Experience Base. Create a separate LiveCV tailored to each application.
+  default_title: OpenCiVera - Free CV Builder with a Public LiveCV Link
+  description: "OpenCiVera is a free CV builder. Keep one private Experience Base, create a tailored LiveCV for every job application and share it with a public link."
+  pages:
+    resume:
+      title: Sample LiveCV
+      description: "See a sample LiveCV built with OpenCiVera, the free CV builder: sections, layout and a shareable public link, ready to copy and adapt for your own CV."
+    docs:
+      title: Docs
+      description: "Guides for OpenCiVera, the free CV builder: build your private Experience Base, select the right content and share a finished LiveCV with a public link."
+    login:
+      title: Sign in or create a free account
+      description: "Sign in to OpenCiVera or create a free account to build your Experience Base, publish a tailored LiveCV and share it with recruiters through a public link."
+    privacy:
+      title: Privacy Policy
+      description: "How OpenCiVera collects, uses and protects your account data and the LiveCV you publish. Read the data retention rules, your rights and how to contact us."
+    terms:
+      title: Terms of Service
+      description: "The terms that govern your use of OpenCiVera, the free CV builder: accounts, your content, acceptable use, the OpenCV format, liability and contact details."
 common:
   loading: Loading…
   close: Close

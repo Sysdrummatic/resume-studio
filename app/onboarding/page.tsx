@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
   return {
-    title: `${dictionary.onboarding.text["Your first CV"]} | OpenCiVera`,
+    title: `${dictionary.onboarding.text["Your first CV"]}`,
     robots: { index: false, follow: false }
   };
 }
