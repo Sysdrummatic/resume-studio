@@ -7,6 +7,7 @@ import {
   readAuthTokens,
   setAuthCookies,
 } from "./app/lib/auth-cookies";
+import { aiBotForbiddenResponse, isMachineSurfacePath, shouldBlockAiBot } from "./app/lib/ai-bots";
 import { refreshSession } from "./app/lib/supabase-http";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/onboarding", "/settings", "/user", "/admin"];
@@ -96,7 +97,21 @@ function redirectToLogin(request: NextRequest, reason: "session" | "signed-out")
  * browser. Protected paths redirect to /login only when no session can be
  * recovered.
  */
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<Response> {
+  const { pathname } = request.nextUrl;
+
+  // Known AI crawlers never reach CVs, exports or the public API. Answered
+  // before session work; the 403 is non-cacheable and varies by User-Agent.
+  if (shouldBlockAiBot(request.headers.get("user-agent"), pathname)) {
+    return aiBotForbiddenResponse();
+  }
+
+  // Machine surfaces are matched only for the bot check above; they manage
+  // their own auth and need no session refresh or CSP.
+  if (isMachineSurfacePath(pathname)) {
+    return NextResponse.next();
+  }
+
   const protectedPath = isProtectedPath(request.nextUrl.pathname);
   const { accessToken, refreshToken } = readAuthTokens(request.cookies);
 
@@ -137,5 +152,9 @@ export const config = {
   // Runs on page navigations so the session is refreshed and persisted before
   // server components read it. API routes manage their own session; static
   // assets and Next internals are skipped.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)",
+    "/api/resume/export/:path*",
+    "/api/public/opencv/v1/:path*",
+  ],
 };

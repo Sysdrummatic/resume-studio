@@ -87,3 +87,11 @@ not treat private top-level extensions as part of the public contract.
 - [x] Define locale selection and fallback behavior for export.
 - [x] Add rate limiting, caching, and abuse protections.
 - [x] Add contract tests for backward compatibility and access control.
+
+## Addendum 2026-10-15: AI-bot policy and machine access (issue #220)
+
+- **v1 is for people and trusted integrations.** The unauthenticated v1 API and the PDF/TXT/YAML exports are not an open feed for AI crawlers. Known AI-bot User-Agents (`app/lib/ai-bots.ts`) get `403` on `/api/resume/export/*`, `/api/public/opencv/v1/*` and public CV paths (`proxy.ts`), and `robots.txt` lists them with an allowlist (marketing, docs) and `Disallow: /` for the rest. Both surfaces send `X-Robots-Tag: noindex, nofollow, noarchive`.
+- **Temporary policy.** The block is a stop for honest bots, not a security boundary (a client can spoof a browser User-Agent). Data protection remains the saved selection (R09), unguessable `publicId`s and rate limiting. Googlebot is never blocked on CVs, so `noindex` stays readable.
+- **Cache.** The `403` is `Cache-Control: private, no-store` with `Vary: User-Agent`, so a CDN cannot replay it to browsers. The block runs in `proxy.ts`, before route handlers and their `s-maxage` caching.
+- **Machine access later.** Integrators that need machine access (ATS importers, partner tools) will use API keys under a new `/api/public/opencv/v2/`. Changing v1 in place would be a breaking contract change, so v1 keeps its documented behavior apart from this policy.
+- The User-Agent list is reviewed quarterly.

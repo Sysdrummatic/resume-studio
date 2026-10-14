@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   // ("Cannot find module '.../pdf.worker.mjs'"). Marking it external skips
   // bundling entirely — Node loads it straight from node_modules instead.
   serverExternalPackages: ["pdf-parse", "pdfjs-dist"],
+  async headers() {
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }];
+    return [
+      { source: "/api/resume/export/:path*", headers: noindex },
+      { source: "/api/public/opencv/v1/:path*", headers: noindex },
+    ];
+  },
 };
 
 export default nextConfig;
