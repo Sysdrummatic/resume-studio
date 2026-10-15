@@ -44,6 +44,20 @@ test("production requires https and normalizes the origin", () => {
   });
 });
 
+test("production rejects any http origin, including localhost", () => {
+  for (const value of ["http://localhost:3000", "http://127.0.0.1:3000"]) {
+    withEnv({ ...NO_BASE, NODE_ENV: "production", NEXT_PUBLIC_APP_BASE_URL: value }, () => {
+      assert.throws(() => getAppBaseUrl(), /https/, value);
+    });
+  }
+});
+
+test("a malformed base URL fails with a message naming the variable", () => {
+  withEnv({ ...NO_BASE, NODE_ENV: "production", NEXT_PUBLIC_APP_BASE_URL: "opencivera.com" }, () => {
+    assert.throws(() => getAppBaseUrl(), /NEXT_PUBLIC_APP_BASE_URL.*valid URL/);
+  });
+});
+
 test("Netlify URL is used when the explicit variable is unset", () => {
   withEnv({ ...NO_BASE, NODE_ENV: "production", URL: "https://deploy.netlify.app" }, () => {
     assert.equal(getAppBaseUrl(), "https://deploy.netlify.app");

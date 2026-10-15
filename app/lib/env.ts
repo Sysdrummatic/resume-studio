@@ -43,9 +43,11 @@ export function getAppBaseUrl(): string {
     }
     return DEV_BASE_URL;
   }
+  if (!URL.canParse(explicit)) {
+    throw new Error(`NEXT_PUBLIC_APP_BASE_URL is not a valid URL: "${explicit}" (include the https:// scheme)`);
+  }
   const url = new URL(explicit);
-  const isLocalhost = url.hostname === "localhost";
-  if (process.env.NODE_ENV === "production" && url.protocol !== "https:" && !isLocalhost) {
+  if (process.env.NODE_ENV === "production" && url.protocol !== "https:") {
     throw new Error("NEXT_PUBLIC_APP_BASE_URL must use https:// in production");
   }
   return url.origin;
