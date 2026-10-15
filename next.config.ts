@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-const IMMUTABLE_CACHE = [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }];
+// Filenames in /fonts and /animations are not hashed, so a replaced file must be picked up within a week.
+const STATIC_ASSET_CACHE = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }];
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -19,8 +20,8 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
-      { source: "/fonts/:path*", headers: IMMUTABLE_CACHE },
-      { source: "/animations/:path*", headers: IMMUTABLE_CACHE },
+      { source: "/fonts/:path*", headers: STATIC_ASSET_CACHE },
+      { source: "/animations/:path*", headers: STATIC_ASSET_CACHE },
     ];
   },
 };
