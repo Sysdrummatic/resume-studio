@@ -36,6 +36,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_APP_BASE_URL: https://opencivera.example
 
   database-security:
     runs-on: ubuntu-latest
