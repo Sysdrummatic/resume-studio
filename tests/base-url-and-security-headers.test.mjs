@@ -54,7 +54,7 @@ test("next.config sets baseline security headers on every route", async () => {
   const rules = await nextConfig.headers();
   const all = rules.find((rule) => rule.source === "/:path*");
   const byKey = Object.fromEntries(all.headers.map((h) => [h.key, h.value]));
-  assert.match(byKey["Strict-Transport-Security"], /^max-age=\d+/);
+  assert.equal(byKey["Strict-Transport-Security"], undefined, "HSTS is served by Netlify; do not lower it from the app");
   assert.equal(byKey["X-Content-Type-Options"], "nosniff");
   assert.ok(byKey["Referrer-Policy"]);
   assert.ok(byKey["Permissions-Policy"]);
