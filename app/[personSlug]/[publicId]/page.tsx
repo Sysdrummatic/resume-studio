@@ -8,6 +8,7 @@ import { safeJsonLdScript } from "../../lib/jsonld";
 import { buildPublicPersonJsonLd } from "../../lib/jsonld-schemas";
 import { resumeFullName } from "../../lib/resume-schema";
 import { buildPublicCvDescription, buildPublicCvTitle } from "../../lib/seo-metadata";
+import { absoluteOgImageUrl, cvOgImagePath, OG_IMAGE_ALT, OG_IMAGE_SIZE } from "../../lib/og-image";
 
 type PublicResumeByPublicIdPageProps = {
   params: Promise<{
@@ -68,6 +69,11 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
   const languageMap = Object.fromEntries(
     published.languages.map((language) => [language.code, absoluteUrl(language.href)]),
   ) as Record<string, string>;
+  const ogImage = {
+    url: absoluteOgImageUrl(getAppBaseUrl(), cvOgImagePath(canonicalPath)),
+    ...OG_IMAGE_SIZE,
+    alt: OG_IMAGE_ALT,
+  };
 
   return {
     title,
@@ -85,11 +91,13 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
       description,
       type: "profile",
       url: absoluteUrl(canonicalPath),
+      images: [ogImage],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: socialTitle,
       description,
+      images: [ogImage.url],
     },
   };
 }
