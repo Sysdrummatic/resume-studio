@@ -35,11 +35,12 @@ export function publicPageMetadata(input: {
   description: string;
   path: string;
   index: boolean;
+  alternates?: Metadata["alternates"];
 }): Metadata {
   return {
     ...(input.title ? { title: input.title } : {}),
     description: input.description,
     robots: { index: input.index, follow: input.index },
-    alternates: { canonical: input.path },
+    alternates: input.alternates ?? { canonical: input.path },
   };
 }

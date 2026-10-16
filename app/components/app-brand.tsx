@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./localized-link";
 import { useId, type ReactNode } from "react";
 
 function BrandLogo() {

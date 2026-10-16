@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "./localized-link";
 import type { AppDictionary } from "../i18n/types";
 
 export default function LandingPageFooter({ labels }: { labels: AppDictionary["landing"]["footer"] }) {

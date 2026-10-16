@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./localized-link";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { FocusEvent } from "react";
 import { useAppI18n } from "./app-i18n-provider";

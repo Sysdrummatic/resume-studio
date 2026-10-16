@@ -11,6 +11,7 @@ import {
 } from "../../../lib/docs/content";
 import { renderMarkdownWithOutline } from "../../../lib/docs/markdown";
 import { getRequestAppI18n } from "../../../i18n/server";
+import { getLanguageAlternatesMetadata } from "../../../lib/language-alternates";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
       title: `${doc.title} | OpenCiVera`,
       description: doc.description || undefined,
       robots: { index: true, follow: true },
+      alternates: await getLanguageAlternatesMetadata(`/docs/${category}/${slug}`),
     };
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./localized-link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ChevronRight, Search, X } from "lucide-react";
 import type { DocNavGroup } from "../lib/docs/content";
