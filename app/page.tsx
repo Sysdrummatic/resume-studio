@@ -12,6 +12,7 @@ import RotatingWord from "./components/rotating-word";
 import ScrollReveal from "./components/scroll-reveal";
 import { getRequestAppI18n } from "./i18n/server";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
+import { loadSampleResumeData } from "./lib/sample-resume";
 import styles from "./landing.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +21,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [{ locale, dictionary }, cookieStore] = await Promise.all([getRequestAppI18n(), cookies()]);
+  const [{ locale, dictionary }, cookieStore, sampleResume] = await Promise.all([
+    getRequestAppI18n(),
+    cookies(),
+    loadSampleResumeData()
+  ]);
   const { hero, sample, animation, features, faq, cta, footer } = dictionary.landing;
   const initialTheme = resolveAppTheme(
     cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME
@@ -78,7 +83,7 @@ export default async function HomePage() {
         <div className={styles.preview}>
           <div className={styles.sheetFrame} data-sheet-frame>
             <div className={styles.sheet}>
-              <LandingSampleCv labels={sample} locale={locale} />
+              <LandingSampleCv data={sampleResume} locale={locale} />
             </div>
           </div>
           <div className={styles.stageMeta}>

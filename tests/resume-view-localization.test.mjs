@@ -10,14 +10,13 @@ function read(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-test("resume view loads locale config with resume data on language change", () => {
+test("resume view takes server-loaded locale data and switches language without fetching", () => {
   const source = read(componentPath);
 
-  assert.equal(source.includes("type ResumeViewConfig"), true);
-  assert.equal(source.includes("const [viewConfig, setViewConfig]"), true);
-  assert.equal(source.includes("const handleLocaleChange = useCallback"), true);
-  assert.equal(source.includes("fetchYaml<ResumeViewConfig>(`/${locale.config_path}`, isResumeViewConfig)"), true);
-  assert.equal(source.includes("setViewConfig(loadedViewConfig)"), true);
+  assert.equal(source.includes("data: SampleResumeData"), true);
+  assert.equal(source.includes("fetch("), false);
+  assert.equal(source.includes("jsyaml"), false);
+  assert.equal(source.includes("useEffect"), false);
 });
 
 test("resume view renders section headings from locale labels", () => {
