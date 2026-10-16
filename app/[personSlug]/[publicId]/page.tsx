@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "../../components/localized-link";
+import { getRequestAppI18n } from "../../i18n/server";
 import { BasicResumeDocument } from "../../components/resume-renderer/BasicResumeDocument";
 import PrintTrigger from "../../components/print-trigger";
 import { getAppBaseUrl } from "../../lib/env";
@@ -115,6 +117,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const canonicalUrl = absoluteUrl(canonicalPath);
   const publicResumeJsonLd = buildPublicResumeJsonLd(published, canonicalUrl);
+  const { dictionary } = await getRequestAppI18n();
 
   return (
     <main className="container pb-8 public-resume-route cv-domain-page">
@@ -138,6 +141,9 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         mode="public"
         cvStyle={published.cvStyle}
       />
+      <p className="public-resume-route__cta">
+        <Link href="/">{dictionary.landing.cta.primary_action}</Link>
+      </p>
     </main>
   );
 }

@@ -109,6 +109,8 @@ export type AppDictionary = {
     };
     footer: {
       sample_resume: string;
+      docs: string;
+      faq: string;
       platform: string;
       privacy_policy: string;
       terms: string;
