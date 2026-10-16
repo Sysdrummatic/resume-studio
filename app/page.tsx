@@ -14,6 +14,9 @@ import { getRequestAppI18n } from "./i18n/server";
 import { getLanguageAlternatesMetadata } from "./lib/language-alternates";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
 import { loadSampleResumeData } from "./lib/sample-resume";
+import { getAppBaseUrl } from "./lib/env";
+import { safeJsonLdScript } from "./lib/jsonld";
+import { buildFaqPageJsonLd, buildSoftwareApplicationJsonLd } from "./lib/jsonld-schemas";
 import styles from "./landing.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,6 +43,16 @@ export default async function HomePage() {
 
   return (
     <div className={`lp ${styles.page}`}>
+      {[
+        buildSoftwareApplicationJsonLd(getAppBaseUrl(), dictionary.meta.description, locale),
+        buildFaqPageJsonLd(faq.items),
+      ].map((schema, index) => (
+        <script
+          key={index}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLdScript(schema) }}
+        />
+      ))}
       <RecoveryRedirect />
       <ScrollReveal />
       <section className={styles.hero} aria-labelledby="lp-hero-title">
