@@ -17,13 +17,17 @@ function internalPath(href, base) {
   }
 }
 
-// Pages the sitemap promises but no crawled page links to; empty when it is unreachable.
+// Pages the sitemap promises, as paths: it carries the production origin, not the
+// crawled one. Empty when the sitemap is unreachable.
 async function sitemapPaths(baseUrl) {
   try {
     const response = await fetch(new URL("/sitemap.xml", baseUrl));
     if (!response.ok) return [];
     const xml = await response.text();
-    return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => internalPath(loc, baseUrl)).filter(Boolean);
+    return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => {
+      const { pathname, search } = new URL(loc);
+      return internalPath(pathname + search, baseUrl);
+    }).filter(Boolean);
   } catch {
     return [];
   }
