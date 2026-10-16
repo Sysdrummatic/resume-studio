@@ -37,10 +37,15 @@ test("effective allowIndexing is resolved in one place and used by every public 
   assert.match(page, /\{allowIndexing \? \(/);
 });
 
-test("publishing and saving ignore allow_indexing=true while the flag is off", () => {
+test("publishing and saving keep the stored allow_indexing and ignore a new opt-in while the flag is off", () => {
   const server = read("app/lib/resume-server.ts");
-  assert.match(server, /allow_indexing: Boolean\(payload\.allowIndexing\) && \(await isPublicCvIndexingEnabled\(\)\)/);
-  assert.match(server, /input_allow_indexing: payload\.allowIndexing && \(await isPublicCvIndexingEnabled\(\)\)/);
+  assert.match(server, /allow_indexing: await storedAllowIndexing\(payload\.allowIndexing, existingPreset\?\.allow_indexing\)/);
+  assert.match(server, /input_allow_indexing: await storedAllowIndexing\(payload\.allowIndexing, existingPreset\.allow_indexing\)/);
+  assert.match(
+    server,
+    /return \(await isPublicCvIndexingEnabled\(\)\) \? Boolean\(requested\) : Boolean\(current\);/,
+  );
+  assert.equal(server.includes("Boolean(payload.allowIndexing) && (await isPublicCvIndexingEnabled())"), false);
 });
 
 test("indexing controls are hidden unless the flag is on and copy exists in EN and PL", () => {

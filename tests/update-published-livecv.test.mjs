@@ -90,13 +90,14 @@ test("republish keeps the languages already published under the link", async (t)
   assert.equal(rpcBodies[0].input_allow_indexing, true, "indexing follows the version's saved setting");
 });
 
-test("republish drops indexing while the public CV indexing flag is off", async (t) => {
+test("republish keeps the saved indexing choice while the flag is off; reads still resolve it to off", async (t) => {
   const { fake, rpcBodies } = installPublished({ indexingFlag: false });
   t.after(fake.restore);
-  const { republishResumePreset } = await import("../app/lib/resume-server.ts");
+  const { republishResumePreset, resolveEffectiveAllowIndexing } = await import("../app/lib/resume-server.ts");
 
   await republishResumePreset("token", USER, "preset-1");
-  assert.equal(rpcBodies[0].input_allow_indexing, false);
+  assert.equal(rpcBodies[0].input_allow_indexing, true, "the stored opt-in survives the pause so it is not lost when the flag is turned on");
+  assert.equal(await resolveEffectiveAllowIndexing({ allow_indexing: rpcBodies[0].input_allow_indexing }), false);
 });
 
 test("republish refuses a version that has no active link", async (t) => {
