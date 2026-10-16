@@ -30,7 +30,7 @@ export const AI_BOT_ROBOTS_ONLY_TOKENS = ["Google-Extended", "Applebot-Extended"
  * Anchored with $ or a trailing slash: robots.txt matches by prefix, and a bare
  * "/docs" would also allow a CV published under the slug "docs-team".
  */
-export const AI_BOT_ALLOWED_PATHS = ["/$", "/docs$", "/docs/", "/resume$", "/privacy$", "/terms$", "/login$"] as const;
+export const AI_BOT_ALLOWED_PATHS = ["/$", "/docs$", "/docs/", "/resume$", "/privacy$", "/terms$", "/login$", "/llms.txt$", "/llms-full.txt$", "/sitemap.xml$"] as const;
 
 export function buildAiBotRobotsRule() {
   return {
@@ -90,10 +90,17 @@ function decodeSegment(segment: string): string {
   }
 }
 
-/** A public CV is `/{personSlug}/{publicId}`; reserved first segments are app routes. */
+const CV_IMAGE_SEGMENT = /^(opengraph|twitter)-image(-[a-z0-9]+)?$/i;
+
+/**
+ * A public CV is `/{personSlug}/{publicId}`, and so is its generated share
+ * image `/{personSlug}/{publicId}/opengraph-image` (name and role). Reserved
+ * first segments are app routes.
+ */
 export function isPublicCvPath(pathname: string): boolean {
   const segments = pathname.split("/").filter(Boolean).map(decodeSegment);
-  return segments.length === 2 && !RESERVED_SET.has(segments[0].toLowerCase());
+  const isCv = segments.length === 2 || (segments.length === 3 && CV_IMAGE_SEGMENT.test(segments[2]));
+  return isCv && !RESERVED_SET.has(segments[0].toLowerCase());
 }
 
 export function shouldBlockAiBot(userAgent: string | null | undefined, pathname: string): boolean {

@@ -7,7 +7,7 @@ import {
   readAuthTokens,
   setAuthCookies,
 } from "./app/lib/auth-cookies";
-import { aiBotForbiddenResponse, shouldBlockAiBot } from "./app/lib/ai-bots";
+import { aiBotForbiddenResponse, isPublicCvPath, shouldBlockAiBot } from "./app/lib/ai-bots";
 import { refreshSession } from "./app/lib/supabase-http";
 import { APP_LANG_QUERY_HEADER_NAME, APP_LANG_QUERY_PARAM } from "./app/i18n/locale";
 
@@ -118,7 +118,8 @@ export async function proxy(request: NextRequest): Promise<Response> {
   // so a client can never inject it directly; the locale is validated against the
   // enabled locales when it is resolved.
   const langQuery = request.nextUrl.searchParams.get(APP_LANG_QUERY_PARAM)?.trim() ?? "";
-  if (/^[A-Za-z]{2}([-_][A-Za-z]{2})?$/.test(langQuery)) {
+  // On a public CV the same parameter selects the CV language, so it never sets the app locale there.
+  if (!isPublicCvPath(pathname) && /^[A-Za-z]{2}([-_][A-Za-z]{2})?$/.test(langQuery)) {
     request.headers.set(APP_LANG_QUERY_HEADER_NAME, langQuery);
   } else {
     request.headers.delete(APP_LANG_QUERY_HEADER_NAME);

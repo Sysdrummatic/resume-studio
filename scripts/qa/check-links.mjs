@@ -17,6 +17,18 @@ function internalPath(href, base) {
   }
 }
 
+// Pages the sitemap promises but no crawled page links to; empty when it is unreachable.
+async function sitemapPaths(baseUrl) {
+  try {
+    const response = await fetch(new URL("/sitemap.xml", baseUrl));
+    if (!response.ok) return [];
+    const xml = await response.text();
+    return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => internalPath(loc, baseUrl)).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export async function crawl(baseUrl, seeds = DEFAULT_SEEDS, { limit = 200 } = {}) {
   const queue = [...seeds];
   const seen = new Set(seeds);
@@ -24,8 +36,14 @@ export async function crawl(baseUrl, seeds = DEFAULT_SEEDS, { limit = 200 } = {}
   const broken = [];
   while (queue.length > 0 && seen.size <= limit) {
     const path = queue.shift();
-    const response = await fetch(new URL(path, baseUrl), { redirect: "manual" });
-    if (response.status >= 300) {
+    let response;
+    try {
+      response = await fetch(new URL(path, baseUrl));
+    } catch {
+      broken.push({ path, status: 0 });
+      continue;
+    }
+    if (response.status >= 400) {
       broken.push({ path, status: response.status });
       continue;
     }
@@ -41,7 +59,7 @@ export async function crawl(baseUrl, seeds = DEFAULT_SEEDS, { limit = 200 } = {}
       }
     }
   }
-  const orphans = seeds.filter((seed) => seed !== "/" && !incoming.has(seed));
+  const orphans = [...new Set([...seeds, ...(await sitemapPaths(baseUrl))])].filter((p) => p !== "/" && !incoming.has(p));
   return { crawled: seen.size, broken, orphans };
 }
 

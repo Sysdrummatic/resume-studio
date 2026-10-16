@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { FocusEvent } from "react";
+import { isPublicCvPath } from "../lib/ai-bots";
 import { APP_LANG_QUERY_PARAM, APP_LOCALE_COOKIE_MAX_AGE, APP_LOCALE_COOKIE_NAME } from "../i18n/locale";
 import { useAppI18n } from "./app-i18n-provider";
 
@@ -88,7 +89,10 @@ export default function AppLanguageMenu() {
 
     persistAppLocale(nextLocale);
     const url = new URL(window.location.href);
-    url.searchParams.set(APP_LANG_QUERY_PARAM, nextLocale);
+    // On a public CV ?lang= selects the CV language, not the app language; the cookie carries the app locale there.
+    if (!isPublicCvPath(url.pathname)) {
+      url.searchParams.set(APP_LANG_QUERY_PARAM, nextLocale);
+    }
     window.location.assign(url.toString());
   }
 
