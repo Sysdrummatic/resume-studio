@@ -5,15 +5,12 @@ import { canViewTestScenarios } from "../lib/docs/access";
 import { getOverviewDoc, listDocNavGroups } from "../lib/docs/content";
 import { renderMarkdownToHtml } from "../lib/docs/markdown";
 import { getRequestAppI18n } from "../i18n/server";
+import { publicPageMetadata } from "../lib/seo-metadata";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
-  return {
-    title: `${dictionary.docs.title} | OpenCiVera`,
-    description: dictionary.docs.lead,
-    robots: { index: true, follow: true },
-  };
+  return publicPageMetadata({ ...dictionary.meta.pages.docs, path: "/docs", index: true });
 }
 
 export const dynamic = "force-dynamic";

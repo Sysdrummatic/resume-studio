@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
   return {
-    title: `${dictionary.settings.text["Account settings"]} | OpenCiVera`,
+    title: dictionary.settings.text["Account settings"],
     robots: { index: false, follow: false }
   };
 }

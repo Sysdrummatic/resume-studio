@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
   return {
     metadataBase: new URL(getAppBaseUrl()),
-    title: "OpenCiVera",
+    title: { default: "OpenCiVera", template: "%s | OpenCiVera" },
     description: dictionary.meta.description,
     icons: {
       icon: "/favicon.svg",

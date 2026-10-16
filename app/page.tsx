@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { publicPageMetadata } from "./lib/seo-metadata";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import LandingPageFooter from "./components/footer";
@@ -11,6 +13,11 @@ import ScrollReveal from "./components/scroll-reveal";
 import { getRequestAppI18n } from "./i18n/server";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
 import styles from "./landing.module.css";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { dictionary } = await getRequestAppI18n();
+  return publicPageMetadata({ title: { absolute: dictionary.meta.default_title }, description: dictionary.meta.description, path: "/", index: true });
+}
 
 export default async function HomePage() {
   const [{ locale, dictionary }, cookieStore] = await Promise.all([getRequestAppI18n(), cookies()]);

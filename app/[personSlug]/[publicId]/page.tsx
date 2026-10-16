@@ -6,6 +6,7 @@ import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server"
 import type { PublishedResumePreset } from "../../lib/resume-server";
 import { safeJsonLdScript } from "../../lib/jsonld";
 import { resumeFullName } from "../../lib/resume-schema";
+import { buildPublicCvDescription, buildPublicCvTitle } from "../../lib/seo-metadata";
 
 type PublicResumeByPublicIdPageProps = {
   params: Promise<{
@@ -60,7 +61,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
 
   if (!publishedRoute) {
     return {
-      title: "Resume not found | OpenCiVera",
+      title: "Resume not found",
       robots: {
         index: false,
         follow: false,
@@ -69,8 +70,10 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
   }
 
   const { published, allowIndexing, personSlug: canonicalPersonSlug, publicId: canonicalPublicId } = publishedRoute;
-  const title = `${resumeFullName(published.resume) || published.preset.title} | OpenCiVera`;
-  const description = published.resume.summary.find((s) => s.default)?.position || published.preset.title;
+  const defaultSummary = published.resume.summary.find((s) => s.default);
+  const title = buildPublicCvTitle(resumeFullName(published.resume) || published.preset.title, defaultSummary?.position ?? "");
+  const description = buildPublicCvDescription(defaultSummary?.description ?? "", defaultSummary?.position || published.preset.title);
+  const socialTitle = `${title} | OpenCiVera`;
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const languageMap = Object.fromEntries(
     published.languages.map((language) => [language.code, absoluteUrl(language.href)]),
@@ -88,14 +91,14 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
       languages: languageMap,
     },
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       type: "profile",
       url: absoluteUrl(canonicalPath),
     },
     twitter: {
       card: "summary",
-      title,
+      title: socialTitle,
       description,
     },
   };

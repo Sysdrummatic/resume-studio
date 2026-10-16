@@ -220,7 +220,7 @@ test("public docs pages declare metadata robots and no longer force login", () =
   const index = read(indexRoutePath);
   assert.equal(article.includes("generateMetadata"), true);
   assert.equal(article.includes("index: true, follow: true"), true);
-  assert.equal(index.includes("index: true, follow: true"), true);
+  assert.equal(index.includes("publicPageMetadata") && index.includes("index: true"), true);
   assert.equal(index.includes("requireAuthenticatedActor"), false);
 });
 

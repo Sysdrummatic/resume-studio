@@ -18,8 +18,15 @@ export type LegalDocument = {
   sections: LegalSection[];
 };
 
+export type PublicMetaPageKey = "resume" | "docs" | "login" | "privacy" | "terms";
+export type PageMeta = { title: string; description: string };
+
 export type AppDictionary = {
-  meta: { description: string };
+  meta: {
+    default_title: string;
+    description: string;
+    pages: Record<PublicMetaPageKey, PageMeta>;
+  };
   common: {
     loading: string;
     close: string;
@@ -184,7 +191,7 @@ export type AppDictionary = {
     published_note: string;
     topics_content: Array<{ title: string; description: string; label: string }>;
   };
-  sample_resume: { title: string; description: string; loading: string };
+  sample_resume: { loading: string };
 };
 
 export type AppI18nContextValue = {
