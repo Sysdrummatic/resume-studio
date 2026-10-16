@@ -48,5 +48,10 @@ test("sitemap does not swallow database failures", () => {
 
 test("sitemap link query is paginated and bounded", () => {
   assert.match(serverSource, /SITEMAP_MAX_LINKS\s*=\s*49_000/);
-  assert.match(serverSource, /limit=\$\{SITEMAP_PAGE_SIZE\}&offset=\$\{offset\}/);
+  assert.match(serverSource, /limit=\$\{pageSize\}&offset=\$\{offset\}/);
+});
+
+test("sitemap fails loudly instead of truncating past the link cap", () => {
+  assert.match(serverSource, /SITEMAP_MAX_LINKS \+ 1 - offset/);
+  assert.match(serverSource, /rows\.length > SITEMAP_MAX_LINKS\)\s*\{\s*throw new Error/);
 });
