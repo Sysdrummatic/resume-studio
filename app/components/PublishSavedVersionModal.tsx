@@ -23,6 +23,7 @@ type Props = {
   draft: PublishDraft;
   locales: ResumeLocale[];
   languageOptions: LanguageMetadata[];
+  indexingEnabled: boolean;
   onClose: () => void;
   onPublish: (payload: {
     preset: ResumePresetRow;
@@ -36,6 +37,7 @@ export default function PublishSavedVersionModal({
   draft,
   locales,
   languageOptions,
+  indexingEnabled,
   onClose,
   onPublish,
 }: Props) {
@@ -54,7 +56,7 @@ export default function PublishSavedVersionModal({
     }
     setError("");
     setIsSubmitting(true);
-    await onPublish({ preset: draft.preset, ...languages, allowIndexing });
+    await onPublish({ preset: draft.preset, ...languages, allowIndexing: indexingEnabled && allowIndexing });
     setIsSubmitting(false);
   }
 
@@ -73,10 +75,14 @@ export default function PublishSavedVersionModal({
 
         <PublicationLanguageFields locales={locales} languageOptions={languageOptions} value={languages} onChange={setLanguages} />
 
-        <label className="checkbox-row">
-          <input type="checkbox" checked={allowIndexing} disabled={Boolean(draft.preset.onboarding_test_run_id)} onChange={(event) => setAllowIndexing(event.target.checked)} />
-          {labels.allow_indexing}
-        </label>
+        {indexingEnabled ? (
+          <label className="checkbox-row">
+            <input type="checkbox" checked={allowIndexing} disabled={Boolean(draft.preset.onboarding_test_run_id)} onChange={(event) => setAllowIndexing(event.target.checked)} />
+            {labels.allow_indexing}
+          </label>
+        ) : (
+          <p className="card-lead">{labels.link_only_note}</p>
+        )}
 
         <div className="card stack">
           <strong>{labels.link_state}</strong>

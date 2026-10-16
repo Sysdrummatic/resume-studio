@@ -9,6 +9,7 @@ import { callRpc, deleteTable, insertTable, queryTable, updateTable } from "./su
 import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode, splitProfileName } from "./profile-name";
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
 import type { ResumePresetSelection } from "./preset-selection";
+import { isPublicCvIndexingEnabled } from "./platform-feature-flags";
 import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
 import { normalizeResumeStyle, presetStyleSource, type ResumeStyleSettings } from "./resume-style";
 import {
@@ -1498,7 +1499,7 @@ export async function fetchPublishedResumePresetByPublicLink(
     published,
     personSlug: link.person_slug || personSlug,
     publicId: link.public_id || publicId,
-    allowIndexing: Boolean(link.allow_indexing),
+    allowIndexing: await resolveEffectiveAllowIndexing(link),
     defaultLocale: published.preset.default_locale,
     availableLocales: published.languages.map((language) => language.code),
   };
@@ -1565,7 +1566,7 @@ export async function fetchPublishedResumeExportByPublicLink(
     cvStyle: normalizeResumeStyle(activeLocaleRow.style_settings),
     defaultLocale,
     availableLocales: Array.from(allowedLocales),
-    allowIndexing: Boolean(link.allow_indexing),
+    allowIndexing: await resolveEffectiveAllowIndexing(link),
     schemaVersion: Number(activeLocaleRow.schema_version) || Number(snapshot.schema_version) || 1,
     openCvYamlContractVersion: snapshot.open_cv_yaml_contract_version,
     yamlContent: exportContent.yamlContent,
@@ -1613,7 +1614,17 @@ export async function fetchResumeExportByPresetId(
 const SITEMAP_PAGE_SIZE = 1000;
 const SITEMAP_MAX_LINKS = 49_000;
 
+// The one place that turns a link's stored opt-in into the effective indexing
+// decision (metadata, sitemap, JSON-LD, exports): paused platform-wide unless
+// the fail-closed flag is on (ADR 0001/0005).
+export async function resolveEffectiveAllowIndexing(link: { allow_indexing?: boolean | null }): Promise<boolean> {
+  return Boolean(link.allow_indexing) && (await isPublicCvIndexingEnabled());
+}
+
 export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitemapLink[]> {
+  if (!(await isPublicCvIndexingEnabled())) {
+    return [];
+  }
   const rows: ResumePublicLinkRow[] = [];
   // Reads one row past the cap so an over-limit table is detected instead of silently cut.
   for (let offset = 0; offset <= SITEMAP_MAX_LINKS; offset += SITEMAP_PAGE_SIZE) {
@@ -1780,7 +1791,7 @@ export async function saveResumePreset(
     style_settings: styleSettings,
     // Only the publish and unpublish RPCs change this, together with the link.
     is_public: existingPreset?.is_public ?? false,
-    allow_indexing: Boolean(payload.allowIndexing),
+    allow_indexing: Boolean(payload.allowIndexing) && (await isPublicCvIndexingEnabled()),
     ai_generated: Boolean(payload.aiGenerated),
     default_locale: normalizeLocale(payload.defaultLocale || document.locale),
   };
@@ -1940,7 +1951,7 @@ export async function publishResumePreset(
     functionName: "publish_resume_saved_version",
     payload: {
       input_preset_id: existingPreset.id,
-      input_allow_indexing: payload.allowIndexing,
+      input_allow_indexing: payload.allowIndexing && (await isPublicCvIndexingEnabled()),
       input_ai_generated: Boolean(payload.aiGenerated || existingPreset.ai_generated),
       input_default_locale: requestedDefaultLocale,
       input_selected_locales: explicitLocales,
