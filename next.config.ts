@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
   // ("Cannot find module '.../pdf.worker.mjs'"). Marking it external skips
   // bundling entirely — Node loads it straight from node_modules instead.
   serverExternalPackages: ["pdf-parse", "pdfjs-dist"],
+  // The sample CV is read from public/data at request time (app/lib/sample-resume.ts);
+  // without this the serverless bundle for / and /resume may not contain those files.
+  outputFileTracingIncludes: {
+    "/": ["./public/data/public/**/*"],
+    "/resume": ["./public/data/public/**/*"],
+  },
   async headers() {
     const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }];
     return [

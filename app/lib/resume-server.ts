@@ -1621,6 +1621,14 @@ export async function resolveEffectiveAllowIndexing(link: { allow_indexing?: boo
   return Boolean(link.allow_indexing) && (await isPublicCvIndexingEnabled());
 }
 
+// What save/publish store as the opt-in. While indexing is paused the UI hides the
+// control and sends nothing, so the stored choice is kept (and a new opt-in is
+// ignored) instead of being overwritten with false; reads still go through
+// resolveEffectiveAllowIndexing, so nothing becomes indexable.
+async function storedAllowIndexing(requested: boolean | undefined, current: boolean | null | undefined): Promise<boolean> {
+  return (await isPublicCvIndexingEnabled()) ? Boolean(requested) : Boolean(current);
+}
+
 export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitemapLink[]> {
   if (!(await isPublicCvIndexingEnabled())) {
     return [];
@@ -1791,7 +1799,7 @@ export async function saveResumePreset(
     style_settings: styleSettings,
     // Only the publish and unpublish RPCs change this, together with the link.
     is_public: existingPreset?.is_public ?? false,
-    allow_indexing: Boolean(payload.allowIndexing) && (await isPublicCvIndexingEnabled()),
+    allow_indexing: await storedAllowIndexing(payload.allowIndexing, existingPreset?.allow_indexing),
     ai_generated: Boolean(payload.aiGenerated),
     default_locale: normalizeLocale(payload.defaultLocale || document.locale),
   };
@@ -1951,7 +1959,7 @@ export async function publishResumePreset(
     functionName: "publish_resume_saved_version",
     payload: {
       input_preset_id: existingPreset.id,
-      input_allow_indexing: payload.allowIndexing && (await isPublicCvIndexingEnabled()),
+      input_allow_indexing: await storedAllowIndexing(payload.allowIndexing, existingPreset.allow_indexing),
       input_ai_generated: Boolean(payload.aiGenerated || existingPreset.ai_generated),
       input_default_locale: requestedDefaultLocale,
       input_selected_locales: explicitLocales,

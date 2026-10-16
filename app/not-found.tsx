@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getRequestAppI18n } from "./i18n/server";
 
 export const metadata: Metadata = {
-  title: "404 | OpenCiVera",
+  title: "404",
   robots: { index: false, follow: false },
 };
 

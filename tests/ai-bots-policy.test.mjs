@@ -45,6 +45,17 @@ test("public CV paths are blocked for bots, including slugs that merely start wi
   assert.equal(isPublicCvPath("/%E0%A4%A/x"), true);
 });
 
+test("the CV share image under a third segment is blocked for bots, other third segments and app routes are not", () => {
+  for (const p of ["/jan/abc/opengraph-image", "/jan/abc/opengraph-image-1a2b3c", "/jan/abc/twitter-image", "/%6Aan/abc/opengraph-image", "/jan/abc/opengraph-image/"]) {
+    assert.equal(isPublicCvPath(p), true, p);
+    assert.equal(shouldBlockAiBot("GPTBot/1.2", p), true, p);
+    assert.equal(shouldBlockAiBot("Mozilla/5.0 Chrome/126", p), false, p);
+  }
+  for (const p of ["/jan/abc/other", "/jan/abc/opengraph-image/x", "/docs/tutorials/opengraph-image", "/api/x/opengraph-image"]) {
+    assert.equal(isPublicCvPath(p), false, p);
+  }
+});
+
 test("reserved slugs cover every top-level app and public folder, in TypeScript and in SQL", () => {
   const folders = [...topLevelDirs("app"), ...topLevelDirs("public")];
   const sql = read("supabase/migrations/20261016000000_reserve_route_person_slugs.sql");

@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
   }
   if (doc.isPublic) {
     return {
-      title: `${doc.title} | OpenCiVera`,
+      title: doc.title,
       description: doc.description || undefined,
       robots: { index: true, follow: true },
       alternates: await getLanguageAlternatesMetadata(`/docs/${category}/${slug}`),
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
     return { robots: noindex };
   }
   return {
-    title: `${doc.title} | OpenCiVera`,
+    title: doc.title,
     description: doc.description || undefined,
     robots: noindex,
   };

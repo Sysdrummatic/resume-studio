@@ -25,7 +25,7 @@ export function buildLlmsTxt(baseUrl: string): string {
 
 ## Documentation and policies
 
-- [Documentation](${link("/docs")}): tutorials for signed-in users
+- [Documentation](${link("/docs")}): public tutorials on creating, editing and publishing a LiveCV
 - [Privacy policy](${link("/privacy")})
 - [Terms of service](${link("/terms")})
 

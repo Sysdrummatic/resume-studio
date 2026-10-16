@@ -72,7 +72,17 @@ function extractRole(raw: unknown): string {
  * up front (the sample ships two small files) so switching language is client
  * state only: no fetch and no browser YAML parser on the public path.
  */
-export async function loadSampleResumeData(): Promise<SampleResumeData> {
+export function loadSampleResumeData(): Promise<SampleResumeData> {
+  cachedSample ??= readSampleResumeData().catch((error) => {
+    cachedSample = null;
+    throw error;
+  });
+  return cachedSample;
+}
+
+let cachedSample: Promise<SampleResumeData> | null = null;
+
+async function readSampleResumeData(): Promise<SampleResumeData> {
   const config = localesConfigSchema.parse(await readPublicYaml("data/public/locales.yaml"));
 
   const locales = await Promise.all(

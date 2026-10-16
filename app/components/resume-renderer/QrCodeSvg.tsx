@@ -46,18 +46,18 @@ export default function QrCodeSvg({ value, size = 130, className, alt }: Props) 
 /** Makes the QR itself the link for safe http(s) values (so it works when the CV
  * is viewed on the device that would have to scan it); the URL is never painted.
  * Other values (mailto:, plain text) stay non-clickable with an sr-only value. */
-export function QrCodeLink({ value, alt, children }: { value: string; alt: string; children: ReactNode }) {
+export function QrCodeLink({ value, children }: { value: string; alt: string; children: ReactNode }) {
   const safeLink = safeHttpHref(value);
   if (safeLink) {
     return (
-      <a href={safeLink} target="_blank" rel="noreferrer noopener" aria-label={alt} className="qr-card__link">
+      <a href={safeLink} target="_blank" rel="noreferrer noopener" className="qr-card__link">
         {children}
       </a>
     );
   }
   return (
     <>
-      {children}
+      <span aria-hidden="true">{children}</span>
       <span className="qr-card__value sr-only">{value}</span>
     </>
   );
