@@ -518,7 +518,7 @@ functions that consume one.
 
 **Routing Model:**
 - **Canonical:** `/{person-slug}/{public-id}` (primary, from `resume_public_links`), the only public route
-- **CV indexing paused:** effective `allowIndexing = allow_indexing && platform_feature_flags.public_cv_indexing_enabled` (fail-closed, default off) via `resolveEffectiveAllowIndexing` in `resume-server.ts`; all public CVs are `noindex`, sitemap omits them, UI hides the opt-in (ADR 0001/0005). Test: `tests/public-cv-indexing-paused.test.mjs`
+- **CV indexing paused:** effective `allowIndexing = allow_indexing && platform_feature_flags.public_cv_indexing_enabled` (fail-closed, default off) via `resolveEffectiveAllowIndexing` in `resume-server.ts`; all public CVs are `noindex`, sitemap omits them, UI hides the opt-in; saving/publishing keeps the stored `allow_indexing` while paused (`storedAllowIndexing`) and ignores a new opt-in (ADR 0001/0005). Test: `tests/public-cv-indexing-paused.test.mjs`
 - **Netlify:** Build config + Next.js plugin only; the legacy `.html` redirects were removed with the static app (`tests/legacy-static-cleanup.test.mjs`)
 
 **Privacy Policy Page:** Public, indexable route at `app/privacy/page.tsx`
