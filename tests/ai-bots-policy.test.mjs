@@ -18,7 +18,7 @@ const read = (p) => fs.readFileSync(path.join(process.cwd(), p), "utf8");
 const topLevelDirs = (dir) =>
   fs
     .readdirSync(path.join(process.cwd(), dir), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && !/^[[(_@]/.test(entry.name))
+    .filter((entry) => entry.isDirectory() && !/^[[(_@]|\./.test(entry.name))
     .map((entry) => entry.name);
 
 test("every listed AI bot UA is recognised, browsers and link previews are not", () => {
