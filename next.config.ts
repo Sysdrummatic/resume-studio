@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   // bundling entirely — Node loads it straight from node_modules instead.
   serverExternalPackages: ["pdf-parse", "pdfjs-dist"],
   async headers() {
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }];
     return [
       {
         source: "/:path*",
@@ -22,6 +23,8 @@ const nextConfig: NextConfig = {
       },
       { source: "/fonts/:path*", headers: STATIC_ASSET_CACHE },
       { source: "/animations/:path*", headers: STATIC_ASSET_CACHE },
+      { source: "/api/resume/export/:path*", headers: noindex },
+      { source: "/api/public/opencv/v1/:path*", headers: noindex },
     ];
   },
 };

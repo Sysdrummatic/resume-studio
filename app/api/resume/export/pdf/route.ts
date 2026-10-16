@@ -1,3 +1,4 @@
+import { rejectAiBot } from "../../../../lib/ai-bots";
 import React from "react";
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
@@ -12,6 +13,11 @@ import { cvBasicDotTheme } from "../../../../lib/pdf/theme";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const blocked = rejectAiBot(req);
+  if (blocked) {
+    return blocked;
+  }
+
   const { searchParams } = new URL(req.url);
   const personSlug = searchParams.get("personSlug");
   const publicId = searchParams.get("publicId");
