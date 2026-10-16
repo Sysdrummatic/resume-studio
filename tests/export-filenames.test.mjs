@@ -35,6 +35,7 @@ function exportRoute(kind, converters) {
     "next/server": { NextResponse },
     "../../../../lib/resume-server": { fetchPublishedResumeExportByPublicLink: async () => exportData },
     "../../../../lib/resume-export": converters,
+    "../../../../lib/ai-bots": { rejectAiBot: () => null },
     "../../../../lib/rate-limit": { rateLimit: async () => ({ success: true, reset: Date.now() }) },
     "../../../../lib/pdf/filename": filename,
   });
