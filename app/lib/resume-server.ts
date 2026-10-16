@@ -1610,19 +1610,32 @@ export async function fetchResumeExportByPresetId(
   };
 }
 
-export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitemapLink[]> {
-  const result = await queryTable<ResumePublicLinkRow>({
-    table: "resume_public_links",
-    select: RESUME_PUBLIC_LINK_SELECT,
-    useServiceRole: true,
-    query: "is_active=eq.true&status=eq.active&allow_indexing=eq.true&order=updated_at.desc",
-  });
+const SITEMAP_PAGE_SIZE = 1000;
+const SITEMAP_MAX_LINKS = 49_000;
 
-  if (!result.data || result.error) {
-    return [];
+export async function fetchIndexablePublicLinksForSitemap(): Promise<PublicSitemapLink[]> {
+  const rows: ResumePublicLinkRow[] = [];
+  // Reads one row past the cap so an over-limit table is detected instead of silently cut.
+  for (let offset = 0; offset <= SITEMAP_MAX_LINKS; offset += SITEMAP_PAGE_SIZE) {
+    const pageSize = Math.min(SITEMAP_PAGE_SIZE, SITEMAP_MAX_LINKS + 1 - offset);
+    const result = await queryTable<ResumePublicLinkRow>({
+      table: "resume_public_links",
+      select: RESUME_PUBLIC_LINK_SELECT,
+      useServiceRole: true,
+      query: `is_active=eq.true&status=eq.active&allow_indexing=eq.true&order=updated_at.desc,id.asc&limit=${pageSize}&offset=${offset}`,
+    });
+    if (!result.data || result.error) {
+      throw new Error("Sitemap: failed to load public CV links.");
+    }
+    rows.push(...result.data);
+    if (result.data.length < pageSize) break;
+  }
+  // ponytail: fail loudly at the 50,000-URL sitemap limit; add a sitemap index (generateSitemaps) when this fires.
+  if (rows.length > SITEMAP_MAX_LINKS) {
+    throw new Error(`Sitemap: more than ${SITEMAP_MAX_LINKS} indexable public CV links; a sitemap index is required.`);
   }
 
-  return result.data
+  return rows
     .filter((link) => Boolean(link.person_slug && link.public_id))
     .map((link) => {
       const defaultLocale = normalizeLocale(link.default_locale || "en");

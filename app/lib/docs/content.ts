@@ -24,6 +24,7 @@ export type DocEntry = {
   title: string;
   description: string;
   order: number;
+  isPublic: boolean;
   updatedAt: string | null;
   markdown: string;
 };
@@ -81,6 +82,12 @@ export function getDocResourcePath(
   return null;
 }
 
+// ADR 0025: tutorials are public unless the frontmatter says `public: false`;
+// test scenarios are never public, whatever the frontmatter says.
+export function isDocPubliclyVisible(category: DocCategory, fields: Record<string, string>): boolean {
+  return category === "tutorials" && fields.public !== "false";
+}
+
 export function isDocCategory(value: string): value is DocCategory {
   return (DOC_CATEGORIES as readonly string[]).includes(value);
 }
@@ -129,6 +136,7 @@ export function getDoc(category: DocCategory, slug: string, localeInput: string 
     title: fields.title || slug,
     description: fields.description || "",
     order: Number.isNaN(parsedOrder) ? Number.MAX_SAFE_INTEGER : parsedOrder,
+    isPublic: isDocPubliclyVisible(category, fields),
     updatedAt: fields.updatedAt || null,
     markdown: body,
   };
@@ -155,12 +163,18 @@ export function getOverviewDoc(localeInput: string = DOC_FALLBACK_LOCALE): { tit
   return null;
 }
 
-export function listDocNavGroups(includeTestScenarios: boolean, localeInput: string = DOC_FALLBACK_LOCALE): DocNavGroup[] {
+export function listDocNavGroups(
+  includeTestScenarios: boolean,
+  localeInput: string = DOC_FALLBACK_LOCALE,
+  options: { publicOnly?: boolean } = {},
+): DocNavGroup[] {
   const categories: DocCategory[] = includeTestScenarios ? [...DOC_CATEGORIES] : ["tutorials"];
   return categories.map((category) => ({
     key: category,
     title: DOC_CATEGORY_TITLES[category],
-    items: listDocs(category, localeInput).map((doc) => ({
+    items: listDocs(category, localeInput)
+      .filter((doc) => !options.publicOnly || doc.isPublic)
+      .map((doc) => ({
       href: `/docs/${category}/${doc.slug}`,
       title: doc.title,
       description: doc.description,

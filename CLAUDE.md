@@ -683,8 +683,9 @@ Sign-up has an optional "I'm joining as a beta-tester" checkbox →
 at INSERT time only (`20260719000000_beta_tester_signup_optin.sql`; the
 `profiles_guard_update` trigger is UPDATE-only, so this path is not blocked —
 post-signup changes remain admin-only via the guarded RPCs). `SessionActor`
-carries `isTestUser`. The in-app docs site (`/docs`, nav entry for all
-authenticated users) renders git-committed Markdown from
+carries `isTestUser`. The docs site (`/docs`; **tutorials and the overview are public since
+ADR 0025**, which amends ADR 0020 — frontmatter `public: false` opts a tutorial
+out, `test-scenarios` are never public) renders git-committed Markdown from
 `content/docs/{tutorials,test-scenarios}/*.md` via `app/lib/docs/`
 (`content.ts` minimal frontmatter parser, `markdown.ts` = `marked` with raw-HTML
 pass-through escaped, `access.ts` = `canViewTestScenarios(actor)` composing

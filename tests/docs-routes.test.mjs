@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { createRequire, register } from "node:module";
 import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -33,6 +33,7 @@ function loadPages(actor, flag = false) {
     function localRequire(specifier) {
       if (specifier.endsWith("/lib/auth-server"))
         return {
+          getCurrentActor: async () => actor,
           requireAuthenticatedActor: async () => {
             if (!actor) throw new Error("LOGIN_REDIRECT");
             return actor;
@@ -70,13 +71,45 @@ function loadPages(actor, flag = false) {
 
 const params = (category, slug) => ({ params: Promise.resolve({ category, slug }) });
 
-test("docs index and articles preserve login protection (isolated auth)", async () => {
+test("anonymous visitors read public docs, never test scenarios (ADR 0025)", async () => {
   const pages = loadPages(null);
-  await assert.rejects(pages.index({}), /LOGIN_REDIRECT/);
-  await assert.rejects(
-    pages.article(params("tutorials", "publishing-your-first-cv")),
-    /LOGIN_REDIRECT/
+  const index = renderToStaticMarkup(await pages.index({}));
+  assert.match(index, /\/docs\/tutorials\/publishing-your-first-cv/);
+  assert.doesNotMatch(index, /test-scenarios/);
+  const article = renderToStaticMarkup(
+    await pages.article(params("tutorials", "publishing-your-first-cv"))
   );
+  assert.match(article, /Publishing your first LiveCV/);
+  await assert.rejects(pages.article(params("test-scenarios", "signup-and-login")), /NOT_FOUND/);
+});
+
+test("a non-public doc still sends anonymous visitors to login", async () => {
+  const dir = path.resolve("content/docs/locales/en/tutorials/private-fixture");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    path.join(dir, "private-fixture.md"),
+    "---\ntitle: Private\npublic: false\norder: 99\n---\n\n# Private\n"
+  );
+  try {
+    const anonymous = loadPages(null);
+    await assert.rejects(anonymous.article(params("tutorials", "private-fixture")), /LOGIN_REDIRECT/);
+    const index = renderToStaticMarkup(await anonymous.index({}));
+    assert.doesNotMatch(index, /private-fixture/);
+    const signedIn = loadPages({ role: "user", isTestUser: false });
+    assert.match(
+      renderToStaticMarkup(await signedIn.article(params("tutorials", "private-fixture"))),
+      /Private/
+    );
+    const input = {
+      params: Promise.resolve({ category: "tutorials", slug: "private-fixture", file: ["a.png"] })
+    };
+    await assert.rejects(
+      anonymous.resource(new Request("http://localhost/x.png"), input),
+      /LOGIN_REDIRECT/
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("server-rendered docs and direct scenario URLs preserve all role/flag combinations", async () => {
@@ -120,7 +153,7 @@ test("article Markdown, outline and breadcrumbs keep real targets; unknown docs 
   await assert.rejects(pages.article(params("tutorials", "missing")), /NOT_FOUND/);
 });
 
-test("image resources retain authentication, PNG content, private caching and traversal checks", async () => {
+test("public image resources are anonymous and publicly cacheable; traversal stays blocked", async () => {
   const input = {
     params: Promise.resolve({
       category: "tutorials",
@@ -131,12 +164,13 @@ test("image resources retain authentication, PNG content, private caching and tr
   const req = new Request(
     "http://localhost/docs/tutorials/publishing-your-first-cv/resources/01-dashboard-nav.png"
   );
-  await assert.rejects(loadPages(null).resource(req, input), /LOGIN_REDIRECT/);
+  const anonymousResponse = await loadPages(null).resource(req, input);
+  assert.equal(anonymousResponse.status, 200);
+  assert.match(anonymousResponse.headers.get("Cache-Control"), /^public/);
   const pages = loadPages({ role: "user", isTestUser: false });
   const response = await pages.resource(req, input);
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Content-Type"), "image/png");
-  assert.match(response.headers.get("Cache-Control"), /^private/);
   assert.ok((await response.arrayBuffer()).byteLength > 100);
   const traversal = await pages.resource(req, {
     params: Promise.resolve({
