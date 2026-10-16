@@ -31,10 +31,25 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
   if (!doc) {
     return {};
   }
+  if (doc.isPublic) {
+    return {
+      title: `${doc.title} | OpenCiVera`,
+      description: doc.description || undefined,
+      robots: { index: true, follow: true },
+    };
+  }
+
+  // Same boundary as the page body: hidden documents never leak title/description to anonymous or unauthorized requests.
+  const noindex = { index: false, follow: false };
+  const actor = await getCurrentActor();
+  const canRead = actor && (category !== "test-scenarios" || (await canViewTestScenarios(actor)));
+  if (!canRead) {
+    return { robots: noindex };
+  }
   return {
     title: `${doc.title} | OpenCiVera`,
     description: doc.description || undefined,
-    robots: doc.isPublic ? { index: true, follow: true } : { index: false, follow: false },
+    robots: noindex,
   };
 }
 

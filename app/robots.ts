@@ -1,6 +1,16 @@
 import type { MetadataRoute } from "next";
 import { getAppBaseUrl } from "./lib/env";
 
+const PRIVATE_PATHS = [
+  "/api/",
+  "/dashboard",
+  "/admin",
+  "/master-resume",
+  "/user",
+  "/onboarding",
+  "/settings",
+];
+
 export default function robots(): MetadataRoute.Robots {
   const base = getAppBaseUrl();
   return {
@@ -8,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
+        disallow: PRIVATE_PATHS,
       },
     ],
     sitemap: `${base.replace(/\/+$/, "")}/sitemap.xml`,

@@ -3,6 +3,12 @@ import { getAppBaseUrl } from "./lib/env";
 import { listDocs } from "./lib/docs/content";
 import { fetchIndexablePublicLinksForSitemap } from "./lib/resume-server";
 
+// Rendered per request so a missing Supabase config at build time cannot fail the build.
+export const dynamic = "force-dynamic";
+
+// Bump when the content of the static public pages changes.
+const STATIC_PAGES_LAST_MODIFIED = "2026-10-15";
+
 function buildPublicUrl(base: string, personSlug: string, publicId: string, locale?: string): string {
   const encoded = `/${encodeURIComponent(personSlug)}/${encodeURIComponent(publicId)}`;
   if (!locale) {
@@ -14,25 +20,18 @@ function buildPublicUrl(base: string, personSlug: string, publicId: string, loca
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getAppBaseUrl().replace(/\/+$/, "");
   const entries: MetadataRoute.Sitemap = [
-    {
-      url: `${base}/privacy`,
-    },
-    {
-      url: `${base}/terms`,
-    },
+    { url: base, lastModified: STATIC_PAGES_LAST_MODIFIED },
+    { url: `${base}/resume`, lastModified: STATIC_PAGES_LAST_MODIFIED },
+    { url: `${base}/privacy`, lastModified: STATIC_PAGES_LAST_MODIFIED },
+    { url: `${base}/terms`, lastModified: STATIC_PAGES_LAST_MODIFIED },
     { url: `${base}/docs` },
     ...listDocs("tutorials")
       .filter((doc) => doc.isPublic)
       .map((doc) => ({ url: `${base}/docs/tutorials/${doc.slug}` })),
   ];
 
-  let links = [];
-  try {
-    links = await fetchIndexablePublicLinksForSitemap();
-  } catch {
-    // Build environments without Supabase env vars should not fail sitemap generation.
-    return entries;
-  }
+  // A database failure throws (HTTP 5xx) rather than returning a silently truncated map.
+  const links = await fetchIndexablePublicLinksForSitemap();
 
   for (const link of links) {
     const canonical = buildPublicUrl(base, link.personSlug, link.publicId);

@@ -223,3 +223,17 @@ test("public docs pages declare metadata robots and no longer force login", () =
   assert.equal(index.includes("index: true, follow: true"), true);
   assert.equal(index.includes("requireAuthenticatedActor"), false);
 });
+
+test("hidden docs never leak title or description through generateMetadata", () => {
+  const article = read(docRoutePath);
+  const metadata = article.slice(
+    article.indexOf("export async function generateMetadata"),
+    article.indexOf("export default async function DocPage"),
+  );
+  assert.equal(metadata.includes("getCurrentActor"), true);
+  assert.equal(metadata.includes("canViewTestScenarios"), true);
+  assert.match(metadata, /if \(!canRead\) \{\s*return \{ robots: noindex \};/);
+  const beforeGate = metadata.slice(0, metadata.indexOf("if (!canRead)"));
+  const titlesBeforeGate = beforeGate.match(/title:/g) ?? [];
+  assert.equal(titlesBeforeGate.length, 1, "only the isPublic branch may set a title before the access gate");
+});
