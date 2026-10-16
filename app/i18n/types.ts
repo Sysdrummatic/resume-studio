@@ -46,6 +46,12 @@ export type AppDictionary = {
     primary_aria: string;
     open_primary_aria: string;
   };
+  errors: {
+    not_found: { eyebrow: string; title: string; description: string };
+    server: { eyebrow: string; title: string; description: string; retry: string };
+    home: string;
+    docs: string;
+  };
   language_menu: { aria_label: string };
   theme: { aria_label: string };
   account: {

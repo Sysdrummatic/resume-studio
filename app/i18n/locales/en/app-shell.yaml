@@ -70,3 +70,15 @@ account:
     cancel: Cancel
     deleting: Deleting…
     delete_forever: Delete account permanently
+errors:
+  not_found:
+    eyebrow: "404"
+    title: Page not found
+    description: The page you are looking for does not exist or has been moved.
+  server:
+    eyebrow: Error
+    title: Something went wrong
+    description: We could not load this page. Try again, or go back to the home page.
+    retry: Try again
+  home: Back to home page
+  docs: Browse documentation

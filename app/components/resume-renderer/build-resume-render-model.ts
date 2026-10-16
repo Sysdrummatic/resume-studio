@@ -21,6 +21,7 @@ export type ResumeRendererLabels = {
   languages: string;
   interests: string;
   qrCodes: string;
+  qrCodeAlt: string;
   publicBadge: string;
   draftBadge: string;
   aiGeneratedBadge: string;
@@ -72,6 +73,7 @@ const DEFAULT_RENDERER_LABELS: ResumeRendererLabels = {
   languages: "Languages",
   interests: "Interests",
   qrCodes: "QR codes",
+  qrCodeAlt: "QR code linking to",
   publicBadge: "Public",
   draftBadge: "Draft",
   aiGeneratedBadge: "AI generated",
@@ -121,6 +123,7 @@ export function buildResumeRendererLabels(
     languages: previewLabels.languages,
     interests: previewLabels.interests,
     qrCodes: previewLabels.qrCodes,
+    qrCodeAlt: normalizeLocale(locale) === "pl" ? "Kod QR prowadzący do" : "QR code linking to",
     ...sanitizedOverrides,
   };
 }

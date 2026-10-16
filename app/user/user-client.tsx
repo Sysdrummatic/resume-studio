@@ -467,6 +467,7 @@ export default function UserClient({
                 <div className="personal-hub__avatar-wrap">
                   <UserAvatar
                     initials={initials}
+                    alt={actor.displayName || userText("User")}
                     src={avatarUrl || undefined}
                     size="xl"
                     className="personal-hub__avatar"
