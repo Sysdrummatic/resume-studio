@@ -8,7 +8,7 @@ import DashboardClient from "./dashboard-client";
 import WorkspaceBreadcrumbs from "../components/workspace-breadcrumbs";
 import { requireAuthenticatedActor } from "../lib/auth-server";
 import { isPdfDraftEnabled } from "../lib/pdf-feature-flags";
-import { isUserDataTransferEnabled } from "../lib/platform-feature-flags";
+import { isPublicCvIndexingEnabled, isUserDataTransferEnabled } from "../lib/platform-feature-flags";
 import {
   bootstrapResumeUserLocales,
   fetchResumeDocumentsForUser,
@@ -32,11 +32,12 @@ export default async function DashboardPage() {
   if (shouldStartOnboarding(onboarding)) redirect("/onboarding");
   await bootstrapResumeUserLocales(actor.accessToken, actor.userId, actor.displayName);
   const resumeDocuments = await fetchResumeDocumentsForUser(actor.userId);
-  const [resumePresets, resumeLanguages, draftPdfEnabled, dataTransferEnabled] = await Promise.all([
+  const [resumePresets, resumeLanguages, draftPdfEnabled, dataTransferEnabled, indexingEnabled] = await Promise.all([
     fetchResumePresetsForUser(actor.userId),
     fetchResumeUserLocalesForUser(actor.userId),
     isPdfDraftEnabled(),
-    isUserDataTransferEnabled()
+    isUserDataTransferEnabled(),
+    isPublicCvIndexingEnabled()
   ]);
   const ownedLocaleCodes = new Set(resumeLanguages.map((language) => language.code));
   const ownedDocuments = resumeDocuments.filter((document) =>
@@ -75,6 +76,7 @@ export default async function DashboardPage() {
         initialPresets={resumePresets}
         draftPdfEnabled={draftPdfEnabled && actor.role === "admin"}
         dataTransferEnabled={dataTransferEnabled}
+        indexingEnabled={indexingEnabled}
       />
     </div>
   );

@@ -24,6 +24,7 @@ dashboard:
     title_label: LiveCV name
     title_placeholder: Frontend Engineer — example company
     allow_indexing: Allow search engines to index the page after publication
+    link_only_note: Published LiveCVs are reachable only through their link and are not listed in search engines.
     ai_generated: Mark as AI-generated content
     style_aria: LiveCV version appearance
     template: Template
@@ -222,6 +223,7 @@ dashboard:
     select_one: Select at least one language.
     default_required: The default language must be one of the selected versions.
     allow_indexing: Allow search engines to index the public page
+    link_only_note: Published LiveCVs are reachable only through their link and are not listed in search engines.
     link_state: LiveCV link after publication
     canonical_note: This LiveCV keeps the same public address when you publish it again.
     active_link: The new publication will replace the content under the active link. The address will not change.

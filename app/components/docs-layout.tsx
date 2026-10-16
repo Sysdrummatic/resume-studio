@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./localized-link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, FileText, Grid2X2, Menu } from "lucide-react";
 import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "./app-header-navigation";

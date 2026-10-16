@@ -2,9 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import ResumeViewClient from "../resume/resume-view-client";
-import type { AppDictionary } from "../i18n/types";
-
-type SampleLabels = AppDictionary["landing"]["sample"];
+import type { SampleResumeData } from "../lib/sample-resume";
 
 /**
  * Keeps the preview fitted to the landing's sample stage.
@@ -49,52 +47,6 @@ function useSheetScale(anchor: React.RefObject<HTMLElement | null>) {
   }, [anchor]);
 }
 
-function ResumeSkeleton({ loadingAria }: { loadingAria: string }) {
-  return (
-    <div className="lp-cv__skeleton" aria-label={loadingAria}>
-      <div className="lp-cv__skel-header">
-        <div className="lp-cv__skel-avatar" />
-        <div className="lp-cv__skel-header-lines">
-          <div className="lp-cv__skel-bar lp-cv__skel-bar--title" />
-          <div className="lp-cv__skel-pills">
-            <div className="lp-cv__skel-pill lp-cv__skel-pill--wide" />
-            <div className="lp-cv__skel-pill" />
-            <div className="lp-cv__skel-pill" />
-            <div className="lp-cv__skel-pill" />
-          </div>
-        </div>
-      </div>
-      <div className="lp-cv__skel-main">
-        <div className="lp-cv__skel-block">
-          <div className="lp-cv__skel-bar lp-cv__skel-bar--heading" />
-          <div className="lp-cv__skel-bar" />
-          <div className="lp-cv__skel-bar" />
-          <div className="lp-cv__skel-bar" />
-        </div>
-        <div className="lp-cv__skel-block">
-          <div className="lp-cv__skel-bar lp-cv__skel-bar--heading" />
-          <div className="lp-cv__skel-bar" />
-          <div className="lp-cv__skel-bar" />
-        </div>
-      </div>
-      <div className="lp-cv__skel-side">
-        <div className="lp-cv__skel-block">
-          <div className="lp-cv__skel-bar lp-cv__skel-bar--heading" />
-          <div className="lp-cv__skel-bar" />
-          <div className="lp-cv__skel-bar" />
-          <div className="lp-cv__skel-bar" />
-          <div className="lp-cv__skel-bar" />
-        </div>
-        <div className="lp-cv__skel-block">
-          <div className="lp-cv__skel-bar lp-cv__skel-bar--heading" />
-          <div className="lp-cv__skel-bar" />
-          <div className="lp-cv__skel-bar" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /**
  * The published CV rendered inline, exactly as `/resume` renders it — same
  * renderer, same data, same chrome, same shell width — and scaled down by the
@@ -109,10 +61,10 @@ function ResumeSkeleton({ loadingAria }: { loadingAria: string }) {
  * including the app header — so the landing page showed its navigation twice.
  */
 export default function LandingSampleCv({
-  labels,
+  data,
   locale
 }: {
-  labels: SampleLabels;
+  data: SampleResumeData;
   locale: string;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -122,12 +74,7 @@ export default function LandingSampleCv({
     // inert, not aria-hidden: the sheet contains links, and the full,
     // interactive CV is one click away at /resume.
     <div className="lp-cv" ref={rootRef} inert>
-      <ResumeViewClient
-        initialLocale={locale}
-        loadingLabel={labels.loading_aria}
-        embedded
-        loadingFallback={<ResumeSkeleton loadingAria={labels.loading_aria} />}
-      />
+      <ResumeViewClient initialLocale={locale} data={data} embedded />
     </div>
   );
 }

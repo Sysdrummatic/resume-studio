@@ -114,7 +114,7 @@ Existing RLS and staff access rules must be reviewed before implementation becau
 
 ## SEO And AEO
 
-Indexing is user opt-in.
+Indexing is user opt-in, but **paused platform-wide** (decision 2026-10-13, SEO plan T04): the effective rule is `allow_indexing && platform_feature_flags.public_cv_indexing_enabled`. The flag defaults to `false` and fails closed, so every public CV is `noindex,nofollow`, the sitemap lists no CVs and the opt-in control is hidden in the UI. Stored `allow_indexing` values are kept and take effect again when the flag is enabled.
 
 Public rendering rules:
 

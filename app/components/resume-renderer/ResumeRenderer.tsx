@@ -246,6 +246,7 @@ export default function ResumeRenderer({
   const role = getResumeHeroRole(resume, roleOverride);
   const visibleLanguages = config.chrome.languages || [];
   const isEmbedded = Boolean(scrollContainerRef) || embedded;
+  const NameHeading = mode === "public" && !isEmbedded ? "h1" : "h2";
   const allowStickyHero = (config.mode === "public" || Boolean(scrollContainerRef)) && config.chrome.visible;
   const selectedTemplate = template || cvStyle.template;
   const templateClassName = selectedTemplate === "sample-two-column" ? "resume-template--sample-two-column" : `resume-template--${selectedTemplate}`;
@@ -336,7 +337,7 @@ export default function ResumeRenderer({
           <div className="hero__title">
             <div className="logo-circle">{resume.brand_initials || "CV"}</div>
             <div className="hero__identity">
-              <h1>{resumeFullName(resume) || "Your Name"}</h1>
+              <NameHeading>{resumeFullName(resume) || "Your Name"}</NameHeading>
               {role ? <p>{role}</p> : null}
             </div>
           </div>
@@ -522,8 +523,8 @@ export default function ResumeRenderer({
                 <div className="qr-list">
                   {resume.qr_codes.map((item, index) => (
                     <figure className="qr-card" key={`${item.label}-${index}`}>
-                      <QrCodeLink value={item.value}>
-                        <QrCodeSvg value={item.value} size={item.size} />
+                      <QrCodeLink value={item.value} alt={`${rendererLabels.qrCodeAlt} ${item.label || item.value}`}>
+                        <QrCodeSvg value={item.value} size={item.size} alt={`${rendererLabels.qrCodeAlt} ${item.label || item.value}`} />
                       </QrCodeLink>
                       {item.label ? <figcaption>{item.label}</figcaption> : null}
                     </figure>

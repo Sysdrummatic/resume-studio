@@ -7,7 +7,9 @@ import {
   readAuthTokens,
   setAuthCookies,
 } from "./app/lib/auth-cookies";
+import { aiBotForbiddenResponse, isPublicCvPath, shouldBlockAiBot } from "./app/lib/ai-bots";
 import { refreshSession } from "./app/lib/supabase-http";
+import { APP_LANG_QUERY_HEADER_NAME, APP_LANG_QUERY_PARAM } from "./app/i18n/locale";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/onboarding", "/settings", "/user", "/admin"];
 const ACCESS_TOKEN_SKEW_MS = 30_000;
@@ -96,12 +98,32 @@ function redirectToLogin(request: NextRequest, reason: "session" | "signed-out")
  * browser. Protected paths redirect to /login only when no session can be
  * recovered.
  */
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<Response> {
+  const { pathname } = request.nextUrl;
+
+  // Known AI crawlers never reach public CVs (exports and API v1 check in their
+  // own handlers). Answered before session work; the 403 is non-cacheable and
+  // varies by User-Agent.
+  if (shouldBlockAiBot(request.headers.get("user-agent"), pathname)) {
+    return aiBotForbiddenResponse();
+  }
+
   const protectedPath = isProtectedPath(request.nextUrl.pathname);
   const { accessToken, refreshToken } = readAuthTokens(request.cookies);
 
   const contentSecurityPolicy = buildContentSecurityPolicy();
   request.headers.set("Content-Security-Policy", contentSecurityPolicy);
+
+  // ?lang= wins over cookie and Accept-Language. The header is always overwritten
+  // so a client can never inject it directly; the locale is validated against the
+  // enabled locales when it is resolved.
+  const langQuery = request.nextUrl.searchParams.get(APP_LANG_QUERY_PARAM)?.trim() ?? "";
+  // On a public CV the same parameter selects the CV language, so it never sets the app locale there.
+  if (!isPublicCvPath(pathname) && /^[A-Za-z]{2}([-_][A-Za-z]{2})?$/.test(langQuery)) {
+    request.headers.set(APP_LANG_QUERY_HEADER_NAME, langQuery);
+  } else {
+    request.headers.delete(APP_LANG_QUERY_HEADER_NAME);
+  }
 
   function withCsp(response: NextResponse): NextResponse {
     response.headers.set("Content-Security-Policy", contentSecurityPolicy);
@@ -137,5 +159,5 @@ export const config = {
   // Runs on page navigations so the session is refreshed and persisted before
   // server components read it. API routes manage their own session; static
   // assets and Next internals are skipped.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)"],
+  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|.*\\.).*)"],
 };

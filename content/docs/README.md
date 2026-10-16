@@ -33,6 +33,11 @@ this order. The first-CV article is a short process map, not a second walkthroug
 Language, transfer and revision guides are supporting topics; troubleshooting,
 limits and privacy are grouped as help. Test scenarios remain access-gated.
 
+Tutorials and the overview are public (ADR 0025): they render without login, are
+indexable and are listed in the sitemap. Add `public: false` to a tutorial's
+frontmatter to keep it behind login; `test-scenarios` ignore the field and are
+never public. Do not put private or beta-only information in a tutorial.
+
 Each authorized article occurs once in sidebar navigation and search results.
 The optional language link is also shown after step one. Main-step articles
 include a goal, prerequisites, instructions and a result checklist. Previous/next

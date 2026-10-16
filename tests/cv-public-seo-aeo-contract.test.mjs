@@ -22,7 +22,8 @@ test("canonical public route emits SEO/AEO metadata contract", () => {
   assert.equal(route.includes("application/ld+json"), true);
   assert.equal(route.includes("\"@type\": \"ProfilePage\""), true);
   assert.equal(route.includes("buildPublicResumeJsonLd"), true);
-  assert.equal(route.includes("mainEntityOfPage"), true);
+  assert.equal(route.includes("buildPublicPersonJsonLd"), true);
+  assert.equal(read("app/lib/jsonld-schemas.ts").includes("mainEntityOfPage"), true);
   assert.equal(route.includes("allowIndexing ? ("), true);
   // The real property to guard is "never reads private Master CV data
   // directly" — banning the words "private"/"draft"/"admin" outright is

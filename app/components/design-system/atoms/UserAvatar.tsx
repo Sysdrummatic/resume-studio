@@ -2,6 +2,8 @@ import Image from "next/image";
 import React from "react";
 
 interface UserAvatarProps {
+  /** Accessible name of the photo; leave empty when the name is shown next to it. */
+  alt?: string;
   initials: string;
   size?: "sm" | "md" | "lg" | "xl";
   src?: string;
@@ -9,7 +11,8 @@ interface UserAvatarProps {
 }
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({ 
-  initials, 
+  initials,
+  alt = "",
   size = "md", 
   src, 
   className = "" 
@@ -51,7 +54,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       }}
     >
       {src ? (
-        <Image src={src} alt="User avatar" fill sizes="96px" className="object-cover" />
+        <Image src={src} alt={alt} fill sizes="96px" className="object-cover" />
       ) : (
         <span style={{ position: "relative", zIndex: 1, display: "block", textAlign: "center" }}>
           {initials.toUpperCase()}

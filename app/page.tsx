@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Link from "next/link";
+import { publicPageMetadata } from "./lib/seo-metadata";
+import Link from "./components/localized-link";
 import { ArrowRight } from "lucide-react";
 import LandingPageFooter from "./components/footer";
 import LandingFeatures from "./components/landing-features";
@@ -9,11 +11,31 @@ import RecoveryRedirect from "./components/recovery-redirect";
 import RotatingWord from "./components/rotating-word";
 import ScrollReveal from "./components/scroll-reveal";
 import { getRequestAppI18n } from "./i18n/server";
+import { getLanguageAlternatesMetadata } from "./lib/language-alternates";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
+import { loadSampleResumeData } from "./lib/sample-resume";
+import { getAppBaseUrl } from "./lib/env";
+import { safeJsonLdScript } from "./lib/jsonld";
+import { buildFaqPageJsonLd, buildSoftwareApplicationJsonLd } from "./lib/jsonld-schemas";
 import styles from "./landing.module.css";
 
+export async function generateMetadata(): Promise<Metadata> {
+  const { dictionary } = await getRequestAppI18n();
+  return publicPageMetadata({
+    title: { absolute: dictionary.meta.default_title },
+    description: dictionary.meta.description,
+    path: "/",
+    index: true,
+    alternates: await getLanguageAlternatesMetadata("/"),
+  });
+}
+
 export default async function HomePage() {
-  const [{ locale, dictionary }, cookieStore] = await Promise.all([getRequestAppI18n(), cookies()]);
+  const [{ locale, dictionary }, cookieStore, sampleResume] = await Promise.all([
+    getRequestAppI18n(),
+    cookies(),
+    loadSampleResumeData()
+  ]);
   const { hero, sample, animation, features, faq, cta, footer } = dictionary.landing;
   const initialTheme = resolveAppTheme(
     cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME
@@ -21,6 +43,16 @@ export default async function HomePage() {
 
   return (
     <div className={`lp ${styles.page}`}>
+      {[
+        buildSoftwareApplicationJsonLd(getAppBaseUrl(), dictionary.meta.description, locale),
+        buildFaqPageJsonLd(faq.items),
+      ].map((schema, index) => (
+        <script
+          key={index}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLdScript(schema) }}
+        />
+      ))}
       <RecoveryRedirect />
       <ScrollReveal />
       <section className={styles.hero} aria-labelledby="lp-hero-title">
@@ -71,7 +103,7 @@ export default async function HomePage() {
         <div className={styles.preview}>
           <div className={styles.sheetFrame} data-sheet-frame>
             <div className={styles.sheet}>
-              <LandingSampleCv labels={sample} locale={locale} />
+              <LandingSampleCv data={sampleResume} locale={locale} />
             </div>
           </div>
           <div className={styles.stageMeta}>

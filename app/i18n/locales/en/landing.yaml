@@ -118,6 +118,8 @@ landing:
     secondary_action: View sample LiveCV
   footer:
     sample_resume: Sample resume
+    docs: Documentation
+    faq: FAQ
     platform: Platform
     privacy_policy: Privacy Policy
     terms: Terms of Service

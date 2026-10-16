@@ -539,7 +539,7 @@ img {
   font-weight: 700;
 }
 
-.hero__title h1 {
+.hero__title :is(h1, h2) {
   font-size: var(--font-size-xl);
   margin: 0;
   /* Body leading on a 44px name left 7.1px of empty space below its descenders
@@ -1439,7 +1439,7 @@ img {
   flex: 0 0 auto;
 }
 
-.resume-editor-basic .hero__title h1 {
+.resume-editor-basic .hero__title :is(h1, h2) {
   line-height: 1.1;
 }
 
@@ -1668,7 +1668,7 @@ img {
   gap: 2px;
 }
 
-.resume-template--signal-grid .hero__title h1 {
+.resume-template--signal-grid .hero__title :is(h1, h2) {
   font-size: var(--font-size-xl);
   line-height: 0.98;
   letter-spacing: -0.055em;
@@ -1942,7 +1942,7 @@ img {
   gap: 4px;
 }
 
-.resume-template--atelier-noir .hero__title h1 {
+.resume-template--atelier-noir .hero__title :is(h1, h2) {
   color: #ffffff;
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   font-size: var(--font-size-xl);
@@ -2227,7 +2227,7 @@ img {
   gap: 4px;
 }
 
-.resume-template--terminal-stack .hero__title h1 {
+.resume-template--terminal-stack .hero__title :is(h1, h2) {
   color: #ffffff;
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
   font-size: var(--font-size-xl);
@@ -2501,9 +2501,9 @@ img {
     padding-inline: 22px;
   }
 
-  .resume-template--signal-grid .hero__title h1,
-  .resume-template--atelier-noir .hero__title h1,
-  .resume-template--terminal-stack .hero__title h1 {
+  .resume-template--signal-grid .hero__title :is(h1, h2),
+  .resume-template--atelier-noir .hero__title :is(h1, h2),
+  .resume-template--terminal-stack .hero__title :is(h1, h2) {
     font-size: 38px;
   }
 
