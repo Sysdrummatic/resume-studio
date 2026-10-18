@@ -518,6 +518,7 @@ functions that consume one.
 
 **Routing Model:**
 - **Canonical:** `/{person-slug}/{public-id}` (primary, from `resume_public_links`), the only public route
+- **CV indexing paused:** effective `allowIndexing = allow_indexing && platform_feature_flags.public_cv_indexing_enabled` (fail-closed, default off) via `resolveEffectiveAllowIndexing` in `resume-server.ts`; all public CVs are `noindex`, sitemap omits them, UI hides the opt-in; saving/publishing keeps the stored `allow_indexing` while paused (`storedAllowIndexing`) and ignores a new opt-in (ADR 0001/0005). Test: `tests/public-cv-indexing-paused.test.mjs`
 - **Netlify:** Build config + Next.js plugin only; the legacy `.html` redirects were removed with the static app (`tests/legacy-static-cleanup.test.mjs`)
 
 **Privacy Policy Page:** Public, indexable route at `app/privacy/page.tsx`
@@ -683,8 +684,9 @@ Sign-up has an optional "I'm joining as a beta-tester" checkbox →
 at INSERT time only (`20260719000000_beta_tester_signup_optin.sql`; the
 `profiles_guard_update` trigger is UPDATE-only, so this path is not blocked —
 post-signup changes remain admin-only via the guarded RPCs). `SessionActor`
-carries `isTestUser`. The in-app docs site (`/docs`, nav entry for all
-authenticated users) renders git-committed Markdown from
+carries `isTestUser`. The docs site (`/docs`; **tutorials and the overview are public since
+ADR 0025**, which amends ADR 0020 — frontmatter `public: false` opts a tutorial
+out, `test-scenarios` are never public) renders git-committed Markdown from
 `content/docs/{tutorials,test-scenarios}/*.md` via `app/lib/docs/`
 (`content.ts` minimal frontmatter parser, `markdown.ts` = `marked` with raw-HTML
 pass-through escaped, `access.ts` = `canViewTestScenarios(actor)` composing

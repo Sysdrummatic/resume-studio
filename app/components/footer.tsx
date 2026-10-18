@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "./localized-link";
 import type { AppDictionary } from "../i18n/types";
 
 export default function LandingPageFooter({ labels }: { labels: AppDictionary["landing"]["footer"] }) {
@@ -16,6 +16,8 @@ export default function LandingPageFooter({ labels }: { labels: AppDictionary["l
           </div>
           <nav className="lp-footer__links">
             <Link href="/resume">{labels.sample_resume}</Link>
+            <Link href="/docs">{labels.docs}</Link>
+            <Link href="/#faq">{labels.faq}</Link>
             <Link href="/login">{labels.platform}</Link>
             <Link href="/privacy">{labels.privacy_policy}</Link>
             <Link href="/terms">{labels.terms}</Link>

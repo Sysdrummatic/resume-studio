@@ -27,3 +27,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0022: Application Localization With YAML Dictionaries And Country Detection](0022-application-localization.md)
 - [ADR 0023: Linked Master Resume Language Entries](0023-multi-locale-entry-linkage.md) (superseded by ADR 0024)
 - [ADR 0024: Language Versions as Parallel Lists](0024-language-versions-as-parallel-lists.md)
+- [ADR 0025: Public Basic Documentation](0025-public-basic-documentation.md)

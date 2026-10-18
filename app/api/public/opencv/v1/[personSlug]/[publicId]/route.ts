@@ -1,3 +1,4 @@
+import { rejectAiBot } from "../../../../../../lib/ai-bots";
 import { NextResponse } from "next/server";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../../../lib/resume-server";
 
@@ -13,6 +14,11 @@ function buildCacheControl(): string {
 }
 
 export async function GET(request: Request, context: RouteContext): Promise<Response> {
+  const blocked = rejectAiBot(request);
+  if (blocked) {
+    return blocked;
+  }
+
   const { personSlug, publicId } = await context.params;
   const url = new URL(request.url);
   const localeQuery = url.searchParams.get("lang") || undefined;
@@ -24,7 +30,6 @@ export async function GET(request: Request, context: RouteContext): Promise<Resp
       status: 404,
       headers: {
         "Cache-Control": "no-store",
-        "X-Robots-Tag": "noindex, nofollow",
       },
     });
   }

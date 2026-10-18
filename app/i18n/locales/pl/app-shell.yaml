@@ -1,5 +1,22 @@
 meta:
-  description: OpenCiVera — kreator LiveCV oparty na prywatnej Bazie doświadczeń. Twórz osobne LiveCV dopasowane do konkretnych ofert.
+  default_title: OpenCiVera - darmowy kreator CV z publicznym linkiem LiveCV
+  description: "OpenCiVera to darmowy kreator CV. Prowadź jedną prywatną Bazę doświadczeń, twórz LiveCV dopasowane do każdej oferty i udostępniaj je publicznym linkiem."
+  pages:
+    resume:
+      title: Przykładowe LiveCV
+      description: "Zobacz przykładowe LiveCV zbudowane w OpenCiVera, darmowym kreatorze CV: sekcje, układ i publiczny link do udostępniania, gotowe do użycia w Twoim CV."
+    docs:
+      title: Dokumentacja
+      description: "Poradniki OpenCiVera, darmowego kreatora CV: uzupełnij prywatną Bazę doświadczeń, wybierz właściwe treści i udostępnij gotowe LiveCV publicznym linkiem."
+    login:
+      title: Zaloguj się lub załóż darmowe konto
+      description: "Zaloguj się do OpenCiVera lub załóż darmowe konto, aby stworzyć Bazę doświadczeń, opublikować dopasowane LiveCV i udostępnić je rekruterom publicznym linkiem."
+    privacy:
+      title: Polityka prywatności
+      description: "Jak OpenCiVera zbiera, wykorzystuje i chroni dane Twojego konta oraz publikowane LiveCV. Poznaj zasady przechowywania danych, swoje prawa i dane kontaktowe."
+    terms:
+      title: Warunki korzystania
+      description: "Warunki korzystania z OpenCiVera, darmowego kreatora CV: konta, Twoje treści, dozwolone użycie, format OpenCV, odpowiedzialność, prawo właściwe i kontakt."
 common:
   loading: Ładowanie…
   close: Zamknij
@@ -53,3 +70,15 @@ account:
     cancel: Anuluj
     deleting: Usuwanie…
     delete_forever: Usuń konto bezpowrotnie
+errors:
+  not_found:
+    eyebrow: "404"
+    title: Nie znaleziono strony
+    description: Strona, której szukasz, nie istnieje lub została przeniesiona.
+  server:
+    eyebrow: Błąd
+    title: Coś poszło nie tak
+    description: Nie udało się wczytać tej strony. Spróbuj ponownie lub wróć na stronę główną.
+    retry: Spróbuj ponownie
+  home: Wróć na stronę główną
+  docs: Przeglądaj dokumentację

@@ -87,3 +87,12 @@ not treat private top-level extensions as part of the public contract.
 - [x] Define locale selection and fallback behavior for export.
 - [x] Add rate limiting, caching, and abuse protections.
 - [x] Add contract tests for backward compatibility and access control.
+
+## Addendum 2026-10-15: AI-bot policy and machine access (issue #220)
+
+- **v1 is for people and trusted integrations.** The unauthenticated v1 API and the PDF/TXT/YAML exports are not an open feed for AI crawlers. Known AI-bot User-Agents (`app/lib/ai-bots.ts`) get `403` on public CV paths (`proxy.ts`) and on `/api/resume/export/*` and `/api/public/opencv/v1/*` (checked in each route handler via `rejectAiBot()`, so a percent-encoded path cannot bypass a matcher). `robots.txt` lists them with an anchored allowlist (marketing, docs) and `Disallow: /` for the rest; `Google-Extended` and `Applebot-Extended` are robots.txt-only tokens that never appear in a User-Agent, so they are not enforced by `403`. Both surfaces send `X-Robots-Tag: noindex, nofollow, noarchive`.
+- **Temporary policy.** The block is a stop for honest bots, not a security boundary (a client can spoof a browser User-Agent). Data protection remains the saved selection (R09), unguessable `publicId`s and rate limiting. Googlebot is never blocked on CVs, so `noindex` stays readable.
+- **Cache.** The `403` is `Cache-Control: private, no-store` with `Vary: User-Agent`, so a CDN cannot replay it to browsers. Exports are `private, no-store`; v1 responses carry `s-maxage`, so whether the CDN serves a cached `200` before the handler runs must be checked after deploy (`curl -A GPTBot`).
+- **Machine access later.** Integrators that need machine access (ATS importers, partner tools) will use API keys under a new `/api/public/opencv/v2/`. Changing v1 in place would be a breaking contract change, so v1 keeps its documented behavior apart from this policy.
+- **Reserved person slugs.** A slug equal to a top-level route (`resume`, `docs`, `api`, ...) is shadowed by that route, so `assign_profile_person_slug()` suffixes it (`20261016000000_reserve_route_person_slugs.sql`). The list is `RESERVED_PERSON_SLUGS` in `app/lib/ai-bots.ts`; a test compares it with the `app/` and `public/` folders and with the SQL list.
+- The User-Agent list is reviewed quarterly.

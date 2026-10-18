@@ -25,10 +25,8 @@ test("robots does not block public pages and keeps the sitemap link", () => {
 });
 
 test("sitemap lists the public static pages with lastModified", () => {
-  assert.match(sitemapSource, /\{ url: base, lastModified/);
-  for (const path of ["/resume", "/privacy", "/terms"]) {
-    assert.match(sitemapSource, new RegExp("url: [`\"]\\$\\{base\\}" + path + "[`\"],? lastModified"), `missing ${path}`);
-  }
+  assert.match(sitemapSource, /staticPaths = \["\/", "\/resume", "\/privacy", "\/terms"\]/);
+  assert.match(sitemapSource, /staticPaths\.includes\(pathname\)[^\n]*lastModified: STATIC_PAGES_LAST_MODIFIED/);
 });
 
 test("sitemap contains no protected or noindex routes", () => {

@@ -17,6 +17,10 @@ export async function resolve(specifier, context, nextResolve) {
         }
       }
     }
+    // next ships CJS without an exports map: `next/link` needs its `.js`.
+    if (specifier.startsWith("next/") && !path.extname(specifier)) {
+      return nextResolve(`${specifier}.js`, context);
+    }
     throw error;
   }
 }
@@ -29,6 +33,7 @@ export async function resolve(specifier, context, nextResolve) {
  * dev-dependency (npm run typecheck), so this needs no new one.
  */
 export async function load(url, context, nextLoad) {
+  if (url.endsWith(".css")) return { format: "module", source: "export default {};", shortCircuit: true };
   if (!url.endsWith(".tsx")) return nextLoad(url, context);
 
   const fileName = fileURLToPath(url);

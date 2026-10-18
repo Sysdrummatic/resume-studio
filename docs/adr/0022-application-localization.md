@@ -25,21 +25,28 @@ owner-selected default would change canonical, hreflang, and snapshot behavior.
   locale during the initial rollout.
 - Polish (`pl`) is the application default and English (`en`) is the fallback.
 - Request locale precedence is:
-  1. valid manual `opencivera-app-locale` cookie;
-  2. valid trusted application-locale request header;
-  3. Netlify country mapping (`PL` to `pl`, any other known country to `en`);
-  4. `Accept-Language` when country is unavailable;
-  5. configured default (`pl`).
+  1. valid `?lang=` query parameter (forwarded by `proxy.ts` in the
+     `x-opencivera-lang-query` header, always overwritten so clients cannot
+     inject it);
+  2. valid manual `opencivera-app-locale` cookie;
+  3. valid trusted application-locale request header;
+  4. Netlify country mapping (`PL` to `pl`, any other known country to `en`);
+  5. `Accept-Language` when country is unavailable;
+  6. configured default (`pl`).
 - A Netlify Edge Function forwards only the ISO country code to Next.js for
   HTML pages and App Router RSC page navigations. API and common static asset
   paths are excluded, and other non-page requests are ignored. Both page
   request types must resolve the same locale. The locale mapping remains in
   the YAML config so there is one source of truth.
-- The manual language switch writes a SameSite=Lax cookie and reloads the current
-  URL, preserving its route and query string.
-- Existing unprefixed routes remain stable. Locale-prefixed marketing routes may
-  be considered separately if multilingual SEO requires independently indexable
-  URLs.
+- The manual language switch writes a SameSite=Lax cookie and navigates to the
+  current URL with `?lang=<locale>`, preserving its route and other parameters.
+- Existing unprefixed routes remain stable. Language variants of the public pages
+  (`/`, `/resume`, `/privacy`, `/terms`, `/docs*`) are addressed with
+  `?lang=` (decision 2026-10-15, SEO plan T08) instead of locale-prefixed paths:
+  each variant has a self-referencing canonical, `hreflang` alternates and an
+  `x-default` pointing to the bare URL (`buildLanguageAlternates`), both variants
+  are listed in the sitemap, and internal links to those pages carry the current
+  language (`LocalizedLink`/`withLangParam`).
 - CV language versions and Published CV default-locale resolution remain
   unchanged. The sample `/resume` view may align its initial variant with the
   application locale when that locale is available.

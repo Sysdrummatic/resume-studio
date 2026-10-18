@@ -1,11 +1,16 @@
 import { notFound } from "next/navigation";
+import Link from "../../components/localized-link";
+import { getRequestAppI18n } from "../../i18n/server";
 import { BasicResumeDocument } from "../../components/resume-renderer/BasicResumeDocument";
 import PrintTrigger from "../../components/print-trigger";
 import { getAppBaseUrl } from "../../lib/env";
 import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
 import type { PublishedResumePreset } from "../../lib/resume-server";
 import { safeJsonLdScript } from "../../lib/jsonld";
+import { buildPublicPersonJsonLd } from "../../lib/jsonld-schemas";
 import { resumeFullName } from "../../lib/resume-schema";
+import { buildPublicCvDescription, buildPublicCvTitle } from "../../lib/seo-metadata";
+import { absoluteOgImageUrl, cvOgImagePath, OG_IMAGE_ALT, OG_IMAGE_SIZE } from "../../lib/og-image";
 
 type PublicResumeByPublicIdPageProps = {
   params: Promise<{
@@ -24,12 +29,7 @@ function absoluteUrl(path: string): string {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-function compactJsonLd<T extends Record<string, unknown>>(value: T): T {
-  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined && entry !== "")) as T;
-}
-
 function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl: string) {
-  const defaultSummary = published.resume.summary.find((summary) => summary.default);
   const displayName = resumeFullName(published.resume) || published.preset.title;
 
   return {
@@ -43,13 +43,7 @@ function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl:
       name: "OpenCiVera",
       url: getAppBaseUrl(),
     },
-    mainEntity: compactJsonLd({
-      "@type": "Person",
-      name: displayName,
-      jobTitle: defaultSummary?.position,
-      url: canonicalUrl,
-      mainEntityOfPage: canonicalUrl,
-    }),
+    mainEntity: buildPublicPersonJsonLd(published.resume, { name: displayName, canonicalUrl }),
   };
 }
 
@@ -60,7 +54,7 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
 
   if (!publishedRoute) {
     return {
-      title: "Resume not found | OpenCiVera",
+      title: "Resume not found",
       robots: {
         index: false,
         follow: false,
@@ -69,12 +63,19 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
   }
 
   const { published, allowIndexing, personSlug: canonicalPersonSlug, publicId: canonicalPublicId } = publishedRoute;
-  const title = `${resumeFullName(published.resume) || published.preset.title} | OpenCiVera`;
-  const description = published.resume.summary.find((s) => s.default)?.position || published.preset.title;
+  const defaultSummary = published.resume.summary.find((s) => s.default);
+  const title = buildPublicCvTitle(resumeFullName(published.resume) || published.preset.title, defaultSummary?.position ?? "");
+  const description = buildPublicCvDescription(defaultSummary?.description ?? "", defaultSummary?.position || published.preset.title);
+  const socialTitle = `${title} | OpenCiVera`;
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const languageMap = Object.fromEntries(
     published.languages.map((language) => [language.code, absoluteUrl(language.href)]),
   ) as Record<string, string>;
+  const ogImage = {
+    url: absoluteOgImageUrl(getAppBaseUrl(), cvOgImagePath(canonicalPath)),
+    ...OG_IMAGE_SIZE,
+    alt: OG_IMAGE_ALT,
+  };
 
   return {
     title,
@@ -88,15 +89,17 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
       languages: languageMap,
     },
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       type: "profile",
       url: absoluteUrl(canonicalPath),
+      images: [ogImage],
     },
     twitter: {
-      card: "summary",
-      title,
+      card: "summary_large_image",
+      title: socialTitle,
       description,
+      images: [ogImage.url],
     },
   };
 }
@@ -114,6 +117,7 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
   const canonicalPath = `/${encodeURIComponent(canonicalPersonSlug)}/${encodeURIComponent(canonicalPublicId)}`;
   const canonicalUrl = absoluteUrl(canonicalPath);
   const publicResumeJsonLd = buildPublicResumeJsonLd(published, canonicalUrl);
+  const { dictionary } = await getRequestAppI18n();
 
   return (
     <main className="container pb-8 public-resume-route cv-domain-page">
@@ -137,6 +141,9 @@ export default async function PublicResumeByPublicIdPage({ params, searchParams 
         mode="public"
         cvStyle={published.cvStyle}
       />
+      <p className="public-resume-route__cta">
+        <Link href="/">{dictionary.landing.cta.primary_action}</Link>
+      </p>
     </main>
   );
 }

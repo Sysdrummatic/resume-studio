@@ -15,13 +15,14 @@ type Props = {
   value: string;
   size?: number;
   className?: string;
+  alt: string;
 };
 
 // Renders the QR as plain vector rects (no canvas, no image file), from the
 // one geometry helper the PDF section also draws from, so the two can never
 // disagree on the payload. The SVG itself is aria-hidden: an accessible text
 // equivalent for the encoded value renders alongside it (see ResumeRenderer).
-export default function QrCodeSvg({ value, size = 130, className }: Props) {
+export default function QrCodeSvg({ value, size = 130, className, alt }: Props) {
   const built = buildQrMatrix(value);
   if (built.status !== "ok") return null;
   const geometry = buildQrGeometry(built.matrix);
@@ -34,7 +35,7 @@ export default function QrCodeSvg({ value, size = 130, className }: Props) {
       height={size}
       shapeRendering="crispEdges"
       role="img"
-      aria-hidden="true"
+      aria-label={alt}
     >
       <rect x={0} y={0} width={geometry.viewBoxSize} height={geometry.viewBoxSize} fill="#fff" />
       <path d={geometry.path} fill="#000" />
@@ -45,18 +46,18 @@ export default function QrCodeSvg({ value, size = 130, className }: Props) {
 /** Makes the QR itself the link for safe http(s) values (so it works when the CV
  * is viewed on the device that would have to scan it); the URL is never painted.
  * Other values (mailto:, plain text) stay non-clickable with an sr-only value. */
-export function QrCodeLink({ value, children }: { value: string; children: ReactNode }) {
+export function QrCodeLink({ value, children }: { value: string; alt: string; children: ReactNode }) {
   const safeLink = safeHttpHref(value);
   if (safeLink) {
     return (
-      <a href={safeLink} target="_blank" rel="noreferrer noopener" aria-label={value} className="qr-card__link">
+      <a href={safeLink} target="_blank" rel="noreferrer noopener" className="qr-card__link">
         {children}
       </a>
     );
   }
   return (
     <>
-      {children}
+      <span aria-hidden="true">{children}</span>
       <span className="qr-card__value sr-only">{value}</span>
     </>
   );

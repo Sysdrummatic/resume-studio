@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -182,7 +182,7 @@ test("content loader rejects unknown slugs and path traversal", () => {
 test("docs index renders Test Scenarios only for eligible actors", () => {
   const source = read(indexRoutePath);
 
-  assert.equal(source.includes("requireAuthenticatedActor"), true);
+  assert.equal(source.includes("getCurrentActor"), true);
   assert.equal(source.includes("canViewTestScenarios"), true);
   assert.equal(source.includes("showTestScenarios"), true);
 });
@@ -202,4 +202,38 @@ test("authenticated header navigation links to /docs", () => {
   const source = read(layoutPath);
 
   assert.equal(source.includes('{ href: "/docs", label: appI18n.dictionary.navigation.docs }'), true);
+});
+test("doc visibility: tutorials public by default, opt-out via frontmatter, scenarios never", async () => {
+  const { isDocPubliclyVisible, getDoc, getOverviewDoc, listDocNavGroups } = await import("../app/lib/docs/content.ts");
+  assert.equal(isDocPubliclyVisible("tutorials", {}), true);
+  assert.equal(isDocPubliclyVisible("tutorials", { public: "false" }), false);
+  assert.equal(isDocPubliclyVisible("test-scenarios", { public: "true" }), false);
+  assert.equal(getDoc("tutorials", "publishing-your-first-cv", "en")?.isPublic, true);
+  assert.equal(getDoc("test-scenarios", "signup-and-login", "en")?.isPublic, false);
+  assert.ok(getOverviewDoc("en"));
+  const anonymous = listDocNavGroups(true, "en", { publicOnly: true });
+  assert.equal(anonymous.find((g) => g.key === "test-scenarios")?.items.length, 0);
+});
+
+test("public docs pages declare metadata robots and no longer force login", () => {
+  const article = read(docRoutePath);
+  const index = read(indexRoutePath);
+  assert.equal(article.includes("generateMetadata"), true);
+  assert.equal(article.includes("index: true, follow: true"), true);
+  assert.equal(index.includes("publicPageMetadata") && index.includes("index: true"), true);
+  assert.equal(index.includes("requireAuthenticatedActor"), false);
+});
+
+test("hidden docs never leak title or description through generateMetadata", () => {
+  const article = read(docRoutePath);
+  const metadata = article.slice(
+    article.indexOf("export async function generateMetadata"),
+    article.indexOf("export default async function DocPage"),
+  );
+  assert.equal(metadata.includes("getCurrentActor"), true);
+  assert.equal(metadata.includes("canViewTestScenarios"), true);
+  assert.match(metadata, /if \(!canRead\) \{\s*return \{ robots: noindex \};/);
+  const beforeGate = metadata.slice(0, metadata.indexOf("if (!canRead)"));
+  const titlesBeforeGate = beforeGate.match(/title:/g) ?? [];
+  assert.equal(titlesBeforeGate.length, 1, "only the isPublic branch may set a title before the access gate");
 });

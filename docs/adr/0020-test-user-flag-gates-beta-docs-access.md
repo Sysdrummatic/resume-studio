@@ -1,6 +1,6 @@
 # ADR 0020: Test User Flag Gates Beta Docs Access
 
-Status: Accepted
+Status: Accepted (amended by [ADR 0025](0025-public-basic-documentation.md): tutorials and the overview are public; Test Scenarios gating unchanged)
 
 Date: 2026-07-19
 

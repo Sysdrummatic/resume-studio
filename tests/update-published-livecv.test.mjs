@@ -22,7 +22,7 @@ const cv = (position) => yaml.dump({
   summary: [{ position, description: "Builds", default: true }],
 });
 
-function installPublished({ isPublic = true, link = true } = {}) {
+function installPublished({ isPublic = true, link = true, indexingFlag = true } = {}) {
   const rpcBodies = [];
   const fake = installFakePostgrest({
     resume_presets: [{
@@ -41,6 +41,7 @@ function installPublished({ isPublic = true, link = true } = {}) {
       }]
       : [],
     resume_preset_variants: [],
+    platform_feature_flags: [{ key: "public_cv_indexing_enabled", enabled: indexingFlag }],
   }, {
     onRequest: ({ path, body }) => {
       if (path === "rpc/publish_resume_saved_version") rpcBodies.push(JSON.parse(body));
@@ -87,6 +88,16 @@ test("republish keeps the languages already published under the link", async (t)
   assert.deepEqual(rpcBodies[0].input_selected_locales, ["en"], "a language the link never exposed must not go public");
   assert.equal(rpcBodies[0].input_default_locale, "en");
   assert.equal(rpcBodies[0].input_allow_indexing, true, "indexing follows the version's saved setting");
+});
+
+test("republish keeps the saved indexing choice while the flag is off; reads still resolve it to off", async (t) => {
+  const { fake, rpcBodies } = installPublished({ indexingFlag: false });
+  t.after(fake.restore);
+  const { republishResumePreset, resolveEffectiveAllowIndexing } = await import("../app/lib/resume-server.ts");
+
+  await republishResumePreset("token", USER, "preset-1");
+  assert.equal(rpcBodies[0].input_allow_indexing, true, "the stored opt-in survives the pause so it is not lost when the flag is turned on");
+  assert.equal(await resolveEffectiveAllowIndexing({ allow_indexing: rpcBodies[0].input_allow_indexing }), false);
 });
 
 test("republish refuses a version that has no active link", async (t) => {

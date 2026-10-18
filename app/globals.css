@@ -4746,3 +4746,20 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+.public-resume-route__cta {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.public-resume-route__cta a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+@media print {
+  .public-resume-route__cta {
+    display: none;
+  }
+}

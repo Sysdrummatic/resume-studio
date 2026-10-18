@@ -11,7 +11,8 @@ const { outputText } = ts.transpileModule(readFileSync("app/components/app-brand
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
 });
 const module = { exports: {} };
-new Function("require", "module", "exports", outputText)(require, module, module.exports);
+const localRequire = (specifier) => (specifier === "./localized-link" ? ({ __esModule: true, default: ({ href, children, ...props }) => createElement("a", { href, ...props }, children) }) : require(specifier));
+new Function("require", "module", "exports", outputText)(localRequire, module, module.exports);
 const AppBrand = module.exports.default;
 
 test("the onboarding brand has no navigation while the default brand still links home", () => {

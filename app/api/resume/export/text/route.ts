@@ -1,3 +1,4 @@
+import { rejectAiBot } from "../../../../lib/ai-bots";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { convertResumeToPlainText } from "../../../../lib/resume-export";
@@ -12,6 +13,11 @@ export const dynamic = "force-dynamic";
  * Query params: personSlug, publicId, lang (optional)
  */
 export async function GET(req: NextRequest) {
+  const blocked = rejectAiBot(req);
+  if (blocked) {
+    return blocked;
+  }
+
   const { searchParams } = new URL(req.url);
   const personSlug = searchParams.get("personSlug");
   const publicId = searchParams.get("publicId");

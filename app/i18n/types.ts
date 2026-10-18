@@ -18,8 +18,15 @@ export type LegalDocument = {
   sections: LegalSection[];
 };
 
+export type PublicMetaPageKey = "resume" | "docs" | "login" | "privacy" | "terms";
+export type PageMeta = { title: string; description: string };
+
 export type AppDictionary = {
-  meta: { description: string };
+  meta: {
+    default_title: string;
+    description: string;
+    pages: Record<PublicMetaPageKey, PageMeta>;
+  };
   common: {
     loading: string;
     close: string;
@@ -38,6 +45,12 @@ export type AppDictionary = {
     sign_in: string;
     primary_aria: string;
     open_primary_aria: string;
+  };
+  errors: {
+    not_found: { eyebrow: string; title: string; description: string };
+    server: { eyebrow: string; title: string; description: string; retry: string };
+    home: string;
+    docs: string;
   };
   language_menu: { aria_label: string };
   theme: { aria_label: string };
@@ -96,6 +109,8 @@ export type AppDictionary = {
     };
     footer: {
       sample_resume: string;
+      docs: string;
+      faq: string;
       platform: string;
       privacy_policy: string;
       terms: string;
@@ -184,7 +199,7 @@ export type AppDictionary = {
     published_note: string;
     topics_content: Array<{ title: string; description: string; label: string }>;
   };
-  sample_resume: { title: string; description: string; loading: string };
+  sample_resume: { loading: string };
 };
 
 export type AppI18nContextValue = {

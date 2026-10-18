@@ -49,10 +49,11 @@ test("buildQrGeometry adds an exact 4-module quiet zone and shifts modules by 4"
 
 test("QrCodeSvg renders crisp-edges, a white background, and nothing for blank", () => {
   assert.equal(renderToStaticMarkup(createElement(QrCodeSvg, { value: "" })), "");
-  const html = renderToStaticMarkup(createElement(QrCodeSvg, { value: "https://opencivera.com", size: 100 }));
+  const html = renderToStaticMarkup(createElement(QrCodeSvg, { value: "https://opencivera.com", size: 100, alt: "QR code linking to OpenCiVera" }));
   assert.match(html, /shape-rendering="crispEdges"/);
   assert.match(html, /fill="#fff"/);
   assert.match(html, /<path/);
+  assert.match(html, /aria-label="QR code linking to OpenCiVera"/);
 });
 
 test("web SVG and PDF draw the identical module geometry for the same payload", async () => {
@@ -125,11 +126,11 @@ test("QrCodeLink makes the QR itself the link for http(s) and never paints the U
   const { QrCodeLink } = await import("../app/components/resume-renderer/QrCodeSvg.tsx");
   const child = createElement("i", null, "qr");
 
-  const http = renderToStaticMarkup(createElement(QrCodeLink, { value: "https://opencivera.com/a/very/long/path" }, child));
+  const http = renderToStaticMarkup(createElement(QrCodeLink, { value: "https://opencivera.com/a/very/long/path", alt: "QR" }, child));
   assert.match(http, /^<a href="https:\/\/opencivera\.com\/a\/very\/long\/path"[^>]*><i>qr<\/i><\/a>$/);
   assert.doesNotMatch(http, /sr-only/);
 
-  const mail = renderToStaticMarkup(createElement(QrCodeLink, { value: "mailto:jane@example.com" }, child));
+  const mail = renderToStaticMarkup(createElement(QrCodeLink, { value: "mailto:jane@example.com", alt: "QR" }, child));
   assert.doesNotMatch(mail, /<a /);
   assert.match(mail, /class="[^"]*\bsr-only\b/);
 });

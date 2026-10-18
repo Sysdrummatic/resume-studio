@@ -58,6 +58,8 @@ function renderLanding(locale) {
   const icon = ({ children }) => createElement("svg", { "aria-hidden": "true" }, children);
   const stubs = {
     "next/link": { __esModule: true, default: Link },
+    "./components/localized-link": { __esModule: true, default: Link },
+    "./lib/language-alternates": { getLanguageAlternatesMetadata: async () => ({}) },
     "next/headers": { cookies: async () => ({ get: () => undefined }) },
     "lucide-react": new Proxy({}, { get: () => icon }),
     "./components/footer": {

@@ -7,6 +7,7 @@ import yaml from "js-yaml";
 import { loadDictionaryModules } from "./dictionary-loader";
 import {
   APP_COUNTRY_HEADER_NAME,
+  APP_LANG_QUERY_HEADER_NAME,
   APP_LOCALE_COOKIE_NAME,
   APP_LOCALE_HEADER_NAME,
   resolveAppLocale,
@@ -176,6 +177,7 @@ export async function getRequestAppI18n(): Promise<AppI18nContextValue> {
   const enabledCodes = config.locales.map((locale) => locale.code);
   const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()]);
   const locale = resolveAppLocale({
+    queryLocale: requestHeaders.get(APP_LANG_QUERY_HEADER_NAME),
     cookieLocale: cookieStore.get(APP_LOCALE_COOKIE_NAME)?.value,
     headerLocale: requestHeaders.get(APP_LOCALE_HEADER_NAME),
     countryCode: requestHeaders.get(APP_COUNTRY_HEADER_NAME),

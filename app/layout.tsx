@@ -14,13 +14,15 @@ import { getCurrentActor } from "./lib/auth-server";
 import { getAccessRestriction } from "./lib/access-restriction";
 import { isAdminRole } from "./lib/rbac";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
+import { safeJsonLdScript } from "./lib/jsonld";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "./lib/jsonld-schemas";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { dictionary } = await getRequestAppI18n();
   return {
     metadataBase: new URL(getAppBaseUrl()),
-    title: "OpenCiVera",
+    title: { default: "OpenCiVera", template: "%s | OpenCiVera" },
     description: dictionary.meta.description,
     icons: {
       icon: "/favicon.svg",
@@ -34,6 +36,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const baseUrl = getAppBaseUrl();
   const cookieStore = await cookies();
   const appI18n = await getRequestAppI18n();
   const initialTheme = resolveAppTheme(cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME);
@@ -67,6 +70,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang={appI18n.locale} data-app-theme={initialTheme} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body data-app-theme={initialTheme}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLdScript(buildOrganizationJsonLd(baseUrl, appI18n.dictionary.meta.description)),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLdScript(buildWebSiteJsonLd(baseUrl, appI18n.dictionary.meta.description, appI18n.locale)),
+          }}
+        />
         <AppI18nProvider value={appI18n}>
           <header className="app-header">
             <div className="app-shell app-header__inner">

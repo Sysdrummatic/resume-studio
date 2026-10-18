@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
+import { buildLanguageAlternates } from "./i18n/locale";
+import { getAppI18nConfig } from "./i18n/server";
 import { getAppBaseUrl } from "./lib/env";
+import { listDocs } from "./lib/docs/content";
 import { fetchIndexablePublicLinksForSitemap } from "./lib/resume-server";
 
 // Rendered per request so a missing Supabase config at build time cannot fail the build.
@@ -18,12 +21,29 @@ function buildPublicUrl(base: string, personSlug: string, publicId: string, loca
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getAppBaseUrl().replace(/\/+$/, "");
-  const entries: MetadataRoute.Sitemap = [
-    { url: base, lastModified: STATIC_PAGES_LAST_MODIFIED },
-    { url: `${base}/resume`, lastModified: STATIC_PAGES_LAST_MODIFIED },
-    { url: `${base}/privacy`, lastModified: STATIC_PAGES_LAST_MODIFIED },
-    { url: `${base}/terms`, lastModified: STATIC_PAGES_LAST_MODIFIED },
+  const appLocales = getAppI18nConfig().locales.map((locale) => locale.code);
+  const staticPaths = ["/", "/resume", "/privacy", "/terms"];
+  const docPaths = [
+    "/docs",
+    ...listDocs("tutorials")
+      .filter((doc) => doc.isPublic)
+      .map((doc) => `/docs/tutorials/${doc.slug}`),
   ];
+  const entries: MetadataRoute.Sitemap = [...staticPaths, ...docPaths].flatMap((pathname) =>
+    appLocales.map((locale) => {
+      const { canonical, languages } = buildLanguageAlternates({
+        baseUrl: base,
+        pathname,
+        locale,
+        locales: appLocales,
+      });
+      return {
+        url: canonical,
+        ...(staticPaths.includes(pathname) ? { lastModified: STATIC_PAGES_LAST_MODIFIED } : {}),
+        alternates: { languages },
+      };
+    }),
+  );
 
   // A database failure throws (HTTP 5xx) rather than returning a silently truncated map.
   const links = await fetchIndexablePublicLinksForSitemap();
