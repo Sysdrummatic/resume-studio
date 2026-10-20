@@ -23,7 +23,10 @@ test("every llms.txt link is absolute, listed and resolves to an existing page",
     assert.ok(url.startsWith(BASE));
     const route = new URL(url).pathname;
     const dir = route === "/" ? "app" : `app${route}`;
-    const exists = ["page.tsx", "page.ts", "route.ts"].some((f) => fs.existsSync(path.join(process.cwd(), dir, f)));
+    const tutorial = route.match(/^\/docs\/tutorials\/([a-z0-9-]+)$/)?.[1];
+    const exists = tutorial
+      ? ["en", "pl"].every((l) => fs.existsSync(`content/docs/locales/${l}/tutorials/${tutorial}/${tutorial}.md`))
+      : ["page.tsx", "page.ts", "route.ts"].some((f) => fs.existsSync(path.join(process.cwd(), dir, f)));
     assert.ok(exists, `${url} has no page`);
   }
   assert.ok(fs.readFileSync("app/page.tsx", "utf8").includes('id="faq"'));
