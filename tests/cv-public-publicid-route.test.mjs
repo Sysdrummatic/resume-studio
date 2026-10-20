@@ -11,7 +11,7 @@ function read(filePath) {
 
 test("PR3 public route by person slug and public id resolves via Public Link source of truth", () => {
   const route = read("app/[personSlug]/[publicId]/page.tsx");
-  assert.equal(route.includes("fetchPublishedResumePresetByPublicLink"), true);
+  assert.equal(route.includes("getPublishedRoute"), true);
   assert.equal(route.includes("alternates"), true);
   assert.equal(route.includes("canonical"), true);
   assert.equal(route.includes("languages"), true);

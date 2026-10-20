@@ -20,28 +20,28 @@ sign-in/sign-out cycle must work repeatedly without errors.
 
 1. Go to `/login` and switch to the **Sign up** tab.
 
-   ![Homepage with the Sign up button highlighted](/docs/test-scenarios/signup-and-login/resources/01-homepage-signup-cta.png)
-   ![Empty sign-up form](/docs/test-scenarios/signup-and-login/resources/02-signup-form-empty.png)
+   ![Homepage with the Sign up button highlighted](/docs/test-scenarios/signup-and-login/resources/01-homepage-signup-cta.webp)
+   ![Empty sign-up form](/docs/test-scenarios/signup-and-login/resources/02-signup-form-empty.webp)
 
 2. Enter your email address and a password, accept the policies, and submit.
    You should see a confirmation that the account was created and that a
    verification email is on its way.
 
-   ![Sign-up form filled in, ready to submit](/docs/test-scenarios/signup-and-login/resources/03-signup-form-filled.png)
-   ![Creating account confirmation toast](/docs/test-scenarios/signup-and-login/resources/04-creating-account-toast.png)
+   ![Sign-up form filled in, ready to submit](/docs/test-scenarios/signup-and-login/resources/03-signup-form-filled.webp)
+   ![Creating account confirmation toast](/docs/test-scenarios/signup-and-login/resources/04-creating-account-toast.webp)
 
 3. **Before verifying**, try to sign in with the same credentials. Expected:
    access is refused with a message about pending email verification.
 4. Open your inbox and click the verification link. Expected: you land back on
    the sign-in page with a "verification completed" message.
 
-   ![Confirm your signup email with the verification link](/docs/test-scenarios/signup-and-login/resources/05-confirm-signup-email.png)
+   ![Confirm your signup email with the verification link](/docs/test-scenarios/signup-and-login/resources/05-confirm-signup-email.webp)
 
 5. Sign in with your credentials. Expected: you are redirected to `/dashboard`.
 6. Open the account menu (avatar, top-right corner) and click **Log out**.
    Expected: you are returned to the public page or `/login`.
 
-   ![Account menu avatar in the top-right corner of the nav bar](/docs/test-scenarios/signup-and-login/resources/06-account-menu-avatar.png)
+   ![Account menu avatar in the top-right corner of the nav bar](/docs/test-scenarios/signup-and-login/resources/06-account-menu-avatar.webp)
 
 7. Sign in again with the same credentials. Expected: you are redirected to
    `/dashboard` again, with no errors.

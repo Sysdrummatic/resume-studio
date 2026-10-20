@@ -57,7 +57,7 @@ test("public CV metadata emits absolute og:image and summary_large_image", () =>
 
 test("CV OG image route uses only the published resolver and the selection-safe builder", () => {
   const image = read("app/[personSlug]/[publicId]/opengraph-image.tsx");
-  assert.match(image, /fetchPublishedResumePresetByPublicLink/);
+  assert.match(image, /getPublishedRoute/);
   assert.match(image, /notFound\(\)/);
   assert.match(image, /buildCvOgContent/);
   assert.equal(image.includes("fetchResumeDocumentsForUser"), false);

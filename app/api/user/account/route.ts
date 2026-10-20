@@ -4,6 +4,7 @@ import { clearAuthCookies } from "../../../lib/auth-cookies";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { callRpc, deleteAuthUserAsService } from "../../../lib/supabase-http";
 import { sendEmail } from "../../../lib/email";
+import { revalidatePublicCv } from "../../../lib/public-cache-invalidation";
 
 // Target account is derived exclusively from the caller's own session
 // (requireRequestActor) — never from a request body field. This is the only
@@ -57,6 +58,7 @@ export async function DELETE(): Promise<Response> {
     return NextResponse.json({ error: deleteResult.error || "Unable to delete account." }, { status: 500 });
   }
 
+  revalidatePublicCv();
   const cookieStore = await cookies();
   clearAuthCookies(cookieStore);
 

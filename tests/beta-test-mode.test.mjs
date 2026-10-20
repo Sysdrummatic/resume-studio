@@ -76,7 +76,7 @@ test("header disables guest Sign in/Sign up with a tooltip reason during restric
   const layoutSource = read(layoutPath);
   const navSource = read(headerNavPath);
 
-  assert.equal(layoutSource.includes("getAccessRestriction"), true);
+  assert.equal(layoutSource.includes("getCachedAccessRestriction"), true);
   assert.equal(layoutSource.includes("disabled: restriction.restricted"), true);
   assert.equal(layoutSource.includes("disabledReason: restriction.reason"), true);
 

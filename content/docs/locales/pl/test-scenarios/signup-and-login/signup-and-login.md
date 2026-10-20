@@ -20,27 +20,27 @@ a pełny cykl logowania i wylogowania powinien działać wielokrotnie bez błęd
 
 1. Przejdź do `/login` i wybierz kartę **Sign up**.
 
-   ![Strona główna z zaznaczonym przyciskiem Sign up](/docs/test-scenarios/signup-and-login/resources/01-homepage-signup-cta.png)
-   ![Pusty formularz rejestracji](/docs/test-scenarios/signup-and-login/resources/02-signup-form-empty.png)
+   ![Strona główna z zaznaczonym przyciskiem Sign up](/docs/test-scenarios/signup-and-login/resources/01-homepage-signup-cta.webp)
+   ![Pusty formularz rejestracji](/docs/test-scenarios/signup-and-login/resources/02-signup-form-empty.webp)
 
 2. Wpisz e-mail i hasło, zaakceptuj zasady i wyślij formularz. Powinno pojawić
    się potwierdzenie utworzenia konta oraz wysłania wiadomości weryfikacyjnej.
 
-   ![Uzupełniony formularz rejestracji](/docs/test-scenarios/signup-and-login/resources/03-signup-form-filled.png)
-   ![Toast potwierdzający utworzenie konta](/docs/test-scenarios/signup-and-login/resources/04-creating-account-toast.png)
+   ![Uzupełniony formularz rejestracji](/docs/test-scenarios/signup-and-login/resources/03-signup-form-filled.webp)
+   ![Toast potwierdzający utworzenie konta](/docs/test-scenarios/signup-and-login/resources/04-creating-account-toast.webp)
 
 3. **Przed weryfikacją** spróbuj zalogować się tymi samymi danymi. Oczekiwany
    rezultat: dostęp zostaje odrzucony z informacją o oczekującej weryfikacji.
 4. Otwórz skrzynkę i kliknij link weryfikacyjny. Powinien nastąpić powrót na
    stronę logowania z komunikatem o zakończeniu weryfikacji.
 
-   ![Potwierdzenie rejestracji przez link e-mail](/docs/test-scenarios/signup-and-login/resources/05-confirm-signup-email.png)
+   ![Potwierdzenie rejestracji przez link e-mail](/docs/test-scenarios/signup-and-login/resources/05-confirm-signup-email.webp)
 
 5. Zaloguj się. Oczekiwany rezultat: przekierowanie do `/dashboard`.
 6. Otwórz menu konta i kliknij **Wyloguj**. Oczekiwany rezultat: powrót do
    strony publicznej albo `/login`.
 
-   ![Avatar otwierający menu konta](/docs/test-scenarios/signup-and-login/resources/06-account-menu-avatar.png)
+   ![Avatar otwierający menu konta](/docs/test-scenarios/signup-and-login/resources/06-account-menu-avatar.webp)
 
 7. Zaloguj się ponownie tymi samymi danymi. Oczekiwany rezultat: ponowne
    przekierowanie do `/dashboard`, bez błędów.

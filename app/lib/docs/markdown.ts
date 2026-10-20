@@ -74,6 +74,11 @@ marked.use({
     html(token) {
       return escapeHtml(token.text);
     },
+    // Screenshots sit below the fold; the browser fetches them only when they scroll near.
+    image(token) {
+      const title = token.title ? ` title="${escapeHtml(token.title)}"` : "";
+      return `<img src="${escapeHtml(token.href)}" alt="${escapeHtml(token.text)}"${title} loading="lazy" decoding="async">`;
+    },
     heading(token) {
       const base = slugifyHeading(token.text);
       const seen = slugCounts.get(base) ?? 0;

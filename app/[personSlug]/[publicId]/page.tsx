@@ -4,7 +4,8 @@ import { getRequestAppI18n } from "../../i18n/server";
 import { BasicResumeDocument } from "../../components/resume-renderer/BasicResumeDocument";
 import PrintTrigger from "../../components/print-trigger";
 import { getAppBaseUrl } from "../../lib/env";
-import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
+import { preloadCvFont } from "../../lib/cv-font-preload";
+import { getPublishedRoute } from "../../lib/public-data-cache";
 import type { PublishedResumePreset } from "../../lib/resume-server";
 import { safeJsonLdScript } from "../../lib/jsonld";
 import { buildPublicPersonJsonLd } from "../../lib/jsonld-schemas";
@@ -50,7 +51,7 @@ function buildPublicResumeJsonLd(published: PublishedResumePreset, canonicalUrl:
 export async function generateMetadata({ params, searchParams }: PublicResumeByPublicIdPageProps) {
   const { personSlug, publicId } = await params;
   const query = searchParams ? await searchParams : {};
-  const publishedRoute = await fetchPublishedResumePresetByPublicLink(personSlug, publicId, query.lang);
+  const publishedRoute = await getPublishedRoute(personSlug, publicId, query.lang);
 
   if (!publishedRoute) {
     return {
@@ -105,9 +106,10 @@ export async function generateMetadata({ params, searchParams }: PublicResumeByP
 }
 
 export default async function PublicResumeByPublicIdPage({ params, searchParams }: PublicResumeByPublicIdPageProps) {
+  preloadCvFont();
   const { personSlug, publicId } = await params;
   const query = searchParams ? await searchParams : {};
-  const publishedRoute = await fetchPublishedResumePresetByPublicLink(personSlug, publicId, query.lang);
+  const publishedRoute = await getPublishedRoute(personSlug, publicId, query.lang);
 
   if (!publishedRoute) {
     notFound();

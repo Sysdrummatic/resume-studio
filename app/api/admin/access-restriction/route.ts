@@ -7,6 +7,7 @@ import {
   isAllowedRestrictionReason,
   LOGIN_RESTRICTED_FLAG_KEY,
 } from "../../../lib/access-restriction";
+import { revalidateAccessRestriction } from "../../../lib/public-cache-invalidation";
 import { updateTable } from "../../../lib/supabase-http";
 
 type UpdateRestrictionBody = {
@@ -69,6 +70,7 @@ export async function PATCH(request: Request): Promise<Response> {
     return NextResponse.json({ error: updateResult.error || "Unable to update access restriction." }, { status: 500 });
   }
 
+  revalidateAccessRestriction();
   await writeAdminAuditLog({
     actorUserId: actorResult.actor.userId,
     action: "platform.login_restriction_updated",
