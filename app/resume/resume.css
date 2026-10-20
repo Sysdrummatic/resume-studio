@@ -3160,3 +3160,26 @@ img {
 .resume[data-cv-live-qr="off"] .qr-code {
   display: none;
 }
+
+/* Touch targets and readable chrome on narrow or touch viewports (SEO plan T16). Appended last so it wins over the per-template overrides. */
+@media (max-width: 768px), (pointer: coarse) {
+  .resume .hero__export-button,
+  .resume .resume-language-switcher__option {
+    min-height: var(--tap-target);
+  }
+
+  .resume .resume-language-switcher__option {
+    min-width: var(--tap-target);
+  }
+
+  .resume .contact-list a,
+  .qr-card__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-target);
+  }
+
+  .resume-badge {
+    font-size: 12px;
+  }
+}

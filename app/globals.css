@@ -16,6 +16,7 @@
   --app-theme: dark;
   --app-header-height: 56px;
   --workspace-breadcrumbs-height: 42px;
+  --tap-target: 44px;
   --app-theme-transition-duration: 200ms;
   --app-theme-transition-easing: ease;
   --layout-canvas-max: 1600px;
@@ -34,7 +35,7 @@
   --font-mono: var(--font-geist-mono), "Consolas", monospace;
   --font-display: var(--font-geist-sans), system-ui, sans-serif;
   /* Type scale */
-  --font-size-xs: 0.6875rem;
+  --font-size-xs: 0.75rem;
   /* 11px — captions, timestamps */
   --font-size-sm: 0.8125rem;
   /* 13px — small, meta */
@@ -1004,7 +1005,7 @@ a {
   border-radius: 999px;
   background: var(--portal-tab-active-bg);
   color: var(--accent);
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.08em;
 }
 
@@ -1291,7 +1292,7 @@ a {
   margin: 0;
   color: var(--portal-accent-bright);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1393,7 +1394,7 @@ a {
 .auth-card__label {
   color: var(--portal-foreground-subtle);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1783,7 +1784,7 @@ a {
   background: var(--portal-surface-ghost);
   color: var(--portal-foreground-subtle);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1944,7 +1945,7 @@ a {
 }
 
 .resume-editor-shell .button--small {
-  font-size: 11.5px;
+  font-size: var(--font-size-xs);
   padding: 5px 10px;
 }
 
@@ -2149,7 +2150,7 @@ a {
   background: var(--ed-card);
   color: var(--ed-t2);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   padding: 6px 12px;
   box-shadow: none;
@@ -2158,7 +2159,7 @@ a {
 .resume-editor-shell .locale-tab-strip__manage {
   border-right: 0;
   font-family: var(--font-body);
-  font-size: 11.5px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t3);
 }
 
@@ -2390,7 +2391,7 @@ a {
 
 .resume-editor-sidebar__header p {
   margin: 2px 0 0;
-  font-size: 11.5px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t3);
 }
 
@@ -2443,7 +2444,7 @@ a {
 }
 
 .resume-editor-nav__group-label {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2511,7 +2512,7 @@ a {
   background: var(--ed-nav-on);
   color: var(--ed-t3);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
 }
 
 .resume-editor-nav__item.is-active .resume-editor-nav__number {
@@ -2528,7 +2529,7 @@ a {
 .resume-editor-nav__count {
   flex-shrink: 0;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t3);
 }
 
@@ -2558,7 +2559,7 @@ a {
 .resume-editor-completion__row {
   display: flex;
   justify-content: space-between;
-  font-size: 11.5px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t2);
   margin-bottom: 7px;
 }
@@ -2585,7 +2586,7 @@ a {
 
 .resume-editor-completion small {
   display: block;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t3);
   margin-top: 8px;
   line-height: 1.45;
@@ -2681,7 +2682,7 @@ a {
 
 .resume-editor-workspace__header h2 span {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: var(--font-size-xs);
   font-weight: 400;
   color: var(--ed-t3);
 }
@@ -2695,7 +2696,7 @@ a {
 
 .resume-editor-hint {
   margin: 0;
-  font-size: 11.5px;
+  font-size: var(--font-size-xs);
   line-height: 1.5;
   color: var(--ed-t3);
 }
@@ -2811,7 +2812,7 @@ a {
   background: transparent;
   color: var(--ed-t2);
   font-family: var(--font-body);
-  font-size: 11.5px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   padding: 7px 4px;
   cursor: pointer;
@@ -2955,7 +2956,7 @@ a {
   padding: 3px 8px;
   color: var(--ed-t1);
   background: var(--ed-raised);
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -3277,7 +3278,7 @@ a {
 
 .resume-human-editor__card-meta {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t3);
 }
 
@@ -3570,7 +3571,7 @@ a {
 }
 
 .revision-list__tag {
-  font-size: 9.5px;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 600;
@@ -3588,7 +3589,7 @@ a {
 
 .revision-list small {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t3, var(--portal-foreground-muted));
 }
 
@@ -3613,7 +3614,7 @@ a {
 
 .resume-editor-revision-ribbon span {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   opacity: 0.85;
 }
 
@@ -3685,7 +3686,7 @@ a {
   padding: 0.28rem 0.6rem;
   color: var(--portal-success-text);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3984,7 +3985,7 @@ a {
 .dashboard-modal__field-label {
   color: var(--portal-foreground-subtle);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4671,7 +4672,7 @@ a {
 
 .lp-footer__copy {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--font-size-xs);
   color: var(--lp-fg-muted);
   margin: 0;
 }
@@ -4756,6 +4757,44 @@ a {
 .public-resume-route__cta a {
   color: inherit;
   text-underline-offset: 3px;
+}
+
+/* Touch targets: 44px minimum on narrow or touch viewports (SEO plan T16). */
+@media (max-width: 768px), (pointer: coarse) {
+  :root {
+    --workspace-breadcrumbs-height: var(--tap-target);
+  }
+
+  .app-nav-menu__trigger {
+    width: var(--tap-target);
+    height: var(--tap-target);
+  }
+
+  .app-theme-switch,
+  .app-language-menu__option,
+  .resume-language-switcher__option,
+  .language-switcher__option,
+  .auth-card input,
+  .auth-card .button {
+    min-height: var(--tap-target);
+  }
+
+  .resume-language-switcher__option,
+  .language-switcher__option {
+    min-width: var(--tap-target);
+  }
+
+  .workspace-breadcrumbs a,
+  .auth-card__link,
+  .lp-footer__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-target);
+  }
+
+  .lp-footer__links a {
+    min-width: var(--tap-target);
+  }
 }
 
 @media print {
