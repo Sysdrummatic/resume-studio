@@ -28,3 +28,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0023: Linked Master Resume Language Entries](0023-multi-locale-entry-linkage.md) (superseded by ADR 0024)
 - [ADR 0024: Language Versions as Parallel Lists](0024-language-versions-as-parallel-lists.md)
 - [ADR 0025: Public Basic Documentation](0025-public-basic-documentation.md)
+- [ADR 0026: Public Page Caching Under a Nonce CSP](0026-public-page-caching-and-csp-nonce.md)
