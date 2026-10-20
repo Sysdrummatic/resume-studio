@@ -28,13 +28,13 @@ Measured on production (2026-10-20, `curl`, mobile Lighthouse was not available)
 
 **Option C.** Security and data integrity rank above speed (CLAUDE.md priorities), and the nonce CSP is a Phase G control (G-P0-01). HTML stays dynamic; we cache what the HTML is built from.
 
-1. **Cached reads** (Next data cache, `unstable_cache`, one helper `app/lib/public-data-cache.ts`):
+1. **Cached reads** (Next data cache, `unstable_cache`, readers in `app/lib/public-data-cache.ts`, invalidation in `app/lib/public-cache-invalidation.ts` (separate, so mutation code never imports the readers)):
    - the `login_restricted` access flag (layout, every anonymous page): TTL 60 s;
    - public CV resolution by `(personSlug, publicId, locale)`: TTL 300 s, tag `public-cv`;
-   - platform feature flags read on public paths (`public_cv_indexing_enabled`): TTL 60 s.
+   - the `public_cv_indexing_enabled` flag is read inside the cached resolver, so a SQL toggle takes effect within the 300 s TTL.
 2. **Per-request dedupe** with React `cache()` for the public CV resolver, so `generateMetadata` and the page share one lookup.
-3. **Invalidation contract.** Everything that changes what a public link serves calls one helper, `revalidatePublicCv()` (`revalidateTag('public-cv')`):
-   publish, unpublish, deleting a saved version, deleting an account, and admin changes to a user's active state. The TTL is only a backstop: after unpublish the CV must answer 404 on the next request, never after the TTL.
+3. **Invalidation contract.** Everything that changes what a public link serves calls one helper, `revalidatePublicCv()`:
+   publish and republish, unpublish (which deleting a published saved version goes through), and account deletion by the user or an admin. The TTL is only a backstop: after unpublish the CV must answer 404 on the next request, never after the TTL.
 4. **What is never cached:** anything keyed by a session (actor, dashboard, editor, admin), exports and the OpenCV API (they already set their own `Cache-Control`), and any result computed with user-specific credentials. The cached public resolver uses the service role and returns only the already-published, selection-filtered snapshot (R09), so one cached value is valid for every visitor.
 5. **Out of scope now:** CDN caching of HTML (option A). Revisit only if measured TTFB after this change is still above target and a hash-based CSP has its own ADR.
 
@@ -46,4 +46,4 @@ Measured on production (2026-10-20, `curl`, mobile Lighthouse was not available)
 
 ## Test contract
 
-`tests/public-data-cache.test.mjs`: the mutation entry points (publish, unpublish, saved-version delete, account delete, admin user update) call `revalidatePublicCv`; the cached resolver is keyed by slug, id and locale; session-keyed readers do not use the helper.
+`tests/public-data-cache.test.mjs`: the mutation entry points (publish, unpublish, account delete by user and admin) call `revalidatePublicCv`; the cached resolver is keyed by slug, id and locale; session-keyed readers do not use the helper.
