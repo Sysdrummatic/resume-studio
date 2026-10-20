@@ -3,6 +3,7 @@ import { writeAdminAuditLog } from "../../../../lib/admin-audit";
 import type { AppRole } from "../../../../lib/auth-types";
 import { isAppRole } from "../../../../lib/auth-types";
 import { requireRequestActor } from "../../../../lib/auth-request";
+import { revalidatePublicCv } from "../../../../lib/public-cache-invalidation";
 import { canAssignRole, canDeleteTarget, hasCapability } from "../../../../lib/rbac";
 import { callRpc, deleteAuthUserAsService, fetchProfileByIdAsService } from "../../../../lib/supabase-http";
 
@@ -188,6 +189,7 @@ export async function DELETE(_: Request, context: RouteContext): Promise<Respons
     return NextResponse.json({ error: deleteResult.error || "Unable to delete user." }, { status: 500 });
   }
 
+  revalidatePublicCv();
   await writeAdminAuditLog({
     actorUserId: actorResult.actor.userId,
     action: "user.deleted",

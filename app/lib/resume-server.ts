@@ -10,6 +10,7 @@ import { buildCompactPersonSlug, buildProfileDisplayName, normalizeNameSyncMode,
 import { clampResumeSelectionToRawDocument, normalizeResumePresetSelection } from "./preset-selection";
 import type { ResumePresetSelection } from "./preset-selection";
 import { isPublicCvIndexingEnabled } from "./platform-feature-flags";
+import { revalidatePublicCv } from "./public-cache-invalidation";
 import { buildPublishedExportContent, buildPublishedResumeDocument } from "./published-export";
 import { normalizeResumeStyle, presetStyleSource, type ResumeStyleSettings } from "./resume-style";
 import {
@@ -1968,6 +1969,7 @@ export async function publishResumePreset(
   });
   if (rpcResult.error) throw new Error(`[publish:step=rpc] ${rpcResult.error}`);
   if (!rpcResult.data) throw new Error("[publish:step=rpc] publish_resume_saved_version returned no data");
+  revalidatePublicCv();
 
   return fetchResumePresetById(accessToken, userId, presetId);
 }
@@ -2016,6 +2018,7 @@ export async function unpublishResumePreset(accessToken: string, userId: string,
     accessToken,
   });
   if (rpcResult.error || !rpcResult.data) return null;
+  revalidatePublicCv();
   return fetchResumePresetById(accessToken, userId, presetId);
 }
 

@@ -11,7 +11,7 @@ import { AppI18nProvider } from "./components/app-i18n-provider";
 import { getRequestAppI18n } from "./i18n/server";
 import { getAppBaseUrl } from "./lib/env";
 import { getCurrentActor } from "./lib/auth-server";
-import { getAccessRestriction } from "./lib/access-restriction";
+import { getCachedAccessRestriction } from "./lib/public-data-cache";
 import { isAdminRole } from "./lib/rbac";
 import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
 import { safeJsonLdScript } from "./lib/jsonld";
@@ -42,7 +42,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const initialTheme = resolveAppTheme(cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME);
   const actor = await getCurrentActor();
   const isAdmin = actor ? isAdminRole(actor.role) : false;
-  const restriction = actor ? { restricted: false, reason: "" } : await getAccessRestriction();
+  const restriction = actor ? { restricted: false, reason: "" } : await getCachedAccessRestriction();
   const navItems = actor
     ? [
         ...(isAdmin ? [{ href: "/user", label: appI18n.dictionary.navigation.personal_hub }] : []),

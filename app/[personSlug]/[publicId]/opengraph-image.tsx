@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { ImageResponse } from "next/og";
 import { OgCard } from "../../components/og-card";
 import { buildCvOgContent, OG_IMAGE_ALT, OG_IMAGE_CONTENT_TYPE, OG_IMAGE_SIZE } from "../../lib/og-image";
-import { fetchPublishedResumePresetByPublicLink } from "../../lib/resume-server";
+import { getPublishedRoute } from "../../lib/public-data-cache";
 import { resumeFullName } from "../../lib/resume-schema";
 
 export const alt = OG_IMAGE_ALT;
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Image({ params }: { params: Promise<{ personSlug: string; publicId: string }> }) {
   const { personSlug, publicId } = await params;
-  const route = await fetchPublishedResumePresetByPublicLink(personSlug, publicId);
+  const route = await getPublishedRoute(personSlug, publicId);
 
   if (!route) {
     notFound();

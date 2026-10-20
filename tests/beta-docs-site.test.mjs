@@ -162,7 +162,7 @@ test("localized documentation resources fall back to English assets", () => {
     "tutorials",
     "publishing-your-first-cv",
     "pl",
-    ["01-dashboard-nav.png"],
+    ["01-dashboard-nav.webp"],
   );
 
   assert.ok(resource);

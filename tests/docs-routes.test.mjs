@@ -101,7 +101,7 @@ test("a non-public doc still sends anonymous visitors to login", async () => {
       /Private/
     );
     const input = {
-      params: Promise.resolve({ category: "tutorials", slug: "private-fixture", file: ["a.png"] })
+      params: Promise.resolve({ category: "tutorials", slug: "private-fixture", file: ["a.webp"] })
     };
     await assert.rejects(
       anonymous.resource(new Request("http://localhost/x.png"), input),
@@ -158,11 +158,11 @@ test("public image resources are anonymous and publicly cacheable; traversal sta
     params: Promise.resolve({
       category: "tutorials",
       slug: "publishing-your-first-cv",
-      file: ["01-dashboard-nav.png"]
+      file: ["01-dashboard-nav.webp"]
     })
   };
   const req = new Request(
-    "http://localhost/docs/tutorials/publishing-your-first-cv/resources/01-dashboard-nav.png"
+    "http://localhost/docs/tutorials/publishing-your-first-cv/resources/01-dashboard-nav.webp"
   );
   const anonymousResponse = await loadPages(null).resource(req, input);
   assert.equal(anonymousResponse.status, 200);
@@ -170,7 +170,7 @@ test("public image resources are anonymous and publicly cacheable; traversal sta
   const pages = loadPages({ role: "user", isTestUser: false });
   const response = await pages.resource(req, input);
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("Content-Type"), "image/png");
+  assert.equal(response.headers.get("Content-Type"), "image/webp");
   assert.ok((await response.arrayBuffer()).byteLength > 100);
   const traversal = await pages.resource(req, {
     params: Promise.resolve({
