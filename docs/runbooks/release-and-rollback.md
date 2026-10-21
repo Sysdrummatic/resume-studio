@@ -10,26 +10,32 @@ projects, `test` and `prod`.
 
 Complete in order. Stop at the first failure; do not skip a step to save time.
 
-1. **Scope is clear.** Every PR in the release is merged to `master`; no open
-   `priority: critical` / `priority: high` bug in the milestone.
-2. **CI is green** on the release commit (`.github/workflows/ci.yml`: lint, typecheck,
-   test, build, `audit:prod`).
+**Merging to `master` is the production deploy:** Netlify publishes `master` automatically.
+Everything that must be true *before* production changes (preview, rollback target,
+migrations) therefore comes before the merge. To hold a merged commit back, **Lock
+publishing** in Netlify first and unlock it when you are ready to deploy.
+
+1. **Scope is clear.** Every PR in the release is merged into the release branch and the
+   release PR to `master` is open but **not merged**; no open `priority: critical` /
+   `priority: high` bug in the milestone.
+2. **CI is green** on the release PR (`.github/workflows/ci.yml`: lint, typecheck, test,
+   build, `audit:prod`, `test:rls`).
 3. **Environment contract holds.** `npm run qa:env -- --target=production` exits 0
    (names only are reported; never paste values).
 4. **Migrations are ready.** List new files in `supabase/migrations/` since the last
    release. For each: reviewed under the [Supabase/RLS checklist](../CHECKLISTS.md),
-   applied and verified on `test` first, and a forward-fix noted (see below).
+   applied and verified on `test` first, **compatible with the code currently running in
+   production** (additive first, destructive later), and a forward-fix noted (see below).
 5. **Preview verified.** `npm run smoke:preview` passes on the Deploy Preview of the
-   release commit, plus the manual flows in the deployment QA guide that the release touches.
+   release PR, plus the manual flows in the deployment QA guide that the release touches.
 6. **Rollback target recorded.** Write down the current production Netlify deploy ID and
    `git rev-parse` of the commit it serves, and the newest applied migration name. These
    three values are what a rollback needs.
 7. **Apply migrations to `prod`** with `mcp__supabase-prod__apply_migration` (same SQL and
    name as on `test`; `supabase db push` is unreliable here, see
-   [TECH_DEBT.md](../../TECH_DEBT.md)). Migrations ship **before** the code that needs them
-   and must stay compatible with the previous code (additive first, destructive later).
-8. **Deploy.** Merge/promote to production in Netlify and wait for the deploy to be
-   published.
+   [TECH_DEBT.md](../../TECH_DEBT.md)). Migrations ship **before** the code that needs them.
+8. **Merge the release PR to `master`** and wait for the Netlify production deploy to be
+   published. This is the moment production changes.
 9. **Production smoke:** the Post-deploy section of the
    [deployment QA guide](../guides/testing/deployment-qa.md).
 10. **Announce** in the agreed channel: what shipped, anything users must do.
@@ -53,8 +59,16 @@ is broken for real users. Do not debug on production first; restore service, the
    auto-publishing: while it stays enabled, the next Git-triggered production deploy
    overwrites the rollback.
 3. Re-run the post-deploy smoke. Confirm the served commit matches the recorded one.
-4. Revert on `master` (`git revert <merge-commit>`, via a branch and PR) so the repo matches
-   production. Only then **Unlock publishing** (Start auto publishing) again.
+4. Revert on `master` (via a branch and PR) so the repo matches production. Check how the
+   release landed first: `git rev-list --parents -n 1 <sha>` prints the commit followed by its
+   parents.
+   - **Squash or rebase commit** (one parent): `git revert <sha>`.
+   - **Merge commit** (two parents): `git revert -m 1 <sha>`. Without `-m` Git stops with
+     `is a merge but no -m option was given`; `-m 1` keeps the first parent, the mainline
+     (`master`), as the side to return to. Revert a merge only for the whole release; to take
+     back part of it, revert the individual commits.
+
+   Only after the revert is merged, **Unlock publishing** (Start auto publishing) again.
 
 ## Database rollback
 

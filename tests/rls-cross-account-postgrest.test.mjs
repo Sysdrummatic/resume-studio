@@ -95,7 +95,7 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
     });
     seeded.published = await seed("resume_published_cvs", {
       user_id: owner.id,
-      available_locales: ["en"],
+      available_locales: ["en", "pl"],
       default_locale: "en"
     });
     seeded.snapshot = await seed("resume_published_cv_locales", {
@@ -168,59 +168,118 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
     assert.equal(document.yaml_content, RESUME_YAML);
     assert.equal(preset.title, "owner preset");
     assert.equal(link.is_active, true);
+
+    // Control: the same payloads are valid, the owner may apply them (then they are restored).
+    for (const [table, id, patch, restore] of [
+      ["resume_documents", seeded.document.id, { yaml_content: `${RESUME_YAML}# edited
+` }, { yaml_content: RESUME_YAML }],
+      ["resume_presets", seeded.preset.id, { title: "edited" }, { title: "owner preset" }],
+      ["resume_public_links", seeded.link.id, { is_active: false }, { is_active: true }]
+    ]) {
+      const edited = await rest(owner, table, { query: `?id=eq.${id}`, method: "PATCH", body: patch });
+      assert.equal(edited.data?.length, 1, `owner PATCH ${table}: ${JSON.stringify(edited.data)}`);
+      await expectAllowed(
+        rest(service, table, { query: `?id=eq.${id}`, method: "PATCH", body: restore }),
+        `restore ${table}`
+      );
+    }
   });
 
   it("blocks creating rows that belong to, or point at, another account", async () => {
+    const otherDocument = (
+      await rest(service, "resume_documents", { query: `?user_id=eq.${other.id}&locale=eq.en` })
+    ).data[0];
+    assert.ok(otherDocument, "the other user has a default document");
+
+    // Each forged payload is valid on its own: only the ownership differs, and `control` proves
+    // the same payload is accepted for its rightful actor. Otherwise a validation error
+    // (bad locale, missing column) would look like an RLS denial and the test could not fail.
     const attempts = [
-      ["resume_documents", { user_id: owner.id, locale: "pl", yaml_content: RESUME_YAML }],
-      [
-        "resume_revisions",
-        {
+      {
+        table: "resume_documents",
+        scope: `?user_id=eq.${owner.id}`,
+        body: { user_id: owner.id, locale: "pl", yaml_content: RESUME_YAML },
+        control: { actor: owner }
+      },
+      {
+        table: "resume_revisions",
+        scope: `?document_id=eq.${seeded.document.id}`,
+        body: {
           document_id: seeded.document.id,
           revision_number: 1001,
           locale: "en",
           title: "forged",
           yaml_content: RESUME_YAML,
           schema_version: 1
+        },
+        control: { actor: owner }
+      },
+      {
+        table: "resume_presets",
+        scope: `?document_id=eq.${seeded.document.id}`,
+        body: { document_id: seeded.document.id, user_id: owner.id, title: "forged" },
+        control: { actor: owner }
+      },
+      {
+        table: "resume_presets",
+        scope: `?user_id=eq.${other.id}`,
+        body: { document_id: seeded.document.id, user_id: other.id, title: "foreign document" },
+        control: {
+          actor: other,
+          body: { document_id: otherDocument.id, user_id: other.id, title: "own document" }
         }
-      ],
-      ["resume_presets", { document_id: seeded.document.id, user_id: owner.id, title: "forged" }],
-      ["resume_published_cvs", { user_id: owner.id }],
-      [
-        "resume_published_cv_locales",
-        {
+      },
+      {
+        table: "resume_published_cvs",
+        scope: `?user_id=eq.${owner.id}`,
+        body: { user_id: owner.id, available_locales: ["en"], default_locale: "en" },
+        control: { actor: owner }
+      },
+      {
+        table: "resume_published_cv_locales",
+        scope: `?published_cv_id=eq.${seeded.published.id}`,
+        body: {
           published_cv_id: seeded.published.id,
           user_id: owner.id,
           locale: "pl",
           title: "forged",
           yaml_content: RESUME_YAML
-        }
-      ],
-      ["admin_audit_logs", { actor_user_id: owner.id, action: "rls.forged" }]
+        },
+        control: { actor: owner }
+      },
+      {
+        table: "admin_audit_logs",
+        scope: "?action=in.(rls.forged,rls.control)",
+        body: { actor_user_id: owner.id, action: "rls.forged" },
+        control: { actor: admin, body: { actor_user_id: admin.id, action: "rls.control" } }
+      }
     ];
+    const count = async ({ table, scope }) => (await rest(service, table, { query: scope })).data.length;
+    const before = [];
+    for (const attempt of attempts) before.push(await count(attempt));
+
     for (const actor of [anon, other]) {
-      for (const [table, body] of attempts) {
+      for (const { table, body } of attempts) {
         await expectDenied(
           rest(actor, table, { method: "POST", body }),
           `${actor.role} INSERT ${table}`
         );
       }
     }
-    await expectDenied(
-      rest(other, "resume_presets", {
-        method: "POST",
-        body: { document_id: seeded.document.id, user_id: other.id, title: "foreign document" }
-      }),
-      "preset owned by the caller but pointing at another account's document"
-    );
-
-    for (const [table, id] of ownerOnly()) {
-      assert.equal((await rowsOf(service, table, id)).length, 1);
+    for (const [index, attempt] of attempts.entries()) {
+      assert.equal(await count(attempt), before[index], `no row was created in ${attempt.table}`);
     }
-    const documents = await rest(service, "resume_documents", { query: `?user_id=eq.${owner.id}` });
-    assert.equal(documents.data.length, 1, "no extra document was created for the owner");
-    const presets = await rest(service, "resume_presets", { query: `?document_id=eq.${seeded.document.id}` });
-    assert.equal(presets.data.length, 1, "no extra preset points at the owner's document");
+
+    for (const [index, attempt] of attempts.entries()) {
+      await expectAllowed(
+        rest(attempt.control.actor, attempt.table, {
+          method: "POST",
+          body: attempt.control.body ?? attempt.body
+        }),
+        `control: ${attempt.control.actor.role} INSERT ${attempt.table}`
+      );
+      assert.equal(await count(attempt), before[index] + 1, `control row exists in ${attempt.table}`);
+    }
   });
 
   it("keeps published snapshots immutable, even for their owner", async () => {
@@ -323,13 +382,28 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
       assert.equal(asOther.response.ok, true, `${table}: ${JSON.stringify(asOther.data)}`);
       assert.equal(asOther.data.length, 0, `another user reads legacy ${table}`);
     }
-    for (const [name, body] of [
-      ["get_public_resume_by_slug", { input_slug: "x" }],
-      ["increment_public_link_view", { input_slug: "x" }],
-      ["get_admin_user_overview", {}]
-    ]) {
-      const result = await request(`/rest/v1/rpc/${name}`, { token: anonKey, method: "POST", body });
-      assert.equal(result.response.ok, false, `anon executes ${name}: ${result.response.status}`);
+    // These SECURITY DEFINER functions bypass the table policies, so any caller who can execute
+    // them reads or changes legacy rows regardless of ownership. Only service_role may.
+    const legacyLink = await rest(service, "public_links", {
+      query: `?resume_id=eq.${ownerResume.data[0].id}`
+    });
+    assert.equal(legacyLink.data?.length, 1, "owner has a seeded legacy public link");
+    const slug = legacyLink.data[0].slug;
+    const rpc = (token, name, body) =>
+      request(`/rest/v1/rpc/${name}`, { token, method: "POST", body });
+
+    const control = await rpc(serviceRoleKey, "get_public_resume_by_slug", { input_slug: slug });
+    assert.equal(control.data?.length, 1, `control: service_role resolves the legacy slug: ${JSON.stringify(control.data)}`);
+
+    for (const [label, token] of [["anon", anonKey], ["another user", other.accessToken], ["the owner", owner.accessToken]]) {
+      for (const [name, body] of [
+        ["get_public_resume_by_slug", { input_slug: slug }],
+        ["increment_public_link_view", { input_slug: slug }],
+        ["get_admin_user_overview", {}]
+      ]) {
+        const result = await rpc(token, name, body);
+        assert.equal(result.response.ok, false, `${label} executes ${name}: ${result.response.status}`);
+      }
     }
   });
 });
