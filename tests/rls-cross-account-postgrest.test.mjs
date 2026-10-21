@@ -54,8 +54,10 @@ async function seed(table, row) {
   return result.data[0];
 }
 
+// Revoked table privileges (anon on published snapshots) answer 401/403 instead of 200 [].
 async function rowsOf(actor, table, id) {
   const result = await rest(actor, table, { query: `?id=eq.${id}` });
+  if ([401, 403].includes(result.response.status)) return [];
   assert.equal(result.response.ok, true, `${actor.role} read ${table}: ${JSON.stringify(result.data)}`);
   return result.data;
 }
@@ -88,7 +90,18 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
       user_id: owner.id,
       title: "owner preset"
     });
-    seeded.published = await seed("resume_published_cvs", { user_id: owner.id });
+    seeded.published = await seed("resume_published_cvs", {
+      user_id: owner.id,
+      available_locales: ["en"],
+      default_locale: "en"
+    });
+    seeded.snapshot = await seed("resume_published_cv_locales", {
+      published_cv_id: seeded.published.id,
+      user_id: owner.id,
+      locale: "en",
+      title: "owner snapshot",
+      yaml_content: RESUME_YAML
+    });
     seeded.link = await seed("resume_public_links", {
       document_id: seeded.document.id,
       user_id: owner.id,
@@ -108,7 +121,8 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
     ["resume_documents", seeded.document.id],
     ["resume_revisions", seeded.revision.id],
     ["resume_presets", seeded.preset.id],
-    ["resume_published_cvs", seeded.published.id]
+    ["resume_published_cvs", seeded.published.id],
+    ["resume_published_cv_locales", seeded.snapshot.id]
   ];
   const outsiders = () => [anon, other, recruiter, manager, admin];
 
@@ -169,6 +183,16 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
       ],
       ["resume_presets", { document_id: seeded.document.id, user_id: owner.id, title: "forged" }],
       ["resume_published_cvs", { user_id: owner.id }],
+      [
+        "resume_published_cv_locales",
+        {
+          published_cv_id: seeded.published.id,
+          user_id: owner.id,
+          locale: "pl",
+          title: "forged",
+          yaml_content: RESUME_YAML
+        }
+      ],
       ["admin_audit_logs", { actor_user_id: owner.id, action: "rls.forged" }]
     ];
     for (const actor of [anon, other]) {
@@ -197,14 +221,18 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
   });
 
   it("keeps published snapshots immutable, even for their owner", async () => {
-    await expectDenied(
-      rest(owner, "resume_published_cvs", {
-        query: `?id=eq.${seeded.published.id}`,
-        method: "DELETE"
-      }),
-      "owner DELETE published CV"
-    );
-    assert.equal((await rowsOf(service, "resume_published_cvs", seeded.published.id)).length, 1);
+    for (const [table, id] of [
+      ["resume_published_cvs", seeded.published.id],
+      ["resume_published_cv_locales", seeded.snapshot.id]
+    ]) {
+      await expectDenied(
+        rest(owner, table, { query: `?id=eq.${id}`, method: "DELETE" }),
+        `owner DELETE ${table}`
+      );
+      assert.equal((await rowsOf(service, table, id)).length, 1);
+    }
+    const [snapshot] = await rowsOf(service, "resume_published_cv_locales", seeded.snapshot.id);
+    assert.equal(snapshot.yaml_content, RESUME_YAML);
   });
 
   it("limits the audit log to staff", async () => {
