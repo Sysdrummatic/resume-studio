@@ -98,7 +98,7 @@ export async function expectDenied(operation, message) {
   assert.equal(
     !result.response.ok || filteredToNoRows,
     true,
-    `${message}: unexpectedly returned ${result.response.status}`
+    `${message}: unexpectedly returned ${result.response.status} ${JSON.stringify(result.data)}`
   );
 }
 
