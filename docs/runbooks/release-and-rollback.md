@@ -48,11 +48,13 @@ is broken for real users. Do not debug on production first; restore service, the
 ## Code rollback (minutes)
 
 1. Netlify → Deploys → pick the deploy recorded in step 6 → **Publish deploy**. This
-   restores the previous build without a rebuild and stops auto-publishing, so new merges do
-   not overwrite the rollback.
-2. Re-run the post-deploy smoke. Confirm the served commit matches the recorded one.
-3. Revert on `master` (`git revert <merge-commit>`, via a branch and PR) so the repo matches
-   production. Only then **Start auto publishing** again.
+   restores the previous build without a rebuild.
+2. **Lock publishing** on that deploy immediately. Publishing an old deploy does not stop
+   auto-publishing: while it stays enabled, the next Git-triggered production deploy
+   overwrites the rollback.
+3. Re-run the post-deploy smoke. Confirm the served commit matches the recorded one.
+4. Revert on `master` (`git revert <merge-commit>`, via a branch and PR) so the repo matches
+   production. Only then **Unlock publishing** (Start auto publishing) again.
 
 ## Database rollback
 
