@@ -733,6 +733,16 @@ introduces a `NOLOGIN` trigger-owner role
 (`profile_privileged_rpc_owner`) so only those fixed-path RPCs can touch the
 privileged columns. Test contract: `tests/guard-profile-update-contract.test.mjs`.
 
+**NULL-Safe Role Checks in RLS (2026-10-21):** for an anonymous caller `auth.uid()` and
+`current_user_role()` are `NULL`, and in PL/pgSQL `if NULL then` is never taken. A role check
+written as `if actor_role <> 'manager' then return false` therefore *skips* its guard for anon.
+`can_access_target_user()` did exactly that and let anon delete/insert `resume_public_links` and
+read `profiles` of user/recruiter accounts (fixed by
+`20261021000000_fail_closed_target_user_access.sql`, on `test` and `prod`). In policies and
+`security definer` functions compare roles with `is distinct from` / explicit `is null` handling
+so a missing role fails closed. Regression: `tests/rls-cross-account-postgrest.test.mjs`.
+Details: [post-mortem](docs/incidents/2026-10-21-anon-target-user-access.md).
+
 **Published CV Snapshot Detach-on-Delete Fix:** `prevent_published_cv_mutation()`
 rejected every `UPDATE` on `resume_published_cvs` / `resume_published_cv_locales`
 to keep snapshots immutable, but `ON DELETE SET NULL` foreign keys

@@ -306,6 +306,15 @@ Dla zdalnego, dedykowanego projektu testowego wymagane jest dodatkowo
 `SUPABASE_RLS_TEST_ALLOW_REMOTE=true`. Test tworzy unikalne konta, usuwa własne logi
 audytu i konta w `finally`; nie wolno kierować go do produkcji.
 
+`npm run test:rls` uruchamia też `tests/rls-cross-account-postgrest.test.mjs` (wspólne helpery w
+`tests/helpers/rls-postgrest.mjs`): granica między kontami dla tabel CV
+(`resume_documents`, `resume_revisions`, `resume_presets`, `resume_published_cvs`,
+`resume_public_links`, `admin_audit_logs`). Sprawdza, że anon, inny użytkownik, recruiter,
+manager i admin nie czytają ani nie zmieniają cudzych wierszy, że snapshoty publikacji są
+niemutowalne nawet dla właściciela, że publiczny link ujawnia wyłącznie metadane aktywnego
+linku, a log audytu czytają tylko manager i admin. Manager i admin mogą usuwać linki
+publiczne cudzych kont (`can_manage_target_user`) — test tego nie zabrania.
+
 **T-PF1 — Owner allowlist (`user` i `recruiter`)**
 
 1. Dla obu ról wyślij bezpośredni `PATCH /rest/v1/profiles?id=eq.<self>` osobno dla
