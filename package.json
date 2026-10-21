@@ -13,7 +13,7 @@
     "test": "node --test",
     "smoke:preview": "node scripts/qa/preview-smoke.mjs",
     "qa:links": "node scripts/qa/check-links.mjs",
-    "test:rls": "node --test tests/profile-privileged-fields-postgrest.test.mjs",
+    "test:rls": "node --test tests/profile-privileged-fields-postgrest.test.mjs tests/rls-cross-account-postgrest.test.mjs",
     "test:production": "node --use-system-ca --env-file=tests/production-headers.env tests/production-headers.test.mjs",
     "verify": "npm run lint && npm run typecheck && npm run test",
     "qa:env": "node scripts/qa/environment-readiness.mjs",
