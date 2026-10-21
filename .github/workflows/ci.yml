@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, master, ocv-0216-phase-i-develop]
+    branches: [main, master]
   push:
     branches: [main, master]
 
