@@ -16,8 +16,8 @@ order: 23
 | Czym jest | Hostowany kreator CV | Otwarty schemat JSON dla CV, z motywami i rejestrem | Narzędzie wiersza poleceń generujące PDF z pliku YAML | Otwartoźródłowy kreator CV do samodzielnego hostowania |
 | Pracujesz w | Formularzu webowym, opcjonalnie w edytorze YAML | Pliku JSON i narzędziach | Pliku YAML i terminalu | Edytorze webowym |
 | Jedno źródło, wiele dopasowanych wersji | Tak: Baza doświadczeń i zapisane wersje LiveCV | Pliki zarządzasz sam(a) | Pliki zarządzasz sam(a) | Zależy od organizacji CV |
-| Publiczny link do dopasowanego CV | Tak: link do LiveCV, który możesz wyłączyć | Przez rejestr społeczności lub własny hosting | Nie; udostępniasz wygenerowane pliki | Udostępnianie CV jest obsługiwane |
-| Wynik | Strona, PDF, TXT, YAML | Zależy od motywu lub narzędzia | PDF i inne generowane formaty | PDF i eksport danych |
+| Publiczny link do dopasowanego CV | Tak: link do LiveCV, który możesz wyłączyć | Przez rejestr społeczności lub własny hosting | Brak hostowanego, stałego linku; generuje samodzielny plik HTML, który możesz opublikować samodzielnie | Udostępnianie CV jest obsługiwane |
+| Wynik | Strona, PDF, TXT, YAML | Zależy od motywu lub narzędzia | Pliki PDF, HTML, Markdown, Typst i PNG | PDF i eksport danych |
 | Koszt | Bezpłatnie | Bezpłatnie, open source | Bezpłatnie, open source | Bezpłatnie, open source |
 
 :::info

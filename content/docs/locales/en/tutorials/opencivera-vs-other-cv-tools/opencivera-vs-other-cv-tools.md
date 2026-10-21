@@ -16,8 +16,8 @@ order: 23
 | What it is | Hosted CV builder | Open JSON schema for resumes, with themes and a registry | Command-line tool that renders a PDF from a YAML file | Open-source resume builder you can host yourself |
 | You work in | Web form, with an optional YAML editor | JSON file plus tools | YAML file and terminal | Web editor |
 | One source, many tailored versions | Yes: Experience Base plus saved LiveCV versions | You manage the files yourself | You manage the files yourself | Depends on how you organise resumes |
-| Public link to a tailored CV | Yes: the LiveCV link, which you can disable | Via community registry or your own hosting | No; you share the generated files | Shared resumes are supported |
-| Output | Web page, PDF, TXT, YAML | Depends on the theme or tool | PDF and other generated formats | PDF and data export |
+| Public link to a tailored CV | Yes: the LiveCV link, which you can disable | Via community registry or your own hosting | No hosted permalink; it generates a standalone HTML file that you can publish yourself | Shared resumes are supported |
+| Output | Web page, PDF, TXT, YAML | Depends on the theme or tool | PDF, HTML, Markdown, Typst and PNG files | PDF and data export |
 | Cost | Free | Free, open source | Free, open source | Free, open source |
 
 :::info
