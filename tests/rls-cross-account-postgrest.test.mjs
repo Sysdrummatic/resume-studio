@@ -313,9 +313,11 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
       true,
       `anon reads legacy resumes: ${anonResumes.response.status}`
     );
+    const ownerResume = await rest(service, "resumes", { query: `?user_id=eq.${owner.id}` });
+    assert.equal(ownerResume.data?.length, 1, "owner has a seeded legacy resume");
     for (const [table, query] of [
       ["resumes", `?user_id=eq.${owner.id}`],
-      ["public_links", ""]
+      ["public_links", `?resume_id=eq.${ownerResume.data[0].id}`]
     ]) {
       const asOther = await rest(other, table, { query });
       assert.equal(asOther.response.ok, true, `${table}: ${JSON.stringify(asOther.data)}`);
