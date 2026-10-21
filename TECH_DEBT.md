@@ -163,3 +163,16 @@ Migracja `20260604000000_reactivate_revoked_public_link_on_publish.sql` robi odw
 (chroni test `tests/publish-republish-contract.test.mjs`). ADR 0001 (reguła 8 i PR4)
 opisuje zachowanie sprzed tej migracji. Decyzja: poprawić ADR zgodnie z kodem albo
 przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
+
+## Uprawnienia `anon` szersze niż potrzeba i wzorzec NULL w rolach RLS
+
+**Status (2026-10-21):** otwarte. Wynika z [incydentu](docs/incidents/2026-10-21-anon-target-user-access.md).
+
+### Opis
+
+1. Rola `anon` ma na `test`/`prod` uprawnienia tabelowe wykraczające poza potrzeby aplikacji
+   (np. `INSERT`/`DELETE` na `profiles`, `INSERT`/`UPDATE`/`DELETE` na tabelach CV). Jedyną barierą
+   jest RLS. Do rozważenia: `revoke` nieużywanych uprawnień `anon` jako obrona w głąb.
+2. Funkcje ról używane w politykach (`can_manage_target_user`, `is_staff_user`, `is_admin_user`,
+   `current_user_role`) nie były przeglądane pod kątem porównań z NULL (`=` / `<>` zamiast
+   `is distinct from`) dla wywołań anonimowych.
