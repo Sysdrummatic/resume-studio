@@ -53,7 +53,7 @@
 .ctaEyebrow,
 .cardTag {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--font-size-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
@@ -61,7 +61,7 @@
 }
 
 .heroEyebrow {
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--accent-teal, var(--brand-teal));
   margin-bottom: var(--space-md);
@@ -147,7 +147,7 @@
   padding: 0;
   list-style: none;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   color: var(--portal-foreground-muted);
 }
 
@@ -276,7 +276,7 @@
 .cardTag {
   color: var(--portal-foreground-muted);
   margin-bottom: var(--space-sm);
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
 }
 
 .chip {
@@ -286,7 +286,7 @@
   background: color-mix(in srgb, var(--accent-teal, var(--brand-teal)) 12%, transparent);
   color: var(--accent-teal, var(--teal-text));
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--font-size-xs);
 }
 
 .featureCard:nth-child(even) .chip {

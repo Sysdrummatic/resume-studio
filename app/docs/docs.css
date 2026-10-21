@@ -59,7 +59,7 @@
 .docs-nav__label {
   padding: 0 12px 7px;
   color: var(--ed-t2);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
 }
 .docs-nav__link {
   display: flex;
@@ -85,7 +85,7 @@
   margin-top: auto;
   padding: 20px 12px 0;
   border-top: 1px solid var(--ed-line);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
 }
 .docs-sidebar__footer p {
   margin-top: 6px;
@@ -208,7 +208,7 @@
   letter-spacing: -0.02em;
 }
 .docs-section-heading > span {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t2);
 }
 .docs-resources {
@@ -265,7 +265,7 @@
   margin-top: 24px;
   border-top: 1px solid var(--ed-line);
   color: var(--ed-t2);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
 }
 .docs-outline {
   align-self: start;
@@ -274,7 +274,7 @@
   padding: 34px 24px 24px 0;
   max-height: calc(100dvh - var(--app-header-height) - 24px);
   overflow-y: auto;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
 }
 .docs-outline strong {
   display: block;
@@ -309,7 +309,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--ed-t2);
 }
 .docs-prose {
@@ -637,5 +637,19 @@
   .docs-page .workspace-breadcrumbs li {
     min-width: 0;
     overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .docs-button,
+  .docs-search input,
+  .docs-intro,
+  .docs-step-navigation__back {
+    min-height: var(--tap-target);
+  }
+
+  /* A keyboard-shortcut hint has no use without a keyboard. */
+  .docs-search kbd {
+    display: none;
   }
 }
