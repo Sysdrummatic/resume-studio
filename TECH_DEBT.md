@@ -179,7 +179,7 @@ przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
 
 ## Starsze tabele `resumes` i `public_links` czytelne dla `anon`
 
-**Status (2026-10-21):** ZAMKNIĘTE tego samego dnia migracją `20261021010000_close_legacy_resume_tables_to_anon` (test i prod). Opis poniżej zostawiony jako historia; otwarte pozostaje tylko usunięcie starszego schematu po decyzji o danych. Pierwotnie: otwarte, znalezione w audycie powierzchni ataku `anon` (po incydencie
+**Status (2026-10-21):** ZAMKNIĘTE tego samego dnia migracją `20261021010000_close_legacy_resume_tables_to_anon` (test i prod). Funkcje RPC domknięto dla `authenticated` migracją `20261021020000_close_legacy_rpc_to_authenticated`. Opis poniżej zostawiony jako historia; otwarte pozostaje tylko usunięcie starszego schematu po decyzji o danych. Pierwotnie: otwarte, znalezione w audycie powierzchni ataku `anon` (po incydencie
 `can_access_target_user`). Zmierzone na `prod` jako rola `anon` (tylko odczyt):
 `resumes` = 18 wierszy, `public_links` = 18, `get_public_resume_by_slug()` zwraca dane.
 
@@ -206,4 +206,4 @@ Bezpieczne dla anona (guard poprawnie zawodzi przy NULL): `log_admin_action`,
 `rate_limit_counters`, `resume_onboarding*` bez dostępu. Zamknięte poprawką
 `fail_closed_target_user_access`: `create_resume_revision` i `rollback_resume_document` (anon mógł
 tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_last_admin` i
-`is_only_profile` działają dla anona jako wyrocznia „czy ten UUID to admin".
+`is_only_profile` działają dla anona jako wyrocznia „czy ten UUID to admin". Dotyczy też zalogowanych użytkowników (wywołują je jako `authenticated`).

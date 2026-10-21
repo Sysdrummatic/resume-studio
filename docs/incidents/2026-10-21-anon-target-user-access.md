@@ -61,6 +61,16 @@ access to both tables and `EXECUTE` from `public`/`anon` on the three functions 
 by PUBLIC by default, so revoking from `anon` alone is not enough). Applied to `test` and `prod`; verified
 with `has_*_privilege`, and published CVs with a snapshot still return 200 on production.
 
+Code review of the release PR then found the closure incomplete: the three functions stayed executable by
+`authenticated`. Being `SECURITY DEFINER`, they skip the table policies, so a signed-in user could still read
+another account's legacy resume through `get_public_resume_by_slug` (0 rows through the table, 1 through the RPC).
+Migration `20261021020000_close_legacy_rpc_to_authenticated` revokes `EXECUTE` from `authenticated` too; only
+`service_role` keeps it. Applied to `test` and `prod`. `tests/rls-cross-account-postgrest.test.mjs` now calls the
+three functions as anon, another user and the owner, with a `service_role` control proving the slug resolves.
+
+**Lesson:** when closing a table, check every `SECURITY DEFINER` function over it for every role that can
+execute it, not only the role in the original report.
+
 ## Follow-ups
 
 - Prefer `is distinct from` / explicit `is null` handling in every role check inside policies and
