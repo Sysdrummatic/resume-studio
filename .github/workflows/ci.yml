@@ -2,8 +2,7 @@ name: CI
 
 on:
   pull_request:
-    # TEMPORARY (ocv-0216): gate PRs into the Phase I dev branch; revert before merging it to master
-    branches: [main, master, ocv-0216-phase-i-develop]
+    branches: [main, master]
   push:
     branches: [main, master]
 
