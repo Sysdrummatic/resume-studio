@@ -4,7 +4,7 @@ import test from "node:test";
 import { getDoc, listDocs } from "../app/lib/docs/content.ts";
 
 // SEO plan T18: explainer pages that answer category questions directly (AEO/GEO).
-const SLUGS = ["what-is-a-livecv", "one-master-cv-many-versions", "cv-as-code-yaml", "opencivera-vs-other-cv-tools"];
+const SLUGS = ["what-is-a-livecv", "one-master-cv-many-versions", "cv-as-code-yaml"];
 const LOCALES = ["en", "pl"];
 
 for (const locale of LOCALES) {

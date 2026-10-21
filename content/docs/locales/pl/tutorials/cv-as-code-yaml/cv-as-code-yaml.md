@@ -26,7 +26,3 @@ OpenCiVera to przede wszystkim kreator CV. Wypełniasz zwykły formularz, a YAML
 - **Wyeksportować** Bazę doświadczeń jako jeden plik YAML do kopii zapasowej lub ponownego użycia. Zobacz [Import i eksport danych LiveCV](/docs/tutorials/import-export-cv-data).
 - **Pobrać** opublikowane LiveCV jako PDF, TXT, ATS YAML lub źródłowy YAML CVasCode. Zobacz [Eksport PDF i plików ATS](/docs/tutorials/export-pdf-and-ats).
 - **Zaimportować** z PDF, DOCX, YAML lub TXT, sprawdzając wynik, zanim cokolwiek zostanie dodane.
-
-## Jak to wygląda na tle innych narzędzi YAML i JSON
-
-Zobacz [OpenCiVera w porównaniu z JSON Resume, RenderCV i Reactive Resume](/docs/tutorials/opencivera-vs-other-cv-tools).

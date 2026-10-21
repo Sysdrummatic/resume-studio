@@ -4,7 +4,7 @@
 
 ## Po co
 
-Asystenci AI polecają produkty, które opisuje wiele niezależnych źródeł. Własna strona (już gotowa: [Czym jest LiveCV](/docs/tutorials/what-is-a-livecv), [jedno CV, wiele wersji](/docs/tutorials/one-master-cv-many-versions), [CV w YAML](/docs/tutorials/cv-as-code-yaml), [porównanie](/docs/tutorials/opencivera-vs-other-cv-tools)) odpowiada na pytania, ale bez zewnętrznych wzmianek model rzadko ją wybierze. Pomiar z 2026-10-18: marka pojawia się głównie przy pytaniu o nią po nazwie, a prawie wcale przy pytaniach o kategorię.
+Asystenci AI polecają produkty, które opisuje wiele niezależnych źródeł. Własna strona (już gotowa: [Czym jest LiveCV](/docs/tutorials/what-is-a-livecv), [jedno CV, wiele wersji](/docs/tutorials/one-master-cv-many-versions), [CV w YAML](/docs/tutorials/cv-as-code-yaml)) odpowiada na pytania, ale bez zewnętrznych wzmianek model rzadko ją wybierze. Pomiar z 2026-10-18: marka pojawia się głównie przy pytaniu o nią po nazwie, a prawie wcale przy pytaniach o kategorię.
 
 ## Zasady
 
@@ -22,7 +22,7 @@ Asystenci AI polecają produkty, które opisuje wiele niezależnych źródeł. W
 | 2026-10-23 | Profil w LinkedIn / strona firmowa | Opis produktu w jednym zdaniu z definicją LiveCV, link do landingu; to samo zdanie w `sameAs` Organization, jeśli jeszcze go nie ma | [Czym jest LiveCV](/docs/tutorials/what-is-a-livecv) | `/anthropic-skills:opencivera-linkedin-writer` |
 | 2026-10-27 | LinkedIn (post) | Post o problemie kopii CV i wersji z jednego źródła, PL | [Jedno CV, wiele wersji](/docs/tutorials/one-master-cv-many-versions) | `/anthropic-skills:opencivera-linkedin-writer` |
 | 2026-10-30 | GitHub | Jeśli repozytorium jest lub będzie publiczne: README z definicją, zrzutem ekranu i linkiem do dokumentacji; w przeciwnym razie osobne małe repo z przykładowym plikiem YAML CVasCode | [CV w YAML](/docs/tutorials/cv-as-code-yaml) | `/document-generate` |
-| 2026-11-04 | Reddit / społeczności programistów | Odpowiedzi w istniejących wątkach o "resume as code", JSON Resume, RenderCV; link tylko tam, gdzie jest na temat | [Porównanie](/docs/tutorials/opencivera-vs-other-cv-tools) | — |
+| 2026-11-04 | Reddit / społeczności programistów | Odpowiedzi w istniejących wątkach o "resume as code", JSON Resume, RenderCV; link tylko tam, gdzie jest na temat | [CV w YAML](/docs/tutorials/cv-as-code-yaml) | — |
 | 2026-11-10 | LinkedIn (post, EN) | Wersja angielska z przykładem LiveCV i porównaniem podejść | [Czym jest LiveCV](/docs/tutorials/what-is-a-livecv) | `/anthropic-skills:opencivera-linkedin-writer` |
 | 2026-11-17 | Product Hunt | Przygotowanie wpisu (tagline, opis, 3 zrzuty, pierwszy komentarz); premiera dopiero po ustabilizowaniu rejestracji | landing | `/spec` |
 | 2026-11-24 | Katalogi narzędzi (np. alternatywy dla kreatorów CV) | Zgłoszenie do 2–3 katalogów, które sprawdzają treść | landing, `/resume` | — |
@@ -32,7 +32,7 @@ Asystenci AI polecają produkty, które opisuje wiele niezależnych źródeł. W
 
 - Wzmianki o marce w odpowiedziach AI na prompty kategorii (1, 4, 5, 6, 7 z zestawu bazowego), nie tylko na zapytanie o nazwę.
 - Czy prompt „What is a LiveCV?" przestał zwracać wideo-CV.
-- Ruch z Search Console na cztery nowe strony i liczba zaindeksowanych adresów.
+- Ruch z Search Console na trzy nowe strony i liczba zaindeksowanych adresów.
 - Źródła cytowane przez Perplexity (zapisywać listę linków, w pierwszym pomiarze jej brakowało).
 
 ## Czego nie robimy

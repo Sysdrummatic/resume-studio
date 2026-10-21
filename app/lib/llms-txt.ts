@@ -3,7 +3,6 @@ const GUIDE_PAGES = [
   { path: "/docs/tutorials/what-is-a-livecv", title: "What is a LiveCV?", summary: "definition, and why it is not computer vision or a video CV" },
   { path: "/docs/tutorials/one-master-cv-many-versions", title: "One master CV, many tailored versions", summary: "keeping one career record instead of copied CV files" },
   { path: "/docs/tutorials/cv-as-code-yaml", title: "CV as code in YAML", summary: "what CV-as-Code means and how to export and import it" },
-  { path: "/docs/tutorials/opencivera-vs-other-cv-tools", title: "OpenCiVera compared with JSON Resume, RenderCV and Reactive Resume", summary: "feature table and when each tool fits" },
 ] as const;
 
 export const LLMS_TXT_PATHS = [
