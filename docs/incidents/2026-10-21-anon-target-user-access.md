@@ -14,6 +14,9 @@ through `can_manage_target_user()`, therefore applied to anon:
 - `resume_public_links` DELETE and INSERT: anon could delete any user/recruiter's public link
   (taking a published CV offline) and create links for another account.
 - `profiles` SELECT: anon could read the profile rows of every user/recruiter account.
+- `create_resume_revision()` and `rollback_resume_document()` authorize through the same function, so anon
+  could create revisions and **roll back any user/recruiter's document to an older revision**
+  (overwriting `resume_documents.yaml_content`). This is the most damaging path.
 - `profiles` UPDATE was not reachable: anon has no `UPDATE` privilege on the table.
 
 CV content (`resume_documents`, snapshots) was not exposed: those tables are owner-only.
@@ -47,6 +50,16 @@ manual probe used an admin target by mistake and falsely showed the policy as sa
 
 `if actor_role is distinct from 'manager' then return false;` so a missing role fails closed.
 Admin and manager behaviour is unchanged (verified on both projects).
+
+## Related finding closed the same day: legacy tables
+
+The follow-up anon audit found `resumes` (18 rows, all `is_public = true`) and `public_links` (18) readable by
+anon through `resumes_select_public` / `public_links_select_active`, plus anon-executable legacy RPCs
+(`get_public_resume_by_slug`, `increment_public_link_view`, `get_admin_user_overview`). The app no longer uses
+them. Migration `20261021010000_close_legacy_resume_tables_to_anon` dropped the two policies, revoked anon
+access to both tables and `EXECUTE` from `public`/`anon` on the three functions (functions are executable
+by PUBLIC by default, so revoking from `anon` alone is not enough). Applied to `test` and `prod`; verified
+with `has_*_privilege`, and published CVs with a snapshot still return 200 on production.
 
 ## Follow-ups
 

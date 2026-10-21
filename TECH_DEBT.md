@@ -179,7 +179,7 @@ przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
 
 ## Starsze tabele `resumes` i `public_links` czytelne dla `anon`
 
-**Status (2026-10-21):** otwarte, znalezione w audycie powierzchni ataku `anon` (po incydencie
+**Status (2026-10-21):** ZAMKNIĘTE tego samego dnia migracją `20261021010000_close_legacy_resume_tables_to_anon` (test i prod). Opis poniżej zostawiony jako historia; otwarte pozostaje tylko usunięcie starszego schematu po decyzji o danych. Pierwotnie: otwarte, znalezione w audycie powierzchni ataku `anon` (po incydencie
 `can_access_target_user`). Zmierzone na `prod` jako rola `anon` (tylko odczyt):
 `resumes` = 18 wierszy, `public_links` = 18, `get_public_resume_by_slug()` zwraca dane.
 
