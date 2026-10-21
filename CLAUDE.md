@@ -98,6 +98,17 @@ Canonical, shared with Codex — edit `docs/CODE-MAP.md`, not a copy here.
 - **Code Comments:** avoid inline comments unless logic is genuinely non-obvious or security-sensitive
 - **Secrets:** never hardcode; rely on env vars and documented setup
 - **Code Style:** ESLint enforced; run `npm run lint` before committing
+- **New dependencies, skills, plugins, MCP servers (supply-chain safety):** never install,
+  add or update one on your own judgement, and never from a name you only "remember" — AI
+  models hallucinate package names and attackers register those names (slopsquatting).
+  Prefer the standard library, platform features and what is already installed. If the
+  task truly has no other way and needs one specific, known package, **stop and tell the
+  user before installing**, with: the exact name and version, what it is for, why nothing
+  existing covers it, and a verification of the package itself — it exists on the official
+  registry under that exact name, publisher/maintainer, repository link, weekly downloads
+  and age, last release, licence, install scripts, number of transitive dependencies, known
+  advisories. The user decides; approval for one package does not extend to others. This
+  also covers `npx`/`dlx` one-off runs and anything fetched by a script.
 
 ---
 
@@ -721,6 +732,16 @@ to an explicit safe-field allowlist — `role`, `is_active`, `is_test_user`, and
 introduces a `NOLOGIN` trigger-owner role
 (`profile_privileged_rpc_owner`) so only those fixed-path RPCs can touch the
 privileged columns. Test contract: `tests/guard-profile-update-contract.test.mjs`.
+
+**NULL-Safe Role Checks in RLS (2026-10-21):** for an anonymous caller `auth.uid()` and
+`current_user_role()` are `NULL`, and in PL/pgSQL `if NULL then` is never taken. A role check
+written as `if actor_role <> 'manager' then return false` therefore *skips* its guard for anon.
+`can_access_target_user()` did exactly that and let anon delete/insert `resume_public_links` and
+read `profiles` of user/recruiter accounts (fixed by
+`20261021000000_fail_closed_target_user_access.sql`, on `test` and `prod`). In policies and
+`security definer` functions compare roles with `is distinct from` / explicit `is null` handling
+so a missing role fails closed. Regression: `tests/rls-cross-account-postgrest.test.mjs`.
+Details: [post-mortem](docs/incidents/2026-10-21-anon-target-user-access.md).
 
 **Published CV Snapshot Detach-on-Delete Fix:** `prevent_published_cv_mutation()`
 rejected every `UPDATE` on `resume_published_cvs` / `resume_published_cv_locales`

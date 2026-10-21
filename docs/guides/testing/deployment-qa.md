@@ -80,7 +80,7 @@ auth delivery, RBAC, RLS, persistence, publication, rollback, or exports.
 ## Post-deploy
 
 - [ ] Validate Netlify deploy serves latest build.
-- [ ] Run smoke checks for `/login`, `/dashboard`, `/admin`, `/master-resume`, `/{person-slug}/{public-id}`.
+- [ ] Run the [production smoke protocol](../../runbooks/production-smoke-protocol.md).
 - [ ] Capture screenshots/PDF evidence for release notes if needed.
 - [ ] Confirm retired `.html` entry points and redirects were not restored; the
       canonical application routes are the supported surface.
