@@ -286,4 +286,21 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
       );
     }
   });
+
+  it("does not apply manager-scoped policies to anonymous callers", async () => {
+    // can_access_target_user() used to return true for anon (NULL role) on user/recruiter targets.
+    const profile = await rest(anon, "profiles", { query: `?id=eq.${owner.id}` });
+    assert.equal(profile.response.ok && profile.data.length > 0, false, "anon reads a user profile");
+    await expectDenied(
+      rest(anon, "resume_public_links", {
+        method: "POST",
+        body: {
+          document_id: seeded.document.id,
+          user_id: owner.id,
+          slug: `anon-${seeded.link.slug}`
+        }
+      }),
+      "anon INSERT resume_public_links for another user"
+    );
+  });
 });
