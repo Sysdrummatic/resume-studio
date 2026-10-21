@@ -303,4 +303,31 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
       "anon INSERT resume_public_links for another user"
     );
   });
+
+  it("keeps the legacy resumes and public_links tables and their RPCs closed", async () => {
+    // Every account gets an is_public = true legacy `resumes` row; it must not be readable.
+    const anonResumes = await rest(anon, "resumes");
+    assert.equal(
+      [401, 403].includes(anonResumes.response.status) ||
+        (anonResumes.response.ok && anonResumes.data.length === 0),
+      true,
+      `anon reads legacy resumes: ${anonResumes.response.status}`
+    );
+    for (const [table, query] of [
+      ["resumes", `?user_id=eq.${owner.id}`],
+      ["public_links", ""]
+    ]) {
+      const asOther = await rest(other, table, { query });
+      assert.equal(asOther.response.ok, true, `${table}: ${JSON.stringify(asOther.data)}`);
+      assert.equal(asOther.data.length, 0, `another user reads legacy ${table}`);
+    }
+    for (const [name, body] of [
+      ["get_public_resume_by_slug", { input_slug: "x" }],
+      ["increment_public_link_view", { input_slug: "x" }],
+      ["get_admin_user_overview", {}]
+    ]) {
+      const result = await request(`/rest/v1/rpc/${name}`, { token: anonKey, method: "POST", body });
+      assert.equal(result.response.ok, false, `anon executes ${name}: ${result.response.status}`);
+    }
+  });
 });
