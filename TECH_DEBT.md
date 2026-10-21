@@ -176,3 +176,34 @@ przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
 2. Funkcje ról używane w politykach (`can_manage_target_user`, `is_staff_user`, `is_admin_user`,
    `current_user_role`) nie były przeglądane pod kątem porównań z NULL (`=` / `<>` zamiast
    `is distinct from`) dla wywołań anonimowych.
+
+## Starsze tabele `resumes` i `public_links` czytelne dla `anon`
+
+**Status (2026-10-21):** otwarte, znalezione w audycie powierzchni ataku `anon` (po incydencie
+`can_access_target_user`). Zmierzone na `prod` jako rola `anon` (tylko odczyt):
+`resumes` = 18 wierszy, `public_links` = 18, `get_public_resume_by_slug()` zwraca dane.
+
+### Opis
+
+- Polityki `resumes_select_public (is_public = true)` i `public_links_select_active`
+  plus `SELECT` dla `anon` pozwalają każdemu z publicznym kluczem anon czytać starsze CV
+  (`data`, `content_yaml`, `template_yaml`). Trigger `seed_user_master_resume` zakłada wiersz
+  z `is_public = true` dla każdego konta, więc wszystkie 18 jest publicznych. Dziś są niemal puste
+  (0 z imieniem w `data`, 1 z wpisami doświadczenia, `content_yaml` domyślny), ale to jest
+  sprzeczne z ADR 0008 (dane master nigdy publicznie).
+- Aplikacja nie używa już tych tabel ani funkcji `get_public_resume_by_slug`,
+  `increment_public_link_view`, `get_admin_user_overview` (brak odwołań w `app/`).
+  `increment_public_link_view` pozwala anonowi dowolnie zawyżać `view_count` starszych linków.
+- Propozycja: osobna migracja — `revoke` wszystkich uprawnień `anon` na obu tabelach, usunięcie
+  polityk `*_select_public/active`, `revoke execute` z `anon` na trzech funkcjach starszych (albo
+  `drop` całego starszego schematu po decyzji o migracji danych). Wymaga przeglądu architektury.
+
+### Wynik audytu `anon` (prod, 2026-10-21)
+
+Bezpieczne dla anona (guard poprawnie zawodzi przy NULL): `log_admin_action`,
+`get_admin_platform_stats`, `get_admin_user_overview`, `get_staff_user_overview`,
+`can_delete_user_account`, `publish_/unpublish_resume_saved_version`, `update_own_profile`;
+`rate_limit_counters`, `resume_onboarding*` bez dostępu. Zamknięte poprawką
+`fail_closed_target_user_access`: `create_resume_revision` i `rollback_resume_document` (anon mógł
+tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_last_admin` i
+`is_only_profile` działają dla anona jako wyrocznia „czy ten UUID to admin".
