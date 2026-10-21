@@ -72,14 +72,17 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
     manager = await createUser("manager", nonce, users);
     admin = await createUser("admin", nonce, users);
 
-    seeded.document = await seed("resume_documents", {
-      user_id: owner.id,
-      locale: "en",
-      yaml_content: RESUME_YAML
+    // Signup already creates the owner's default "en" document; give it known content.
+    const updated = await rest(service, "resume_documents", {
+      query: `?user_id=eq.${owner.id}&locale=eq.en`,
+      method: "PATCH",
+      body: { yaml_content: RESUME_YAML }
     });
+    assert.equal(updated.data?.length, 1, `owner default document: ${JSON.stringify(updated.data)}`);
+    seeded.document = updated.data[0];
     seeded.revision = await seed("resume_revisions", {
       document_id: seeded.document.id,
-      revision_number: 1,
+      revision_number: 1000,
       locale: "en",
       title: "owner revision",
       yaml_content: RESUME_YAML,
@@ -174,7 +177,7 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
         "resume_revisions",
         {
           document_id: seeded.document.id,
-          revision_number: 2,
+          revision_number: 1001,
           locale: "en",
           title: "forged",
           yaml_content: RESUME_YAML,
