@@ -163,3 +163,22 @@ Migracja `20260604000000_reactivate_revoked_public_link_on_publish.sql` robi odw
 (chroni test `tests/publish-republish-contract.test.mjs`). ADR 0001 (reguła 8 i PR4)
 opisuje zachowanie sprzed tej migracji. Decyzja: poprawić ADR zgodnie z kodem albo
 przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
+
+## Strona porównania OpenCiVera z JSON Resume, RenderCV i Reactive Resume (stan z 2026-10-21)
+
+**Status:** odłożone. Strona nie jest opublikowana i **trzeba do niej wrócić**.
+
+Zadanie T18 (#235) miało cztery strony pod widoczność AI. Porównanie wycięto z #257, bo
+opisuje cudze produkty i wymaga weryfikacji oraz utrzymania, a na razie nikt się tym nie zajmuje.
+Treść (EN+PL, tabela cech) jest w historii gałęzi `ocv-0235-ai-answer-content`, commit `8ecde4f`,
+ścieżka `content/docs/locales/{en,pl}/tutorials/opencivera-vs-other-cv-tools/`.
+
+Do zrobienia przy powrocie:
+
+- zweryfikować komórki JSON Resume i Reactive Resume w publicznej dokumentacji (recenzja #257
+  wykazała uproszczenie w RenderCV: ma wyjście HTML, które można opublikować samodzielnie),
+- przywrócić stronę, wpis w `GUIDE_PAGES` (`app/lib/llms-txt.ts`), slug w
+  `tests/ai-answer-content.test.mjs` i link z `cv-as-code-yaml`,
+- zaktualizować datę „stan na” w adnocie i wiersz 2026-11-04 w `docs/seo/external-presence-plan.md`.
+
+Wpływ: brak błędu; to tylko brakująca treść dla zapytań porównawczych w odpowiedziach AI.
