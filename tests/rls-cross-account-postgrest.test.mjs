@@ -174,7 +174,12 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
       ["resume_documents", seeded.document.id, { yaml_content: `${RESUME_YAML}# edited
 ` }, { yaml_content: RESUME_YAML }],
       ["resume_presets", seeded.preset.id, { title: "edited" }, { title: "owner preset" }],
-      ["resume_public_links", seeded.link.id, { is_active: false }, { is_active: true }]
+      [
+        "resume_public_links",
+        seeded.link.id,
+        { is_active: false },
+        { is_active: true, status: seeded.link.status, revoked_at: seeded.link.revoked_at }
+      ]
     ]) {
       const edited = await rest(owner, table, { query: `?id=eq.${id}`, method: "PATCH", body: patch });
       assert.equal(edited.data?.length, 1, `owner PATCH ${table}: ${JSON.stringify(edited.data)}`);
