@@ -61,7 +61,7 @@ export async function createUser(role, nonce, trackedUsers) {
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: `RLS ${role}` }
+      user_metadata: { full_name: `RLS ${role} ${nonce}` }
     }
   });
   assert.equal(created.response.ok, true, JSON.stringify(created.data));
