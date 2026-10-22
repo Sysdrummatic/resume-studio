@@ -166,16 +166,43 @@ przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
 
 ## Uprawnienia `anon` szersze niż potrzeba i wzorzec NULL w rolach RLS
 
-**Status (2026-10-21):** otwarte. Wynika z [incydentu](docs/incidents/2026-10-21-anon-target-user-access.md).
+**Status (2026-10-22):** punkty 1 i 3 otwarte, punkt 2 przejrzany. Wynika z [incydentu](docs/incidents/2026-10-21-anon-target-user-access.md).
 
 ### Opis
 
 1. Rola `anon` ma na `test`/`prod` uprawnienia tabelowe wykraczające poza potrzeby aplikacji
    (np. `INSERT`/`DELETE` na `profiles`, `INSERT`/`UPDATE`/`DELETE` na tabelach CV). Jedyną barierą
    jest RLS. Do rozważenia: `revoke` nieużywanych uprawnień `anon` jako obrona w głąb.
-2. Funkcje ról używane w politykach (`can_manage_target_user`, `is_staff_user`, `is_admin_user`,
-   `current_user_role`) nie były przeglądane pod kątem porównań z NULL (`=` / `<>` zamiast
-   `is distinct from`) dla wywołań anonimowych.
+2. ~~Funkcje ról nie były przeglądane pod kątem NULL.~~ Przegląd 2026-10-22: `is_admin_user`,
+   `is_manager_user`, `is_staff_user` używają `coalesce`, `can_delete_user_account` i
+   `require_onboarding_test_admin` zwracają fałsz/błąd dla NULL, `can_access_target_user` naprawiono
+   2026-10-21. Nic więcej do poprawy w tym wzorcu.
+3. **Dezaktywacja konta nie odcina sesji.** `profiles.is_active = false` sprawdza aplikacja
+   (`requireRequestActor`) i RPC uprzywilejowane (`current_active_staff_role`), ale nie unieważnia
+   refresh tokenu w Supabase Auth. Pomocniki RLS ignorowały to pole, więc dezaktywowany
+   admin/manager z żywą sesją czytał wszystkie profile i logi audytu bezpośrednio przez PostgREST.
+   Naprawione dla staff migracją `20261022000000_current_user_role_requires_active_account` (test w
+   `tests/rls-cross-account-postgrest.test.mjs`). **Nadal otwarte:** zwykły dezaktywowany użytkownik
+   zachowuje dostęp do *własnych* danych przez PostgREST, a sesja żyje do wygaśnięcia refresh
+   tokenu. Pełne rozwiązanie: ban w Supabase Auth (`ban_duration` przez Admin API) przy
+   dezaktywacji w `PATCH /api/admin/users/[userId]` i zdjęcie bana przy reaktywacji.
+
+## Audyt autoryzacji `app/api/` (2026-10-22)
+
+**Status:** wykonany; jeden wpis niskiego priorytetu otwarty.
+
+Zakres: 35 tras. Każda trasa poza `auth/*` i publicznymi eksportami woła `requireRequestActor`
+(sesja, zweryfikowany e-mail, konto aktywne, rola/capability). Trasy admina dodatkowo sprawdzają
+`canAssignRole`/`canDeleteTarget`, a zmiany uprzywilejowane idą przez RPC z kontrolą w bazie
+(`update_user_privileges`, `can_delete_user_account`). Żadna trasa nie przyjmuje właściciela z body ani
+query (`userId` pochodzi z sesji). Zapytania service-role w `resume-server.ts` mają filtr `user_id`
+z sesji albo dotyczą danych publicznych/globalnych; odczyty rewizji i aktualizacje dokumentów idą z tokenem
+użytkownika (RLS). Znalezisko z tego audytu: dezaktywacja konta (sekcja wyżej, punkt 3).
+
+**Otwarte, niski priorytet:** `ensureGlobalResumeLanguage` pozwala każdemu zalogowanemu dodać nowy wpis do
+globalnego katalogu `resume_languages` (dowolny dwuliterowy kod, etykieta bez limitu długości). Istniejących
+wpisów nie nadpisze, ale pierwszy autor ustala etykietę dla wszystkich. Do rozważenia: limit długości
+etykiety i ograniczenie katalogu do listy dozwolonych kodów.
 
 ## Starsze tabele `resumes` i `public_links` czytelne dla `anon`
 
