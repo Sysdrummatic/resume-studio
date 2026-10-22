@@ -187,6 +187,23 @@ przywrócić regułę z ADR. Do rozstrzygnięcia przez właściciela produktu.
    tokenu. Pełne rozwiązanie: ban w Supabase Auth (`ban_duration` przez Admin API) przy
    dezaktywacji w `PATCH /api/admin/users/[userId]` i zdjęcie bana przy reaktywacji.
 
+## Audyt autoryzacji `app/api/` (2026-10-22)
+
+**Status:** wykonany; jeden wpis niskiego priorytetu otwarty.
+
+Zakres: 35 tras. Każda trasa poza `auth/*` i publicznymi eksportami woła `requireRequestActor`
+(sesja, zweryfikowany e-mail, konto aktywne, rola/capability). Trasy admina dodatkowo sprawdzają
+`canAssignRole`/`canDeleteTarget`, a zmiany uprzywilejowane idą przez RPC z kontrolą w bazie
+(`update_user_privileges`, `can_delete_user_account`). Żadna trasa nie przyjmuje właściciela z body ani
+query (`userId` pochodzi z sesji). Zapytania service-role w `resume-server.ts` mają filtr `user_id`
+z sesji albo dotyczą danych publicznych/globalnych; odczyty rewizji i aktualizacje dokumentów idą z tokenem
+użytkownika (RLS). Znalezisko z tego audytu: dezaktywacja konta (sekcja wyżej, punkt 3).
+
+**Otwarte, niski priorytet:** `ensureGlobalResumeLanguage` pozwala każdemu zalogowanemu dodać nowy wpis do
+globalnego katalogu `resume_languages` (dowolny dwuliterowy kod, etykieta bez limitu długości). Istniejących
+wpisów nie nadpisze, ale pierwszy autor ustala etykietę dla wszystkich. Do rozważenia: limit długości
+etykiety i ograniczenie katalogu do listy dozwolonych kodów.
+
 ## Starsze tabele `resumes` i `public_links` czytelne dla `anon`
 
 **Status (2026-10-21):** ZAMKNIĘTE tego samego dnia migracją `20261021010000_close_legacy_resume_tables_to_anon` (test i prod). Funkcje RPC domknięto dla `authenticated` migracją `20261021020000_close_legacy_rpc_to_authenticated`. Opis poniżej zostawiony jako historia; otwarte pozostaje tylko usunięcie starszego schematu po decyzji o danych. Pierwotnie: otwarte, znalezione w audycie powierzchni ataku `anon` (po incydencie
