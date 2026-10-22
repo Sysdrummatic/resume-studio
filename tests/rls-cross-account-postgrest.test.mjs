@@ -319,6 +319,32 @@ describe("live cross-account RLS on CV tables", { skip: skipReason, timeout: 180
     }
   });
 
+  it("takes database-level staff access away from a deactivated account", async () => {
+    const setActive = async (actor, isActive) => {
+      const result = await rest(service, "profiles", {
+        query: `?id=eq.${actor.id}`,
+        method: "PATCH",
+        body: { is_active: isActive }
+      });
+      assert.equal(result.response.ok, true, JSON.stringify(result.data));
+    };
+    const staffReads = async (actor) => ({
+      audit: (await rowsOf(actor, "admin_audit_logs", seeded.audit.id)).length,
+      profile: (await rowsOf(actor, "profiles", other.id)).length
+    });
+
+    for (const actor of [manager, admin]) {
+      assert.deepEqual(await staffReads(actor), { audit: 1, profile: 1 }, `active ${actor.role} control`);
+      await setActive(actor, false);
+      try {
+        assert.deepEqual(await staffReads(actor), { audit: 0, profile: 0 }, `deactivated ${actor.role}`);
+      } finally {
+        await setActive(actor, true);
+      }
+      assert.deepEqual(await staffReads(actor), { audit: 1, profile: 1 }, `reactivated ${actor.role}`);
+    }
+  });
+
   it("exposes only active public-link metadata, never CV content", async () => {
     for (const actor of [anon, other]) {
       const visible = await rowsOf(actor, "resume_public_links", seeded.link.id);
