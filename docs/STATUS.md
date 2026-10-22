@@ -1,8 +1,8 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-10-22
 **Current Phase:** I — Hardening, QA & Launch Readiness
-**Overall Progress:** ~72% (A–F complete; I 60%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; J–O pending)
+**Overall Progress:** ~72% (A–F complete; I 65%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; J–O pending)
 
 ---
 
@@ -17,7 +17,7 @@
 | E | UX & Community | ✅ Complete (delivered early) | 100% | May 2026 |
 | F | Public Surface & MVP Launch | ✅ Complete (closed 2026-07-03) | 100% | May–Jun 2026 |
 | G | Community Beta Testing + P0 Security Entry Gate | ⏳ Planned (P0: 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E) | 5% | P0 before beta; program after I |
-| I | Hardening, QA & Launch Readiness | 🔄 Active | 60% | Jul 2026 |
+| I | Hardening, QA & Launch Readiness | 🔄 Active | 65% | Jul 2026 |
 | J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
 | K | ATS Intelligence | ⏳ Post-launch | 0% | TBD |
 | L | Semantic Public Link URL | ⏳ Post-launch | 0% | TBD |
@@ -57,6 +57,9 @@ closes, but has no other hard dependency.
 - [x] Last-admin deletion safeguard (DB trigger + API guard)
 - [x] PDF rendering module (ADR 0014) + draft feature flag
 - [x] Apply `20260610000000_pdf_feature_flags.sql` to production (verified 2026-07-09: `pdf_draft_enabled` present and enabled)
+- [x] Release and rollback runbook ([release-and-rollback.md](runbooks/release-and-rollback.md), 2026-10-21)
+- [x] Production smoke protocol ([production-smoke-protocol.md](runbooks/production-smoke-protocol.md), 2026-10-21; written, not yet executed)
+- [x] RLS validation: live cross-account tests (`npm run test:rls`, in CI) and the anonymous-access fixes found by them ([incident](incidents/2026-10-21-anon-target-user-access.md), migrations on test and prod 2026-10-21)
 
 **Pending — Deploy QA:**
 - [ ] Preview deploy QA complete
@@ -69,10 +72,9 @@ closes, but has no other hard dependency.
 **Pending — Release:**
 - [ ] E2E regression suite for critical paths
 - [ ] Performance and accessibility checks
-- [ ] Security controls and RLS policy validation
+- [ ] Security controls: API authorization audit, secret management (RLS validated, see above)
 - [ ] Observability dashboards and alerting configured
-- [ ] Release checklist and rollback playbook prepared
-- [ ] Production smoke test protocol executed
+- [ ] Production smoke test protocol executed (first run after launch-readiness QA)
 
 ---
 

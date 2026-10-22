@@ -1,6 +1,7 @@
 # Deployment and QA Checklist
 
-Use this checklist for preview and production validation.
+Use this checklist for preview and production validation. The release order and the
+rollback procedure are in the [release and rollback runbook](../../runbooks/release-and-rollback.md).
 
 ## Pre-deploy checks
 

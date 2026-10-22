@@ -36,8 +36,9 @@ publishing** in Netlify first and unlock it when you are ready to deploy.
    [TECH_DEBT.md](../../TECH_DEBT.md)). Migrations ship **before** the code that needs them.
 8. **Merge the release PR to `master`** and wait for the Netlify production deploy to be
    published. This is the moment production changes.
-9. **Production smoke:** the Post-deploy section of the
-   [deployment QA guide](../guides/testing/deployment-qa.md).
+9. **Production smoke:** the [production smoke protocol](production-smoke-protocol.md);
+   the Post-deploy section of the
+   [deployment QA guide](../guides/testing/deployment-qa.md) is its checklist.
 10. **Announce** in the agreed channel: what shipped, anything users must do.
 
 ## Rollback decision
