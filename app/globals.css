@@ -596,7 +596,7 @@ a {
   border-radius: 999px;
   background: var(--accent-light);
   color: var(--accent-dark);
-  font-size: calc(var(--chip-font-size) - 2px);
+  font-size: max(0.75rem, calc(var(--chip-font-size) - 2px));
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1004,7 +1004,7 @@ a {
   border-radius: 999px;
   background: var(--portal-tab-active-bg);
   color: var(--accent);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
 }
 
@@ -1056,6 +1056,7 @@ a {
 
 .app-language-menu__option {
   width: 100%;
+  min-height: 2.75rem;
   border: none;
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
@@ -1076,7 +1077,7 @@ a {
   justify-content: center;
   width: 3.55rem;
   min-width: 3.55rem;
-  height: 2.15rem;
+  height: 2.75rem;
   padding: 0;
   border: 1px solid var(--portal-control-border);
   border-radius: 999px;
@@ -1161,8 +1162,8 @@ a {
 }
 
 .app-nav-menu__trigger {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: 1px solid var(--portal-control-border);
   border-radius: 10px;
   background: var(--portal-control-bg);
