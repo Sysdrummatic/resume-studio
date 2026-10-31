@@ -1,6 +1,7 @@
 # Inwentarz robots tras
 
-Stan po T05 (#222). Wejście do Fazy 5 (T20): zakres `noindex` dla pozostałych tras.
+Stan kodu po T05 (#222) i T20 (#237, PR #269). Polityka prywatnych tras: [koncepcja T20](indexing-concept-t20.md).
+Stan wdrożenia produkcyjnego należy potwierdzić w procesie wydania.
 Tytuły i opisy stron publicznych: `meta` w `app/i18n/locales/{en,pl}/app-shell.yaml`;
 helper `publicPageMetadata()` w `app/lib/seo-metadata.ts` ustawia `index, follow` i canonical.
 
