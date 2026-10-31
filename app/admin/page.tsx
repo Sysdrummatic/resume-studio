@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import AdminUsersClient from "./admin-users-client";
 import Link from "next/link";
 import { requireStaffActor } from "../lib/auth-server";
@@ -20,6 +21,10 @@ type UserOverview = {
 };
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminPage() {
   const { dictionary } = await getRequestAppI18n();
