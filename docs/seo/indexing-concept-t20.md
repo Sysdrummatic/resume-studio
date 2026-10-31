@@ -1,6 +1,6 @@
 # Koncepcja indeksowania i noindex dla całego serwisu (T20, #237)
 
-Status: propozycja do akceptacji. Ten dokument nie zmienia kodu. Decyzje oznaczone jako **do decyzji** wymagają akceptacji właściciela produktu przed wdrożeniem.
+Status: opcja B zaakceptowana i wdrożona w #269. Ten dokument nie zmienia kodu. Decyzje oznaczone jako **do decyzji** pozostają otwarte.
 
 Podstawa: inwentarz tras [robots-inventory.md](robots-inventory.md) (stan po T05, #222) oraz kod: `app/robots.ts`, `app/sitemap.ts`, `app/lib/seo-metadata.ts`, `app/[personSlug]/[publicId]/page.tsx`, `app/login/page.tsx`.
 
