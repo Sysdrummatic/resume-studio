@@ -41,11 +41,11 @@ Dodatkowo `allowIndexing` przechodzi przez `resolveEffectiveAllowIndexing`, a si
 
 **Rekomendacja: opcja B** dla tras prywatnych, z testem kontraktowym, który sprawdza, że każda trasa z `PRIVATE_PATHS` ma `noindex` w meta. Opcja C jest bezpieczniejsza, ale kosztuje utrzymanie listy, a ryzyko z pkt 1 jest niskie, bo strony chronione nie zawierają treści bez sesji.
 
-## 4. Decyzje do podjęcia
+## 4. Decyzje
 
-- **Do decyzji:** czy zastosować opcję B, C czy A.
-- **Do decyzji:** czy `/login` ma być indeksowany, gdy rejestracja jest otwarta. Obecnie tak.
-- **Do decyzji:** czy publiczne CV mają być indeksowalne po włączeniu flagi `public_cv_indexing_enabled`, czy zostają `noindex` na stałe. Decyzja wpływa na ADR 0001 i 0005.
+- **Podjęte:** opcja B (wdrożona w #269).
+- **Podjęte:** `/login` pozostaje indeksowalny, gdy rejestracja jest otwarta. Przy ograniczonym dostępie dostaje `noindex, nofollow`, bez zmian w kodzie.
+- **Podjęte:** publiczne CV pozostają `noindex`, dopóki flaga `public_cv_indexing_enabled` jest wyłączona. Decyzja nie wymaga zmian w ADR 0001 i 0005. Ponowne rozważenie wymaga osobnej decyzji właściciela produktu.
 
 ## 5. Plan wdrożenia po akceptacji
 
