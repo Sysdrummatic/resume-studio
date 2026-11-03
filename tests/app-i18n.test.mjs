@@ -161,6 +161,24 @@ test("layout and sample resume use the resolved application locale", () => {
   assert.equal(sampleConfig.default_locale, "pl");
 });
 
+test("Netlify edge function never forwards a client-supplied country header", async () => {
+  const edge = read("netlify/edge-functions/app-locale.js");
+  const moduleUrl = `data:text/javascript;base64,${Buffer.from(edge).toString("base64")}`;
+  const { default: appLocale } = await import(moduleUrl);
+  let forwardedRequest;
+  const next = (request) => {
+    forwardedRequest = request;
+    return new Response("ok");
+  };
+  const spoofed = { accept: "text/html", "x-opencivera-country-code": "PL" };
+
+  await appLocale(new Request("https://example.test/", { headers: spoofed }), { geo: {}, next });
+  assert.equal(forwardedRequest.headers.get("x-opencivera-country-code"), null, "spoofed header must be stripped when geo is unknown");
+
+  await appLocale(new Request("https://example.test/", { headers: spoofed }), { geo: { country: { code: "us" } }, next });
+  assert.equal(forwardedRequest.headers.get("x-opencivera-country-code"), "US", "edge geo must overwrite the client value");
+});
+
 test("Netlify edge function forwards country for HTML and RSC page requests", async () => {
   const edge = read("netlify/edge-functions/app-locale.js");
 

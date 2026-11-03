@@ -10,13 +10,16 @@ function isPageRequest(request) {
 }
 
 export default async function appLocale(request, context) {
-  const countryCode = String(context.geo?.country?.code || "").trim().toUpperCase();
-  if (!countryCode || !isPageRequest(request)) {
+  if (!isPageRequest(request)) {
     return;
   }
 
+  const countryCode = String(context.geo?.country?.code || "").trim().toUpperCase();
   const headers = new Headers(request.headers);
-  headers.set(COUNTRY_HEADER_NAME, countryCode);
+  headers.delete(COUNTRY_HEADER_NAME);
+  if (countryCode) {
+    headers.set(COUNTRY_HEADER_NAME, countryCode);
+  }
   return context.next(new Request(request, { headers }));
 }
 
