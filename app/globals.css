@@ -116,6 +116,8 @@
   --portal-accent: #5e6ad2;
   --portal-accent-bright: #6872d9;
   --portal-accent-glow: rgba(94, 106, 210, 0.3);
+  --portal-badge-tint-bg: rgba(94, 106, 210, 0.16);
+  --portal-badge-tint-text: #a5adf5;
   --portal-border: rgba(255, 255, 255, 0.06);
   --portal-border-hover: rgba(255, 255, 255, 0.1);
   --portal-border-accent: rgba(94, 106, 210, 0.3);
@@ -283,6 +285,8 @@
   --portal-accent: #5048c4;
   --portal-accent-bright: #5e6ad2;
   --portal-accent-glow: rgba(80, 72, 196, 0.12);
+  --portal-badge-tint-bg: rgba(80, 72, 196, 0.1);
+  --portal-badge-tint-text: #3d36a8;
   --portal-border: rgba(23, 21, 31, 0.09);
   --portal-border-hover: rgba(23, 21, 31, 0.16);
   --portal-border-accent: rgba(80, 72, 196, 0.2);
@@ -594,8 +598,8 @@ a {
   align-items: center;
   padding: calc(var(--chip-padding-y) * 0.7) calc(var(--chip-padding-x) * 0.8);
   border-radius: 999px;
-  background: var(--accent-light);
-  color: var(--accent-dark);
+  background: var(--accent-light, var(--portal-badge-tint-bg));
+  color: var(--accent-dark, var(--portal-badge-tint-text));
   font-size: calc(var(--chip-font-size) - 2px);
   font-weight: 700;
   letter-spacing: 0.05em;
