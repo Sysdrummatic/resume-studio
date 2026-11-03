@@ -2,15 +2,10 @@ import type { MetadataRoute } from "next";
 import { buildAiBotRobotsRule } from "./lib/ai-bots";
 import { getAppBaseUrl } from "./lib/env";
 
-const PRIVATE_PATHS = [
-  "/api/",
-  "/dashboard",
-  "/admin",
-  "/master-resume",
-  "/user",
-  "/onboarding",
-  "/settings",
-];
+// Private pages carry `noindex, nofollow` in their own metadata. They are not
+// blocked here, so crawlers can fetch them and see the directive (a disallowed
+// URL can still be indexed from external links).
+const DISALLOWED_PATHS = ["/api/"];
 
 export default function robots(): MetadataRoute.Robots {
   const base = getAppBaseUrl();
@@ -19,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: PRIVATE_PATHS,
+        disallow: DISALLOWED_PATHS,
       },
       buildAiBotRobotsRule(),
     ],
