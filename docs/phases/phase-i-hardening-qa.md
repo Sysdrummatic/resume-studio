@@ -1,9 +1,9 @@
 ﻿# Phase I: Hardening, QA & Launch Readiness
 
-**Status**: ◐ **60% IN PROGRESS**  
+**Status**: ◐ **65% IN PROGRESS**  
 **ETA**: Jun 2026 (target: 2026-06-30)  
 **Started**: 2026-05-20  
-**Last reviewed**: 2026-09-11
+**Last reviewed**: 2026-10-22
 
 > Final gate before production. Comprehensive testing, security hardening, observability setup, and pre-launch validation.
 
@@ -135,7 +135,7 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
 
 ### Security & RLS Validation
 
-- [ ] **Supabase RLS policies**:
+- [x] **Supabase RLS policies** (live cross-account tests `tests/rls-cross-account-postgrest.test.mjs`, 2026-10-21):
   - Users cannot access other users' CVs
   - Managers cannot access higher-role users
   - Admins have appropriate metadata access
@@ -185,21 +185,21 @@ Phase I is the quality and readiness phase. After Phase E–H deliver features, 
 
 ### Release & Rollback
 
-- [ ] **Release checklist prepared**:
+- [x] **Release checklist prepared** ([release-and-rollback.md](../runbooks/release-and-rollback.md)):
   - All Phase E–H features in production
   - No critical bugs open
   - Rollback plan documented
   - Communication plan for users
   - Post-launch incident response procedure
 
-- [ ] **Rollback playbook**:
+- [x] **Rollback playbook** ([release-and-rollback.md](../runbooks/release-and-rollback.md)):
   - Database rollback (previous migration)
   - Code rollback (previous git commit)
   - DNS/routing rollback (if needed)
   - Communication to users
   - Incident post-mortem template
 
-- [ ] **Production smoke test protocol**:
+- [ ] **Production smoke test protocol** (written: [production-smoke-protocol.md](../runbooks/production-smoke-protocol.md); not yet executed):
   - Smoke tests run on production after deploy
   - Test results reported to team Slack
   - Any failures trigger incident response
@@ -317,13 +317,13 @@ Manual QA Checklist
 - [ ] Complete functional testing (admin, editor, recruiter)
 - [ ] Run E2E regression suite
 - [ ] Performance and accessibility audits
-- [ ] RLS policy validation
+- [x] RLS policy validation
 
 ### Workstream 3 — Security and recovery
 
 - [ ] Security review and hardening
 - [ ] Rollback plan testing
-- [ ] Release checklist finalization
+- [x] Release checklist finalization
 - [ ] Team readiness review
 
 ### Workstream 4 — Launch decision
@@ -393,7 +393,7 @@ Tracked in [STATUS.md](../STATUS.md):
 - [ ] Performance and accessibility checks passed
 - [ ] Security and RLS validation complete
 - [ ] Observability dashboards and alerting configured
-- [ ] Release checklist and rollback playbook prepared
+- [x] Release checklist and rollback playbook prepared
 - [ ] Production smoke test protocol executed
 
-**Current Status**: **60% in progress**. Started 2026-05-20; target completion 2026-06-30.
+**Current Status**: **65% in progress**. Open: API authorization audit, secret management, performance/accessibility, E2E, session smoke, preview/production QA, observability. Started 2026-05-20; target completion 2026-06-30.
