@@ -9,11 +9,12 @@ const serverSource = readFileSync(new URL("../app/lib/resume-server.ts", import.
 const PRIVATE = ["/api/", "/dashboard", "/admin", "/master-resume", "/user", "/onboarding", "/settings"];
 const PUBLIC = ["/login", "/docs", "/resume", "/privacy", "/terms"];
 
-test("robots disallows every private area", () => {
-  for (const path of PRIVATE) {
-    assert.ok(robotsSource.includes(`"${path}"`), `robots must disallow ${path}`);
+test("robots disallows only the API; private pages are noindex in their metadata", () => {
+  assert.match(robotsSource, /const DISALLOWED_PATHS = \["\/api\/"\];/);
+  assert.match(robotsSource, /disallow:\s*DISALLOWED_PATHS/);
+  for (const path of PRIVATE.filter((p) => p !== "/api/")) {
+    assert.ok(!robotsSource.includes(`"${path}"`), `robots must not block ${path}; its noindex must be crawlable`);
   }
-  assert.match(robotsSource, /disallow:\s*PRIVATE_PATHS/);
 });
 
 test("robots does not block public pages and keeps the sitemap link", () => {

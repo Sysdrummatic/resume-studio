@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { requireStaffActor } from "../../lib/auth-server";
 import { hasCapability } from "../../lib/rbac";
 import { queryTable } from "../../lib/supabase-http";
@@ -5,6 +6,10 @@ import AuditLogsClient from "./audit-logs-client";
 import { getRequestAppI18n } from "../../i18n/server";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 type AuditLog = {
   id: string;

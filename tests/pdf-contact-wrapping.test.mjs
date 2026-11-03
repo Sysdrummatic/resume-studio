@@ -83,7 +83,10 @@ async function extractTextRuns(value) {
       text = segment;
     }
 
-    if (text.includes("BT")) content = text;
+    // The marker also matches the tail of every "endstream", so some "streams" are
+    // compressed bytes that failed to inflate and can spell "BT" by chance. A content
+    // stream has BT and a TJ operator each on a line of its own.
+    if (!content && /^BT$/m.test(text) && /] TJ$/m.test(text)) content = text;
 
     for (const range of text.matchAll(/beginbfrange([\s\S]*?)endbfrange/g)) {
       for (const entry of range[1].matchAll(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>/g)) {
@@ -97,6 +100,8 @@ async function extractTextRuns(value) {
       }
     }
   }
+
+  assert.ok(content, "the PDF has no page content stream with text");
 
   return content
     .split("BT")

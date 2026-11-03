@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Script from "next/script";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -19,6 +20,10 @@ import {
 import { getRequestAppI18n } from "../i18n/server";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardPage() {
   const { dictionary } = await getRequestAppI18n();
