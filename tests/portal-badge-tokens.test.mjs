@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const css = readFileSync(resolve(root, "app/globals.css"), "utf8");
+const css = readFileSync(resolve(root, "app/globals.css"), "utf8").replace(/\r\n/g, "\n");
 
 const DARK_BLOCK_START = ":root {";
 const LIGHT_BLOCK_START = ':root[data-app-theme="light"] {';
