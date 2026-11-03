@@ -54,7 +54,7 @@ Dodatkowo `allowIndexing` przechodzi przez `resolveEffectiveAllowIndexing`, a si
 Implementacja polityki jest dostarczana osobno w #269, opartym na tym PR dokumentacyjnym (#267):
 
 1. `app/robots.ts`: ogólna reguła `disallow` zawiera tylko `/api/`; prywatne strony nie są blokowane.
-2. `/dashboard`, `/admin`, `/master-resume`: metadata zawiera `noindex, nofollow`. Istniejące dyrektywy na `/user`, `/settings`, `/onboarding` i `/onboarding/test-cv/[runId]` pozostają.
+2. `/dashboard`, `/admin`, `/admin/audit` (osobna strona, nie dziedziczy metadanych z `/admin`), `/master-resume`: metadata zawiera `noindex, nofollow`. Istniejące dyrektywy na `/user`, `/settings`, `/onboarding` i `/onboarding/test-cv/[runId]` pozostają.
 3. `tests/robots-and-sitemap-contract.test.mjs` oraz `tests/private-routes-noindex.test.mjs`: kontrakty ogólnej reguły robots i metadanych prywatnych stron. Kontrakty sitemap pozostają bez zmian.
 4. [robots-inventory.md](robots-inventory.md): inwentarz zgodny z kodem implementacji T20.
 

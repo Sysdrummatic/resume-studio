@@ -7,6 +7,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 const PRIVATE_PAGES = [
   "app/dashboard/page.tsx",
   "app/admin/page.tsx",
+  "app/admin/audit/page.tsx",
   "app/master-resume/page.tsx",
   "app/user/page.tsx",
   "app/onboarding/page.tsx",
