@@ -1,0 +1,19 @@
+# Inwentarz robots tras
+
+Stan kodu po T05 (#222) i T20 (#237, PR #269). Polityka prywatnych tras: [koncepcja T20](indexing-concept-t20.md).
+Stan wdrożenia produkcyjnego należy potwierdzić w procesie wydania.
+Tytuły i opisy stron publicznych: `meta` w `app/i18n/locales/{en,pl}/app-shell.yaml`;
+helper `publicPageMetadata()` w `app/lib/seo-metadata.ts` ustawia `index, follow` i canonical.
+
+| Trasa | Decyzja | Powód |
+| --- | --- | --- |
+| `/` | `index, follow`, canonical `/` | Strona główna produktu |
+| `/resume` | `index, follow`, canonical `/resume` | Publiczny przykład LiveCV |
+| `/docs` | `index, follow`, canonical `/docs` | Dokumentacja publiczna (ADR 0025, #239); artykuły ukryte dla anonima mają własne `noindex` |
+| `/login` | `index, follow` (`noindex, nofollow` przy ograniczonym dostępie), canonical `/login` | Strona logowania może być w Google, ale nie gdy rejestracja jest ograniczona; warianty `?mode=` i `?reason=` kanonizowane do `/login` |
+| `/privacy` | `index, follow`, canonical `/privacy` | Dokument publiczny |
+| `/terms` | `index, follow`, canonical `/terms` | Dokument publiczny |
+| `/cv-templates` | `noindex, nofollow` | Wewnętrzny showcase szablonów, bez wartości dla wyszukiwarki |
+| `/{personSlug}/{publicId}` | `index, follow` tylko gdy `allowIndexing`, w przeciwnym razie `noindex, nofollow`; canonical na ścieżkę kanoniczną | Decyzja użytkownika per link (R09/ADR 0008); tytuł "Imię - Rola", opis z podsumowania wybranego do publikacji |
+| `/{personSlug}/{publicId}` (brak linku) | `noindex, nofollow` | Brak treści |
+| `/dashboard`, `/admin`, `/admin/audit`, `/master-resume`, `/user`, `/settings`, `/onboarding` | `noindex, nofollow` (T20, opcja B z [indexing-concept-t20.md](indexing-concept-t20.md)); nie są blokowane w `robots.txt`, żeby crawler mógł zobaczyć dyrektywę | Strony chronione |
