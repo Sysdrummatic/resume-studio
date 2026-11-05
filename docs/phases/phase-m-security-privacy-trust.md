@@ -106,7 +106,7 @@ matrix and is required by CI for security-sensitive migrations.
 - [ ] Add safe URL-scheme allowlists for CV contact links and future remote image fields.
 - [ ] Threat-model account recovery, refresh rotation, session revocation, concurrent
   refresh, and inactive-account behavior.
-- [ ] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
+- [x] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
   [G-P0-05](phase-g-community-beta-testing.md)) to token refresh, account deletion, and
   destructive/admin actions — deliberately deferred out of Phase G's beta-admission gate
   as lower practical risk for a handful of known, invited testers than the auth/export
@@ -183,7 +183,7 @@ CSP violations are monitored without breaking public CV, auth, export, or PDF fl
   bucket). Store outage: **fail-closed (503)** for auth, import/export, PDF, account deletion and
   admin; **fail-open** only for public CV exports (text/yaml/cvac) and the public OpenCV API.
   No new processor — counters live in the existing Supabase Postgres. Token refresh
-  (`/api/auth/session`) is still open (see the earlier item).
+  (`/api/auth/session`): per-IP 300/min, fail-open.
 
 **Definition of Done**: failed import/admin operations roll back fully; unpublish meets
 the documented revocation SLA; export fixtures prove data minimization.

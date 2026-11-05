@@ -111,7 +111,7 @@ test("contract: no route reads x-forwarded-for or the raw rateLimit helper", () 
 
 test("contract: sensitive endpoints are covered", () => {
   const covered = [
-    "auth/signin", "auth/signup", "auth/reset-password", "auth/resend-verification", "auth/update-password",
+    "auth/signin", "auth/signup", "auth/reset-password", "auth/resend-verification", "auth/update-password", "auth/session",
     "resume/import-file", "resume/transfer/import", "resume/transfer/export",
     "resume/export/pdf/preview", "resume/export/pdf", "resume/export/text", "resume/export/yaml", "resume/export/cvac",
     "public/opencv/v1/[personSlug]/[publicId]", "user/account", "admin/users/[userId]", "admin/access-restriction",
