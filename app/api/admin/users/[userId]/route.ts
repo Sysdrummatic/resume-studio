@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../../lib/rate-limit";
 import { writeAdminAuditLog } from "../../../../lib/admin-audit";
 import type { AppRole } from "../../../../lib/auth-types";
 import { isAppRole } from "../../../../lib/auth-types";
@@ -33,6 +34,12 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
+
+  const limited = await enforceRateLimit({
+    action: "admin-user-mutation",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60000, limit: 30 }],
+  });
+  if (limited) return limited;
 
   const { userId: rawUserId } = await context.params;
   const userId = normalizeId(rawUserId);
@@ -160,6 +167,12 @@ export async function DELETE(_: Request, context: RouteContext): Promise<Respons
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
+
+  const limited = await enforceRateLimit({
+    action: "admin-user-delete",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60000, limit: 5 }],
+  });
+  if (limited) return limited;
 
   const { userId: rawUserId } = await context.params;
   const userId = normalizeId(rawUserId);

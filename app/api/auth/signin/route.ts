@@ -6,14 +6,8 @@ import { fetchProfileById, fetchProfileByIdAsService, signInWithPassword, signOu
 import { normalizeEmail } from "../../../lib/auth-profile";
 import { getAccessRestriction } from "../../../lib/access-restriction";
 import { isStaffRole } from "../../../lib/rbac";
-import { rateLimit } from "../../../lib/rate-limit";
-
-function tooManyRequests(reset: number): Response {
-  return NextResponse.json(
-    { error: "Too many sign-in attempts. Try again shortly." },
-    { status: 429, headers: { "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString() } },
-  );
-}
+import { enforceRateLimit } from "../../../lib/rate-limit";
+import { getClientIp } from "../../../lib/client-ip";
 
 type SignInBody = {
   email?: string;
@@ -61,13 +55,17 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const ip = request.headers.get("x-forwarded-for") || "anonymous";
   // Dual-key: per-IP catches distributed guessing across accounts, per-email
   // catches credential stuffing/brute force concentrated on one account.
-  const ipLimit = await rateLimit(`signin-ip:${ip}`, { interval: 60000, limit: 20 });
-  if (!ipLimit.success) return tooManyRequests(ipLimit.reset);
-  const emailLimit = await rateLimit(`signin-email:${email}`, { interval: 60000, limit: 5 });
-  if (!emailLimit.success) return tooManyRequests(emailLimit.reset);
+  const limited = await enforceRateLimit({
+    action: "signin",
+    limits: [
+      { dim: "ip", value: getClientIp(request.headers), interval: 60_000, limit: 20 },
+      { dim: "email", value: email, interval: 60_000, limit: 5 },
+    ],
+    message: "Too many sign-in attempts. Try again shortly.",
+  });
+  if (limited) return limited;
 
   try {
     const authResult = await signInWithPassword(email, password);

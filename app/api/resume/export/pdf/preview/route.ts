@@ -7,7 +7,7 @@ import { loadPdfFonts } from "../../../../../lib/pdf/engine-react-pdf";
 import { isPdfDraftEnabled } from "../../../../../lib/pdf-feature-flags";
 import { normalizeResumeDocument, resumeFullName } from "../../../../../lib/resume-schema";
 import { requireRequestActor } from "../../../../../lib/auth-request";
-import { rateLimit } from "../../../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../../../lib/rate-limit";
 import { applyResumeStyleToTheme, normalizeResumeStyle } from "../../../../../lib/resume-style";
 import { cvBasicDotTheme } from "../../../../../lib/pdf/theme";
 
@@ -21,13 +21,12 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Rate limit check (e.g. 10 previews per minute per user)
-  const rl = await rateLimit(`pdf-preview:${actorResult.actor.userId}`, { interval: 60000, limit: 10 });
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait a minute." }, 
-      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } }
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "pdf-preview",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60000, limit: 10 }],
+    message: "Too many requests. Please wait a minute.",
+  });
+  if (limited) return limited;
 
   const draftPdfEnabled = await isPdfDraftEnabled();
   if (!draftPdfEnabled) {

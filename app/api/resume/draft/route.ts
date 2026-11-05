@@ -9,7 +9,7 @@ import {
 import { normalizeLocale, RESUME_LIMITS_DOC_URL, RESUME_YAML_MAX_BYTES } from "../../../lib/resume-schema";
 import { callRpc } from "../../../lib/supabase-http";
 import { flagSuspiciousResumeContent } from "../../../lib/content-safety-audit";
-import { rateLimit } from "../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../lib/rate-limit";
 
 type DraftBody = {
   locale?: string;
@@ -23,13 +23,13 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
 
-  const rl = await rateLimit(`resume-draft:${actorResult.actor.userId}`, { interval: 60_000, limit: 30 });
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: "You've exceeded the maximum allowed save limit. Try again in a minute.", docsUrl: RESUME_LIMITS_DOC_URL },
-      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "resume-draft",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60_000, limit: 30 }],
+    message: "You've exceeded the maximum allowed save limit. Try again in a minute.",
+    extra: { docsUrl: RESUME_LIMITS_DOC_URL },
+  });
+  if (limited) return limited;
 
   let body: DraftBody;
   try {

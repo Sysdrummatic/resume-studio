@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { updateUserPassword } from "../../../lib/supabase-http";
+import { enforceRateLimit } from "../../../lib/rate-limit";
+import { getClientIp } from "../../../lib/client-ip";
 import { NEW_PASSWORD_MIN_LENGTH } from "../../../lib/auth-policy";
 
 type UpdatePasswordBody = {
@@ -8,6 +10,12 @@ type UpdatePasswordBody = {
 };
 
 export async function POST(request: Request): Promise<Response> {
+  const limited = await enforceRateLimit({
+    action: "update-password",
+    limits: [{ dim: "ip", value: getClientIp(request.headers), interval: 900_000, limit: 10 }],
+  });
+  if (limited) return limited;
+
   let body: UpdatePasswordBody;
   try {
     body = (await request.json()) as UpdatePasswordBody;
