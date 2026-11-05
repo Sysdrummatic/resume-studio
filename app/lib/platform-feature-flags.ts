@@ -30,6 +30,12 @@ export async function isFeatureFlagEnabled(key: string, fallback = true): Promis
 
 // Public CV indexing is paused (ADR 0001/0005): fail-closed, so a missing flag
 // row or a failed lookup keeps every public CV noindex.
+// Rollout switch for staff AAL2 enforcement. Defaults OFF (also when the lookup fails)
+// until staff can enroll a TOTP factor; see app/lib/staff-mfa.ts.
+export async function isStaffMfaRequired(): Promise<boolean> {
+  return isFeatureFlagEnabled("staff_mfa_required", false);
+}
+
 export async function isPublicCvIndexingEnabled(): Promise<boolean> {
   return isFeatureFlagEnabled(PUBLIC_CV_INDEXING_FLAG_KEY, false);
 }

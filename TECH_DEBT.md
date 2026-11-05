@@ -98,16 +98,20 @@ Status: nienaprawione.
 Odroczone do [Phase M](docs/phases/phase-m-security-privacy-trust.md) M03/M08 jako
 mniejsze ryzyko przy becie dla garstki zaproszonych testerów:
 
-- Auth Hook `before_user_created` (`hook_before_user_created_enabled: false` na prod).
-- Egzekwowanie MFA/AAL2 w aplikacji. TOTP po stronie Supabase jest już włączony na prod
-  (`mfa_totp_enroll_enabled`/`verify_enabled: true`), brakuje wyłącznie kodu aplikacji.
-- CAPTCHA (`security_captcha_enabled: false`, dostawca domyślnie `hcaptcha`, brak sekretu).
-- `password_hibp_enabled` (ochrona przed wyciekłymi hasłami): próba przez Management API
-  odrzucona z `402`, wymaga planu Pro.
-- Weryfikator Disify jest **domyślnie włączony**: `isDisposableEmailAddress()`
-  (`app/lib/disposable-email.ts`) woła `https://www.disify.com/api/email`, chyba że
-  ustawiono `DISPOSABLE_EMAIL_CHECK_URL`. Nie ma lokalnej listy `DISPOSABLE_EMAIL_DOMAINS`.
-  Śledzone w Phase M M08.
+- Auth Hook `before_user_created`: funkcja `hook_before_user_created` + lista domen są w migracji
+  `20261105000000_auth_boundary_controls.sql` (#119), ale **nie zastosowane i nie włączone** na żadnym
+  projekcie (`hook_before_user_created_enabled: false` na prod). Kroki: [supabase-auth-production-checklist](docs/runbooks/supabase-auth-production-checklist.md).
+  Na projekcie **test** istnieją obiekty spoza repo (`blocked_signup_email_domains`, `assert_staff_aal2()`,
+  `current_session_aal()`): przed zastosowaniem migracji trzeba je uzgodnić (zamienić lub usunąć).
+- MFA/AAL2: egzekwowane w `requireRequestActor` (`app/lib/staff-mfa.ts`) za flagą `staff_mfa_required`
+  (domyślnie wyłączona). Brakuje: UI zapisu i weryfikacji TOTP oraz kroku MFA w `/api/auth/signin`
+  (bez tego włączenie flagi zablokuje adminów) i egzekwowania AAL2 w politykach RLS/RPC (wymaga Architecture review).
+- CAPTCHA (`security_captcha_enabled: false`, dostawca domyślnie `hcaptcha`, brak sekretu). Nowy procesor:
+  wymaga oceny prywatności przed włączeniem.
+- `password_hibp_enabled` (ochrona przed wyciekłymi hasłami): wyłączona na prod i test (advisor
+  `auth_leaked_password_protection`, 2026-11-05); próba przez Management API odrzucona z `402`, wymaga planu Pro.
+- Disify usunięty (#119): `isDisposableEmailAddress()` używa lokalnej listy, adres e-mail nie opuszcza infrastruktury.
+  Lista jest kuratorowana, nie wyczerpująca.
 
 ## Walidator "ta wartość wygląda niebezpiecznie" w edytorze
 
