@@ -103,6 +103,7 @@ mniejsze ryzyko przy becie dla garstki zaproszonych testerów:
   projekcie (`hook_before_user_created_enabled: false` na prod). Kroki: [supabase-auth-production-checklist](docs/runbooks/supabase-auth-production-checklist.md).
   Na projekcie **test** istnieją obiekty spoza repo (`blocked_signup_email_domains`, `assert_staff_aal2()`,
   `current_session_aal()`): przed zastosowaniem migracji trzeba je uzgodnić (zamienić lub usunąć).
+- Odroczone decyzją 2026-11-06 do #275: UI TOTP, krok MFA przy logowaniu, AAL2 w RLS/RPC, CAPTCHA. HIBP wymaga planu Pro.
 - MFA/AAL2: egzekwowane w `requireRequestActor` (`app/lib/staff-mfa.ts`) za flagą `staff_mfa_required`
   (domyślnie wyłączona). Brakuje: UI zapisu i weryfikacji TOTP oraz kroku MFA w `/api/auth/signin`
   (bez tego włączenie flagi zablokuje adminów) i egzekwowania AAL2 w politykach RLS/RPC (wymaga Architecture review).

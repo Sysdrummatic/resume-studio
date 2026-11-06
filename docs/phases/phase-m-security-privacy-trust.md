@@ -117,7 +117,7 @@ matrix and is required by CI for security-sensitive migrations.
   every app-level check in `app/api/auth/signup/route.ts`. Deferred out of
   [G-P0-04](phase-g-community-beta-testing.md) as lower practical risk when signup is
   gated to a handful of invited testers.
-- Status #119 (2026-11-05): hook function + local disposable list and the AAL2 server check (flag `staff_mfa_required`, off) are in code; hook not yet applied/enabled live, TOTP enrollment UI missing, CAPTCHA and HIBP not enabled. See [checklist](../runbooks/supabase-auth-production-checklist.md) and TECH_DEBT.md.
+- Status #119 (2026-11-05): hook function + local disposable list and the AAL2 server check (flag `staff_mfa_required`, off) are in code; hook not yet applied/enabled live, TOTP enrollment UI missing, CAPTCHA and HIBP not enabled. See [checklist](../runbooks/supabase-auth-production-checklist.md) and TECH_DEBT.md. **Decision 2026-11-06:** TOTP enrollment UI, MFA step at sign-in, AAL2 in RLS/RPC and CAPTCHA are deferred (project too early) to #275; HIBP needs Supabase Pro (not available). Migration `20261105000000` applied on test; prod pending.
 - [ ] Implement app-side MFA/AAL2 enforcement (an `assert_staff_aal2`-equivalent check in
   every privileged RPC/route, plus `SessionActor.aal`) for admin/manager accounts.
   **Not blocked on infrastructure or plan tier** — confirmed live on prod that
