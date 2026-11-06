@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../../lib/rate-limit";
 import yaml from "js-yaml";
 import { requireRequestActor } from "../../../../lib/auth-request";
 import { fetchOnboardingTest, onboardingTestRpc } from "../../../../lib/onboarding-test-server";
@@ -23,6 +24,8 @@ export async function GET(_request: Request, context: Context): Promise<Response
 export async function PATCH(request: Request, context: Context): Promise<Response> {
   const auth = await requireRequestActor({ acceptedRoles: ["admin"] });
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
+  const limited = await enforceRateLimit({ action: "admin-onboarding-test", limits: [{ dim: "user", value: auth.actor.userId, interval: 60_000, limit: 60 }] });
+  if (limited) return limited;
   const { runId } = await context.params;
   if (!isTestRunId(runId)) return NextResponse.json({ error: "Invalid test." }, { status: 400 });
   let body;
@@ -62,6 +65,8 @@ export async function PATCH(request: Request, context: Context): Promise<Respons
 export async function POST(request: Request, context: Context): Promise<Response> {
   const auth = await requireRequestActor({ acceptedRoles: ["admin"] });
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
+  const limited = await enforceRateLimit({ action: "admin-onboarding-test", limits: [{ dim: "user", value: auth.actor.userId, interval: 60_000, limit: 60 }] });
+  if (limited) return limited;
   const { runId } = await context.params;
   if (!isTestRunId(runId)) return NextResponse.json({ error: "Invalid test." }, { status: 400 });
   let body;

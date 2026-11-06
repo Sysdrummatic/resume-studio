@@ -9,6 +9,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+import { enforceRateLimit as realEnforceRateLimit } from "../app/lib/rate-limit.ts";
 import { readFileSync } from "node:fs";
 import { register } from "node:module";
 import ts from "typescript";
@@ -58,7 +59,7 @@ function commonMocks(prefix, { rateLimited = false } = {}) {
   return {
     "next/server": nextServer,
     [`${prefix}lib/auth-request`]: { requireRequestActor: authOk() },
-    [`${prefix}lib/rate-limit`]: { rateLimit: async () => ({ success: !rateLimited, reset: Date.now() + 60_000 }) },
+    [`${prefix}lib/rate-limit`]: { enforceRateLimit: (o) => realEnforceRateLimit({ ...o, store: async () => ({ success: !rateLimited, count: 1, reset: Date.now() + 60_000 }) }) },
   };
 }
 

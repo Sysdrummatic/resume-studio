@@ -98,16 +98,23 @@ Status: nienaprawione.
 Odroczone do [Phase M](docs/phases/phase-m-security-privacy-trust.md) M03/M08 jako
 mniejsze ryzyko przy becie dla garstki zaproszonych testerów:
 
-- Auth Hook `before_user_created` (`hook_before_user_created_enabled: false` na prod).
-- Egzekwowanie MFA/AAL2 w aplikacji. TOTP po stronie Supabase jest już włączony na prod
-  (`mfa_totp_enroll_enabled`/`verify_enabled: true`), brakuje wyłącznie kodu aplikacji.
-- CAPTCHA (`security_captcha_enabled: false`, dostawca domyślnie `hcaptcha`, brak sekretu).
-- `password_hibp_enabled` (ochrona przed wyciekłymi hasłami): próba przez Management API
-  odrzucona z `402`, wymaga planu Pro.
-- Weryfikator Disify jest **domyślnie włączony**: `isDisposableEmailAddress()`
-  (`app/lib/disposable-email.ts`) woła `https://www.disify.com/api/email`, chyba że
-  ustawiono `DISPOSABLE_EMAIL_CHECK_URL`. Nie ma lokalnej listy `DISPOSABLE_EMAIL_DOMAINS`.
-  Śledzone w Phase M M08.
+- Auth Hook `before_user_created`: funkcja `hook_before_user_created` + lista domen (migracja
+  `20261105000000_auth_boundary_controls.sql`, #119) **zastosowana na test i prod (2026-11-06)**; hook
+  włączony w Dashboardzie prod przez właściciela (stan niezweryfikowany niezależnie, sprawdź próbą rejestracji
+  z `@mailinator.com`). Kroki: [supabase-auth-production-checklist](docs/runbooks/supabase-auth-production-checklist.md).
+  Na projekcie **test** zostały obiekty spoza repo: `blocked_signup_email_domains` (nieużywana po migracji),
+  `assert_staff_aal2()` (wywoływane z 5 funkcji, egzekwuje AAL2 dla staffu z zarejestrowanym czynnikiem) i
+  `current_session_aal()`. Prod ich nie ma: do uzgodnienia w #275.
+- Odroczone decyzją 2026-11-06 do #275: UI TOTP, krok MFA przy logowaniu, AAL2 w RLS/RPC, CAPTCHA. HIBP wymaga planu Pro.
+- MFA/AAL2: egzekwowane w `requireRequestActor` (`app/lib/staff-mfa.ts`) za flagą `staff_mfa_required`
+  (domyślnie wyłączona). Brakuje: UI zapisu i weryfikacji TOTP oraz kroku MFA w `/api/auth/signin`
+  (bez tego włączenie flagi zablokuje adminów) i egzekwowania AAL2 w politykach RLS/RPC (wymaga Architecture review).
+- CAPTCHA (`security_captcha_enabled: false`, dostawca domyślnie `hcaptcha`, brak sekretu). Nowy procesor:
+  wymaga oceny prywatności przed włączeniem.
+- `password_hibp_enabled` (ochrona przed wyciekłymi hasłami): wyłączona na prod i test (advisor
+  `auth_leaked_password_protection`, 2026-11-05); próba przez Management API odrzucona z `402`, wymaga planu Pro.
+- Disify usunięty (#119): `isDisposableEmailAddress()` używa lokalnej listy, adres e-mail nie opuszcza infrastruktury.
+  Lista jest kuratorowana, nie wyczerpująca.
 
 ## Walidator "ta wartość wygląda niebezpiecznie" w edytorze
 

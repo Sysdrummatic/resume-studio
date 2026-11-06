@@ -101,7 +101,7 @@ test("the publish API answers a partial save with the stored document and what i
   const modules = {
     "next/server": { NextResponse: { json: (body, init) => Response.json(body, init) } },
     "../../../lib/auth-request": { requireRequestActor: async () => ({ ok: true, actor: { userId: USER }, accessToken: "token" }) },
-    "../../../lib/rate-limit": { rateLimit: async () => ({ success: true, reset: Date.now() }) },
+    "../../../lib/rate-limit": { enforceRateLimit: async () => (true ? null : Response.json({ error: "rate limited" }, { status: 429, headers: { "Retry-After": "60" } })) },
     "../../../lib/resume-schema": await import("../app/lib/resume-schema.ts"),
     "../../../lib/supabase-http": { callRpc: async () => ({ data: true }) },
     "../../../lib/content-safety-audit": { flagSuspiciousResumeContent: async () => {} },

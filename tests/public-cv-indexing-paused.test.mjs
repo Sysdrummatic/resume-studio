@@ -18,7 +18,7 @@ test("public CV indexing flag is seeded disabled by a migration", () => {
 
 test("indexing flag fails closed while generic flags stay fail-open", () => {
   const flags = read("app/lib/platform-feature-flags.ts");
-  assert.match(flags, /isFeatureFlagEnabled\(key: string, fallback = true\)/);
+  assert.match(flags, /isFeatureFlagEnabled\(key: string, fallback = true, errorFallback = fallback\)/);
   assert.match(flags, /isFeatureFlagEnabled\(PUBLIC_CV_INDEXING_FLAG_KEY, false\)/);
   assert.equal(flags.includes('"public_cv_indexing_enabled"'), true);
 });

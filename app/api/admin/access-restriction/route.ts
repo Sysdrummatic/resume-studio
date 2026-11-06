@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../lib/rate-limit";
 import { writeAdminAuditLog } from "../../../lib/admin-audit";
 import { requireRequestActor } from "../../../lib/auth-request";
 import {
@@ -33,6 +34,12 @@ export async function PATCH(request: Request): Promise<Response> {
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
+
+  const limited = await enforceRateLimit({
+    action: "admin-access-restriction",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60000, limit: 10 }],
+  });
+  if (limited) return limited;
 
   if (actorResult.actor.role !== "admin") {
     return NextResponse.json({ error: "Admin role is required." }, { status: 403 });

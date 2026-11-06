@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../lib/auth-request";
-import { rateLimit } from "../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../lib/rate-limit";
 import { detectSourceKind, parseResumeFile } from "../../../lib/resume-import/parse-resume-file";
 import { readUploadFormData, UploadTooLargeError } from "../../../lib/resume-import/read-upload";
 
@@ -26,13 +26,12 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
 
-  const rl = await rateLimit(`import-file:${actorResult.actor.userId}`, { interval: 60_000, limit: 10 });
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: "Too many import attempts. Try again in a minute." },
-      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "import-file",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60_000, limit: 10 }],
+    message: "Too many import attempts. Try again in a minute.",
+  });
+  if (limited) return limited;
 
   let formData: FormData;
   try {

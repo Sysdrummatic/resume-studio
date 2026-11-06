@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { enforceRateLimit as realEnforceRateLimit } from "../app/lib/rate-limit.ts";
 import { readFileSync } from "node:fs";
 import { register } from "node:module";
 import yaml from "js-yaml";
@@ -116,7 +117,7 @@ function republishRoute({ auth, rateLimited = false, republish } = {}) {
   const route = loadRoute("app/api/resume/presets/[presetId]/republish/route.ts", {
     "next/server": { NextResponse: { json: (body, options) => Response.json(body, options) } },
     [`${PREFIX}lib/auth-request`]: { requireRequestActor: async () => auth ?? { ok: true, actor: { userId: USER }, accessToken: "token" } },
-    [`${PREFIX}lib/rate-limit`]: { rateLimit: async () => ({ success: !rateLimited, reset: Date.now() + 30_000 }) },
+    [`${PREFIX}lib/rate-limit`]: { enforceRateLimit: (o) => realEnforceRateLimit({ ...o, store: async () => ({ success: !rateLimited, count: 1, reset: Date.now() + 60_000 }) }) },
     [`${PREFIX}lib/resume-schema`]: resumeSchema,
     [`${PREFIX}lib/resume-server`]: {
       republishResumePreset: async (...args) => {

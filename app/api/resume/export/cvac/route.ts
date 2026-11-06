@@ -2,7 +2,8 @@ import { rejectAiBot } from "../../../../lib/ai-bots";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-server";
 import { getRawYamlSource } from "../../../../lib/resume-export";
-import { rateLimit } from "../../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../../lib/rate-limit";
+import { getClientIp } from "../../../../lib/client-ip";
 import { buildExportFilename } from "../../../../lib/pdf/filename";
 
 export const dynamic = "force-dynamic";
@@ -29,14 +30,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "personSlug and publicId are required." }, { status: 400 });
   }
 
-  const ip = req.headers.get("x-forwarded-for") || "anonymous";
-  const rl = await rateLimit(`cvac-export:${ip}`, { interval: 60000, limit: 5 });
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: "Rate limit exceeded." },
-      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "cvac-export",
+    limits: [{ dim: "ip", value: getClientIp(req.headers), interval: 60_000, limit: 5 }],
+    onStoreError: "open", // ponytail: public, low-risk read; availability over strictness
+  });
+  if (limited) return limited;
 
   const exportData = await fetchPublishedResumeExportByPublicLink(personSlug, publicId, lang);
   if (!exportData) {

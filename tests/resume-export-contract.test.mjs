@@ -553,7 +553,7 @@ test("text export route is snapshot-only, rate limited, and rejects preset fallb
   assert.equal(route.includes("fetchResumeExportByPresetId"), false);
   assert.equal(route.includes("personSlug and publicId are required"), true);
   assert.equal(route.includes("presetId"), false);
-  assert.equal(route.includes("rateLimit"), true);
+  assert.equal(route.includes("enforceRateLimit"), true);
 });
 
 test("export routes consume the resolver's parsed resume instead of re-parsing yaml", () => {
@@ -737,7 +737,7 @@ test("ats yaml export route is snapshot-only, rate limited, and returns text/yam
 
   assert.equal(route.includes("fetchPublishedResumeExportByPublicLink"), true);
   assert.equal(route.includes("convertResumeToAtsYaml"), true);
-  assert.equal(route.includes("rateLimit"), true);
+  assert.equal(route.includes("enforceRateLimit"), true);
   assert.equal(route.includes("\"Content-Type\": \"text/yaml; charset=utf-8\""), true);
   assert.equal(route.includes("personSlug and publicId are required"), true);
 });
@@ -748,6 +748,6 @@ test("cvac export route returns raw published yaml untransformed and is rate lim
   assert.equal(route.includes("fetchPublishedResumeExportByPublicLink"), true);
   assert.equal(route.includes("exportData.yamlContent"), true);
   assert.equal(route.includes("normalizeResumeDocument"), false);
-  assert.equal(route.includes("rateLimit"), true);
+  assert.equal(route.includes("enforceRateLimit"), true);
   assert.equal(route.includes("\"Content-Type\": \"text/yaml; charset=utf-8\""), true);
 });

@@ -59,7 +59,7 @@ function importRoute({ authorized = true, rateLimited = false, parseError = null
         ? { ok: true, actor: { userId: "test-user" } }
         : { ok: false, message: "Authentication required.", status: 401 },
     },
-    "../../../lib/rate-limit": { rateLimit: async () => ({ success: !rateLimited, reset: Date.now() + 60000 }) },
+    "../../../lib/rate-limit": { enforceRateLimit: async () => (!rateLimited ? null : Response.json({ error: "rate limited" }, { status: 429, headers: { "Retry-After": "60" } })) },
     "../../../lib/resume-import/read-upload": upload,
     "../../../lib/resume-import/parse-resume-file": {
       detectSourceKind: () => "txt",

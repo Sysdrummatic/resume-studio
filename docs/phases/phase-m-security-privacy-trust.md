@@ -106,7 +106,7 @@ matrix and is required by CI for security-sensitive migrations.
 - [ ] Add safe URL-scheme allowlists for CV contact links and future remote image fields.
 - [ ] Threat-model account recovery, refresh rotation, session revocation, concurrent
   refresh, and inactive-account behavior.
-- [ ] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
+- [x] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
   [G-P0-05](phase-g-community-beta-testing.md)) to token refresh, account deletion, and
   destructive/admin actions — deliberately deferred out of Phase G's beta-admission gate
   as lower practical risk for a handful of known, invited testers than the auth/export
@@ -117,6 +117,7 @@ matrix and is required by CI for security-sensitive migrations.
   every app-level check in `app/api/auth/signup/route.ts`. Deferred out of
   [G-P0-04](phase-g-community-beta-testing.md) as lower practical risk when signup is
   gated to a handful of invited testers.
+- Status #119 (2026-11-05): hook function + local disposable list and the AAL2 server check (flag `staff_mfa_required`, off) are in code; hook function applied on test and prod and enabled on prod (2026-11-06), TOTP enrollment UI missing, CAPTCHA and HIBP not enabled. See [checklist](../runbooks/supabase-auth-production-checklist.md) and TECH_DEBT.md. **Decision 2026-11-06:** TOTP enrollment UI, MFA step at sign-in, AAL2 in RLS/RPC and CAPTCHA are deferred (project too early) to #275; HIBP needs Supabase Pro (not available). Migration `20261105000000` applied on test and prod.
 - [ ] Implement app-side MFA/AAL2 enforcement (an `assert_staff_aal2`-equivalent check in
   every privileged RPC/route, plus `SessionActor.aal`) for admin/manager accounts.
   **Not blocked on infrastructure or plan tier** — confirmed live on prod that
@@ -170,12 +171,20 @@ CSP violations are monitored without breaking public CV, auth, export, or PDF fl
 - [ ] Verify all public/export resolvers are snapshot-only and cannot fall back to current
   drafts or mutable presets.
 - [ ] Add abuse controls and cost budgets for PDF and bulk exports.
-- [ ] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
+- [x] Extend the distributed rate limiter (`app/lib/rate-limit.ts`, deployed for
   [G-P0-05](phase-g-community-beta-testing.md)) to user data import
   (`/api/resume/transfer/import`) and public OpenCV API read endpoints — deliberately
   deferred out of Phase G's beta-admission gate as lower practical risk for a handful of
   known, invited testers than the auth/export surface G-P0-05 already covers. Ref:
   [#120](https://github.com/Sysdrummatic/plm-resume/issues/120).
+  Done in #120: every `app/api` route that is anonymous-write, expensive, destructive or admin
+  goes through `enforceRateLimit()` (keys hashed, 429 + `Retry-After` + `code`). Client IP
+  comes only from the platform header (`app/lib/client-ip.ts`: Netlify `x-nf-client-connection-ip`,
+  Vercel `x-vercel-forwarded-for`; `x-forwarded-for` is never read; unknown → shared `unknown`
+  bucket). Store outage: **fail-closed (503)** for auth, import/export, PDF, account deletion and
+  admin; **fail-open** only for public CV exports (text/yaml/cvac) and the public OpenCV API.
+  No new processor — counters live in the existing Supabase Postgres. Token refresh
+  (`/api/auth/session`): per-IP 300/min, fail-open.
 
 **Definition of Done**: failed import/admin operations roll back fully; unpublish meets
 the documented revocation SLA; export fixtures prove data minimization.

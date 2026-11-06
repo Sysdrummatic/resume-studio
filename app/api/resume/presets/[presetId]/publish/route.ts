@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRequestActor } from "../../../../../lib/auth-request";
 import { publishResumePreset, RESUME_PARITY_MESSAGE, ResumeParityError } from "../../../../../lib/resume-server";
 import { normalizeLocale, RESUME_LIMITS_DOC_URL } from "../../../../../lib/resume-schema";
-import { rateLimit } from "../../../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../../../lib/rate-limit";
 
 type PublishBody = {
   allowIndexing?: boolean;
@@ -23,13 +23,13 @@ export async function POST(request: Request, context: PublishRouteContext): Prom
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
 
-  const rl = await rateLimit(`resume-preset-publish:${actorResult.actor.userId}`, { interval: 60_000, limit: 20 });
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: "You've exceeded the maximum allowed publish limit. Try again in a minute.", docsUrl: RESUME_LIMITS_DOC_URL },
-      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "resume-preset-publish",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60_000, limit: 20 }],
+    message: "You've exceeded the maximum allowed publish limit. Try again in a minute.",
+    extra: { docsUrl: RESUME_LIMITS_DOC_URL },
+  });
+  if (limited) return limited;
 
   let body: PublishBody;
   try {

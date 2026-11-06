@@ -22,7 +22,7 @@ Optional variables:
 - `NEXT_PUBLIC_APP_BASE_URL` — explicit canonical application URL. Netlify's `URL` is the runtime fallback.
 - `NEXT_PUBLIC_COOKIE_DOMAIN` — production-only shared cookie domain when one is required.
 - `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` — optional e-mail delivery configuration; set both or neither.
-- `DISPOSABLE_EMAIL_CHECK_URL` and `DISPOSABLE_EMAIL_CHECK_TIMEOUT_MS` — optional disposable-email check overrides.
+- Disposable-email blocking uses a local list (`app/lib/disposable-email.ts`) and the Supabase `before_user_created` hook; there is no external check or related env var.
 
 Sentry is not part of the current runtime contract: no Sentry SDK or integration is installed. Add provider-specific variables only together with an approved instrumentation implementation.
 
