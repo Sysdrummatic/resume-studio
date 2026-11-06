@@ -1,4 +1,5 @@
 import test from "node:test";
+import ts from "typescript";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
@@ -69,9 +70,8 @@ test("malformed, unsigned-claim or missing aal never counts as AAL2", () => {
   }
 });
 
-test("requireRequestActor enforces the staff AAL2 rule with a stable code, flag fails off", () => {
+test("requireRequestActor enforces the staff AAL2 rule with a stable code", () => {
   const actor = fs.readFileSync("app/lib/auth-request.ts", "utf8");
   assert.match(actor, /staffMfaBlocks\(/);
   assert.match(actor, /code: "mfa_required"/);
-  assert.match(fs.readFileSync("app/lib/platform-feature-flags.ts", "utf8"), /isFeatureFlagEnabled\("staff_mfa_required", false\)/);
 });

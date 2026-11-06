@@ -98,11 +98,13 @@ Status: nienaprawione.
 Odroczone do [Phase M](docs/phases/phase-m-security-privacy-trust.md) M03/M08 jako
 mniejsze ryzyko przy becie dla garstki zaproszonych testerów:
 
-- Auth Hook `before_user_created`: funkcja `hook_before_user_created` + lista domen są w migracji
-  `20261105000000_auth_boundary_controls.sql` (#119), ale **nie zastosowane i nie włączone** na żadnym
-  projekcie (`hook_before_user_created_enabled: false` na prod). Kroki: [supabase-auth-production-checklist](docs/runbooks/supabase-auth-production-checklist.md).
-  Na projekcie **test** istnieją obiekty spoza repo (`blocked_signup_email_domains`, `assert_staff_aal2()`,
-  `current_session_aal()`): przed zastosowaniem migracji trzeba je uzgodnić (zamienić lub usunąć).
+- Auth Hook `before_user_created`: funkcja `hook_before_user_created` + lista domen (migracja
+  `20261105000000_auth_boundary_controls.sql`, #119) **zastosowana na test i prod (2026-11-06)**; hook
+  włączony w Dashboardzie prod przez właściciela (stan niezweryfikowany niezależnie, sprawdź próbą rejestracji
+  z `@mailinator.com`). Kroki: [supabase-auth-production-checklist](docs/runbooks/supabase-auth-production-checklist.md).
+  Na projekcie **test** zostały obiekty spoza repo: `blocked_signup_email_domains` (nieużywana po migracji),
+  `assert_staff_aal2()` (wywoływane z 5 funkcji, egzekwuje AAL2 dla staffu z zarejestrowanym czynnikiem) i
+  `current_session_aal()`. Prod ich nie ma: do uzgodnienia w #275.
 - Odroczone decyzją 2026-11-06 do #275: UI TOTP, krok MFA przy logowaniu, AAL2 w RLS/RPC, CAPTCHA. HIBP wymaga planu Pro.
 - MFA/AAL2: egzekwowane w `requireRequestActor` (`app/lib/staff-mfa.ts`) za flagą `staff_mfa_required`
   (domyślnie wyłączona). Brakuje: UI zapisu i weryfikacji TOTP oraz kroku MFA w `/api/auth/signin`

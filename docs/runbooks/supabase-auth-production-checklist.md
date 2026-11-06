@@ -9,7 +9,7 @@ Do this on **test first**, then **prod**.
 | Control | prod | test |
 | --- | --- | --- |
 | Leaked-password protection (HIBP) | **off** (needs Pro plan) | **off** |
-| `before_user_created` hook enabled | off (memory: `hook_before_user_created_enabled: false`) | not checked |
+| `before_user_created` hook enabled | migration applied 2026-11-06; hook enabled in Dashboard by the owner (not independently verified) | enabled (older version replaced by the migration) |
 | Objects on test not in repo | n/a | `blocked_signup_email_domains`, `assert_staff_aal2()`, `current_session_aal()` |
 
 Everything else below is **unverified** until ticked.
