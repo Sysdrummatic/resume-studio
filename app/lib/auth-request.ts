@@ -2,7 +2,9 @@ import { cookies } from "next/headers";
 import type { AppRole, RequestActorAuthorizationOptions, SessionActor } from "./auth-types";
 import { clearAuthCookies, readAuthTokens, setAuthCookies } from "./auth-cookies";
 import { getAuthUser, refreshSession } from "./supabase-http";
-import { isRoleAuthorized } from "./rbac";
+import { isRoleAuthorized, isStaffRole } from "./rbac";
+import { isStaffMfaRequired } from "./platform-feature-flags";
+import { staffMfaBlocks } from "./staff-mfa";
 import { normalizeEmail, normalizeProfileForActor, resolveProfile } from "./auth-profile";
 
 type RequestAuthResult =
@@ -15,6 +17,7 @@ type RequestAuthResult =
       ok: false;
       status: number;
       message: string;
+      code?: "mfa_required";
     };
 
 async function buildActor(accessToken: string): Promise<RequestAuthResult> {
@@ -104,6 +107,13 @@ export async function requireRequestActor(
 
   if (!result.actor.isActive) {
     return { ok: false, status: 403, message: "Account is inactive." };
+  }
+
+  if (isStaffRole(result.actor.role)) {
+    const required = await isStaffMfaRequired();
+    if (staffMfaBlocks({ isStaff: true, required, accessToken: activeAccessToken })) {
+      return { ok: false, status: 403, message: "Multi-factor authentication required.", code: "mfa_required" };
+    }
   }
 
   const authorizationOptions: RequestActorAuthorizationOptions | undefined = Array.isArray(acceptedRolesOrOptions)
