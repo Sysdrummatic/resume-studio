@@ -23,7 +23,8 @@ insert into public.disposable_email_domains (domain) values
   ('owlymail.com'), ('sharklasers.com'), ('spambox.us'), ('spamgourmet.com'), ('temp-mail.io'),
   ('temp-mail.org'), ('tempinbox.com'), ('tempmail.com'), ('tempmailo.com'), ('tempr.email'),
   ('throwawaymail.com'), ('tmpmail.net'), ('tmpmail.org'), ('trashmail.com'), ('trashmail.net'),
-  ('yopmail.com'), ('yopmail.fr')
+  ('yopmail.com'), ('yopmail.fr'),
+  ('1secmail.com'), ('33mail.com'), ('mail7.io'), ('mailsac.com'), ('pokemail.net'), ('spam4.me')
 on conflict (domain) do nothing;
 
 create or replace function public.hook_before_user_created(event jsonb)
@@ -34,7 +35,15 @@ set search_path = ''
 as $$
 declare
   email_domain text := lower(split_part(coalesce(event -> 'user' ->> 'email', ''), '@', 2));
+  restricted boolean;
 begin
+  select f.enabled into restricted from public.platform_feature_flags f where f.key = 'login_restricted';
+  if coalesce(restricted, false) then
+    return jsonb_build_object(
+      'error', jsonb_build_object('message', 'Sign-ups are temporarily unavailable.', 'http_code', 403)
+    );
+  end if;
+
   -- A listed domain, or any subdomain of one, is rejected. A missing/empty domain
   -- matches nothing; sign-up without an email is already disabled in Auth config.
   if email_domain <> '' and exists (

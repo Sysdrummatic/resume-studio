@@ -17,6 +17,7 @@ export const DISPOSABLE_EMAIL_DOMAINS: readonly string[] = [
   "temp-mail.org", "tempinbox.com", "tempmail.com", "tempmailo.com", "tempr.email",
   "throwawaymail.com", "tmpmail.net", "tmpmail.org", "trashmail.com", "trashmail.net",
   "yopmail.com", "yopmail.fr",
+  "1secmail.com", "33mail.com", "mail7.io", "mailsac.com", "pokemail.net", "spam4.me",
 ];
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
