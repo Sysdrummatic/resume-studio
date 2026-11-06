@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../../lib/rate-limit";
 import yaml from "js-yaml";
 import { requireRequestActor } from "../../../../lib/auth-request";
 import { isUserDataTransferEnabled } from "../../../../lib/platform-feature-flags";
@@ -52,6 +53,12 @@ export async function POST(request: Request): Promise<Response> {
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
+
+  const limited = await enforceRateLimit({
+    action: "user-data-import",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60000, limit: 5 }],
+  });
+  if (limited) return limited;
 
   if (!(await isUserDataTransferEnabled())) {
     return NextResponse.json({ error: "Data import is currently disabled." }, { status: 403 });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../lib/rate-limit";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { fetchOnboardingTest, onboardingTestRpc } from "../../../lib/onboarding-test-server";
 import { isTestRunId, type OnboardingTestRun } from "../../../lib/onboarding-test";
@@ -13,6 +14,8 @@ export async function GET(): Promise<Response> {
 export async function POST(request: Request): Promise<Response> {
   const auth = await requireRequestActor({ acceptedRoles: ["admin"] });
   if (!auth.ok) return NextResponse.json({ error: auth.message }, { status: auth.status });
+  const limited = await enforceRateLimit({ action: "admin-onboarding-test", limits: [{ dim: "user", value: auth.actor.userId, interval: 60_000, limit: 20 }] });
+  if (limited) return limited;
   let body;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON." }, { status: 400 }); }
   if (!body || !["arm","start","disarm","restart"].includes(body.action) || (body.expectedRunId != null && !isTestRunId(body.expectedRunId))) {

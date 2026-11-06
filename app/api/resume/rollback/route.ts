@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../lib/rate-limit";
 import { requireRequestActor } from "../../../lib/auth-request";
 import { RESUME_PARITY_MESSAGE, ResumeParityError, rollbackResumeDocument } from "../../../lib/resume-server";
 import { normalizeLocale } from "../../../lib/resume-schema";
@@ -14,6 +15,12 @@ export async function POST(request: Request): Promise<Response> {
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
+
+  const limited = await enforceRateLimit({
+    action: "resume-rollback",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 60000, limit: 10 }],
+  });
+  if (limited) return limited;
 
   let body: RollbackBody;
   try {

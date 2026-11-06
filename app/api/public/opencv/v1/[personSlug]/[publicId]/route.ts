@@ -1,5 +1,7 @@
 import { rejectAiBot } from "../../../../../../lib/ai-bots";
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../../../../lib/rate-limit";
+import { getClientIp } from "../../../../../../lib/client-ip";
 import { fetchPublishedResumeExportByPublicLink } from "../../../../../../lib/resume-server";
 
 type RouteContext = {
@@ -18,6 +20,13 @@ export async function GET(request: Request, context: RouteContext): Promise<Resp
   if (blocked) {
     return blocked;
   }
+
+  const limited = await enforceRateLimit({
+    action: "opencv-public-api",
+    limits: [{ dim: "ip", value: getClientIp(request.headers), interval: 60_000, limit: 60 }],
+    onStoreError: "open", // ponytail: cacheable public read; availability over strictness
+  });
+  if (limited) return limited;
 
   const { personSlug, publicId } = await context.params;
   const url = new URL(request.url);

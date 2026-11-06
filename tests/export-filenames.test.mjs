@@ -36,7 +36,8 @@ function exportRoute(kind, converters) {
     "../../../../lib/resume-server": { fetchPublishedResumeExportByPublicLink: async () => exportData },
     "../../../../lib/resume-export": converters,
     "../../../../lib/ai-bots": { rejectAiBot: () => null },
-    "../../../../lib/rate-limit": { rateLimit: async () => ({ success: true, reset: Date.now() }) },
+    "../../../../lib/rate-limit": { enforceRateLimit: async () => (true ? null : Response.json({ error: "rate limited" }, { status: 429, headers: { "Retry-After": "60" } })) },
+    "../../../../lib/client-ip": { getClientIp: () => "127.0.0.1" },
     "../../../../lib/pdf/filename": filename,
   });
 }

@@ -6,7 +6,8 @@ import { fetchPublishedResumeExportByPublicLink } from "../../../../lib/resume-s
 import { CvPdfDocument as CvPdfTemplate } from "../../../../lib/pdf/CvPdfDocument";
 import { buildPdfFilename } from "../../../../lib/pdf/filename";
 import { loadPdfFonts } from "../../../../lib/pdf/engine-react-pdf";
-import { rateLimit } from "../../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../../lib/rate-limit";
+import { getClientIp } from "../../../../lib/client-ip";
 import { applyResumeStyleToTheme } from "../../../../lib/resume-style";
 import { cvBasicDotTheme } from "../../../../lib/pdf/theme";
 
@@ -28,14 +29,11 @@ export async function GET(req: NextRequest) {
   }
 
   // Rate limit by IP or personSlug (to prevent scraping)
-  const ip = req.headers.get("x-forwarded-for") || "anonymous";
-  const rl = await rateLimit(`pdf-export:${ip}`, { interval: 60000, limit: 5 });
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: "Rate limit exceeded." },
-      { status: 429, headers: { "Retry-After": Math.ceil((rl.reset - Date.now()) / 1000).toString() } },
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "pdf-export",
+    limits: [{ dim: "ip", value: getClientIp(req.headers), interval: 60_000, limit: 5 }],
+  });
+  if (limited) return limited;
 
   const exportData = await fetchPublishedResumeExportByPublicLink(personSlug, publicId, lang);
   if (!exportData) {

@@ -11,7 +11,7 @@ test("import-file route is authenticated, rate limited, size capped, and never w
   const route = read("app/api/resume/import-file/route.ts");
 
   assert.match(route, /requireRequestActor\(\s*\{\s*anyCapability:\s*"resume\.document\.write_own"/);
-  assert.match(route, /rateLimit\(/);
+  assert.match(route, /enforceRateLimit\(/);
   assert.match(route, /file\.size > IMPORT_FILE_MAX_BYTES/);
   assert.match(route, /file\.size === 0/);
   // Read-only endpoint: parses and returns, saveResumeDraftDocument (or any

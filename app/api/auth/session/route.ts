@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { clearAuthCookies, readAuthTokens, setAuthCookies } from "../../../lib/auth-cookies";
+import { enforceRateLimit } from "../../../lib/rate-limit";
+import { getClientIp } from "../../../lib/client-ip";
 import { getAuthUser, refreshSession } from "../../../lib/supabase-http";
 import { normalizeEmail, normalizeProfileForActor, resolveProfile } from "../../../lib/auth-profile";
 
@@ -8,7 +10,16 @@ function buildUnauthorizedResponse(message = "Authentication required."): Respon
   return NextResponse.json({ error: message }, { status: 401 });
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
+  // Covers token refresh. Generous per-IP cap (shared NATs); fail-open so a counter outage
+  // does not sign everyone out — Supabase enforces its own refresh limits.
+  const limited = await enforceRateLimit({
+    action: "session-refresh",
+    limits: [{ dim: "ip", value: getClientIp(request.headers), interval: 60_000, limit: 300 }],
+    onStoreError: "open",
+  });
+  if (limited) return limited;
+
   const cookieStore = await cookies();
   const { accessToken, refreshToken } = readAuthTokens(cookieStore);
 

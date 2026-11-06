@@ -53,6 +53,7 @@ function importRoute({ variant = false, invalid = true, crossLocaleDefault = fal
   const modules = {
     "next/server": { NextResponse: { json: (body, options) => Response.json(body, options) } },
     "js-yaml": yaml,
+    "../../../../lib/rate-limit": { enforceRateLimit: async () => null },
     "../../../../lib/auth-request": { requireRequestActor: async () => ({ ok: true, accessToken: "token", actor: { userId: "owner" } }) },
     "../../../../lib/platform-feature-flags": { isUserDataTransferEnabled: async () => true },
     "../../../../lib/resume-schema": { normalizeLocale: (value) => value },

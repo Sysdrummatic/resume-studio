@@ -36,7 +36,7 @@ function routes(role = "admin", run = { id: runId, status: "active", locale: "en
     },
     onboardingTestRpc: async (token, name, payload) => { assert.equal(token, "owner-token"); calls.push({ name, payload }); return run; }
   };
-  const dependencies = (prefix) => ({ [`${prefix}/auth-request`]: auth, [`${prefix}/onboarding-test-server`]: server,
+  const dependencies = (prefix) => ({ [`${prefix}/rate-limit`]: { enforceRateLimit: async () => null }, [`${prefix}/auth-request`]: auth, [`${prefix}/onboarding-test-server`]: server,
     [`${prefix}/onboarding-test`]: testDomain, [`${prefix}/resume-onboarding`]: domain, [`${prefix}/resume-schema`]: schema,
     [`${prefix}/content-safety-audit`]: { flagSuspiciousResumeContent: async () => {} } });
   return { calls,

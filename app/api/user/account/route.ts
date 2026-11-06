@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "../../../lib/rate-limit";
 import { cookies } from "next/headers";
 import { clearAuthCookies } from "../../../lib/auth-cookies";
 import { requireRequestActor } from "../../../lib/auth-request";
@@ -13,6 +14,12 @@ export async function DELETE(): Promise<Response> {
   if (!actorResult.ok) {
     return NextResponse.json({ error: actorResult.message }, { status: actorResult.status });
   }
+
+  const limited = await enforceRateLimit({
+    action: "account-delete",
+    limits: [{ dim: "user", value: actorResult.actor.userId, interval: 3600000, limit: 3 }],
+  });
+  if (limited) return limited;
 
   const { userId, email, role } = actorResult.actor;
 

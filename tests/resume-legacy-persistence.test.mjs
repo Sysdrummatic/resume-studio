@@ -45,6 +45,7 @@ function importRoute({ validationSucceeds = true } = {}) {
   const modules = {
     "next/server": { NextResponse: { json: (body, options) => Response.json(body, options) } },
     "js-yaml": yaml,
+    "../../../../lib/rate-limit": { enforceRateLimit: async () => null },
     "../../../../lib/auth-request": {
       requireRequestActor: async () => ({ ok: true, accessToken: "test-token", actor: { userId: "test-user" } }),
     },

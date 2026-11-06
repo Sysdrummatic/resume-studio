@@ -3,7 +3,8 @@ import { getAppBaseUrl } from "../../../lib/env";
 import { isValidEmailAddress } from "../../../lib/disposable-email";
 import { resendVerificationEmail } from "../../../lib/supabase-http";
 import { normalizeEmail } from "../../../lib/auth-profile";
-import { rateLimit } from "../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../lib/rate-limit";
+import { getClientIp } from "../../../lib/client-ip";
 
 type ResendBody = {
   email?: string;
@@ -22,16 +23,15 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Provide a valid email address." }, { status: 400 });
   }
 
-  const ip = request.headers.get("x-forwarded-for") || "anonymous";
-  const ipLimit = await rateLimit(`resend-ip:${ip}`, { interval: 900000, limit: 10 });
-  const emailLimit = await rateLimit(`resend-email:${email}`, { interval: 900000, limit: 3 });
-  if (!ipLimit.success || !emailLimit.success) {
-    const reset = Math.max(ipLimit.reset, emailLimit.reset);
-    return NextResponse.json(
-      { error: "Too many verification email requests. Try again later." },
-      { status: 429, headers: { "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString() } },
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "resend",
+    limits: [
+      { dim: "ip", value: getClientIp(request.headers), interval: 900_000, limit: 10 },
+      { dim: "email", value: email, interval: 900_000, limit: 3 },
+    ],
+    message: "Too many verification email requests. Try again later.",
+  });
+  if (limited) return limited;
 
   const emailRedirectTo = `${getAppBaseUrl()}/login?verified=1`;
   const result = await resendVerificationEmail(email, emailRedirectTo);

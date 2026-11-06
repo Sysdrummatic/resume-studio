@@ -4,7 +4,8 @@ import { isDisposableEmailAddress, isValidEmailAddress } from "../../../lib/disp
 import { signUpWithPassword } from "../../../lib/supabase-http";
 import { normalizeEmail } from "../../../lib/auth-profile";
 import { getAccessRestriction } from "../../../lib/access-restriction";
-import { rateLimit } from "../../../lib/rate-limit";
+import { enforceRateLimit } from "../../../lib/rate-limit";
+import { getClientIp } from "../../../lib/client-ip";
 import { NEW_PASSWORD_MIN_LENGTH } from "../../../lib/auth-policy";
 
 type SignUpBody = {
@@ -19,14 +20,12 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: restriction.reason }, { status: 403 });
   }
 
-  const ip = request.headers.get("x-forwarded-for") || "anonymous";
-  const ipLimit = await rateLimit(`signup-ip:${ip}`, { interval: 3600000, limit: 5 });
-  if (!ipLimit.success) {
-    return NextResponse.json(
-      { error: "Too many sign-up attempts from this network. Try again later." },
-      { status: 429, headers: { "Retry-After": Math.ceil((ipLimit.reset - Date.now()) / 1000).toString() } },
-    );
-  }
+  const limited = await enforceRateLimit({
+    action: "signup",
+    limits: [{ dim: "ip", value: getClientIp(request.headers), interval: 3_600_000, limit: 5 }],
+    message: "Too many sign-up attempts from this network. Try again later.",
+  });
+  if (limited) return limited;
 
   let body: SignUpBody;
   try {
