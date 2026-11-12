@@ -69,7 +69,7 @@ const dependencies = {
       },
     }),
   },
-  "../lib/resume-style": { normalizeResumeStyle: () => ({}), presetStyleSource: (preset, document) => preset ?? document },
+  "../lib/resume-style": { RESUME_TEMPLATES: [], normalizeResumeStyle: () => ({}), presetStyleSource: (preset, document) => preset ?? document },
   "../components/status-toast": {
     StatusToast: () => null,
     useStatusToast: () => ({ toast: null, showToast() {}, closeToast() {} }),

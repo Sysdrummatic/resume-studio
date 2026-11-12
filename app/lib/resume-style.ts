@@ -37,20 +37,90 @@ type PdfThemeShape = {
 
 export type ResumeTextSize = "small" | "medium" | "large";
 export type ResumeDensity = "compact" | "normal" | "relaxed";
-export type ResumeVisualTemplate = "sample-two-column" | "signal-grid" | "atelier-noir" | "terminal-stack";
-
 export type ResumeTemplatePalette = {
   accent: string;
   accentDark: string;
   accentLight: string;
 };
 
-export const RESUME_TEMPLATE_PALETTES: Record<ResumeVisualTemplate, ResumeTemplatePalette> = {
-  "sample-two-column": { accent: "#009c8a", accentDark: "#007d6c", accentLight: "#e6f4f2" },
-  "signal-grid": { accent: "#2448e8", accentDark: "#17349f", accentLight: "#e9edff" },
-  "atelier-noir": { accent: "#d7a24a", accentDark: "#93651f", accentLight: "#f8ebd2" },
-  "terminal-stack": { accent: "#00a3a3", accentDark: "#006b70", accentLight: "#dcf2f0" },
+export type ResumeTemplateFamily = "standard" | "premium" | "tech" | "bold";
+export type ResumeExperienceFit = "beginner" | "mid" | "senior";
+/** Which PDF page structure renders the template (app/lib/pdf/templates). */
+export type ResumePdfLayout = "two-column" | "two-column-left" | "single-column";
+
+type ResumeTemplateDefinition = {
+  id: string;
+  /** Product name; the editor passes it through its text catalogue. */
+  name: string;
+  /** Key under `dashboard.labels` in app/i18n/locales. */
+  labelKey: string;
+  family: ResumeTemplateFamily;
+  experienceFit: readonly ResumeExperienceFit[];
+  bestFor: string;
+  pdfLayout: ResumePdfLayout;
+  palette: ResumeTemplatePalette;
 };
+
+/**
+ * The only list of CV templates. The id type, the palettes and both selectors
+ * (editor, dashboard) derive from it.
+ *
+ * Saved CV versions store the id as JSON and `normalizeResumeStyle` falls back
+ * to the default for an id it does not know, so an entry may be added but never
+ * renamed or removed.
+ */
+export const RESUME_TEMPLATES = [
+  {
+    id: "sample-two-column",
+    name: "Basic",
+    labelKey: "template_sample_two_column",
+    family: "standard",
+    experienceFit: ["beginner", "mid", "senior"],
+    bestFor: "Any role and seniority",
+    pdfLayout: "two-column",
+    palette: { accent: "#009c8a", accentDark: "#007d6c", accentLight: "#e6f4f2" },
+  },
+  {
+    id: "signal-grid",
+    name: "Signal Grid",
+    labelKey: "template_signal_grid",
+    family: "standard",
+    experienceFit: ["mid", "senior"],
+    bestFor: "Product, data, research, engineering",
+    pdfLayout: "two-column",
+    palette: { accent: "#2448e8", accentDark: "#17349f", accentLight: "#e9edff" },
+  },
+  {
+    id: "atelier-noir",
+    name: "Atelier Noir",
+    labelKey: "template_atelier_noir",
+    family: "premium",
+    experienceFit: ["senior"],
+    bestFor: "Leadership, strategy, creative technology",
+    pdfLayout: "two-column",
+    palette: { accent: "#d7a24a", accentDark: "#93651f", accentLight: "#f8ebd2" },
+  },
+  {
+    id: "terminal-stack",
+    name: "Terminal Stack",
+    labelKey: "template_terminal_stack",
+    family: "tech",
+    experienceFit: ["beginner", "mid", "senior"],
+    bestFor: "Software engineering, platform, data",
+    pdfLayout: "two-column",
+    palette: { accent: "#00a3a3", accentDark: "#006b70", accentLight: "#dcf2f0" },
+  },
+] as const satisfies readonly ResumeTemplateDefinition[];
+
+export type ResumeVisualTemplate = (typeof RESUME_TEMPLATES)[number]["id"];
+
+export const RESUME_TEMPLATE_PALETTES = Object.fromEntries(
+  RESUME_TEMPLATES.map((template) => [template.id, template.palette]),
+) as Record<ResumeVisualTemplate, ResumeTemplatePalette>;
+
+export function getResumeTemplate(id: ResumeVisualTemplate) {
+  return RESUME_TEMPLATES.find((template) => template.id === id) ?? RESUME_TEMPLATES[0];
+}
 
 export type ResumeStyleSettings = {
   template: ResumeVisualTemplate;
@@ -93,7 +163,7 @@ export const DENSITY_SCALE: Record<ResumeDensity, number> = {
 
 const TEXT_SIZES: ResumeTextSize[] = ["small", "medium", "large"];
 const DENSITIES: ResumeDensity[] = ["compact", "normal", "relaxed"];
-const VISUAL_TEMPLATES: ResumeVisualTemplate[] = ["sample-two-column", "signal-grid", "atelier-noir", "terminal-stack"];
+const VISUAL_TEMPLATES: ResumeVisualTemplate[] = RESUME_TEMPLATES.map((template) => template.id);
 
 function asBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
