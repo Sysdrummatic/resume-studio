@@ -1,8 +1,8 @@
 # OpenCiVera — Project Status
 
-**Last Updated:** 2026-10-22
-**Current Phase:** I — Hardening, QA & Launch Readiness
-**Overall Progress:** ~72% (A–F complete; I 65%; G P0 gate 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E; J–O pending)
+**Last Updated:** 2026-11-12
+**Current Phase:** G — Community Beta Testing (P0 gate closed, recruitment next); SEO T16–T19 running in parallel
+**Overall Progress:** ~85% (A–F, I and M complete; G P0 security gate 6/6 closed, beta program not started; J–O pending)
 
 ---
 
@@ -16,12 +16,13 @@
 | D | Editor Canvas | ✅ Complete | 100% | May 2026 |
 | E | UX & Community | ✅ Complete (delivered early) | 100% | May 2026 |
 | F | Public Surface & MVP Launch | ✅ Complete (closed 2026-07-03) | 100% | May–Jun 2026 |
-| G | Community Beta Testing + P0 Security Entry Gate | ⏳ Planned (P0: 0/5 closed — G-P0-01 implemented, awaiting beta deploy + E2E) | 5% | P0 before beta; program after I |
-| I | Hardening, QA & Launch Readiness | 🔄 Active | 65% | Jul 2026 |
-| J | AI & Ecosystem | ⏳ Post-launch | 0% | Q3 2026 |
-| K | ATS Intelligence | ⏳ Post-launch | 0% | TBD |
+| G | Community Beta Testing + P0 Security Entry Gate | 🔄 P0 gate closed (6/6, G-P0-01…06); beta recruitment/run not started ([#98](https://github.com/Sysdrummatic/resume-studio/issues/98)–[#102](https://github.com/Sysdrummatic/resume-studio/issues/102)) | ~35% | After I |
+| I | Hardening, QA & Launch Readiness | ✅ Complete (umbrella [#216](https://github.com/Sysdrummatic/resume-studio/issues/216) closed 2026-10-21; last hardening PR #270 merged 2026-11-03) | 100% | Nov 2026 |
+| SEO | SEO, AI Visibility & Discoverability (T00–T20) | 🔄 T00–T15 and T20 closed; T16–T19 open | ~80% | Q4 2026 |
+| J | AI & Ecosystem | ⏳ Post-launch | 0% | TBD |
+| K | ATS Intelligence | ⏳ Post-launch (PR [#162](https://github.com/Sysdrummatic/resume-studio/pull/162) open since 2026-09-15, not merged) | ~10% | TBD |
 | L | Semantic Public Link URL | ⏳ Post-launch | 0% | TBD |
-| M | Security, Privacy & Trust | ⏳ Planned | 0% | Jul–Sep 2026 |
+| M | Security, Privacy & Trust | ✅ Complete (closed with PR #276, 2026-11-06: rate limiting, auth boundary, env separation); MFA/CAPTCHA deliberately deferred to [#275](https://github.com/Sysdrummatic/resume-studio/issues/275) | 100% | Nov 2026 |
 | N | Professional Identity Platform | ✦ Vision | 0% | 2027+ |
 | O | OpenCV Format Standard & Specification | ⏳ Planned | 0% | TBD (post-G) |
 
@@ -36,45 +37,56 @@ A → B → C → D → E ── F (Public Surface) ── I (Hardening & Launch
                                                                        └── K (ATS) → L (Semantic URL)
 ```
 
-Phase M's processor, hosting, secret-management, security-header and PDF threat-model
-gates must close before launch. Phase G external onboarding remains blocked by its five
-P0 security tasks.
+Phase M is closed and Phase G's six P0 security tasks are closed, so external beta
+onboarding is no longer blocked by security gates.
 
 Phase O is independent of the A→N chain — it extracts the OpenCV YAML format into a
 standalone, externally versioned specification (analogous to OpenAPI), with
 OpenCiVera migrating to consume it. It should not start before Phase G's P0 gate
-closes, but has no other hard dependency.
+closes (now met), but has no other hard dependency.
 
 ---
 
-## Active Sprint: Phase I — Remaining Items
+## Phase I — Closed
 
-**Completed:**
+Phase I is complete; the delivered hardening work is listed below. Its Deploy QA / Release checklists in [phase-i-hardening-qa.md](phases/phase-i-hardening-qa.md) are not ticked there, so reconcile that doc with this status.
+
+
+**Delivered:**
 - [x] Local CI gates green (lint / typecheck / test / build)
 - [x] Reusable Playwright preview smoke runner for public routes and anonymous protected-route redirects
 - [x] Privacy Policy page, Terms of Service page
 - [x] Self-service account deletion (GDPR Art. 17)
 - [x] Last-admin deletion safeguard (DB trigger + API guard)
 - [x] PDF rendering module (ADR 0014) + draft feature flag
-- [x] Apply `20260610000000_pdf_feature_flags.sql` to production (verified 2026-07-09: `pdf_draft_enabled` present and enabled)
+- [x] Apply `20260610000000_pdf_feature_flags.sql` to production (verified 2026-07-09)
 - [x] Release and rollback runbook ([release-and-rollback.md](runbooks/release-and-rollback.md), 2026-10-21)
 - [x] Production smoke protocol ([production-smoke-protocol.md](runbooks/production-smoke-protocol.md), 2026-10-21; written, not yet executed)
-- [x] RLS validation: live cross-account tests (`npm run test:rls`, in CI) and the anonymous-access fixes found by them ([incident](incidents/2026-10-21-anon-target-user-access.md), migrations on test and prod 2026-10-21)
+- [x] RLS validation: live cross-account tests (`npm run test:rls`, in CI) and the anonymous-access fixes found by them ([incident](incidents/2026-10-21-anon-target-user-access.md))
+- [x] API authorization audit; deactivated accounts lose DB-level staff access (#263, migration on test and prod 2026-11-03)
+- [x] Environment readiness gate (#159) and prod/test environment separation ([environment-separation.md](runbooks/environment-separation.md), #273)
+- [x] Production dependency advisories remediated (#157)
+- [x] Distributed rate limiting with trusted client IP (#272, G-P0-05)
+- [x] Supabase Auth boundary controls ([supabase-auth-production-checklist.md](runbooks/supabase-auth-production-checklist.md), #274)
+- [x] Private pages `noindex` instead of robots block (#269); header touch targets and min text size (#268)
 
-**Pending — Deploy QA:**
-- [ ] Preview deploy QA complete
-- [ ] Production deploy QA complete
-- [ ] Auth smoke checks (sign-up, sign-in, reset, verify)
-- [ ] Protected route smoke checks
-- [ ] Admin panel and audit smoke checks
-- [ ] Editor publish / rollback smoke checks
+---
 
-**Pending — Release:**
-- [ ] E2E regression suite for critical paths
-- [ ] Performance and accessibility checks
-- [ ] Security controls: API authorization audit, secret management (RLS validated, see above)
-- [ ] Observability dashboards and alerting configured
-- [ ] Production smoke test protocol executed (first run after launch-readiness QA)
+## Open GitHub Work (snapshot 2026-11-12)
+
+23 open issues, 1 open PR.
+
+| Area | Open items | Note |
+|------|-----------|------|
+| Phase M leftovers | [#271](https://github.com/Sysdrummatic/resume-studio/issues/271) integration tracker (phase closed, sub-work merged via #276, issue still open — close it); [#275](https://github.com/Sysdrummatic/resume-studio/issues/275) TOTP UI, MFA at sign-in, AAL2 in RLS, CAPTCHA | #275 deferred by owner (low); `assert_staff_aal2()` exists on test only — drift to reconcile |
+| SEO | [#234](https://github.com/Sysdrummatic/resume-studio/issues/234) GSC/Bing verification (high), [#233](https://github.com/Sysdrummatic/resume-studio/issues/233) mobile, [#235](https://github.com/Sysdrummatic/resume-studio/issues/235) AI-visibility content, [#236](https://github.com/Sysdrummatic/resume-studio/issues/236) re-measurement | #233 partly fixed by #254/#268; indexing of user CVs deliberately paused (ADR 0001/0005) |
+| Landing / UX | [#190](https://github.com/Sysdrummatic/resume-studio/issues/190), [#191](https://github.com/Sysdrummatic/resume-studio/issues/191), [#189](https://github.com/Sysdrummatic/resume-studio/issues/189) (app i18n, ADR 0022), [#209](https://github.com/Sysdrummatic/resume-studio/issues/209), [#206](https://github.com/Sysdrummatic/resume-studio/issues/206), [#90](https://github.com/Sysdrummatic/resume-studio/issues/90), [#89](https://github.com/Sysdrummatic/resume-studio/issues/89), [#87](https://github.com/Sysdrummatic/resume-studio/issues/87) | No activity since 2026-09-15 except #206 |
+| Beta bugs | [#173](https://github.com/Sysdrummatic/resume-studio/issues/173) Saved Versions filter can revert default CV (high), [#166](https://github.com/Sysdrummatic/resume-studio/issues/166), [#176](https://github.com/Sysdrummatic/resume-studio/issues/176) | #173 is the only high |
+| Beta program | [#98](https://github.com/Sysdrummatic/resume-studio/issues/98)–[#102](https://github.com/Sysdrummatic/resume-studio/issues/102) | Recruitment, channels, window, feedback, review |
+| Phase K | [#161](https://github.com/Sysdrummatic/resume-studio/issues/161) + PR [#162](https://github.com/Sysdrummatic/resume-studio/pull/162) | PR stale since 2026-09-15; master has moved on (language parity, QR codes), rebase before review |
+| CV templates | [#277](https://github.com/Sysdrummatic/resume-studio/issues/277) integration branch `ocv-0277-nowe-szablony-cv` | New template families (standard / premium / tech / bold); discovery done, approach and lineup awaiting decision |
+
+Closed since the last STATUS update (2026-10-22): SEO T12b–T15 and T20 (#250, #232, #231, #237), Phase I umbrella #216 and gate #159, ATS badge bug #171, and the Phase M security PRs (#272–#276).
 
 ---
 
