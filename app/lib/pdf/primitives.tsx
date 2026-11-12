@@ -82,6 +82,9 @@ export function PdfSectionCard({
    * the card's current fragment has no children left and drops it too, so the
    * whole section moves cleanly. Verified in tests/pdf-render-geometry.test.mjs.
    */
+  // A `rule` section (ADR 0027) has no card surface; a hairline under the title
+  // separates it instead. Its height is sectionRuleHeight() in ./pagination.
+  const ruled = theme.variant?.section === "rule";
   const titleRow = (
     <View
       style={{
@@ -89,9 +92,24 @@ export function PdfSectionCard({
         alignItems: "center",
         gap: theme.components.sectionTitleGap,
         marginBottom: theme.spacing.spaceSm,
+        ...(ruled
+          ? {
+              paddingBottom: theme.components.sectionRuleGap ?? 0,
+              borderBottomWidth: theme.components.sectionRuleWidth ?? 0,
+              borderBottomColor: theme.colors.rule ?? theme.colors.border,
+            }
+          : null),
       }}
     >
-      <PdfCircle size={theme.components.sectionDotSize} color={theme.colors.accent} theme={theme} />
+      <PdfCircle
+        size={theme.components.sectionDotSize}
+        color={theme.colors.accent}
+        theme={theme}
+        style={{
+          height: theme.components.sectionDotHeight ?? theme.components.sectionDotSize,
+          borderRadius: theme.components.sectionDotRadius ?? theme.radii.full,
+        }}
+      />
       <Text
         style={{
           fontSize: titleSize,
@@ -115,7 +133,7 @@ export function PdfSectionCard({
     <View
       wrap={wrap}
       style={{
-        backgroundColor: theme.colors.cardBg,
+        backgroundColor: ruled ? undefined : theme.colors.cardBg,
         borderRadius: theme.radii.lg,
         padding: theme.layout.cardPadding,
       }}
@@ -168,10 +186,13 @@ export function PdfTimelineItem({
     typography.sizes.base * typography.lineHeight,
   );
   const dotOuterSize = components.timelineDotSize + components.timelineDotRing * 2;
+  // `stacked` draws neither the rail nor the entry surface; its theme sets the
+  // rail width and content padding to 0, which is what ./pagination measures.
+  const stacked = theme.variant?.timeline === "stacked";
 
   return (
     <View wrap={allowSplit} style={{ flexDirection: "row" }}>
-      <View style={{ width: components.timelineRailWidth, position: "relative" }}>
+      <View style={{ width: components.timelineRailWidth, position: "relative", ...(stacked ? { display: "none" as const } : null) }}>
         <View
           style={{
             position: "absolute",
@@ -208,7 +229,7 @@ export function PdfTimelineItem({
           style={{
             fontSize: typography.sizes.base,
             fontWeight: typography.weights.bold,
-            color: theme.colors.muted,
+            color: stacked ? theme.colors.accentDark : theme.colors.muted,
             // The dot above is centred on periodLineHeight, so the period's
             // glyphs have to be centred on it too. Padding rather than an
             // explicit height, so the box is periodLineHeight tall without
@@ -223,6 +244,7 @@ export function PdfTimelineItem({
         <View
           style={{
             backgroundColor: theme.colors.pageBg,
+            ...(stacked ? { backgroundColor: undefined } : null),
             borderRadius: theme.radii.md,
             paddingVertical: components.timelineContentPaddingY,
             paddingHorizontal: components.timelineContentPaddingX,
@@ -311,6 +333,10 @@ type PdfDotMeterProps = {
 
 // Mirrors .meter / .meter__dot.
 export function PdfDotMeter({ level, theme }: PdfDotMeterProps) {
+  // `none` lists names only. The level is never text in any variant, and the
+  // ATS exports read it from the document, not from this drawing.
+  if (theme.variant?.meter === "none") return null;
+
   return (
     <View style={{ flexDirection: "row", gap: theme.components.meterDotGap }}>
       {[1, 2, 3, 4, 5].map((step) => (
@@ -319,6 +345,10 @@ export function PdfDotMeter({ level, theme }: PdfDotMeterProps) {
           size={theme.components.meterDotSize}
           color={level >= step ? theme.colors.accent : theme.colors.meterDotInactive}
           theme={theme}
+          style={{
+            height: theme.components.meterDotHeight ?? theme.components.meterDotSize,
+            borderRadius: theme.components.meterDotRadius ?? theme.radii.full,
+          }}
         />
       ))}
     </View>
@@ -341,7 +371,9 @@ export function PdfPillList({ items, theme }: PdfPillListProps) {
             backgroundColor: theme.colors.pillBg,
             paddingVertical: theme.components.pillPaddingY,
             paddingHorizontal: theme.components.pillPaddingX,
-            borderRadius: theme.radii.full,
+            borderRadius: theme.components.pillRadius ?? theme.radii.full,
+            borderColor: theme.components.pillBorderColor,
+            borderWidth: theme.components.pillBorderColor ? 0.625 : undefined,
           }}
         >
           <Text
@@ -349,7 +381,7 @@ export function PdfPillList({ items, theme }: PdfPillListProps) {
               fontSize: theme.typography.sizes.base,
               fontWeight: theme.typography.weights.medium,
               lineHeight: theme.typography.lineHeight,
-              color: theme.colors.accentDark,
+              color: theme.components.pillTextColor ?? theme.colors.accentDark,
             }}
           >
             {item}

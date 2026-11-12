@@ -68,6 +68,7 @@ export function characterWidths(text: string, fontSize: number, bold = false): n
 /** Width of the main column's card, inside the page margins. */
 export function mainColumnWidth(theme: PdfTheme): number {
   const { layout } = theme;
+  if (theme.variant?.layout === "single-column") return A4_WIDTH_PT - 2 * PAGE_MARGIN_PT;
   const columns = layout.mainColumnFlex + layout.sideColumnFlex;
 
   return (
@@ -78,11 +79,13 @@ export function mainColumnWidth(theme: PdfTheme): number {
 /** Text width inside a sidebar card — what a contact value has to fit into. */
 export function sidebarTextWidth(theme: PdfTheme): number {
   const { layout } = theme;
+  // In a single column the "sidebar" sections are ordinary full-width ones.
+  if (theme.variant?.layout === "single-column") return mainColumnWidth(theme) - 2 * layout.cardPadding;
   const columns = layout.mainColumnFlex + layout.sideColumnFlex;
   const column =
     ((A4_WIDTH_PT - 2 * PAGE_MARGIN_PT - layout.columnGap) * layout.sideColumnFlex) / columns;
 
-  return column - 2 * layout.cardPadding;
+  return column - 2 * layout.cardPadding - 2 * (layout.sidebarPadding ?? 0);
 }
 
 /**

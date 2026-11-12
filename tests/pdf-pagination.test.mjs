@@ -189,3 +189,124 @@ test("a card only gives up wrap={false} when its content cannot fit a page", () 
   assert.deepEqual(planCard(theme, 100), { wrap: false, keepTitleWithFirstChild: true });
   assert.deepEqual(planCard(theme, LIMIT * 2), { wrap: true, keepTitleWithFirstChild: false });
 });
+
+/**
+ * Layout variants (ADR 0027). A template may ask for a mirrored sidebar or a
+ * single column, and for flat "rule" sections instead of cards. Every width the
+ * estimators read has to follow, or an entry that no longer fits is handed
+ * `wrap={false}` again.
+ */
+const { sidebarTextWidth } = await import("../app/lib/pdf/metrics.ts");
+const { sectionTitleHeight } = await import("../app/lib/pdf/pagination.ts");
+const { A4_WIDTH_PT, PAGE_MARGIN_PT } = await import("../app/lib/pdf/theme.ts");
+const { CvPdfDocument } = await import("../app/lib/pdf/CvPdfDocument.tsx");
+const { defaultResumeDocument } = await import("../app/lib/resume-schema.ts");
+const { renderToBuffer } = await import("@react-pdf/renderer");
+const zlib = await import("node:zlib");
+
+const USABLE_WIDTH = A4_WIDTH_PT - 2 * PAGE_MARGIN_PT;
+const withVariant = (variant, layout = {}) => ({ ...theme, variant, layout: { ...theme.layout, ...layout } });
+
+test("a theme without a variant measures exactly as before", () => {
+  const explicit = withVariant({ layout: "two-column", section: "card", timeline: "rail", meter: "dots" });
+  assert.equal(mainColumnWidth(explicit), mainColumnWidth(theme));
+  assert.equal(sidebarTextWidth(explicit), sidebarTextWidth(theme));
+  assert.equal(sectionTitleHeight(explicit), sectionTitleHeight(theme));
+});
+
+test("a single column gives both kinds of section the full page width", () => {
+  const single = withVariant({ layout: "single-column" });
+  assert.equal(mainColumnWidth(single), USABLE_WIDTH);
+  assert.equal(sidebarTextWidth(single), USABLE_WIDTH - 2 * single.layout.cardPadding);
+});
+
+test("a mirrored sidebar keeps the column widths and gives up its own padding", () => {
+  const mirrored = withVariant({ layout: "two-column-left" });
+  assert.equal(mainColumnWidth(mirrored), mainColumnWidth(theme));
+  assert.equal(sidebarTextWidth(mirrored), sidebarTextWidth(theme));
+
+  const padded = withVariant({ layout: "two-column-left" }, { sidebarPadding: 10 });
+  assert.equal(sidebarTextWidth(padded), sidebarTextWidth(theme) - 20);
+});
+
+test("a ruled section title is taller by its rule and the space above it", () => {
+  const ruled = {
+    ...withVariant({ section: "rule" }),
+    components: { ...theme.components, sectionRuleWidth: 1, sectionRuleGap: 6 },
+  };
+  assert.equal(sectionTitleHeight(ruled), sectionTitleHeight(theme) + 7);
+});
+
+function fixtureResume() {
+  const resume = defaultResumeDocument("Ariana Holt");
+  resume.brand_initials = "AH";
+  resume.summary = [{ position: "Staff Engineer", description: "Builds reliable platforms.", default: true }];
+  resume.experience = [
+    { period: "2021 – now", company: "Northwind", role: "Staff Engineer", highlights: ["Cut deploy time by 60%.", "Mentored six engineers."] },
+    { period: "2017 – 2021", company: "Contoso", role: "Senior Engineer", highlights: ["Led the billing migration."] },
+  ];
+  resume.education = [{ period: "2013 – 2017", school: "AGH", degree: "MSc", detail: "Computer Science" }];
+  resume.courses = [{ year: "2022", name: "Kubernetes Administrator" }];
+  resume.contact = [
+    { label: "E-mail", value: "ariana.holt@example.com", link: "mailto:ariana.holt@example.com" },
+    { label: "Location", value: "Kraków" },
+  ];
+  resume.skills = [{ name: "TypeScript", level: 5 }, { name: "PostgreSQL", level: 4 }];
+  resume.tech_stack = ["Next.js", "Supabase"];
+  resume.languages = [{ name: "Polski", level: 5, level_text: "Native" }];
+  resume.interests = ["Zażółć gęślą jaźń"];
+  return resume;
+}
+
+function textRunsPerPage(buffer) {
+  const raw = buffer.toString("latin1");
+  const marker = /stream\r?\n/g;
+  const pages = [];
+  let match;
+  while ((match = marker.exec(raw))) {
+    const start = match.index + match[0].length;
+    try {
+      const stream = zlib.inflateSync(Buffer.from(raw.slice(start, raw.indexOf("endstream", start)), "latin1")).toString("latin1");
+      if (stream.includes("BT")) pages.push((stream.match(/TJ|Tj/g) || []).length);
+    } catch {
+      // Not a deflated content stream.
+    }
+  }
+  return pages;
+}
+
+const renderRuns = async (renderTheme) =>
+  textRunsPerPage(await renderToBuffer(React.createElement(CvPdfDocument, { resume: fixtureResume(), theme: renderTheme })));
+const sum = (values) => values.reduce((total, value) => total + value, 0);
+
+test("mirroring the sidebar moves the columns without losing or rewrapping a line", async () => {
+  const baseline = await renderRuns(theme);
+  const mirrored = await renderRuns(withVariant({ layout: "two-column-left" }));
+  assert.equal(sum(mirrored), sum(baseline));
+  assert.equal(mirrored.length, baseline.length);
+});
+
+test("every layout and paint variant renders the whole CV", async () => {
+  const baseline = sum(await renderRuns(theme));
+  const flat = {
+    section: "rule",
+    timeline: "stacked",
+    meter: "bars",
+    headerAlign: "center",
+  };
+
+  for (const layout of ["two-column", "two-column-left", "single-column"]) {
+    const pages = await renderRuns({
+      ...withVariant({ layout, ...flat }, { cardPadding: 0, sidebarPadding: layout === "two-column-left" ? 10 : 0 }),
+      components: { ...theme.components, timelineRailWidth: 0, timelineContentPaddingX: 0, timelineContentPaddingY: 0, sectionRuleWidth: 1, sectionRuleGap: 6 },
+    });
+    assert.ok(pages.length >= 1, `${layout} must render at least one page`);
+    // Wider columns wrap less, never drop a text node: the fixture has no line
+    // long enough to wrap in the main column, so the count cannot fall below
+    // the number of text nodes the two-column baseline draws minus its wraps.
+    assert.ok(sum(pages) >= baseline - 4, `${layout} lost text: ${sum(pages)} runs against ${baseline}`);
+  }
+
+  const textMeters = sum(await renderRuns(withVariant({ meter: "none" })));
+  assert.equal(textMeters, baseline, "hiding the meters must not remove any text");
+});

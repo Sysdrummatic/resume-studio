@@ -18,7 +18,7 @@ import PublicationLanguageFields, { validatePublicationLanguages, type Publicati
 import { BasicResumeDocument } from "../components/resume-renderer/BasicResumeDocument";
 import ResumeLanguageSwitcher, { type ResumeLanguageOption } from "../components/resume-language-switcher";
 import { FileText, LockKeyhole, Plus, Search, ArrowUpRight } from "lucide-react";
-import { normalizeResumeStyle, presetStyleSource, RESUME_TEMPLATE_PALETTES, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
+import { normalizeResumeStyle, presetStyleSource, RESUME_TEMPLATES, RESUME_TEMPLATE_PALETTES, type ResumeStyleSettings, type ResumeVisualTemplate } from "../lib/resume-style";
 import { useAppI18n } from "../components/app-i18n-provider";
 import { formatAppMessage } from "../i18n/locale";
 import type { AppDictionary } from "../i18n/types";
@@ -79,12 +79,10 @@ const PRESET_OPTION_KEYS: PresetOptionKey[] = [
   "tech_stack",
 ];
 
-const PRESET_TEMPLATE_OPTIONS: Array<{ value: ResumeVisualTemplate; labelKey: string }> = [
-  { value: "sample-two-column", labelKey: "template_sample_two_column" },
-  { value: "signal-grid", labelKey: "template_signal_grid" },
-  { value: "atelier-noir", labelKey: "template_atelier_noir" },
-  { value: "terminal-stack", labelKey: "template_terminal_stack" },
-];
+const PRESET_TEMPLATE_OPTIONS: Array<{ value: ResumeVisualTemplate; labelKey: string }> = RESUME_TEMPLATES.map((template) => ({
+  value: template.id,
+  labelKey: template.labelKey,
+}));
 
 type DashboardLabels = AppDictionary["dashboard"];
 

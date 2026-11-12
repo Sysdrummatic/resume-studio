@@ -5,6 +5,8 @@ import path from "node:path";
 
 import {
   DEFAULT_RESUME_STYLE,
+  RESUME_TEMPLATES,
+  RESUME_TEMPLATE_PALETTES,
   DENSITY_SCALE,
   TEXT_SIZE_SCALE,
   applyResumeStyleToTheme,
@@ -193,4 +195,49 @@ test("published surfaces read the frozen style, not the editable document", () =
   assert.equal(server.includes("cvStyle: normalizeResumeStyle(activeLocaleRow.style_settings)"), true);
   assert.equal(pdfRoute.includes("applyResumeStyleToTheme(cvBasicDotTheme, exportData.cvStyle)"), true);
   assert.equal(publicPage.includes("cvStyle={published.cvStyle}"), true);
+});
+
+test("one manifest is the only list of templates", () => {
+  // Saved presets store the id as JSON, so an id may be added but never renamed
+  // or removed. The first four are the ones already stored in production.
+  assert.deepEqual(
+    RESUME_TEMPLATES.slice(0, 4).map((template) => template.id),
+    ["sample-two-column", "signal-grid", "atelier-noir", "terminal-stack"],
+  );
+  assert.equal(new Set(RESUME_TEMPLATES.map((template) => template.id)).size, RESUME_TEMPLATES.length);
+
+  const dashboardLabels = { en: read("app/i18n/locales/en/dashboard.yaml"), pl: read("app/i18n/locales/pl/dashboard.yaml") };
+  for (const template of RESUME_TEMPLATES) {
+    assert.ok(["standard", "premium", "tech", "bold"].includes(template.family), `${template.id} family`);
+    assert.ok(["two-column", "two-column-left", "single-column"].includes(template.pdfLayout), `${template.id} pdfLayout`);
+    assert.ok(template.experienceFit.length > 0, `${template.id} experienceFit`);
+    assert.ok(template.experienceFit.every((level) => ["beginner", "mid", "senior"].includes(level)));
+    assert.ok(template.bestFor.trim().length > 0, `${template.id} bestFor`);
+    assert.ok(template.name.trim().length > 0, `${template.id} name`);
+    assert.equal(RESUME_TEMPLATE_PALETTES[template.id], template.palette);
+    assert.equal(normalizeResumeStyle({ template: template.id }).template, template.id);
+    assert.equal(normalizeResumeStyle({ template: template.id }).accentColor, template.palette.accent);
+    for (const locale of ["en", "pl"]) {
+      assert.ok(dashboardLabels[locale].includes(`${template.labelKey}:`), `${template.labelKey} missing in ${locale} dashboard labels`);
+    }
+  }
+
+  // The selectors must read the manifest instead of restating the ids.
+  for (const file of ["app/master-resume/editor-canvas-client.tsx", "app/dashboard/dashboard-client.tsx"]) {
+    const source = read(file);
+    assert.ok(source.includes("RESUME_TEMPLATES"), `${file} must read RESUME_TEMPLATES`);
+    assert.equal(source.includes('"signal-grid"'), false, `${file} must not restate template ids`);
+  }
+});
+
+test("text on an accent stays readable whatever colour the user picks", async () => {
+  const { readableTextOn, contrastRatio } = await import("../app/lib/resume-style.ts");
+  // Light, dark, saturated, mid-grey, and every template default.
+  const accents = ["#ffe98a", "#0b1d33", "#ff0055", "#777777", ...RESUME_TEMPLATES.map((template) => template.palette.accent)];
+  for (const accent of accents) {
+    const text = readableTextOn(accent);
+    assert.ok(contrastRatio(text, accent) >= 4.5, `${text} on ${accent} is ${contrastRatio(text, accent).toFixed(2)}:1`);
+  }
+  assert.equal(readableTextOn("#ffffff"), "#000000");
+  assert.equal(readableTextOn("#000000"), "#ffffff");
 });

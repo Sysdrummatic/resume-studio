@@ -16,11 +16,14 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
   const { components, spacing, typography } = theme;
   const header = theme.header;
   const bleed = header?.bleed;
+  const centred = theme.variant?.headerAlign === "center";
+  // Stacked under the logo the identity is a full-width row, not a flex share.
+  const centredIdentity = centred ? ({ flex: undefined, width: "100%", alignItems: "center" } as const) : null;
 
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: centred ? "column" : "row",
         alignItems: "center",
         gap: spacing.spaceMd,
         marginBottom: spacing.spaceXl,
@@ -53,7 +56,7 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
             Space Grotesk. The PDF matches by using the same fallback. */}
         <Text
           style={{
-            color: header?.logoTextColor || theme.colors.white,
+            color: header?.logoTextColor || theme.colors.onAccent || theme.colors.white,
             fontSize: typography.sizes.logo,
             // Natural, not 1.6: the circle centres this Text, and react-pdf
             // hangs all leading below the glyphs, so a 1.6 box put the initials
@@ -71,7 +74,7 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
           a flex item defaults to min-width: auto and refuses to shrink below
           its longest line. .hero__identity carries `min-width: 0` for the same
           reason. */}
-      <View style={{ flexDirection: "column", gap: spacing.space2xs, flex: 1, minWidth: 0 }}>
+      <View style={{ flexDirection: "column", gap: spacing.space2xs, flex: 1, minWidth: 0, ...centredIdentity }}>
         <Text
           style={{
             fontSize: typography.sizes.xl,
@@ -79,6 +82,7 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
             // gap to the role below.
             lineHeight: typography.lineHeightHeading,
             fontWeight: typography.weights.bold,
+            textAlign: centred ? "center" : undefined,
             color: header?.textColor || theme.colors.text,
           }}
         >
@@ -91,6 +95,7 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
               fontSize: typography.sizes.role,
               lineHeight: typography.lineHeight,
               fontWeight: typography.weights.medium,
+              textAlign: centred ? "center" : undefined,
               color: header?.roleColor || theme.colors.muted,
             }}
           >

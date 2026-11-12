@@ -125,7 +125,16 @@ export function sectionTitleHeight(theme: PdfTheme, sidebar = false): number {
   const textBox =
     size * typography.lineHeightHeading + opticalCentringMargin(size, typography.lineHeightHeading);
 
-  return Math.max(components.sectionDotSize, textBox) + spacing.spaceSm;
+  const marker = components.sectionDotHeight ?? components.sectionDotSize;
+
+  return Math.max(marker, textBox) + spacing.spaceSm + sectionRuleHeight(theme);
+}
+
+/** What a `rule` section adds under its title: the hairline and the gap above it. */
+export function sectionRuleHeight(theme: PdfTheme): number {
+  if (theme.variant?.section !== "rule") return 0;
+
+  return (theme.components.sectionRuleWidth ?? 0) + (theme.components.sectionRuleGap ?? 0);
 }
 
 /** Tallest a node may be and still be guaranteed a whole page to itself. */
@@ -229,7 +238,7 @@ export function estimateMeterListHeight(
       total +
       label +
       components.meterItemGap +
-      components.meterDotSize +
+      (components.meterDotHeight ?? components.meterDotSize) +
       components.meterListRowGap
     );
   }, 0);
