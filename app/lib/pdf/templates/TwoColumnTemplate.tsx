@@ -25,6 +25,67 @@ type TwoColumnTemplateProps = {
 
 export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumnTemplateProps) {
   const defaultSummary = getDefaultSummary(resume.summary);
+  // ADR 0027: the manifest picks one of three page structures per template.
+  const layout = theme.variant?.layout ?? "two-column";
+
+  const contactSection =
+    resume.contact.length > 0 ? (
+      <PdfPersonalInfo key="contact" contact={resume.contact} title={labels.personalInfo} theme={theme} />
+    ) : null;
+
+  const mainSections = [
+    defaultSummary?.description ? (
+      <PdfSummary key="summary" summary={defaultSummary} title={labels.summary} theme={theme} />
+    ) : null,
+    resume.experience.length > 0 ? (
+      <PdfExperience key="experience" experience={resume.experience} title={labels.experience} theme={theme} />
+    ) : null,
+    resume.education.length > 0 ? (
+      <PdfEducation key="education" education={resume.education} title={labels.education} theme={theme} />
+    ) : null,
+    resume.courses.length > 0 ? (
+      <PdfCourses key="courses" courses={resume.courses} title={labels.courses} theme={theme} />
+    ) : null,
+  ];
+
+  const sideSections = [
+    resume.skills.length > 0 ? (
+      <PdfSkills key="skills" skills={resume.skills} title={labels.skills} theme={theme} />
+    ) : null,
+    resume.tech_stack.length > 0 ? (
+      <PdfTechStack key="tech" techStack={resume.tech_stack} title={labels.techStack} theme={theme} />
+    ) : null,
+    resume.languages.length > 0 ? (
+      <PdfLanguages key="languages" languages={resume.languages} title={labels.languages} theme={theme} />
+    ) : null,
+    resume.interests.length > 0 ? (
+      <PdfInterests key="interests" interests={resume.interests} title={labels.interests} theme={theme} />
+    ) : null,
+    resume.qr_codes.length > 0 ? (
+      <PdfQrCodes key="qr" qrCodes={resume.qr_codes} title={labels.qrCodes} theme={theme} />
+    ) : null,
+  ];
+
+  const mainColumn = (
+    <View key="main" style={{ flex: theme.layout.mainColumnFlex, flexDirection: "column", gap: theme.layout.sectionGap }}>
+      {mainSections}
+    </View>
+  );
+  const sideColumn = (
+    <View
+      key="side"
+      style={{
+        flex: theme.layout.sideColumnFlex,
+        flexDirection: "column",
+        gap: theme.layout.sectionGap,
+        backgroundColor: theme.layout.sidebarBg,
+        padding: theme.layout.sidebarPadding,
+      }}
+    >
+      {contactSection}
+      {sideSections}
+    </View>
+  );
 
   return (
     <Page
@@ -44,43 +105,18 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
     >
       <PdfHeader resume={resume} heroRole={heroRole} theme={theme} />
 
-      <View style={{ flexDirection: "row", gap: theme.layout.columnGap }}>
-        <View style={{ flex: theme.layout.mainColumnFlex, flexDirection: "column", gap: theme.layout.sectionGap }}>
-          {defaultSummary?.description ? (
-            <PdfSummary summary={defaultSummary} title={labels.summary} theme={theme} />
-          ) : null}
-          {resume.experience.length > 0 ? (
-            <PdfExperience experience={resume.experience} title={labels.experience} theme={theme} />
-          ) : null}
-          {resume.education.length > 0 ? (
-            <PdfEducation education={resume.education} title={labels.education} theme={theme} />
-          ) : null}
-          {resume.courses.length > 0 ? (
-            <PdfCourses courses={resume.courses} title={labels.courses} theme={theme} />
-          ) : null}
+      {layout === "single-column" ? (
+        // Contact leads: with no sidebar it reads as the header's second line.
+        <View style={{ flexDirection: "column", gap: theme.layout.sectionGap }}>
+          {contactSection}
+          {mainSections}
+          {sideSections}
         </View>
-
-        <View style={{ flex: theme.layout.sideColumnFlex, flexDirection: "column", gap: theme.layout.sectionGap }}>
-          {resume.contact.length > 0 ? (
-            <PdfPersonalInfo contact={resume.contact} title={labels.personalInfo} theme={theme} />
-          ) : null}
-          {resume.skills.length > 0 ? (
-            <PdfSkills skills={resume.skills} title={labels.skills} theme={theme} />
-          ) : null}
-          {resume.tech_stack.length > 0 ? (
-            <PdfTechStack techStack={resume.tech_stack} title={labels.techStack} theme={theme} />
-          ) : null}
-          {resume.languages.length > 0 ? (
-            <PdfLanguages languages={resume.languages} title={labels.languages} theme={theme} />
-          ) : null}
-          {resume.interests.length > 0 ? (
-            <PdfInterests interests={resume.interests} title={labels.interests} theme={theme} />
-          ) : null}
-          {resume.qr_codes.length > 0 ? (
-            <PdfQrCodes qrCodes={resume.qr_codes} title={labels.qrCodes} theme={theme} />
-          ) : null}
+      ) : (
+        <View style={{ flexDirection: "row", gap: theme.layout.columnGap }}>
+          {layout === "two-column-left" ? [sideColumn, mainColumn] : [mainColumn, sideColumn]}
         </View>
-      </View>
+      )}
 
       {resume.gdpr_clause ? (
         <Text

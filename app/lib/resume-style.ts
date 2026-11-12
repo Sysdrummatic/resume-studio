@@ -187,6 +187,31 @@ function mixHexColor(color: string, target: string, targetWeight: number): strin
   return `#${mixed.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
 }
 
+/** WCAG 2.x relative luminance of a `#rrggbb` colour. */
+function relativeLuminance(color: string): number {
+  const [red, green, blue] = [1, 3, 5].map((offset) => {
+    const channel = Number.parseInt(color.slice(offset, offset + 2), 16) / 255;
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+export function contrastRatio(foreground: string, background: string): number {
+  const [lighter, darker] = [relativeLuminance(foreground), relativeLuminance(background)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * The text colour for a surface painted in a user-chosen accent. The accent is
+ * an arbitrary hex, so white cannot be assumed. One of pure white and pure
+ * black always clears WCAG AA (4.5:1): white does up to a luminance of 0.183,
+ * black from 0.175. An off-black would leave mid-greys such as #777777 with
+ * neither.
+ */
+export function readableTextOn(background: string): "#ffffff" | "#000000" {
+  return contrastRatio("#ffffff", background) >= contrastRatio("#000000", background) ? "#ffffff" : "#000000";
+}
+
 function getAccentPalette(template: ResumeVisualTemplate, accentColor: string): ResumeTemplatePalette {
   const defaults = RESUME_TEMPLATE_PALETTES[template];
   if (accentColor === defaults.accent) return defaults;

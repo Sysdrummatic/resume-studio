@@ -1,5 +1,26 @@
+/**
+ * Structure a template may change (ADR 0027, extends ADR 0014).
+ *
+ * Geometry never lives here: a flat section is `layout.cardPadding: 0`, a
+ * timeline without a rail is `components.timelineRailWidth: 0`. Pagination
+ * reads those numbers, so the estimates follow without a second code path.
+ * These flags only decide what is painted and where the columns go. An absent
+ * variant is the original design.
+ */
+export interface PdfThemeVariant {
+  layout?: "two-column" | "two-column-left" | "single-column";
+  /** `rule`: no card surface, a hairline under the section title. */
+  section?: "card" | "rule";
+  /** `stacked`: period above the entry, no rail, no entry surface. */
+  timeline?: "rail" | "stacked";
+  /** `none` lists the names only; the level stays in the text exports. */
+  meter?: "dots" | "bars" | "none";
+  headerAlign?: "left" | "center";
+}
+
 export interface PdfTheme {
   id: string;
+  variant?: PdfThemeVariant;
   colors: {
     accent: string;
     accentDark: string;
@@ -13,6 +34,10 @@ export interface PdfTheme {
     pillBg: string;
     meterDotInactive: string;
     qrCardBg: string;
+    /** Text drawn on `accent`; white when absent. */
+    onAccent?: string;
+    /** Section-title rule in a `rule` section; `border` when absent. */
+    rule?: string;
   };
   typography: {
     fontFamily: string;
@@ -58,6 +83,9 @@ export interface PdfTheme {
     sideColumnFlex: number;
     cardPadding: number;
     sectionGap: number;
+    /** Inset of a tinted sidebar column; comes out of its text width. */
+    sidebarPadding?: number;
+    sidebarBg?: string;
   };
   components: {
     logoSize: number;
@@ -85,6 +113,16 @@ export interface PdfTheme {
     pillGap: number;
     pillPaddingY: number;
     pillPaddingX: number;
+    /** Height when the marker is not a circle; `sectionDotSize` stays its width. */
+    sectionDotHeight?: number;
+    sectionDotRadius?: number;
+    sectionRuleWidth?: number;
+    sectionRuleGap?: number;
+    meterDotHeight?: number;
+    meterDotRadius?: number;
+    pillRadius?: number;
+    pillBorderColor?: string;
+    pillTextColor?: string;
   };
   header?: {
     backgroundColor?: string;

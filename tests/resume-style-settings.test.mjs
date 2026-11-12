@@ -229,3 +229,15 @@ test("one manifest is the only list of templates", () => {
     assert.equal(source.includes('"signal-grid"'), false, `${file} must not restate template ids`);
   }
 });
+
+test("text on an accent stays readable whatever colour the user picks", async () => {
+  const { readableTextOn, contrastRatio } = await import("../app/lib/resume-style.ts");
+  // Light, dark, saturated, mid-grey, and every template default.
+  const accents = ["#ffe98a", "#0b1d33", "#ff0055", "#777777", ...RESUME_TEMPLATES.map((template) => template.palette.accent)];
+  for (const accent of accents) {
+    const text = readableTextOn(accent);
+    assert.ok(contrastRatio(text, accent) >= 4.5, `${text} on ${accent} is ${contrastRatio(text, accent).toFixed(2)}:1`);
+  }
+  assert.equal(readableTextOn("#ffffff"), "#000000");
+  assert.equal(readableTextOn("#000000"), "#ffffff");
+});
