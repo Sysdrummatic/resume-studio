@@ -1,10 +1,18 @@
 /** Structural subset of PdfTheme this module needs; avoids a runtime import. */
 type PdfThemeShape = {
   id: string;
+  variant?: {
+    layout?: "two-column" | "two-column-left" | "single-column";
+    section?: "card" | "rule";
+    timeline?: "rail" | "stacked";
+    meter?: "dots" | "bars" | "none";
+    headerAlign?: "left" | "center";
+  };
   colors: Record<string, string>;
   typography: { sizes: Record<string, number> };
   spacing: Record<string, number>;
-  layout: { columnGap: number; cardPadding: number; sectionGap: number };
+  layout: { columnGap: number; cardPadding: number; sectionGap: number; sidebarPadding?: number; sidebarBg?: string };
+  components: Record<string, number | string | undefined>;
   header?: {
     backgroundColor?: string;
     textColor?: string;
@@ -58,6 +66,13 @@ type ResumeTemplateDefinition = {
   experienceFit: readonly ResumeExperienceFit[];
   bestFor: string;
   pdfLayout: ResumePdfLayout;
+  /**
+   * `card`: the original card layout and the three skins built on it.
+   * `flat`: templates added under ADR 0027 — no card surface, a ruled section
+   * title, a timeline without a rail — which stay inside the reference box and
+   * so get a PDF that matches them.
+   */
+  surface: "card" | "flat";
   palette: ResumeTemplatePalette;
 };
 
@@ -78,6 +93,7 @@ export const RESUME_TEMPLATES = [
     experienceFit: ["beginner", "mid", "senior"],
     bestFor: "Any role and seniority",
     pdfLayout: "two-column",
+    surface: "card",
     palette: { accent: "#009c8a", accentDark: "#007d6c", accentLight: "#e6f4f2" },
   },
   {
@@ -88,6 +104,7 @@ export const RESUME_TEMPLATES = [
     experienceFit: ["mid", "senior"],
     bestFor: "Product, data, research, engineering",
     pdfLayout: "two-column",
+    surface: "card",
     palette: { accent: "#2448e8", accentDark: "#17349f", accentLight: "#e9edff" },
   },
   {
@@ -98,6 +115,7 @@ export const RESUME_TEMPLATES = [
     experienceFit: ["senior"],
     bestFor: "Leadership, strategy, creative technology",
     pdfLayout: "two-column",
+    surface: "card",
     palette: { accent: "#d7a24a", accentDark: "#93651f", accentLight: "#f8ebd2" },
   },
   {
@@ -108,7 +126,41 @@ export const RESUME_TEMPLATES = [
     experienceFit: ["beginner", "mid", "senior"],
     bestFor: "Software engineering, platform, data",
     pdfLayout: "two-column",
+    surface: "card",
     palette: { accent: "#00a3a3", accentDark: "#006b70", accentLight: "#dcf2f0" },
+  },
+  {
+    id: "classic-single",
+    name: "Classic Single",
+    labelKey: "template_classic_single",
+    family: "standard",
+    experienceFit: ["beginner", "mid", "senior"],
+    bestFor: "Any role; conservative employers, public sector, finance",
+    pdfLayout: "single-column",
+    surface: "flat",
+    palette: paletteFrom("#11355c"),
+  },
+  {
+    id: "sidebar-slate",
+    name: "Sidebar Slate",
+    labelKey: "template_sidebar_slate",
+    family: "standard",
+    experienceFit: ["mid", "senior"],
+    bestFor: "Operations, engineering, consulting; skills-led profiles",
+    pdfLayout: "two-column-left",
+    surface: "flat",
+    palette: paletteFrom("#424953"),
+  },
+  {
+    id: "minimal-light",
+    name: "Minimal Light",
+    labelKey: "template_minimal_light",
+    family: "standard",
+    experienceFit: ["beginner", "mid"],
+    bestFor: "Early career, academia, design-adjacent roles",
+    pdfLayout: "single-column",
+    surface: "flat",
+    palette: paletteFrom("#4f5375"),
   },
 ] as const satisfies readonly ResumeTemplateDefinition[];
 
@@ -212,9 +264,26 @@ export function readableTextOn(background: string): "#ffffff" | "#000000" {
   return contrastRatio("#ffffff", background) >= contrastRatio("#000000", background) ? "#ffffff" : "#000000";
 }
 
+/**
+ * The palette a flat template derives from one accent.
+ *
+ * `accentDark` is a text colour there (periods, roles, links), and it may sit
+ * on `accentLight` (a tinted sidebar), so it is darkened until it clears WCAG
+ * AA against that. A fixed 25% darkening leaves a pale user accent unreadable.
+ */
+function paletteFrom(accent: string): ResumeTemplatePalette {
+  const accentLight = mixHexColor(accent, "#ffffff", 0.88);
+  let accentDark = mixHexColor(accent, "#000000", 0.25);
+  for (let weight = 0.3; contrastRatio(accentDark, accentLight) < 4.5 && weight <= 1; weight += 0.05) {
+    accentDark = mixHexColor(accent, "#000000", weight);
+  }
+  return { accent, accentDark, accentLight };
+}
+
 function getAccentPalette(template: ResumeVisualTemplate, accentColor: string): ResumeTemplatePalette {
   const defaults = RESUME_TEMPLATE_PALETTES[template];
   if (accentColor === defaults.accent) return defaults;
+  if (getResumeTemplate(template).surface === "flat") return paletteFrom(accentColor);
   return {
     accent: accentColor,
     accentDark: mixHexColor(accentColor, "#000000", 0.25),
@@ -228,6 +297,8 @@ export function resumeStyleCssVariables(style: ResumeStyleSettings): Record<stri
     "--accent": palette.accent,
     "--accent-dark": palette.accentDark,
     "--accent-light": palette.accentLight,
+    // Only flat templates read it; the older ones keep white on their accent.
+    "--on-accent": readableTextOn(palette.accent),
   };
 }
 
@@ -296,10 +367,138 @@ export function resumeStyleDataAttributes(style: ResumeStyleSettings): Record<st
   };
 }
 
+/**
+ * Web CSS pixels to PDF points: PX_TO_PT in app/lib/pdf/theme.ts, restated so
+ * this module keeps no runtime import. tests/resume-style-settings.test.mjs
+ * asserts the two agree.
+ */
+const px = (value: number): number => value * 0.625;
+
+type FlatTemplate = Extract<(typeof RESUME_TEMPLATES)[number], { surface: "flat" }>["id"];
+
+type FlatTemplateTheme = {
+  colors: Record<string, string>;
+  variant?: NonNullable<PdfThemeShape["variant"]>;
+  layout?: Partial<PdfThemeShape["layout"]>;
+  components?: Record<string, number | string>;
+  header?: NonNullable<PdfThemeShape["header"]>;
+};
+
+/*
+ * What every flat template shares, mirroring `.resume-surface--flat` in
+ * resume.css. A value starting with "@" names a palette colour and is resolved
+ * once the user's accent is known — see resolveAccentReferences().
+ */
+const FLAT_BASE: Required<Omit<FlatTemplateTheme, "header">> = {
+  variant: { section: "rule", timeline: "stacked" },
+  colors: {
+    accent: "@accent",
+    accentDark: "@accentDark",
+    accentLight: "@accentLight",
+    cardBg: "#ffffff",
+    pageBg: "#ffffff",
+    qrCardBg: "#ffffff",
+    onAccent: "@onAccent",
+  },
+  layout: { cardPadding: 0, sectionGap: px(24) }, // .layout gap: --space-xl
+  components: {
+    sectionDotSize: px(12), // .section-dot
+    sectionDotHeight: px(4),
+    sectionDotRadius: 0,
+    sectionRuleWidth: px(1), // .section-title border-bottom
+    sectionRuleGap: px(6), // .section-title padding-bottom
+    timelineRailWidth: 0, // .timeline padding-left
+    timelineContentPaddingX: 0, // .timeline-item__content padding
+    timelineContentPaddingY: 0,
+  },
+};
+
+const FLAT_TEMPLATE_THEMES: Record<FlatTemplate, FlatTemplateTheme> = {
+  "classic-single": {
+    colors: { text: "#1b1f24", muted: "#5b6470", border: "#d5dae0", pillBg: "#ffffff", meterDotInactive: "#d5dae0" },
+    variant: { meter: "none" },
+    components: {
+      pillPaddingY: px(4),
+      pillPaddingX: px(10),
+      pillRadius: px(4),
+      pillBorderColor: "#d5dae0",
+      pillTextColor: "#1b1f24",
+    },
+    // .hero__title: 16px above a 2px accent rule.
+    header: { paddingBottom: px(16), borderBottomColor: "@accent", borderBottomWidth: px(2) },
+  },
+  "sidebar-slate": {
+    colors: { text: "#20242a", muted: "#5d646d", border: "#cfd3d8", pillBg: "#ffffff", meterDotInactive: "#cfd3d8" },
+    variant: { meter: "bars" },
+    layout: { sidebarPadding: px(16), sidebarBg: "@accentLight" }, // .sidebar padding: --space-md
+    components: {
+      meterDotSize: px(14), // .meter__dot
+      meterDotHeight: px(4),
+      meterDotRadius: 0,
+      pillPaddingY: px(4),
+      pillPaddingX: px(10),
+      pillRadius: px(4),
+    },
+    header: { logoBorderRadius: px(8) },
+  },
+  "minimal-light": {
+    colors: {
+      text: "#22232b",
+      muted: "#666a78",
+      border: "#dcdde4",
+      pillBg: "@accentLight",
+      meterDotInactive: "#dcdde4",
+      rule: "@accentLight",
+    },
+    variant: { meter: "none", headerAlign: "center" },
+    layout: { sectionGap: px(36) }, // .layout gap: --space-xl x 1.5
+    components: { sectionDotSize: 0, sectionDotHeight: 0, sectionTitleGap: 0 }, // .section-dot hidden
+  },
+};
+
+function applyFlatTemplateToTheme<T extends PdfThemeShape>(theme: T, template: FlatTemplate): T {
+  const flat = FLAT_TEMPLATE_THEMES[template];
+
+  return {
+    ...theme,
+    id: `cv-${template}`,
+    variant: { ...FLAT_BASE.variant, ...flat.variant, layout: getResumeTemplate(template).pdfLayout },
+    colors: { ...theme.colors, ...FLAT_BASE.colors, ...flat.colors },
+    layout: { ...theme.layout, ...FLAT_BASE.layout, ...flat.layout },
+    components: { ...theme.components, ...FLAT_BASE.components, ...flat.components },
+    header: flat.header,
+  };
+}
+
+/** Replaces "@accent"-style references with the colours of the active palette. */
+function resolveAccentReferences<T extends PdfThemeShape>(theme: T, palette: ResumeTemplatePalette): T {
+  if (!theme.variant) return theme;
+
+  const references: Record<string, string> = {
+    "@accent": palette.accent,
+    "@accentDark": palette.accentDark,
+    "@accentLight": palette.accentLight,
+    "@onAccent": readableTextOn(palette.accent),
+  };
+  const resolve = <V extends object>(values: V): V =>
+    Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [key, typeof value === "string" ? (references[value] ?? value) : value]),
+    ) as V;
+
+  return {
+    ...theme,
+    colors: resolve(theme.colors),
+    layout: resolve(theme.layout),
+    components: resolve(theme.components),
+    header: theme.header ? resolve(theme.header) : theme.header,
+  };
+}
+
 function applyResumeTemplateToTheme<T extends PdfThemeShape>(theme: T, template: ResumeVisualTemplate): T {
   if (template === DEFAULT_RESUME_STYLE.template) return theme;
+  if (template in FLAT_TEMPLATE_THEMES) return applyFlatTemplateToTheme(theme, template as FlatTemplate);
 
-  const themes: Record<Exclude<ResumeVisualTemplate, "sample-two-column">, Pick<PdfThemeShape, "id" | "colors"> & { header: NonNullable<PdfThemeShape["header"]> }> = {
+  const themes: Record<Exclude<ResumeVisualTemplate, "sample-two-column" | FlatTemplate>, Pick<PdfThemeShape, "id" | "colors"> & { header: NonNullable<PdfThemeShape["header"]> }> = {
     "signal-grid": {
       id: "cv-signal-grid",
       colors: {
@@ -334,7 +533,7 @@ function applyResumeTemplateToTheme<T extends PdfThemeShape>(theme: T, template:
     },
   };
 
-  const selected = themes[template as Exclude<ResumeVisualTemplate, "sample-two-column">];
+  const selected = themes[template as Exclude<ResumeVisualTemplate, "sample-two-column" | FlatTemplate>];
   if (!selected) return theme;
   return { ...theme, id: selected.id, colors: { ...theme.colors, ...selected.colors }, header: selected.header };
 }
@@ -351,8 +550,8 @@ function applyResumeTemplateToTheme<T extends PdfThemeShape>(theme: T, template:
  */
 export function applyResumeStyleToTheme<T extends PdfThemeShape>(theme: T, style: ResumeStyleSettings): T {
   const normalizedStyle = normalizeResumeStyle(style);
-  const templateTheme = applyResumeTemplateToTheme(theme, normalizedStyle.template);
   const palette = getAccentPalette(normalizedStyle.template, normalizedStyle.accentColor);
+  const templateTheme = resolveAccentReferences(applyResumeTemplateToTheme(theme, normalizedStyle.template), palette);
   const defaultAccent = RESUME_TEMPLATE_PALETTES[normalizedStyle.template].accent;
   const header = templateTheme.header
     ? {
@@ -395,6 +594,9 @@ export function applyResumeStyleToTheme<T extends PdfThemeShape>(theme: T, style
       columnGap: templateTheme.layout.columnGap * space,
       cardPadding: templateTheme.layout.cardPadding * space,
       sectionGap: templateTheme.layout.sectionGap * space,
+      ...(templateTheme.layout.sidebarPadding === undefined
+        ? null
+        : { sidebarPadding: templateTheme.layout.sidebarPadding * space }),
     },
   };
 }

@@ -13,6 +13,7 @@ import QrCodeSvg, { QrCodeLink } from "./QrCodeSvg";
 import { sanitizeExternalHref } from "../../lib/safe-url";
 import {
   DEFAULT_RESUME_STYLE,
+  getResumeTemplate,
   resumeStyleCssVariables,
   resumeStyleDataAttributes,
   type ResumeStyleSettings,
@@ -250,10 +251,13 @@ export default function ResumeRenderer({
   const allowStickyHero = (config.mode === "public" || Boolean(scrollContainerRef)) && config.chrome.visible;
   const selectedTemplate = template || cvStyle.template;
   const templateClassName = selectedTemplate === "sample-two-column" ? "resume-template--sample-two-column" : `resume-template--${selectedTemplate}`;
+  const templateDefinition = getResumeTemplate(selectedTemplate);
   const rootClassName = [
     "resume-view-page",
     "resume-renderer",
     templateClassName,
+    `resume-surface--${templateDefinition.surface}`,
+    `resume-layout--${templateDefinition.pdfLayout}`,
     "resume-theme--cv-basic-dot",
     `resume-render-mode--${config.mode}`,
     config.mode === "editor" || config.mode === "preview" ? "resume-editor-basic" : "",

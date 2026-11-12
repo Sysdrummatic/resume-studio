@@ -241,3 +241,92 @@ test("text on an accent stays readable whatever colour the user picks", async ()
   assert.equal(readableTextOn("#ffffff"), "#000000");
   assert.equal(readableTextOn("#000000"), "#ffffff");
 });
+
+/**
+ * Templates added under ADR 0027 carry `surface: "flat"`. Unlike the three
+ * older skins they stay inside the PDF's rules, so the export can match them.
+ */
+function templateCss(id) {
+  const css = read("app/resume/resume.css");
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, selector]) => selector.includes(`.resume-template--${id}`))
+    .map(([, selector, body]) => ({ selector: selector.trim(), body }));
+}
+
+test("flat templates keep the reference box, the CV font and its three weights", () => {
+  const flat = RESUME_TEMPLATES.filter((template) => template.surface === "flat");
+  for (const id of ["classic-single", "sidebar-slate", "minimal-light"]) {
+    assert.ok(flat.some((template) => template.id === id), `${id} must be in the manifest as a flat template`);
+  }
+
+  for (const template of flat) {
+    const rules = templateCss(template.id);
+    assert.ok(rules.length > 0, `resume.css must style .resume-template--${template.id}`);
+    const body = rules.map((rule) => rule.body).join("\n");
+
+    // ADR 0014: leaving the 861.74px box breaks `web length x PX_TO_PT = PDF length`.
+    assert.equal(/max-width\s*:\s*none/.test(body), false, `${template.id} must keep --resume-max-width`);
+    // DESIGN.md domain boundary: the CV must not borrow the Portal's fonts.
+    assert.equal(body.includes("font-geist"), false, `${template.id} must not use Portal fonts`);
+    // Only these weights exist as static files the PDF can embed.
+    for (const [, weight] of body.matchAll(/font-weight\s*:\s*([^;]+);/g)) {
+      assert.ok(["400", "500", "700"].includes(weight.trim()), `${template.id} uses font-weight ${weight.trim()}`);
+    }
+  }
+});
+
+test("a flat template's PDF theme mirrors its manifest entry and its CSS tokens", async () => {
+  const { readableTextOn } = await import("../app/lib/resume-style.ts");
+  const { PX_TO_PT } = await import("../app/lib/pdf/theme.ts");
+  const renderer = read("app/components/resume-renderer/ResumeRenderer.tsx");
+  assert.ok(renderer.includes("resume-surface--"), "the renderer must expose the surface as a class");
+  assert.ok(renderer.includes("resume-layout--"), "the renderer must expose the layout as a class");
+
+  for (const template of RESUME_TEMPLATES.filter((entry) => entry.surface === "flat")) {
+    const theme = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: template.id }));
+    assert.equal(theme.id, `cv-${template.id}`);
+    assert.equal(theme.variant.layout, template.pdfLayout);
+    assert.equal(theme.variant.section, "rule");
+    assert.equal(theme.variant.timeline, "stacked");
+    assert.equal(theme.layout.cardPadding, 0);
+    assert.equal(theme.components.timelineRailWidth, 0);
+    // .resume-surface--flat .section-title: 6px above a 1px rule.
+    assert.equal(theme.components.sectionRuleGap, 6 * PX_TO_PT);
+    assert.equal(theme.components.sectionRuleWidth, 1 * PX_TO_PT);
+
+    const root = templateCss(template.id).find((rule) => rule.selector === `.resume-template--${template.id}`);
+    assert.ok(root, `${template.id} needs a root token block`);
+    const token = (name) => root.body.match(new RegExp(`${name}\\s*:\\s*(#[0-9a-f]{6})`))?.[1];
+    assert.equal(theme.colors.text, token("--text"), `${template.id} --text`);
+    assert.equal(theme.colors.muted, token("--muted"), `${template.id} --muted`);
+    assert.equal(theme.colors.border, token("--border"), `${template.id} --border`);
+
+    // No placeholder may survive into a colour the PDF paints.
+    const strings = [...Object.values(theme.colors), ...Object.values(theme.components), ...Object.values(theme.layout), ...Object.values(theme.header ?? {})];
+    assert.equal(strings.some((value) => typeof value === "string" && value.startsWith("@")), false, `${template.id} has an unresolved colour reference`);
+
+    assert.equal(theme.colors.onAccent, readableTextOn(template.palette.accent));
+    assert.equal(theme.colors.accent, template.palette.accent, `${template.id} PDF must use its own accent`);
+    assert.equal(theme.colors.accentDark, template.palette.accentDark);
+    const light = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: template.id, accentColor: "#ffe98a" }));
+    assert.equal(light.colors.onAccent, "#000000", "a light user accent needs dark text on it");
+    assert.equal(light.variant.layout, template.pdfLayout);
+
+    const dense = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: template.id, density: "compact", textSize: "large" }));
+    assert.equal(dense.variant.layout, template.pdfLayout);
+    assert.equal(dense.layout.cardPadding, 0);
+    assert.ok(Math.abs(dense.layout.sectionGap - theme.layout.sectionGap * DENSITY_SCALE.compact) < 1e-9);
+  }
+
+  assert.equal(resumeStyleCssVariables(normalizeResumeStyle({ template: "sidebar-slate", accentColor: "#ffe98a" }))["--on-accent"], "#000000");
+});
+
+test("the older templates keep the PDF they had", () => {
+  for (const id of ["sample-two-column", "signal-grid", "atelier-noir", "terminal-stack"]) {
+    const theme = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: id }));
+    assert.equal(theme.variant, undefined, `${id} must not gain a layout variant`);
+    assert.equal(theme.colors.onAccent, undefined, `${id} keeps white text on its accent`);
+    assert.deepEqual(theme.layout, cvBasicDotTheme.layout);
+    assert.deepEqual(theme.components, cvBasicDotTheme.components);
+  }
+});

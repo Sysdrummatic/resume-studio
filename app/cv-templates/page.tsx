@@ -6,6 +6,7 @@ import { getRequestAppI18n } from "../i18n/server";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeRendererLabels } from "../components/resume-renderer/build-resume-render-model";
 import ResumeRenderer, { type ResumeVisualTemplate } from "../components/resume-renderer/ResumeRenderer";
+import { RESUME_TEMPLATES, normalizeResumeStyle } from "../lib/resume-style";
 import styles from "./templates.module.css";
 
 type DictionaryRecord = Record<string, unknown>;
@@ -70,6 +71,13 @@ const templateCards: Array<{
     description: "Techniczna hierarchia, dyskretna siatka danych i precyzyjnie dozowany akcent cyan.",
     bestFor: "Software engineering, platform, data",
   },
+  // Templates added under ADR 0027 come straight from the manifest.
+  ...RESUME_TEMPLATES.filter((template) => template.surface === "flat").map((template) => ({
+    id: template.id,
+    title: template.name,
+    description: "",
+    bestFor: template.bestFor,
+  })),
 ];
 
 export const metadata: Metadata = {
@@ -104,7 +112,7 @@ export default async function CvTemplatesPage() {
                 <h2>{template.title}</h2>
               </div>
               <div className={styles.templateCopy}>
-                <p>{template.description}</p>
+                {template.description ? <p>{template.description}</p> : null}
                 <p><span>Najlepsze dla</span> {template.bestFor}</p>
               </div>
             </div>
@@ -117,6 +125,7 @@ export default async function CvTemplatesPage() {
                 showChrome={false}
                 status="public"
                 template={template.id}
+                cvStyle={normalizeResumeStyle({ template: template.id })}
               />
             </div>
           </section>

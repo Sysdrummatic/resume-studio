@@ -33,6 +33,9 @@ dashboard:
     template_signal_grid: Signal Grid
     template_atelier_noir: Atelier Noir
     template_terminal_stack: Terminal Stack
+    template_classic_single: Classic Single
+    template_sidebar_slate: Sidebar Slate
+    template_minimal_light: Minimal Light
     no_items: No items in the Experience Base.
     saving: Saving…
     create: Create LiveCV

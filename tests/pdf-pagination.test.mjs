@@ -310,3 +310,34 @@ test("every layout and paint variant renders the whole CV", async () => {
   const textMeters = sum(await renderRuns(withVariant({ meter: "none" })));
   assert.equal(textMeters, baseline, "hiding the meters must not remove any text");
 });
+
+const resumeStyle = await import("../app/lib/resume-style.ts");
+
+test("every template in the manifest renders the whole CV to PDF", async () => {
+  const baseline = sum(await renderRuns(theme));
+
+  for (const template of resumeStyle.RESUME_TEMPLATES) {
+    for (const overrides of [{}, { density: "compact", textSize: "large" }, { accentColor: "#ffe98a" }]) {
+      const styled = resumeStyle.applyResumeStyleToTheme(
+        theme,
+        resumeStyle.normalizeResumeStyle({ template: template.id, ...overrides }),
+      );
+      const pages = await renderRuns(styled);
+      const label = `${template.id} ${JSON.stringify(overrides)}`;
+      assert.ok(pages.length >= 1, `${label} must render`);
+      // Layouts wrap differently, and a meter-less template draws no fewer text
+      // nodes; a real loss (a dropped section) costs far more than four runs.
+      assert.ok(sum(pages) >= baseline - 4, `${label} lost text: ${sum(pages)} runs against ${baseline}`);
+    }
+  }
+});
+
+test("a single-column contact row falls back to stacked rows for an oversized value", async () => {
+  const single = resumeStyle.applyResumeStyleToTheme(theme, resumeStyle.normalizeResumeStyle({ template: "classic-single" }));
+  const resume = fixtureResume();
+  // Nothing caps a contact value. One wrapping row holding it cannot split and
+  // would be drawn off the sheet, so the list must stay a column of rows.
+  resume.contact = [{ label: "Portfolio", value: `https://example.com/${"a".repeat(6000)}` }];
+  const pages = textRunsPerPage(await renderToBuffer(React.createElement(CvPdfDocument, { resume, theme: single })));
+  assert.ok(pages.length > 1, "an oversized contact value must be able to continue on the next page");
+});

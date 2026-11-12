@@ -65,6 +65,46 @@ export function PdfPersonalInfo({ contact, title, theme }: PdfPersonalInfoProps)
     rowHeight(theme, contact[0].label, values[0]) + sectionTitleHeight(theme, true) <=
       pageContentHeight(theme);
 
+  /*
+   * In a single column the list is a wrapping row of label-over-value pairs,
+   * as `.resume-layout--single-column .contact-list` lays it out. That row is
+   * one node and cannot split, so it is only used while every value fits on a
+   * line; an oversized value keeps the column of rows below, which can.
+   */
+  const inline = theme.variant?.layout === "single-column" && values.every((value) => !value.includes("\n"));
+
+  if (inline) {
+    return (
+      <PdfSectionCard title={title} theme={theme} sidebar>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: theme.spacing.spaceXl, rowGap: components.contactRowGap }}>
+          {contact.map((item, index) => (
+            <View key={index} style={{ flexDirection: "column", alignItems: "flex-start", gap: components.contactLabelGap }}>
+              <Text
+                style={{
+                  fontSize: typography.sizes.base,
+                  lineHeight: typography.lineHeightTight,
+                  fontWeight: typography.weights.bold,
+                  color: theme.colors.muted,
+                }}
+              >
+                {item.label}
+              </Text>
+              <Text
+                style={{
+                  fontSize: typography.sizes.contactValue,
+                  lineHeight: typography.lineHeightTight,
+                  color: item.link ? theme.colors.accentDark : theme.colors.text,
+                }}
+              >
+                {values[index]}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </PdfSectionCard>
+    );
+  }
+
   return (
     // `wrap`, because the schema caps neither the number of contacts nor their
     // length. In a card that cannot split, everything past the page edge is

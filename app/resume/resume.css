@@ -2856,6 +2856,229 @@ img {
   }
 }
 
+/* --------------------------------------------------------------------------
+   Flat templates (ADR 0027)
+
+   Templates whose manifest entry says `surface: "flat"`. Unlike the three skins
+   above they keep --resume-max-width, the CV font and its 400/500/700 weights,
+   so every length here maps onto the PDF by PX_TO_PT. The PDF side of each rule
+   is FLAT_BASE / FLAT_TEMPLATE_THEMES in app/lib/resume-style.ts; a comment
+   there names the selector it mirrors.
+
+   .resume-surface--flat        shared: no card surface, ruled section titles,
+                                a timeline without a rail
+   .resume-layout--<pdfLayout>  the page structure
+   .resume-template--<id>       tokens and the few rules that are its own
+ */
+
+.resume-surface--flat {
+  --card-bg: #ffffff;
+  --bg: #ffffff;
+  --shadow-soft: none;
+  --radius-lg: 0;
+}
+
+.resume-surface--flat .layout {
+  gap: var(--space-xl);
+}
+
+.resume-surface--flat .main-column,
+.resume-surface--flat .sidebar {
+  gap: var(--space-xl);
+}
+
+.resume-surface--flat .section,
+.resume-surface--flat .card {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.resume-surface--flat .section-title {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule, var(--border));
+}
+
+.resume-surface--flat .section-dot {
+  width: 12px;
+  height: 4px;
+  border-radius: 0;
+}
+
+.resume-surface--flat .logo-circle {
+  color: var(--on-accent);
+}
+
+.resume-surface--flat .timeline {
+  padding-left: 0;
+}
+
+.resume-surface--flat .timeline::before,
+.resume-surface--flat .timeline-item__period::before {
+  display: none;
+}
+
+.resume-surface--flat .timeline-item__period {
+  color: var(--accent-dark);
+}
+
+.resume-surface--flat .timeline:not(.timeline--courses) .timeline-item__content,
+.resume-surface--flat .timeline--courses .timeline-item__content {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.resume-surface--flat .meter__dot {
+  background: var(--border);
+}
+
+.resume-surface--flat .meter__dot--active {
+  background: var(--accent);
+}
+
+.resume-surface--flat .qr-card {
+  background: transparent;
+}
+
+/* Single column: one flow of sections, contact first. `display: contents`
+   lifts the sections out of their two wrappers so `order` can place them; the
+   DOM order, which is what a screen reader and a text extractor follow, does
+   not change. */
+.resume-layout--single-column .layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.resume-layout--single-column .main-column,
+.resume-layout--single-column .sidebar {
+  display: contents;
+}
+
+.resume-layout--single-column .resume-section--personal { order: 1; }
+.resume-layout--single-column .resume-section--summary { order: 2; }
+.resume-layout--single-column .resume-section--experience { order: 3; }
+.resume-layout--single-column .resume-section--education { order: 4; }
+.resume-layout--single-column .resume-section--courses { order: 5; }
+.resume-layout--single-column .resume-section--skills { order: 6; }
+.resume-layout--single-column .resume-section--tech-stack { order: 7; }
+.resume-layout--single-column .resume-section--languages { order: 8; }
+.resume-layout--single-column .resume-section--interests { order: 9; }
+.resume-layout--single-column .resume-section--qr-codes { order: 10; }
+
+.resume-layout--single-column .contact-list {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px var(--space-xl);
+  margin-bottom: 0;
+}
+
+.resume-layout--single-column .contact-item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: auto;
+}
+
+/* Sidebar first. Below 1024px the base rules already collapse the two columns
+   into one flow, so the mirroring only exists where there are columns. */
+@media (min-width: 1024px) {
+  .resume-layout--two-column-left .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr);
+  }
+
+  .resume-layout--two-column-left .sidebar {
+    order: -1;
+    align-self: stretch;
+  }
+}
+
+.resume-template--classic-single {
+  --text: #1b1f24;
+  --muted: #5b6470;
+  --border: #d5dae0;
+}
+
+.resume-template--classic-single .hero__title {
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--accent);
+}
+
+.resume-template--classic-single .meter,
+.resume-template--minimal-light .meter {
+  display: none;
+}
+
+.resume-template--classic-single .pill-list li {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+}
+
+.resume-template--sidebar-slate {
+  --text: #20242a;
+  --muted: #5d646d;
+  --border: #cfd3d8;
+}
+
+.resume-template--sidebar-slate .logo-circle {
+  border-radius: 8px;
+}
+
+@media (min-width: 1024px) {
+  .resume-template--sidebar-slate .sidebar {
+    padding: var(--space-md);
+    background: var(--accent-light);
+  }
+}
+
+.resume-template--sidebar-slate .meter__dot {
+  width: 14px;
+  height: 4px;
+  border-radius: 0;
+}
+
+.resume-template--sidebar-slate .pill-list li {
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.resume-template--minimal-light {
+  --text: #22232b;
+  --muted: #666a78;
+  --border: #dcdde4;
+  --rule: var(--accent-light);
+}
+
+.resume-template--minimal-light .layout {
+  gap: calc(var(--space-xl) * 1.5);
+}
+
+.resume-template--minimal-light .hero__title {
+  flex-direction: column;
+  text-align: center;
+}
+
+.resume-template--minimal-light .hero__identity {
+  align-items: center;
+}
+
+.resume-template--minimal-light .section-title {
+  gap: 0;
+}
+
+.resume-template--minimal-light .section-dot {
+  display: none;
+}
+
+.resume-template--minimal-light .pill-list li {
+  background: var(--accent-light);
+}
+
 /* Print layout adjustments.
    Single canonical print block — the previous split into two blocks meant the
    later one silently won every conflict. Values kept here are the ones that
@@ -3071,6 +3294,23 @@ img {
   .item-list li {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* Flat templates (ADR 0027) have no card to outline, and their tinted
+     sidebar becomes an ordinary block once .layout stops being a grid. */
+  .resume-surface--flat .section,
+  .resume-surface--flat .card {
+    border: 0 !important;
+  }
+
+  .resume-surface--flat .sidebar {
+    padding: 0;
+    background: transparent;
+  }
+
+  .resume-surface--flat .section-title {
+    padding-bottom: 6px;
+    border-bottom: 1px solid #c9cdcf;
   }
 }
 
