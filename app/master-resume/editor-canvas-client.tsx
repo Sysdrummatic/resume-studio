@@ -28,6 +28,7 @@ import { computeResumeCompletion } from "./resume-completion";
 import { buildQrMatrix, clampQrSize, QR_CODE_LIMITS } from "../lib/qr-code";
 import {
   DEFAULT_RESUME_STYLE,
+  RESUME_TEMPLATES,
   type ResumeDensity,
   type ResumeStyleSettings,
   type ResumeTextSize,
@@ -79,10 +80,7 @@ const STANDARD_GDPR_CLAUSE_EN =
   "I hereby give consent for my personal data included in this document to be processed for the purposes of the current recruitment process.";
 
 const EDITOR_STYLES: Array<{ code: ResumeEditorStyle; label: string }> = [
-  { code: "sample-two-column", label: "Basic" },
-  { code: "signal-grid", label: "Signal Grid" },
-  { code: "atelier-noir", label: "Atelier Noir" },
-  { code: "terminal-stack", label: "Terminal Stack" },
+  ...RESUME_TEMPLATES.map((template) => ({ code: template.id, label: template.name })),
   { code: "empty", label: "YAML source" },
 ];
 
