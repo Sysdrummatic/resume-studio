@@ -33,7 +33,7 @@ function rowHeight(theme: PdfTheme, label: string, wrappedValue: string): number
   const width = sidebarTextWidth(theme);
 
   return (
-    estimateTextHeight(label, typography.sizes.base, typography.lineHeightTight, width) +
+    estimateTextHeight(label, typography.sizes.base, typography.lineHeightTight, width, typography.fontFamily) +
     components.contactLabelGap +
     wrappedValue.split("\n").length * typography.sizes.contactValue * typography.lineHeightTight +
     components.contactRowGap
@@ -48,6 +48,7 @@ export function PdfPersonalInfo({ contact, title, theme }: PdfPersonalInfoProps)
       splitContactValueForWrapping(item.value),
       valueWidth,
       typography.sizes.contactValue,
+      typography.fontFamily,
     ),
   );
 

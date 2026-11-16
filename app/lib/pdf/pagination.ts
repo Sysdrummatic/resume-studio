@@ -48,18 +48,20 @@ export function estimateTextHeight(
   fontSize: number,
   lineHeight: number,
   width: number,
+  /** The theme's body family; Space Grotesk when a caller has no theme. */
+  fontFamily?: string,
 ): number {
   const lines = text.split("\n").reduce((total, logical) => {
     const longestWord = logical
       .split(/\s+/)
-      .reduce((widest, word) => Math.max(widest, measureText(word, fontSize, true)), 0);
+      .reduce((widest, word) => Math.max(widest, measureText(word, fontSize, true, fontFamily)), 0);
 
     // A word wider than the column cannot be broken with hyphenation off, so it
     // overflows sideways rather than adding lines; half the column is a floor
     // that keeps the division meaningful instead of exploding.
     const usable = Math.max(width - longestWord, width / 2);
 
-    return total + Math.max(1, Math.ceil(measureText(logical, fontSize, true) / usable));
+    return total + Math.max(1, Math.ceil(measureText(logical, fontSize, true, fontFamily) / usable));
   }, 0);
 
   return lines * fontSize * lineHeight;
@@ -110,7 +112,7 @@ function blockTextWidth(theme: PdfTheme, block: PdfTimelineBlock): number {
   return (
     entryContentWidth(theme) -
     components.listIndent -
-    measureText(BULLET, block.fontSize) -
+    measureText(BULLET, block.fontSize, false, theme.typography.fontFamily) -
     components.listItemGap
   );
 }
@@ -123,7 +125,8 @@ export function sectionTitleHeight(theme: PdfTheme, sidebar = false): number {
   const { typography, components, spacing } = theme;
   const size = sidebar ? typography.sizes.lgSidebar : typography.sizes.lg;
   const textBox =
-    size * typography.lineHeightHeading + opticalCentringMargin(size, typography.lineHeightHeading);
+    size * typography.lineHeightHeading +
+    opticalCentringMargin(size, typography.lineHeightHeading, typography.headingOpticalCentre);
 
   const marker = components.sectionDotHeight ?? components.sectionDotSize;
 
@@ -173,6 +176,7 @@ export function estimateTimelineEntryHeight(theme: PdfTheme, blocks: PdfTimeline
           block.fontSize,
           typography.lineHeight,
           blockTextWidth(theme, block),
+          typography.fontFamily,
         ),
       0,
     );
@@ -229,9 +233,9 @@ export function estimateMeterListHeight(
 
   return items.reduce((total, item) => {
     const label =
-      estimateTextHeight(item.name, typography.sizes.base, typography.lineHeightTight, width) +
+      estimateTextHeight(item.name, typography.sizes.base, typography.lineHeightTight, width, typography.fontFamily) +
       (item.note
-        ? estimateTextHeight(item.note, typography.sizes.note, typography.lineHeightTight, width)
+        ? estimateTextHeight(item.note, typography.sizes.note, typography.lineHeightTight, width, typography.fontFamily)
         : 0);
 
     return (
@@ -252,7 +256,7 @@ export function estimatePillListHeight(theme: PdfTheme, items: string[]): number
   return items.reduce(
     (total, item) =>
       total +
-      estimateTextHeight(item, typography.sizes.base, typography.lineHeight, width) +
+      estimateTextHeight(item, typography.sizes.base, typography.lineHeight, width, typography.fontFamily) +
       2 * components.pillPaddingY +
       components.pillGap,
     0,
@@ -274,7 +278,8 @@ export function estimateQrListHeight(
 
   return items.reduce((total, item) => {
     const caption = item.label
-      ? spacing.spaceXs + estimateTextHeight(item.label, typography.sizes.note, typography.lineHeightTight, width)
+      ? spacing.spaceXs +
+        estimateTextHeight(item.label, typography.sizes.note, typography.lineHeightTight, width, typography.fontFamily)
       : 0;
 
     return total + item.qrSize + 2 * spacing.spaceSm + caption + spacing.spaceSm;

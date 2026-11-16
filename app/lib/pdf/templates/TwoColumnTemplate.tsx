@@ -71,6 +71,19 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
       {mainSections}
     </View>
   );
+  // A hairline between the columns (.sidebar border). Half the gap out as a
+  // negative margin and back in as padding: the rule lands mid-gap and the
+  // column's content box, which ./metrics measures, does not change.
+  const ruleWidth = theme.layout.sidebarRuleWidth ?? 0;
+  const ruleSide = layout === "two-column-left" ? "Right" : "Left";
+  const sidebarRule = ruleWidth
+    ? {
+        [`margin${ruleSide}`]: -theme.layout.columnGap / 2,
+        [`padding${ruleSide}`]: theme.layout.columnGap / 2 - ruleWidth,
+        [`border${ruleSide}Width`]: ruleWidth,
+        [`border${ruleSide}Color`]: theme.colors.border,
+      }
+    : null;
   const sideColumn = (
     <View
       key="side"
@@ -80,6 +93,7 @@ export function TwoColumnTemplate({ resume, labels, heroRole, theme }: TwoColumn
         gap: theme.layout.sectionGap,
         backgroundColor: theme.layout.sidebarBg,
         padding: theme.layout.sidebarPadding,
+        ...sidebarRule,
       }}
     >
       {contactSection}

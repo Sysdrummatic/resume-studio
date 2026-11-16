@@ -2860,8 +2860,10 @@ img {
    Flat templates (ADR 0027)
 
    Templates whose manifest entry says `surface: "flat"`. Unlike the three skins
-   above they keep --resume-max-width, the CV font and its 400/500/700 weights,
-   so every length here maps onto the PDF by PX_TO_PT. The PDF side of each rule
+   above they keep --resume-max-width and the 400/500/700 weights, so every
+   length here maps onto the PDF by PX_TO_PT. A template may name its own fonts
+   (see "Template fonts" below); one that names none is set in the CV font. A
+   rule here uses only what the PDF can draw. The PDF side of each rule
    is FLAT_BASE / FLAT_TEMPLATE_THEMES in app/lib/resume-style.ts; a comment
    there names the selector it mirrors.
 
@@ -3077,6 +3079,236 @@ img {
 
 .resume-template--minimal-light .pill-list li {
   background: var(--accent-light);
+}
+
+/* Template fonts (ADR 0027). A flat template may set its text in one family and
+   its name, monogram and section titles in another. Each file below is also the
+   file the PDF embeds (CV_FONTS in app/lib/resume-style.ts), so a line breaks
+   in the same place on both surfaces. A text family ships 400/500/700; a
+   heading family ships the one weight it is drawn in, and no rule may ask it
+   for another: the browser would synthesise one the PDF cannot draw. */
+@font-face {
+  font-family: "Work Sans";
+  src: url("/fonts/WorkSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Work Sans";
+  src: url("/fonts/WorkSans-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Work Sans";
+  src: url("/fonts/WorkSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Serif";
+  src: url("/fonts/IBMPlexSerif-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Serif";
+  src: url("/fonts/IBMPlexSerif-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Serif";
+  src: url("/fonts/IBMPlexSerif-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gloock";
+  src: url("/fonts/Gloock-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Libre Baskerville";
+  src: url("/fonts/LibreBaskerville-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Boardroom: a navy letterhead closed by an accent rule, the reference column
+   tinted on the left. */
+.resume-template--boardroom {
+  --text: #1c2333;
+  --muted: #5b6375;
+  --border: #dcd7cc;
+  font-family: "Work Sans", "Space Grotesk", system-ui, sans-serif;
+}
+
+.resume-template--boardroom .logo-circle,
+.resume-template--boardroom .hero__title :is(h1, h2),
+.resume-template--boardroom .section-title :is(h2, h3) {
+  font-family: "Gloock", Georgia, serif;
+  font-weight: 400;
+}
+
+.resume-template--boardroom .hero {
+  padding-top: 28px;
+  padding-bottom: 20px;
+  border-bottom: 4px solid var(--accent);
+  background: #0f1f3a;
+  color: #ffffff;
+}
+
+.resume-template--boardroom .hero__title p {
+  color: #d9dde6;
+}
+
+.resume-template--boardroom .logo-circle {
+  border: 1px solid var(--accent);
+  background: #0f1f3a;
+  color: #ffffff;
+}
+
+/* The export chrome sits on the navy band, so it is drawn in white. It has no
+   PDF counterpart, like the rest of the hero actions. */
+.resume-template--boardroom .resume-language-switcher {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  box-shadow: none;
+}
+
+.resume-template--boardroom .resume-language-switcher__option {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.resume-template--boardroom .resume-language-switcher__option:hover,
+.resume-template--boardroom .resume-language-switcher__option:focus-visible,
+.resume-template--boardroom .resume-language-switcher__option--active {
+  background: #ffffff;
+  color: #0f1f3a;
+  box-shadow: none;
+}
+
+.resume-template--boardroom .resume-badge {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #ffffff;
+}
+
+.resume-template--boardroom .hero__export-button {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: #ffffff;
+}
+
+.resume-template--boardroom .hero__export-button:hover,
+.resume-template--boardroom .hero__export-button:focus-visible {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #0f1f3a;
+}
+
+.resume-template--boardroom .section-title,
+.resume-template--executive .section-title {
+  gap: 0;
+}
+
+.resume-template--boardroom .section-dot,
+.resume-template--executive .section-dot {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .resume-template--boardroom .sidebar {
+    padding: var(--space-md);
+    background: var(--accent-light);
+  }
+}
+
+.resume-template--boardroom .meter__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 0;
+}
+
+.resume-template--boardroom .pill-list li {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: #ffffff;
+  color: var(--text);
+}
+
+/* Executive: serif throughout, an outlined monogram, hairline rules. */
+.resume-template--executive {
+  --text: #17181c;
+  --muted: #5a5e66;
+  --border: #d6d8dd;
+  font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+}
+
+.resume-template--executive .logo-circle,
+.resume-template--executive .hero__title :is(h1, h2),
+.resume-template--executive .section-title :is(h2, h3) {
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-weight: 400;
+}
+
+.resume-template--executive .hero__title {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--text);
+}
+
+.resume-template--executive .hero__title p {
+  color: var(--accent-dark);
+}
+
+.resume-template--executive .logo-circle {
+  border: 1px solid var(--text);
+  background: #ffffff;
+  color: var(--text);
+}
+
+/* The hairline sits in the middle of the column gap: half the gap out as a
+   negative margin, back in as padding, so the sidebar's content box (and with
+   it every line break) is the one the PDF measures. */
+@media (min-width: 1024px) {
+  .resume-template--executive .sidebar {
+    align-self: stretch;
+    margin-left: calc(var(--space-xl) / -2);
+    padding-left: calc(var(--space-xl) / 2 - 1px);
+    border-left: 1px solid var(--border);
+  }
+}
+
+.resume-template--executive .meter__dot {
+  width: 16px;
+  height: 2px;
+  border-radius: 0;
+}
+
+.resume-template--executive .pill-list li {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: #ffffff;
+  color: var(--text);
 }
 
 /* Print layout adjustments.

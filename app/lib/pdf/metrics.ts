@@ -16,19 +16,28 @@ import { A4_WIDTH_PT, PAGE_MARGIN_PT, type PdfTheme } from "./theme";
  */
 const WIDEST_GLYPH = 1.026;
 
-function pdfFont(bold: boolean) {
+/** The CV font. A template with its own body family passes that instead. */
+const DEFAULT_FONT_FAMILY = "SpaceGrotesk";
+
+function pdfFont(bold: boolean, fontFamily: string) {
   return (
     Font.getFont({
-      fontFamily: "SpaceGrotesk",
+      fontFamily,
       fontWeight: bold ? 700 : 400,
       fontStyle: "normal",
     })?.data ?? null
   );
 }
 
-/** Advance width of `text` at `fontSize`, in points. */
-export function measureText(text: string, fontSize: number, bold = false): number {
-  const font = pdfFont(bold);
+/**
+ * Advance width of `text` at `fontSize`, in points.
+ *
+ * `fontFamily` is the theme's body family (`theme.typography.fontFamily`).
+ * Measuring a serif template with Space Grotesk's advances would decide page
+ * breaks for text that is not the text being drawn.
+ */
+export function measureText(text: string, fontSize: number, bold = false, fontFamily = DEFAULT_FONT_FAMILY): number {
+  const font = pdfFont(bold, fontFamily);
   if (!font) return text.length * fontSize * WIDEST_GLYPH;
 
   return (font.layout(text).advanceWidth / font.unitsPerEm) * fontSize;
@@ -48,8 +57,13 @@ export function measureText(text: string, fontSize: number, bold = false): numbe
  * zero, so this array stays aligned with `Array.from(text)` and any prefix sum
  * is exact at a cluster boundary — the only place a break may land anyway.
  */
-export function characterWidths(text: string, fontSize: number, bold = false): number[] {
-  const font = pdfFont(bold);
+export function characterWidths(
+  text: string,
+  fontSize: number,
+  bold = false,
+  fontFamily = DEFAULT_FONT_FAMILY,
+): number[] {
+  const font = pdfFont(bold, fontFamily);
   if (!font) return Array.from(text, () => fontSize * WIDEST_GLYPH);
 
   const { glyphs, positions } = font.layout(text);
@@ -110,9 +124,16 @@ export function sidebarTextWidth(theme: PdfTheme): number {
  * and extract as a single token. See tests/pdf-contact-wrapping.test.mjs, which
  * pins the split shape without rejoining the lines.
  */
-export function wrapAtBreakPoints(parts: string[], width: number, fontSize: number): string {
-  return fill(parts, width, fontSize)
-    .flatMap((line) => (measureText(line, fontSize) <= width ? [line] : rescue(line, width, fontSize)))
+export function wrapAtBreakPoints(
+  parts: string[],
+  width: number,
+  fontSize: number,
+  fontFamily = DEFAULT_FONT_FAMILY,
+): string {
+  return fill(parts, width, fontSize, fontFamily)
+    .flatMap((line) =>
+      measureText(line, fontSize, false, fontFamily) <= width ? [line] : rescue(line, width, fontSize, fontFamily),
+    )
     .join("\n");
 }
 
@@ -124,13 +145,13 @@ export function wrapAtBreakPoints(parts: string[], width: number, fontSize: numb
  * boundary, which is never positive, so the running total is at worst a hair
  * wide and the line breaks a hair early. Never the other way round.
  */
-function fill(parts: string[], width: number, fontSize: number): string[] {
+function fill(parts: string[], width: number, fontSize: number, fontFamily: string): string[] {
   const lines: string[] = [];
   let current = "";
   let currentWidth = 0;
 
   for (const part of parts) {
-    const partWidth = measureText(part, fontSize);
+    const partWidth = measureText(part, fontSize, false, fontFamily);
 
     if (current && currentWidth + partWidth > width) {
       lines.push(current);
@@ -155,15 +176,15 @@ function fill(parts: string[], width: number, fontSize: number): string[] {
  * resort is a hard cut: no hyphen, which is what `overflow-wrap: break-word`
  * gives the same value on the web.
  */
-function rescue(line: string, width: number, fontSize: number): string[] {
-  return fill(line.split(/(?<=[.\-_])/).filter(Boolean), width, fontSize).flatMap((piece) =>
-    measureText(piece, fontSize) <= width ? [piece] : hardBreak(piece, width, fontSize),
+function rescue(line: string, width: number, fontSize: number, fontFamily: string): string[] {
+  return fill(line.split(/(?<=[.\-_])/).filter(Boolean), width, fontSize, fontFamily).flatMap((piece) =>
+    measureText(piece, fontSize, false, fontFamily) <= width ? [piece] : hardBreak(piece, width, fontSize, fontFamily),
   );
 }
 
-function hardBreak(token: string, width: number, fontSize: number): string[] {
+function hardBreak(token: string, width: number, fontSize: number, fontFamily: string): string[] {
   const characters = Array.from(token);
-  const widths = characterWidths(token, fontSize);
+  const widths = characterWidths(token, fontSize, false, fontFamily);
   const pieces: string[] = [];
   let start = 0;
   let used = 0;

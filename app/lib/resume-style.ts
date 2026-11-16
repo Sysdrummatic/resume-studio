@@ -9,9 +9,24 @@ type PdfThemeShape = {
     headerAlign?: "left" | "center";
   };
   colors: Record<string, string>;
-  typography: { sizes: Record<string, number> };
+  typography: {
+    sizes: Record<string, number>;
+    fontFamily?: string;
+    lineHeightNatural?: number;
+    headingFontFamily?: string;
+    headingWeight?: number;
+    headingLineHeightNatural?: number;
+    headingOpticalCentre?: number;
+  };
   spacing: Record<string, number>;
-  layout: { columnGap: number; cardPadding: number; sectionGap: number; sidebarPadding?: number; sidebarBg?: string };
+  layout: {
+    columnGap: number;
+    cardPadding: number;
+    sectionGap: number;
+    sidebarPadding?: number;
+    sidebarBg?: string;
+    sidebarRuleWidth?: number;
+  };
   components: Record<string, number | string | undefined>;
   header?: {
     backgroundColor?: string;
@@ -23,6 +38,7 @@ type PdfThemeShape = {
     logoBorderWidth?: number;
     logoBorderRadius?: number;
     bleed?: boolean;
+    bleedTop?: boolean;
     paddingTop?: number;
     paddingBottom?: number;
     borderBottomColor?: string;
@@ -51,7 +67,7 @@ export type ResumeTemplatePalette = {
   accentLight: string;
 };
 
-export type ResumeTemplateFamily = "standard" | "premium" | "tech" | "bold";
+export type ResumeTemplateFamily = "standard" | "professional" | "premium" | "tech" | "bold";
 export type ResumeExperienceFit = "beginner" | "mid" | "senior";
 /** Which PDF page structure renders the template (app/lib/pdf/templates). */
 export type ResumePdfLayout = "two-column" | "two-column-left" | "single-column";
@@ -161,6 +177,28 @@ export const RESUME_TEMPLATES = [
     pdfLayout: "single-column",
     surface: "flat",
     palette: paletteFrom("#4f5375"),
+  },
+  {
+    id: "boardroom",
+    name: "Boardroom",
+    labelKey: "template_boardroom",
+    family: "professional",
+    experienceFit: ["mid", "senior"],
+    bestFor: "Management, finance, legal, board-level roles",
+    pdfLayout: "two-column-left",
+    surface: "flat",
+    palette: paletteFrom("#b08a4f"),
+  },
+  {
+    id: "executive",
+    name: "Executive",
+    labelKey: "template_executive",
+    family: "professional",
+    experienceFit: ["senior"],
+    bestFor: "Senior leadership, advisory, academia",
+    pdfLayout: "two-column",
+    surface: "flat",
+    palette: paletteFrom("#1b3a8a"),
   },
 ] as const satisfies readonly ResumeTemplateDefinition[];
 
@@ -367,6 +405,98 @@ export function resumeStyleDataAttributes(style: ResumeStyleSettings): Record<st
   };
 }
 
+type CvFont = {
+  /** The family name resume.css uses. The key is the name the PDF registers. */
+  css: string;
+  /** Static files in public/fonts, by weight. */
+  files: Readonly<Record<number, string>>;
+  unitsPerEm: number;
+  ascent: number;
+  descent: number;
+  lineGap: number;
+  capHeight: number;
+};
+
+/**
+ * Every font a CV may be set in (ADR 0027, "Template fonts").
+ *
+ * Both surfaces read the same static files: resume.css through @font-face, the
+ * PDF through app/lib/pdf/engine-react-pdf.ts. A body family ships 400/500/700,
+ * the three weights the CV uses; a heading family ships the one weight it is
+ * drawn in. react-pdf picks a file per weight and cannot instance a variable
+ * axis, so a weight without a file here does not exist.
+ *
+ * The metrics are the files' own hhea and OS/2 values, copied, never tuned:
+ * react-pdf hangs all leading below the glyphs, and centring text against a
+ * sibling needs the font's real line box (see centeringPadding in pdf/theme.ts).
+ * tests/pdf-pagination.test.mjs reads them back out of the files.
+ */
+export const CV_FONTS = {
+  SpaceGrotesk: {
+    css: "Space Grotesk",
+    files: { 400: "SpaceGrotesk-Regular.ttf", 500: "SpaceGrotesk-Medium.ttf", 700: "SpaceGrotesk-Bold.ttf" },
+    unitsPerEm: 1000,
+    ascent: 984,
+    descent: -292,
+    lineGap: 0,
+    capHeight: 700,
+  },
+  WorkSans: {
+    css: "Work Sans",
+    files: { 400: "WorkSans-Regular.ttf", 500: "WorkSans-Medium.ttf", 700: "WorkSans-Bold.ttf" },
+    unitsPerEm: 1000,
+    ascent: 930,
+    descent: -243,
+    lineGap: 0,
+    capHeight: 660,
+  },
+  IBMPlexSerif: {
+    css: "IBM Plex Serif",
+    files: { 400: "IBMPlexSerif-Regular.ttf", 500: "IBMPlexSerif-Medium.ttf", 700: "IBMPlexSerif-Bold.ttf" },
+    unitsPerEm: 1000,
+    ascent: 1025,
+    descent: -275,
+    lineGap: 0,
+    capHeight: 698,
+  },
+  Gloock: {
+    css: "Gloock",
+    files: { 400: "Gloock-Regular.ttf" },
+    unitsPerEm: 1000,
+    ascent: 975,
+    descent: -225,
+    lineGap: 0,
+    capHeight: 750,
+  },
+  LibreBaskerville: {
+    css: "Libre Baskerville",
+    files: { 400: "LibreBaskerville-Regular.ttf" },
+    unitsPerEm: 1000,
+    ascent: 970,
+    descent: -270,
+    lineGap: 0,
+    capHeight: 770,
+  },
+} as const satisfies Record<string, CvFont>;
+
+export type CvFontFamily = keyof typeof CV_FONTS;
+
+/** The PDF typography tokens a template's fonts stand for. */
+function fontTokens(fonts: { body: CvFontFamily; heading: CvFontFamily }) {
+  const body: CvFont = CV_FONTS[fonts.body];
+  const heading: CvFont = CV_FONTS[fonts.heading];
+  const natural = (font: CvFont) => (font.ascent - font.descent + font.lineGap) / font.unitsPerEm;
+
+  return {
+    fontFamily: fonts.body,
+    lineHeightNatural: natural(body),
+    headingFontFamily: fonts.heading,
+    headingWeight: Number(Object.keys(heading.files)[0]),
+    headingLineHeightNatural: natural(heading),
+    headingOpticalCentre: (heading.ascent - heading.capHeight / 2) / heading.unitsPerEm,
+  };
+}
+
 /**
  * Web CSS pixels to PDF points: PX_TO_PT in app/lib/pdf/theme.ts, restated so
  * this module keeps no runtime import. tests/resume-style-settings.test.mjs
@@ -377,6 +507,8 @@ const px = (value: number): number => value * 0.625;
 type FlatTemplate = Extract<(typeof RESUME_TEMPLATES)[number], { surface: "flat" }>["id"];
 
 type FlatTemplateTheme = {
+  /** Absent: Space Grotesk throughout, like the original template. */
+  fonts?: { body: CvFontFamily; heading: CvFontFamily };
   colors: Record<string, string>;
   variant?: NonNullable<PdfThemeShape["variant"]>;
   layout?: Partial<PdfThemeShape["layout"]>;
@@ -389,7 +521,7 @@ type FlatTemplateTheme = {
  * resume.css. A value starting with "@" names a palette colour and is resolved
  * once the user's accent is known — see resolveAccentReferences().
  */
-const FLAT_BASE: Required<Omit<FlatTemplateTheme, "header">> = {
+const FLAT_BASE: Required<Omit<FlatTemplateTheme, "header" | "fonts">> = {
   variant: { section: "rule", timeline: "stacked" },
   colors: {
     accent: "@accent",
@@ -400,7 +532,8 @@ const FLAT_BASE: Required<Omit<FlatTemplateTheme, "header">> = {
     qrCardBg: "#ffffff",
     onAccent: "@onAccent",
   },
-  layout: { cardPadding: 0, sectionGap: px(24) }, // .layout gap: --space-xl
+  // .layout gap: --space-xl. It is a grid gap, so it separates the columns too.
+  layout: { cardPadding: 0, sectionGap: px(24), columnGap: px(24) },
   components: {
     sectionDotSize: px(12), // .section-dot
     sectionDotHeight: px(4),
@@ -454,6 +587,70 @@ const FLAT_TEMPLATE_THEMES: Record<FlatTemplate, FlatTemplateTheme> = {
     layout: { sectionGap: px(36) }, // .layout gap: --space-xl x 1.5
     components: { sectionDotSize: 0, sectionDotHeight: 0, sectionTitleGap: 0 }, // .section-dot hidden
   },
+  boardroom: {
+    fonts: { body: "WorkSans", heading: "Gloock" },
+    colors: { text: "#1c2333", muted: "#5b6375", border: "#dcd7cc", pillBg: "#ffffff", meterDotInactive: "#dcd7cc" },
+    layout: { sidebarPadding: px(16), sidebarBg: "@accentLight" }, // .sidebar padding: --space-md
+    components: {
+      sectionDotSize: 0, // .section-dot hidden
+      sectionDotHeight: 0,
+      sectionTitleGap: 0,
+      meterDotSize: px(9), // .meter__dot
+      meterDotHeight: px(9),
+      meterDotRadius: 0,
+      pillPaddingY: px(4),
+      pillPaddingX: px(10),
+      pillRadius: px(2),
+      pillBorderColor: "#dcd7cc",
+      pillTextColor: "#1c2333",
+    },
+    // .hero: a navy band from the sheet's top edge, closed by a 4px accent rule.
+    header: {
+      backgroundColor: "#0f1f3a",
+      textColor: "#ffffff",
+      roleColor: "#d9dde6",
+      logoBackgroundColor: "#0f1f3a",
+      logoTextColor: "#ffffff",
+      logoBorderColor: "@accent",
+      logoBorderWidth: px(1),
+      bleed: true,
+      bleedTop: true,
+      paddingTop: px(28),
+      paddingBottom: px(20),
+      borderBottomColor: "@accent",
+      borderBottomWidth: px(4),
+    },
+  },
+  executive: {
+    fonts: { body: "IBMPlexSerif", heading: "LibreBaskerville" },
+    colors: { text: "#17181c", muted: "#5a5e66", border: "#d6d8dd", pillBg: "#ffffff", meterDotInactive: "#d6d8dd" },
+    variant: { meter: "bars" },
+    layout: { sidebarRuleWidth: px(1) }, // .sidebar border-left, drawn in the column gap
+    components: {
+      sectionDotSize: 0, // .section-dot hidden
+      sectionDotHeight: 0,
+      sectionTitleGap: 0,
+      meterDotSize: px(16), // .meter__dot
+      meterDotHeight: px(2),
+      meterDotRadius: 0,
+      pillPaddingY: px(4),
+      pillPaddingX: px(10),
+      pillRadius: 0,
+      pillBorderColor: "#d6d8dd",
+      pillTextColor: "#17181c",
+    },
+    // .hero__title: 16px above a 1px rule in the text colour; an outlined monogram.
+    header: {
+      roleColor: "@accentDark",
+      logoBackgroundColor: "#ffffff",
+      logoTextColor: "#17181c",
+      logoBorderColor: "#17181c",
+      logoBorderWidth: px(1),
+      paddingBottom: px(16),
+      borderBottomColor: "#17181c",
+      borderBottomWidth: px(1),
+    },
+  },
 };
 
 function applyFlatTemplateToTheme<T extends PdfThemeShape>(theme: T, template: FlatTemplate): T {
@@ -464,6 +661,7 @@ function applyFlatTemplateToTheme<T extends PdfThemeShape>(theme: T, template: F
     id: `cv-${template}`,
     variant: { ...FLAT_BASE.variant, ...flat.variant, layout: getResumeTemplate(template).pdfLayout },
     colors: { ...theme.colors, ...FLAT_BASE.colors, ...flat.colors },
+    typography: flat.fonts ? { ...theme.typography, ...fontTokens(flat.fonts) } : theme.typography,
     layout: { ...theme.layout, ...FLAT_BASE.layout, ...flat.layout },
     components: { ...theme.components, ...FLAT_BASE.components, ...flat.components },
     header: flat.header,

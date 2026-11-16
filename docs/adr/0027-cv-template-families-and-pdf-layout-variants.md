@@ -69,8 +69,62 @@ surface.
 - `.codex/cv-rendering-unification-meta-prompt.md` ("one target template:
   `sample-two-column`") no longer describes the target state.
 
+## Amendment 2026-11-16: template fonts, a rule between the columns, the professional family
+
+Decision 7 said only that a new template keeps `--resume-max-width`. The comment above the
+flat templates in `resume.css` and its test went further: "they keep --resume-max-width,
+the CV font and its 400/500/700 weights". The templates designed after it (the
+`professional` family first) are defined by their type, so the font part of that rule is
+replaced. The reference box is not: it stays as decision 7 states it.
+
+8. **Template fonts.** A flat template may set its text in one family and its name,
+   monogram and section titles in another. `CV_FONTS` in `app/lib/resume-style.ts` is the
+   only list of families: the name each surface uses, the static files by weight, and the
+   files' own metrics. `resume.css` declares the same files with `@font-face` and
+   `engine-react-pdf.ts` registers them, so both surfaces break a line in the same place.
+   - A text family ships 400, 500 and 700, the three weights the CV uses. A heading family
+     ships the one weight it is drawn in, exposed as `typography.headingWeight`; asking it
+     for another makes the browser synthesise a weight the PDF cannot draw.
+   - No italics. None of the CV's rules needs one, and each would be another file.
+   - Files are complete static TTFs. A subset exported by a design tool loads in react-pdf
+     but carries no PostScript name, and a document that uses it never finishes rendering.
+     Each family's OFL text is in `public/fonts/licenses/`.
+   - Everything that measures text before layout takes the theme's text family:
+     `measureText()`, `wrapAtBreakPoints()` and `estimateTextHeight()` have a `fontFamily`
+     parameter, and `centeringPadding()` / `opticalCentringMargin()` take the font's line
+     box and optical centre (`lineHeightNatural`, `headingLineHeightNatural`,
+     `headingOpticalCentre`). Space Grotesk's values remain the defaults.
+   - The domain boundary holds: a CV font is never one of the Portal's (Geist).
+
+9. **A rule between the columns** is `layout.sidebarRuleWidth`, painted in `colors.border`.
+   It is drawn in the column gap (half the gap out as a negative margin, back in as
+   padding), so it takes no width from either column and adds no geometry flag.
+
+10. **`header.bleedTop`** lets a header band that bleeds sideways also cover the page's top
+    margin, because `.hero` starts at the sheet's edge. The three older templates do not set
+    it and keep their output.
+
+11. **The preview shows what the PDF can draw.** A template's web CSS uses only what the PDF
+    reproduces. Decoration from a design mockup that react-pdf cannot paint (shadows,
+    gradients, generated content, hatching) is left out of the web template too, not kept on
+    one surface.
+
+12. **`professional`** joins `standard`, `premium`, `tech` and `bold` as a template family.
+    `boardroom` and `executive` are its first two templates.
+
+`FLAT_BASE.layout.columnGap` is now `px(24)`: `.resume-surface--flat .layout` sets a grid
+gap of `--space-xl`, which separates the columns as well as the rows, and the PDF had kept
+the original 20px.
+
 ## Tests
 
+- `tests/resume-style-settings.test.mjs`: a template's fonts reach the PDF theme and the web
+  CSS from `CV_FONTS`; every listed file is vendored, declared with `@font-face` and ships
+  its licence; the column rule and the header band are the same on both surfaces.
+- `tests/pdf-pagination.test.mjs`: every font is a complete static file with a PostScript
+  name and the glyphs a Polish CV needs, and its declared metrics are the file's own; text
+  is measured with the template's font; the height estimate still covers a rendered entry;
+  the column rule rewraps nothing.
 - `tests/resume-style-settings.test.mjs`: the manifest is the only list; text on an accent
   is readable at light, dark, saturated and mid-grey accents.
 - `tests/pdf-pagination.test.mjs`: column widths per layout, the ruled title height, a

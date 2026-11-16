@@ -241,3 +241,60 @@ Bezpieczne dla anona (guard poprawnie zawodzi przy NULL): `log_admin_action`,
 `fail_closed_target_user_access`: `create_resume_revision` i `rollback_resume_document` (anon mógł
 tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_last_admin` i
 `is_only_profile` działają dla anona jako wyrocznia „czy ten UUID to admin". Dotyczy też zalogowanych użytkowników (wywołują je jako `authenticated`).
+
+## Szablony CV: fonty, uproszczenia względem makiety i brakujące szablony (stan z 2026-11-16)
+
+Dotyczy ADR 0027 (poprawka z 2026-11-16) i makiety `opencivera-cv-templates.html`
+(repo `OpenCiVera-Project`, `mocks/cv-templates/`).
+
+### Uproszczenia względem makiety
+
+Zasada z ADR 0027 pkt 11: podgląd w serwisie pokazuje tylko to, co potrafi narysować PDF.
+Dlatego oba szablony pomijają część makiety na obu powierzchniach, nie tylko w PDF:
+
+- **boardroom:** oś czasu z szyną (jest układ „stacked"), krótki akcentowy podkreślnik pod
+  tytułem sekcji, mosiężny kolor stanowiska i monogramu (są neutralne, żeby wybór akcentu
+  nie dawał dwóch niezgranych kolorów), wersaliki w tytułach sekcji panelu bocznego.
+- **executive:** czarna belka 10px nad arkuszem, daty wyrównane do prawej w wierszu wpisu,
+  kursywa (stanowisko, daty), wersaliki z rozstrzeleniem w tytułach sekcji, lista technologii
+  po przecinku (są obramowane etykiety), nazwy wpisów krojem tytułowym.
+
+### Brakujące szablony z makiety
+
+Niezaimplementowane: `banner-top`, `consulting-brief`, `ivory-ledger`, `minimal-label`,
+`split-panel`, `midnight-deco`, `cli-session`, `blueprint`, `poster-block`, `riso-pop`,
+`livecv-signature`. Czego brakuje w silniku PDF, zanim da się je zrobić wiernie:
+
+- kolumna dat obok treści wpisu (`ivory-ledger`, `consulting-brief`, `poster-block`),
+- pasek kontaktu na całą szerokość nad kolumnami (`banner-top`, `consulting-brief`, `poster-block`),
+- etykieta sekcji w lewej kolumnie (`minimal-label`), nagłówek w panelu bocznym (`split-panel`),
+- paleta dla ciemnego tła: `paletteFrom()` przyciemnia akcent pod jasne tło, na ciemnym arkuszu
+  trzeba go rozjaśniać do kontrastu 4,5:1 (`midnight-deco`, `cli-session`, `blueprint`),
+- `blueprint` ma używać JetBrains Mono zamiast Geist Mono (Geist to krój portalu),
+- `livecv-signature` wymaga statycznego pliku Fraunces i rezygnacji z wag 300/600.
+
+### Fonty
+
+- **`loadPdfFonts()` parsuje wszystkie rodziny z `CV_FONTS`** przy pierwszym eksporcie w
+  procesie, niezależnie od szablonu. Przy pięciu rodzinach to bez znaczenia; przy kilkunastu
+  warto ładować tylko rodziny użyte w motywie.
+- **Web serwuje pełne pliki TTF** (93–155 KB każdy), te same, które osadza PDF. Podzbiory
+  woff2 byłyby mniejsze, ale muszą mieć identyczne metryki; dziś jeden plik na obie
+  powierzchnie jest gwarancją zgodności łamania linii.
+- **Pochodzenie plików:** statyczne instancje pobrane z Google Fonts (`fonts.gstatic.com`,
+  2026-11-16): Work Sans v24, IBM Plex Serif v20, Gloock v8, Libre Baskerville v24. Teksty
+  licencji OFL z repozytorium `google/fonts` leżą w `public/fonts/licenses/`.
+- **Podzbiory woff osadzone w makiecie nie nadają się do PDF:** react-pdf je ładuje, ale
+  render się nie kończy. Pliki nie mają nazwy PostScript, co jest prawdopodobną przyczyną
+  (niepotwierdzoną). Test `every CV font is a complete static file…` pilnuje, żeby taki plik
+  nie trafił do `CV_FONTS`.
+
+### Znalezione przy okazji
+
+- **Zapasowe polskie nagłówki sekcji bez znaków diakrytycznych** w `app/lib/resume-schema.ts`
+  („Doswiadczenie", „Umiejetnosci", „Jezyki"). PDF bierze nagłówki stąd, więc eksport po polsku
+  pokazuje je bez ogonków, a strona `/cv-templates` (nagłówki z `config/pl.yaml`) z ogonkami.
+  Istniało przed tą zmianą i dotyczy każdego szablonu.
+- **Niesprawdzone w przeglądarce:** edytor, podgląd w panelu i publiczna strona CV z nowymi
+  szablonami (wymagają zalogowania i danych). Sprawdzone: `/cv-templates` (web) i eksport PDF
+  na przykładowym CV, PL i EN, akcent domyślny i dwa własne.

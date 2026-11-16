@@ -312,16 +312,20 @@ test("the PDF registers static instances, never the variable font", () => {
   // default instance — Light (300) — for all of them, leaving the PDF bold-less.
   assert.doesNotMatch(stripComments(engineSource), /VariableFont/);
 
-  for (const file of ["SpaceGrotesk-Regular.ttf", "SpaceGrotesk-Medium.ttf", "SpaceGrotesk-Bold.ttf"]) {
-    assert.match(engineSource, new RegExp(file.replace(/[.]/g, "\\.")));
+  // The files are listed once, in CV_FONTS, which the engine registers whole
+  // (ADR 0027, "Template fonts"). tests/pdf-pagination.test.mjs reads every
+  // listed file back through react-pdf.
+  const fontTable = stripComments(read("app/lib/resume-style.ts")).match(/export const CV_FONTS = \{[\s\S]*?\n\} as const/)[0];
+  assert.doesNotMatch(fontTable, /VariableFont/);
+  assert.match(engineSource, /Object\.entries\(CV_FONTS\)/);
+  assert.match(engineSource, /fontWeight: Number\(weight\)/);
+
+  for (const [weight, file] of [["400", "SpaceGrotesk-Regular.ttf"], ["500", "SpaceGrotesk-Medium.ttf"], ["700", "SpaceGrotesk-Bold.ttf"]]) {
+    assert.ok(fontTable.includes(`${weight}: "${file}"`), `CV_FONTS must map ${weight} to ${file}`);
     assert.ok(
       fs.existsSync(path.join(process.cwd(), "public/fonts", file)),
       `public/fonts/${file} must be vendored`,
     );
-  }
-
-  for (const weight of ["400", "500", "700"]) {
-    assert.match(engineSource, new RegExp(`fontWeight: ${weight}`));
   }
 });
 
@@ -377,17 +381,19 @@ test("text centred against a sibling compensates react-pdf's leading", () => {
   assert.match(themeSource, /lineHeightNatural: FONT_LINE_HEIGHT/);
   assert.match(
     themeSource,
-    /centeringPadding = \(fontSize: number, boxHeight: number\): number =>\s*\(boxHeight - fontSize \* FONT_LINE_HEIGHT\) \/ 2/,
+    // The font's line box is a parameter: a template may set its text in another
+    // family (CV_FONTS), and Space Grotesk's 1.276 is only the default.
+    /centeringPadding = \(fontSize: number, boxHeight: number, naturalLineHeight = FONT_LINE_HEIGHT\): number =>\s*\(boxHeight - fontSize \* naturalLineHeight\) \/ 2/,
   );
 
   // The hero circle centres its Text, so the box must not carry phantom leading.
   const header = stripComments(read("app/lib/pdf/sections/PdfHeader.tsx"));
   const logoStyle = header.match(/fontSize: typography\.sizes\.logo,[\s\S]*?\}\}/)[0];
-  assert.match(logoStyle, /lineHeight: typography\.lineHeightNatural/);
+  assert.match(logoStyle, /lineHeight: typography\.headingLineHeightNatural \?\? typography\.lineHeightNatural/);
 
   assert.match(
     themeSource,
-    /opticalCentringMargin = \(fontSize: number, lineHeight: number\): number =>\s*fontSize \* \(2 \* OPTICAL_CENTRE - lineHeight\)/,
+    /opticalCentringMargin = \(fontSize: number, lineHeight: number, opticalCentre = OPTICAL_CENTRE\): number =>\s*fontSize \* \(2 \* opticalCentre - lineHeight\)/,
   );
 
   const primitives = stripComments(read("app/lib/pdf/primitives.tsx"));
@@ -400,6 +406,14 @@ test("text centred against a sibling compensates react-pdf's leading", () => {
   // also spaces the lines of a heading that wraps.
   assert.equal((primitives.match(/opticalCentringMargin\(/g) ?? []).length, 1);
   assert.match(primitives, /lineHeight: typography\.lineHeightHeading/);
+
+  // Both corrections are measured against the font the text is actually set in.
+  assert.match(primitives, /centeringPadding\(typography\.sizes\.base, periodLineHeight, typography\.lineHeightNatural\)/);
+  assert.match(primitives, /opticalCentringMargin\(titleSize, typography\.lineHeightHeading, typography\.headingOpticalCentre\)/);
+  assert.match(
+    stripComments(read("app/lib/pdf/pagination.ts")),
+    /opticalCentringMargin\(size, typography\.lineHeightHeading, typography\.headingOpticalCentre\)/,
+  );
 });
 
 test("the timeline dot draws its ring as a circle, never a border", () => {

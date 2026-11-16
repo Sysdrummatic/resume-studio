@@ -16,6 +16,9 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
   const { components, spacing, typography } = theme;
   const header = theme.header;
   const bleed = header?.bleed;
+  // .hero starts at the sheet's top edge, so a band that bleeds sideways covers
+  // the page's top margin too; the margin moves inside as padding.
+  const topMargin = bleed && header?.bleedTop ? theme.layout.pageMargin : 0;
   const centred = theme.variant?.headerAlign === "center";
   // Stacked under the logo the identity is a full-width row, not a flex share.
   const centredIdentity = centred ? ({ flex: undefined, width: "100%", alignItems: "center" } as const) : null;
@@ -29,7 +32,8 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
         marginBottom: spacing.spaceXl,
         backgroundColor: header?.backgroundColor,
         color: header?.textColor,
-        paddingTop: header?.paddingTop,
+        paddingTop: topMargin ? (header?.paddingTop ?? 0) + topMargin : header?.paddingTop,
+        marginTop: topMargin ? -topMargin : undefined,
         paddingBottom: header?.paddingBottom,
         paddingLeft: bleed ? theme.layout.pageMargin : undefined,
         paddingRight: bleed ? theme.layout.pageMargin : undefined,
@@ -63,8 +67,9 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
             // 3.2pt above the middle. At the natural height the box is the
             // glyphs, and the circle's own centring is correct. No padding is
             // needed here — nothing depends on this Text's height.
-            lineHeight: typography.lineHeightNatural,
-            fontWeight: typography.weights.bold,
+            lineHeight: typography.headingLineHeightNatural ?? typography.lineHeightNatural,
+            fontFamily: typography.headingFontFamily,
+            fontWeight: typography.headingWeight ?? typography.weights.bold,
           }}
         >
           {resume.brand_initials || "CV"}
@@ -81,7 +86,8 @@ export function PdfHeader({ resume, heroRole, theme }: PdfHeaderProps) {
             // .hero__title h1 — the heading leading, which is what closed the
             // gap to the role below.
             lineHeight: typography.lineHeightHeading,
-            fontWeight: typography.weights.bold,
+            fontFamily: typography.headingFontFamily,
+            fontWeight: typography.headingWeight ?? typography.weights.bold,
             textAlign: centred ? "center" : undefined,
             color: header?.textColor || theme.colors.text,
           }}

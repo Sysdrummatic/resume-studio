@@ -79,6 +79,11 @@ page-break control, and hardcoded styles disconnected from the design token syst
    (`registerHyphenationCallback`), because the browser does not hyphenate either and
    react-pdf paints a hyphen into the text layer where it breaks.
 
+   Space Grotesk is no longer the only family. [ADR 0027](0027-cv-template-families-and-pdf-layout-variants.md)
+   (amendment of 2026-11-16) lets a template name its own text and heading families; they
+   follow the same rule (static files, one per weight) and are listed in `CV_FONTS`
+   (`app/lib/resume-style.ts`), which the engine registers whole.
+
    **Accepted trade-off — long contact values and ATS extraction.** A contact value too wide
    for the sidebar column is pre-wrapped at the same points the web marks with `<wbr>`
    (`wrapAtBreakPoints()`), which puts a real newline in the text layer: `pdftotext` returns

@@ -60,8 +60,18 @@ export interface PdfTheme {
     };
     lineHeight: number;
     lineHeightTight: number;
+    /** The body font's own line box; CV_FONTS in ../resume-style holds each font's. */
     lineHeightNatural: number;
     lineHeightHeading: number;
+    /**
+     * Name, monogram and section titles (ADR 0027, "Template fonts"). Absent:
+     * the body family at `weights.bold`, with Space Grotesk's metrics.
+     */
+    headingFontFamily?: string;
+    headingWeight?: number;
+    headingLineHeightNatural?: number;
+    /** Pass to opticalCentringMargin() for text set in the heading family. */
+    headingOpticalCentre?: number;
   };
   spacing: {
     space2xs: number;
@@ -86,6 +96,11 @@ export interface PdfTheme {
     /** Inset of a tinted sidebar column; comes out of its text width. */
     sidebarPadding?: number;
     sidebarBg?: string;
+    /**
+     * A hairline between the columns, in `colors.border`. It is drawn in the
+     * column gap, so it takes no width from either column.
+     */
+    sidebarRuleWidth?: number;
   };
   components: {
     logoSize: number;
@@ -134,6 +149,8 @@ export interface PdfTheme {
     logoBorderWidth?: number;
     logoBorderRadius?: number;
     bleed?: boolean;
+    /** With `bleed`: the band also covers the page's top margin, as .hero starts at the sheet's edge. */
+    bleedTop?: boolean;
     paddingTop?: number;
     paddingBottom?: number;
     borderBottomColor?: string;
@@ -212,9 +229,12 @@ const OPTICAL_CENTRE = FONT_ASCENT - FONT_CAP_HEIGHT / 2;
  * `lineHeight: typography.lineHeightNatural` so the Text's box hugs its glyphs,
  * then add this as vertical padding to restore the intended box height. The
  * result is the CSS distribution: same height, glyphs in the middle.
+ *
+ * `naturalLineHeight` is the line box of the font the text is set in: pass the
+ * theme's `lineHeightNatural`, which a template with its own font overrides.
  */
-export const centeringPadding = (fontSize: number, boxHeight: number): number =>
-  (boxHeight - fontSize * FONT_LINE_HEIGHT) / 2;
+export const centeringPadding = (fontSize: number, boxHeight: number, naturalLineHeight = FONT_LINE_HEIGHT): number =>
+  (boxHeight - fontSize * naturalLineHeight) / 2;
 
 /**
  * The same correction for text that has to keep a real `lineHeight`.
@@ -228,9 +248,12 @@ export const centeringPadding = (fontSize: number, boxHeight: number): number =>
  * So the box keeps its line height and this goes on the bottom instead: the
  * margin box grows (or shrinks, for a line height above 1.268) until its centre
  * lands on the glyphs' optical centre, which is what a centred flex row aligns.
+ *
+ * `opticalCentre` belongs to the font: pass the theme's `headingOpticalCentre`
+ * for a heading, which is absent unless the template names a heading family.
  */
-export const opticalCentringMargin = (fontSize: number, lineHeight: number): number =>
-  fontSize * (2 * OPTICAL_CENTRE - lineHeight);
+export const opticalCentringMargin = (fontSize: number, lineHeight: number, opticalCentre = OPTICAL_CENTRE): number =>
+  fontSize * (2 * opticalCentre - lineHeight);
 
 // Every value below is `pt(<the web pixel value>)`, so a diff against
 // resume.css is mechanical. Comments name the CSS token or selector it mirrors.

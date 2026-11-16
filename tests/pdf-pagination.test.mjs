@@ -341,3 +341,94 @@ test("a single-column contact row falls back to stacked rows for an oversized va
   const pages = textRunsPerPage(await renderToBuffer(React.createElement(CvPdfDocument, { resume, theme: single })));
   assert.ok(pages.length > 1, "an oversized contact value must be able to continue on the next page");
 });
+
+/**
+ * Template fonts (ADR 0027, "Template fonts"). A template may set its text and
+ * its headings in families of its own. Everything that measures text before
+ * layout has to measure that family, and the files have to be ones react-pdf
+ * can embed.
+ */
+const { Font, View } = await import("@react-pdf/renderer");
+const { measureText } = await import("../app/lib/pdf/metrics.ts");
+const templateTheme = (id) =>
+  resumeStyle.applyResumeStyleToTheme(theme, resumeStyle.normalizeResumeStyle({ template: id }));
+const fontData = (fontFamily, fontWeight) => Font.getFont({ fontFamily, fontWeight, fontStyle: "normal" })?.data;
+
+test("every CV font is a complete static file, and its declared metrics are the file's own", () => {
+  for (const [family, font] of Object.entries(resumeStyle.CV_FONTS)) {
+    for (const weight of Object.keys(font.files)) {
+      const data = fontData(family, Number(weight));
+      assert.ok(data, `${family} ${weight} must be registered and loaded`);
+      // A subset exported by a design tool loads, but has no PostScript name,
+      // and a document that uses it never finishes rendering.
+      assert.ok(data.postscriptName, `${family} ${weight} has no PostScript name`);
+      assert.equal(Boolean(data.fvar), false, `${family} ${weight} is a variable font`);
+      for (const character of "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ€–—•@") {
+        assert.ok(data.hasGlyphForCodePoint(character.codePointAt(0)), `${family} ${weight} has no glyph for ${character}`);
+      }
+      assert.deepEqual(
+        { unitsPerEm: data.unitsPerEm, ascent: data.ascent, descent: data.descent, lineGap: data.lineGap, capHeight: data.capHeight },
+        { unitsPerEm: font.unitsPerEm, ascent: font.ascent, descent: font.descent, lineGap: font.lineGap, capHeight: font.capHeight },
+        `${family} ${weight}: CV_FONTS must hold the file's own metrics`,
+      );
+    }
+  }
+});
+
+test("text is measured with the template's own font", () => {
+  const sample = "Zaimplementowałem rozproszony system przetwarzania zdarzeń";
+  const grotesk = measureText(sample, 10);
+
+  for (const id of ["boardroom", "executive"]) {
+    const { fontFamily } = templateTheme(id).typography;
+    const data = fontData(fontFamily, 400);
+    assert.equal(measureText(sample, 10, false, fontFamily), (data.layout(sample).advanceWidth / data.unitsPerEm) * 10);
+    assert.notEqual(measureText(sample, 10, false, fontFamily), grotesk, `${id} must not be measured as Space Grotesk`);
+  }
+});
+
+test("the estimate still covers an entry set in a template's own font", async () => {
+  for (const id of ["boardroom", "executive"]) {
+    const styled = templateTheme(id);
+    const width = mainColumnWidth(styled) - 2 * styled.layout.cardPadding;
+    const shapes = [
+      [prose.repeat(8).slice(0, 600)],
+      Array.from({ length: 20 }, () => prose),
+      ["Zaimplementowałem rozproszony system przetwarzania zdarzeń. ".repeat(12)],
+      ["MMMM WWWW ".repeat(60)],
+    ];
+
+    for (const highlights of shapes) {
+      const blocks = experienceBlocks({ company: "Acme", role: "Staff Engineer", period: "2020 — 2024", highlights }, styled);
+      const rendered = await renderedHeight(
+        React.createElement(
+          View,
+          { style: { fontFamily: styled.typography.fontFamily } },
+          React.createElement(
+            PdfTimelineItem,
+            { period: "2020 — 2024", isLast: false, theme: styled },
+            React.createElement(PdfTimelineBlocks, { blocks, theme: styled }),
+          ),
+        ),
+        width,
+      );
+      const estimated = estimateTimelineEntryHeight(styled, blocks);
+      assert.ok(
+        estimated >= rendered - MEASUREMENT_TOLERANCE_PT,
+        `${id}: estimated ${estimated.toFixed(3)}pt but react-pdf laid out ${rendered.toFixed(3)}pt`,
+      );
+    }
+  }
+});
+
+test("a rule between the columns takes no width from either of them", async () => {
+  const plain = withVariant({ layout: "two-column" });
+  const ruled = withVariant({ layout: "two-column" }, { sidebarRuleWidth: 1 });
+  assert.equal(mainColumnWidth(ruled), mainColumnWidth(plain));
+  assert.equal(sidebarTextWidth(ruled), sidebarTextWidth(plain));
+  // Same text runs on the same pages: no line wrapped differently.
+  assert.deepEqual(await renderRuns(ruled), await renderRuns(plain));
+
+  const mirrored = withVariant({ layout: "two-column-left" }, { sidebarRuleWidth: 1 });
+  assert.deepEqual(await renderRuns(mirrored), await renderRuns(withVariant({ layout: "two-column-left" })));
+});

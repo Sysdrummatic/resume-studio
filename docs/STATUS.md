@@ -84,7 +84,7 @@ Phase I is complete; the delivered hardening work is listed below. Its Deploy QA
 | Beta bugs | [#173](https://github.com/Sysdrummatic/resume-studio/issues/173) Saved Versions filter can revert default CV (high), [#166](https://github.com/Sysdrummatic/resume-studio/issues/166), [#176](https://github.com/Sysdrummatic/resume-studio/issues/176) | #173 is the only high |
 | Beta program | [#98](https://github.com/Sysdrummatic/resume-studio/issues/98)–[#102](https://github.com/Sysdrummatic/resume-studio/issues/102) | Recruitment, channels, window, feedback, review |
 | Phase K | [#161](https://github.com/Sysdrummatic/resume-studio/issues/161) + PR [#162](https://github.com/Sysdrummatic/resume-studio/pull/162) | PR stale since 2026-09-15; master has moved on (language parity, QR codes), rebase before review |
-| CV templates | [#277](https://github.com/Sysdrummatic/resume-studio/issues/277) integration branch `ocv-0277-nowe-szablony-cv` | New template families (standard / premium / tech / bold); discovery done, approach and lineup awaiting decision |
+| CV templates | [#277](https://github.com/Sysdrummatic/resume-studio/issues/277) integration branch `ocv-0277-nowe-szablony-cv` | New template families (standard / professional / premium / tech / bold). Shipped on the branch: the manifest, PDF layout variants, the Standard family (`classic-single`, `sidebar-slate`, `minimal-light`), template fonts and the first two Professional templates (`boardroom`, `executive`). Open: 11 more designs from the mockup, listed in [TECH_DEBT.md](../TECH_DEBT.md) |
 
 Closed since the last STATUS update (2026-10-22): SEO T12b–T15 and T20 (#250, #232, #231, #237), Phase I umbrella #216 and gate #159, ATS badge bug #171, and the Phase M security PRs (#272–#276).
 

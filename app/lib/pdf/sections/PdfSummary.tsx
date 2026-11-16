@@ -35,6 +35,7 @@ export function PdfSummary({ summary, title, theme }: PdfSummaryProps) {
       theme.typography.sizes.md,
       theme.typography.lineHeight,
       mainColumnWidth(theme) - 2 * theme.layout.cardPadding,
+      theme.typography.fontFamily,
     ),
   );
 

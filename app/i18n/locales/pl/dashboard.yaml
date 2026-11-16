@@ -36,6 +36,8 @@ dashboard:
     template_classic_single: Klasyczny jednokolumnowy
     template_sidebar_slate: Grafitowy z panelem
     template_minimal_light: Minimalistyczny jasny
+    template_boardroom: Boardroom
+    template_executive: Executive
     no_items: Brak pozycji w Bazie doświadczeń.
     saving: Zapisywanie…
     create: Utwórz LiveCV

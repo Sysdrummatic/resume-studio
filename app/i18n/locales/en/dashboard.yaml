@@ -36,6 +36,8 @@ dashboard:
     template_classic_single: Classic Single
     template_sidebar_slate: Sidebar Slate
     template_minimal_light: Minimal Light
+    template_boardroom: Boardroom
+    template_executive: Executive
     no_items: No items in the Experience Base.
     saving: Saving…
     create: Create LiveCV

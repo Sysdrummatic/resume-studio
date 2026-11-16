@@ -113,14 +113,16 @@ export function PdfSectionCard({
       <Text
         style={{
           fontSize: titleSize,
-          fontWeight: typography.weights.bold,
+          // A template's heading family ships one weight (CV_FONTS).
+          fontFamily: typography.headingFontFamily,
+          fontWeight: typography.headingWeight ?? typography.weights.bold,
           letterSpacing: titleSize * 0.01,
           // The literal --line-height-heading, because it also sets the gap
           // between the lines of a heading that wraps. The row is
           // alignItems: center, so the margin below re-centres the glyphs on
           // the dot — react-pdf leaves them off-centre at any line height.
           lineHeight: typography.lineHeightHeading,
-          marginBottom: opticalCentringMargin(titleSize, typography.lineHeightHeading),
+          marginBottom: opticalCentringMargin(titleSize, typography.lineHeightHeading, typography.headingOpticalCentre),
           color: theme.colors.text,
         }}
       >
@@ -235,7 +237,7 @@ export function PdfTimelineItem({
             // explicit height, so the box is periodLineHeight tall without
             // depending on how react-pdf resolves height against padding.
             lineHeight: typography.lineHeightNatural,
-            paddingVertical: centeringPadding(typography.sizes.base, periodLineHeight),
+            paddingVertical: centeringPadding(typography.sizes.base, periodLineHeight, typography.lineHeightNatural),
             marginBottom: components.timelineItemGap,
           }}
         >

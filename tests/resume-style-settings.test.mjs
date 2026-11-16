@@ -7,6 +7,7 @@ import {
   DEFAULT_RESUME_STYLE,
   RESUME_TEMPLATES,
   RESUME_TEMPLATE_PALETTES,
+  CV_FONTS,
   DENSITY_SCALE,
   TEXT_SIZE_SCALE,
   applyResumeStyleToTheme,
@@ -208,7 +209,7 @@ test("one manifest is the only list of templates", () => {
 
   const dashboardLabels = { en: read("app/i18n/locales/en/dashboard.yaml"), pl: read("app/i18n/locales/pl/dashboard.yaml") };
   for (const template of RESUME_TEMPLATES) {
-    assert.ok(["standard", "premium", "tech", "bold"].includes(template.family), `${template.id} family`);
+    assert.ok(["standard", "professional", "premium", "tech", "bold"].includes(template.family), `${template.id} family`);
     assert.ok(["two-column", "two-column-left", "single-column"].includes(template.pdfLayout), `${template.id} pdfLayout`);
     assert.ok(template.experienceFit.length > 0, `${template.id} experienceFit`);
     assert.ok(template.experienceFit.every((level) => ["beginner", "mid", "senior"].includes(level)));
@@ -247,15 +248,16 @@ test("text on an accent stays readable whatever colour the user picks", async ()
  * older skins they stay inside the PDF's rules, so the export can match them.
  */
 function templateCss(id) {
-  const css = read("app/resume/resume.css");
+  // A comment above a rule would otherwise be read as part of its selector.
+  const css = read("app/resume/resume.css").replace(/\/\*[\s\S]*?\*\//g, "");
   return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     .filter(([, selector]) => selector.includes(`.resume-template--${id}`))
     .map(([, selector, body]) => ({ selector: selector.trim(), body }));
 }
 
-test("flat templates keep the reference box, the CV font and its three weights", () => {
+test("flat templates keep the reference box and the CV's three weights", () => {
   const flat = RESUME_TEMPLATES.filter((template) => template.surface === "flat");
-  for (const id of ["classic-single", "sidebar-slate", "minimal-light"]) {
+  for (const id of ["classic-single", "sidebar-slate", "minimal-light", "boardroom", "executive"]) {
     assert.ok(flat.some((template) => template.id === id), `${id} must be in the manifest as a flat template`);
   }
 
@@ -268,7 +270,8 @@ test("flat templates keep the reference box, the CV font and its three weights",
     assert.equal(/max-width\s*:\s*none/.test(body), false, `${template.id} must keep --resume-max-width`);
     // DESIGN.md domain boundary: the CV must not borrow the Portal's fonts.
     assert.equal(body.includes("font-geist"), false, `${template.id} must not use Portal fonts`);
-    // Only these weights exist as static files the PDF can embed.
+    // Only these weights exist as static files the PDF can embed: a text
+    // family ships all three, a heading family only its 400 (CV_FONTS).
     for (const [, weight] of body.matchAll(/font-weight\s*:\s*([^;]+);/g)) {
       assert.ok(["400", "500", "700"].includes(weight.trim()), `${template.id} uses font-weight ${weight.trim()}`);
     }
@@ -293,6 +296,8 @@ test("a flat template's PDF theme mirrors its manifest entry and its CSS tokens"
     // .resume-surface--flat .section-title: 6px above a 1px rule.
     assert.equal(theme.components.sectionRuleGap, 6 * PX_TO_PT);
     assert.equal(theme.components.sectionRuleWidth, 1 * PX_TO_PT);
+    // .resume-surface--flat .layout: the grid gap is --space-xl on both axes.
+    assert.equal(theme.layout.columnGap, 24 * PX_TO_PT);
 
     const root = templateCss(template.id).find((rule) => rule.selector === `.resume-template--${template.id}`);
     assert.ok(root, `${template.id} needs a root token block`);
@@ -329,4 +334,113 @@ test("the older templates keep the PDF they had", () => {
     assert.deepEqual(theme.layout, cvBasicDotTheme.layout);
     assert.deepEqual(theme.components, cvBasicDotTheme.components);
   }
+});
+
+/**
+ * Template fonts (ADR 0027, amended). A template may name a body family and a
+ * heading family. Both surfaces read the same static files, so a line breaks in
+ * the same place on the web and in the PDF.
+ */
+const TEMPLATE_FONTS = {
+  boardroom: { body: "WorkSans", heading: "Gloock" },
+  executive: { body: "IBMPlexSerif", heading: "LibreBaskerville" },
+};
+
+test("a template's fonts reach the PDF theme and the web CSS from one table", () => {
+  const css = read("app/resume/resume.css");
+
+  for (const [id, fonts] of Object.entries(TEMPLATE_FONTS)) {
+    const theme = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: id }));
+    const body = CV_FONTS[fonts.body];
+    const heading = CV_FONTS[fonts.heading];
+
+    assert.equal(theme.typography.fontFamily, fonts.body, `${id} PDF body family`);
+    assert.equal(theme.typography.headingFontFamily, fonts.heading, `${id} PDF heading family`);
+    // A heading family ships one file, so the weight is the one that exists.
+    assert.deepEqual(Object.keys(heading.files), ["400"]);
+    assert.equal(theme.typography.headingWeight, 400);
+    // The body keeps the CV's three weights, like Space Grotesk.
+    assert.deepEqual(Object.keys(body.files), ["400", "500", "700"]);
+    // Centring reads the font's own line box; Space Grotesk's would be wrong here.
+    assert.equal(theme.typography.lineHeightNatural, (body.ascent - body.descent + body.lineGap) / body.unitsPerEm);
+    assert.equal(
+      theme.typography.headingLineHeightNatural,
+      (heading.ascent - heading.descent + heading.lineGap) / heading.unitsPerEm,
+    );
+    assert.equal(theme.typography.headingOpticalCentre, (heading.ascent - heading.capHeight / 2) / heading.unitsPerEm);
+
+    const rules = templateCss(id);
+    const root = rules.find((rule) => rule.selector === `.resume-template--${id}`);
+    assert.ok(root.body.includes(`font-family: "${body.css}"`), `${id} web body family`);
+    const headingRule = rules.find((rule) => rule.body.includes(`font-family: "${heading.css}"`));
+    assert.ok(headingRule, `${id} web heading family`);
+    for (const part of [".logo-circle", ".hero__title :is(h1, h2)", ".section-title :is(h2, h3)"]) {
+      assert.ok(headingRule.selector.includes(part), `${id} heading family must cover ${part}`);
+    }
+    // 400 is the only file: any other weight is synthesised by the browser and
+    // has no counterpart in the PDF.
+    assert.ok(headingRule.body.includes("font-weight: 400;"), `${id} heading weight`);
+  }
+
+  for (const [family, font] of Object.entries(CV_FONTS)) {
+    for (const [weight, file] of Object.entries(font.files)) {
+      assert.ok(fs.existsSync(path.join(process.cwd(), "public/fonts", file)), `public/fonts/${file} must be vendored`);
+      assert.equal(/Variable/.test(file), false, `${file}: react-pdf cannot instance a variable font`);
+      // Space Grotesk is declared in globals.css, for the whole CV domain.
+      if (family === "SpaceGrotesk") continue;
+      const face = [
+        "@font-face {",
+        `  font-family: "${font.css}";`,
+        `  src: url("/fonts/${file}") format("truetype");`,
+        `  font-weight: ${weight};`,
+      ].join("\n");
+      assert.ok(
+        css.replaceAll("\r\n", "\n").includes(face),
+        `resume.css must declare ${font.css} ${weight} from ${file}`,
+      );
+    }
+    if (family !== "SpaceGrotesk") {
+      assert.ok(
+        fs.existsSync(path.join(process.cwd(), "public/fonts/licenses", `${family}-OFL.txt`)),
+        `${family} must ship its licence text`,
+      );
+    }
+  }
+
+  // A template that names no font keeps the CV font and its metrics.
+  const plain = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: "classic-single" }));
+  assert.equal(plain.typography.fontFamily, cvBasicDotTheme.typography.fontFamily);
+  assert.equal(plain.typography.headingFontFamily, undefined);
+  assert.equal(plain.typography.lineHeightNatural, cvBasicDotTheme.typography.lineHeightNatural);
+});
+
+test("executive separates its sidebar with a hairline that takes no width", async () => {
+  const { PX_TO_PT } = await import("../app/lib/pdf/theme.ts");
+  const theme = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: "executive" }));
+  assert.equal(theme.layout.sidebarRuleWidth, 1 * PX_TO_PT);
+  assert.equal(theme.layout.sidebarPadding, undefined, "the rule sits in the column gap, not in the column");
+
+  const rule = templateCss("executive").find((entry) => entry.selector.endsWith(".sidebar"));
+  assert.ok(rule, "resume.css must draw the rule on .sidebar");
+  assert.ok(rule.body.includes("border-left: 1px solid var(--border);"));
+  // Half the gap out, half the gap back in: the column's content box is unchanged.
+  assert.ok(rule.body.includes("margin-left: calc(var(--space-xl) / -2);"));
+  assert.ok(rule.body.includes("padding-left: calc(var(--space-xl) / 2 - 1px);"));
+});
+
+test("boardroom's header band and tinted sidebar are the same on both surfaces", async () => {
+  const { PX_TO_PT } = await import("../app/lib/pdf/theme.ts");
+  const theme = applyResumeStyleToTheme(cvBasicDotTheme, normalizeResumeStyle({ template: "boardroom" }));
+  const rules = templateCss("boardroom");
+  const hero = rules.find((rule) => rule.selector === ".resume-template--boardroom .hero");
+  const band = hero.body.match(/background: (#[0-9a-f]{6});/)[1];
+
+  assert.equal(theme.header.backgroundColor, band);
+  assert.equal(theme.header.bleed, true);
+  assert.equal(theme.header.bleedTop, true, "the band starts at the sheet's top edge, as .hero does");
+  assert.equal(theme.header.borderBottomColor, theme.colors.accent);
+  assert.equal(theme.header.borderBottomWidth, 4 * PX_TO_PT);
+  assert.ok(hero.body.includes("border-bottom: 4px solid var(--accent);"));
+  assert.equal(theme.layout.sidebarBg, theme.colors.accentLight);
+  assert.equal(theme.variant.layout, "two-column-left");
 });
