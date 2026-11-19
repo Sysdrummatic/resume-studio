@@ -1,0 +1,708 @@
+/*
+ * OpenCiVera LiveCV primitives (ADR 0026, stage #288). Consumed through the React
+ * components in ./primitives; every value comes from ./tokens.css. Prefixed
+ * .ocv-* so nothing here restyles a screen before its stage migrates to it.
+ * Only transform, opacity and colours transition; layout never animates.
+ */
+
+/* ---------- Type roles ---------- */
+
+.ocv-display,
+.ocv-title,
+.ocv-heading {
+  margin: 0;
+  font-family: var(--ocv-font-display);
+  font-weight: var(--ocv-display-weight);
+  font-optical-sizing: auto;
+  color: var(--ocv-ink);
+  text-wrap: balance;
+}
+
+.ocv-display {
+  font-size: var(--ocv-text-display);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.ocv-title {
+  font-size: var(--ocv-text-title);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.ocv-heading {
+  font-size: var(--ocv-text-heading);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.ocv-subheading {
+  margin: 0;
+  font: 600 var(--ocv-text-subheading) / 1.3 var(--ocv-font-ui);
+  letter-spacing: -0.01em;
+  color: var(--ocv-ink);
+}
+
+.ocv-lead {
+  margin: 0;
+  max-width: 62ch;
+  font: 400 var(--ocv-text-lead) / 1.55 var(--ocv-font-ui);
+  color: var(--ocv-ink-2);
+  text-wrap: pretty;
+}
+
+.ocv-body {
+  margin: 0;
+  max-width: 68ch;
+  font: 400 var(--ocv-text-body) / 1.6 var(--ocv-font-ui);
+  color: var(--ocv-ink);
+  text-wrap: pretty;
+}
+
+.ocv-meta {
+  margin: 0;
+  font: 400 var(--ocv-text-meta) / 1.5 var(--ocv-font-ui);
+  color: var(--ocv-ink-3);
+}
+
+.ocv-label {
+  font: 500 var(--ocv-text-meta) / 1.3 var(--ocv-font-ui);
+  color: var(--ocv-ink-2);
+}
+
+.ocv-value {
+  font-family: var(--ocv-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Buttons ---------- */
+
+.ocv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--ocv-hit);
+  padding: 0 20px;
+  border: 1px solid var(--ocv-control);
+  border-radius: var(--ocv-radius-pill);
+  background: transparent;
+  color: var(--ocv-ink);
+  font: 500 0.90625rem / 1 var(--ocv-font-ui);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-instant) var(--ease-out),
+    border-color var(--motion-instant) var(--ease-out),
+    color var(--motion-instant) var(--ease-out),
+    transform var(--motion-instant) var(--ease-out);
+}
+
+.ocv-btn:hover {
+  border-color: var(--ocv-ink);
+}
+
+.ocv-btn:active:not(:disabled) {
+  transform: scale(var(--ocv-motion-scale));
+}
+
+.ocv-btn:focus-visible,
+.ocv-icon-btn:focus-visible,
+.ocv-seg__option:focus-visible,
+.ocv-menu__item:focus-visible,
+.ocv-input:focus-visible,
+.ocv-check__box:focus-visible,
+.ocv-search:focus-within {
+  outline: 2px solid var(--ocv-focus);
+  outline-offset: 2px;
+}
+
+.ocv-btn:disabled,
+.ocv-icon-btn:disabled,
+.ocv-btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ocv-btn--primary {
+  border-color: var(--ocv-ink);
+  background: var(--ocv-ink);
+  color: var(--ocv-on-ink);
+}
+
+.ocv-btn--primary:hover:not(:disabled) {
+  border-color: var(--ocv-teal-ink);
+  background: var(--ocv-teal-ink);
+}
+
+.ocv-btn--quiet {
+  border-color: transparent;
+  color: var(--ocv-ink-2);
+}
+
+.ocv-btn--quiet:hover:not(:disabled) {
+  border-color: transparent;
+  color: var(--ocv-ink);
+  background: color-mix(in srgb, var(--ocv-ink) 7%, transparent);
+}
+
+.ocv-btn--danger {
+  border-color: var(--ocv-danger);
+  background: var(--ocv-danger);
+  color: var(--ocv-on-ink);
+}
+
+.ocv-btn--danger:hover:not(:disabled) {
+  border-color: var(--ocv-ink);
+}
+
+.ocv-btn--small {
+  min-height: var(--ocv-hit-small);
+  padding: 0 15px;
+  font-size: 0.84375rem;
+}
+
+.ocv-btn[aria-busy="true"] {
+  cursor: progress;
+}
+
+.ocv-icon,
+.ocv-btn svg,
+.ocv-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.ocv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ocv-hit-small);
+  height: var(--ocv-hit-small);
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--ocv-line-strong);
+  border-radius: var(--ocv-radius-pill);
+  background: transparent;
+  color: var(--ocv-ink);
+  cursor: pointer;
+  transition: border-color var(--motion-instant) var(--ease-out);
+}
+
+.ocv-icon-btn:hover:not(:disabled) {
+  border-color: var(--ocv-ink);
+}
+
+/* ---------- Segmented control ---------- */
+
+.ocv-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ocv-line-strong);
+  border-radius: var(--ocv-radius-pill);
+}
+
+.ocv-seg__option {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--ocv-radius-pill);
+  background: transparent;
+  color: var(--ocv-ink-2);
+  font: 500 0.84375rem / 1 var(--ocv-font-ui);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-quick) var(--ease-out),
+    color var(--motion-quick) var(--ease-out);
+}
+
+.ocv-seg__option:hover {
+  color: var(--ocv-ink);
+}
+
+.ocv-seg__option[aria-pressed="true"] {
+  background: var(--ocv-ink);
+  color: var(--ocv-on-ink);
+}
+
+/* Touch: every control reaches the 44px target. */
+@media (pointer: coarse) {
+  .ocv-btn--small,
+  .ocv-seg__option {
+    min-height: var(--ocv-hit);
+  }
+
+  .ocv-icon-btn {
+    width: var(--ocv-hit);
+    height: var(--ocv-hit);
+  }
+}
+
+/* ---------- Fields ---------- */
+
+.ocv-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ocv-field__hint {
+  font-size: var(--ocv-text-meta);
+  color: var(--ocv-ink-3);
+}
+
+.ocv-field__error {
+  font-size: var(--ocv-text-meta);
+  color: var(--ocv-danger);
+}
+
+.ocv-input {
+  width: 100%;
+  min-height: var(--ocv-hit);
+  padding: 0 14px;
+  border: 1px solid var(--ocv-control);
+  border-radius: var(--ocv-radius-control);
+  background: var(--ocv-raise);
+  color: var(--ocv-ink);
+  font: 400 1rem / 1.4 var(--ocv-font-ui);
+  caret-color: var(--ocv-indigo-ink);
+  transition: border-color var(--motion-instant) var(--ease-out);
+}
+
+.ocv-input:hover:not(:disabled) {
+  border-color: var(--ocv-ink-2);
+}
+
+.ocv-input[aria-invalid="true"] {
+  border-color: var(--ocv-danger);
+}
+
+.ocv-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ocv-input::placeholder,
+.ocv-search__input::placeholder {
+  color: var(--ocv-ink-3);
+  opacity: 1;
+}
+
+textarea.ocv-input {
+  padding: 11px 14px;
+  resize: vertical;
+}
+
+select.ocv-input {
+  cursor: pointer;
+}
+
+/* ---------- Checkbox ---------- */
+
+.ocv-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 28px;
+  font: 400 0.90625rem / 1.45 var(--ocv-font-ui);
+  color: var(--ocv-ink);
+  cursor: pointer;
+}
+
+.ocv-check__box {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--ocv-teal-ink);
+  cursor: pointer;
+}
+
+/* ---------- Search ---------- */
+
+.ocv-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--ocv-hit);
+  padding: 0 14px;
+  border: 1px solid var(--ocv-control);
+  border-radius: var(--ocv-radius-pill);
+  background: var(--ocv-raise);
+  color: var(--ocv-ink-3);
+}
+
+.ocv-search__input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--ocv-ink);
+  font: 400 1rem / 1 var(--ocv-font-ui);
+}
+
+.ocv-search__input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+/* ---------- State pill ---------- */
+
+.ocv-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--ocv-radius-pill);
+  font: 500 0.78125rem / 1.2 var(--ocv-font-ui);
+  white-space: nowrap;
+  transition:
+    background-color var(--motion-quick) var(--ease-out),
+    color var(--motion-quick) var(--ease-out);
+}
+
+.ocv-state::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ocv-state[data-state="private"] {
+  background: var(--ocv-indigo-wash);
+  color: var(--ocv-indigo-ink);
+}
+
+.ocv-state[data-state="public"],
+.ocv-state[data-state="ok"] {
+  background: var(--ocv-teal-wash);
+  color: var(--ocv-teal-ink);
+}
+
+.ocv-state[data-state="changes"] {
+  background: var(--ocv-amber-wash);
+  color: var(--ocv-amber);
+}
+
+/* ---------- Panel ---------- */
+
+.ocv-panel {
+  border: 1px solid var(--ocv-line-strong);
+  border-radius: var(--ocv-radius-panel);
+  background: var(--ocv-raise);
+  color: var(--ocv-ink);
+  padding: clamp(18px, 2.2vw, 28px);
+}
+
+/* ---------- Menu ---------- */
+
+.ocv-menu {
+  display: grid;
+  min-width: 240px;
+  padding: 8px;
+  border: 1px solid var(--ocv-line-strong);
+  border-radius: var(--ocv-radius-tile);
+  background: var(--ocv-raise);
+  box-shadow: var(--ocv-shadow-float);
+  transform-origin: top right;
+  animation: ocv-enter var(--motion-quick) var(--ease-out);
+}
+
+.ocv-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--ocv-hit);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ocv-ink);
+  font: 400 0.90625rem / 1.3 var(--ocv-font-ui);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--motion-instant) var(--ease-out);
+}
+
+.ocv-menu__item:hover {
+  background: var(--ocv-bg);
+}
+
+.ocv-menu__item[aria-current="page"] {
+  color: var(--ocv-teal-ink);
+}
+
+.ocv-menu__item--danger {
+  color: var(--ocv-danger);
+}
+
+/* ---------- Modal (native <dialog>) ---------- */
+
+.ocv-modal {
+  width: 100%;
+  max-width: min(580px, 100% - 24px);
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ocv-ink);
+  overflow: visible;
+}
+
+.ocv-modal--wide {
+  max-width: min(1000px, 100% - 24px);
+}
+
+.ocv-modal--small {
+  max-width: min(460px, 100% - 24px);
+}
+
+.ocv-modal::backdrop {
+  background: rgb(7 9 16 / 0.6);
+  background: color-mix(in srgb, var(--ocv-scrim) 72%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.ocv-modal[open] {
+  animation: ocv-rise var(--motion-base) var(--ease-out);
+}
+
+.ocv-modal[open]::backdrop {
+  animation: ocv-fade var(--motion-base) var(--ease-out);
+}
+
+.ocv-modal[data-closing] {
+  animation: ocv-sink var(--motion-base-exit) var(--ease-in) forwards;
+}
+
+.ocv-modal__box {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(100dvh - 32px);
+  border: 1px solid var(--ocv-line-strong);
+  border-radius: var(--ocv-radius-panel);
+  background: var(--ocv-raise);
+  box-shadow: var(--ocv-shadow-modal);
+}
+
+.ocv-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 6px;
+}
+
+.ocv-modal__head > div {
+  display: grid;
+  gap: 6px;
+}
+
+.ocv-modal__title:focus {
+  outline: 0;
+}
+
+.ocv-modal__body {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  padding: 12px 24px 20px;
+  overflow: auto;
+}
+
+.ocv-modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px 20px;
+  border-top: 1px solid var(--ocv-line);
+}
+
+/* ---------- Toast ---------- */
+
+.ocv-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  max-width: min(560px, 100% - 32px);
+  padding: 12px 18px;
+  border-radius: var(--ocv-radius-pill);
+  background: var(--ocv-ink);
+  color: var(--ocv-on-ink);
+  font: 400 0.90625rem / 1.4 var(--ocv-font-ui);
+  box-shadow: var(--ocv-shadow-float);
+  translate: -50% 0;
+  animation: ocv-rise var(--motion-base) var(--ease-out);
+}
+
+.ocv-toast[data-tone="changes"] {
+  background: var(--ocv-amber-wash);
+  color: var(--ocv-amber);
+}
+
+.ocv-toast[data-tone="danger"] {
+  background: var(--ocv-danger);
+}
+
+/* ---------- Empty state ---------- */
+
+.ocv-empty {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 28px;
+  border: 1px dashed var(--ocv-line-strong);
+  border-radius: var(--ocv-radius-tile);
+  text-align: center;
+  color: var(--ocv-ink-2);
+}
+
+/* ---------- Traced outline: drawn once around a thing that has just appeared ---------- */
+
+@property --ocv-trace {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.ocv-traced {
+  position: relative;
+}
+
+.ocv-traced::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from -45deg, var(--ocv-teal) var(--ocv-trace), transparent 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transform: scaleX(-1);
+  pointer-events: none;
+  opacity: 0;
+  animation: ocv-trace var(--motion-trace) var(--ease-out) both;
+}
+
+.ocv-traced[data-trace="private"]::before {
+  background: conic-gradient(from -45deg, var(--ocv-indigo) var(--ocv-trace), transparent 0);
+}
+
+/* ---------- Paper: the CV sheet, white in both themes ---------- */
+
+.ocv-paper {
+  container-type: inline-size;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--ocv-line-strong);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1b1b1b;
+  text-align: left;
+  box-shadow: var(--ocv-shadow-paper);
+  view-transition-class: ocv-paper;
+}
+
+.ocv-paper__sheet {
+  display: grid;
+  gap: 3.4cqw;
+  padding: 8cqw 9cqw 9cqw;
+  font: 400 clamp(4px, 2.35cqw, 15px) / 1.45 var(--ocv-font-doc);
+}
+
+.ocv-paper__header {
+  display: grid;
+  gap: 0.6cqw;
+  padding-bottom: 2.6cqw;
+  border-bottom: max(1.5px, 0.5cqw) solid #009c8a;
+}
+
+.ocv-paper__name {
+  font-size: clamp(9px, 6.4cqw, 42px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.ocv-paper__role {
+  font-size: clamp(5px, 3.3cqw, 21px);
+  font-weight: 500;
+  color: #00705f;
+}
+
+.ocv-paper__contact {
+  color: #5f6368;
+}
+
+.ocv-paper__section {
+  display: grid;
+  gap: 1.6cqw;
+}
+
+.ocv-paper__section-title {
+  margin: 0;
+  font-size: clamp(4px, 2.1cqw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #00705f;
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes ocv-enter {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--ocv-motion-shift) * -0.4)) scale(var(--ocv-motion-scale));
+  }
+}
+
+@keyframes ocv-rise {
+  from {
+    opacity: 0;
+    translate: var(--ocv-rise-x, 0) var(--ocv-motion-shift);
+  }
+}
+
+.ocv-toast {
+  --ocv-rise-x: -50%;
+}
+
+@keyframes ocv-sink {
+  to {
+    opacity: 0;
+    translate: 0 calc(var(--ocv-motion-shift) * 0.6);
+  }
+}
+
+@keyframes ocv-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes ocv-trace {
+  from {
+    --ocv-trace: 0deg;
+    opacity: 1;
+  }
+  70% {
+    --ocv-trace: 360deg;
+    opacity: 1;
+  }
+  to {
+    --ocv-trace: 360deg;
+    opacity: 0;
+  }
+}
