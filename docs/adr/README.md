@@ -29,3 +29,4 @@ This directory stores architectural decisions that define product and technical 
 - [ADR 0024: Language Versions as Parallel Lists](0024-language-versions-as-parallel-lists.md)
 - [ADR 0025: Public Basic Documentation](0025-public-basic-documentation.md)
 - [ADR 0026: Account Deletion, Audit Trail And Staff Accounts](0026-account-deletion-audit-and-staff-accounts.md) — **Proposed** (extends ADR 0016)
+- [ADR 0027: Public Contract Naming And Versioning](0027-public-contract-naming-and-versioning.md) — **Proposed** (extends ADR 0002 and ADR 0008)
