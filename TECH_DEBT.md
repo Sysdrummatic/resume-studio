@@ -82,7 +82,8 @@ naprawy ledgera.
    `actor_user_id` w `admin_audit_logs`, kaskadowe usunięcie zawiedzie na poziomie
    Postgresa (`ON DELETE RESTRICT`). RBAC temu nie zapobiega.
 
-Status: nienaprawione.
+Status: nienaprawione. Decyzja zaproponowana w [ADR 0026](docs/adr/0026-account-deletion-audit-and-staff-accounts.md)
+(Proposed, issue #297); implementacja otwarta.
 
 ## Dokumenty prawne: wymagają przeglądu prawnego
 
