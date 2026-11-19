@@ -60,22 +60,30 @@ This is NOT:
 4. **Bilingual integrity** — EN/PL are first-class, not afterthoughts
 
 ## Typography
-- **Display + Body**: Geist (geist/font/sans via next/font)
-- **Fallback**: system-ui, -apple-system, sans-serif
-- **Mono**: Geist Mono for any code/data surfaces
-- **Scale**: editorial hierarchy — large display headings with tight tracking, 
-  generous line-height for body
-
-No font mixing. No decorative typefaces. Geist carries the full system.
+Four roles, one job each ([ADR 0026](docs/adr/0026-livecv-ui-css-3d-native-motion-and-portal-typography.md),
+epic #190 decision 7). Revised 2026-11-19; the rule previously read "No font
+mixing. No decorative typefaces. Geist carries the full system."
+- **Fraunces** — large headings only (display, page title, section title), light
+  weights. Never in dense product UI, labels, buttons or tables.
+- **Geist** — every piece of UI text: body, controls, labels, small headings.
+- **Geist Mono** — values a machine could read: URLs, dates, counts, codes.
+- **Space Grotesk** — the CV only; never a portal surface.
+- All loaded through `next/font` and self-hosted from the repository.
 
 ## Color System
-- **Portal dark (default)**: near-black canvas, indigo accent (oklch-grounded), 
-  glass surfaces with intentional layering
-- **Portal light**: Material You-inspired, seed #6750A4, tonal surfaces
-- **CV light (printable)**: always high-contrast, white base — 
-  never inherits portal dark theme
-- **CV dark (optional variant)**: same layout, portal palette as colorway — 
-  gated by class, never affects print output
+Colour carries one meaning across every surface (epic #190 decision 7):
+- **Indigo** — the private Experience Base (and focus).
+- **Teal** — a published LiveCV and its link; "in step" states.
+- **Amber** — unsaved changes.
+- Red is reserved for destructive actions and errors.
+
+Every colour token holds its light and its dark value; components never branch on
+the theme. The theme is chosen by the top-bar switch (`data-app-theme`, dark by
+default per ADR 0012); without an explicit theme the tokens follow the system
+preference.
+- **CV sheet (`paper`)**: white in both themes, always high-contrast and printable —
+  never inherits the portal theme.
+- The legacy `--portal-*` palette stays until each screen migrates (stages #289–#296).
 
 ## CV as Separate Design Domain
 The CV renderer is a distinct subsystem. Portal theme must never leak into it.
@@ -84,12 +92,18 @@ The CV renderer is a distinct subsystem. Portal theme must never leak into it.
 - CV dark = optional, additive, non-destructive
 
 ## Motion Philosophy
-Purposeful, never decorative.
-- Micro-interactions: hover states, focus transitions, state changes
-- Ambient: directional, top-left light source only
-- Never: looping animations on idle content, entrance animations 
-  that delay information access
-- Always: respect prefers-reduced-motion
+One motion language, two intensities (epic #190 decision 1, ADR 0026):
+- **Expressive** — landing, login, onboarding: choreographed CSS 3D scene changes
+  (500–700ms, staggered), floating CV sheets.
+- **Restrained** — editor, dashboard, admin, docs: state changes only, 100–240ms.
+
+Rules for both:
+- Motion shows cause and effect; it never blocks work or delays information.
+- Native CSS only (transitions, View Transitions, `@property`, `linear()`); no
+  animation library. Only `transform` and `opacity` animate.
+- Entering is slower than leaving (`--ease-out` in, shorter `--ease-in` out).
+- Never: looping animations on idle content.
+- Always: respect `prefers-reduced-motion` — a static frame and a crossfade.
 
 ## Anti-Patterns (Impeccable-compatible)
 The following are grounds for rejection in PR review and `/impeccable detect`:

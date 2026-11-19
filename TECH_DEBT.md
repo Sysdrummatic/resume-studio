@@ -241,3 +241,24 @@ Bezpieczne dla anona (guard poprawnie zawodzi przy NULL): `log_admin_action`,
 `fail_closed_target_user_access`: `create_resume_revision` i `rollback_resume_document` (anon mógł
 tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_last_admin` i
 `is_only_profile` działają dla anona jako wyrocznia „czy ten UUID to admin". Dotyczy też zalogowanych użytkowników (wywołują je jako `authenticated`).
+
+## Redesign UI (epik #190): przejściowe długi etapu #288 (stan z 2026-11-19)
+
+**Status:** otwarte, zamykane w kolejnych etapach #289–#296. Decyzja: [ADR 0026](docs/adr/0026-livecv-ui-css-3d-native-motion-and-portal-typography.md).
+
+- **Dwie palety naraz.** Tokeny `--ocv-*` (`app/components/design-system/tokens.css`)
+  są docelowe; ekrany nadal czytają `--portal-*` z `app/globals.css`, a stare atomy
+  (`atoms/Button`, `Typography`, `UserAvatar`, `molecules/ResumePreviewFrame`) z nich
+  korzystają. Usunąć `--portal-*` i stare atomy, gdy ostatni ekran przejdzie na prymitywy.
+- **Domyślny motyw.** Epik chce "system + ręczny wybór"; ADR 0012 i
+  `tests/app-theme-contract.test.mjs` trzymają `dark` jako domyślny, a serwer zawsze
+  ustawia `data-app-theme`. Tokeny już obsługują brak atrybutu (`prefers-color-scheme`);
+  zmiana logiki motywu i aktualizacja ADR 0012 — w #289.
+- **Reduced motion bez przenikania.** Globalna reguła `0.01ms !important` (przeniesiona
+  do `tokens.css`) gasi też przejścia `opacity`, a epik (decyzja 2) chce statycznej klatki
+  z przenikaniem. Prymitywy już nie przesuwają się przy reduced motion
+  (`--ocv-motion-shift: 0px`); zawężenie reguły globalnej do ruchu przestrzennego — w #290.
+- **Fraunces bez preloadu.** `preload: false` w `app/layout.tsx`, bo żaden ekran go jeszcze
+  nie renderuje; włączyć w etapie, który pierwszy pokaże nagłówek Fraunces nad zgięciem.
+- **Licencja Space Grotesk.** `public/fonts/SpaceGrotesk-*.ttf` leżą bez pliku licencji
+  OFL (dla Fraunces jest `Fraunces-OFL.txt`); dodać `SpaceGrotesk-OFL.txt`.
