@@ -25,6 +25,8 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const openRef = useRef(open);
+  // The value of the latest close request; written to returnValue only once the parent accepts it.
+  const requestedValue = useRef("");
   const titleId = useId();
   const descriptionId = useId();
 
@@ -45,6 +47,8 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
 
     if (!dialog.open) return;
 
+    dialog.returnValue = requestedValue.current;
+    requestedValue.current = "";
     let done = false;
     const finish = () => {
       if (done) return;
@@ -67,19 +71,20 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
 
   // Ignored while closing, so a second Escape during the exit animation is not a second request.
   const requestClose = (returnValue = "") => {
-    if (openRef.current) onClose(returnValue);
+    if (!openRef.current) return;
+    requestedValue.current = returnValue;
+    onClose(returnValue);
   };
 
   const onSubmit = (event: FormEvent<HTMLDialogElement>) => {
     const form = event.target as HTMLFormElement;
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | HTMLInputElement | null;
     const method = submitter?.hasAttribute("formmethod") ? submitter.formMethod : form.method;
-    if (event.defaultPrevented || method !== "dialog") return;
+    // A nested modal's form is its own; React bubbles its submit up to this dialog too.
+    if (event.defaultPrevented || method !== "dialog" || form.closest("dialog") !== event.currentTarget) return;
     // Same result the native form close would set, without closing behind the parent's back.
     event.preventDefault();
-    const value = submitter?.getAttribute("value");
-    if (value !== null && value !== undefined) dialogRef.current!.returnValue = value;
-    requestClose(value ?? "");
+    requestClose(submitter?.getAttribute("value") ?? "");
   };
 
   return (
@@ -90,18 +95,20 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
       aria-describedby={description ? descriptionId : undefined}
       onSubmit={onSubmit}
       onCancel={(event) => {
+        // cancel and close do not bubble in the DOM, but React passes a nested modal's up the tree.
+        if (event.target !== event.currentTarget) return;
         // Chrome makes a repeated Escape uncancelable; that path closes natively and onClose below handles it.
         if (!event.nativeEvent.cancelable) return;
         event.preventDefault();
         requestClose();
       }}
-      onClose={() => {
+      onClose={(event) => {
         const dialog = dialogRef.current;
-        if (!dialog || !openRef.current) return;
+        if (event.target !== event.currentTarget || !dialog || !openRef.current) return;
         // Closed natively while the parent still says open: restore it, then ask.
         dialog.showModal();
         titleRef.current?.focus();
-        onClose("");
+        requestClose();
       }}
     >
       <div className="ocv-modal__box">

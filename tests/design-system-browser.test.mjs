@@ -139,17 +139,76 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
       await waitClosed(page);
     });
 
-    await t.test("Modal: closes without animationend (fallback timer) and under reduced motion", async () => {
-      await page.addStyleTag({ content: ".ocv-modal[data-closing]{animation:none!important}" });
+    await t.test("Modal: a nested dialog closes alone and returns focus to its opener", async () => {
+      const before = await state(page, "close-calls");
       await page.locator("#opener").click();
+      const inner = () => page.evaluate(() => document.querySelectorAll("dialog")[1].open);
+      const closeInner = [
+        () => page.keyboard.press("Escape"),
+        () => page.getByRole("button", { name: "Zamknij szczegóły" }).click(),
+        () => page.locator("#inner-ok").click(),
+      ];
+      for (const [index, close] of closeInner.entries()) {
+        await page.locator("#inner-opener").click();
+        assert.equal(await inner(), true);
+        await close();
+        await page.waitForFunction(() => !document.querySelectorAll("dialog")[1].open, null, { timeout: 2000 });
+        await page.waitForTimeout(150);
+        assert.equal(await state(page, "inner-close-calls"), index + 1, "the inner onClose runs once");
+        assert.equal(await state(page, "close-calls"), before, "the outer onClose is not called");
+        assert.equal(await dialogOpen(page), true, "the outer dialog stays open");
+        assert.equal(await page.evaluate(() => document.activeElement?.id), "inner-opener", "focus returns to the inner opener");
+      }
       await page.keyboard.press("Escape");
       await waitClosed(page);
+    });
+
+    await t.test("Modal: returnValue is written only by an accepted close", async () => {
+      await page.evaluate(() => window.__setAccept(false));
+      await page.locator("#opener").click();
+      await page.locator("#delete").click();
+      await page.waitForTimeout(150);
+      assert.equal(await dialogOpen(page), true);
+      assert.equal(await page.locator("#state").getAttribute("data-return-value"), "delete");
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "", "a refused submit leaves returnValue alone");
+      await page.evaluate(() => window.__setAccept(true));
+      await page.getByRole("button", { name: "Zamknij" }).click();
+      await waitClosed(page);
+      assert.equal(await page.locator("#state").getAttribute("data-return-value"), "");
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "");
+      await page.locator("#opener").click();
+      await page.locator("#confirm").click();
+      await waitClosed(page);
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "confirm", "an accepted submit keeps its value");
+    });
+
+    await t.test("reduced motion: body and nested themes inherit zeroed motion; modal closes by animationend", async () => {
+      const motion = (selector) =>
+        page.evaluate((sel) => {
+          const style = getComputedStyle(document.querySelector(sel));
+          const ms = (value) => (value.endsWith("ms") ? parseFloat(value) : parseFloat(value) * 1000);
+          return [`${ms(style.getPropertyValue("--motion-base").trim())}ms`, style.getPropertyValue("--ocv-motion-shift").trim(), String(Number(style.getPropertyValue("--ocv-motion-scale")))];
+        }, selector);
+      assert.deepEqual(await motion("body"), ["240ms", "10px", "0.98"], "normal motion is unchanged");
       await page.emulateMedia({ reducedMotion: "reduce" });
+      for (const selector of ["html", "body", "#nested-panel"]) {
+        assert.deepEqual(await motion(selector), ["0ms", "0px", "1"], `${selector} inherits reduced motion`);
+      }
       await page.locator("#opener").click();
+      const started = Date.now();
       await page.keyboard.press("Escape");
       await waitClosed(page);
+      assert.ok(Date.now() - started < 350, "closes before the 400ms fallback timer");
       assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#traced"), "::before").opacity), "0", "traced outline does not stay drawn");
       await page.emulateMedia({ reducedMotion: "no-preference" });
+    });
+
+    await t.test("Modal: closes without animationend (fallback timer)", async () => {
+      const style = await page.addStyleTag({ content: ".ocv-modal[data-closing]{animation:none!important}" });
+      await page.locator("#opener").click();
+      await page.keyboard.press("Escape");
+      await waitClosed(page);
+      await style.evaluate((el) => el.remove());
     });
 
     await t.test("Toast: one persistent region per politeness, filled after it exists, repeats identical text", async () => {
@@ -176,9 +235,30 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
       assert.deepEqual(status[0], ["region", "status", ""], "the polite region is mounted empty first");
       assert.equal(status.filter(([kind, , text]) => kind === "text" && text === "Zapisano").length, 2, "identical text is announced again");
       assert.ok(live.some(([kind, role, text]) => kind === "text" && role === "alert" && text === "Nie zapisano"), "errors use the alert region");
-      assert.equal(await page.locator(".ocv-live").count(), 2);
+      assert.equal(await page.locator("body > .ocv-live").count(), 2);
       assert.equal(await page.locator(".ocv-toast[role]").count(), 0, "the visible toast is not a second live region");
       assert.equal(await page.locator(".ocv-toast").textContent(), "Nie zapisano");
+    });
+
+    await t.test("Toast inside a modal announces from a region inside that modal (not inert)", async () => {
+      await page.locator("#opener").click();
+      await page.locator("#modal-toast").click();
+      await page.waitForTimeout(300);
+      const marked = await page.evaluate(() => {
+        const region = [...document.querySelectorAll(".ocv-live")].find((el) => el.textContent === "Skopiowano link");
+        region?.setAttribute("data-probe", "");
+        return region ? [region.getAttribute("role"), region.parentElement === document.querySelector("dialog")] : null;
+      });
+      assert.ok(marked, "the message reached a live region");
+      const cdp = await page.context().newCDPSession(page);
+      const { root } = await cdp.send("DOM.getDocument", { depth: -1 });
+      const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector: "[data-probe]" });
+      const { nodes } = await cdp.send("Accessibility.getPartialAXTree", { nodeId, fetchRelatives: false });
+      assert.equal(nodes[0].ignored, false, "the region is in the accessibility tree while the modal is open");
+      assert.deepEqual(marked, ["status", true]);
+      await page.evaluate(() => document.querySelector("[data-probe]").removeAttribute("data-probe"));
+      await page.keyboard.press("Escape");
+      await waitClosed(page);
     });
 
     await t.test("Field: the error region exists before validation and is not re-announced per keystroke", async () => {
@@ -254,7 +334,7 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
         await phone.locator("#opener").tap();
         await phone.waitForTimeout(400);
         const client = await context.newCDPSession(phone);
-        const dialogBox = await phone.locator(".ocv-modal__box").boundingBox();
+        const dialogBox = await phone.locator(".ocv-modal__box").first().boundingBox();
         const x = Math.round(dialogBox.x + dialogBox.width / 2);
         const touch = (type, y) => client.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x, y }] });
         const bottom = Math.min(dialogBox.y + dialogBox.height, viewport.height) - 10;
@@ -269,8 +349,8 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
 
         // Keyboard: Tab reaches the footer action and it is on screen.
         await phone.evaluate(() => (document.querySelector(".ocv-modal__box").scrollTop = 0));
-        await phone.locator("dialog h2").focus();
-        for (let i = 0; i < 6 && !(await phone.evaluate(() => document.activeElement?.id === "confirm")); i += 1) await phone.keyboard.press("Tab");
+        await phone.locator("dialog h2").first().focus();
+        for (let i = 0; i < 10 && !(await phone.evaluate(() => document.activeElement?.id === "confirm")); i += 1) await phone.keyboard.press("Tab");
         assert.equal(await phone.evaluate(() => document.activeElement?.id), "confirm");
         assert.equal(await visible(phone, "#confirm"), true, "the focused confirm button is on screen");
 
@@ -310,9 +390,9 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
   } finally {
     await browser.close();
     // child.kill() leaves next's server process alive on Windows; end the whole tree.
-    if (process.platform === "win32") spawn("taskkill", ["/pid", String(next.child.pid), "/T", "/F"]);
+    if (process.platform === "win32") await new Promise((resolve) => spawn("taskkill", ["/pid", String(next.child.pid), "/T", "/F"]).on("exit", resolve));
     else next.child.kill();
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    await rm(APP, { recursive: true, force: true }).catch(() => {});
+    // A leftover copy would be type-checked by the root tsconfig (**/*.ts), so retry while files are released.
+    await rm(APP, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
   }
 });

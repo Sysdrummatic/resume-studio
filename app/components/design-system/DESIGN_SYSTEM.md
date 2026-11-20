@@ -66,7 +66,7 @@ Animujemy wyłącznie `transform`, `opacity` i kolory.
 | `--ease-in` | `cubic-bezier(0.4, 0, 1, 1)` | wyjście |
 
 `prefers-reduced-motion: reduce` zeruje tokeny ruchu i globalnie skraca przejścia
-oraz animacje (reguła w `tokens.css`). Obie reguły zostają celowo: globalna chroni
+oraz animacje (reguła w `tokens.css`). Tokeny ruchu są deklarowane wyłącznie na `:root` (nie w bloku motywu), więc `body` i zagnieżdżone motywy dziedziczą wartości reduced motion. Obie reguły zostają celowo: globalna chroni
 obecne ekrany na `--portal-*`, a zerowanie tokenów obejmuje też opóźnienia (`*-delay`)
 i odczyty z JS. Animacje wyjścia kończą się wtedy po 0,01 ms, więc `animationend` nadal
 przychodzi (modal ma dodatkowo zegar awaryjny 400 ms).
@@ -86,9 +86,9 @@ Komponenty React w `app/components/design-system/primitives/` (eksport z
 | `SearchField` | `.ocv-search` | wymagany `label` |
 | `StatePill` | `.ocv-state` | `state`: `private` / `public` / `ok` / `changes` |
 | `Panel` | `.ocv-panel` | `traced="public" \| "private"` rysuje obrys raz po pojawieniu się |
-| `Modal` | `.ocv-modal` | natywny `<dialog>`, sterowany: zamyka się tylko przez `open={false}`. Esc, przycisk zamknięcia i `<form method="dialog">` wywołują raz `onClose(returnValue)` (wartość przycisku wysyłającego, inaczej `""`; `dialog.returnValue` jak natywnie); rodzic może odmówić, zostawiając `open`. Ponowny Esc w trakcie zamykania jest ignorowany. Focus na tytule, powrót do elementu otwierającego, wyjście krótsze niż wejście. Na niskim ekranie (`max-height: 32rem`) przewija się całe okno, więc stopka jest osiągalna. Znane ograniczenie: drugi z rzędu odrzucony Esc Chrome zamyka natywnie (bez możliwości anulowania) — dialog jest przywracany w zdarzeniu `close`, co może dać jedną klatkę mignięcia |
+| `Modal` | `.ocv-modal` | natywny `<dialog>`, sterowany: zamyka się tylko przez `open={false}`. Esc, przycisk zamknięcia i `<form method="dialog">` wywołują raz `onClose(returnValue)` (wartość przycisku wysyłającego, inaczej `""`); `dialog.returnValue` jest zapisywane dopiero przy zamknięciu zaakceptowanym przez rodzica, więc odrzucony submit nie zostawia wartości. Rodzic może odmówić, zostawiając `open`. Zagnieżdżony modal obsługuje tylko własne zdarzenia (React przekazuje `cancel`/`close`/`submit` w górę drzewa), więc zamyka się sam i oddaje fokus swojemu elementowi otwierającemu. Ponowny Esc w trakcie zamykania jest ignorowany. Focus na tytule, powrót do elementu otwierającego, wyjście krótsze niż wejście. Na niskim ekranie (`max-height: 32rem`) przewija się całe okno, więc stopka jest osiągalna. Znane ograniczenie: drugi z rzędu odrzucony Esc Chrome zamyka natywnie (bez możliwości anulowania) — dialog jest przywracany w zdarzeniu `close`, co może dać jedną klatkę mignięcia |
 | `Menu`, `MenuItem` | `.ocv-menu` | link (`href`) albo przycisk; `tone="danger"` |
-| `Toast` | `.ocv-toast` | element wizualny nie jest regionem na żywo; treść trafia do dwóch stałych, początkowo pustych regionów w `<body>` (`role="status"`, dla `danger` `role="alert"`) ok. 100 ms po zamontowaniu. Każdy nowy komunikat dostaje własny `key` — wtedy identyczny tekst jest ogłaszany ponownie |
+| `Toast` | `.ocv-toast` | element wizualny nie jest regionem na żywo; treść trafia do dwóch stałych, początkowo pustych regionów w `<body>` — albo w otwartym `<dialog>`, jeśli toast jest w jego obrębie, bo wszystko poza modalem jest inertne — (`role="status"`, dla `danger` `role="alert"`) ok. 100 ms po zamontowaniu. Każdy nowy komunikat dostaje własny `key` — wtedy identyczny tekst jest ogłaszany ponownie |
 | `EmptyState` | `.ocv-empty` | |
 | `Paper`, `PaperSection` | `.ocv-paper` | arkusz CV, biały w obu motywach, `view-transition-class: ocv-paper` |
 

@@ -101,7 +101,11 @@
   --ocv-radius-pill: 999px;
   --ocv-hit: 44px;
   --ocv-hit-small: 38px;
+}
 
+/* Motion is theme-independent and declared on :root only, so body and nested themes inherit
+   the reduced-motion values below instead of re-declaring the normal ones. */
+:root {
   /* Motion (epic #190). Restrained surfaces use instant..base; expressive ones add
      slow and the 500–700ms scene changes. Exit is always shorter than entry. */
   --motion-instant: 100ms;

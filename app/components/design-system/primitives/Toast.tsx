@@ -3,26 +3,25 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { cx } from "./cx";
 
-// Screen readers skip text inserted together with its live region, so the regions are created once,
-// empty, and kept in <body>; the message is written a moment later. Clearing first makes an
-// identical message a change again.
+// Screen readers skip text inserted together with its live region, so a region is created once,
+// empty, and kept; the message is written a moment later. Clearing first makes an identical message
+// a change again. The region lives in <body>, or inside the open modal the toast belongs to, because
+// everything outside a modal <dialog> is inert and would not be announced.
 const ANNOUNCE_DELAY_MS = 100;
-const regions = new Map<"status" | "alert", { element: HTMLElement; timer?: number }>();
+const timers = new WeakMap<HTMLElement, number>();
 
-function announce(text: string, role: "status" | "alert") {
-  let region = regions.get(role);
-  if (!region || !region.element.isConnected) {
-    const element = document.createElement("div");
-    element.className = "ocv-live ocv-sr-only";
-    element.setAttribute("role", role);
-    document.body.append(element);
-    region = { element };
-    regions.set(role, region);
+function announce(text: string, role: "status" | "alert", container: HTMLElement) {
+  let region = container.querySelector<HTMLElement>(`:scope > .ocv-live[role="${role}"]`);
+  if (!region) {
+    region = document.createElement("div");
+    region.className = "ocv-live ocv-sr-only";
+    region.setAttribute("role", role);
+    container.append(region);
   }
-  const current = region;
-  window.clearTimeout(current.timer);
-  current.element.textContent = "";
-  current.timer = window.setTimeout(() => (current.element.textContent = text), ANNOUNCE_DELAY_MS);
+  const target = region;
+  window.clearTimeout(timers.get(target));
+  target.textContent = "";
+  timers.set(target, window.setTimeout(() => (target.textContent = text), ANNOUNCE_DELAY_MS));
 }
 
 export interface ToastProps {
@@ -41,7 +40,7 @@ export function Toast({ tone = "default", children, className }: ToastProps) {
     const text = ref.current?.textContent?.trim();
     if (!text || announced.current === role + text) return;
     announced.current = role + text;
-    announce(text, role);
+    announce(text, role, ref.current?.closest<HTMLElement>("dialog[open]") ?? document.body);
   });
   // Strict Mode remounts once in development: forget what was announced so the remount re-queues it.
   useEffect(
