@@ -29,11 +29,13 @@ export default function InteractivePage() {
   const [innerCloseCalls, setInnerCloseCalls] = useState(0);
   const [modalToast, setModalToast] = useState(0);
   const [openToast, setOpenToast] = useState(0);
+  const [explicit, setExplicit] = useState(true);
+  const [lateAccept, setLateAccept] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
     // The page behind a modal is inert, so tests reopen during the exit animation from script.
-    Object.assign(window, { __reopen: () => setOpen(true), __setAccept: (value: boolean) => setAccept(value), __close: () => setOpen(false) });
+    Object.assign(window, { __reopen: () => setOpen(true), __setAccept: (value: boolean) => setAccept(value), __close: () => setOpen(false), __setExplicit: setExplicit, __setLateAccept: setLateAccept });
   }, []);
 
   const error = validated && !email.includes("@") ? "Podaj pełny adres e-mail" : undefined;
@@ -55,10 +57,21 @@ export default function InteractivePage() {
       <Button id="accept" onClick={() => setAccept((value) => !value)}>{accept ? "accept" : "reject"}</Button>
       <Modal
         open={open}
+        explicitAccept={explicit}
         onClose={(value, acceptClose) => {
           setCloseCalls((count) => count + 1);
           setReturnValue(value ?? "");
           if (value === "saved") {
+            if (!explicit) {
+              // A pre-existing handler: closes synchronously and never calls accept().
+              setOpen(false);
+              return;
+            }
+            if (lateAccept) {
+              // Accepts long after the page has closed (and reopened) the modal on its own.
+              window.setTimeout(acceptClose, 400);
+              return;
+            }
             // Accepted after an asynchronous operation (e.g. a save request).
             window.setTimeout(() => {
               acceptClose();

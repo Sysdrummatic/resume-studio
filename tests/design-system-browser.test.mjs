@@ -256,6 +256,36 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
       assert.equal(await page.evaluate(() => document.activeElement?.id), "opener", "focus returns to the opener");
     });
 
+    await t.test("Modal (default mode): a handler without accept() keeps the submitted returnValue", async () => {
+      await page.evaluate(() => window.__setExplicit(false));
+      await page.locator("#opener").click();
+      await page.locator("#save").click();
+      await waitClosed(page);
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "saved");
+      assert.equal(await page.evaluate(() => document.activeElement?.id), "opener", "focus returns to the opener");
+      await page.evaluate(() => window.__setExplicit(true));
+    });
+
+    await t.test("Modal (explicit mode): a late accept() from a previous opening does not set the next result", async () => {
+      await page.evaluate(() => {
+        window.__setExplicit(true);
+        window.__setLateAccept(true);
+      });
+      await page.locator("#opener").click();
+      await page.locator("#save").click();
+      // The page closes on its own and reopens during the exit animation, before the late accept().
+      await page.evaluate(() => {
+        window.__close();
+        setTimeout(() => window.__reopen(), 50);
+      });
+      await page.waitForTimeout(600);
+      assert.equal(await dialogOpen(page), true, "the second opening is showing");
+      await page.evaluate(() => window.__close());
+      await waitClosed(page);
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "", "the expired accept() has no effect");
+      await page.evaluate(() => window.__setLateAccept(false));
+    });
+
     await t.test("reduced motion: body and nested themes inherit zeroed motion; modal closes by animationend", async () => {
       const motion = (selector) =>
         page.evaluate((sel) => {
