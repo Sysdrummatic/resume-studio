@@ -1,7 +1,11 @@
 /*
+ * Portal typography (ADR 0026, revised 2026-11-19; previously "Geist only"):
+ * Fraunces for large headings only, Geist for UI text, Geist Mono for
+ * machine-readable values — all via next/font (see app/layout.tsx). The roles and
+ * the LiveCV tokens live in app/components/design-system/tokens.css; screens below
+ * still use the legacy --portal-* palette until their redesign stage migrates them.
  * Space Grotesk is self-hosted exclusively for the CV domain
  * (app/resume/resume.css references the family by name).
- * Portal typography is Geist via next/font (see app/layout.tsx).
  */
 @font-face {
   font-family: "Space Grotesk";
@@ -4741,16 +4745,8 @@ a {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* The global prefers-reduced-motion guard lives in
+   app/components/design-system/tokens.css (ADR 0026), loaded on every route. */
 
 .public-resume-route__cta {
   margin-top: 1.5rem;

@@ -1,0 +1,151 @@
+/*
+ * OpenCiVera LiveCV tokens (ADR 0026, epic #190, stage #288).
+ *
+ * Theme: --ocv-L / --ocv-D are space toggles. Exactly one is `initial` (its
+ * var() fallback applies) and the other is empty, so every colour token below
+ * carries both its light and its dark value and no component branches on the
+ * theme. data-app-theme (server-rendered from the theme cookie, ADR 0012) wins.
+ * Today the server always sets it (dark by default), so the prefers-color-scheme
+ * branch below only applies once #289 lets the theme follow the system.
+ * Any element may carry data-app-theme (a light sub-panel on a dark page): the token
+ * block is declared on it too, because a var() resolves where it is declared.
+ * light-dark() would read simpler, but needs Chrome 123 / Safari 17.5, above the
+ * Next.js default targets (Chrome 111 / Safari 16.4), and cannot carry the weight token.
+ *
+ * Colour meaning: indigo = private Experience Base (and focus), teal = published
+ * LiveCV, amber = unsaved changes, danger = destructive actions and errors only.
+ *
+ * Namespaced --ocv-* because globals.css already owns --bg/--accent/--border with
+ * other meanings; the legacy --portal-* palette is retired screen by screen.
+ */
+
+:root {
+  --ocv-L: initial;
+  --ocv-D: ;
+}
+
+[data-app-theme="dark"] {
+  --ocv-L: ;
+  --ocv-D: initial;
+  color-scheme: dark;
+}
+
+[data-app-theme="light"] {
+  --ocv-L: initial;
+  --ocv-D: ;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-app-theme]) {
+    --ocv-L: ;
+    --ocv-D: initial;
+  }
+}
+
+:root,
+[data-app-theme] {
+  /* Surfaces and lines */
+  --ocv-bg: var(--ocv-L, #e9ebf1) var(--ocv-D, #070910);
+  --ocv-raise: var(--ocv-L, #ffffff) var(--ocv-D, #141827);
+  --ocv-line: var(--ocv-L, #d3d7e2) var(--ocv-D, #222a3d);
+  --ocv-line-strong: var(--ocv-L, #b7bdcc) var(--ocv-D, #38415a);
+  --ocv-control: var(--ocv-L, #7b8396) var(--ocv-D, #6f7892);
+  --ocv-scrim: var(--ocv-bg);
+
+  /* Text */
+  --ocv-ink: var(--ocv-L, #0f121a) var(--ocv-D, #f1f2f6);
+  --ocv-ink-2: var(--ocv-L, #434959) var(--ocv-D, #aeb5c7);
+  --ocv-ink-3: var(--ocv-L, #5b6273) var(--ocv-D, #8a93aa);
+  --ocv-on-ink: var(--ocv-L, #ffffff) var(--ocv-D, #070910);
+
+  /* Meaning */
+  --ocv-indigo: var(--ocv-L, #4f5bd6) var(--ocv-D, #8f9aff);
+  --ocv-indigo-ink: var(--ocv-L, #3a44b2) var(--ocv-D, #aeb6ff);
+  --ocv-indigo-wash: var(--ocv-L, #e3e6fb) var(--ocv-D, #1d2245);
+  --ocv-teal: var(--ocv-L, #008c7c) var(--ocv-D, #1fd0b8);
+  --ocv-teal-ink: var(--ocv-L, #006a5d) var(--ocv-D, #62e2cf);
+  --ocv-teal-wash: var(--ocv-L, #d3f1ec) var(--ocv-D, #0c3a35);
+  --ocv-amber: var(--ocv-L, #8a5300) var(--ocv-D, #f2b866);
+  --ocv-amber-wash: var(--ocv-L, #f8e7c8) var(--ocv-D, #3c2c0e);
+  --ocv-danger: var(--ocv-L, #b3261e) var(--ocv-D, #ff9d94);
+  --ocv-danger-wash: var(--ocv-L, #fbe4e2) var(--ocv-D, #3d1614);
+  --ocv-focus: var(--ocv-L, #3a44b2) var(--ocv-D, #aeb6ff);
+  /* Scene tokens (Experience Base slabs, dotted floor) arrive with their first consumer in #290. */
+
+  /* Elevation: offset + soft blur, only on floating layers (menu, modal, toast) */
+  --ocv-shadow-float: 0 20px 50px -24px rgb(0 0 0 / 0.5);
+  --ocv-shadow-modal: 0 30px 80px -30px rgb(0 0 0 / 0.6);
+  --ocv-shadow-paper: 0 24px 50px -32px rgb(0 0 0 / 0.55);
+
+  /* Type roles. Fraunces: large headings only. Geist: UI. Geist Mono: values. */
+  --ocv-font-display: var(--font-fraunces), var(--font-fraunces-ext), Georgia, "Times New Roman", serif;
+  --ocv-font-ui: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ocv-font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Consolas, monospace;
+  --ocv-font-doc: "Space Grotesk", var(--font-geist-sans), system-ui, sans-serif;
+  /* Light serif strokes thin out on a dark ground: one step heavier there. */
+  --ocv-display-weight: var(--ocv-L, 300) var(--ocv-D, 350);
+
+  --ocv-text-display: clamp(2.25rem, 1.2rem + 3.6vw, 4rem);
+  --ocv-text-title: clamp(2rem, 1.4rem + 2vw, 3.25rem);
+  --ocv-text-heading: clamp(1.375rem, 1.15rem + 0.7vw, 1.75rem);
+  --ocv-text-subheading: 1rem;
+  --ocv-text-lead: clamp(0.9375rem, 0.85rem + 0.3vw, 1.0625rem);
+  --ocv-text-body: 1rem;
+  --ocv-text-meta: 0.8125rem;
+
+  /* Shape */
+  --ocv-radius-control: 12px;
+  --ocv-radius-tile: 16px;
+  --ocv-radius-panel: 20px;
+  --ocv-radius-pill: 999px;
+  --ocv-hit: 44px;
+  --ocv-hit-small: 38px;
+}
+
+/* Motion is theme-independent and declared on :root only, so body and nested themes inherit
+   the reduced-motion values below instead of re-declaring the normal ones. */
+:root {
+  /* Motion (epic #190). Restrained surfaces use instant..base; expressive ones add
+     slow and the 500–700ms scene changes. Exit is always shorter than entry. */
+  --motion-instant: 100ms;
+  --motion-quick: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 420ms;
+  --motion-base-exit: 160ms;
+  --motion-slow-exit: 280ms;
+  /* The traced outline is drawn once, slowly, as a signature, never on routine state. */
+  --motion-trace: 1600ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  /* How far primitives travel when they enter/leave; reduced motion sets 0. */
+  --ocv-motion-shift: 10px;
+  --ocv-motion-scale: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 0ms;
+    --motion-quick: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
+    --motion-base-exit: 0ms;
+    --motion-slow-exit: 0ms;
+    --motion-trace: 0ms;
+    --ocv-motion-shift: 0px;
+    --ocv-motion-scale: 1;
+  }
+
+  /* Global guard (moved here from app/globals.css). Epic #190 wants a crossfade
+     instead of spatial motion under reduced motion; relaxing this guard to allow
+     opacity is decided with the landing scene (#290, TECH_DEBT.md). */
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
