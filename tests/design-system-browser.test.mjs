@@ -1,6 +1,8 @@
 // Real App Router + Chromium regressions for the design-system primitives (#288, PR #298).
 // Opt-in like the other browser suites: DESIGN_SYSTEM_BROWSER_TEST=1 node --test tests/design-system-browser.test.mjs
-// The fixture app (tests/design-system-app) is copied into tmp/ so `next dev` never writes into tests/.
+// The fixture app (tests/design-system-app) is copied into tmp/ so Next never writes into tests/.
+// Most checks run on `next dev` (Strict Mode); effect-order checks also run on a production build,
+// because Strict Mode's second effect pass can hide them.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -8,32 +10,68 @@ import { cp, rm } from "node:fs/promises";
 import path from "node:path";
 
 const FIXTURE = path.resolve("tests/design-system-app");
-const APP = path.resolve("tmp/design-system-app");
-const PORT = 3988;
-const BASE = `http://127.0.0.1:${PORT}`;
+const NEXT_BIN = path.resolve("node_modules/next/dist/bin/next");
+const BASE = "http://127.0.0.1:3988";
+const PROD_BASE = "http://127.0.0.1:3989";
 
-async function startNext() {
-  await rm(APP, { recursive: true, force: true });
-  await cp(FIXTURE, APP, { recursive: true });
-  const child = spawn(process.execPath, [path.resolve("node_modules/next/dist/bin/next"), "dev", "-p", String(PORT), "-H", "127.0.0.1"], {
-    cwd: APP,
+function runNext(app, args) {
+  const child = spawn(process.execPath, [NEXT_BIN, ...args], {
+    cwd: app,
     env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   });
-  let log = "";
-  child.stdout.on("data", (chunk) => (log += chunk));
-  child.stderr.on("data", (chunk) => (log += chunk));
+  child.output = "";
+  child.stdout.on("data", (chunk) => (child.output += chunk));
+  child.stderr.on("data", (chunk) => (child.output += chunk));
+  return child;
+}
+
+async function startNext(mode, base) {
+  const app = path.resolve(`tmp/design-system-app-${mode}`);
+  await rm(app, { recursive: true, force: true });
+  await cp(FIXTURE, app, { recursive: true });
+  if (mode === "prod") {
+    const build = runNext(app, ["build"]);
+    const code = await new Promise((resolve) => build.on("exit", resolve));
+    if (code !== 0) throw new Error(`next build failed:\n${build.output}`);
+  }
+  const child = runNext(app, [mode === "prod" ? "start" : "dev", "-p", new URL(base).port, "-H", "127.0.0.1"]);
+  const server = { app, child, log: () => child.output };
   for (let i = 0; i < 120; i += 1) {
     try {
-      await fetch(BASE, { signal: AbortSignal.timeout(60000) });
-      return { child, log: () => log };
+      await fetch(base, { signal: AbortSignal.timeout(60000) });
+      return server;
     } catch {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
-  child.kill();
-  throw new Error(`next dev did not start:\n${log}`);
+  await stopNext(server);
+  throw new Error(`next ${mode} did not start:\n${child.output}`);
 }
+
+async function stopNext(server) {
+  // child.kill() leaves next's server process alive on Windows; end the whole tree.
+  if (process.platform === "win32") await new Promise((resolve) => spawn("taskkill", ["/pid", String(server.child.pid), "/T", "/F"]).on("exit", resolve));
+  else server.child.kill();
+  // A leftover copy would be type-checked by the root tsconfig (**/*.ts), so retry while files are released.
+  await rm(server.app, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
+}
+
+async function axIgnored(page, selector) {
+  const cdp = await page.context().newCDPSession(page);
+  const { root } = await cdp.send("DOM.getDocument", { depth: -1 });
+  const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector });
+  const { nodes } = await cdp.send("Accessibility.getPartialAXTree", { nodeId, fetchRelatives: false });
+  return nodes[0].ignored;
+}
+
+// Marks the live region holding `text` and reports its role and whether it sits directly in the first dialog.
+const markRegion = (page, text) =>
+  page.evaluate((wanted) => {
+    const region = [...document.querySelectorAll(".ocv-live")].find((el) => el.textContent === wanted);
+    region?.setAttribute("data-probe", "");
+    return region ? [region.getAttribute("role"), region.parentElement === document.querySelector("dialog")] : null;
+  }, text);
 
 const state = (page, name) => page.locator("#state").getAttribute(`data-${name}`).then(Number);
 const dialogOpen = (page) => page.evaluate(() => document.querySelector("dialog").open);
@@ -42,7 +80,8 @@ const waitClosed = (page) => page.waitForFunction(() => !document.querySelector(
 
 test("design-system primitives in a real App Router and Chromium", { skip: process.env.DESIGN_SYSTEM_BROWSER_TEST !== "1", timeout: 300000 }, async (t) => {
   const { chromium } = await import("playwright");
-  const next = await startNext();
+  const next = await startNext("dev", BASE);
+  let prod;
   const browser = await chromium.launch({ headless: true });
   try {
     await t.test("a server page renders Button, TextInput, Select and Textarea (HTTP 200)", async () => {
@@ -182,6 +221,18 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
       assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "confirm", "an accepted submit keeps its value");
     });
 
+    await t.test("Modal: a programmatic close after a refused submit leaves returnValue empty", async () => {
+      await page.evaluate(() => window.__setAccept(false));
+      await page.locator("#opener").click();
+      await page.locator("#delete").click();
+      await page.waitForTimeout(150);
+      assert.equal(await dialogOpen(page), true, "the parent refused");
+      await page.evaluate(() => window.__close());
+      await waitClosed(page);
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "", "the refused value is not used later");
+      await page.evaluate(() => window.__setAccept(true));
+    });
+
     await t.test("reduced motion: body and nested themes inherit zeroed motion; modal closes by animationend", async () => {
       const motion = (selector) =>
         page.evaluate((sel) => {
@@ -244,17 +295,9 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
       await page.locator("#opener").click();
       await page.locator("#modal-toast").click();
       await page.waitForTimeout(300);
-      const marked = await page.evaluate(() => {
-        const region = [...document.querySelectorAll(".ocv-live")].find((el) => el.textContent === "Skopiowano link");
-        region?.setAttribute("data-probe", "");
-        return region ? [region.getAttribute("role"), region.parentElement === document.querySelector("dialog")] : null;
-      });
+      const marked = await markRegion(page, "Skopiowano link");
       assert.ok(marked, "the message reached a live region");
-      const cdp = await page.context().newCDPSession(page);
-      const { root } = await cdp.send("DOM.getDocument", { depth: -1 });
-      const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector: "[data-probe]" });
-      const { nodes } = await cdp.send("Accessibility.getPartialAXTree", { nodeId, fetchRelatives: false });
-      assert.equal(nodes[0].ignored, false, "the region is in the accessibility tree while the modal is open");
+      assert.equal(await axIgnored(page, "[data-probe]"), false, "the region is in the accessibility tree while the modal is open");
       assert.deepEqual(marked, ["status", true]);
       await page.evaluate(() => document.querySelector("[data-probe]").removeAttribute("data-probe"));
       await page.keyboard.press("Escape");
@@ -387,12 +430,26 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
       assert.equal(Math.round(layout.width), 580);
       await desk.close();
     });
+
+    await t.test("production build: a toast shown together with its modal announces inside the dialog", async () => {
+      prod = await startNext("prod", PROD_BASE);
+      const live = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+      await live.goto(`${PROD_BASE}/interactive`);
+      await hydrated(live);
+      await live.locator("#open-with-toast").click();
+      await live.waitForTimeout(400);
+      assert.deepEqual(await markRegion(live, "Otwarto okno"), ["status", true], "the region is created in the dialog, not in the inert body");
+      assert.equal(await axIgnored(live, "[data-probe]"), false);
+      await live.keyboard.press("Escape");
+      await waitClosed(live);
+      await live.locator("#toast").click();
+      await live.waitForTimeout(400);
+      assert.equal(await live.locator("body > .ocv-live[role=status]").textContent(), "Zapisano", "outside a modal it still announces from <body>");
+      await live.close();
+    });
   } finally {
     await browser.close();
-    // child.kill() leaves next's server process alive on Windows; end the whole tree.
-    if (process.platform === "win32") await new Promise((resolve) => spawn("taskkill", ["/pid", String(next.child.pid), "/T", "/F"]).on("exit", resolve));
-    else next.child.kill();
-    // A leftover copy would be type-checked by the root tsconfig (**/*.ts), so retry while files are released.
-    await rm(APP, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
+    await stopNext(next);
+    if (prod) await stopNext(prod);
   }
 });

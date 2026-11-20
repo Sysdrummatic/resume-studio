@@ -28,11 +28,12 @@ export default function InteractivePage() {
   const [innerOpen, setInnerOpen] = useState(false);
   const [innerCloseCalls, setInnerCloseCalls] = useState(0);
   const [modalToast, setModalToast] = useState(0);
+  const [openToast, setOpenToast] = useState(0);
 
   useEffect(() => {
     setHydrated(true);
     // The page behind a modal is inert, so tests reopen during the exit animation from script.
-    Object.assign(window, { __reopen: () => setOpen(true), __setAccept: (value: boolean) => setAccept(value) });
+    Object.assign(window, { __reopen: () => setOpen(true), __setAccept: (value: boolean) => setAccept(value), __close: () => setOpen(false) });
   }, []);
 
   const error = validated && !email.includes("@") ? "Podaj pełny adres e-mail" : undefined;
@@ -42,6 +43,15 @@ export default function InteractivePage() {
       <output id="state" data-hydrated={hydrated} data-close-calls={closeCalls} data-return-value={returnValue} data-clicks={clicks} data-submits={submits} data-inner-close-calls={innerCloseCalls} />
 
       <Button id="opener" onClick={() => setOpen(true)}>Otwórz</Button>
+      <Button
+        id="open-with-toast"
+        onClick={() => {
+          setOpen(true);
+          setOpenToast((n) => n + 1);
+        }}
+      >
+        Otwórz z komunikatem
+      </Button>
       <Button id="accept" onClick={() => setAccept((value) => !value)}>{accept ? "accept" : "reject"}</Button>
       <Modal
         open={open}
@@ -65,6 +75,7 @@ export default function InteractivePage() {
         <Button id="inner-opener" onClick={() => setInnerOpen(true)}>Szczegóły</Button>
         <Button id="modal-toast" onClick={() => setModalToast((n) => n + 1)}>toast w modalu</Button>
         {modalToast ? <Toast key={modalToast}>Skopiowano link</Toast> : null}
+        {openToast ? <Toast key={`open-${openToast}`}>Otwarto okno</Toast> : null}
         <Modal
           open={innerOpen}
           onClose={() => {

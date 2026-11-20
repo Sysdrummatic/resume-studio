@@ -25,7 +25,7 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const openRef = useRef(open);
-  // The value of the latest close request; written to returnValue only once the parent accepts it.
+  // The value of a close request the parent is accepting; written to returnValue when open turns false.
   const requestedValue = useRef("");
   const titleId = useId();
   const descriptionId = useId();
@@ -74,6 +74,11 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
     if (!openRef.current) return;
     requestedValue.current = returnValue;
     onClose(returnValue);
+    // An accepting setState in onClose commits (and the effect above consumes the value) before this
+    // task; a dialog still open here was refused, so a later programmatic close must not reuse it.
+    window.setTimeout(() => {
+      if (openRef.current) requestedValue.current = "";
+    });
   };
 
   const onSubmit = (event: FormEvent<HTMLDialogElement>) => {

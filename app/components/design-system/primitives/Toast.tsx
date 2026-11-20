@@ -5,8 +5,9 @@ import { cx } from "./cx";
 
 // Screen readers skip text inserted together with its live region, so a region is created once,
 // empty, and kept; the message is written a moment later. Clearing first makes an identical message
-// a change again. The region lives in <body>, or inside the open modal the toast belongs to, because
-// everything outside a modal <dialog> is inert and would not be announced.
+// a change again. The region lives in <body>, or inside the modal the toast belongs to, because
+// everything outside a modal <dialog> is inert and would not be announced. The dialog is matched
+// whether or not it is open yet: a child's effect runs before the Modal's showModal() effect.
 const ANNOUNCE_DELAY_MS = 100;
 const timers = new WeakMap<HTMLElement, number>();
 
@@ -40,7 +41,7 @@ export function Toast({ tone = "default", children, className }: ToastProps) {
     const text = ref.current?.textContent?.trim();
     if (!text || announced.current === role + text) return;
     announced.current = role + text;
-    announce(text, role, ref.current?.closest<HTMLElement>("dialog[open]") ?? document.body);
+    announce(text, role, ref.current?.closest<HTMLElement>("dialog") ?? document.body);
   });
   // Strict Mode remounts once in development: forget what was announced so the remount re-queues it.
   useEffect(
