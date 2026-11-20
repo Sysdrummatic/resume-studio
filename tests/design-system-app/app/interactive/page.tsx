@@ -55,10 +55,21 @@ export default function InteractivePage() {
       <Button id="accept" onClick={() => setAccept((value) => !value)}>{accept ? "accept" : "reject"}</Button>
       <Modal
         open={open}
-        onClose={(value) => {
+        onClose={(value, acceptClose) => {
           setCloseCalls((count) => count + 1);
           setReturnValue(value ?? "");
-          if (accept) setOpen(false);
+          if (value === "saved") {
+            // Accepted after an asynchronous operation (e.g. a save request).
+            window.setTimeout(() => {
+              acceptClose();
+              setOpen(false);
+            }, 200);
+            return;
+          }
+          if (accept) {
+            acceptClose();
+            setOpen(false);
+          }
         }}
         title="Cofnąć publikację tej wersji LiveCV i wyłączyć jej publiczny link?"
         description={LONG_PL}
@@ -67,6 +78,7 @@ export default function InteractivePage() {
           <form method="dialog">
             <Button id="cancel" type="submit" value="cancel">Anuluj</Button>
             <Button id="delete" type="submit" value="delete">Usuń</Button>
+            <Button id="save" type="submit" value="saved">Zapisz</Button>
             <Button id="confirm" type="submit" value="confirm" variant="danger">Cofnij publikację</Button>
           </form>
         }

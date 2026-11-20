@@ -233,6 +233,29 @@ test("design-system primitives in a real App Router and Chromium", { skip: proce
       await page.evaluate(() => window.__setAccept(true));
     });
 
+    await t.test("Modal: a refused submit and an independent close in the same JS task leave returnValue empty", async () => {
+      await page.evaluate(() => window.__setAccept(false));
+      await page.locator("#opener").click();
+      await page.evaluate(() => {
+        document.querySelector("#delete").click();
+        window.__close();
+      });
+      await waitClosed(page);
+      assert.equal(await page.locator("#state").getAttribute("data-return-value"), "delete", "the parent was asked and refused");
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "", "the independent close carries no value");
+      await page.evaluate(() => window.__setAccept(true));
+    });
+
+    await t.test("Modal: a submit accepted after an asynchronous operation keeps its returnValue", async () => {
+      await page.locator("#opener").click();
+      await page.locator("#save").click();
+      await page.waitForTimeout(100);
+      assert.equal(await dialogOpen(page), true, "still open while the operation runs");
+      await waitClosed(page);
+      assert.equal(await page.evaluate(() => document.querySelector("dialog").returnValue), "saved");
+      assert.equal(await page.evaluate(() => document.activeElement?.id), "opener", "focus returns to the opener");
+    });
+
     await t.test("reduced motion: body and nested themes inherit zeroed motion; modal closes by animationend", async () => {
       const motion = (selector) =>
         page.evaluate((sel) => {

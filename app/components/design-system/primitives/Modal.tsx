@@ -9,8 +9,13 @@ const EXIT_ANIMATION = "ocv-sink";
 
 export interface ModalProps {
   open: boolean;
-  /** Every close request: Escape, the close button or a `<form method="dialog">` submit (its value, else ""). */
-  onClose: (returnValue: string) => void;
+  /**
+   * Every close request: Escape, the close button or a `<form method="dialog">` submit (its value, else "").
+   * Close by setting open={false}, now or after async work. Call `accept()` no later than that to make
+   * this request's value the dialog's `returnValue`; any other close (refused request, independent
+   * open={false}) leaves it "".
+   */
+  onClose: (returnValue: string, accept: () => void) => void;
   title: ReactNode;
   description?: ReactNode;
   footer?: ReactNode;
@@ -25,8 +30,8 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const openRef = useRef(open);
-  // The value of a close request the parent is accepting; written to returnValue when open turns false.
-  const requestedValue = useRef("");
+  // Set only by the parent's accept(); written to returnValue when open turns false.
+  const acceptedValue = useRef("");
   const titleId = useId();
   const descriptionId = useId();
 
@@ -38,6 +43,7 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
     if (open) {
       dialog.removeAttribute("data-closing");
       if (!dialog.open) {
+        acceptedValue.current = "";
         dialog.returnValue = "";
         dialog.showModal();
         titleRef.current?.focus();
@@ -47,8 +53,8 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
 
     if (!dialog.open) return;
 
-    dialog.returnValue = requestedValue.current;
-    requestedValue.current = "";
+    dialog.returnValue = acceptedValue.current;
+    acceptedValue.current = "";
     let done = false;
     const finish = () => {
       if (done) return;
@@ -72,12 +78,8 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
   // Ignored while closing, so a second Escape during the exit animation is not a second request.
   const requestClose = (returnValue = "") => {
     if (!openRef.current) return;
-    requestedValue.current = returnValue;
-    onClose(returnValue);
-    // An accepting setState in onClose commits (and the effect above consumes the value) before this
-    // task; a dialog still open here was refused, so a later programmatic close must not reuse it.
-    window.setTimeout(() => {
-      if (openRef.current) requestedValue.current = "";
+    onClose(returnValue, () => {
+      acceptedValue.current = returnValue;
     });
   };
 
