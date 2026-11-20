@@ -16,6 +16,10 @@ palety CV (`app/resume/resume.css`).
   `--ocv-L` / `--ocv-D`). Komponenty nigdy nie rozgałęziają się po motywie.
   Wygrywa `data-app-theme` (cookie, ADR 0012). Serwer zawsze go ustawia (domyślnie
   ciemny); gałąź `prefers-color-scheme` zadziała dopiero po zmianie w #289.
+  `data-app-theme` działa na dowolnym elemencie (np. jasny podpanel na ciemnej stronie):
+  blok tokenów jest deklarowany także tam, bo `var()` rozwiązuje się w miejscu deklaracji;
+  ustawia też `color-scheme`. `light-dark()` odrzucone: wymaga Chrome 123 / Safari 17.5
+  (powyżej domyślnych celów Next.js) i nie obsłuży tokenu wagi Fraunces.
 - **Znaczenie koloru:** indygo = prywatna Baza doświadczeń (oraz focus),
   teal = opublikowane LiveCV, bursztyn = niezapisane zmiany, czerwień = tylko akcje
   destrukcyjne i błędy.
@@ -62,7 +66,10 @@ Animujemy wyłącznie `transform`, `opacity` i kolory.
 | `--ease-in` | `cubic-bezier(0.4, 0, 1, 1)` | wyjście |
 
 `prefers-reduced-motion: reduce` zeruje tokeny ruchu i globalnie skraca przejścia
-oraz animacje (reguła w `tokens.css`).
+oraz animacje (reguła w `tokens.css`). Obie reguły zostają celowo: globalna chroni
+obecne ekrany na `--portal-*`, a zerowanie tokenów obejmuje też opóźnienia (`*-delay`)
+i odczyty z JS. Animacje wyjścia kończą się wtedy po 0,01 ms, więc `animationend` nadal
+przychodzi (modal ma dodatkowo zegar awaryjny 400 ms).
 
 ## Prymitywy (`primitives/`)
 
@@ -71,28 +78,38 @@ Komponenty React w `app/components/design-system/primitives/` (eksport z
 
 | Komponent | Klasa | Uwagi |
 | --- | --- | --- |
-| `Button` | `.ocv-btn` | `variant`: `primary` / `secondary` / `quiet` / `danger`; `size="small"`; `busy` |
+| `Button` | `.ocv-btn` | `variant`: `primary` / `secondary` / `quiet` / `danger`; `size="small"`; `busy` (zawsze `aria-disabled`/`aria-busy="true"`, zostaje w kolejności fokusu, blokuje własny `onClick` i wysłanie formularza przez swoją aktywację — kliknięcie, Enter, Spacja, Enter w polu; `form.requestSubmit()` i inne przyciski działają) |
 | `IconButton` | `.ocv-icon-btn` | wymagany `label` (aria-label + title) |
 | `SegmentedControl` | `.ocv-seg` | przyciski z `aria-pressed` w `role="group"` |
-| `Field`, `TextInput`, `Select`, `Textarea` | `.ocv-field`, `.ocv-input` | etykieta, `hint`, `error` → `aria-describedby` / `aria-invalid` |
-| `Checkbox` | `.ocv-check` | |
+| `Field`, `TextInput`, `Select`, `Textarea` | `.ocv-field`, `.ocv-input` | etykieta, `hint`, `error` → `aria-describedby` / `aria-invalid` (własne `aria-describedby` wywołującego jest dołączane). Element błędu (`{id}-error`, `aria-live="polite"`) jest zawsze zamontowany i pusty, gdy pole jest poprawne, więc błąd po walidacji zostaje ogłoszony; ten sam tekst nie jest ponawiany przy kolejnych klawiszach (węzeł tekstu się nie zmienia) |
+| `Checkbox` | `.ocv-check` | cała etykieta klikalna; na ekranie dotykowym min. 44 px wysokości |
 | `SearchField` | `.ocv-search` | wymagany `label` |
 | `StatePill` | `.ocv-state` | `state`: `private` / `public` / `ok` / `changes` |
 | `Panel` | `.ocv-panel` | `traced="public" \| "private"` rysuje obrys raz po pojawieniu się |
-| `Modal` | `.ocv-modal` | natywny `<dialog>`, focus na tytule, Esc zamyka, wyjście krótsze niż wejście |
+| `Modal` | `.ocv-modal` | natywny `<dialog>`, sterowany: zamyka się tylko przez `open={false}`. Esc, przycisk zamknięcia i `<form method="dialog">` wywołują raz `onClose(returnValue)` (wartość przycisku wysyłającego, inaczej `""`; `dialog.returnValue` jak natywnie); rodzic może odmówić, zostawiając `open`. Ponowny Esc w trakcie zamykania jest ignorowany. Focus na tytule, powrót do elementu otwierającego, wyjście krótsze niż wejście. Na niskim ekranie (`max-height: 32rem`) przewija się całe okno, więc stopka jest osiągalna. Znane ograniczenie: drugi z rzędu odrzucony Esc Chrome zamyka natywnie (bez możliwości anulowania) — dialog jest przywracany w zdarzeniu `close`, co może dać jedną klatkę mignięcia |
 | `Menu`, `MenuItem` | `.ocv-menu` | link (`href`) albo przycisk; `tone="danger"` |
-| `Toast` | `.ocv-toast` | `role="status"` (`alert` dla `danger`) |
+| `Toast` | `.ocv-toast` | element wizualny nie jest regionem na żywo; treść trafia do dwóch stałych, początkowo pustych regionów w `<body>` (`role="status"`, dla `danger` `role="alert"`) ok. 100 ms po zamontowaniu. Każdy nowy komunikat dostaje własny `key` — wtedy identyczny tekst jest ogłaszany ponownie |
 | `EmptyState` | `.ocv-empty` | |
 | `Paper`, `PaperSection` | `.ocv-paper` | arkusz CV, biały w obu motywach, `view-transition-class: ocv-paper` |
 
 Każdy interaktywny prymityw ma widoczny `:focus-visible` (`--ocv-focus`).
 
+**Eksporty i App Router.** Publiczne API to komponenty z `index.ts` oraz
+`buttonClassName(variant, size)` — styl przycisku dla linku. `buttonClassName` leży
+w osobnym module bez `"use client"`, więc wolno go wywołać w komponencie serwerowym.
+`Button`, `TextInput`/`Select`/`Textarea`, `Field`, `Modal` i `Toast` są modułami
+klienckimi, więc można je renderować z serwerowego `page.tsx` (tylko z
+serializowalnymi propsami). `cx` jest wewnętrzny i nie jest eksportowany z `index.ts`.
+Regresja w prawdziwym App Routerze i Chromium:
+`DESIGN_SYSTEM_BROWSER_TEST=1 node --test tests/design-system-browser.test.mjs`
+(fixture `tests/design-system-app/`, kopiowany do `tmp/` na czas testu).
+
 ## Atomy i molekuły (starsze)
 
 `atoms/` (`Button`, `Typography`, `UserAvatar`) i `molecules/` (`ResumePreviewFrame`)
 korzystają z palety `--portal-*` i są używane przez obecne ekrany. Zostają bez zmian,
-dopóki etapy #289–#296 nie przeniosą ekranów na prymitywy; wtedy znikają razem z
-paletą `--portal-*` (`TECH_DEBT.md`).
+dopóki etapy #289–#295 nie przeniosą ekranów na prymitywy; usuwa je razem z paletą
+`--portal-*` etap #296, po migracji ostatniego konsumenta (`TECH_DEBT.md`).
 
 ## Zasady
 

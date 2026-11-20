@@ -249,7 +249,16 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
 - **Dwie palety naraz.** Tokeny `--ocv-*` (`app/components/design-system/tokens.css`)
   są docelowe; ekrany nadal czytają `--portal-*` z `app/globals.css`, a stare atomy
   (`atoms/Button`, `Typography`, `UserAvatar`, `molecules/ResumePreviewFrame`) z nich
-  korzystają. Usunąć `--portal-*` i stare atomy, gdy ostatni ekran przejdzie na prymitywy.
+  korzystają. Usunięcie `--portal-*` i starych atomów to etap #296, po migracji ostatniego
+  konsumenta.
+- **Tokeny sceny.** `--ocv-slab`, `--ocv-slab-edge`, `--ocv-grid` (płyty Bazy doświadczeń,
+  kropkowana podłoga) usunięte z `tokens.css`, bo nie miały konsumenta; wracają w #290 razem
+  ze sceną, z wartością jasną i ciemną.
+- **API `Paper`.** Sloty `name`/`role`/`contact` i `PaperSection` zostają bez konsumenta;
+  ewentualne odchudzenie API ocenić przy pierwszym ekranie, który użyje arkusza.
+- **Toast bez kolejki.** Stałe regiony ogłoszeń (`primitives/Toast.tsx`) pokazują ostatni
+  komunikat; kolejka i automatyczne znikanie należą do pierwszego ekranu, który zastąpi
+  obecne toasty.
 - **Domyślny motyw.** Epik chce "system + ręczny wybór"; ADR 0012 i
   `tests/app-theme-contract.test.mjs` trzymają `dark` jako domyślny, a serwer zawsze
   ustawia `data-app-theme`. Tokeny już obsługują brak atrybutu (`prefers-color-scheme`);

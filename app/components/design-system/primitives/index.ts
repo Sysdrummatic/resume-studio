@@ -1,5 +1,7 @@
-export { Button, buttonClassName } from "./Button";
-export type { ButtonProps, ButtonVariant } from "./Button";
+export { Button } from "./Button";
+export { buttonClassName } from "./buttonClassName";
+export type { ButtonProps } from "./Button";
+export type { ButtonVariant } from "./buttonClassName";
 export { IconButton } from "./IconButton";
 export type { IconButtonProps } from "./IconButton";
 export { SegmentedControl } from "./SegmentedControl";
@@ -26,4 +28,3 @@ export { EmptyState } from "./EmptyState";
 export type { EmptyStateProps } from "./EmptyState";
 export { Paper, PaperSection } from "./Paper";
 export type { PaperProps, PaperSectionProps } from "./Paper";
-export { cx } from "./cx";

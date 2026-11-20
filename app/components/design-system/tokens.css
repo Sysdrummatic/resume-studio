@@ -7,6 +7,10 @@
  * theme. data-app-theme (server-rendered from the theme cookie, ADR 0012) wins.
  * Today the server always sets it (dark by default), so the prefers-color-scheme
  * branch below only applies once #289 lets the theme follow the system.
+ * Any element may carry data-app-theme (a light sub-panel on a dark page): the token
+ * block is declared on it too, because a var() resolves where it is declared.
+ * light-dark() would read simpler, but needs Chrome 123 / Safari 17.5, above the
+ * Next.js default targets (Chrome 111 / Safari 16.4), and cannot carry the weight token.
  *
  * Colour meaning: indigo = private Experience Base (and focus), teal = published
  * LiveCV, amber = unsaved changes, danger = destructive actions and errors only.
@@ -20,14 +24,16 @@
   --ocv-D: ;
 }
 
-:root[data-app-theme="dark"] {
+[data-app-theme="dark"] {
   --ocv-L: ;
   --ocv-D: initial;
+  color-scheme: dark;
 }
 
-:root[data-app-theme="light"] {
+[data-app-theme="light"] {
   --ocv-L: initial;
   --ocv-D: ;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,14 +43,15 @@
   }
 }
 
-:root {
+:root,
+[data-app-theme] {
   /* Surfaces and lines */
   --ocv-bg: var(--ocv-L, #e9ebf1) var(--ocv-D, #070910);
   --ocv-raise: var(--ocv-L, #ffffff) var(--ocv-D, #141827);
   --ocv-line: var(--ocv-L, #d3d7e2) var(--ocv-D, #222a3d);
   --ocv-line-strong: var(--ocv-L, #b7bdcc) var(--ocv-D, #38415a);
   --ocv-control: var(--ocv-L, #7b8396) var(--ocv-D, #6f7892);
-  --ocv-scrim: var(--ocv-L, #e9ebf1) var(--ocv-D, #070910);
+  --ocv-scrim: var(--ocv-bg);
 
   /* Text */
   --ocv-ink: var(--ocv-L, #0f121a) var(--ocv-D, #f1f2f6);
@@ -64,11 +71,7 @@
   --ocv-danger: var(--ocv-L, #b3261e) var(--ocv-D, #ff9d94);
   --ocv-danger-wash: var(--ocv-L, #fbe4e2) var(--ocv-D, #3d1614);
   --ocv-focus: var(--ocv-L, #3a44b2) var(--ocv-D, #aeb6ff);
-
-  /* Scene (CSS 3D objects): Experience Base slabs and the dotted floor */
-  --ocv-slab: var(--ocv-L, #bcc2ee) var(--ocv-D, #252b57);
-  --ocv-slab-edge: var(--ocv-L, #4f5bd6) var(--ocv-D, #8f9aff);
-  --ocv-grid: var(--ocv-L, #a4abc2) var(--ocv-D, #3a4468);
+  /* Scene tokens (Experience Base slabs, dotted floor) arrive with their first consumer in #290. */
 
   /* Elevation: offset + soft blur, only on floating layers (menu, modal, toast) */
   --ocv-shadow-float: 0 20px 50px -24px rgb(0 0 0 / 0.5);

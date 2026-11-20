@@ -22,8 +22,8 @@ export function Field({ label, hint, error, id, className, children }: FieldProp
   const generated = useId();
   const controlId = id ?? generated;
   const hintId = hint ? `${controlId}-hint` : undefined;
-  const errorId = error ? `${controlId}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const errorId = `${controlId}-error`;
+  const describedBy = [hintId, error ? errorId : undefined].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className={cx("ocv-field", className)}>
@@ -36,11 +36,11 @@ export function Field({ label, hint, error, id, className, children }: FieldProp
           {hint}
         </span>
       ) : null}
-      {error ? (
-        <span id={errorId} className="ocv-field__error">
-          {error}
-        </span>
-      ) : null}
+      {/* Always mounted (empty when valid) so an error that appears after validation is announced;
+          an unchanged message is not re-announced because its text node does not change. */}
+      <span id={errorId} className="ocv-field__error" aria-live="polite">
+        {error}
+      </span>
     </div>
   );
 }

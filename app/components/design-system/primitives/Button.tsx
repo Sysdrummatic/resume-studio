@@ -1,21 +1,16 @@
+"use client";
+
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { buttonClassName, type ButtonVariant } from "./buttonClassName";
 import { cx } from "./cx";
 
-export type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
+export type { ButtonVariant };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: "default" | "small";
   busy?: boolean;
   icon?: ReactNode;
-}
-
-export function buttonClassName(variant: ButtonVariant = "secondary", size: "default" | "small" = "default") {
-  return cx(
-    "ocv-btn",
-    variant !== "secondary" && `ocv-btn--${variant}`,
-    size === "small" && "ocv-btn--small",
-  );
 }
 
 export function Button({
@@ -25,7 +20,6 @@ export function Button({
   icon,
   type = "button",
   className,
-  disabled,
   onClick,
   children,
   ...props
@@ -34,17 +28,17 @@ export function Button({
     <button
       type={type}
       className={cx(buttonClassName(variant, size), className)}
-      disabled={disabled}
-      aria-disabled={busy || undefined}
-      aria-busy={busy || undefined}
+      {...props}
+      aria-disabled={busy ? true : props["aria-disabled"]}
+      aria-busy={busy ? true : props["aria-busy"]}
       onClick={(event) => {
+        // Click is what Enter, Space and implicit submission dispatch, so this also stops the submit.
         if (busy) {
           event.preventDefault();
           return;
         }
         onClick?.(event);
       }}
-      {...props}
     >
       {icon ? <span aria-hidden="true">{icon}</span> : null}
       {children}

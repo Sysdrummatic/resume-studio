@@ -45,10 +45,6 @@ const COLOUR_TOKENS = [
   "danger",
   "danger-wash",
   "focus",
-  "scrim",
-  "slab",
-  "slab-edge",
-  "grid",
 ];
 
 function colourValue(name, theme) {
@@ -81,8 +77,11 @@ test("every colour token carries both a light and a dark value", () => {
 test("theme follows data-app-theme and falls back to the system preference", () => {
   const css = tokens();
   assert.match(css, /:root\s*\{[^}]*--ocv-L:\s*initial;[^}]*--ocv-D:\s*;/);
-  assert.match(css, /:root\[data-app-theme="dark"\]\s*\{[^}]*--ocv-L:\s*;[^}]*--ocv-D:\s*initial;/);
-  assert.match(css, /:root\[data-app-theme="light"\]\s*\{[^}]*--ocv-L:\s*initial;[^}]*--ocv-D:\s*;/);
+  assert.match(css, /(^|\n)\[data-app-theme="dark"\]\s*\{[^}]*--ocv-L:\s*;[^}]*--ocv-D:\s*initial;/);
+  assert.match(css, /(^|\n)\[data-app-theme="light"\]\s*\{[^}]*--ocv-L:\s*initial;[^}]*--ocv-D:\s*;/);
+  // Tokens are re-declared wherever the theme is set, so a nested sub-panel re-resolves them.
+  assert.match(css, /:root,\s*\[data-app-theme\]\s*\{[^}]*--ocv-bg:/);
+  assert.match(css, /--ocv-scrim:\s*var\(--ocv-bg\);/);
   assert.match(
     css,
     /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-app-theme\]\)\s*\{[^}]*--ocv-D:\s*initial;/,

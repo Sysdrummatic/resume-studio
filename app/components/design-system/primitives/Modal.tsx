@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { X } from "lucide-react";
+import { useEffect, useId, useRef, type FormEvent, type ReactNode } from "react";
 import { cx } from "./cx";
 
 const EXIT_FALLBACK_MS = 400;
@@ -8,7 +9,8 @@ const EXIT_ANIMATION = "ocv-sink";
 
 export interface ModalProps {
   open: boolean;
-  onClose: () => void;
+  /** Every close request: Escape, the close button or a `<form method="dialog">` submit (its value, else ""). */
+  onClose: (returnValue: string) => void;
   title: ReactNode;
   description?: ReactNode;
   footer?: ReactNode;
@@ -17,6 +19,8 @@ export interface ModalProps {
   children: ReactNode;
 }
 
+// Controlled: the dialog only closes when the parent sets open={false}. Every user close path is
+// turned into one onClose call, and the native dialog is kept open until the parent agrees.
 export function Modal({ open, onClose, title, description, footer, size = "default", closeLabel, children }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -32,6 +36,7 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
     if (open) {
       dialog.removeAttribute("data-closing");
       if (!dialog.open) {
+        dialog.returnValue = "";
         dialog.showModal();
         titleRef.current?.focus();
       }
@@ -60,18 +65,43 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
     };
   }, [open]);
 
+  // Ignored while closing, so a second Escape during the exit animation is not a second request.
+  const requestClose = (returnValue = "") => {
+    if (openRef.current) onClose(returnValue);
+  };
+
+  const onSubmit = (event: FormEvent<HTMLDialogElement>) => {
+    const form = event.target as HTMLFormElement;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | HTMLInputElement | null;
+    const method = submitter?.hasAttribute("formmethod") ? submitter.formMethod : form.method;
+    if (event.defaultPrevented || method !== "dialog") return;
+    // Same result the native form close would set, without closing behind the parent's back.
+    event.preventDefault();
+    const value = submitter?.getAttribute("value");
+    if (value !== null && value !== undefined) dialogRef.current!.returnValue = value;
+    requestClose(value ?? "");
+  };
+
   return (
     <dialog
       ref={dialogRef}
       className={cx("ocv-modal", size !== "default" && `ocv-modal--${size}`)}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
+      onSubmit={onSubmit}
       onCancel={(event) => {
+        // Chrome makes a repeated Escape uncancelable; that path closes natively and onClose below handles it.
+        if (!event.nativeEvent.cancelable) return;
         event.preventDefault();
-        onClose();
+        requestClose();
       }}
       onClose={() => {
-        if (openRef.current) onClose();
+        const dialog = dialogRef.current;
+        if (!dialog || !openRef.current) return;
+        // Closed natively while the parent still says open: restore it, then ask.
+        dialog.showModal();
+        titleRef.current?.focus();
+        onClose("");
       }}
     >
       <div className="ocv-modal__box">
@@ -86,18 +116,8 @@ export function Modal({ open, onClose, title, description, footer, size = "defau
               </p>
             ) : null}
           </div>
-          <button type="button" className="ocv-icon-btn" aria-label={closeLabel} title={closeLabel} onClick={onClose}>
-            <svg
-              className="ocv-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
+          <button type="button" className="ocv-icon-btn" aria-label={closeLabel} title={closeLabel} onClick={() => requestClose()}>
+            <X className="ocv-icon" strokeWidth={1.75} aria-hidden="true" />
           </button>
         </header>
         <div className="ocv-modal__body">{children}</div>

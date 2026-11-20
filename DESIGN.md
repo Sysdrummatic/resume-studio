@@ -521,7 +521,8 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 - No looping animations on content elements at idle state, except the explicitly
   requested landing features carousel and restored hero rotating words above
 - `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
-  `app/globals.css` zeroes transition and animation durations; reveal targets are forced visible
+  `app/components/design-system/tokens.css` (moved there from `app/globals.css`) zeroes
+  transition and animation durations; reveal targets are forced visible
 - Light source for ambient gradients: top-left only, never circular bloom
 - New transitions use `--ease-out` to enter and the shorter `--ease-in` to leave (`--ease-out-expo` is the same curve, kept for legacy rules). No bounce, no elastic curves; `linear()` springs only in expressive scene changes, sparingly
 

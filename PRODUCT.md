@@ -68,7 +68,9 @@ mixing. No decorative typefaces. Geist carries the full system."
 - **Geist** — every piece of UI text: body, controls, labels, small headings.
 - **Geist Mono** — values a machine could read: URLs, dates, counts, codes.
 - **Space Grotesk** — the CV only; never a portal surface.
-- All loaded through `next/font` and self-hosted from the repository.
+- All self-hosted from the repository: Geist and Geist Mono through the `geist` package's
+  `next/font`, Fraunces through `next/font/local` (`app/layout.tsx`), Space Grotesk through
+  an `@font-face` rule in `app/globals.css` (`public/fonts/`).
 
 ## Color System
 Colour carries one meaning across every surface (epic #190 decision 7):

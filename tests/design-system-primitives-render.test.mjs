@@ -31,6 +31,7 @@ function load(name) {
   return module.exports;
 }
 
+const read = (file) => readFileSync(path.join(DIR, file), "utf8");
 const render = (component, props) => renderToStaticMarkup(createElement(component, props));
 const attr = (html, name) => html.match(new RegExp(`${name}="([^"]*)"`))?.[1];
 
@@ -91,10 +92,36 @@ test("icon-only controls carry an accessible name", () => {
   assert.match(render(SearchField, { label: "Search entries" }), /type="search"[^>]*aria-label="Search entries"/);
 });
 
-test("Toast is a polite status, and an alert only for danger", () => {
+test("the visible Toast is not itself a live region (persistent regions announce it)", () => {
   const { Toast } = load("Toast");
-  assert.match(render(Toast, { children: "Saved" }), /role="status"/);
-  assert.match(render(Toast, { tone: "danger", children: "Failed" }), /role="alert"/);
+  assert.doesNotMatch(render(Toast, { children: "Saved" }), /role=|aria-live/);
+  assert.match(render(Toast, { tone: "danger", children: "Failed" }), /data-tone="danger"/);
+  assert.match(read("Toast.tsx"), /const role = tone === "danger" \? "alert" : "status";/);
+});
+
+test("App Router boundaries: interactive primitives are client modules, buttonClassName is not", () => {
+  for (const file of ["Button.tsx", "TextInput.tsx", "Field.tsx", "Modal.tsx", "Toast.tsx"]) {
+    assert.match(read(file), /^"use client";/, `${file} must start with "use client"`);
+  }
+  assert.doesNotMatch(read("buttonClassName.ts"), /use client/, "a server component must be able to call buttonClassName");
+  assert.match(read("index.ts"), /export \{ buttonClassName \} from "\.\/buttonClassName";/);
+});
+
+test("Field keeps its error region mounted and links it only while there is an error", () => {
+  const { TextInput } = load("TextInput");
+  const valid = render(TextInput, { label: "Email", id: "e" });
+  assert.match(valid, /<span id="e-error" class="ocv-field__error" aria-live="polite"><\/span>/);
+  assert.doesNotMatch(valid, /aria-describedby|aria-invalid/);
+});
+
+test("a busy Button wins over the caller's ARIA; an idle one keeps it", () => {
+  const { Button } = load("Button");
+  const busy = render(Button, { busy: true, "aria-disabled": false, "aria-busy": false, children: "Save" });
+  assert.match(busy, /aria-disabled="true"/);
+  assert.match(busy, /aria-busy="true"/);
+  const idle = render(Button, { "aria-disabled": false, disabled: true, children: "Save" });
+  assert.match(idle, /aria-disabled="false"/);
+  assert.match(idle, /disabled=""/);
 });
 
 test("MenuItem renders a link for href and a button otherwise", () => {
