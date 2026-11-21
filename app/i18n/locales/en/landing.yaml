@@ -47,8 +47,8 @@ landing:
         body: Each version has its own link, content selection and language, so you can fit it to a specific offer.
       - id: history
         label: History
-        title: Your CV's change history.
-        body: Every publication is saved as a snapshot you can go back to, and editing the base does not change a published LiveCV. This is CV change management.
+        title: Your LiveCV's publication history.
+        body: Every publication saves the published state of your LiveCV, so you can go back to it. Editing the base does not change a published LiveCV until you publish it again.
       - id: feats
         label: Features
         title: OpenCiVera features

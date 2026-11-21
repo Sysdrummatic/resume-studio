@@ -152,7 +152,12 @@ for (const locale of ["pl", "en"]) {
     assert.doesNotMatch(copy, /tłumacz|translat/i);
     assert.doesNotMatch(copy, /\d+\s*%|\d[\d\s]*\+|\b\d{3,}\b|\b(users|użytkownik)/i);
     assert.doesNotMatch(copy, /\b(cena|cennik|price|pricing|plan premium|subscription|subskrypcj)/i);
-    assert.match(story.stages.find((s) => s.id === "history").body, /migawk|snapshot/i);
+    /* brand-language-and-terminology.md: no "snapshot" in user copy; it is the published state of a LiveCV */
+    assert.doesNotMatch(copy, /migawk|snapshot|preset|locale|schema/i);
+    const history = story.stages.find((s) => s.id === "history");
+    assert.match(history.body, /opublikowany stan LiveCV|published state of (your )?LiveCV/i);
+    assert.match(history.body, /ponownie|again/i, "a published LiveCV changes only when republished");
+    assert.doesNotMatch(copy, /—/, "no em dashes in landing copy");
   });
 }
 

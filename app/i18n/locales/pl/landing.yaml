@@ -47,8 +47,8 @@ landing:
         body: Każda wersja ma własny link, wybór treści i język, więc dopasujesz ją do konkretnej oferty.
       - id: history
         label: Historia
-        title: Historia zmian Twojego CV.
-        body: Każda publikacja zapisuje się jako migawka, do której możesz wrócić, a edycja bazy nie zmienia opublikowanego LiveCV. To zarządzanie zmianami w CV (CV Change Management).
+        title: Historia publikacji Twojego LiveCV.
+        body: Każda publikacja zapisuje opublikowany stan LiveCV, do którego możesz wrócić. Edycja bazy nie zmienia już opublikowanego LiveCV, dopóki nie opublikujesz go ponownie.
       - id: feats
         label: Funkcje
         title: Funkcje OpenCiVera
