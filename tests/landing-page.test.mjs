@@ -234,6 +234,18 @@ test("the frame loop: scroll picks the stage, the loop sleeps when settled, off 
   assert.match(sheets, /if \(!reduced\.matches\) frame = window\.requestAnimationFrame\(tick\);/, "reduced motion: one still frame");
 });
 
+test("the simplified version: only the stage headings, centred in height, on a short computer window", () => {
+  const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
+  const screen = readFileSync("app/components/landing/short-window-screen.tsx", "utf8");
+  const css = readFileSync("app/landing.module.css", "utf8");
+  assert.match(screen, /onSimplify\(\)/, "choosing the simplified version is reported to the story");
+  assert.match(story, /<ShortWindowScreen copy=\{story\.short_screen\} name=\{cv\.name\} onSimplify=\{\(\) => setSimple\(true\)\} \/>/);
+  assert.match(story, /data-simple=\{simple \|\| undefined\}/);
+  /* only inside the short computer window: a taller window or a phone keeps its layout */
+  assert.match(css, /@media \(max-height: 560px\) and \(pointer: fine\) \{\s*\.stage\[data-simple\] \.caption \{\s*top: 0;\s*bottom: 0;\s*align-content: center;/);
+  assert.match(css, /\.stage\[data-simple\] \.caption > :not\(\.title\) \{\s*display: none;/);
+});
+
 test("a short window gets the side layout on any device; only a computer is told to enlarge it", () => {
   const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
   const css = readFileSync("app/landing.module.css", "utf8");

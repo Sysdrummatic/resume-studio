@@ -80,6 +80,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
   const rootRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [openFeature, setOpenFeature] = useState<number | null>(null);
+  const [simple, setSimple] = useState(false);
   const openRef = useRef<number | null>(null);
   const featureCount = features.items.length;
   const captions = useMemo(
@@ -581,7 +582,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
 
   return (
     <section ref={rootRef} className={styles.story} aria-label={story.aria_label}>
-      <div className={styles.stage} data-stage-root data-stage="0" data-layout="wide">
+      <div className={styles.stage} data-stage-root data-stage="0" data-layout="wide" data-simple={simple || undefined}>
         <div className={styles.lens} data-lens data-crossfade aria-hidden="true">
           <div className={styles.world} data-world data-scene aria-hidden="true" onClick={onSceneClick}>
             {GRID_LINES.map((g) => (
@@ -704,7 +705,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
           ) : null}
         </article>
 
-        <ShortWindowScreen copy={story.short_screen} name={cv.name} />
+        <ShortWindowScreen copy={story.short_screen} name={cv.name} onSimplify={() => setSimple(true)} />
         <nav className={styles.rail} aria-label={story.rail_label} data-rail>
           <ol>
             {captions.map((caption, index) => (

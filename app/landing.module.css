@@ -1849,3 +1849,17 @@ h1.title > span {
     --lp-trace: 360deg;
   }
 }
+
+/* The simplified version, chosen on that screen: only the stage headings, centred in height and
+   kept where they stand across the page. A taller window or a phone keeps its own layout. */
+@media (max-height: 560px) and (pointer: fine) {
+  .stage[data-simple] .caption {
+    top: 0;
+    bottom: 0;
+    align-content: center;
+  }
+
+  .stage[data-simple] .caption > :not(.title) {
+    display: none;
+  }
+}

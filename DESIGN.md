@@ -338,7 +338,9 @@ they never disagree. A short window with a fine pointer (`(max-height: 560px) an
 (pointer: fine)`) also opens a full-screen modal `<dialog>` (`short-window-screen.tsx`) asking
 for a taller window: the LiveCV window in miniature with its traced outline, a CV sheet
 that does not fit and scrolls inside it, and a 560 px dimension line. It closes by itself
-when the window grows; once dismissed (button or Esc) it stays closed until reload. A
+when the window grows; once dismissed (button or Esc) it stays closed until reload. Its button opens the
+simplified version (`.stage[data-simple]`, same media query): only the stage headings,
+centred in height, kept at their horizontal position. A
 phone in landscape never gets it, since it cannot grow.
 
 ### Breakpoints — CV domain

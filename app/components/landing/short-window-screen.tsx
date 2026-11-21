@@ -11,13 +11,15 @@ const LINES = 10;
 type Props = {
   copy: { title: string; text: string; action: string };
   name: string;
+  /** the visitor chose the simplified version over enlarging the window */
+  onSimplify: () => void;
 };
 
 /**
  * Full screen over the landing while the window is too short for the story. It opens and closes
  * with the window height; once dismissed (button or Esc) it stays closed until the page reloads.
  */
-export default function ShortWindowScreen({ copy, name }: Props) {
+export default function ShortWindowScreen({ copy, name, onSimplify }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const dismissed = useRef(false);
 
@@ -44,6 +46,7 @@ export default function ShortWindowScreen({ copy, name }: Props) {
   const close = () => {
     dismissed.current = true;
     ref.current?.close();
+    onSimplify();
   };
 
   return (
