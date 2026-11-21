@@ -28,12 +28,12 @@ const EYE: Vec3 = [0, 0.6, 12.5];
 const DIM = 0.62;
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
-function makeSheets(): Thing[] {
+function makeSheets(withCv: boolean): Thing[] {
   return Array.from({ length: COUNT }, (_, i) => ({
     key: `ambient-${i}`,
     kind: "card" as const,
     index: i,
-    face: i % 4 === 1 ? ("fe" as const) : ("doc" as const),
+    face: withCv && i % 4 === 1 ? ("fe" as const) : ("doc" as const),
     tone: "file" as const,
     sheet: true,
     lag: 0,
@@ -55,9 +55,9 @@ function makeSheets(): Thing[] {
  * Loose CV sheets drifting slowly behind /login (epic #190, issue #290). Decorative only.
  * The loop sleeps on a hidden tab; reduced motion draws one still frame.
  */
-export default function FloatingSheets({ cv }: { cv: SceneCv }) {
+export default function FloatingSheets({ cv }: { cv: SceneCv | null }) {
   const ref = useRef<HTMLDivElement>(null);
-  const sheets = useMemo(() => makeSheets(), []);
+  const sheets = useMemo(() => makeSheets(cv !== null), [cv]);
 
   useEffect(() => {
     const root = ref.current;
@@ -145,7 +145,7 @@ export default function FloatingSheets({ cv }: { cv: SceneCv }) {
       <div className={styles.ambientLens} data-lens>
         <div className={styles.world} data-world>
           {sheets.map((sheet) => (
-            <SceneBox key={sheet.key} thing={sheet} cv={cv} />
+            <SceneBox key={sheet.key} thing={sheet} cv={cv ?? undefined} />
           ))}
         </div>
       </div>

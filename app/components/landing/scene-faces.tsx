@@ -39,7 +39,8 @@ export function SceneBox({
   feature,
 }: {
   thing: Pick<Thing, "key" | "kind" | "tone" | "index" | "face">;
-  cv: SceneCv;
+  /** absent: CV faces fall back to plain files */
+  cv?: SceneCv;
   feature?: AppDictionary["landing"]["features"]["items"][number];
 }) {
   const solid = thing.kind === "card" || thing.kind === "pick";
@@ -47,7 +48,7 @@ export function SceneBox({
   const faces = solid ? FACES : FACES.slice(0, 1);
   const front = (() => {
     if (thing.face === "doc") return <DocFace />;
-    if (thing.face === "fe" || thing.face === "pf" || thing.face === "ai") return <CvFace cv={cv} version={thing.face} />;
+    if (thing.face === "fe" || thing.face === "pf" || thing.face === "ai") return cv ? <CvFace cv={cv} version={thing.face} /> : <DocFace />;
     if (thing.face === "web") return <WebFace />;
     if (thing.face === "tile" && feature) return <TileFace feature={feature} />;
     if (thing.face === "format") return <span className={styles.formatFace}>{FORMATS[thing.index]}</span>;

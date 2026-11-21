@@ -31,14 +31,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     searchParams,
     getAccessRestriction(),
     getRequestAppI18n(),
-    loadSampleResumeData(),
+    /* the sample CV only decorates the sheets behind the form: without it they stay plain files */
+    loadSampleResumeData().catch(() => null),
   ]);
   const entry = dictionary.auth.entry;
-  const sampleLocale =
-    sample.locales.find((item) => item.code === locale) ??
-    sample.locales.find((item) => item.code === sample.defaultLocale) ??
-    sample.locales[0];
-  const cv = buildSceneCv(sampleLocale.resume, sampleLocale.labels, dictionary.landing.story.scene.versions);
+  const sampleLocale = sample
+    ? (sample.locales.find((item) => item.code === locale) ??
+      sample.locales.find((item) => item.code === sample.defaultLocale) ??
+      sample.locales[0])
+    : undefined;
+  const cv = sampleLocale
+    ? buildSceneCv(sampleLocale.resume, sampleLocale.labels, dictionary.landing.story.scene.versions)
+    : null;
   return (
     <div className={styles.entry}>
       <FloatingSheets cv={cv} />

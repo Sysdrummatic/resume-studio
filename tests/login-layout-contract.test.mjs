@@ -113,4 +113,7 @@ test("login shows loose floating sheets behind an h1, presentation only (#290)",
   assert.match(sheets, /aria-hidden="true"/);
   assert.match(sheets, /visibilitychange/);
   assert.match(sheets, /const COUNT = 10;/, "the mockup's ten loose sheets");
+  /* the sample CV only decorates the sheets: failing to read it must never take /login down */
+  assert.match(page, /loadSampleResumeData\(\)\.catch\(\(\) => null\)/);
+  assert.match(sheets, /cv: SceneCv \| null/);
 });
