@@ -665,10 +665,13 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
                   onFocus={onFocus}
                 >
                   <h1 className={styles.title}>
-                    <span>{hero.title}</span>{" "}
+                    {hero.title.map((line) => (
+                      <span key={line}>{line} </span>
+                    ))}
                     <span>
-                      {hero.title_prefix} <RotatingWord words={hero.rotating_words} paused={active !== 0} /> {hero.title_suffix}
-                    </span>
+                      {hero.title_prefix} <RotatingWord words={hero.rotating_words} paused={active !== 0} />
+                    </span>{" "}
+                    <span>{hero.title_suffix}</span>
                   </h1>
                   <p className={styles.lead}>{hero.lead}</p>
                   <div className={styles.actions}>

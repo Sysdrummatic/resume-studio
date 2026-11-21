@@ -517,11 +517,14 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   position as in the mockup (`follow`: `FOLLOW = 0.068` of the remaining way per 60Hz frame,
   frame rate corrected; the mockup's 0.1 slowed so a transition lasts 50% longer), so it moves continuously through every pose and eases to a stop on the
   stage; style values are written unrounded. The rail and the Scroll/Back pill move exactly
-  one stage. On LiveCV? the browser window itself flies in along a curved path, stays and
-  leaves (`lp-frame-cycle`, no outline); the last stage peels off rounded PDF, YAML, TXT and
+  one stage. On LiveCV? the browser window (rounded corners, set 0.25 units behind the CV so the
+  sheet always stays in front) is drawn round the CV from its top-left corner until whole,
+  stays, and is taken off the same way round (`lp-trace-frame`: a conic mask, `--lp-trace`
+  0 to 720deg); the last stage peels off rounded PDF, YAML, TXT and
   "free" chips, and the link beside the LiveCV is a real link set in `content/landing.yaml`
   (non-copy home page settings; copy stays in the landing dictionaries). The hero headline
-  is two lines, the rotating word sized to the word on screen. Idle loops (orbits, drift, dust, traced
+  is four lines (two from `hero.title`, a list, then the rotating word and the suffix), the
+  rotating word sized to the word on screen. Idle loops (orbits, drift, dust, traced
   outlines, the ring round "scroll") pause off screen, on a hidden tab and while a tile is
   pointed at; the frame loop sleeps once a stage has settled. On an upright phone the scene is drawn into the band above the active caption, eased between
   stages; a short window (phone or computer) uses the side layout with the rail as a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame

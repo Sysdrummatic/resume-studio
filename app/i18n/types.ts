@@ -69,7 +69,8 @@ export type AppDictionary = {
   };
   landing: {
     hero: {
-      title: string;
+      /** one item per headline line */
+      title: string[];
       title_prefix: string;
       title_suffix: string;
       rotating_words: string[];

@@ -79,11 +79,11 @@ for (const locale of ["pl", "en"]) {
     const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
     assert.ok(h1, "one h1 for the start stage");
     assert.equal((html.match(/<h1/g) || []).length, 1);
-    for (const part of [hero.title, hero.title_prefix, hero.rotating_words[0], hero.title_suffix]) {
+    for (const part of [...hero.title, hero.title_prefix, hero.rotating_words[0], hero.title_suffix]) {
       assert.ok(textOf(h1[1]).includes(part), `h1 carries "${part}"`);
     }
     /* crawlers read the server HTML: the h1 is one sentence, not every rotating word at once */
-    assert.equal(textOf(h1[1]).trim(), `${hero.title} ${hero.title_prefix} ${hero.rotating_words[0]} ${hero.title_suffix}`);
+    assert.equal(textOf(h1[1]).trim(), `${hero.title.join(" ")} ${hero.title_prefix} ${hero.rotating_words[0]} ${hero.title_suffix}`);
     assert.ok(text.includes(hero.lead));
     assert.ok(text.includes(hero.free_note));
 
@@ -145,7 +145,7 @@ for (const locale of ["pl", "en"]) {
   test(`copy keeps epic #190's rules: snapshots, no automatic updates or translation, no stats (${locale})`, () => {
     const { hero, story } = readAppDictionary(locale).landing;
     const copy = [
-      hero.title, hero.title_prefix, hero.title_suffix, ...hero.rotating_words, hero.lead, hero.free_note,
+      ...hero.title, hero.title_prefix, hero.title_suffix, ...hero.rotating_words, hero.lead, hero.free_note,
       ...hero.description,
       ...story.stages.flatMap((stage) => [stage.label, stage.title, stage.body]),
       ...Object.values(story.scene)
@@ -280,14 +280,19 @@ test("landing polish (#290 review): copy, hero lines, browser window, chips, lin
   const en = readAppDictionary("en").landing;
   /* 1. the short-window screen */
   assert.equal(pl.story.short_screen.text, "Treść strony jest zaprojektowana dla okien o wysokości większej niż 560 px. Powiększ okno, aby otworzyć pełnowartościową animację.");
-  /* 3. the hero in two lines: the rotating word sits inside the second, sized to the word on screen */
-  assert.match(story, /<RotatingWord[^>]*\/> \{hero\.title_suffix\}/);
-  assert.doesNotMatch(story, /<span>\{hero\.title_suffix\}<\/span>/);
+  /* 3. the hero in four lines: two from the title list, the rotating word's line, the suffix */
+  for (const locale of ["pl", "en"]) assert.equal(readAppDictionary(locale).landing.hero.title.length, 2, locale + ": two title lines");
+  assert.deepEqual(pl.hero.title, ["Stwórz swoje", "idealne LiveCV,"]);
+  assert.match(story, /hero\.title\.map\(/);
+  assert.match(story, /<span>\{hero\.title_suffix\}<\/span>/);
   assert.match(css, /:global\(\.lp-rot__word\) \{[^}]*position: absolute;/);
   assert.match(css, /:global\(\.lp-rot__word\.is-active\) \{[^}]*position: relative;/);
-  /* 4. the LiveCV stage: the browser window itself flies in along a path and leaves, no green outline */
-  assert.match(css, /\.box\[data-trace="cycle"\] > \.face \{[^}]*animation: lp-frame-cycle/);
-  assert.match(css, /@keyframes lp-frame-cycle/);
+  /* 4. the LiveCV stage: the browser window is drawn round the CV's outline from a corner and taken off the same way */
+  assert.match(css, /\.box\[data-trace="cycle"\] > \.face \{[^}]*mask: conic-gradient\([^;]*var\(--lp-trace\)[^}]*animation: lp-trace-frame/);
+  assert.match(css, /@keyframes lp-trace-frame \{[\s\S]*?--lp-trace: 720deg/);
+  assert.doesNotMatch(css, /lp-frame-cycle/, "the window no longer flies in from behind the CV");
+  /* browser windows have rounded corners */
+  assert.match(css, /\.box\[data-kind="frame"\] :is\(\.face, \.layerPaper\) \{[^}]*border-radius:/);
   assert.doesNotMatch(css, /\.box\[data-trace="cycle"\] \.trace \{[^}]*animation: lp-trace-cycle/);
   assert.equal(pl.story.scene.picked.many, "Wybrano {count} elementów doświadczenia");
   assert.equal(pl.story.scene.picked.few, "Wybrano {count} elementy doświadczenia");

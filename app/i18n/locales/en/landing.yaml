@@ -1,6 +1,8 @@
 landing:
   hero:
-    title: Create your ideal LiveCV,
+    title:
+      - Create your
+      - ideal LiveCV,
     title_prefix: one that
     title_suffix: with you.
     rotating_words:

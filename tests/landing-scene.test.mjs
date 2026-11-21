@@ -8,7 +8,7 @@ const model = await import("../app/components/landing/scene-model.ts");
 const { buildSceneCv, versionSections, LIVE_URL, versionPath } = await import("../app/components/landing/scene-cv.ts");
 const {
   STAGE_IDS, STAGE_COUNT, AT, buildScene, buildLabels, samplePose, applyMotion, viewAt, toScreen,
-  worldMatrix, follow, FOLLOW, entryCount, pickedEntries, placeBrowserFrame,
+  worldMatrix, follow, FOLLOW, BROWSER, entryCount, pickedEntries, placeBrowserFrame,
 } = model;
 
 const LAYOUTS = [
@@ -190,4 +190,8 @@ test("the last stage peels off four chips: PDF, YAML, TXT and a free one", () =>
     const chips = buildScene(narrow, lite, 11).things.filter((thing) => thing.kind === "format");
     assert.equal(chips.length, 4);
   }
+});
+
+test("the browser window sits far enough behind the CV that a swaying sheet never cuts into it", () => {
+  assert.ok(BROWSER.behind >= 0.2, "behind " + BROWSER.behind);
 });

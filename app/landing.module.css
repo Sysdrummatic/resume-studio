@@ -320,6 +320,15 @@
   border-radius: 14px;
 }
 
+/* a browser window has rounded corners, like the browser drawn on the other screens */
+.box[data-kind="frame"] :is(.face, .layerPaper) {
+  border-radius: 18px;
+}
+
+.box[data-kind="frame"] .trace {
+  border-radius: 19px;
+}
+
 /* the free chip carries the teal of a published LiveCV */
 .box[data-obj="format-3"] .formatFace {
   border-color: var(--ocv-teal);
@@ -382,33 +391,31 @@
   opacity: 0;
 }
 
-/* LiveCV?: the browser window itself comes in along a curved path, stays a while and leaves, over and over */
+/* LiveCV?: the browser window is drawn round the CV from its top-left corner until it is whole, stays,
+   then is taken off the same way round. --lp-trace runs 0 to 720deg: the first turn draws, the second erases. */
 .box[data-trace="cycle"] > .face {
-  animation: lp-frame-cycle 5.6s var(--ease-out) infinite;
+  --lp-from: calc(-1 * atan2(var(--w), var(--h)));
+  mask: conic-gradient(
+    from var(--lp-from),
+    transparent clamp(0deg, calc(var(--lp-trace) - 360deg), 360deg),
+    black clamp(0deg, calc(var(--lp-trace) - 360deg), 360deg) clamp(0deg, var(--lp-trace), 360deg),
+    transparent clamp(0deg, var(--lp-trace), 360deg)
+  );
+  animation: lp-trace-frame 5.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
-@keyframes lp-frame-cycle {
+/* drawn (1.3s), whole (2.3s), erased (1.3s), rests (0.7s) */
+@keyframes lp-trace-frame {
   0% {
-    opacity: 0;
-    translate: 90px 70px -220px;
-    rotate: y 24deg;
-  }
-  12% {
-    opacity: 0.85;
-    translate: 36px -14px -80px;
-    rotate: y 10deg;
+    --lp-trace: 0deg;
   }
   23%,
   64% {
-    opacity: 1;
-    translate: 0 0 0;
-    rotate: y 0deg;
+    --lp-trace: 360deg;
   }
-  80%,
+  87%,
   100% {
-    opacity: 0;
-    translate: -50px -40px -160px;
-    rotate: y -14deg;
+    --lp-trace: 720deg;
   }
 }
 
@@ -771,7 +778,7 @@
 }
 
 .captionStart {
-  width: min(100% - 2 * var(--lp-gut), 900px);
+  width: min(100% - 2 * var(--lp-gut), 640px);
   opacity: 1;
   pointer-events: auto;
 }
@@ -791,7 +798,7 @@ h1.title > span {
   display: block;
 }
 
-/* two lines on a wide screen, whatever word the carousel shows */
+/* one line per span on a wide screen, whatever word the carousel shows */
 @media (min-width: 768px) {
   h1.title > span {
     white-space: nowrap;
@@ -1567,8 +1574,9 @@ h1.title > span {
     --lp-trace: 360deg;
   }
 
-  /* the window simply stays */
+  /* the window simply stays, whole */
   .box[data-trace="cycle"] > .face {
+    --lp-trace: 360deg;
     animation: none;
   }
 }

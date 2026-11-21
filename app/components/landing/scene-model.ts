@@ -407,7 +407,7 @@ export const FIELD_OF_VIEW = 0.66;
 const NARROW_LIFT = 0.34;
 const AIR = { gain: 0.042, limit: 0.24, stiffness: 70, damping: 8 };
 /** The browser window is a little larger than its sheet, lifted toward its title bar and set just behind it. */
-export const BROWSER = { arrive: 0.12, leave: 0.3, grow: [1.12, 1.165] as const, lift: 0.054, behind: 0.05 };
+export const BROWSER = { arrive: 0.12, leave: 0.3, grow: [1.12, 1.165] as const, lift: 0.054, behind: 0.25 };
 
 /** how far a timeline position is from a range of slots */
 export const distanceFrom = (progress: number, from: number, to = from) =>

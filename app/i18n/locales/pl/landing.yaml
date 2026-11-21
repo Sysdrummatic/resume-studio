@@ -1,6 +1,9 @@
 landing:
   hero:
-    title: Stwórz swoje idealne LiveCV,
+    # each item is one line of the headline; the rotating word and title_suffix take the last two
+    title:
+      - Stwórz swoje
+      - idealne LiveCV,
     title_prefix: które
     title_suffix: razem z Tobą.
     rotating_words:
