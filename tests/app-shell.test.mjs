@@ -62,6 +62,15 @@ test("page frame offers the mockup widths and the dotted floor, hidden on worksp
   assert.match(shellStyles, /\.ocv-page--narrow \{\s*width: min\(860px, 100%\);/);
   assert.match(shellStyles, /\.app-main::before \{[^}]*var\(--ocv-grid\)/);
   assert.match(shellStyles, /\.app-main:has\(\.wide-shell-page\)::before,\s*\.app-main:has\(\.cv-domain-page\)::before \{\s*content: none;/);
+  // A stacking context on main would trap page overlays (dialogs) below the sticky header (z-index 1000).
+  assert.doesNotMatch(shellStyles, /\.app-main \{[^}]*isolation/);
+});
+
+test("reduced motion turns off every view-transition animation, root included", () => {
+  assert.match(
+    shellStyles,
+    /@media \(prefers-reduced-motion: reduce\) \{\s*::view-transition-group\(\*\),\s*::view-transition-old\(\*\),\s*::view-transition-new\(\*\) \{\s*animation: none !important;/
+  );
 });
 
 test("account menu uses the menu primitive and closes on Escape, returning focus to the avatar", () => {

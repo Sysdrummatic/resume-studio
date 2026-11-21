@@ -46,7 +46,9 @@ test("login flow uses separate modes for sign in, sign up, and reset", () => {
   const client = readSource(loginClientPath);
 
   assert.equal(page.includes("mode?: string;"), true);
-  assert.equal(page.includes("function resolveAuthMode"), true);
+  // Shared with the top bar, which marks the current Sign in / Sign up link by the same rule.
+  assert.equal(page.includes('import { resolveAuthMode } from "../lib/auth-mode";'), true);
+  assert.equal(fs.readFileSync(path.join(process.cwd(), "app/lib/auth-mode.ts"), "utf8").includes("export function resolveAuthMode"), true);
   assert.equal(page.includes("mode={resolveAuthMode(params.mode)}"), true);
   assert.equal(client.includes('type InitialAuthMode = "signin" | "signup" | "reset";'), true);
   assert.equal(client.includes('type AuthMode = InitialAuthMode | "new-password";'), true);

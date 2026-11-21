@@ -65,7 +65,9 @@ test("layout renders the stored theme on the server and otherwise follows the sy
 test("the system-theme script sets the theme from the system and stops once a choice is stored", () => {
   // The .tsx module is not importable under the plain Node runner: rebuild the emitted string from its template.
   const template = read("app/components/app-theme-script.tsx").match(/const FOLLOW_SYSTEM_THEME = `([\s\S]*?)`;/)[1];
-  const code = Function(`const APP_THEME_COOKIE_NAME = "OpenCiVera-theme"; return \`${template}\`;`)();
+  const code = Function(
+    `const APP_THEME_COOKIE_NAME = "OpenCiVera-theme", ENABLED_APP_THEMES = ["dark", "light"]; return \`${template}\`;`,
+  )();
 
   function run({ prefersLight, cookie }) {
     const listeners = [];
@@ -89,4 +91,15 @@ test("the system-theme script sets the theme from the system and stops once a ch
   light.media.matches = true;
   light.listeners.forEach((listener) => listener());
   assert.equal(light.document.documentElement.dataset.appTheme, "dark", "a stored choice wins over the OS");
+
+  // Same rule as readStoredAppTheme on the server: an invalid cookie means "follow the system".
+  for (const cookie of ["OpenCiVera-theme=constructor", "OpenCiVera-theme=sepia", "OpenCiVera-theme="]) {
+    const invalid = run({ prefersLight: true, cookie });
+    assert.equal(invalid.document.documentElement.dataset.appTheme, "light", cookie);
+    invalid.media.matches = false;
+    invalid.listeners.forEach((listener) => listener());
+    assert.equal(invalid.document.documentElement.dataset.appTheme, "dark", `${cookie} still follows the OS`);
+  }
+  assert.equal(run({ prefersLight: true, cookie: "OpenCiVera-theme=dark" }).document.documentElement.dataset.appTheme, undefined);
+  assert.equal(read("app/components/app-theme-script.tsx").includes("ENABLED_APP_THEMES"), true, "same theme list as the server");
 });

@@ -246,11 +246,9 @@
 
 /* ---------- Page frame ---------- */
 
-.app-main {
-  isolation: isolate;
-}
-
-/* The dotted floor of the landing scene, laid flat behind the top of every page. */
+/* The dotted floor of the landing scene, laid flat behind the top of every page.
+ * z-index -1 lands in body's stacking context (globals.css); main must not open its own,
+ * or page overlays inside it would sit under the sticky header. */
 .app-main::before {
   content: "";
   position: absolute;
@@ -347,8 +345,17 @@
 
 /* ---------- Route transitions (route-transition.tsx) ----------
  * The header stays; the page content leaves quickly and enters with a small rise.
- * Reduced motion zeroes the motion tokens, so the content swaps instantly.
+ * Reduced motion: no view-transition animation at all. The tokens alone are not enough,
+ * the root crossfade (globals.css) and the UA group animations have fixed durations.
  */
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
 
 ::view-transition {
   pointer-events: none;

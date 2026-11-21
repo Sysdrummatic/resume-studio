@@ -47,8 +47,15 @@ test("the current route's link is marked for assistive technology and drawn with
   const source = read(navigationPath);
   const styles = read(shellStylesPath);
 
-  assert.equal(source.includes('aria-current={isCurrentPath(item.href, pathname) ? "page" : undefined}'), true);
-  assert.equal(source.includes('const path = href.split("?")[0];'), true);
+  assert.equal(source.includes('aria-current={isCurrentPath(item.href, pathname, searchParams) ? "page" : undefined}'), true);
+  assert.equal(source.includes('const [path, query = ""] = href.split("?");'), true);
+  // Sign in and Sign up share /login: the mode decides, with the login page's own fallback for a missing or unknown mode.
+  assert.equal(source.includes('import { resolveAuthMode } from "../lib/auth-mode";'), true);
+  assert.equal(
+    source.includes('resolveAuthMode(new URLSearchParams(query).get("mode")) === resolveAuthMode(searchParams.get("mode"))'),
+    true,
+  );
+  assert.equal(read("app/login/page.tsx").includes('import { resolveAuthMode } from "../lib/auth-mode";'), true);
   assert.match(styles, /\.ocv-topbar__link\[aria-current="page"\] \{[^}]*box-shadow: inset 0 -2px var\(--ocv-teal\);/);
 });
 

@@ -3,9 +3,10 @@
 import Link from "./localized-link";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { FocusEvent, KeyboardEvent } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAppI18n } from "./app-i18n-provider";
 import { buttonClassName } from "./design-system/primitives";
+import { resolveAuthMode } from "../lib/auth-mode";
 
 type NavItem = {
   href: string;
@@ -33,9 +34,13 @@ function announceHeaderMenuOpen(menuName: string) {
   document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
 }
 
-function isCurrentPath(href: string, pathname: string): boolean {
-  const path = href.split("?")[0];
-  return pathname === path || pathname.startsWith(`${path}/`);
+function isCurrentPath(href: string, pathname: string, searchParams: URLSearchParams): boolean {
+  const [path, query = ""] = href.split("?");
+  if (pathname !== path && !pathname.startsWith(`${path}/`)) {
+    return false;
+  }
+  // Sign in and Sign up share /login: the mode decides, with the login page's own fallback.
+  return path !== "/login" || resolveAuthMode(new URLSearchParams(query).get("mode")) === resolveAuthMode(searchParams.get("mode"));
 }
 
 type Placement = "bar" | "menu";
@@ -47,7 +52,7 @@ function getNavItemClassName(item: NavItem, placement: Placement): string {
   return item.emphasis ? buttonClassName(item.emphasis, "small") : "ocv-topbar__link";
 }
 
-function renderNavItem(item: NavItem, pathname: string, placement: Placement, onNavigate?: () => void) {
+function renderNavItem(item: NavItem, pathname: string, searchParams: URLSearchParams, placement: Placement, onNavigate?: () => void) {
   const className = getNavItemClassName(item, placement);
 
   if (item.disabled) {
@@ -70,7 +75,7 @@ function renderNavItem(item: NavItem, pathname: string, placement: Placement, on
       key={item.href}
       href={item.href}
       className={className}
-      aria-current={isCurrentPath(item.href, pathname) ? "page" : undefined}
+      aria-current={isCurrentPath(item.href, pathname, searchParams) ? "page" : undefined}
       onClick={onNavigate}
     >
       {item.label}
@@ -89,6 +94,7 @@ function MenuIcon() {
 export default function AppHeaderNavigation({ account, items, language = null, theme = null, forceInlineItems = false }: Props) {
   const { dictionary } = useAppI18n();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeTimerRef = useRef<number | null>(null);
@@ -218,7 +224,7 @@ export default function AppHeaderNavigation({ account, items, language = null, t
       </button>
       {isOpen && (
         <nav className="ocv-menu ocv-popover__panel" id="primary-mobile-menu" aria-label={dictionary.navigation.primary_aria}>
-          {items.map((item) => renderNavItem(item, pathname, "menu", () => setIsOpen(false)))}
+          {items.map((item) => renderNavItem(item, pathname, searchParams, "menu", () => setIsOpen(false)))}
         </nav>
       )}
     </div>
@@ -227,7 +233,7 @@ export default function AppHeaderNavigation({ account, items, language = null, t
   const inlineNavigation =
     !isCompact && items.length > 0 ? (
       <nav className="ocv-topbar__links" aria-label={dictionary.navigation.primary_aria}>
-        {items.map((item) => renderNavItem(item, pathname, "bar"))}
+        {items.map((item) => renderNavItem(item, pathname, searchParams, "bar"))}
       </nav>
     ) : null;
 
