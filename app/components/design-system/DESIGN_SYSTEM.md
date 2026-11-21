@@ -14,8 +14,9 @@ palety CV (`app/resume/resume.css`).
 
 - **Motyw:** każdy token koloru niesie wartość jasną i ciemną (przełączniki
   `--ocv-L` / `--ocv-D`). Komponenty nigdy nie rozgałęziają się po motywie.
-  Wygrywa `data-app-theme` (cookie, ADR 0012). Serwer zawsze go ustawia (domyślnie
-  ciemny); gałąź `prefers-color-scheme` zadziała dopiero po zmianie w #289.
+  Wygrywa `data-app-theme`: serwer renderuje go z cookie motywu, a bez cookie
+  `app/components/app-theme-script.tsx` ustawia go z motywu systemu przed pierwszym
+  malowaniem (ADR 0012, poprawka z 2026-11-21, #289).
   `data-app-theme` działa na dowolnym elemencie (np. jasny podpanel na ciemnej stronie):
   blok tokenów jest deklarowany także tam, bo `var()` rozwiązuje się w miejscu deklaracji;
   ustawia też `color-scheme`. `light-dark()` odrzucone: wymaga Chrome 123 / Safari 17.5

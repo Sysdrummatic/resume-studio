@@ -2,8 +2,10 @@
 
 import Link from "./localized-link";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import type { FocusEvent } from "react";
+import type { FocusEvent, KeyboardEvent } from "react";
+import { usePathname } from "next/navigation";
 import { useAppI18n } from "./app-i18n-provider";
+import { buttonClassName } from "./design-system/primitives";
 
 type NavItem = {
   href: string;
@@ -16,8 +18,9 @@ type NavItem = {
 type Props = {
   account: ReactNode;
   items: NavItem[];
-  accessory?: ReactNode;
-  leadingAccessory?: ReactNode;
+  /** Language switch, shown before the theme switch (mockup order). */
+  language?: ReactNode;
+  theme?: ReactNode;
   forceInlineItems?: boolean;
 };
 
@@ -30,23 +33,27 @@ function announceHeaderMenuOpen(menuName: string) {
   document.dispatchEvent(new CustomEvent(HEADER_MENU_OPEN_EVENT, { detail: menuName }));
 }
 
-function getNavItemClassName(item: NavItem): string | undefined {
-  if (!item.emphasis) {
-    return undefined;
-  }
-
-  return `app-nav__action app-nav__action--${item.emphasis}`;
+function isCurrentPath(href: string, pathname: string): boolean {
+  const path = href.split("?")[0];
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-function renderNavItem(item: NavItem, onNavigate?: () => void) {
+type Placement = "bar" | "menu";
+
+function getNavItemClassName(item: NavItem, placement: Placement): string {
+  if (placement === "menu") {
+    return "ocv-menu__item";
+  }
+  return item.emphasis ? buttonClassName(item.emphasis, "small") : "ocv-topbar__link";
+}
+
+function renderNavItem(item: NavItem, pathname: string, placement: Placement, onNavigate?: () => void) {
+  const className = getNavItemClassName(item, placement);
+
   if (item.disabled) {
     return (
       <span key={item.href} className="nav-tooltip-anchor" tabIndex={0}>
-        <span
-          className={`${getNavItemClassName(item) || ""} app-nav__action--disabled`}
-          aria-disabled="true"
-          role="link"
-        >
+        <span className={`${className} app-nav__action--disabled`} aria-disabled="true" role="link">
           {item.label}
         </span>
         {item.disabledReason ? (
@@ -62,7 +69,8 @@ function renderNavItem(item: NavItem, onNavigate?: () => void) {
     <Link
       key={item.href}
       href={item.href}
-      className={getNavItemClassName(item)}
+      className={className}
+      aria-current={isCurrentPath(item.href, pathname) ? "page" : undefined}
       onClick={onNavigate}
     >
       {item.label}
@@ -70,21 +78,22 @@ function renderNavItem(item: NavItem, onNavigate?: () => void) {
   );
 }
 
-export default function AppHeaderNavigation({
-  account,
-  items,
-  accessory = null,
-  leadingAccessory = null,
-  forceInlineItems = false
-}: Props) {
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export default function AppHeaderNavigation({ account, items, language = null, theme = null, forceInlineItems = false }: Props) {
   const { dictionary } = useAppI18n();
+  const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const closeTimerRef = useRef<number | null>(null);
   const [isCompact, setIsCompact] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const shouldUseCompactMenu = isCompact;
-  const shouldRenderDesktopNavigation = !isCompact && !forceInlineItems;
-  const shouldRenderInlineActions = !isCompact && forceInlineItems;
 
   const updateMode = useCallback(() => {
     const nextIsCompact = !window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY).matches;
@@ -169,17 +178,27 @@ export default function AppHeaderNavigation({
     scheduleMenuAutoClose();
   }
 
-  const navigationMenu = shouldUseCompactMenu ? (
+  function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape" && isOpen) {
+      event.stopPropagation();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    }
+  }
+
+  const navigationMenu = isCompact ? (
     <div
-      className="app-nav-menu"
+      className="ocv-popover"
       ref={menuRef}
       onMouseEnter={cancelMenuAutoClose}
       onMouseLeave={scheduleMenuAutoClose}
       onFocus={cancelMenuAutoClose}
       onBlur={handleMenuBlur}
+      onKeyDown={handleMenuKeyDown}
     >
       <button
-        className="app-nav-menu__trigger"
+        ref={triggerRef}
+        className="ocv-icon-btn"
         type="button"
         aria-expanded={isOpen}
         aria-controls="primary-mobile-menu"
@@ -195,44 +214,32 @@ export default function AppHeaderNavigation({
           });
         }}
       >
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
+        <MenuIcon />
       </button>
       {isOpen && (
-        <nav
-          className="app-nav-menu__panel"
-          id="primary-mobile-menu"
-          aria-label={dictionary.navigation.primary_aria}
-        >
-          {items.map((item) => renderNavItem(item, () => setIsOpen(false)))}
+        <nav className="ocv-menu ocv-popover__panel" id="primary-mobile-menu" aria-label={dictionary.navigation.primary_aria}>
+          {items.map((item) => renderNavItem(item, pathname, "menu", () => setIsOpen(false)))}
         </nav>
       )}
     </div>
   ) : null;
 
-  return (
-    <>
-      {!forceInlineItems ? navigationMenu : null}
-      {shouldRenderDesktopNavigation && items.length > 0 ? (
-        <nav className="app-nav" aria-label={dictionary.navigation.primary_aria}>
-          {items.map((item) => renderNavItem(item))}
-        </nav>
-      ) : null}
+  const inlineNavigation =
+    !isCompact && items.length > 0 ? (
+      <nav className="ocv-topbar__links" aria-label={dictionary.navigation.primary_aria}>
+        {items.map((item) => renderNavItem(item, pathname, "bar"))}
+      </nav>
+    ) : null;
 
-      <div
-        className={`app-header__controls ${isCompact ? "app-header__controls--compact" : ""} ${forceInlineItems ? "app-header__controls--inline" : ""}`}
-      >
-        {leadingAccessory ? <div className="app-header__leading">{leadingAccessory}</div> : null}
-        {accessory ? <div className="app-header__accessory">{accessory}</div> : null}
-        {shouldRenderInlineActions && items.length > 0 ? (
-          <nav className="app-nav app-nav--actions" aria-label={dictionary.navigation.primary_aria}>
-            {items.map((item) => renderNavItem(item))}
-          </nav>
-        ) : null}
-        {forceInlineItems ? navigationMenu : null}
-        {account ? <div className="app-header__account">{account}</div> : null}
-      </div>
-    </>
+  // Page links lead; guest sign-in/sign-up actions close the row, where the account menu sits when signed in.
+  return (
+    <div className="ocv-topbar__end">
+      {forceInlineItems ? null : inlineNavigation}
+      {language}
+      {theme}
+      {forceInlineItems ? inlineNavigation : null}
+      {account}
+      {navigationMenu}
+    </div>
   );
 }

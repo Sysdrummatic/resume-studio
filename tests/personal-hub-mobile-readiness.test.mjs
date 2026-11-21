@@ -9,13 +9,11 @@ function read(relativePath) {
 
 test("personal hub mobile drawer uses the shared 980px breakpoint contract", () => {
   const headerNavigation = read("app/components/app-header-navigation.tsx");
-  const headerStyles = read("app/globals.css");
   const userClient = read("app/user/user-client.tsx");
   const userStyles = read("app/user/user.css");
 
   assert.equal(headerNavigation.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'), true);
   assert.equal(headerNavigation.includes("window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY)"), true);
-  assert.equal(headerStyles.includes("@media (max-width: 979px)"), true);
   assert.equal(
     userClient.includes('import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "../components/app-header-navigation";'),
     true,

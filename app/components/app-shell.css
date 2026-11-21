@@ -1,0 +1,389 @@
+/*
+ * App shell (epic #190 stage #289): top bar, account and navigation menus, footer,
+ * skip link, page frame and route transitions. LiveCV tokens only (tokens.css).
+ * The outer .app-header / .app-main classes stay because screen stylesheets still
+ * scope rules with them (e.g. `.app-header:has(~ .app-main .onboarding)`).
+ */
+
+/* ---------- Skip link ---------- */
+
+.ocv-skip {
+  position: absolute;
+  left: var(--layout-gutter);
+  top: -80px;
+  z-index: 1100;
+  padding: 12px 16px;
+  border-radius: var(--ocv-radius-pill);
+  background: var(--ocv-ink);
+  color: var(--ocv-on-ink);
+  font: 500 0.90625rem / 1 var(--ocv-font-ui);
+  text-decoration: none;
+}
+
+.ocv-skip:focus {
+  top: 10px;
+}
+
+#main-content:focus {
+  outline: 0;
+}
+
+/* ---------- Top bar ---------- */
+
+.ocv-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--ocv-bg);
+  color: var(--ocv-ink);
+  /* Stays put while route content crossfades below it. */
+  view-transition-name: ocv-site-header;
+}
+
+.ocv-topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(var(--layout-canvas-max), calc(100% - var(--layout-gutter) - var(--layout-gutter)));
+  height: var(--app-header-height);
+  margin-inline: auto;
+}
+
+.ocv-topbar .app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  color: var(--ocv-ink);
+  font: 600 1.0625rem / 1 var(--ocv-font-ui);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* The logo's artwork fills 46 of its 80 viewBox units: a 48px box shows it at 28px. */
+.ocv-topbar .app-brand__logo {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  overflow: visible;
+}
+
+.ocv-topbar .app-brand__logo svg {
+  width: 48px;
+  height: 48px;
+  margin: -10px;
+  flex: none;
+}
+
+.ocv-topbar .app-brand:focus-visible {
+  outline: 2px solid var(--ocv-focus);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.ocv-topbar__end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ocv-topbar__links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Guests: Sign in / Sign up close the row as buttons. */
+.ocv-topbar__links:has(.ocv-btn) {
+  gap: 8px;
+}
+
+.ocv-topbar__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ocv-hit);
+  padding: 0 12px;
+  color: var(--ocv-ink-2);
+  font: 400 0.90625rem / 1 var(--ocv-font-ui);
+  text-decoration: none;
+  transition: color var(--motion-instant) var(--ease-out);
+}
+
+.ocv-topbar__link:hover {
+  color: var(--ocv-ink);
+}
+
+.ocv-topbar__link[aria-current="page"] {
+  color: var(--ocv-ink);
+  box-shadow: inset 0 -2px var(--ocv-teal);
+}
+
+.ocv-topbar__link:focus-visible {
+  outline: 2px solid var(--ocv-focus);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+.ocv-topbar__language .ocv-seg__option {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 8px;
+  font: 500 0.75rem / 1 var(--ocv-font-mono);
+}
+
+.ocv-topbar .app-nav__action--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Menus (account, narrow-screen navigation) ---------- */
+
+.ocv-popover {
+  position: relative;
+}
+
+.ocv-popover__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 40;
+}
+
+.ocv-account > summary {
+  list-style: none;
+}
+
+.ocv-account > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ocv-account__trigger {
+  display: inline-flex;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.ocv-account__trigger:focus-visible {
+  outline: 2px solid var(--ocv-focus);
+  outline-offset: 2px;
+}
+
+.ocv-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ocv-hit-small);
+  height: var(--ocv-hit-small);
+  overflow: hidden;
+  border: 1px solid var(--ocv-indigo-ink);
+  border-radius: 50%;
+  background: var(--ocv-indigo-wash);
+  color: var(--ocv-indigo-ink);
+  font: 600 0.8125rem / 1 var(--ocv-font-ui);
+  transition: border-color var(--motion-instant) var(--ease-out);
+}
+
+.ocv-avatar img {
+  object-fit: cover;
+}
+
+.ocv-account__trigger:hover .ocv-avatar,
+.ocv-account[open] .ocv-avatar {
+  border-color: var(--ocv-ink);
+}
+
+.ocv-account__who {
+  display: grid;
+  gap: 2px;
+  max-width: 280px;
+  margin: 0 0 6px;
+  padding: 8px 12px 12px;
+  border-bottom: 1px solid var(--ocv-line);
+  font: 400 0.8125rem / 1.4 var(--ocv-font-ui);
+  color: var(--ocv-ink-3);
+}
+
+.ocv-account__who b {
+  color: var(--ocv-ink);
+  font-size: 0.90625rem;
+  font-weight: 600;
+}
+
+.ocv-account__who b,
+.ocv-account__who span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ocv-account__role {
+  text-transform: capitalize;
+}
+
+@media (pointer: coarse) {
+  .ocv-avatar {
+    width: var(--ocv-hit);
+    height: var(--ocv-hit);
+  }
+
+  .ocv-topbar__language .ocv-seg__option {
+    height: 36px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ocv-topbar .app-brand__name {
+    display: none;
+  }
+
+  .ocv-topbar__end {
+    gap: 6px;
+  }
+}
+
+/* ---------- Page frame ---------- */
+
+.app-main {
+  isolation: isolate;
+}
+
+/* The dotted floor of the landing scene, laid flat behind the top of every page. */
+.app-main::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: 380px;
+  background: radial-gradient(circle, var(--ocv-grid) 1px, transparent 1.6px) 0 0 / 22px 22px;
+  mask-image: linear-gradient(black, transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Full-height workspaces and the CV pages paint their own canvas. */
+.app-main:has(.wide-shell-page)::before,
+.app-main:has(.cv-domain-page)::before {
+  content: none;
+}
+
+.ocv-page {
+  display: grid;
+  gap: 28px;
+  align-content: start;
+  width: min(1152px, 100%);
+  margin-inline: auto;
+  padding-block: clamp(28px, 5vh, 56px) 80px;
+}
+
+.ocv-page > * {
+  min-width: 0;
+}
+
+.ocv-page--wide {
+  width: min(1400px, 100%);
+}
+
+.ocv-page--narrow {
+  width: min(860px, 100%);
+}
+
+.ocv-page-head {
+  display: grid;
+  gap: 10px;
+}
+
+/* ---------- Footer ---------- */
+
+.ocv-footer {
+  border-top: 1px solid var(--ocv-line);
+  color: var(--ocv-ink-2);
+  font: 400 0.84375rem / 1.4 var(--ocv-font-ui);
+}
+
+.ocv-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 24px;
+  width: min(var(--layout-canvas-max), calc(100% - var(--layout-gutter) - var(--layout-gutter)));
+  margin-inline: auto;
+  padding-block: 20px;
+}
+
+.ocv-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 24px;
+}
+
+.ocv-footer__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ocv-hit);
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--motion-instant) var(--ease-out);
+}
+
+.ocv-footer__links a:hover {
+  color: var(--ocv-ink);
+}
+
+.ocv-footer__links a:focus-visible {
+  outline: 2px solid var(--ocv-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media print {
+  .ocv-skip,
+  .ocv-footer {
+    display: none !important;
+  }
+}
+
+/* ---------- Route transitions (route-transition.tsx) ----------
+ * The header stays; the page content leaves quickly and enters with a small rise.
+ * Reduced motion zeroes the motion tokens, so the content swaps instantly.
+ */
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(ocv-site-header) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(ocv-site-header) {
+  display: none;
+}
+
+::view-transition-new(ocv-site-header) {
+  animation: none;
+}
+
+::view-transition-old(.ocv-route) {
+  animation: ocv-route-out var(--motion-base-exit) var(--ease-in) both;
+}
+
+::view-transition-new(.ocv-route) {
+  animation: ocv-route-in var(--motion-base) var(--ease-out) both;
+}
+
+@keyframes ocv-route-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes ocv-route-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--ocv-motion-shift) * 0.8));
+  }
+}

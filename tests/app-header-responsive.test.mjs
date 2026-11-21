@@ -4,39 +4,37 @@ import fs from "node:fs";
 import path from "node:path";
 
 const navigationPath = path.join(process.cwd(), "app", "components", "app-header-navigation.tsx");
-const stylesPath = path.join(process.cwd(), "app", "globals.css");
+const shellStylesPath = path.join(process.cwd(), "app", "components", "app-shell.css");
 
 function read(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-test("app header uses hamburger navigation below desktop width", () => {
+test("app header uses the menu button below the shared desktop breakpoint", () => {
   const source = read(navigationPath);
 
   assert.equal(
-    source.includes('const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'),
+    source.includes('export const DESKTOP_NAVIGATION_BREAKPOINT_QUERY = "(min-width: 980px)";'),
     true
   );
   assert.equal(source.includes("window.matchMedia(DESKTOP_NAVIGATION_BREAKPOINT_QUERY)"), true);
-  assert.equal(source.includes('className="app-nav-menu__trigger"'), true);
-  assert.equal(source.includes("const shouldUseCompactMenu = isCompact;"), true);
-  assert.equal(source.includes('className="app-nav app-nav--actions"'), true);
+  assert.equal(source.includes("const navigationMenu = isCompact ?"), true);
+  assert.equal(source.includes('aria-controls="primary-mobile-menu"'), true);
+  assert.equal(source.includes("aria-label={dictionary.navigation.open_primary_aria}"), true);
 });
 
-test("hamburger menu auto-closes after hover leave and outside click", () => {
+test("navigation menu closes on hover leave, outside click and Escape, returning focus to its button", () => {
   const source = read(navigationPath);
 
   assert.equal(source.includes("const MENU_AUTO_CLOSE_DELAY_MS = 1000;"), true);
   assert.equal(source.includes("onMouseLeave={scheduleMenuAutoClose}"), true);
   assert.equal(source.includes("onMouseEnter={cancelMenuAutoClose}"), true);
-  assert.equal(
-    source.includes('document.addEventListener("pointerdown", handlePointerDown, true);'),
-    true
-  );
+  assert.equal(source.includes('document.addEventListener("pointerdown", handlePointerDown, true);'), true);
   assert.equal(source.includes("menuRef.current?.contains(target)"), true);
+  assert.match(source, /event\.key === "Escape" && isOpen\) \{\s*event\.stopPropagation\(\);\s*setIsOpen\(false\);\s*triggerRef\.current\?\.focus\(\);/);
 });
 
-test("hamburger menu closes when another header menu opens", () => {
+test("navigation menu closes when another header menu opens", () => {
   const source = read(navigationPath);
 
   assert.equal(source.includes('const HEADER_MENU_OPEN_EVENT = "app-header-menu-open";'), true);
@@ -45,43 +43,43 @@ test("hamburger menu closes when another header menu opens", () => {
   assert.equal(source.includes("event.detail !== NAVIGATION_MENU_NAME"), true);
 });
 
-test("account menu shows identity only on desktop width", () => {
-  const styles = read(stylesPath);
+test("the current route's link is marked for assistive technology and drawn with the teal underline", () => {
+  const source = read(navigationPath);
+  const styles = read(shellStylesPath);
 
-  assert.equal(styles.includes("@media (max-width: 979px)"), true);
-  assert.equal(styles.includes(".app-header__controls--compact .account-menu__identity"), true);
-  assert.equal(styles.includes(".app-header__controls--compact .account-menu__trigger"), true);
-  assert.equal(/\.account-menu__identity \{\s+display: none;/.test(styles), true);
-  assert.equal(/\.account-menu__trigger \{\s+padding: 0\.35rem;/.test(styles), true);
+  assert.equal(source.includes('aria-current={isCurrentPath(item.href, pathname) ? "page" : undefined}'), true);
+  assert.equal(source.includes('const path = href.split("?")[0];'), true);
+  assert.match(styles, /\.ocv-topbar__link\[aria-current="page"\] \{[^}]*box-shadow: inset 0 -2px var\(--ocv-teal\);/);
 });
 
-test("header exposes an active theme switch slot in the top bar", () => {
-  const navigation = read(navigationPath);
-  const styles = read(stylesPath);
-  const themeSwitch = read(path.join(process.cwd(), "app", "components", "app-theme-switch.tsx"));
-  const themeModel = read(path.join(process.cwd(), "app", "lib", "app-theme.ts"));
+test("top bar follows the mockup order: page links, language, theme, then guest actions or account", () => {
+  const source = read(navigationPath);
+  const order = [
+    "{forceInlineItems ? null : inlineNavigation}",
+    "{language}",
+    "{theme}",
+    "{forceInlineItems ? inlineNavigation : null}",
+    "{account}",
+    "{navigationMenu}",
+  ].map((marker) => source.indexOf(marker));
 
-  assert.equal(navigation.includes("accessory?: ReactNode;"), true);
-  assert.equal(navigation.includes("leadingAccessory?: ReactNode;"), true);
-  assert.equal(navigation.includes("forceInlineItems?: boolean;"), true);
-  assert.equal(navigation.includes("app-header__leading"), true);
-  assert.equal(navigation.includes("app-header__accessory"), true);
-  assert.equal(themeSwitch.includes('role="switch"'), true);
-  assert.equal(themeSwitch.includes("dictionary.theme.aria_label"), true);
-  assert.equal(themeSwitch.includes('.replace("{nextTheme}", nextTheme)'), true);
-  assert.equal(themeSwitch.includes("disabled={!canToggle}"), true);
-  assert.equal(themeSwitch.includes("MoonIcon"), true);
-  assert.equal(themeSwitch.includes("SunIcon"), true);
-  assert.equal(themeSwitch.includes("app-theme-switch__thumb"), true);
-  assert.equal(themeModel.includes('export const DEFAULT_APP_THEME: AppTheme = "dark";'), true);
-  assert.equal(themeModel.includes("light: {"), true);
-  assert.equal(themeModel.includes("enabled: true"), true);
-  assert.equal(
-    themeModel.includes('export const APP_THEME_COOKIE_NAME = "OpenCiVera-theme";'),
-    true
-  );
-  assert.equal(styles.includes(".app-theme-switch"), true);
-  assert.equal(styles.includes(".app-header__leading"), true);
-  assert.equal(styles.includes(".app-theme-switch__thumb"), true);
-  assert.equal(styles.includes(".app-theme-switch--dark .app-theme-switch__thumb"), true);
+  assert.equal(order.includes(-1), false, "every slot is rendered");
+  assert.deepEqual([...order].sort((a, b) => a - b), order);
+});
+
+test("guest actions are design-system buttons; menu entries use the menu primitive", () => {
+  const source = read(navigationPath);
+
+  assert.equal(source.includes('return "ocv-menu__item";'), true);
+  assert.equal(source.includes('buttonClassName(item.emphasis, "small")'), true);
+  assert.equal(source.includes('className="ocv-menu ocv-popover__panel"'), true);
+});
+
+test("top bar is sticky, keeps its place during route transitions and uses LiveCV tokens", () => {
+  const styles = read(shellStylesPath);
+
+  assert.match(styles, /\.ocv-topbar \{[^}]*position: sticky;[^}]*background: var\(--ocv-bg\);[^}]*view-transition-name: ocv-site-header;/);
+  assert.match(styles, /::view-transition-old\(ocv-site-header\) \{\s*display: none;/);
+  const declarations = styles.replace(/\/\*[\s\S]*?\*\//g, "");
+  assert.equal(/#[0-9a-f]{3,8}\b/i.test(declarations), false, "no hardcoded colours in the shell");
 });

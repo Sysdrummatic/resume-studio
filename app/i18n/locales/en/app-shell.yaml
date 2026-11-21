@@ -25,6 +25,12 @@ common:
   home: Home
   breadcrumb: Breadcrumb
   close_notification: Close notification
+  skip_to_content: Skip to content
+footer:
+  aria_label: Footer
+  docs: Docs
+  privacy: Privacy Policy
+  terms: Terms of Service
 navigation:
   personal_hub: Profile and LiveCVs
   dashboard: Dashboard

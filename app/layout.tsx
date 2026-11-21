@@ -2,8 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import localFont from "next/font/local";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import AppBrand from "./components/app-brand";
+import AppFooter from "./components/app-footer";
+import AppThemeScript from "./components/app-theme-script";
+import RouteTransition from "./components/route-transition";
 import AppHeaderNavigation from "./components/app-header-navigation";
 import AppLanguageMenu from "./components/app-language-menu";
 import AppThemeSwitch from "./components/app-theme-switch";
@@ -14,12 +17,13 @@ import { getAppBaseUrl } from "./lib/env";
 import { getCurrentActor } from "./lib/auth-server";
 import { getAccessRestriction } from "./lib/access-restriction";
 import { isAdminRole } from "./lib/rbac";
-import { APP_THEME_COOKIE_NAME, DEFAULT_APP_THEME, resolveAppTheme } from "./lib/app-theme";
+import { APP_THEME_COOKIE_NAME, readStoredAppTheme } from "./lib/app-theme";
 import { safeJsonLdScript } from "./lib/jsonld";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "./lib/jsonld-schemas";
 import "./globals.css";
 import "./components/design-system/tokens.css";
 import "./components/design-system/primitives.css";
+import "./components/app-shell.css";
 
 // Two faces split by unicode-range so a page downloads only the subset it renders.
 // Only the second carries next/font's metric-adjusted fallback: a fallback after the
@@ -77,7 +81,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const baseUrl = getAppBaseUrl();
   const cookieStore = await cookies();
   const appI18n = await getRequestAppI18n();
-  const initialTheme = resolveAppTheme(cookieStore.get(APP_THEME_COOKIE_NAME)?.value || DEFAULT_APP_THEME);
+  // No stored choice: render no data-app-theme and let AppThemeScript take it from the system (ADR 0012, #289).
+  const initialTheme = readStoredAppTheme(cookieStore.get(APP_THEME_COOKIE_NAME)?.value);
+  const cspNonce = (await headers()).get("content-security-policy")?.match(/'nonce-([^']+)'/)?.[1];
   const actor = await getCurrentActor();
   const isAdmin = actor ? isAdminRole(actor.role) : false;
   const restriction = actor ? { restricted: false, reason: "" } : await getAccessRestriction();
@@ -106,8 +112,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       ];
 
   return (
-    <html lang={appI18n.locale} data-app-theme={initialTheme} className={`${GeistSans.variable} ${GeistMono.variable} ${fraunces.variable} ${frauncesExt.variable}`}>
-      <body data-app-theme={initialTheme}>
+    <html
+      lang={appI18n.locale}
+      data-app-theme={initialTheme ?? undefined}
+      suppressHydrationWarning
+      className={`${GeistSans.variable} ${GeistMono.variable} ${fraunces.variable} ${frauncesExt.variable}`}
+    >
+      <body data-app-theme={initialTheme ?? undefined} suppressHydrationWarning>
+        {initialTheme ? null : <AppThemeScript nonce={cspNonce} />}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -121,14 +133,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           }}
         />
         <AppI18nProvider value={appI18n}>
-          <header className="app-header">
-            <div className="app-shell app-header__inner">
-              <div className="app-header__branding">
-                <AppBrand />
-              </div>
+          <a className="ocv-skip" href="#main-content">
+            {appI18n.dictionary.common.skip_to_content}
+          </a>
+          <header className="app-header ocv-topbar">
+            <div className="ocv-topbar__inner">
+              <AppBrand />
               <AppHeaderNavigation
                 items={navItems}
-                leadingAccessory={<AppThemeSwitch initialTheme={initialTheme} />}
+                language={<AppLanguageMenu />}
+                theme={<AppThemeSwitch initialTheme={initialTheme} />}
                 account={
                   actor ? (
                     <AccountMenu
@@ -143,12 +157,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     />
                   ) : null
                 }
-                accessory={<AppLanguageMenu />}
                 forceInlineItems={!actor}
               />
             </div>
           </header>
-          <main className="app-shell app-main">{children}</main>
+          <main id="main-content" tabIndex={-1} className="app-shell app-main">
+            <RouteTransition>{children}</RouteTransition>
+          </main>
+          <AppFooter />
         </AppI18nProvider>
       </body>
     </html>

@@ -31,16 +31,12 @@ test("header keeps guest auth actions separate from authenticated navigation ite
   assert.equal(signUpIndex > sampleCvIndex, true);
 });
 
-test("layout resolves the portal theme from cookie and passes an active switch", () => {
+test("layout reads the stored theme from the cookie and passes the language and theme switches", () => {
   const source = readLayoutSource();
 
-  assert.equal(source.includes("DEFAULT_APP_THEME"), true);
   assert.equal(source.includes("await cookies()"), true);
-  assert.equal(source.includes("APP_THEME_COOKIE_NAME"), true);
-  assert.equal(source.includes("resolveAppTheme"), true);
-  assert.equal(source.includes('data-app-theme={initialTheme}'), true);
-  assert.equal(source.includes("AppThemeSwitch"), true);
-  assert.equal(source.includes("initialTheme={initialTheme}"), true);
-  assert.equal(source.includes("leadingAccessory={<AppThemeSwitch initialTheme={initialTheme} />}"), true);
-  assert.equal(source.includes("accessory={<AppLanguageMenu />}"), true);
+  assert.equal(source.includes("readStoredAppTheme(cookieStore.get(APP_THEME_COOKIE_NAME)?.value)"), true);
+  assert.equal(source.includes("data-app-theme={initialTheme ?? undefined}"), true);
+  assert.equal(source.includes("language={<AppLanguageMenu />}"), true);
+  assert.equal(source.includes("theme={<AppThemeSwitch initialTheme={initialTheme} />}"), true);
 });

@@ -25,6 +25,12 @@ common:
   home: Strona główna
   breadcrumb: Okruszki nawigacyjne
   close_notification: Zamknij powiadomienie
+  skip_to_content: Przejdź do treści
+footer:
+  aria_label: Stopka
+  docs: Dokumentacja
+  privacy: Polityka prywatności
+  terms: Warunki korzystania
 navigation:
   personal_hub: Profil i LiveCV
   dashboard: Panel
