@@ -251,18 +251,24 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
   (`atoms/Button`, `Typography`, `UserAvatar`, `molecules/ResumePreviewFrame`) z nich
   korzystają. Usunięcie `--portal-*` i starych atomów to etap #296, po migracji ostatniego
   konsumenta.
-- **Tokeny sceny.** `--ocv-slab`, `--ocv-slab-edge`, `--ocv-grid` (płyty Bazy doświadczeń,
-  kropkowana podłoga) usunięte z `tokens.css`, bo nie miały konsumenta; wracają w #290 razem
-  ze sceną, z wartością jasną i ciemną.
+- **Tokeny sceny.** `--ocv-slab`, `--ocv-slab-edge` (płyty Bazy doświadczeń) usunięte z
+  `tokens.css`, bo nie miały konsumenta; wracają w #290 razem ze sceną, z wartością jasną i
+  ciemną. `--ocv-grid` wrócił w #289 (kropkowana podłoga powłoki).
 - **API `Paper`.** Sloty `name`/`role`/`contact` i `PaperSection` zostają bez konsumenta;
   ewentualne odchudzenie API ocenić przy pierwszym ekranie, który użyje arkusza.
 - **Toast bez kolejki.** Stałe regiony ogłoszeń (`primitives/Toast.tsx`) pokazują ostatni
   komunikat; kolejka i automatyczne znikanie należą do pierwszego ekranu, który zastąpi
   obecne toasty.
-- **Domyślny motyw.** Epik chce "system + ręczny wybór"; ADR 0012 i
-  `tests/app-theme-contract.test.mjs` trzymają `dark` jako domyślny, a serwer zawsze
-  ustawia `data-app-theme`. Tokeny już obsługują brak atrybutu (`prefers-color-scheme`);
-  zmiana logiki motywu i aktualizacja ADR 0012 — w #289.
+- **Powrót do motywu systemu (#289).** Bez cookie portal idzie za systemem (ADR 0012,
+  poprawka 2026-11-21), ale przełącznik ma dwa stany: po wyborze jasny/ciemny wrócić do
+  „systemu” można tylko, usuwając cookie `OpenCiVera-theme`. Trzeci stan albo opcja w
+  ustawieniach — gdy ktoś o to poprosi.
+- **Stare tokeny tła (#289).** Powłoka maluje płaskie `--ocv-bg`; `--portal-body-ambient`,
+  `--portal-body-gradient` i `--portal-grid-line` nie mają już konsumenta w `globals.css`,
+  ale zostają w palecie `--portal-*` do jej usunięcia w #296.
+- **Menu konta jako `<details>` (#289).** Działa z klawiatury natywnie i zamyka się na
+  Escape, ale nie ma animacji wyjścia; modal profilu nadal jest starym overlayem
+  (`profile-modal-overlay`) — przeniesienie na prymityw `Modal` w #294 (Personal Hub).
 - **Reduced motion bez przenikania.** Globalna reguła `0.01ms !important` (przeniesiona
   do `tokens.css`) gasi też przejścia `opacity`, a epik (decyzja 2) chce statycznej klatki
   z przenikaniem. Prymitywy już nie przesuwają się przy reduced motion
