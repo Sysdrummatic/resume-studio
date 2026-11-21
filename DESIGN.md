@@ -335,8 +335,11 @@ The landing's compact layouts use `(max-width: 767px)` (stacked) and the height 
 computer window gets it too, because the wide layout pushes the hero under the header
 below ~560px of height. The CSS and the scene controller read the same two conditions, so
 they never disagree. A short window with a fine pointer (`(max-height: 560px) and
-(pointer: fine)`) also shows a dismissible notice inviting a taller window; a phone in
-landscape does not, since it cannot grow.
+(pointer: fine)`) also opens a full-screen modal `<dialog>` (`short-window-screen.tsx`) asking
+for a taller window: the LiveCV window in miniature with its traced outline, a CV sheet
+that does not fit and scrolls inside it, and a 560 px dimension line. It closes by itself
+when the window grows; once dismissed (button or Esc) it stays closed until reload. A
+phone in landscape never gets it, since it cannot grow.
 
 ### Breakpoints — CV domain
 

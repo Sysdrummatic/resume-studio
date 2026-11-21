@@ -241,12 +241,18 @@ test("a short window gets the side layout on any device; only a computer is told
   assert.match(story, /if \(window\.innerHeight <= 560 && width >= height\) return "side";/);
   assert.doesNotMatch(css, /max-height: \d+px\) and \(pointer: coarse\)/, "the side layout is not touch-only");
   assert.match(css, /@media \(orientation: landscape\) and \(max-height: 560px\) \{/);
-  /* the notice: a computer can enlarge its window, a phone in landscape already has its own layout */
-  assert.match(css, /@media \(max-height: 560px\) and \(pointer: fine\) \{\s*\.shortNotice:not\(\[hidden\]\) \{\s*display: flex;/);
-  assert.match(story, /role="status"/);
+  /* a computer can enlarge its window, so it gets a full screen asking for that; a phone in landscape already has its own layout */
+  const screen = readFileSync("app/components/landing/short-window-screen.tsx", "utf8");
+  assert.match(story, /<ShortWindowScreen copy=\{story\.short_screen\}/);
+  assert.match(screen, /const SHORT_SCREEN_QUERY = "\(max-height: 560px\) and \(pointer: fine\)";/);
+  assert.match(screen, /<dialog\b[^>]*className=\{styles\.shortScreen\}[^>]*aria-labelledby=/s);
+  assert.match(screen, /\.showModal\(\)/, "a modal dialog: the page behind is inert, Esc closes it");
+  assert.match(css, /\.shortScreen::backdrop/);
+  assert.doesNotMatch(css, /shortNotice/, "the small notice is gone");
   for (const locale of ["pl", "en"]) {
     const { landing } = readAppDictionary(locale);
-    assert.ok(landing.story.short_notice.text && landing.story.short_notice.close, `${locale}: notice copy`);
-    assert.doesNotMatch(landing.story.short_notice.text, /—/, `${locale}: no em dash`);
+    const copy = landing.story.short_screen;
+    assert.ok(copy.title && copy.text && copy.action, `${locale}: screen copy`);
+    assert.doesNotMatch(Object.values(copy).join(" "), /—/, `${locale}: no em dash`);
   }
 });

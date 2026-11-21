@@ -1587,47 +1587,265 @@ h1.title > span {
   }
 }
 
-/* ---------- Short computer window: a notice that the page looks better taller ---------- */
+/* ---------- Short computer window: a full screen asking for a taller window ----------
+ * The drawing repeats the story in miniature: the LiveCV window with its traced outline, a CV
+ * sheet that does not fit and scrolls inside it, and a dimension line that wants to grow. */
 
-.shortNotice {
-  display: none;
+:global(html):has(.shortScreen[open]) {
+  overflow: hidden;
 }
 
-@media (max-height: 560px) and (pointer: fine) {
-  .shortNotice:not([hidden]) {
-    display: flex;
-    position: absolute;
-    z-index: 5;
-    /* under the FAQ button */
-    top: 56px;
-    right: var(--lp-gut);
-    align-items: center;
-    gap: 8px;
-    max-width: min(420px, 50%);
-    margin: 0;
-    padding: 6px 6px 6px 14px;
-    border: 1px solid var(--ocv-line);
-    border-radius: 12px;
-    background: var(--ocv-raise);
-    box-shadow: var(--ocv-shadow-float);
-    color: var(--ocv-ink-2);
-    font-size: 0.75rem;
-    line-height: 1.4;
+.shortScreen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 24px max(32px, env(safe-area-inset-left, 0px));
+  border: 0;
+  background: var(--ocv-bg);
+  color: var(--ocv-ink);
+  overflow: hidden;
+}
+
+.shortScreen[open] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 440px);
+  gap: clamp(36px, 6vw, 96px);
+  align-items: center;
+  justify-content: center;
+}
+
+.shortScreen::backdrop {
+  background: var(--ocv-bg);
+}
+
+/* the scene's floor, laid flat under the drawing */
+.shortScreen::before {
+  content: "";
+  position: absolute;
+  inset: auto -50% 0;
+  height: 80%;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ocv-ink) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ocv-ink) 12%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to top, black 10%, transparent 90%);
+  transform: perspective(600px) rotateX(64deg);
+  transform-origin: bottom;
+  pointer-events: none;
+}
+
+.shortScreenArt,
+.shortScreenCopy {
+  position: relative;
+}
+
+.shortScreenArt {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  perspective: 900px;
+}
+
+.shortScreenWindow {
+  position: relative;
+  width: 300px;
+  height: min(48vh, 230px);
+  border: 1px solid var(--ocv-line);
+  border-radius: 12px;
+  background: var(--ocv-raise);
+  box-shadow: var(--ocv-shadow-float);
+  transform: rotateY(20deg) rotateX(6deg);
+  overflow: hidden;
+}
+
+.shortScreenTrace {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from -45deg, var(--ocv-teal) var(--lp-trace), transparent 0);
+  mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
+  mask-composite: exclude;
+  animation: lp-trace-cycle 5.6s linear infinite;
+  pointer-events: none;
+}
+
+.shortScreenBar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--ocv-line);
+  color: var(--ocv-ink-3);
+  font: 400 0.625rem / 1 var(--ocv-font-mono);
+}
+
+.shortScreenBar i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ocv-line);
+}
+
+.shortScreenBar span {
+  min-width: 0;
+  margin-left: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortScreenView {
+  position: absolute;
+  inset: 28px 0 0;
+  overflow: hidden;
+}
+
+/* the sheet runs past the window's bottom edge: that is the point */
+.shortScreenView::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 40px;
+  background: linear-gradient(transparent, var(--ocv-raise));
+}
+
+.shortScreenSheet {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  width: 74%;
+  height: 300px;
+  margin: 16px auto 0;
+  padding: 16px;
+  animation: lp-short-scroll 7s ease-in-out infinite alternate;
+}
+
+.shortScreenSheet b {
+  margin-bottom: 2px;
+  font: var(--ocv-display-weight) 0.95rem / 1.1 var(--ocv-font-display);
+}
+
+.shortScreenSheet span {
+  width: 78%;
+  height: 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.shortScreenSheet span:nth-of-type(1) {
+  width: 44%;
+  background: color-mix(in srgb, var(--ocv-teal) 70%, transparent);
+}
+
+.shortScreenSheet span:nth-of-type(3n) {
+  width: 56%;
+}
+
+.shortScreenSheet span:nth-of-type(4),
+.shortScreenSheet span:nth-of-type(8) {
+  width: 34%;
+  margin-top: 8px;
+  background: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+@keyframes lp-short-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-110px);
+  }
+}
+
+/* a dimension line, as on a drawing: the window's height, asking to grow */
+.shortScreenMeasure {
+  position: relative;
+  width: 1px;
+  height: min(48vh, 230px);
+  background: var(--ocv-teal-ink);
+  animation: lp-short-grow 3.2s ease-in-out infinite alternate;
+}
+
+.shortScreenMeasure::before,
+.shortScreenMeasure::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  width: 9px;
+  height: 9px;
+  border: solid var(--ocv-teal-ink);
+  border-width: 1px 0 0 1px;
+}
+
+.shortScreenMeasure::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.shortScreenMeasure::after {
+  bottom: 0;
+  transform: rotate(225deg);
+}
+
+.shortScreenMeasure span {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  color: var(--ocv-teal-ink);
+  font: 400 0.6875rem / 1 var(--ocv-font-mono);
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+@keyframes lp-short-grow {
+  from {
+    transform: scaleY(0.82);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.shortScreenCopy h2 {
+  margin: 0;
+  font: var(--ocv-display-weight) clamp(26px, 3vw, 42px) / 1.04 var(--ocv-font-display);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.shortScreenCopy p {
+  max-width: 40ch;
+  margin: 14px 0 22px;
+  color: var(--ocv-ink-2);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 767px) {
+  .shortScreen[open] {
+    grid-template-columns: minmax(0, 440px);
   }
 
-  .shortNotice button {
-    flex: none;
-    width: 28px;
-    height: 28px;
-    border: 0;
-    border-radius: 50%;
-    background: none;
-    color: var(--ocv-ink-3);
-    font-size: 1rem;
-    cursor: pointer;
+  .shortScreenArt {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shortScreenTrace,
+  .shortScreenSheet,
+  .shortScreenMeasure {
+    animation: none;
   }
 
-  .shortNotice button:hover {
-    color: var(--ocv-ink);
+  .shortScreenTrace {
+    --lp-trace: 360deg;
   }
 }

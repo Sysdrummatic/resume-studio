@@ -19,9 +19,10 @@ landing:
   story:
     aria_label: Jak działa OpenCiVera
     rail_label: Etapy
-    short_notice:
-      text: Okno jest za niskie, by pokazać pełną animację. Powiększ je, by zobaczyć stronę tak, jak została zaprojektowana.
-      close: Zamknij komunikat
+    short_screen:
+      title: Ta historia potrzebuje więcej miejsca.
+      text: Animacja LiveCV jest zaprojektowana dla okien wyższych niż 560 px. Powiększ okno, a ten ekran zniknie sam.
+      action: Pokaż wersję uproszczoną
     next: Przewiń
     back: Wróć
     faq: FAQ

@@ -19,9 +19,10 @@ landing:
   story:
     aria_label: How OpenCiVera works
     rail_label: Stages
-    short_notice:
-      text: This window is too short for the full animation. Make it taller to see the page as designed.
-      close: Close notice
+    short_screen:
+      title: This story needs more room.
+      text: The LiveCV animation is designed for windows taller than 560px. Make the window taller and this screen goes away on its own.
+      action: Show the simplified version
     next: Scroll
     back: Back
     faq: FAQ

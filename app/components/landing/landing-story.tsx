@@ -36,6 +36,7 @@ import {
   type View,
 } from "./scene-model";
 import { LIVE_URL, versionPath, type SceneCv } from "./scene-cv";
+import ShortWindowScreen from "./short-window-screen";
 import { BASE, DEPTH_OF, FACES, FORMATS, K, SceneBox } from "./scene-faces";
 import styles from "../../landing.module.css";
 
@@ -79,7 +80,6 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
   const rootRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [openFeature, setOpenFeature] = useState<number | null>(null);
-  const [noticeClosed, setNoticeClosed] = useState(false);
   const openRef = useRef<number | null>(null);
   const featureCount = features.items.length;
   const captions = useMemo(
@@ -704,13 +704,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
           ) : null}
         </article>
 
-        {/* shown by CSS on a short computer window only: a phone in landscape already has its own layout */}
-        <p className={styles.shortNotice} role="status" hidden={noticeClosed}>
-          <span>{story.short_notice.text}</span>
-          <button type="button" onClick={() => setNoticeClosed(true)} aria-label={story.short_notice.close}>
-            ×
-          </button>
-        </p>
+        <ShortWindowScreen copy={story.short_screen} name={cv.name} />
         <nav className={styles.rail} aria-label={story.rail_label} data-rail>
           <ol>
             {captions.map((caption, index) => (
