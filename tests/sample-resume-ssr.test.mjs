@@ -41,8 +41,7 @@ test("an unknown locale falls back to the configured default", () => {
 test("the public sample path no longer loads the browser YAML parser or fetches", () => {
   const page = readFileSync("app/resume/page.tsx", "utf8");
   const client = readFileSync("app/resume/resume-view-client.tsx", "utf8");
-  const landing = readFileSync("app/components/landing-sample-cv.tsx", "utf8");
-  for (const source of [page, client, landing]) {
+  for (const source of [page, client]) {
     assert.doesNotMatch(source, /js-yaml\.min\.js|jsyaml|fetch\(/);
   }
 });

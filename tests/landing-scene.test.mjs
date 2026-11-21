@@ -1,0 +1,193 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { register } from "node:module";
+register("./helpers/ts-extension-resolve.mjs", import.meta.url);
+
+const model = await import("../app/components/landing/scene-model.ts");
+const { buildSceneCv, versionSections, LIVE_URL, versionPath } = await import("../app/components/landing/scene-cv.ts");
+const {
+  STAGE_IDS, STAGE_COUNT, AT, LEAN_MAX, buildScene, buildLabels, samplePose, applyMotion, viewAt, toScreen,
+  worldMatrix, stageFromProgress, targetFor, follow, entryCount, pickedEntries, placeBrowserFrame,
+} = model;
+
+const LAYOUTS = [
+  { narrow: false, lite: false },
+  { narrow: true, lite: true },
+  { narrow: false, lite: true },
+];
+const poseAt = (thing, progress) => {
+  samplePose(thing, progress);
+  return thing.pose;
+};
+
+test("the story keeps the mockup's nine stages, in order (epic #190 decision 3)", () => {
+  assert.deepEqual(STAGE_IDS, ["start", "livecv", "base", "pick", "ready", "versions", "history", "feats", "go"]);
+  assert.equal(STAGE_COUNT, 9);
+});
+
+test("scroll picks one stage; the lean toward the next never passes 10% (decision 4)", () => {
+  assert.deepEqual(stageFromProgress(3), { stage: 3, toward: 3, lean: 0 });
+  assert.equal(stageFromProgress(3.2).lean, 0, "no lean while resting near a stage");
+  const before = stageFromProgress(3.49);
+  assert.equal(before.stage, 3);
+  assert.ok(before.lean > 0.09 && before.lean <= LEAN_MAX);
+  assert.equal(stageFromProgress(3.51).stage, 4, "crossing the threshold picks the next stage");
+  assert.equal(stageFromProgress(-5).stage, 0);
+  assert.equal(stageFromProgress(99).stage, 8);
+  assert.equal(stageFromProgress(Number.NaN).stage, 0);
+  assert.ok(Math.abs(targetFor(3.49) - 3.1) < 0.01, "the timeline heads for the stage plus its lean");
+});
+
+test("the timeline follows its target in ~600ms and retargets on every frame", () => {
+  let position = 0;
+  for (let t = 0; t < 0.6; t += 1 / 60) position = follow(position, 1, 1 / 60);
+  assert.ok(position > 0.98 && position <= 1, `settles in 600ms (${position})`);
+  let frames = 0;
+  for (let p = 0; p !== 1 && frames < 120; frames += 1) p = follow(p, 1, 1 / 60);
+  assert.ok(frames <= 42, `comes to rest within 700ms (${frames} frames)`);
+  let p = 0;
+  for (let i = 0; i < 10; i += 1) p = follow(p, 1, 1 / 60);
+  const turned = follow(p, 0, 1 / 60);
+  assert.ok(turned < p, "a new target turns it round mid-flight");
+});
+
+test("every object has a sorted track and a finite pose anywhere on the timeline, in every layout", () => {
+  for (const { narrow, lite } of LAYOUTS) {
+    const scene = buildScene(narrow, lite, 11);
+    for (const thing of scene.things) {
+      for (let i = 1; i < thing.keys.length; i += 1) assert.ok(thing.keys[i].at >= thing.keys[i - 1].at, thing.key);
+      for (let progress = 0; progress <= 8; progress += 0.25) {
+        const pose = poseAt(thing, progress);
+        for (const value of [...pose.position, ...pose.rotation, ...pose.size, pose.alpha, pose.dim]) {
+          assert.ok(Number.isFinite(value), `${thing.key} at ${progress}`);
+        }
+      }
+    }
+  }
+});
+
+test("phones get a lighter base and no 3D tiles; the desktop keeps the mockup's twelve", () => {
+  assert.equal(entryCount(false), 12);
+  assert.equal(entryCount(true), 8);
+  assert.equal(pickedEntries(false).length, 6);
+  assert.equal(pickedEntries(true).length, 4);
+  for (const { narrow, lite } of LAYOUTS) {
+    const scene = buildScene(narrow, lite, 11);
+    assert.equal(scene.cards.length, entryCount(lite));
+    assert.equal(scene.picks.length, pickedEntries(lite).length);
+    assert.equal(scene.tiles.length, lite ? 0 : 11);
+    for (const label of buildLabels(lite)) assert.ok(scene[label.on[0]][label.on[1]], label.key);
+  }
+});
+
+test("the objects play the story the captions tell", () => {
+  const scene = buildScene(false, false, 11);
+  const alpha = (thing, stage) => poseAt(thing, AT[stage]).alpha;
+  const hero = scene.cards[3];
+  assert.equal(poseAt(hero, AT.start).texture, 1, "start: CV files");
+  assert.ok(poseAt(hero, AT.livecv).position[2] > 3, "LiveCV?: the hero file steps up front");
+  for (const card of scene.cards) {
+    const base = poseAt(card, AT.base);
+    assert.equal(base.texture, 0, "base: the files have become bricks");
+    assert.ok(base.edges > 0.99);
+    assert.equal(alpha(card, "pick"), 1, "the base stays whole when entries are picked");
+  }
+  const teal = scene.cards.filter((card) => poseAt(card, AT.pick).selected > 0.99).map((card) => card.index);
+  assert.deepEqual(teal, pickedEntries(false));
+  assert.equal(alpha(scene.sheets[0], "pick"), 0, "no LiveCV before it is built");
+  assert.equal(alpha(scene.sheets[0], "ready"), 1);
+  assert.equal(alpha(scene.sheets[1], "versions"), 1, "more versions from the same base");
+  assert.equal(alpha(scene.sheets[1], "history"), 0);
+  assert.equal(alpha(scene.snaps[0], "history"), 1, "snapshots on the time axis");
+  for (const tile of scene.tiles) assert.equal(alpha(tile, "feats"), 1);
+  for (const card of scene.cards) assert.equal(alpha(card, "feats"), 0, "the base leaves before the features");
+});
+
+test("the browser window traces round the hero in LiveCV? and once round the built LiveCV", () => {
+  const scene = buildScene(false, false, 11);
+  const at = (progress) => {
+    scene.things.forEach((thing) => samplePose(thing, progress));
+    return placeBrowserFrame(scene, progress);
+  };
+  assert.equal(at(AT.start), "off");
+  assert.equal(at(AT.livecv), "cycle");
+  assert.equal(at(AT.ready), "once");
+  assert.equal(at(AT.versions), "once");
+  assert.equal(at(AT.go), "off");
+});
+
+test("the opening vortex starts tight and opens into the hovering files", () => {
+  const scene = buildScene(false, false, 11);
+  const card = scene.cards[0];
+  const clock = { time: 0, intro: 0, progress: 0, orbitFlow: 1 };
+  samplePose(card, 0);
+  applyMotion(card, 0, clock);
+  const tight = Math.hypot(card.pose.position[0], card.pose.position[2] + 1.5);
+  clock.intro = 1;
+  samplePose(card, 0);
+  applyMotion(card, 0, clock);
+  const open = Math.hypot(card.pose.position[0], card.pose.position[2] + 1.5);
+  assert.ok(tight < open * 0.5, `the spiral starts close to its axis (${tight} < ${open})`);
+});
+
+test("the CSS camera lands every point exactly where the mockup's projection does", () => {
+  const K = 100;
+  const width = 1440;
+  const height = 836;
+  const scene = buildScene(false, false, 11);
+  for (const stage of [0, 2, 5, 8]) {
+    const view = viewAt(scene, stage, width, height, { x: 0, y: 0 });
+    const m = worldMatrix(view, K);
+    for (const point of [[0, 0, 0], [1.5, 0.6, 0.2], [-3, 1, -4]]) {
+      const css = [point[0] * K, -point[1] * K, point[2] * K, 1];
+      const v = [0, 1, 2, 3].map((row) => m[row] * css[0] + m[4 + row] * css[1] + m[8 + row] * css[2] + m[12 + row] * css[3]);
+      const scale = view.focal / (view.focal - v[2]);
+      const x = width / 2 + v[0] * scale + view.shiftX * width * 0.5;
+      const y = height / 2 + v[1] * scale - view.shiftY * height * 0.5;
+      const expected = toScreen(view, width, height, ...point);
+      assert.ok(Math.abs(x - expected[0]) < 0.5 && Math.abs(y - expected[1]) < 0.5, `stage ${stage} point ${point}: ${x},${y} vs ${expected}`);
+    }
+  }
+});
+
+test("the sheets print the public sample CV: three LiveCVs pick different entries", () => {
+  const resume = {
+    first_name: "Ariana", family_name: "Holt",
+    contact: [{ label: "Location", value: "Portland, OR" }, { label: "Email", value: "ariana@example.com", link: "mailto:x" }],
+    experience: [
+      { role: "Senior Developer", company: "Nova Labs", period: "2022-03 – present", highlights: ["Built a platform"] },
+      { role: "Developer", company: "Interlink", period: "2019-07 – 2022-02", highlights: ["Tools"] },
+      { role: "Engineer", company: "Harbor", period: "2016-01 – 2019-06", highlights: ["Robots"] },
+    ],
+    education: [
+      { school: "NYIT, master's in computer science", degree: "", period: "2014-09 – 2015-12", detail: "" },
+      { school: "OSU, bachelor's in computer science", degree: "", period: "2010-09 – 2014-06", detail: "" },
+    ],
+    courses: [{ year: 2025, name: "AI Systems – Gradient" }, { year: 2024, name: "Architecture – Reforge" }, { year: 2023, name: "Data – Stanford" }],
+    skills: [{ name: "Development", level: 5 }, { name: "System Design", level: 4 }, { name: "Testing", level: 4 }],
+    tech_stack: ["Python", "TypeScript", "React", "Node.js", "PostgreSQL", "Docker"],
+  };
+  const cv = buildSceneCv(resume, { experience_heading: "Experience" }, { fe: "Frontend", pf: "Platform", ai: "AI" });
+  assert.equal(cv.name, "Ariana Holt");
+  assert.equal(cv.entries.find((e) => e.id === "r1").when, "2022 – present", "dates shrink to their year, words stay");
+  assert.equal(cv.entries.find((e) => e.id === "e1").title, "Master's in computer science");
+  assert.equal(cv.entries.find((e) => e.id === "s1").title, "TypeScript, React, Node.js");
+  const fe = versionSections(cv, "fe").flatMap((section) => section.entries.map((entry) => entry.id));
+  const ai = versionSections(cv, "ai").flatMap((section) => section.entries.map((entry) => entry.id));
+  assert.deepEqual(fe, ["r1", "r2", "e1", "k2", "s1", "s3"]);
+  assert.notDeepEqual(fe, ai);
+  assert.equal(LIVE_URL, `opencivera.com${versionPath("fe")}`);
+});
+
+test("the scene modules stay pure and no animation library is installed (decisions 2 and 6)", () => {
+  for (const file of ["scene-model.ts", "scene-cv.ts"]) {
+    const source = readFileSync(`app/components/landing/${file}`, "utf8");
+    assert.doesNotMatch(source, /document\.|window\.|from "(motion|framer-motion|gsap|three)/, file);
+  }
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+  for (const name of ["three", "motion", "framer-motion", "gsap", "@react-three/fiber"]) {
+    assert.equal(name in deps, false, `${name} is not a dependency`);
+  }
+});

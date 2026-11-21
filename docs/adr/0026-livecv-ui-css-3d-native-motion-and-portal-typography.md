@@ -41,7 +41,16 @@ Constraints that shape the implementation:
    change by crossfade.
 2. **One motion language, native CSS only.** CSS transitions and keyframes, the
    View Transitions API, `@property` and `linear()` easing. No Motion, GSAP or any
-   other animation library. Two intensities share the same tokens: *expressive*
+   other animation library. **Amended 2026-11-21 (#290):** the landing and login
+   scenes reproduce the mockup's timeline, which has motion no transition can express
+   (keyed paths through intermediate poses, orbits that ease to a stop when a tile is
+   pointed at, sheets that sway with a spring, labels projected to the screen). They run
+   one `requestAnimationFrame` loop that writes only `transform` and `opacity` (and the
+   custom properties the box faces read), still stage-based: scroll picks the stage and
+   the timeline position follows it over ~600ms. The loop sleeps once a stage has settled,
+   off screen and on a hidden tab; reduced motion draws one still frame per stage with a
+   crossfade. The Web Animations API is allowed on the same terms. Still no library.
+   Two intensities share the same tokens: *expressive*
    (landing, login, onboarding) and *restrained* (editor, dashboard, admin, docs).
    Motion shows cause and effect and never blocks work.
    Tokens: `--motion-instant` 100ms, `--motion-quick` 160ms, `--motion-base` 240ms,

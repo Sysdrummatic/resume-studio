@@ -242,6 +242,18 @@ Bezpieczne dla anona (guard poprawnie zawodzi przy NULL): `log_admin_action`,
 tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_last_admin` i
 `is_only_profile` działają dla anona jako wyrocznia „czy ten UUID to admin". Dotyczy też zalogowanych użytkowników (wywołują je jako `authenticated`).
 
+## Scena landingu (#290): przybliżenia względem makiety
+
+- **Wydajność do potwierdzenia na buildzie produkcyjnym (benchmark 2026-11-21, serwery dev).** LCP na telefonie
+  1096 → 1668 ms (głównie TTFB +425 ms z jednego przebiegu; LCP−TTFB 123 → 270 ms), CSS 228 → 324 KB
+  (nieminifikowany), węzły DOM strony 601 → 1892 (ściany brył i tekst CV na arkuszach). Zmierzyć
+  `next build` + `next start`; jeśli DOM boli, łączyć warstwy ścian (światło i mgła) albo
+  renderować tekst arkuszy tylko na etapach, na których jest czytelny.
+- **Kartki nie wyginają się.** Makieta (WebGL) wygina arkusz w locie (łuk i fala na
+  krawędzi, sprężyna). Płaszczyzna DOM nie zgina się, więc ta sama sprężyna obraca
+  arkusz o kilka stopni (`airSway` w `scene-model.ts`). Wierniej: arkusz z 3–4 pasków
+  obracanych osobno, kosztem powielenia treści CV na każdym pasku.
+
 ## Redesign UI (epik #190): przejściowe długi etapu #288 (stan z 2026-11-19)
 
 **Status:** otwarte, zamykane w kolejnych etapach #289–#296. Decyzja: [ADR 0026](docs/adr/0026-livecv-ui-css-3d-native-motion-and-portal-typography.md).
@@ -251,9 +263,6 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
   (`atoms/Button`, `Typography`, `UserAvatar`, `molecules/ResumePreviewFrame`) z nich
   korzystają. Usunięcie `--portal-*` i starych atomów to etap #296, po migracji ostatniego
   konsumenta.
-- **Tokeny sceny.** `--ocv-slab`, `--ocv-slab-edge` (płyty Bazy doświadczeń) usunięte z
-  `tokens.css`, bo nie miały konsumenta; wracają w #290 razem ze sceną, z wartością jasną i
-  ciemną. `--ocv-grid` wrócił w #289 (kropkowana podłoga powłoki).
 - **API `Paper`.** Sloty `name`/`role`/`contact` i `PaperSection` zostają bez konsumenta;
   ewentualne odchudzenie API ocenić przy pierwszym ekranie, który użyje arkusza.
 - **Toast bez kolejki.** Stałe regiony ogłoszeń (`primitives/Toast.tsx`) pokazują ostatni
@@ -269,11 +278,5 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
 - **Menu konta jako `<details>` (#289).** Działa z klawiatury natywnie i zamyka się na
   Escape, ale nie ma animacji wyjścia; modal profilu nadal jest starym overlayem
   (`profile-modal-overlay`) — przeniesienie na prymityw `Modal` w #294 (Personal Hub).
-- **Reduced motion bez przenikania.** Globalna reguła `0.01ms !important` (przeniesiona
-  do `tokens.css`) gasi też przejścia `opacity`, a epik (decyzja 2) chce statycznej klatki
-  z przenikaniem. Prymitywy już nie przesuwają się przy reduced motion
-  (`--ocv-motion-shift: 0px`); zawężenie reguły globalnej do ruchu przestrzennego — w #290.
-- **Fraunces bez preloadu.** `preload: false` w `app/layout.tsx`, bo żaden ekran go jeszcze
-  nie renderuje; włączyć w etapie, który pierwszy pokaże nagłówek Fraunces nad zgięciem.
 - **Licencja Space Grotesk.** `public/fonts/SpaceGrotesk-*.ttf` leżą bez pliku licencji
   OFL (dla Fraunces jest `Fraunces-OFL.txt`); dodać `SpaceGrotesk-OFL.txt`.

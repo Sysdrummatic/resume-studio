@@ -69,7 +69,7 @@ test("docs: the markdown title is the single h1 and the rest never skips a level
 });
 
 test("landing and docs hub each declare exactly one h1 in source", () => {
-  for (const file of ["app/page.tsx", "app/components/docs-hub.tsx", "app/cv-templates/page.tsx"]) {
+  for (const file of ["app/components/landing/landing-story.tsx", "app/components/docs-hub.tsx", "app/cv-templates/page.tsx"]) {
     const source = fs.readFileSync(path.join(root, file), "utf8");
     assert.equal((source.match(/<h1[\s>]/g) ?? []).length, 1, file);
   }

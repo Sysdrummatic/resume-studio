@@ -1,6 +1,5 @@
 landing:
   hero:
-    eyebrow: // Bezpłatny kreator LiveCV
     title: Stwórz swoje idealne LiveCV,
     title_prefix: które
     title_suffix: razem z Tobą.
@@ -11,35 +10,74 @@ landing:
       - rozwija się
     description:
       - Klasyczne CV jest nieaktualne zaraz po jego publikacji. Każda najmniejsza zmiana powoduje, że musisz wygenerować kolejny plik. A co jeśli twoje doświadczenie zawodowe umożliwia Ci aplikowanie na trzy odrębne ścieżki kariery? Kończysz z trzema osobnymi edytowalnymi wersjami i dokumentami dopasowanymi pod konkretne oferty. 
-      - OpenCiVera pozwala Ci stworzyć jedno uporządkowane źródło danych, z którego wybierasz treści do osobnych LiveCV. Każde z nich możesz opublikować pod publicznym linkiem i w dowolnym momencie odświeżyć, gdy dodasz nowe doświadczenia. Jeżeli będziesz potrzebować wersji w PDF, możesz ją pobrać w dowolnym momencie.
+      - OpenCiVera pozwala Ci stworzyć jedno uporządkowane źródło danych, z którego wybierasz treści do osobnych LiveCV. Każde z nich publikujesz pod własnym linkiem, a gdy dodasz nowe doświadczenia, publikujesz je ponownie. Jeżeli będziesz potrzebować wersji w PDF, możesz ją pobrać w dowolnym momencie.
       - Platforma jest darmowa, a Twoje dane pozostają prywatne. Publikujesz tylko to, co chcesz pokazać.
     primary_action: Utwórz LiveCV
     secondary_action: Zobacz przykładowe LiveCV
-    meta:
-      - Jedno główne CV
-      - Wiele konfiguracji
-      - LiveCV zawsze aktualne
-      - Całkowicie bezpłatnie
-  sample:
-    eyebrow: // Publiczny link w praktyce
-    title: Twoje LiveCV jako publiczna wizytówka.
-    description: Stworzone i opublikowane w OpenCiVera LiveCV jest dostępne pod publicznym linkiem. Rekruterzy i współpracownicy mogą je otworzyć w przeglądarce, a Ty decydujesz, które informacje udostępnić. W każdej chwili możesz pobrać swoje CV w formacie PDF, YAML lub TXT.
-    data_note: Przykład utworzony w OpenCiVera
-    open_action: Zobacz całe LiveCV
-    loading_aria: Ładowanie przykładowego LiveCV
-    open_aria: Otwórz przykładowe LiveCV
-  animation:
-    eyebrow: // Od jednego źródła wiedzy do ukierunkowanych zawodowo LiveCV
-    title: Jak to działa w praktyce?
-    detail: Aby stworzyć swoje LiveCV, najpierw tworzysz prywatną Bazę doświadczeń. Baza doświadczeń gromadzi twoje wszystkie umiejętności, kursy czy doświadczenia zawodowe. Następnie wybierasz z niej treści do osobnych LiveCV dopasowanych do konkretnych ofert.
-    iframe_title: Animacja pokazująca proces tworzenia LiveCV w OpenCiVera
+    lead: OpenCiVera pozwala Ci stworzyć jedno uporządkowane źródło danych, z którego wybierasz treści do osobnych LiveCV. Każde z nich publikujesz pod własnym linkiem, a gdy dodasz nowe doświadczenia, publikujesz je ponownie.
+    free_note: "Całkowicie bezpłatnie: bez paywalli i ukrytych opłat."
+  story:
+    aria_label: Jak działa OpenCiVera
+    rail_label: Etapy
+    short_notice:
+      text: Okno jest za niskie, by pokazać pełną animację. Powiększ je, by zobaczyć stronę tak, jak została zaprojektowana.
+      close: Zamknij komunikat
+    next: Przewiń
+    back: Wróć
+    faq: FAQ
+    formats_label: Formaty eksportu
+    start_label: Start
+    stages:
+      - id: livecv
+        label: LiveCV?
+        title: LiveCV to Twoje CV jako strona pod linkiem.
+        body: Zamiast pliku wysyłasz adres. Rekruter otwiera Twoje CV w przeglądarce, a nową wersję publikujesz wtedy, kiedy chcesz, bez rozsyłania kolejnych plików. Jeśli potrzebujesz, pobierasz też PDF.
+      - id: base
+        label: Baza doświadczeń
+        title: Najpierw zbierasz wszystko w Bazie doświadczeń.
+        body: Role, kursy, umiejętności i osiągnięcia zapisujesz raz, w jednym prywatnym miejscu. Możesz zacząć od importu obecnego CV.
+      - id: pick
+        label: Wybór
+        title: Wybierasz to, co pasuje do roli.
+        body: Z bazy wybierasz treści do osobnego LiveCV dopasowanego do konkretnej oferty. Pełna historia zostaje w bazie.
+      - id: ready
+        label: Gotowe LiveCV
+        title: Z wybranych wpisów tworzysz swoje LiveCV.
+        body: Publikujesz je pod własnym linkiem i wysyłasz adres zamiast kolejnego pliku.
+      - id: versions
+        label: Wersje
+        title: Z tej samej bazy tworzysz kolejne wersje.
+        body: Każda wersja ma własny link, wybór treści i język, więc dopasujesz ją do konkretnej oferty.
+      - id: history
+        label: Historia
+        title: Historia publikacji Twojego LiveCV.
+        body: Każda publikacja zapisuje opublikowany stan LiveCV, do którego możesz wrócić. Edycja bazy nie zmienia już opublikowanego LiveCV, dopóki nie opublikujesz go ponownie.
+      - id: feats
+        label: Funkcje
+        title: Funkcje OpenCiVera
+        body: Żadnych paywalli, otwarty import i eksport danych w różnych formatach, zgodność z RODO i pełna kontrola nad tym, co udostępniasz.
+      - id: go
+        label: Do dzieła!
+        title: Twoje LiveCV jako publiczna wizytówka.
+        body: Opublikowane LiveCV jest dostępne pod publicznym linkiem. Rekruterzy i współpracownicy otwierają je w przeglądarce, a Ty decydujesz, które informacje udostępnić.
+    scene:
+      base: Baza doświadczeń
+      picked: Wybrano {count} z {total}
+      picked_note: baza zostaje cała
+      published: opublikowana
+      saved: zapisana
+      versions:
+        fe: Starsza programistka frontend
+        pf: Inżynierka platformy
+        ai: Inżynierka systemów AI
+      snapshots:
+        - v3, 3 lis
+        - v2, 30 wrz
+        - v1, 2 wrz
   features:
-    eyebrow: // Funkcje OpenCiVera
-    title: Funkcje OpenCiVera
+    list_label: Funkcje OpenCiVera
+    close: Zamknij opis funkcji
     description: Funkcje w OpenCiVera pozwalają Ci stworzyć jedno uporządkowane źródło danych, z którego wybierasz treści do osobnych LiveCV. Takiego zestawu funkcji nie znajdziesz w żadnym innym kreatorze CV. Żadnych paywalli, otwarty import i eksport danych w różnych formatach, zgodność z RODO i pełna kontrola nad tym co udostępniasz.  
-    aria_label: Karuzela funkcji OpenCiVera
-    pause: Zatrzymaj karuzelę
-    resume: Wznów karuzelę
     items:
       - tag: Baza doświadczeń
         chip: Jedno źródło wiedzy
@@ -87,6 +125,7 @@ landing:
         description: Twoje dane pozostają prywatne. OpenCiVera nie udostępnia ich osobom trzecim. W każdej chwili możesz pobrać swoje dane i usunąć konto.
   faq:
     title: Odpowiedzi na najczęściej zadawane pytania.
+    close: Zamknij pytania i odpowiedzi
     items:
       - question: Co to jest LiveCV?
         answer: LiveCV to Twoje CV w formie strony dostępnej z publicznego linku. Link możesz udostępnić każdemu, kto będzie chciał zobaczyć twoje LiveCV.
@@ -112,11 +151,7 @@ landing:
         answer: Tak. Twoje dane pozostają prywatne. OpenCiVera nie udostępnia ich osobom trzecim. W każdej chwili możesz pobrać swoje dane i usunąć konto.
 
   cta:
-    eyebrow: // Utwórz swoje LiveCV w OpenCiVera
-    title: Zbuduj swoje LiveCV z OpenCiVera.
-    description: Otwórz przykładowe LiveCV, aby zobaczyć publiczny link w działaniu. Następnie zaloguj się i zbuduj własne CV z jednego uporządkowanego źródła.
     primary_action: Utwórz LiveCV
-    secondary_action: Zobacz przykładowe LiveCV
   footer:
     sample_resume: Przykładowe LiveCV
     docs: Dokumentacja

@@ -103,3 +103,17 @@ test("an expired or already-used recovery link surfaces an error instead of sile
     true,
   );
 });
+
+test("login shows loose floating sheets behind an h1, presentation only (#290)", () => {
+  const page = readSource(loginPagePath);
+  assert.match(page, /<FloatingSheets cv=\{cv\} \/>/);
+  assert.match(page, /<h1 className=\{styles\.title\}>\{entry\.title\}<\/h1>/);
+  assert.match(page, /<AccountAccessClient\b/);
+  const sheets = readSource(path.join(process.cwd(), "app", "components", "landing", "floating-sheets.tsx"));
+  assert.match(sheets, /aria-hidden="true"/);
+  assert.match(sheets, /visibilitychange/);
+  assert.match(sheets, /const COUNT = 10;/, "the mockup's ten loose sheets");
+  /* the sample CV only decorates the sheets: failing to read it must never take /login down */
+  assert.match(page, /loadSampleResumeData\(\)\.catch\(\(\) => null\)/);
+  assert.match(sheets, /cv: SceneCv \| null/);
+});

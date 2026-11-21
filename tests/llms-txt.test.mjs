@@ -26,7 +26,7 @@ test("every llms.txt link is absolute, listed and resolves to an existing page",
     const exists = ["page.tsx", "page.ts", "route.ts"].some((f) => fs.existsSync(path.join(process.cwd(), dir, f)));
     assert.ok(exists, `${url} has no page`);
   }
-  assert.ok(fs.readFileSync("app/page.tsx", "utf8").includes('id="faq"'));
+  assert.ok(fs.readFileSync("app/components/landing/landing-faq.tsx", "utf8").includes('id="faq"'));
 });
 
 test("llms.txt route exists and proxy matcher skips dotted paths", () => {

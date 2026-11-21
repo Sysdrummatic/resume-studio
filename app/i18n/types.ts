@@ -69,45 +69,53 @@ export type AppDictionary = {
   };
   landing: {
     hero: {
-      eyebrow: string;
       title: string;
       title_prefix: string;
       title_suffix: string;
       rotating_words: string[];
+      /** Long form for llms-full.txt; the landing shows `lead`. */
       description: string[];
+      lead: string;
+      free_note: string;
       primary_action: string;
       secondary_action: string;
-      meta: string[];
     };
-    sample: {
-      eyebrow: string;
-      title: string;
-      description: string;
-      data_note: string;
-      open_action: string;
-      loading_aria: string;
-      open_aria: string;
-    };
-    animation: { eyebrow: string; title: string; detail: string; iframe_title: string };
-    features: {
-      eyebrow: string;
-      title: string;
-      description: string;
+    story: {
       aria_label: string;
-      pause: string;
-      resume: string;
+      rail_label: string;
+      short_notice: { text: string; close: string };
+      next: string;
+      back: string;
+      faq: string;
+      formats_label: string;
+      start_label: string;
+      /** Every stage after the start, in story order. */
+      stages: Array<{ id: string; label: string; title: string; body: string }>;
+      scene: {
+        base: string;
+        picked: string;
+        picked_note: string;
+        published: string;
+        saved: string;
+        /** titles of the three LiveCVs the scene builds from the sample CV */
+        versions: { fe: string; pf: string; ai: string };
+        /** v3 (published), v2, v1 with their dates */
+        snapshots: string[];
+      };
+    };
+    features: {
+      list_label: string;
+      close: string;
+      description: string;
       items: Array<{ tag: string; chip: string; title: string; description: string }>;
     };
     faq: {
       title: string;
+      close: string;
       items: Array<{ id?: string; question: string; answer: string }>;
     };
     cta: {
-      eyebrow: string;
-      title: string;
-      description: string;
       primary_action: string;
-      secondary_action: string;
     };
     footer: {
       sample_resume: string;
@@ -120,6 +128,7 @@ export type AppDictionary = {
     };
   };
   auth: {
+    entry: { title: string; free_note: string };
     contextual: Record<string, string>;
     modes: Record<
       "signup" | "reset" | "new_password" | "signin",
