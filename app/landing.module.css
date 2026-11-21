@@ -147,10 +147,10 @@
 
 .dust {
   position: absolute;
-  left: -4px;
-  top: -4px;
-  width: 8px;
-  height: 8px;
+  left: -1.5px;
+  top: -1.5px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: var(--lp-dust);
   opacity: 0;
@@ -297,7 +297,8 @@
 .layerPaper {
   container-type: inline-size;
   background: var(--lp-paper);
-  box-shadow: inset 0 0 0 1px var(--lp-sheet-edge);
+  /* faces are laid out at 2x: 3px reads as the mockup's 1.5px outline */
+  box-shadow: inset 0 0 0 3px var(--lp-sheet-edge);
   opacity: var(--paper);
 }
 
@@ -313,6 +314,12 @@
 }
 
 /* glowing edges: the slab's indigo, the picked slab's teal */
+/* the mockup's shader adds the edge colour onto the face: plus-lighter does the same */
+.layerEdge,
+.layerEdgeSel {
+  mix-blend-mode: plus-lighter;
+}
+
 .layerEdge {
   box-shadow: inset 0 0 0 1.5px var(--ocv-slab-edge), inset 0 0 6px color-mix(in srgb, var(--ocv-slab-edge) 45%, transparent);
   opacity: calc(var(--edge) * (1 - var(--sel)));
@@ -1049,7 +1056,8 @@ h1.title > span {
   position: absolute;
   z-index: 4;
   left: 50%;
-  bottom: calc(var(--lp-foot-h) + (var(--lp-rest) - 34px) / 2);
+  /* in the strip the footer slides into, as in the mockup; "Back" rises above the footer */
+  bottom: calc((var(--lp-foot-h) - 34px) / 2);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1110,6 +1118,10 @@ h1.title > span {
   width: 14px;
   height: 14px;
   transition: transform 400ms var(--ease-out);
+}
+
+.nextBack {
+  bottom: calc(var(--lp-foot-h) + (var(--lp-rest) - 34px) / 2);
 }
 
 .nextBack .nextIcon {
