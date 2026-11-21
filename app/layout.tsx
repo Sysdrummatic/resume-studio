@@ -32,7 +32,7 @@ const fraunces = localFont({
   src: "../public/fonts/Fraunces-Latin.woff2",
   weight: "100 900",
   display: "swap",
-  preload: false,
+  preload: true,
   adjustFontFallback: false,
   declarations: [
     {
@@ -48,7 +48,7 @@ const frauncesExt = localFont({
   src: "../public/fonts/Fraunces-LatinExt.woff2",
   weight: "100 900",
   display: "swap",
-  preload: false,
+  preload: true,
   adjustFontFallback: "Times New Roman",
   declarations: [
     {

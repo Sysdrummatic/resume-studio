@@ -1,0 +1,69 @@
+/* /login presentation (#290): copy on the left, the unchanged auth card on the right, loose sheets behind. */
+
+:global(.app-main):has(.entry)::before {
+  content: none;
+}
+
+.entry {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 24px;
+  width: min(1280px, calc(100% - var(--layout-gutter) - var(--layout-gutter)));
+  margin-inline: auto;
+  padding-block: clamp(24px, 5vh, 56px) 56px;
+}
+
+.copy {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  max-width: 560px;
+}
+
+.tag {
+  margin: 0;
+  color: var(--ocv-ink-3);
+  font: 500 0.75rem / 1 var(--ocv-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--ocv-ink);
+  font: var(--ocv-display-weight) clamp(30px, 4.6vw, 64px) / 1.05 var(--ocv-font-display);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.free {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--ocv-ink-2);
+  font-size: 0.84375rem;
+}
+
+.free::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ocv-teal);
+}
+
+@media (min-width: 980px) {
+  .entry {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+    align-items: start;
+    gap: clamp(24px, 5vw, 80px);
+  }
+
+  .copy {
+    position: sticky;
+    top: calc(var(--app-header-height) + 25vh);
+  }
+}

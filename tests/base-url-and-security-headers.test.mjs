@@ -74,9 +74,9 @@ test("next.config sets baseline security headers on every route", async () => {
   assert.ok(byKey["Permissions-Policy"]);
 });
 
-test("fonts and animations use a revalidating cache, never immutable (filenames are not hashed)", async () => {
+test("fonts use a revalidating cache, never immutable (filenames are not hashed)", async () => {
   const rules = await nextConfig.headers();
-  for (const source of ["/fonts/:path*", "/animations/:path*"]) {
+  for (const source of ["/fonts/:path*"]) {
     const rule = rules.find((r) => r.source === source);
     const value = rule.headers[0].value;
     assert.doesNotMatch(value, /immutable/);

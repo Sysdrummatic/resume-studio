@@ -58,8 +58,8 @@ CV only:   Space Grotesk (local @font-face, see below)
 
 Fraunces never appears in dense product UI (labels, buttons, tables, small
 headings). All faces are self-hosted by next/font; Fraunces is vendored, so builds
-never reach Google (offline `verify`/`ci`, `CLAUDE.md`) and it is not preloaded until
-a screen renders it. Do not introduce any other family
+never reach Google (offline `verify`/`ci`, `CLAUDE.md`); it is preloaded since #290
+(the landing h1 renders it above the fold). Do not introduce any other family
 without an ADR. Legacy screens still read `--font-body`/`--font-display` (Geist)
 from `app/globals.css` until their redesign stage.
 
@@ -277,10 +277,11 @@ no header to align with, use `--layout-content-max` instead.
 12 columns, `column-gap: clamp(16px, 1.6vw, 26px)`, placed with explicit column
 lines (`grid-column: 1 / 8`) on wide product surfaces.
 
-**Landing exception (2026-10-02):** restores the master composition: a 900px
-text container with 24px internal gutters inside a 1080px shell and CV/animation
-stage. The landing footer uses the text width. The shared header uses the same
-1600px canvas and portal gutters on every route, including `/`.
+**Landing (#290, replaces the 2026-10-02 master composition):** one pinned CSS 3D
+stage under the shared header, full bleed. Captions sit bottom left (32px gutter from
+768px, 16px below) behind a left veil; the scene shows toward the right; the stage
+rail sits on the right (a single row at the top on phones). The landing's own footer
+is frosted glass sliding over the end of the pinned story. See Motion → Landing story.
 
 **App shell (#289, revised from "navigation sits to the left after the brand"):**
 the brand sits alone on the left; everything else is right-aligned in the mockup's
@@ -288,17 +289,11 @@ order: page links (the current one marked `aria-current="page"` with a 2px teal
 underline), the PL/EN segmented language switch, the theme switch, then the
 account avatar or the sign-in/sign-up buttons. Below 980px the page links and guest
 actions collapse into the menu button at the end of the row. A footer
-(docs · privacy · terms) closes every page except `/`, which keeps its own footer
-until #290. Page frame classes: `.ocv-page` (1152px), `--wide` (1400px),
+(docs · privacy · terms) closes every page except `/`, which has its own frosted
+footer (#290). Page frame classes: `.ocv-page` (1152px), `--wide` (1400px),
 `--narrow` (860px), `.ocv-page-head`; screens adopt them in their own stages.
 Route changes crossfade the content with a small rise while the header stays
 (React `<ViewTransition>` keyed by path, `app/components/route-transition.tsx`).
-Outer landing gutters match master:
-8px below 480px and 16px from 480px. Hero and final CTA retain the master typography and copy
-(English source plus Polish translation); hero copy is pending a separate review
-of the automatic-update claim. Publication behavior remains snapshot-based.
-The sequence is hero → sample CV → Experience Base animation → features → FAQ
-→ final CTA. The sample uses the existing inline renderer, with a full-CV link.
 
 - Never fill a wide row with `justify-self: end` — that pushes body copy to the
   far edge and leaves a 400px void mid-row. Place it on a column line instead.
@@ -311,7 +306,7 @@ The sequence is hero → sample CV → Experience Base animation → features �
 Body / paragraphs:     54–65ch     (never wider)
 Long-form prose:       64–72ch
 Supporting / captions: 44–48ch
-Display headings:      15–18ch     (product; landing restores master's wider heading)
+Display headings:      15–18ch     (product; landing captions are capped at 520–640px)
 ```
 
 Caps go on the element in `ch`, not on the grid column — the column defines
@@ -335,9 +330,9 @@ and `landing.module.css`. Do not add values between these steps:
 `app/components/app-header-navigation.tsx`. In JS/TS **import it**; in CSS write
 `(min-width: 980px)` literally — never redefine the number in a constant of your own.
 
-Landing-only exception: `480px` in `app/landing.module.css` restores master's
-outer gutters. It changes only `/` and does not define a navigation breakpoint.
-The layout guard permits it only in this module, separately from legacy exceptions.
+The landing's phone layouts use `(max-width: 767px)` (stacked) and the height query
+`(orientation: landscape) and (max-height: 500px) and (pointer: coarse)` (side); the CSS
+and the scene controller read the same two conditions, so they never disagree.
 
 ### Breakpoints — CV domain
 
@@ -496,20 +491,28 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 
 - **Button press**: `.button:active:not(:disabled)` cancels the hover lift and settles to
   `scale(0.98)` over `--motion-press` (90ms). Applies to every action button portal-wide.
-- **Scroll reveal (brand / landing only)**: below-the-fold sections fade and rise 16px on
-  `--ease-out-expo` over 600ms as they enter the viewport, with an 80ms stagger across the
-  publishing-model cards. Driven by `app/components/scroll-reveal.tsx` (IntersectionObserver).
-  The hidden start state is gated behind the `.lp--reveal-ready` class the controller adds, so
-  content stays visible without JS and for crawlers. The hero is never gated. The stagger
-  applied to landing cards that no longer exist; only the base reveal remains.
-- **Landing features carousel**: native horizontal scrolling at 30px/s from 768px
-  on devices with hover, only while visible. Hover or keyboard focus pauses movement; the
-  selected card enlarges slightly. A persistent pause/resume button is available.
-  Phones, touch and reduced motion use manual scrolling without duplicate cards; reduced
-  motion also disables enlargement. The repeated visual group is hidden from
-  assistive technology. Hero rotating words retain the master treatment and show
-  a static first word when reduced motion is requested.
-- **Experience Base explainer (landing)**: the isolated iframe collects career tiles in
+- **Landing story (#290)**: one pinned stage, nine stages (start → LiveCV as a link →
+  Experience Base → select → build LiveCV → versions → history → features → public card).
+  Scene objects are DOM in `perspective`; their poses per stage live in
+  `app/components/landing/scene-poses.ts` and are written as `transform` + `opacity` by
+  `landing-story.tsx`. One passive scroll listener picks the stage (`stageFromProgress`):
+  a stage holds until the scroll crosses half a slot, with at most a 10% lean toward the
+  next one in the last 20% before the threshold. CSS transitions (640ms move, 420ms fade,
+  per-object `transition-delay` stagger) retarget mid-flight; a fast scroll goes straight
+  to its stage. Slots snap with `scroll-snap-type: y proximity`; the rail and the
+  Scroll/Back pill move exactly one stage. Pointer tilt at most 4°, fine pointers only. The
+  drifting files of the start stage are the one idle loop; it pauses off screen
+  (IntersectionObserver) and on a hidden tab. Reduced motion: no lean, no tilt, no drift;
+  the scene crossfades (200ms) to a static frame per stage, captions crossfade too.
+  Without JavaScript (`@media (scripting: none)`) every caption is plain text and the
+  scene is hidden. The scene is `aria-hidden`; captions are real headings, the feature
+  tiles have a real button list (visually hidden on wide screens until focused, swipe
+  cards on phones), and the FAQ is a native `<dialog>` drawer opened from any `/#faq`
+  link. Hero rotating words pause while the start caption is off stage.
+- **Login sheets (#290)**: loose CV sheets drift slowly behind `/login` (`translate`/
+  `rotate` keyframes only), paused on a hidden tab, still under reduced motion.
+- **Retired (#290)**: the Experience Base explainer iframe, the features carousel and the
+  scroll reveal were removed with the old landing. For history, the explainer was: the isolated iframe collects career tiles in
   one randomly ordered column, tracks downward, moves the tiles into a stationary queue,
   and fills the empty Experience Base one item at a time. The document pans downward
   through its sections, zooms out, then gives rise to three selected CVs. CV 2 finishes
@@ -531,11 +534,13 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 - Ambient animation only on non-content layers (background pseudo-elements)
 - Entrance animations must not delay information access. Below-the-fold content may be gated;
   in a hero, only a decorative artifact may animate, and never the copy or the CTAs
-- No looping animations on content elements at idle state, except the explicitly
-  requested landing features carousel and restored hero rotating words above
+- No looping animations on content elements at idle state, except the hero rotating
+  words above (paused when off stage); decorative idle loops (landing drift, login
+  sheets) pause off screen and on hidden tabs
 - `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
   `app/components/design-system/tokens.css` (moved there from `app/globals.css`) zeroes
-  transition and animation durations; reveal targets are forced visible
+  transition and animation durations; an element marked `[data-crossfade]` keeps a 200ms
+  opacity transition only (epic #190 decision 2: static frame plus crossfade)
 - New transitions use `--ease-out` to enter and the shorter `--ease-in` to leave (`--ease-out-expo` is the same curve, kept for legacy rules). No bounce, no elastic curves; `linear()` springs only in expressive scene changes, sparingly
 
 ---

@@ -55,102 +55,156 @@ function renderLanding(locale) {
     dictionary
   };
   const Link = ({ href, children, ...props }) => createElement("a", { href, ...props }, children);
-  const icon = ({ children }) => createElement("svg", { "aria-hidden": "true" }, children);
   const stubs = {
     "next/link": { __esModule: true, default: Link },
     "./components/localized-link": { __esModule: true, default: Link },
+    "./localized-link": { __esModule: true, default: Link },
+    "../localized-link": { __esModule: true, default: Link },
     "./lib/language-alternates": { getLanguageAlternatesMetadata: async () => ({}) },
-    "next/headers": { cookies: async () => ({ get: () => undefined }) },
-    "lucide-react": new Proxy({}, { get: () => icon }),
-    "./components/footer": {
-      __esModule: true,
-      default: () => createElement("footer", { "data-testid": "landing-footer" })
-    },
-    "./components/landing-sample-cv": {
-      __esModule: true,
-      default: () => createElement("div", { "data-testid": "landing-sample-cv" })
-    },
-    "./components/open-civera-animation": {
-      __esModule: true,
-      default: () => createElement("div", { "data-testid": "open-civera-animation" })
-    },
     "./components/recovery-redirect": { __esModule: true, default: () => null },
-    "./components/scroll-reveal": { __esModule: true, default: () => null },
     "./i18n/server": { getRequestAppI18n: async () => appI18n }
   };
   const HomePage = loadTsx("app/page.tsx", stubs).default;
   return HomePage().then((page) => renderToStaticMarkup(page));
 }
 
+const textOf = (html) => html.replace(/<[^>]+>/g, " ").replace(/&#x27;|&#39;/g, "'").replace(/&amp;/g, "&").replace(/\s+/g, " ");
+
 for (const locale of ["pl", "en"]) {
-  test(`landing restores master sections with the current CV, animation, features and FAQ (${locale})`, async () => {
-    const dictionary = readAppDictionary(locale).landing;
+  test(`landing is one story of nine captioned stages (${locale})`, async () => {
+    const { hero, story } = readAppDictionary(locale).landing;
     const html = await renderLanding(locale);
-    const sections = [
-      "lp-hero-title",
-      "lp-resume-title",
-      "story-animation",
-      "lp-model-title",
-      "faq",
-      "lp-cta-title"
-    ];
-    let previous = -1;
-    for (const id of sections) {
-      const position = html.indexOf(`id="${id}"`);
-      assert.ok(position > previous, `${id} stays in the requested order`);
-      previous = position;
+    const text = textOf(html);
+
+    const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+    assert.ok(h1, "one h1 for the start stage");
+    assert.equal((html.match(/<h1/g) || []).length, 1);
+    for (const part of [hero.title, hero.title_prefix, hero.rotating_words[0], hero.title_suffix]) {
+      assert.ok(textOf(h1[1]).includes(part), `h1 carries "${part}"`);
     }
-    assert.match(html, /data-testid="landing-sample-cv"/);
-    assert.match(html, /data-testid="open-civera-animation"/);
-    assert.ok(html.includes(dictionary.hero.title));
-    assert.ok(html.includes(dictionary.sample.title));
-    assert.ok(html.includes(dictionary.sample.description));
-    assert.ok(html.includes(dictionary.sample.open_action));
-    assert.ok(html.includes(dictionary.cta.title));
-    assert.ok(html.includes(dictionary.cta.description));
-    assert.ok(html.includes(dictionary.cta.secondary_action));
-    assert.ok(html.includes(dictionary.features.aria_label));
-    assert.equal(dictionary.features.items.length, 11);
-    for (const item of dictionary.features.items) assert.ok(html.includes(item.title));
-    const duplicate = html.match(
-      /<ul class="carouselGroup carouselDuplicate" aria-hidden="true">([\s\S]*?)<\/ul>/
-    );
-    assert.ok(duplicate, "the repeated visual group is hidden from assistive technology");
-    assert.doesNotMatch(duplicate[1], /tabindex="0"/);
-    assert.equal((html.match(/tabindex="0"/g) || []).length, dictionary.features.items.length);
-    assert.ok(html.includes('aria-pressed="false"'));
-    assert.equal((html.match(/<details/g) || []).length, dictionary.faq.items.length);
-    assert.doesNotMatch(html, /id="experience-base-title"|id="vision-title"|id="how"/);
-    assert.ok(html.indexOf('data-testid="landing-footer"') > previous);
+    assert.ok(text.includes(hero.lead));
+    assert.ok(text.includes(hero.free_note));
+
+    assert.equal(story.stages.length, 8);
+    let previous = html.indexOf("<h1");
+    for (const stage of story.stages) {
+      const at = html.indexOf(`data-stage="${stage.id}"`);
+      assert.ok(at > previous, `${stage.id} follows the previous stage`);
+      previous = at;
+      assert.ok(text.includes(stage.title), `caption title for ${stage.id} is real text`);
+      assert.ok(text.includes(stage.body), `caption body for ${stage.id} is real text`);
+    }
+    assert.equal((html.match(/<article[^>]*data-stage=/g) || []).length, 9);
+  });
+
+  test(`the 3D scene is decorative and the controls are real (${locale})`, async () => {
+    const { story, features, faq } = readAppDictionary(locale).landing;
+    const html = await renderLanding(locale);
+
+    const scene = html.match(/<div[^>]*data-scene[^>]*>/);
+    assert.ok(scene, "scene root rendered");
+    assert.match(scene[0], /aria-hidden="true"/);
+    assert.ok((html.match(/data-obj="/g) || []).length >= 30, "scene objects are DOM, not a canvas");
+    assert.doesNotMatch(html, /<canvas|<iframe|webgl/i);
+
+    const rail = html.match(/<nav[^>]*aria-label="([^"]*)"[^>]*>([\s\S]*?)<\/nav>/);
+    assert.ok(rail, "side rail is a navigation landmark");
+    assert.equal(rail[1], story.rail_label);
+    assert.equal((rail[2].match(/<button/g) || []).length, 9, "one rail button per stage");
+    assert.ok(html.includes(story.next));
+
+    assert.equal(features.items.length, 11);
+    for (const item of features.items) assert.ok(html.includes(item.title), item.title);
+    const buttons = html.match(/<button[^>]*data-feature="\d+"[^>]*>/g) || [];
+    assert.equal(buttons.length, 11, "every feature has a real button");
+    for (const button of buttons) assert.match(button, /aria-expanded="false"/);
+
+    const dialog = html.match(/<dialog[^>]*id="faq"[^>]*>([\s\S]*?)<\/dialog>/);
+    assert.ok(dialog, "FAQ drawer is a dialog with id faq (footer links /#faq)");
+    assert.equal((dialog[1].match(/<details/g) || []).length, faq.items.length);
+    assert.ok(dialog[1].includes(faq.title));
+    for (const item of faq.items) assert.ok(textOf(dialog[1]).includes(item.question));
+
+    assert.equal((html.match(/application\/ld\+json/g) || []).length, 2, "SoftwareApplication + FAQPage");
+    assert.doesNotMatch(html, / style="/, "poses are written at runtime, never rendered as inline styles");
+  });
+
+  test(`CTAs lead to real routes only (${locale})`, async () => {
+    const html = await renderLanding(locale);
+    const hrefs = [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+    const allowed = new Set(["/login", "/login?mode=signup", "/resume", "/docs", "/privacy", "/terms", "/#faq"]);
+    for (const href of hrefs) {
+      assert.ok(allowed.has(href) || href.startsWith("mailto:"), `unexpected link ${href}`);
+    }
+    assert.ok(hrefs.filter((h) => h === "/login?mode=signup").length >= 2, "start and last stage invite sign-up");
+    assert.ok(hrefs.includes("/resume"));
+  });
+
+  test(`copy keeps epic #190's rules: snapshots, no automatic updates or translation, no stats (${locale})`, () => {
+    const { hero, story } = readAppDictionary(locale).landing;
+    const copy = [
+      hero.title, hero.title_prefix, hero.title_suffix, ...hero.rotating_words, hero.lead, hero.free_note,
+      ...hero.description,
+      ...story.stages.flatMap((stage) => [stage.label, stage.title, stage.body]),
+      ...Object.values(story.scene)
+    ].join("\n");
+    assert.doesNotMatch(copy, /automatycznie|automatically|zawsze aktualn|always up[- ]to[- ]date|aktualizuje się sam|updates? itself|in real time|w czasie rzeczywistym/i);
+    assert.doesNotMatch(copy, /tłumacz|translat/i);
+    assert.doesNotMatch(copy, /\d+\s*%|\d[\d\s]*\+|\b\d{3,}\b|\b(users|użytkownik)/i);
+    assert.doesNotMatch(copy, /\b(cena|cennik|price|pricing|plan premium|subscription|subskrypcj)/i);
+    assert.match(story.stages.find((s) => s.id === "history").body, /migawk|snapshot/i);
   });
 }
-test("animation stays an isolated, lazy component with locale and theme inputs", () => {
-  const componentPath = "app/components/open-civera-animation.tsx";
-  const animationPath = "public/animations/opencivera-animation.html";
 
-  assert.equal(existsSync(componentPath), true, "the landing owns a reusable animation component");
-  assert.equal(existsSync(animationPath), true, "the animation remains independently replaceable");
+test("the old landing pieces are gone, not left unused", () => {
+  for (const file of [
+    "app/components/open-civera-animation.tsx",
+    "app/components/open-civera-animation.module.css",
+    "app/components/landing-sample-cv.tsx",
+    "app/components/landing-features.tsx",
+    "app/components/scroll-reveal.tsx",
+    "public/animations"
+  ]) {
+    assert.equal(existsSync(file), false, `${file} removed with the CSS 3D scene (#290)`);
+  }
+});
 
-  const Animation = loadTsx(componentPath).default;
-  const html = renderToStaticMarkup(
-    createElement(Animation, {
-      locale: "pl",
-      initialTheme: "light",
-      title: "Jak działa OpenCiVera"
-    })
-  );
+test("landing motion animates transform and opacity only", () => {
+  const css = readFileSync("app/landing.module.css", "utf8");
+  for (const [, value] of css.matchAll(/transition(?:-property)?:\s*([^;]+);/g)) {
+    for (const part of value.split(",")) {
+      const property = part.trim().split(/\s+/)[0];
+      if (property === "none") continue;
+      assert.ok(["transform", "opacity"].includes(property), `transition on ${property}`);
+    }
+  }
+  for (const [, body] of css.matchAll(/@keyframes [\w-]+\s*\{([\s\S]*?)\n\}/g)) {
+    for (const [, property] of body.matchAll(/([a-z-]+)\s*:/g)) {
+      assert.ok(["transform", "opacity"].includes(property), `keyframes animate ${property}`);
+    }
+  }
+  assert.match(css, /scroll-snap-type:\s*y proximity/);
+  assert.match(css, /animation-play-state:\s*paused/, "idle loops can pause");
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(css, /@media \(scripting: none\)/, "without JavaScript every caption stays readable");
+});
 
-  assert.match(
-    html,
-    /src="\/animations\/opencivera-animation\.html\?embedded=1&amp;lang=pl&amp;theme=light"/
-  );
-  assert.match(html, /title="Jak działa OpenCiVera"/);
-  assert.match(html, /loading="lazy"/);
-  assert.match(html, /sandbox="allow-scripts"/);
-  assert.doesNotMatch(html, /allow-same-origin/);
+test("reduced motion keeps a crossfade: the global guard spares [data-crossfade] opacity", () => {
+  const tokens = readFileSync("app/components/design-system/tokens.css", "utf8");
+  const guard = tokens.slice(tokens.indexOf("@media (prefers-reduced-motion: reduce)"));
+  assert.match(guard, /:not\(\[data-crossfade\]\)/);
+  assert.match(guard, /\[data-crossfade\]\s*\{[^}]*transition-property:\s*opacity\s*!important/);
+});
 
-  const animationSource = readFileSync("public/animations/opencivera-animation.js", "utf8");
-  assert.match(animationSource, /Zatrzymaj animację/);
-  assert.match(animationSource, /Postęp animacji/);
-  assert.match(animationSource, /Doświadczenia przybywa z czasem/);
+test("one scroll source picks the stage; idle loops pause off-screen and on hidden tabs", () => {
+  const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
+  assert.match(story, /stageFromProgress/);
+  assert.match(story, /addEventListener\("scroll", [^)]*\{ passive: true \}/);
+  assert.match(story, /IntersectionObserver/);
+  assert.match(story, /visibilitychange/);
+  assert.match(story, /prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(story, /setInterval/, "no timer-driven animation");
+  const sheets = readFileSync("app/components/landing/floating-sheets.tsx", "utf8");
+  assert.match(sheets, /visibilitychange/);
+  assert.match(sheets, /aria-hidden="true"/);
 });

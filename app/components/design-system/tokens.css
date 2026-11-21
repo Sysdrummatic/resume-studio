@@ -72,8 +72,14 @@
   --ocv-danger: var(--ocv-L, #b3261e) var(--ocv-D, #ff9d94);
   --ocv-danger-wash: var(--ocv-L, #fbe4e2) var(--ocv-D, #3d1614);
   --ocv-focus: var(--ocv-L, #3a44b2) var(--ocv-D, #aeb6ff);
-  /* Dotted floor behind page tops (app shell, #289). The other scene tokens (Experience Base slabs) arrive with the scene in #290. */
+  /* CSS 3D scene (landing #290): dotted floor (also the app shell's, #289), Experience Base
+     slabs (indigo = private), picked slabs (teal = going public) and the CV files' paper. */
   --ocv-grid: var(--ocv-L, #a4abc2) var(--ocv-D, #3a4468);
+  --ocv-slab: var(--ocv-L, #bcc2ee) var(--ocv-D, #252b57);
+  --ocv-slab-edge: var(--ocv-L, #4f5bd6) var(--ocv-D, #8f9aff);
+  --ocv-sel: var(--ocv-L, #7fd6c8) var(--ocv-D, #0e8a7a);
+  --ocv-sel-edge: var(--ocv-L, #009c88) var(--ocv-D, #56f0d8);
+  --ocv-file: var(--ocv-L, #ffffff) var(--ocv-D, #c8ccda);
 
   /* Elevation: offset + soft blur, only on floating layers (menu, modal, toast) */
   --ocv-shadow-float: 0 20px 50px -24px rgb(0 0 0 / 0.5);
@@ -138,16 +144,23 @@
     --ocv-motion-scale: 1;
   }
 
-  /* Global guard (moved here from app/globals.css). Epic #190 wants a crossfade
-     instead of spatial motion under reduced motion; relaxing this guard to allow
-     opacity is decided with the landing scene (#290, TECH_DEBT.md). */
+  /* Global guard (moved here from app/globals.css). Epic #190 decision 2: reduced motion
+     gets a static frame plus a crossfade. An element that crossfades opts in with
+     [data-crossfade] and keeps an opacity transition only; nothing else moves. */
 
-  *,
+  *:not([data-crossfade]),
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
+  }
+
+  [data-crossfade] {
+    transition-property: opacity !important;
+    transition-duration: 200ms !important;
+    transition-delay: 0ms !important;
+    animation: none !important;
   }
 }

@@ -193,7 +193,7 @@ test("layout self-hosts Fraunces through next/font/local, so builds work offline
   assert.match(layout, /variable: "--font-fraunces"/);
   assert.match(layout, /variable: "--font-fraunces-ext"/);
   assert.match(layout, /prop: "unicode-range"/);
-  assert.equal((layout.match(/preload: false/g) || []).length, 2, "Fraunces is not preloaded until a screen renders it");
+  assert.equal((layout.match(/preload: true/g) || []).length, 2, "Fraunces is preloaded: the landing h1 renders it above the fold (#290)");
   assert.match(layout, /\$\{fraunces\.variable\}/);
   assert.match(layout, /\$\{frauncesExt\.variable\}/);
   assert.match(tokens(), /--ocv-font-display:\s*var\(--font-fraunces\),\s*var\(--font-fraunces-ext\)/);

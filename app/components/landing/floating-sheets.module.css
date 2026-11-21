@@ -1,0 +1,93 @@
+/* Loose sheets behind /login. Only transform and opacity animate; the loop idles on a hidden tab. */
+
+.sheets {
+  --u: min(9vh, 7vw);
+  position: fixed;
+  inset: var(--app-header-height) 0 0;
+  z-index: -1;
+  overflow: hidden;
+  perspective: calc(11 * var(--u));
+  pointer-events: none;
+}
+
+/* The form stays readable: a veil from the left, the sheets show toward the right. */
+.sheets::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--ocv-bg) 16%, transparent 62%);
+}
+
+.sheet {
+  position: absolute;
+  display: grid;
+  align-content: start;
+  gap: calc(0.16 * var(--u));
+  width: calc(1.7 * var(--u));
+  height: calc(2.4 * var(--u));
+  padding: calc(0.22 * var(--u)) calc(0.2 * var(--u));
+  border-radius: calc(0.05 * var(--u));
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.1), 0 calc(0.35 * var(--u)) calc(0.7 * var(--u)) calc(-0.25 * var(--u)) rgb(0 0 0 / 0.35);
+  opacity: 0.92;
+  animation: sheet-drift 18s ease-in-out infinite alternate;
+}
+
+.sheet i {
+  display: block;
+  height: calc(0.08 * var(--u));
+  border-radius: 2px;
+  background: #c9ced6;
+}
+
+.sheet i:first-child {
+  width: 55%;
+  height: calc(0.14 * var(--u));
+  background: #1b1b1b;
+}
+
+.sheet i:nth-child(2) {
+  width: 34%;
+  background: #009c8a;
+}
+
+.sheet:nth-child(1) { left: 62%; top: 8%; transform: translateZ(calc(-2 * var(--u))) rotate3d(1, 2, 0, 18deg); animation-delay: -2s; }
+.sheet:nth-child(2) { left: 78%; top: 30%; transform: translateZ(calc(1 * var(--u))) rotate3d(-1, 1, 0.3, 24deg); animation-delay: -7s; }
+.sheet:nth-child(3) { left: 55%; top: 52%; transform: translateZ(calc(-4 * var(--u))) rotate3d(0.4, -1, 0, 30deg); animation-delay: -11s; }
+.sheet:nth-child(4) { left: 88%; top: 66%; transform: translateZ(calc(-1 * var(--u))) rotate3d(1, 0.5, -0.4, 20deg); animation-delay: -4s; }
+.sheet:nth-child(5) { left: 70%; top: 78%; transform: translateZ(calc(-6 * var(--u))) rotate3d(-0.5, 1, 0.2, 34deg); animation-delay: -14s; }
+.sheet:nth-child(6) { left: 92%; top: 4%; transform: translateZ(calc(-5 * var(--u))) rotate3d(0.3, 1, 0.5, 26deg); animation-delay: -9s; }
+.sheet:nth-child(7) { left: 46%; top: 22%; transform: translateZ(calc(-8 * var(--u))) rotate3d(1, -0.6, 0, 22deg); animation-delay: -16s; }
+
+/* `translate` composes with each sheet's own transform, so the drift needs no per-sheet keyframes. */
+@keyframes sheet-drift {
+  from {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  to {
+    translate: calc(-0.4 * var(--u)) calc(-0.5 * var(--u));
+    rotate: 6deg;
+  }
+}
+
+.sheets[data-idle="paused"] .sheet {
+  animation-play-state: paused;
+}
+
+@media (max-width: 767px) {
+  .sheets {
+    --u: min(7vh, 14vw);
+    opacity: 0.45;
+  }
+
+  .sheets::after {
+    background: color-mix(in srgb, var(--ocv-bg) 40%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}

@@ -7,27 +7,30 @@ type RotatingWordProps = {
   words: string[];
   /** How long each word stays visible, in milliseconds. */
   interval?: number;
+  /** Stops cycling, e.g. while its caption is off screen. */
+  paused?: boolean;
   className?: string;
 };
 
 /**
  * Animated word carousel. Cycles through `words`, cross-fading between them.
  * All words are stacked in one grid cell so the slot sizes to the widest word
- * and surrounding text never reflows.
+ * and surrounding text never reflows. Idles while paused or on a hidden tab.
  */
-export default function RotatingWord({ words, interval = 2200, className }: RotatingWordProps) {
+export default function RotatingWord({ words, interval = 2200, paused = false, className }: RotatingWordProps) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    if (words.length <= 1) return;
+    if (words.length <= 1 || paused) return;
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
     const id = window.setInterval(() => {
+      if (document.hidden) return;
       setIndex((current) => (current + 1) % words.length);
     }, interval);
     return () => window.clearInterval(id);
-  }, [words, interval]);
+  }, [words, interval, paused]);
 
   if (words.length === 0) return null;
 

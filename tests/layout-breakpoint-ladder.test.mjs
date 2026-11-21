@@ -11,7 +11,6 @@ import path from "node:path";
  * blocks sit one pixel below the `min-width` block they hand over to.
  */
 const PORTAL_LADDER = new Set([640, 767, 768, 979, 980, 1279, 1280, 1439, 1440, 1599, 1600]);
-const LANDING_LADDER = new Set([...PORTAL_LADDER, 480]);
 
 /**
  * The CV renderer is a fixed-width document (210mm in plain/print mode), not a
@@ -27,9 +26,8 @@ const CV_DOMAIN_PREFIX = "app/resume/";
  * quietly outlive the CSS it excuses.
  */
 const GRANDFATHERED = {
-  "app/components/open-civera-animation.module.css": [760],
   "app/cv-templates/templates.module.css": [720],
-  "app/globals.css": [560, 600, 680, 699, 700, 900, 940, 960],
+  "app/globals.css": [560, 600, 680, 699, 700, 900, 960],
   "app/onboarding/onboarding.css": [600, 900],
   "app/resume/resume.css": [520, 900],
   "app/user/user.css": [699, 700, 1100]
@@ -85,12 +83,7 @@ test("every viewport breakpoint sits on the documented ladder", () => {
   const offLadder = [];
 
   for (const [file, widths] of breakpointsByFile) {
-    const ladder =
-      file === "app/landing.module.css"
-        ? LANDING_LADDER
-        : file.startsWith(CV_DOMAIN_PREFIX)
-          ? CV_LADDER
-          : PORTAL_LADDER;
+    const ladder = file.startsWith(CV_DOMAIN_PREFIX) ? CV_LADDER : PORTAL_LADDER;
     const excused = new Set(GRANDFATHERED[file] || []);
 
     for (const width of widths) {

@@ -251,9 +251,6 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
   (`atoms/Button`, `Typography`, `UserAvatar`, `molecules/ResumePreviewFrame`) z nich
   korzystają. Usunięcie `--portal-*` i starych atomów to etap #296, po migracji ostatniego
   konsumenta.
-- **Tokeny sceny.** `--ocv-slab`, `--ocv-slab-edge` (płyty Bazy doświadczeń) usunięte z
-  `tokens.css`, bo nie miały konsumenta; wracają w #290 razem ze sceną, z wartością jasną i
-  ciemną. `--ocv-grid` wrócił w #289 (kropkowana podłoga powłoki).
 - **API `Paper`.** Sloty `name`/`role`/`contact` i `PaperSection` zostają bez konsumenta;
   ewentualne odchudzenie API ocenić przy pierwszym ekranie, który użyje arkusza.
 - **Toast bez kolejki.** Stałe regiony ogłoszeń (`primitives/Toast.tsx`) pokazują ostatni
@@ -269,11 +266,5 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
 - **Menu konta jako `<details>` (#289).** Działa z klawiatury natywnie i zamyka się na
   Escape, ale nie ma animacji wyjścia; modal profilu nadal jest starym overlayem
   (`profile-modal-overlay`) — przeniesienie na prymityw `Modal` w #294 (Personal Hub).
-- **Reduced motion bez przenikania.** Globalna reguła `0.01ms !important` (przeniesiona
-  do `tokens.css`) gasi też przejścia `opacity`, a epik (decyzja 2) chce statycznej klatki
-  z przenikaniem. Prymitywy już nie przesuwają się przy reduced motion
-  (`--ocv-motion-shift: 0px`); zawężenie reguły globalnej do ruchu przestrzennego — w #290.
-- **Fraunces bez preloadu.** `preload: false` w `app/layout.tsx`, bo żaden ekran go jeszcze
-  nie renderuje; włączyć w etapie, który pierwszy pokaże nagłówek Fraunces nad zgięciem.
 - **Licencja Space Grotesk.** `public/fonts/SpaceGrotesk-*.ttf` leżą bez pliku licencji
   OFL (dla Fraunces jest `Fraunces-OFL.txt`); dodać `SpaceGrotesk-OFL.txt`.
