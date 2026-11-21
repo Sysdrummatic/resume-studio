@@ -43,7 +43,8 @@ export function SceneBox({
   feature?: AppDictionary["landing"]["features"]["items"][number];
 }) {
   const solid = thing.kind === "card" || thing.kind === "pick";
-  const faces = solid ? FACES : FACES.slice(0, 2);
+  /* thin boxes never turn their back far enough to show it: one face, half the layer memory */
+  const faces = solid ? FACES : FACES.slice(0, 1);
   const front = (() => {
     if (thing.face === "doc") return <DocFace />;
     if (thing.face === "fe" || thing.face === "pf" || thing.face === "ai") return <CvFace cv={cv} version={thing.face} />;

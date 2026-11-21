@@ -223,6 +223,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
     const gaze = { x: 0, y: 0 };
 
     const fixed = (value: number) => String(Number(value.toFixed(3)));
+    /* shading steps finer than these are invisible; writing them every frame only costs style recalcs */
+    const step = (value: number, size: number) => String(Number((Math.round(value / size) * size).toFixed(3)));
     const set = (box: Box, name: string, value: string) => {
       if (box.last[name] === value) return;
       box.last[name] = value;
@@ -297,9 +299,9 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       set(box, "--sel", fixed(pose.selected));
       set(box, "--paper", fixed(pose.texture));
       set(box, "--edge", fixed(lit ? 1 : pose.edges));
-      set(box, "--fog", fixed(fogAt(view, pose.position, pose.dim, thing.haze)));
+      set(box, "--fog", step(fogAt(view, pose.position, pose.dim, thing.haze), 0.01));
       box.faces.forEach((face) => {
-        const shade = fixed(clamp((1 - faceLight(pose, face.normal)) * 0.75));
+        const shade = step(clamp((1 - faceLight(pose, face.normal)) * 0.75), 0.02);
         if (face.light !== shade) {
           face.light = shade;
           face.el.style.setProperty("--light", shade);
@@ -330,7 +332,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       scene.things.forEach((thing) => paintThing(thing, view));
       dustEls.forEach((el) => {
         const dot = DUST[Number(el.dataset.dust)];
-        const opacity = fixed(0.7 * (1 - fogAt(view, [dot.x, dot.y, dot.z], 1, 1)));
+        const opacity = step(0.7 * (1 - fogAt(view, [dot.x, dot.y, dot.z], 1, 1)), 0.05);
         if (el.dataset.o !== opacity) {
           el.dataset.o = opacity;
           el.style.opacity = opacity;
@@ -386,15 +388,15 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
         }
       }
 
-      /* captions fade and travel with the timeline; the first waits for the opening vortex */
-      const settled = smooth((clock.intro - 0.35) / 0.45);
+      /* captions fade and travel with the timeline. The first one is never held back for the opening
+         vortex: DESIGN.md → Motion keeps hero copy and CTAs visible while only the scene animates. */
       captionEls.forEach((el, index) => {
-        const opacity = clamp(1 - distanceFrom(clock.progress, index) * 2.3) * (index === 0 ? settled : 1);
+        const opacity = clamp(1 - distanceFrom(clock.progress, index) * 2.3);
         el.style.opacity = fixed(opacity);
         el.style.transform = reduced.matches ? "" : `translate3d(0, ${((index - clock.progress) * CAPTION_TRAVEL).toFixed(1)}px, 0)`;
         el.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       });
-      nextEl!.style.opacity = fixed(settled);
+      nextEl!.style.opacity = "1";
       const stage = Math.round(clock.progress);
       if (stage !== shownStage) {
         shownStage = stage;

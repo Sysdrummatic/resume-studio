@@ -217,6 +217,11 @@ test("the frame loop: scroll picks the stage, the loop sleeps when settled, off 
   assert.match(story, /prefers-reduced-motion: reduce/);
   assert.match(story, /stillFrame/, "reduced motion: one still frame per stage and a crossfade");
   assert.doesNotMatch(story, /setInterval/);
+  /* DESIGN.md → Motion: in a hero only the decorative scene may animate, never the copy or the CTAs */
+  assert.match(story, /const opacity = clamp\(1 - distanceFrom\(clock\.progress, index\) \* 2\.3\);/, "captions follow the timeline only");
+  assert.doesNotMatch(story, /const settled =|index === 0 \?/, "the start caption never waits for the opening vortex");
+  const faces = readFileSync("app/components/landing/scene-faces.tsx", "utf8");
+  assert.match(faces, /solid \? FACES : FACES\.slice\(0, 1\)/, "thin boxes keep one face (layer memory)");
   const allowedWrites = ["transform", "opacity", "pointerEvents", "perspective", "top", "height", "translate", "animationDuration", "animationDelay"];
   for (const written of story.matchAll(/style\.(\w+) = /g)) {
     assert.ok(allowedWrites.includes(written[1]), `writes style.${written[1]}`);
