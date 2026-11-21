@@ -80,9 +80,9 @@ Colour carries one meaning across every surface (epic #190 decision 7):
 - Red is reserved for destructive actions and errors.
 
 Every colour token holds its light and its dark value; components never branch on
-the theme. The theme is chosen by the top-bar switch (`data-app-theme`, dark by
-default per ADR 0012); without an explicit theme the tokens follow the system
-preference.
+the theme. The portal follows the system theme until the user picks light or dark
+with the top-bar switch (`data-app-theme`, stored in a cookie; ADR 0012 as amended
+2026-11-21).
 - **CV sheet (`paper`)**: white in both themes, always high-contrast and printable —
   never inherits the portal theme.
 - The legacy `--portal-*` palette stays until each screen migrates (stages #289–#296).

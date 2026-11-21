@@ -115,9 +115,9 @@ Accent: `#009c8a`. Text: `#1b1b1b`. Background: `#ffffff`.
 
 Defined once in `app/components/design-system/tokens.css`. Every token carries its
 light and dark value through the `--ocv-L` / `--ocv-D` space toggles; components
-never branch on the theme. `:root[data-app-theme]` (cookie, ADR 0012, dark default)
-wins. The server always sets it today; the `prefers-color-scheme` branch takes over
-only when #289 lets the theme follow the system.
+never branch on the theme. `:root[data-app-theme]` wins: the server renders it from
+the theme cookie, and without one `app/components/app-theme-script.tsx` sets it from
+the system before the first paint (ADR 0012, amended 2026-11-21 in #289).
 
 **Colour carries one meaning:** indigo = private Experience Base (and focus),
 teal = published LiveCV, amber = unsaved changes, danger = destructive actions and
@@ -176,8 +176,11 @@ Success: green (64,200,140 family). Warning: amber (232,178,82). Danger: red (ex
 Info: the accent indigo. Light theme defines parallel values at matched roles.
 State colors are reserved for state: toasts, badges, status text, live dots. Never decoration.
 No hardcoded semantic hex in components or page CSS; consume the tokens.
-**Ambient light**: directional, top-left only. Single light source.  
-Defined in `--portal-body-ambient` via three radial-gradients at positions ~18%/12%, ~78%/16%, ~74%/68%.
+**Page canvas** (since #289): a flat `--ocv-bg` with the dotted floor (`--ocv-grid`)
+behind the top of every page (`.app-main::before`, `app/components/app-shell.css`). The
+former ambient light (`--portal-body-ambient`) and 64px grid overlay painted on
+`body::before/::after`, with its 10s float loop, are gone; the tokens stay until
+`--portal-*` is removed in #296.
 
 ### Portal — Light theme
 
@@ -253,7 +256,7 @@ No ad-hoc spacing values. Use tokens exclusively.
 --layout-content-max:     1180px   Reading surfaces: docs, /privacy, /terms
 --layout-dashboard-max:   1500px   Dashboard workspace
 --layout-gutter:            16px   → 24px from 768px up
---app-header-height:        56px
+--app-header-height:        64px   (one height at every width since #289)
 --workspace-breadcrumbs-height: 42px
 ```
 
@@ -277,9 +280,19 @@ lines (`grid-column: 1 / 8`) on wide product surfaces.
 **Landing exception (2026-10-02):** restores the master composition: a 900px
 text container with 24px internal gutters inside a 1080px shell and CV/animation
 stage. The landing footer uses the text width. The shared header uses the same
-1600px canvas and portal gutters on every route, including `/`. Navigation sits
-to the left after the brand. Right-aligned controls are theme, language, then
-account menu or sign-in/sign-up actions (collapsed into a menu below 980px).
+1600px canvas and portal gutters on every route, including `/`.
+
+**App shell (#289, revised from "navigation sits to the left after the brand"):**
+the brand sits alone on the left; everything else is right-aligned in the mockup's
+order: page links (the current one marked `aria-current="page"` with a 2px teal
+underline), the PL/EN segmented language switch, the theme switch, then the
+account avatar or the sign-in/sign-up buttons. Below 980px the page links and guest
+actions collapse into the menu button at the end of the row. A footer
+(docs · privacy · terms) closes every page except `/`, which keeps its own footer
+until #290. Page frame classes: `.ocv-page` (1152px), `--wide` (1400px),
+`--narrow` (860px), `.ocv-page-head`; screens adopt them in their own stages.
+Route changes crossfade the content with a small rise while the header stays
+(React `<ViewTransition>` keyed by path, `app/components/route-transition.tsx`).
 Outer landing gutters match master:
 8px below 480px and 16px from 480px. Hero and final CTA retain the master typography and copy
 (English source plus Polish translation); hero copy is pending a separate review
@@ -474,7 +487,7 @@ sheet morphing between thumbnail, preview and public LiveCV via View Transitions
 ### Established timings
 
 ```
-Ambient float:     10s ease-in-out infinite, background gradients only
+Route change:      content out --motion-base-exit (--ease-in), in --motion-base (--ease-out) with an 8px rise; header still
 Theme transition:  200ms cubic-bezier(0.22, 1, 0.36, 1), view transitions API
 Micro:             ~160ms, hover / focus / state (legacy; migrating to the tokens above)
 ```
@@ -523,7 +536,6 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 - `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
   `app/components/design-system/tokens.css` (moved there from `app/globals.css`) zeroes
   transition and animation durations; reveal targets are forced visible
-- Light source for ambient gradients: top-left only, never circular bloom
 - New transitions use `--ease-out` to enter and the shorter `--ease-in` to leave (`--ease-out-expo` is the same curve, kept for legacy rules). No bounce, no elastic curves; `linear()` springs only in expressive scene changes, sparingly
 
 ---

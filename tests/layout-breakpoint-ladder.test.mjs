@@ -29,7 +29,7 @@ const CV_DOMAIN_PREFIX = "app/resume/";
 const GRANDFATHERED = {
   "app/components/open-civera-animation.module.css": [760],
   "app/cv-templates/templates.module.css": [720],
-  "app/globals.css": [479, 560, 600, 680, 699, 700, 900, 940, 960],
+  "app/globals.css": [560, 600, 680, 699, 700, 900, 940, 960],
   "app/onboarding/onboarding.css": [600, 900],
   "app/resume/resume.css": [520, 900],
   "app/user/user.css": [699, 700, 1100]

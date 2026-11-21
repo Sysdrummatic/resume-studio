@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { resolveAuthMode } from "../app/lib/auth-mode.ts";
 
 const stylesPath = path.join(process.cwd(), "app", "globals.css");
 const loginPagePath = path.join(process.cwd(), "app", "login", "page.tsx");
@@ -41,12 +42,25 @@ test("login card fills the access container instead of shrinking to content", ()
   assert.equal(styles.includes(".auth-access {\n    grid-template-columns: minmax(0, 1.05fr)"), false);
 });
 
+test("resolveAuthMode: one valid mode is kept; missing, unknown or repeated means sign in", () => {
+  for (const mode of ["signin", "signup", "reset"]) {
+    assert.equal(resolveAuthMode(mode), mode);
+    assert.equal(resolveAuthMode([mode]), mode, "URLSearchParams.getAll with a single value");
+  }
+  for (const value of [undefined, null, "", "bogus", [], ["bogus"], ["signup", "signin"], ["signin", "signup"], ["signup", "signup"]]) {
+    assert.equal(resolveAuthMode(value), "signin", JSON.stringify(value));
+  }
+});
+
 test("login flow uses separate modes for sign in, sign up, and reset", () => {
   const page = readSource(loginPagePath);
   const client = readSource(loginClientPath);
 
-  assert.equal(page.includes("mode?: string;"), true);
-  assert.equal(page.includes("function resolveAuthMode"), true);
+  // Next passes a repeated ?mode= as an array.
+  assert.equal(page.includes("mode?: string | string[];"), true);
+  // Shared with the top bar, which marks the current Sign in / Sign up link by the same rule.
+  assert.equal(page.includes('import { resolveAuthMode } from "../lib/auth-mode";'), true);
+  assert.equal(fs.readFileSync(path.join(process.cwd(), "app/lib/auth-mode.ts"), "utf8").includes("export function resolveAuthMode"), true);
   assert.equal(page.includes("mode={resolveAuthMode(params.mode)}"), true);
   assert.equal(client.includes('type InitialAuthMode = "signin" | "signup" | "reset";'), true);
   assert.equal(client.includes('type AuthMode = InitialAuthMode | "new-password";'), true);

@@ -4,9 +4,10 @@
  * Theme: --ocv-L / --ocv-D are space toggles. Exactly one is `initial` (its
  * var() fallback applies) and the other is empty, so every colour token below
  * carries both its light and its dark value and no component branches on the
- * theme. data-app-theme (server-rendered from the theme cookie, ADR 0012) wins.
- * Today the server always sets it (dark by default), so the prefers-color-scheme
- * branch below only applies once #289 lets the theme follow the system.
+ * theme. data-app-theme wins: the server renders it from the theme cookie (ADR 0012);
+ * without a cookie app/components/app-theme-script.tsx sets it from the system before
+ * the first paint, so the prefers-color-scheme branch below covers only a page that
+ * has no script (or the moment before it runs).
  * Any element may carry data-app-theme (a light sub-panel on a dark page): the token
  * block is declared on it too, because a var() resolves where it is declared.
  * light-dark() would read simpler, but needs Chrome 123 / Safari 17.5, above the
@@ -71,7 +72,8 @@
   --ocv-danger: var(--ocv-L, #b3261e) var(--ocv-D, #ff9d94);
   --ocv-danger-wash: var(--ocv-L, #fbe4e2) var(--ocv-D, #3d1614);
   --ocv-focus: var(--ocv-L, #3a44b2) var(--ocv-D, #aeb6ff);
-  /* Scene tokens (Experience Base slabs, dotted floor) arrive with their first consumer in #290. */
+  /* Dotted floor behind page tops (app shell, #289). The other scene tokens (Experience Base slabs) arrive with the scene in #290. */
+  --ocv-grid: var(--ocv-L, #a4abc2) var(--ocv-D, #3a4468);
 
   /* Elevation: offset + soft blur, only on floating layers (menu, modal, toast) */
   --ocv-shadow-float: 0 20px 50px -24px rgb(0 0 0 / 0.5);

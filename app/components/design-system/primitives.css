@@ -463,6 +463,12 @@ select.ocv-input {
   background: var(--ocv-bg);
 }
 
+.ocv-menu__item:disabled {
+  color: var(--ocv-ink-3);
+  background: none;
+  cursor: not-allowed;
+}
+
 .ocv-menu__item[aria-current="page"] {
   color: var(--ocv-teal-ink);
 }

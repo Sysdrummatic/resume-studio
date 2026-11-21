@@ -35,7 +35,9 @@ export type AppDictionary = {
     home: string;
     breadcrumb: string;
     close_notification: string;
+    skip_to_content: string;
   };
+  footer: { aria_label: string; docs: string; privacy: string; terms: string };
   navigation: {
     personal_hub: string;
     dashboard: string;

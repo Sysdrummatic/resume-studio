@@ -128,13 +128,12 @@ rules forbid without strong need.
   Google, which breaks the offline `verify`/`ci` rule.)
 - Fraunces has `preload: false` while no screen renders it; the first stage that
   puts a Fraunces heading above the fold turns preload on.
-- The theme default stays `dark` (ADR 0012, `tests/app-theme-contract.test.mjs`).
-  The new tokens also follow `prefers-color-scheme` when no `data-app-theme` is
-  set, so a later "system default" change is a theme-logic change only (stage #289).
+- Since stage #289 the portal follows the system theme until the user picks one in
+  the top bar (ADR 0012 amendment of 2026-11-21, `tests/app-theme-contract.test.mjs`).
 
 ## Action Items
 
 1. [x] Tokens, fonts, motion tokens and primitives — stage #288.
-2. [ ] Theme default "system with manual override" — decide in #289 and amend ADR 0012.
+2. [x] Theme default "system with manual override" — decided in #289; ADR 0012 amended.
 3. [ ] Migrate each screen to `--ocv-*` tokens — stages #289–#296; remove the
        `--portal-*` palette when the last consumer is gone.
