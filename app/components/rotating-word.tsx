@@ -19,6 +19,9 @@ type RotatingWordProps = {
  */
 export default function RotatingWord({ words, interval = 2200, paused = false, className }: RotatingWordProps) {
   const [index, setIndex] = useState(0);
+  /* The server (and a crawler) gets the first word only, so the heading reads as one sentence.
+     The other words join on the first tick and start rotating on the next one. */
+  const [live, setLive] = useState(false);
 
   useEffect(() => {
     if (words.length <= 1 || paused) return;
@@ -27,12 +30,23 @@ export default function RotatingWord({ words, interval = 2200, paused = false, c
 
     const id = window.setInterval(() => {
       if (document.hidden) return;
-      setIndex((current) => (current + 1) % words.length);
+      if (!live) setLive(true);
+      else setIndex((current) => (current + 1) % words.length);
     }, interval);
     return () => window.clearInterval(id);
-  }, [words, interval, paused]);
+  }, [words, interval, paused, live]);
 
   if (words.length === 0) return null;
+
+  if (!live) {
+    return (
+      <span className={className ? `lp-rot ${className}` : "lp-rot"}>
+        <span className="lp-rot__track">
+          <span className="lp-rot__word is-active">{words[0]}</span>
+        </span>
+      </span>
+    );
+  }
 
   return (
     <span className={className ? `lp-rot ${className}` : "lp-rot"}>

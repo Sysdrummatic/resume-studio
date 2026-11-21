@@ -82,6 +82,8 @@ for (const locale of ["pl", "en"]) {
     for (const part of [hero.title, hero.title_prefix, hero.rotating_words[0], hero.title_suffix]) {
       assert.ok(textOf(h1[1]).includes(part), `h1 carries "${part}"`);
     }
+    /* crawlers read the server HTML: the h1 is one sentence, not every rotating word at once */
+    assert.equal(textOf(h1[1]).trim(), `${hero.title} ${hero.title_prefix} ${hero.rotating_words[0]} ${hero.title_suffix}`);
     assert.ok(text.includes(hero.lead));
     assert.ok(text.includes(hero.free_note));
 
