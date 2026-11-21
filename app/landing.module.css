@@ -1586,3 +1586,45 @@ h1.title > span {
     background: color-mix(in srgb, var(--ocv-bg) 55%, transparent);
   }
 }
+
+/* A short window without touch (a laptop split screen): the rail would cover the FAQ button and the scene, so it becomes the phones' row */
+@media (max-height: 500px) {
+  .rail {
+    top: 10px;
+    right: auto;
+    left: var(--lp-gut);
+    transform: none;
+  }
+
+  .rail ol {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .rail button {
+    gap: 6px;
+    min-height: 28px;
+    padding: 0;
+    background: none;
+  }
+
+  .rail button span {
+    display: none;
+  }
+
+  .railOn button span {
+    display: inline;
+  }
+
+  .rail button::after {
+    width: 22px;
+    order: -1;
+    transform: scale(0.55, 0.5);
+    transform-origin: left;
+  }
+
+  .railOn button::after {
+    transform: none;
+  }
+}

@@ -507,8 +507,8 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   quick fade straight to it. Slots snap with `scroll-snap-type: y proximity`; the rail and
   the Scroll/Back pill move exactly one stage. Idle loops (orbits, drift, dust, traced
   outlines, the ring round "scroll") pause off screen, on a hidden tab and while a tile is
-  pointed at; the frame loop sleeps once a stage has settled. Sheets sway instead of
-  bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
+  pointed at; the frame loop sleeps once a stage has settled. On an upright phone the scene is drawn into the band above the active caption, eased between
+  stages; a short window turns the rail into a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
   per stage and a 200ms crossfade, captions crossfade too.
   Without JavaScript (`@media (scripting: none)`) every caption is plain text and the
   scene is hidden. The scene is `aria-hidden`; captions are real headings, the feature

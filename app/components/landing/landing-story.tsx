@@ -217,6 +217,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
     let trace = "";
     let skipping = false;
     let fade = 0;
+    let reaches: number[] = [];
+    let reachesFor = 0;
     const pointer = { x: 0, y: 0 };
     const gaze = { x: 0, y: 0 };
 
@@ -238,16 +240,23 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       let top = 0;
       let bandHeight = stageHeight;
       if (nextLayout === "stacked") {
-        const reach = Math.max(...captionEls.map((el) => el.offsetHeight + (parseFloat(getComputedStyle(el).bottom) || 0)));
+        /* as in the mockup: the band above the text of the stages on either side, eased between them */
+        if (!reaches.length || reachesFor !== stageWidth) {
+          reaches = captionEls.map((el) => el.offsetHeight + (parseFloat(getComputedStyle(el).bottom) || 0));
+          reachesFor = stageWidth;
+        }
+        const i = Math.min(reaches.length - 2, Math.floor(clock.progress));
+        const reach = reaches[i] + (reaches[i + 1] - reaches[i]) * smooth(clock.progress - i);
         top = railEl!.offsetTop + railEl!.offsetHeight + 6;
-        bandHeight = Math.max(140, stageHeight - reach - 14 - top);
-        stageEl!.style.setProperty("--veil", `${Math.round(reach + 10)}px`);
+        bandHeight = Math.round(Math.max(140, stageHeight - reach - 14 - top));
+        const veil = `${Math.round(reach + 10)}px`;
+        if (stageEl!.style.getPropertyValue("--veil") !== veil) stageEl!.style.setProperty("--veil", veil);
       }
       if (width !== stageWidth || height !== bandHeight) {
         lens!.style.top = `${top}px`;
         lens!.style.height = `${bandHeight}px`;
       }
-      const narrow = stageWidth / bandHeight < 0.8;
+      const narrow = stageWidth / stageHeight < 0.8;
       const lite = nextLayout !== "wide";
       if (narrow !== scene.narrow || lite !== scene.lite) {
         scene = buildScene(narrow, lite, featureCount);
@@ -497,6 +506,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       else wake();
     };
     const onLayout = () => {
+      reaches = [];
       if (reduced.matches) stillFrame(true);
       else {
         render(0);

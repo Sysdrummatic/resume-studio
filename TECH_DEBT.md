@@ -248,8 +248,6 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
   krawędzi, sprężyna). Płaszczyzna DOM nie zgina się, więc ta sama sprężyna obraca
   arkusz o kilka stopni (`airSway` w `scene-model.ts`). Wierniej: arkusz z 3–4 pasków
   obracanych osobno, kosztem powielenia treści CV na każdym pasku.
-- **Pas sceny na telefonie.** Makieta mierzy go dla każdego podpisu w trakcie przejścia;
-  tu jest liczony raz na układ z najwyższego podpisu.
 
 ## Redesign UI (epik #190): przejściowe długi etapu #288 (stan z 2026-11-19)
 
