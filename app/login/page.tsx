@@ -9,7 +9,7 @@ type LoginPageProps = {
   searchParams: Promise<{
     reason?: string;
     verified?: string;
-    mode?: string;
+    mode?: string | string[];
   }>;
 };
 

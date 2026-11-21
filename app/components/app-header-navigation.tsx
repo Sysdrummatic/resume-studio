@@ -40,7 +40,7 @@ function isCurrentPath(href: string, pathname: string, searchParams: URLSearchPa
     return false;
   }
   // Sign in and Sign up share /login: the mode decides, with the login page's own fallback.
-  return path !== "/login" || resolveAuthMode(new URLSearchParams(query).get("mode")) === resolveAuthMode(searchParams.get("mode"));
+  return path !== "/login" || resolveAuthMode(new URLSearchParams(query).getAll("mode")) === resolveAuthMode(searchParams.getAll("mode"));
 }
 
 type Placement = "bar" | "menu";

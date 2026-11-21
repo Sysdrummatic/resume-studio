@@ -52,7 +52,8 @@ test("the current route's link is marked for assistive technology and drawn with
   // Sign in and Sign up share /login: the mode decides, with the login page's own fallback for a missing or unknown mode.
   assert.equal(source.includes('import { resolveAuthMode } from "../lib/auth-mode";'), true);
   assert.equal(
-    source.includes('resolveAuthMode(new URLSearchParams(query).get("mode")) === resolveAuthMode(searchParams.get("mode"))'),
+    // getAll: a repeated ?mode= must resolve exactly as the login page resolves it (sign in).
+    source.includes('resolveAuthMode(new URLSearchParams(query).getAll("mode")) === resolveAuthMode(searchParams.getAll("mode"))'),
     true,
   );
   assert.equal(read("app/login/page.tsx").includes('import { resolveAuthMode } from "../lib/auth-mode";'), true);
