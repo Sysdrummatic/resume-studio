@@ -47,7 +47,11 @@ Constraints that shape the implementation:
    pointed at, sheets that sway with a spring, labels projected to the screen). They run
    one `requestAnimationFrame` loop that writes only `transform` and `opacity` (and the
    custom properties the box faces read), still stage-based: scroll picks the stage and
-   the timeline position follows it over ~600ms. The loop sleeps once a stage has settled,
+   the timeline position follows it over ~600ms. **Amended again 2026-11-21 (#290, epic
+   #190 decisions 4 and 5):** the page snaps stage by stage (`scroll-snap-type: y
+   mandatory`, `scroll-snap-stop: always`; no wheel handler) and the timeline follows the
+   scroll exactly as the mockup's does (a tenth of the way per frame), with no lean, no
+   fade-and-jump on fast scroll and no rounding of written values. The loop sleeps once a stage has settled,
    off screen and on a hidden tab; reduced motion draws one still frame per stage with a
    crossfade. The Web Animations API is allowed on the same terms. Still no library.
    Two intensities share the same tokens: *expressive*

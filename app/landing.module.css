@@ -16,7 +16,8 @@
 }
 
 :global(html):has(.story) {
-  scroll-snap-type: y proximity;
+  /* one gesture, one stage: the page always comes to rest on a stage (epic #190, decision 5) */
+  scroll-snap-type: y mandatory;
   scroll-padding-top: var(--app-header-height);
 }
 
@@ -46,7 +47,6 @@
   --lp-gut: max(16px, env(safe-area-inset-left, 0px));
   --lp-rest: clamp(52px, 7vh, 72px);
   --lp-foot-h: 64px;
-  --lp-slot: 95svh;
   color: var(--ocv-ink);
   background: var(--ocv-bg);
   overflow-x: clip;
@@ -77,8 +77,10 @@
 
 .slot {
   display: block;
-  height: var(--lp-slot);
+  /* exactly the height the stage shows: a taller slot would let mandatory snapping rest anywhere in the extra */
+  height: var(--lp-stage-h);
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   pointer-events: none;
 }
 
@@ -1154,6 +1156,7 @@ h1.title > span {
   position: relative;
   z-index: 5;
   margin-top: calc(-1 * var(--lp-foot-h));
+  scroll-snap-align: end;
   border-top: 1px solid var(--ocv-line);
   background: color-mix(in srgb, var(--ocv-bg) 84%, transparent);
   backdrop-filter: blur(14px);

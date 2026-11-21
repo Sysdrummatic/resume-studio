@@ -195,7 +195,11 @@ test("landing motion animates transform and opacity only, besides the traced-out
     if (body.includes("stroke-dashoffset")) assert.equal(name, "lp-ring");
     if (body.includes("--lp-trace")) assert.match(name, /^lp-trace/);
   }
-  assert.match(css, /scroll-snap-type:\s*y proximity/);
+  /* one gesture moves exactly one stage and the page rests on it (CSS scroll snap, no wheel hijacking) */
+  assert.match(css, /scroll-snap-type:\s*y mandatory/);
+  assert.match(css, /\.slot \{[^}]*scroll-snap-align: start;[^}]*scroll-snap-stop: always;/);
+  assert.match(css, /\.footer \{[^}]*scroll-snap-align: end;/, "the footer stays reachable");
+  assert.doesNotMatch(readFileSync("app/components/landing/landing-story.tsx", "utf8"), /addEventListener\("wheel"/, "no wheel hijacking");
   assert.match(css, /animation-play-state:\s*paused/, "CSS loops idle with the scene");
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /@media \(scripting: none\)/, "without JavaScript every caption stays readable");
@@ -210,10 +214,10 @@ test("reduced motion keeps a crossfade: the global guard spares [data-crossfade]
 
 test("the frame loop: scroll picks the stage, the loop sleeps when settled, off screen and on hidden tabs", () => {
   const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
-  assert.match(story, /targetFor\(/, "scroll picks the stage (stage-based, not scrubbed)");
-  assert.match(story, /follow\(clock\.progress, target, dt\)/, "the timeline follows the stage over ~600ms");
+  assert.doesNotMatch(story, /targetFor|skipping|const step =/, "no lean, no fade-and-jump, no rounded style writes");
+  assert.match(story, /clock\.progress = follow\(clock\.progress, target, dt\);/, "the timeline follows the scroll as in the mockup");
   assert.match(story, /addEventListener\("scroll", wake, \{ passive: true \}\)/);
-  assert.match(story, /if \(restless\(\) \|\| skipping\) frame = window\.requestAnimationFrame\(tick\);\s*else running = false;/, "the loop sleeps once settled");
+  assert.match(story, /if \(restless\(\)\) frame = window\.requestAnimationFrame\(tick\);\s*else running = false;/, "the loop sleeps once settled");
   assert.match(story, /IntersectionObserver/);
   assert.match(story, /visibilitychange/);
   assert.match(story, /prefers-reduced-motion: reduce/);

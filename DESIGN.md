@@ -510,11 +510,14 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   box's `matrix3d` from it every frame: bricks are six-faced boxes lit per face, sheets
   print the public sample CV (three LiveCVs pick different entries, `scene-cv.ts`), the
   browser window's outline is traced like `.ocv-traced`, labels are projected to the
-  screen and kept inside it on phones, the feature card grows out of its tile. Scroll picks
-  the stage (`targetFor`: a stage holds until half a slot, with at most a 10% lean); the
-  timeline follows over ~600ms and retargets mid-flight; a jump of more than a stage is a
-  quick fade straight to it. Slots snap with `scroll-snap-type: y proximity`; the rail and
-  the Scroll/Back pill move exactly one stage. Idle loops (orbits, drift, dust, traced
+  screen and kept inside it on phones, the feature card grows out of its tile. Scrolling
+  is stage by stage with native snapping: `scroll-snap-type: y mandatory` and slots exactly
+  as tall as the stage with `scroll-snap-stop: always`, so one wheel step, swipe or key moves
+  one stage and the page rests on it (no wheel handler). The timeline follows the scroll
+  position as in the mockup (`follow`: a tenth of the remaining way per 60Hz frame, frame
+  rate corrected), so it moves continuously through every pose and eases to a stop on the
+  stage; style values are written unrounded. The rail and the Scroll/Back pill move exactly
+  one stage. Idle loops (orbits, drift, dust, traced
   outlines, the ring round "scroll") pause off screen, on a hidden tab and while a tile is
   pointed at; the frame loop sleeps once a stage has settled. On an upright phone the scene is drawn into the band above the active caption, eased between
   stages; a short window (phone or computer) uses the side layout with the rail as a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame

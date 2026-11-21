@@ -7,8 +7,8 @@ register("./helpers/ts-extension-resolve.mjs", import.meta.url);
 const model = await import("../app/components/landing/scene-model.ts");
 const { buildSceneCv, versionSections, LIVE_URL, versionPath } = await import("../app/components/landing/scene-cv.ts");
 const {
-  STAGE_IDS, STAGE_COUNT, AT, LEAN_MAX, buildScene, buildLabels, samplePose, applyMotion, viewAt, toScreen,
-  worldMatrix, stageFromProgress, targetFor, follow, entryCount, pickedEntries, placeBrowserFrame,
+  STAGE_IDS, STAGE_COUNT, AT, buildScene, buildLabels, samplePose, applyMotion, viewAt, toScreen,
+  worldMatrix, follow, entryCount, pickedEntries, placeBrowserFrame,
 } = model;
 
 const LAYOUTS = [
@@ -26,30 +26,20 @@ test("the story keeps the mockup's nine stages, in order (epic #190 decision 3)"
   assert.equal(STAGE_COUNT, 9);
 });
 
-test("scroll picks one stage; the lean toward the next never passes 10% (decision 4)", () => {
-  assert.deepEqual(stageFromProgress(3), { stage: 3, toward: 3, lean: 0 });
-  assert.equal(stageFromProgress(3.2).lean, 0, "no lean while resting near a stage");
-  const before = stageFromProgress(3.49);
-  assert.equal(before.stage, 3);
-  assert.ok(before.lean > 0.09 && before.lean <= LEAN_MAX);
-  assert.equal(stageFromProgress(3.51).stage, 4, "crossing the threshold picks the next stage");
-  assert.equal(stageFromProgress(-5).stage, 0);
-  assert.equal(stageFromProgress(99).stage, 8);
-  assert.equal(stageFromProgress(Number.NaN).stage, 0);
-  assert.ok(Math.abs(targetFor(3.49) - 3.1) < 0.01, "the timeline heads for the stage plus its lean");
-});
-
-test("the timeline follows its target in ~600ms and retargets on every frame", () => {
-  let position = 0;
-  for (let t = 0; t < 0.6; t += 1 / 60) position = follow(position, 1, 1 / 60);
-  assert.ok(position > 0.98 && position <= 1, `settles in 600ms (${position})`);
-  let frames = 0;
-  for (let p = 0; p !== 1 && frames < 120; frames += 1) p = follow(p, 1, 1 / 60);
-  assert.ok(frames <= 42, `comes to rest within 700ms (${frames} frames)`);
+test("the timeline follows the scroll as in the mockup: a tenth of the way each frame, no lean, no cut", () => {
+  assert.ok(Math.abs(follow(0, 1, 1 / 60) - 0.1) < 1e-9, "FOLLOW = .1 per 60Hz frame");
+  let at120 = 0;
+  for (let i = 0; i < 2; i += 1) at120 = follow(at120, 1, 1 / 120);
+  assert.ok(Math.abs(at120 - 0.1) < 1e-9, "the same speed on a 120Hz screen");
   let p = 0;
-  for (let i = 0; i < 10; i += 1) p = follow(p, 1, 1 / 60);
-  const turned = follow(p, 0, 1 / 60);
-  assert.ok(turned < p, "a new target turns it round mid-flight");
+  let frames = 0;
+  for (; p !== 1 && frames < 200; frames += 1) p = follow(p, 1, 1 / 60);
+  assert.equal(p, 1, "comes to rest on the target once it is within .0004");
+  assert.ok(frames > 60, "an eased catch-up, not a jump");
+  let q = 0;
+  for (let i = 0; i < 10; i += 1) q = follow(q, 3, 1 / 60);
+  assert.ok(follow(q, 0, 1 / 60) < q, "a new target turns it round mid-flight");
+  assert.ok(follow(0, 5, 1 / 60) < 1, "a far target is not skipped to");
 });
 
 test("every object has a sorted track and a finite pose anywhere on the timeline, in every layout", () => {

@@ -579,35 +579,15 @@ export function fogAt(view: View, position: Vec3, dim: number, haze: number) {
   return clamp(1 - dim * (1 - hazed));
 }
 
-/* ---------- stage selection (stage-based scrolling, epic #190 decision 4) ---------- */
+/* ---------- following the scroll (as in the mockup; epic #190 decision 4, amended) ---------- */
 
-export const LEAN_MAX = 0.1;
-const LEAN_FROM = 0.3;
+/** the mockup's FOLLOW: each frame the timeline closes a tenth of the way to the scroll position */
+export const FOLLOW = 0.1;
 
-/**
- * Scroll position (in slots) → the stage on screen, plus a lean of at most 10% toward the
- * neighbour it approaches, starting 30% of a slot away from the stage's rest point.
- */
-export function stageFromProgress(progress: number, count = STAGE_COUNT) {
-  const clamped = Math.min(Math.max(Number.isFinite(progress) ? progress : 0, 0), count - 1);
-  const stage = Math.round(clamped);
-  const offset = clamped - stage;
-  const toward = offset > 0 ? Math.min(stage + 1, count - 1) : offset < 0 ? stage - 1 : stage;
-  const share = Math.max(0, (Math.abs(offset) - LEAN_FROM) / (0.5 - LEAN_FROM));
-  return { stage, toward, lean: toward === stage ? 0 : Math.min(share, 1) * LEAN_MAX };
-}
-
-/** where the timeline should head for: the stage, leaning toward its neighbour */
-export function targetFor(progress: number) {
-  const { stage, toward, lean } = stageFromProgress(progress);
-  return stage + (toward - stage) * lean;
-}
-
-/** follow the target over ~600ms; returns the new position (exponential ease-out, retargets on every call) */
-export function follow(position: number, target: number, dt: number, settle = 0.6) {
-  const next = position + (target - position) * (1 - Math.exp((-dt * 4.6) / settle));
-  /* the last sub-pixel stretch of the curve is cut, so a stage settles within ~700ms (epic #190: 500–700ms) */
-  return Math.abs(target - next) < 0.006 ? target : next;
+/** follow the scroll as the mockup does, corrected for the frame rate so a 120Hz screen moves at the same speed */
+export function follow(position: number, target: number, dt: number) {
+  const next = position + (target - position) * (1 - Math.pow(1 - FOLLOW, dt * 60));
+  return Math.abs(target - next) < 0.0004 ? target : next;
 }
 
 /* ---------- CSS ---------- */

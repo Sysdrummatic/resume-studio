@@ -24,7 +24,6 @@ import {
   placeBrowserFrame,
   samplePose,
   smooth,
-  targetFor,
   toScreen,
   viewAt,
   worldMatrix,
@@ -215,10 +214,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
     let shownStage = -1;
     let hovered = -1;
     let trace = "";
-    let skipping = false;
     let fade = 0;
     let reaches: number[] = [];
-    let skipTimer = 0;
     let cardSize = { open: null as number | null, w: 0, h: 0 };
     const labelWidths = new Map<string, number>();
     let reachesFor = 0;
@@ -226,8 +223,6 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
     const gaze = { x: 0, y: 0 };
 
     const fixed = (value: number) => String(Number(value.toFixed(3)));
-    /* shading steps finer than these are invisible; writing them every frame only costs style recalcs */
-    const step = (value: number, size: number) => String(Number((Math.round(value / size) * size).toFixed(3)));
     const set = (box: Box, name: string, value: string) => {
       if (box.last[name] === value) return;
       box.last[name] = value;
@@ -285,7 +280,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       const slots = root!.querySelectorAll<HTMLElement>("[data-slot]");
       const slotHeight = slots.length > 1 ? slots[1].offsetTop - slots[0].offsetTop : window.innerHeight;
       const stickyTop = parseFloat(getComputedStyle(stageEl!).top) || 0;
-      return targetFor((stickyTop - root!.getBoundingClientRect().top) / Math.max(1, slotHeight));
+      /* as in the mockup: the scroll position itself, in stages; the snap points make it rest on one */
+      return clamp((stickyTop - root!.getBoundingClientRect().top) / Math.max(1, slotHeight), 0, STAGE_COUNT - 1);
     }
 
     function paintThing(thing: Thing, view: View) {
@@ -302,9 +298,9 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       set(box, "--sel", fixed(pose.selected));
       set(box, "--paper", fixed(pose.texture));
       set(box, "--edge", fixed(lit ? 1 : pose.edges));
-      set(box, "--fog", step(fogAt(view, pose.position, pose.dim, thing.haze), 0.01));
+      set(box, "--fog", fixed(fogAt(view, pose.position, pose.dim, thing.haze)));
       box.faces.forEach((face) => {
-        const shade = step(clamp((1 - faceLight(pose, face.normal)) * 0.75), 0.02);
+        const shade = fixed(clamp((1 - faceLight(pose, face.normal)) * 0.75));
         if (face.light !== shade) {
           face.light = shade;
           face.el.style.setProperty("--light", shade);
@@ -335,7 +331,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       scene.things.forEach((thing) => paintThing(thing, view));
       dustEls.forEach((el) => {
         const dot = DUST[Number(el.dataset.dust)];
-        const opacity = step(0.7 * (1 - fogAt(view, [dot.x, dot.y, dot.z], 1, 1)), 0.05);
+        const opacity = fixed(0.7 * (1 - fogAt(view, [dot.x, dot.y, dot.z], 1, 1)));
         if (el.dataset.o !== opacity) {
           el.dataset.o = opacity;
           el.style.opacity = opacity;
@@ -435,22 +431,12 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       target = measureTarget();
-      if (!skipping && Math.abs(target - clock.progress) > 1.5) {
-        /* a fast scroll goes straight to its stage: a quick fade instead of a trip through every stage between */
-        skipping = true;
-        lens!.style.opacity = "0";
-        skipTimer = window.setTimeout(() => {
-          clock.progress = target - Math.sign(target - clock.progress) * 0.35;
-          lens!.style.opacity = "";
-          skipping = false;
-        }, 160);
-      }
-      if (!skipping) clock.progress = follow(clock.progress, target, dt);
+      clock.progress = follow(clock.progress, target, dt);
       clock.intro = clamp(clock.intro + dt / INTRO_SECONDS);
       gaze.x += (pointer.x - gaze.x) * 0.05;
       gaze.y += (pointer.y - gaze.y) * 0.05;
       render(dt);
-      if (restless() || skipping) frame = window.requestAnimationFrame(tick);
+      if (restless()) frame = window.requestAnimationFrame(tick);
       else running = false;
     }
 
@@ -547,7 +533,6 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       running = false;
       window.cancelAnimationFrame(frame);
       window.clearTimeout(fade);
-      window.clearTimeout(skipTimer);
       observer.disconnect();
       window.removeEventListener("scroll", wake);
       window.removeEventListener("resize", onLayout);
