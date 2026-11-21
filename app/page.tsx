@@ -5,6 +5,7 @@ import LandingFaq from "./components/landing/landing-faq";
 import LandingStory from "./components/landing/landing-story";
 import { buildSceneCv } from "./components/landing/scene-cv";
 import { loadSampleResumeData } from "./lib/sample-resume";
+import { loadLandingConfig } from "./lib/landing-config";
 import RecoveryRedirect from "./components/recovery-redirect";
 import { getRequestAppI18n } from "./i18n/server";
 import { getLanguageAlternatesMetadata } from "./lib/language-alternates";
@@ -33,6 +34,7 @@ export default async function HomePage() {
     sample.locales.find((entry) => entry.code === sample.defaultLocale) ??
     sample.locales[0];
   const cv = buildSceneCv(sampleLocale.resume, sampleLocale.labels, story.scene.versions);
+  const config = loadLandingConfig();
 
   return (
     <div className={styles.page}>
@@ -47,7 +49,7 @@ export default async function HomePage() {
         />
       ))}
       <RecoveryRedirect />
-      <LandingStory hero={hero} story={story} features={features} cta={cta} cv={cv} />
+      <LandingStory hero={hero} story={story} features={features} cta={cta} cv={cv} sampleLink={config.sampleLivecv} locale={locale} />
       <LandingFaq faq={faq} />
       <LandingPageFooter labels={footer} />
     </div>

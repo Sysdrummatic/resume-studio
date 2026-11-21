@@ -34,13 +34,18 @@ import {
   type Vec3,
   type View,
 } from "./scene-model";
-import { LIVE_URL, versionPath, type SceneCv } from "./scene-cv";
+import { versionPath, type SceneCv } from "./scene-cv";
 import ShortWindowScreen from "./short-window-screen";
 import { BASE, DEPTH_OF, FACES, FORMATS, K, SceneBox } from "./scene-faces";
 import styles from "../../landing.module.css";
 
 type Landing = AppDictionary["landing"];
-type Props = Pick<Landing, "hero" | "story" | "features" | "cta"> & { cv: SceneCv };
+type Props = Pick<Landing, "hero" | "story" | "features" | "cta"> & {
+  cv: SceneCv;
+  /** the link beside the published LiveCV in the last stage (content/landing.yaml) */
+  sampleLink: { url: string; label: string };
+  locale: string;
+};
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 const FILES = ["CV_final.pdf", "CV_EN_2024.docx", "CV_frontend.pdf", "CV_final_v2.pdf"];
@@ -75,11 +80,55 @@ const DUST = (() => {
   }));
 })();
 
-export default function LandingStory({ hero, story, features, cta, cv }: Props) {
+export default function LandingStory({ hero, story, features, cta, cv, sampleLink, locale }: Props) {
   const rootRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [openFeature, setOpenFeature] = useState<number | null>(null);
   const [simple, setSimple] = useState(false);
+  const featureListRef = useRef<HTMLUListElement>(null);
+
+  /* phones: the feature cards drift slowly while the features are on screen; a finger takes over and they drift on after a pause */
+  useEffect(() => {
+    const list = featureListRef.current;
+    if (!list || active !== AT.feats) return;
+    const phone = window.matchMedia("(max-width: 767px), (orientation: landscape) and (max-height: 560px)");
+    const reduced = window.matchMedia(REDUCED_QUERY);
+    const SPEED = 22;
+    let frame = 0;
+    let last = performance.now();
+    let position = list.scrollLeft;
+    let direction = 1;
+    let heldUntil = 0;
+    const tick = (now: number) => {
+      frame = window.requestAnimationFrame(tick);
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (!phone.matches || reduced.matches || document.hidden || now < heldUntil) {
+        delete list.dataset.drift;
+        position = list.scrollLeft;
+        return;
+      }
+      const max = list.scrollWidth - list.clientWidth;
+      if (max <= 0) return;
+      list.dataset.drift = "";
+      position += direction * SPEED * dt;
+      if (position >= max) direction = -1;
+      if (position <= 0) direction = 1;
+      position = clamp(position, 0, max);
+      list.scrollLeft = position;
+    };
+    const hold = () => {
+      heldUntil = performance.now() + 4000;
+    };
+    const events = ["pointerdown", "touchstart", "wheel", "focusin"] as const;
+    events.forEach((name) => list.addEventListener(name, hold, { passive: true }));
+    frame = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      delete list.dataset.drift;
+      events.forEach((name) => list.removeEventListener(name, hold));
+    };
+  }, [active]);
   const openRef = useRef<number | null>(null);
   const featureCount = features.items.length;
   const captions = useMemo(
@@ -90,7 +139,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
   const superset = useMemo(() => buildScene(false, false, featureCount), [featureCount]);
   const labels = useMemo(() => buildLabels(false), []);
   const picked = superset.picks.length;
-  const total = superset.cards.length;
+  const pickedText = (story.scene.picked[new Intl.PluralRules(locale).select(picked)] ?? story.scene.picked.other).replace("{count}", String(picked));
+  const formatLabels = [...FORMATS, story.scene.free];
 
   const labelContent: Record<string, ReactNode> = {
     "file-0": FILES[0],
@@ -98,12 +148,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
     "file-3": FILES[2],
     "file-4": FILES[3],
     base: <b>{story.scene.base}</b>,
-    picked: (
-      <>
-        <b>{story.scene.picked.replace("{count}", String(picked)).replace("{total}", String(total))}</b>
-        {story.scene.picked_note}
-      </>
-    ),
+    picked: <b>{pickedText}</b>,
     "version-0": (
       <>
         <b>{versionPath("fe")}</b>PL, EN
@@ -137,7 +182,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
         {story.scene.saved}
       </>
     ),
-    url: LIVE_URL,
+    url: sampleLink.label,
   };
 
   const scrollToStage = useCallback((stage: number) => {
@@ -361,6 +406,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
             ? 0
             : clamp(1 - distanceFrom(clock.progress, label.from, label.to) * 2.6) * clamp(pose.alpha * 1.6);
         el.style.opacity = fixed(opacity);
+        /* the link to the sample LiveCV can be clicked only while it is shown */
+        if (label.url) el.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
         if (opacity && point) {
           /* the labels sit inside the lens, which already carries the lens shift */
           let x = point[0] - view.shiftX * width * 0.5;
@@ -580,20 +627,27 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
               <i key={index} className={styles.dust} data-dust={index} />
             ))}
             {superset.things.map((thing) => (
-              <SceneBox key={thing.key} thing={thing} cv={cv} feature={thing.kind === "tile" ? features.items[thing.index] : undefined} />
+              <SceneBox
+                key={thing.key}
+                thing={thing}
+                cv={cv}
+                feature={thing.kind === "tile" ? features.items[thing.index] : undefined}
+                label={thing.kind === "format" ? formatLabels[thing.index] : undefined}
+              />
             ))}
           </div>
           <div className={styles.labels}>
-            {labels.map((label) => (
-              <div
-                key={label.key}
-                className={`${styles.label} ${label.url ? styles.labelUrl : ""}`}
-                data-label={label.key}
-                data-anchor={label.anchor ?? "start"}
-              >
-                {labelContent[label.key]}
-              </div>
-            ))}
+            {labels.map((label) =>
+              label.url ? (
+                <a key={label.key} href={sampleLink.url} className={`${styles.label} ${styles.labelUrl}`} data-label={label.key} data-anchor={label.anchor ?? "middle"}>
+                  {labelContent[label.key]}
+                </a>
+              ) : (
+                <div key={label.key} className={styles.label} data-label={label.key} data-anchor={label.anchor ?? "start"}>
+                  {labelContent[label.key]}
+                </div>
+              ),
+            )}
           </div>
         </div>
 
@@ -613,9 +667,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
                   <h1 className={styles.title}>
                     <span>{hero.title}</span>{" "}
                     <span>
-                      {hero.title_prefix} <RotatingWord words={hero.rotating_words} paused={active !== 0} />
-                    </span>{" "}
-                    <span>{hero.title_suffix}</span>
+                      {hero.title_prefix} <RotatingWord words={hero.rotating_words} paused={active !== 0} /> {hero.title_suffix}
+                    </span>
                   </h1>
                   <p className={styles.lead}>{hero.lead}</p>
                   <div className={styles.actions}>
@@ -636,7 +689,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
                 <h2 className={styles.title}>{stage.title}</h2>
                 <p className={styles.lead}>{stage.body}</p>
                 {stage.id === "feats" ? (
-                  <ul className={styles.featureList} aria-label={features.list_label}>
+                  <ul ref={featureListRef} className={styles.featureList} aria-label={features.list_label}>
                     {features.items.map((item, featureIndex) => (
                       <li key={item.title}>
                         <button

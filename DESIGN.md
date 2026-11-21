@@ -514,18 +514,22 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   is stage by stage with native snapping: `scroll-snap-type: y mandatory` and slots exactly
   as tall as the stage with `scroll-snap-stop: always`, so one wheel step, swipe or key moves
   one stage and the page rests on it (no wheel handler). The timeline follows the scroll
-  position as in the mockup (`follow`: a tenth of the remaining way per 60Hz frame, frame
-  rate corrected), so it moves continuously through every pose and eases to a stop on the
+  position as in the mockup (`follow`: `FOLLOW = 0.068` of the remaining way per 60Hz frame,
+  frame rate corrected; the mockup's 0.1 slowed so a transition lasts 50% longer), so it moves continuously through every pose and eases to a stop on the
   stage; style values are written unrounded. The rail and the Scroll/Back pill move exactly
-  one stage. Idle loops (orbits, drift, dust, traced
+  one stage. On LiveCV? the browser window itself flies in along a curved path, stays and
+  leaves (`lp-frame-cycle`, no outline); the last stage peels off rounded PDF, YAML, TXT and
+  "free" chips, and the link beside the LiveCV is a real link set in `content/landing.yaml`
+  (non-copy home page settings; copy stays in the landing dictionaries). The hero headline
+  is two lines, the rotating word sized to the word on screen. Idle loops (orbits, drift, dust, traced
   outlines, the ring round "scroll") pause off screen, on a hidden tab and while a tile is
   pointed at; the frame loop sleeps once a stage has settled. On an upright phone the scene is drawn into the band above the active caption, eased between
   stages; a short window (phone or computer) uses the side layout with the rail as a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
   per stage and a 200ms crossfade, captions crossfade too.
   Without JavaScript (`@media (scripting: none)`) every caption is plain text and the
   scene is hidden. The scene is `aria-hidden`; captions are real headings, the feature
-  tiles have a real button list (visually hidden on wide screens until focused, swipe
-  cards on phones), and the FAQ is a native `<dialog>` drawer opened from any `/#faq`
+  tiles have a real button list (visually hidden on wide screens until focused, cards on
+  phones that drift slowly while the features are on screen and stop for 4s when touched), and the FAQ is a native `<dialog>` drawer opened from any `/#faq`
   link. Hero rotating words pause while the start caption is off stage.
 - **Login sheets (#290)**: the mockup's ten loose sheets (every fourth a real CV) circle
   slowly in a small scene of their own behind `/login`, dimmed and hazed, with the same

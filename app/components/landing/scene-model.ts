@@ -310,15 +310,18 @@ export function buildScene(narrow: boolean, lite: boolean, featureCount: number)
     ]),
   );
 
-  /* PDF, YAML and TXT peel off the published LiveCV in the last stage (issue #290; not in the mockup) */
-  [0, 1, 2].forEach((k) =>
+  /* PDF, YAML, TXT and "free" peel off the published LiveCV in the last stage (issue #290; not in the mockup) */
+  [0, 1, 2, 3].forEach((k) =>
     add({ key: `format-${k}`, kind: "format", index: k, face: "format", lag: k * 0.08 }, [
       { at: AT.history, position: [pileX, 0.6 - k * 0.6, 0.62], rotation: [0.1, -0.32, 0], size: [1.1, 0.52, 0.03], alpha: 0, texture: 1 },
       { at: AT.go - 0.45 },
       {
         at: AT.go,
-        position: narrow ? [pileX + 1.15, 1.5 - k * 0.75, 1.4 + k * 0.2] : [pileX + 1.75, 1.2 - k * 0.85, 1.4 + k * 0.25],
-        rotation: [0.1, -0.32, -0.1 + k * 0.1], alpha: 1, late: 0.3,
+        /* the three formats stack beside the sheet; "free" sits above its other corner, clear of the rail */
+        position: k === 3
+          ? narrow ? [pileX - 0.95, 2.35, 1.2] : [pileX - 1.55, 2.05, 1.2]
+          : narrow ? [pileX + 1.15, 1.5 - k * 0.75, 1.4 + k * 0.2] : [pileX + 1.75, 1.2 - k * 0.85, 1.4 + k * 0.25],
+        rotation: k === 3 ? [0.1, -0.32, 0.12] : [0.1, -0.32, -0.1 + k * 0.1], alpha: 1, late: 0.3,
       },
     ]),
   );
@@ -581,8 +584,8 @@ export function fogAt(view: View, position: Vec3, dim: number, haze: number) {
 
 /* ---------- following the scroll (as in the mockup; epic #190 decision 4, amended) ---------- */
 
-/** the mockup's FOLLOW: each frame the timeline closes a tenth of the way to the scroll position */
-export const FOLLOW = 0.1;
+/** each frame the timeline closes this share of the way to the scroll position: the mockup's .1, slowed so a transition lasts 50% longer */
+export const FOLLOW = 0.068;
 
 /** follow the scroll as the mockup does, corrected for the frame rate so a 120Hz screen moves at the same speed */
 export function follow(position: number, target: number, dt: number) {

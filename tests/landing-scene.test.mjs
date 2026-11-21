@@ -8,7 +8,7 @@ const model = await import("../app/components/landing/scene-model.ts");
 const { buildSceneCv, versionSections, LIVE_URL, versionPath } = await import("../app/components/landing/scene-cv.ts");
 const {
   STAGE_IDS, STAGE_COUNT, AT, buildScene, buildLabels, samplePose, applyMotion, viewAt, toScreen,
-  worldMatrix, follow, entryCount, pickedEntries, placeBrowserFrame,
+  worldMatrix, follow, FOLLOW, entryCount, pickedEntries, placeBrowserFrame,
 } = model;
 
 const LAYOUTS = [
@@ -26,11 +26,14 @@ test("the story keeps the mockup's nine stages, in order (epic #190 decision 3)"
   assert.equal(STAGE_COUNT, 9);
 });
 
-test("the timeline follows the scroll as in the mockup: a tenth of the way each frame, no lean, no cut", () => {
-  assert.ok(Math.abs(follow(0, 1, 1 / 60) - 0.1) < 1e-9, "FOLLOW = .1 per 60Hz frame");
+test("the timeline follows the scroll as in the mockup, half as slow again: no lean, no cut", () => {
+  assert.ok(Math.abs(follow(0, 1, 1 / 60) - FOLLOW) < 1e-9, "FOLLOW of the way per 60Hz frame");
+  const framesTo90 = (f) => Math.ceil(Math.log(0.1) / Math.log(1 - f));
+  const ratio = framesTo90(FOLLOW) / framesTo90(0.1);
+  assert.ok(ratio > 1.45 && ratio < 1.55, `transitions last 50% longer than the mockup's (${ratio.toFixed(2)}x)`);
   let at120 = 0;
   for (let i = 0; i < 2; i += 1) at120 = follow(at120, 1, 1 / 120);
-  assert.ok(Math.abs(at120 - 0.1) < 1e-9, "the same speed on a 120Hz screen");
+  assert.ok(Math.abs(at120 - FOLLOW) < 1e-9, "the same speed on a 120Hz screen");
   let p = 0;
   let frames = 0;
   for (; p !== 1 && frames < 200; frames += 1) p = follow(p, 1, 1 / 60);
@@ -179,5 +182,12 @@ test("the scene modules stay pure and no animation library is installed (decisio
   const deps = { ...pkg.dependencies, ...pkg.devDependencies };
   for (const name of ["three", "motion", "framer-motion", "gsap", "@react-three/fiber"]) {
     assert.equal(name in deps, false, `${name} is not a dependency`);
+  }
+});
+
+test("the last stage peels off four chips: PDF, YAML, TXT and a free one", () => {
+  for (const { narrow, lite } of [{ narrow: false, lite: false }, { narrow: true, lite: true }]) {
+    const chips = buildScene(narrow, lite, 11).things.filter((thing) => thing.kind === "format");
+    assert.equal(chips.length, 4);
   }
 });

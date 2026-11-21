@@ -21,7 +21,7 @@ landing:
     rail_label: Etapy
     short_screen:
       title: Ta historia potrzebuje więcej miejsca.
-      text: Animacja LiveCV jest zaprojektowana dla okien wyższych niż 560 px. Powiększ okno, a ten ekran zniknie sam.
+      text: Treść strony jest zaprojektowana dla okien o wysokości większej niż 560 px. Powiększ okno, aby otworzyć pełnowartościową animację.
       action: Pokaż wersję uproszczoną
     next: Przewiń
     back: Wróć
@@ -63,8 +63,12 @@ landing:
         body: Opublikowane LiveCV jest dostępne pod publicznym linkiem. Rekruterzy i współpracownicy otwierają je w przeglądarce, a Ty decydujesz, które informacje udostępnić.
     scene:
       base: Baza doświadczeń
-      picked: Wybrano {count} z {total}
-      picked_note: baza zostaje cała
+      picked:
+        one: Wybrano {count} element doświadczenia
+        few: Wybrano {count} elementy doświadczenia
+        many: Wybrano {count} elementów doświadczenia
+        other: Wybrano {count} elementu doświadczenia
+      free: Za darmo!
       published: opublikowana
       saved: zapisana
       versions:

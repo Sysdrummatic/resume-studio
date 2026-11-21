@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   // The sample CV is read from public/data at request time (app/lib/sample-resume.ts);
   // without this the serverless bundle for / and /resume may not contain those files.
   outputFileTracingIncludes: {
-    "/": ["./public/data/public/**/*"],
+    "/": ["./public/data/public/**/*", "./content/landing.yaml"],
     "/resume": ["./public/data/public/**/*"],
   },
   async headers() {

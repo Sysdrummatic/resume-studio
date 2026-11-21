@@ -93,8 +93,9 @@ export type AppDictionary = {
       stages: Array<{ id: string; label: string; title: string; body: string }>;
       scene: {
         base: string;
-        picked: string;
-        picked_note: string;
+        /** one form per Intl.PluralRules category the language uses; other is the fallback */
+        picked: Partial<Record<Intl.LDMLPluralRule, string>> & { other: string };
+        free: string;
         published: string;
         saved: string;
         /** titles of the three LiveCVs the scene builds from the sample CV */

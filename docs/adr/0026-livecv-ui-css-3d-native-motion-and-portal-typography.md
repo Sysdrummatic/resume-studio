@@ -50,7 +50,8 @@ Constraints that shape the implementation:
    the timeline position follows it over ~600ms. **Amended again 2026-11-21 (#290, epic
    #190 decisions 4 and 5):** the page snaps stage by stage (`scroll-snap-type: y
    mandatory`, `scroll-snap-stop: always`; no wheel handler) and the timeline follows the
-   scroll exactly as the mockup's does (a tenth of the way per frame), with no lean, no
+   scroll the way the mockup's does (a share of the remaining way per frame: the mockup's 0.1,
+   slowed to 0.068 so a transition lasts 50% longer), with no lean, no
    fade-and-jump on fast scroll and no rounding of written values. The loop sleeps once a stage has settled,
    off screen and on a hidden tab; reduced motion draws one still frame per stage with a
    crossfade. The Web Animations API is allowed on the same terms. Still no library.

@@ -272,3 +272,37 @@ test("a short window gets the side layout on any device; only a computer is told
     assert.doesNotMatch(Object.values(copy).join(" "), /—/, `${locale}: no em dash`);
   }
 });
+
+test("landing polish (#290 review): copy, hero lines, browser window, chips, link, phone carousel", () => {
+  const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
+  const css = readFileSync("app/landing.module.css", "utf8");
+  const pl = readAppDictionary("pl").landing;
+  const en = readAppDictionary("en").landing;
+  /* 1. the short-window screen */
+  assert.equal(pl.story.short_screen.text, "Treść strony jest zaprojektowana dla okien o wysokości większej niż 560 px. Powiększ okno, aby otworzyć pełnowartościową animację.");
+  /* 3. the hero in two lines: the rotating word sits inside the second, sized to the word on screen */
+  assert.match(story, /<RotatingWord[^>]*\/> \{hero\.title_suffix\}/);
+  assert.doesNotMatch(story, /<span>\{hero\.title_suffix\}<\/span>/);
+  assert.match(css, /:global\(\.lp-rot__word\) \{[^}]*position: absolute;/);
+  assert.match(css, /:global\(\.lp-rot__word\.is-active\) \{[^}]*position: relative;/);
+  /* 4. the LiveCV stage: the browser window itself flies in along a path and leaves, no green outline */
+  assert.match(css, /\.box\[data-trace="cycle"\] > \.face \{[^}]*animation: lp-frame-cycle/);
+  assert.match(css, /@keyframes lp-frame-cycle/);
+  assert.doesNotMatch(css, /\.box\[data-trace="cycle"\] \.trace \{[^}]*animation: lp-trace-cycle/);
+  assert.equal(pl.story.scene.picked.many, "Wybrano {count} elementów doświadczenia");
+  assert.equal(pl.story.scene.picked.few, "Wybrano {count} elementy doświadczenia");
+  assert.ok(en.story.scene.picked.other.includes("{count}"));
+  assert.equal(pl.story.scene.picked_note, undefined);
+  assert.match(story, /new Intl\.PluralRules\(/);
+  /* 5. rounded chips, a free one, and a real link from content/landing.yaml */
+  assert.match(css, /\.box\[data-kind="format"\] :is\(\.face, \.layerPaper\) \{[^}]*border-radius:/);
+  assert.equal(pl.story.scene.free, "Za darmo!");
+  assert.match(story, /<a\b[^>]*href=\{sampleLink\.url\}/s);
+  const home = readFileSync("app/page.tsx", "utf8");
+  assert.match(home, /loadLandingConfig\(\)/);
+  assert.match(readFileSync("next.config.ts", "utf8"), /"\.\/content\/landing\.yaml"/);
+  /* 6. phones: the feature cards drift slowly and a finger can take over */
+  assert.match(story, /scrollLeft/);
+  assert.match(story, /"pointerdown"/);
+  assert.match(css, /\.featureList\[data-drift\] \{[^}]*scroll-snap-type: none;/);
+});

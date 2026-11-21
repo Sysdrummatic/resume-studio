@@ -171,6 +171,7 @@
 
 .stage[data-idle="paused"] .dust,
 .stage[data-idle="paused"] .trace,
+.stage[data-idle="paused"] .box[data-trace="cycle"] > .face,
 .stage[data-idle="paused"] .nextRing rect {
   animation-play-state: paused;
 }
@@ -315,6 +316,16 @@
   box-shadow: none;
 }
 
+.box[data-kind="format"] :is(.face, .layerPaper) {
+  border-radius: 14px;
+}
+
+/* the free chip carries the teal of a published LiveCV */
+.box[data-obj="format-3"] .formatFace {
+  border-color: var(--ocv-teal);
+  color: var(--ocv-teal-ink);
+}
+
 /* glowing edges: the slab's indigo, the picked slab's teal */
 /* the mockup's shader adds the edge colour onto the face: plus-lighter does the same */
 .layerEdge,
@@ -371,9 +382,34 @@
   opacity: 0;
 }
 
-.box[data-trace="cycle"] .trace {
-  opacity: 1;
-  animation: lp-trace-cycle 5.6s linear infinite;
+/* LiveCV?: the browser window itself comes in along a curved path, stays a while and leaves, over and over */
+.box[data-trace="cycle"] > .face {
+  animation: lp-frame-cycle 5.6s var(--ease-out) infinite;
+}
+
+@keyframes lp-frame-cycle {
+  0% {
+    opacity: 0;
+    translate: 90px 70px -220px;
+    rotate: y 24deg;
+  }
+  12% {
+    opacity: 0.85;
+    translate: 36px -14px -80px;
+    rotate: y 10deg;
+  }
+  23%,
+  64% {
+    opacity: 1;
+    translate: 0 0 0;
+    rotate: y 0deg;
+  }
+  80%,
+  100% {
+    opacity: 0;
+    translate: -50px -40px -160px;
+    rotate: y -14deg;
+  }
 }
 
 .box[data-trace="once"] .trace {
@@ -735,7 +771,7 @@
 }
 
 .captionStart {
-  width: min(100% - 2 * var(--lp-gut), 640px);
+  width: min(100% - 2 * var(--lp-gut), 900px);
   opacity: 1;
   pointer-events: auto;
 }
@@ -753,6 +789,13 @@ h1.title {
 
 h1.title > span {
   display: block;
+}
+
+/* two lines on a wide screen, whatever word the carousel shows */
+@media (min-width: 768px) {
+  h1.title > span {
+    white-space: nowrap;
+  }
 }
 
 .lead {
@@ -838,15 +881,18 @@ h1.title > span {
   vertical-align: bottom;
 }
 
+/* the slot is as wide as the word on screen, so the second line reads as one sentence */
 .page :global(.lp-rot__track) {
-  display: inline-grid;
-  vertical-align: bottom;
+  position: relative;
+  display: inline-block;
   font-style: italic;
   color: var(--ocv-teal-ink);
 }
 
 .page :global(.lp-rot__word) {
-  grid-area: 1 / 1;
+  position: absolute;
+  left: 0;
+  bottom: 0;
   white-space: nowrap;
   opacity: 0;
   transform: translateY(0.32em);
@@ -856,6 +902,7 @@ h1.title > span {
 }
 
 .page :global(.lp-rot__word.is-active) {
+  position: relative;
   opacity: 1;
   transform: none;
 }
@@ -1519,6 +1566,11 @@ h1.title > span {
   .box[data-trace="once"] .trace {
     --lp-trace: 360deg;
   }
+
+  /* the window simply stays */
+  .box[data-trace="cycle"] > .face {
+    animation: none;
+  }
 }
 
 /* ---------- Without JavaScript: every caption as plain text, no scene ---------- */
@@ -1865,4 +1917,18 @@ h1.title > span {
   .stage[data-simple] .caption > :not(.title) {
     display: none;
   }
+}
+
+/* phones: while the feature cards drift, snapping would pull them back; a finger brings it back */
+.featureList[data-drift] {
+  scroll-snap-type: none;
+}
+
+/* the sample LiveCV link: a real link, clickable while shown */
+a.labelUrl {
+  text-decoration: none;
+}
+
+a.labelUrl:hover {
+  border-color: var(--ocv-teal);
 }

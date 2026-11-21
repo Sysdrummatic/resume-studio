@@ -21,7 +21,7 @@ landing:
     rail_label: Stages
     short_screen:
       title: This story needs more room.
-      text: The LiveCV animation is designed for windows taller than 560px. Make the window taller and this screen goes away on its own.
+      text: This page is designed for windows taller than 560px. Make the window taller to open the full animation.
       action: Show the simplified version
     next: Scroll
     back: Back
@@ -63,8 +63,13 @@ landing:
         body: A published LiveCV is available at a public link. Recruiters and colleagues open it in the browser, and you decide which information to share.
     scene:
       base: Experience Base
-      picked: "{count} of {total} selected"
-      picked_note: the base stays whole
+      picked:
+        # English uses one and other; few and many keep the shape of the Polish dictionary
+        one: "Selected {count} experience entry"
+        few: "Selected {count} experience entries"
+        many: "Selected {count} experience entries"
+        other: "Selected {count} experience entries"
+      free: Free!
       published: published
       saved: saved
       versions:
