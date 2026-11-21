@@ -233,3 +233,20 @@ test("the frame loop: scroll picks the stage, the loop sleeps when settled, off 
   assert.match(sheets, /aria-hidden="true"/);
   assert.match(sheets, /if \(!reduced\.matches\) frame = window\.requestAnimationFrame\(tick\);/, "reduced motion: one still frame");
 });
+
+test("a short window gets the side layout on any device; only a computer is told to enlarge it", () => {
+  const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
+  const css = readFileSync("app/landing.module.css", "utf8");
+  /* the scene and the CSS read one condition: any landscape window up to 560px tall */
+  assert.match(story, /if \(window\.innerHeight <= 560 && width >= height\) return "side";/);
+  assert.doesNotMatch(css, /max-height: \d+px\) and \(pointer: coarse\)/, "the side layout is not touch-only");
+  assert.match(css, /@media \(orientation: landscape\) and \(max-height: 560px\) \{/);
+  /* the notice: a computer can enlarge its window, a phone in landscape already has its own layout */
+  assert.match(css, /@media \(max-height: 560px\) and \(pointer: fine\) \{\s*\.shortNotice:not\(\[hidden\]\) \{\s*display: flex;/);
+  assert.match(story, /role="status"/);
+  for (const locale of ["pl", "en"]) {
+    const { landing } = readAppDictionary(locale);
+    assert.ok(landing.story.short_notice.text && landing.story.short_notice.close, `${locale}: notice copy`);
+    assert.doesNotMatch(landing.story.short_notice.text, /—/, `${locale}: no em dash`);
+  }
+});

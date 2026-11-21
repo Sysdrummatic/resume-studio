@@ -330,9 +330,13 @@ and `landing.module.css`. Do not add values between these steps:
 `app/components/app-header-navigation.tsx`. In JS/TS **import it**; in CSS write
 `(min-width: 980px)` literally — never redefine the number in a constant of your own.
 
-The landing's phone layouts use `(max-width: 767px)` (stacked) and the height query
-`(orientation: landscape) and (max-height: 500px) and (pointer: coarse)` (side); the CSS
-and the scene controller read the same two conditions, so they never disagree.
+The landing's compact layouts use `(max-width: 767px)` (stacked) and the height query
+`(orientation: landscape) and (max-height: 560px)` (side). Side is not touch-only: a short
+computer window gets it too, because the wide layout pushes the hero under the header
+below ~560px of height. The CSS and the scene controller read the same two conditions, so
+they never disagree. A short window with a fine pointer (`(max-height: 560px) and
+(pointer: fine)`) also shows a dismissible notice inviting a taller window; a phone in
+landscape does not, since it cannot grow.
 
 ### Breakpoints — CV domain
 
@@ -508,7 +512,7 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   the Scroll/Back pill move exactly one stage. Idle loops (orbits, drift, dust, traced
   outlines, the ring round "scroll") pause off screen, on a hidden tab and while a tile is
   pointed at; the frame loop sleeps once a stage has settled. On an upright phone the scene is drawn into the band above the active caption, eased between
-  stages; a short window turns the rail into a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
+  stages; a short window (phone or computer) uses the side layout with the rail as a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
   per stage and a 200ms crossfade, captions crossfade too.
   Without JavaScript (`@media (scripting: none)`) every caption is plain text and the
   scene is hidden. The scene is `aria-hidden`; captions are real headings, the feature

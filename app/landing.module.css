@@ -6,7 +6,7 @@
  * box faces read their light, fog, selection and print from custom properties.
  *
  * Phone layouts: stacked (max-width: 767px) and side
- * (orientation: landscape) and (max-height: 500px) and (pointer: coarse).
+ * (orientation: landscape) and (max-height: 560px), on a phone or a short computer window.
  */
 
 @property --lp-trace {
@@ -1347,7 +1347,7 @@ h1.title > span {
   }
 }
 
-@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+@media (orientation: landscape) and (max-height: 560px) {
   .page {
     --lp-rest: 46px;
     --lp-foot-h: 44px;
@@ -1407,7 +1407,7 @@ h1.title > span {
 }
 
 /* Both phone layouts: the rail becomes one row naming the stage on screen; features are cards you swipe. */
-@media (max-width: 767px), (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+@media (max-width: 767px), (orientation: landscape) and (max-height: 560px) {
   .rail {
     top: 10px;
     right: auto;
@@ -1587,44 +1587,47 @@ h1.title > span {
   }
 }
 
-/* A short window without touch (a laptop split screen): the rail would cover the FAQ button and the scene, so it becomes the phones' row */
-@media (max-height: 500px) {
-  .rail {
-    top: 10px;
-    right: auto;
-    left: var(--lp-gut);
-    transform: none;
-  }
+/* ---------- Short computer window: a notice that the page looks better taller ---------- */
 
-  .rail ol {
+.shortNotice {
+  display: none;
+}
+
+@media (max-height: 560px) and (pointer: fine) {
+  .shortNotice:not([hidden]) {
     display: flex;
-    gap: 6px;
+    position: absolute;
+    z-index: 5;
+    /* under the FAQ button */
+    top: 56px;
+    right: var(--lp-gut);
     align-items: center;
+    gap: 8px;
+    max-width: min(420px, 50%);
+    margin: 0;
+    padding: 6px 6px 6px 14px;
+    border: 1px solid var(--ocv-line);
+    border-radius: 12px;
+    background: var(--ocv-raise);
+    box-shadow: var(--ocv-shadow-float);
+    color: var(--ocv-ink-2);
+    font-size: 0.75rem;
+    line-height: 1.4;
   }
 
-  .rail button {
-    gap: 6px;
-    min-height: 28px;
-    padding: 0;
+  .shortNotice button {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
     background: none;
+    color: var(--ocv-ink-3);
+    font-size: 1rem;
+    cursor: pointer;
   }
 
-  .rail button span {
-    display: none;
-  }
-
-  .railOn button span {
-    display: inline;
-  }
-
-  .rail button::after {
-    width: 22px;
-    order: -1;
-    transform: scale(0.55, 0.5);
-    transform-origin: left;
-  }
-
-  .railOn button::after {
-    transform: none;
+  .shortNotice button:hover {
+    color: var(--ocv-ink);
   }
 }

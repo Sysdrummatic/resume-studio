@@ -83,6 +83,7 @@ export type AppDictionary = {
     story: {
       aria_label: string;
       rail_label: string;
+      short_notice: { text: string; close: string };
       next: string;
       back: string;
       faq: string;

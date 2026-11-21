@@ -43,7 +43,6 @@ type Landing = AppDictionary["landing"];
 type Props = Pick<Landing, "hero" | "story" | "features" | "cta"> & { cv: SceneCv };
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
-const COARSE_QUERY = "(pointer: coarse)";
 const FILES = ["CV_final.pdf", "CV_EN_2024.docx", "CV_frontend.pdf", "CV_final_v2.pdf"];
 const CAPTION_TRAVEL = 46;
 const FLOOR_Y = -3.6;
@@ -53,9 +52,8 @@ type Layout = "wide" | "stacked" | "side";
 
 function layoutFor(width: number, height: number): Layout {
   if (window.innerWidth <= 767 && width < height) return "stacked";
-  if (window.innerHeight <= 500 && width >= height && (window.innerWidth <= 767 || window.matchMedia(COARSE_QUERY).matches)) {
-    return "side";
-  }
+  /* any short landscape window, phone or computer: the wide layout needs more than 560px of height */
+  if (window.innerHeight <= 560 && width >= height) return "side";
   return "wide";
 }
 
@@ -81,6 +79,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
   const rootRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [openFeature, setOpenFeature] = useState<number | null>(null);
+  const [noticeClosed, setNoticeClosed] = useState(false);
   const openRef = useRef<number | null>(null);
   const featureCount = features.items.length;
   const captions = useMemo(
@@ -705,6 +704,13 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
           ) : null}
         </article>
 
+        {/* shown by CSS on a short computer window only: a phone in landscape already has its own layout */}
+        <p className={styles.shortNotice} role="status" hidden={noticeClosed}>
+          <span>{story.short_notice.text}</span>
+          <button type="button" onClick={() => setNoticeClosed(true)} aria-label={story.short_notice.close}>
+            ×
+          </button>
+        </p>
         <nav className={styles.rail} aria-label={story.rail_label} data-rail>
           <ol>
             {captions.map((caption, index) => (

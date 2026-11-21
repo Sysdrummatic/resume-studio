@@ -19,6 +19,9 @@ landing:
   story:
     aria_label: How OpenCiVera works
     rail_label: Stages
+    short_notice:
+      text: This window is too short for the full animation. Make it taller to see the page as designed.
+      close: Close notice
     next: Scroll
     back: Back
     faq: FAQ

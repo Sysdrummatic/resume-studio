@@ -19,6 +19,9 @@ landing:
   story:
     aria_label: Jak działa OpenCiVera
     rail_label: Etapy
+    short_notice:
+      text: Okno jest za niskie, by pokazać pełną animację. Powiększ je, by zobaczyć stronę tak, jak została zaprojektowana.
+      close: Zamknij komunikat
     next: Przewiń
     back: Wróć
     faq: FAQ
