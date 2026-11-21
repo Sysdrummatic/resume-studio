@@ -37,25 +37,53 @@ When ambiguous, default to `product`. Brand surfaces are additive, not the basel
 
 ### Stack
 
+Revised 2026-11-19 by [ADR 0026](docs/adr/0026-livecv-ui-css-3d-native-motion-and-portal-typography.md)
+(epic #190). The rule previously read "No font mixing. No decorative typefaces.
+Geist carries the entire portal."
+
 ```
-Primary:   Geist (geist/font/sans via next/font, var: --font-geist-sans)
+Display:   Fraunces (next/font/local, public/fonts/Fraunces-{Latin,LatinExt}.woff2, OFL;
+           vars --font-fraunces + --font-fraunces-ext split by unicode-range; opsz + wght axes)
+UI:        Geist (geist/font/sans via next/font, var: --font-geist-sans)
 Mono:      Geist Mono (geist/font/mono via next/font, var: --font-geist-mono)
-Fallback:  system-ui, -apple-system, sans-serif
+CV only:   Space Grotesk (local @font-face, see below)
 ```
 
-**Status: active.** Geist is wired in `app/layout.tsx` (variable classes on `<html>`)
-and consumed through `--font-body`, `--font-mono`, and `--font-display` in `app/globals.css`.
-Fonts are self-hosted by next/font; there is no Google Fonts import.
+| Role | Token | Classes | Use |
+| ---- | ----- | ------- | --- |
+| Large headings | `--ocv-font-display` | `.ocv-display`, `.ocv-title`, `.ocv-heading` | hero, page title, section title — weight `--ocv-display-weight` (300 light / 350 dark) |
+| UI | `--ocv-font-ui` | `.ocv-subheading` (600), `.ocv-lead`, `.ocv-body`, `.ocv-meta`, `.ocv-label` | every other piece of text |
+| Values | `--ocv-font-mono` | `.ocv-value` (tabular numerals) | URLs, dates, counts, codes — never as a "technical" costume |
+| CV | `--ocv-font-doc` | `.ocv-paper*` | the CV sheet only |
 
-No font mixing. No decorative typefaces. Geist carries the entire portal.  
-Do not introduce Roboto, Inter, or any secondary sans-serif without an ADR.
+Fraunces never appears in dense product UI (labels, buttons, tables, small
+headings). All faces are self-hosted by next/font; Fraunces is vendored, so builds
+never reach Google (offline `verify`/`ci`, `CLAUDE.md`) and it is not preloaded until
+a screen renders it. Do not introduce any other family
+without an ADR. Legacy screens still read `--font-body`/`--font-display` (Geist)
+from `app/globals.css` until their redesign stage.
 
 **CV-domain exception**: Space Grotesk is self-hosted via a local `@font-face`
 in `app/globals.css` (source: `public/fonts/SpaceGrotesk-VariableFont_wght.ttf`)
 exclusively because `app/resume/resume.css` references the family by name.
 It is not available to portal surfaces.
 
-### Scale (portal — `product` register)
+### Scale (LiveCV tokens, `app/components/design-system/tokens.css`)
+
+```
+--ocv-text-display:    clamp(2.25rem, 1.2rem + 3.6vw, 4rem)      Fraunces, lh 1.02, −0.03em
+--ocv-text-title:      clamp(2rem, 1.4rem + 2vw, 3.25rem)        Fraunces, lh 1.05, −0.03em
+--ocv-text-heading:    clamp(1.375rem, 1.15rem + 0.7vw, 1.75rem) Fraunces, lh 1.15, −0.02em
+--ocv-text-subheading: 1rem                                      Geist 600, lh 1.3
+--ocv-text-lead:       clamp(0.9375rem, 0.85rem + 0.3vw, 1.0625rem) Geist, lh 1.55, 62ch
+--ocv-text-body:       1rem                                      Geist, lh 1.6, 68ch
+--ocv-text-meta:       0.8125rem                                 Geist, ink-3
+```
+
+Fluid sizes are for the expressive (landing/login/onboarding) and page-title roles;
+dense product surfaces use the fixed roles.
+
+### Scale (portal legacy — `product` register)
 
 Tokenized in `:root` (`app/globals.css`): `--font-size-*`, `--leading-*`, `--tracking-*`.
 The Typography atom consumes these tokens; no hardcoded sizes in components.
@@ -83,7 +111,42 @@ Accent: `#009c8a`. Text: `#1b1b1b`. Background: `#ffffff`.
 
 ## Color System
 
-### Portal — Dark theme (default)
+### LiveCV tokens (ADR 0026) — the target palette
+
+Defined once in `app/components/design-system/tokens.css`. Every token carries its
+light and dark value through the `--ocv-L` / `--ocv-D` space toggles; components
+never branch on the theme. `:root[data-app-theme]` wins: the server renders it from
+the theme cookie, and without one `app/components/app-theme-script.tsx` sets it from
+the system before the first paint (ADR 0012, amended 2026-11-21 in #289).
+
+**Colour carries one meaning:** indigo = private Experience Base (and focus),
+teal = published LiveCV, amber = unsaved changes, danger = destructive actions and
+errors only.
+
+| Token | Light | Dark | Role |
+| ----- | ----- | ---- | ---- |
+| `--ocv-bg` | `#e9ebf1` | `#070910` | canvas |
+| `--ocv-raise` | `#ffffff` | `#141827` | panels, menus, modals, inputs |
+| `--ocv-line` / `--ocv-line-strong` | `#d3d7e2` / `#b7bdcc` | `#222a3d` / `#38415a` | dividers / panel borders |
+| `--ocv-control` | `#7b8396` | `#6f7892` | control borders (≥3:1) |
+| `--ocv-ink` / `-2` / `-3` | `#0f121a` / `#434959` / `#5b6273` | `#f1f2f6` / `#aeb5c7` / `#8a93aa` | text, secondary, meta (all ≥4.5:1) |
+| `--ocv-on-ink` | `#ffffff` | `#070910` | text on ink, teal-ink and danger fills |
+| `--ocv-indigo` / `-ink` / `-wash` | `#4f5bd6` / `#3a44b2` / `#e3e6fb` | `#8f9aff` / `#aeb6ff` / `#1d2245` | Experience Base |
+| `--ocv-teal` / `-ink` / `-wash` | `#008c7c` / `#006a5d` / `#d3f1ec` | `#1fd0b8` / `#62e2cf` / `#0c3a35` | LiveCV, "in step" |
+| `--ocv-amber` / `-wash` | `#8a5300` / `#f8e7c8` | `#f2b866` / `#3c2c0e` | unsaved changes |
+| `--ocv-danger` / `-wash` | `#b3261e` / `#fbe4e2` | `#ff9d94` / `#3d1614` | destructive, errors |
+| `--ocv-focus` | `#3a44b2` | `#aeb6ff` | focus ring, 2px, offset 2px |
+| `--ocv-slab` / `-edge`, `--ocv-grid` | `#bcc2ee` / `#4f5bd6`, `#a4abc2` | `#252b57` / `#8f9aff`, `#3a4468` | CSS 3D scene |
+
+Contrast pairs (text 4.5:1, controls/focus 3:1, both themes) are asserted by
+`tests/design-system-foundation.test.mjs`. Elevation is offset + soft blur, on
+floating layers only: `--ocv-shadow-float` (menu, toast), `--ocv-shadow-modal`,
+`--ocv-shadow-paper`.
+
+The `--portal-*` palette below is **legacy**: it stays until stages #289–#296
+migrate each screen, then it is removed (`TECH_DEBT.md`).
+
+### Portal — Dark theme (legacy default)
 
 ```
 Background deep:     #020203
@@ -113,8 +176,11 @@ Success: green (64,200,140 family). Warning: amber (232,178,82). Danger: red (ex
 Info: the accent indigo. Light theme defines parallel values at matched roles.
 State colors are reserved for state: toasts, badges, status text, live dots. Never decoration.
 No hardcoded semantic hex in components or page CSS; consume the tokens.
-**Ambient light**: directional, top-left only. Single light source.  
-Defined in `--portal-body-ambient` via three radial-gradients at positions ~18%/12%, ~78%/16%, ~74%/68%.
+**Page canvas** (since #289): a flat `--ocv-bg` with the dotted floor (`--ocv-grid`)
+behind the top of every page (`.app-main::before`, `app/components/app-shell.css`). The
+former ambient light (`--portal-body-ambient`) and 64px grid overlay painted on
+`body::before/::after`, with its 10s float loop, are gone; the tokens stay until
+`--portal-*` is removed in #296.
 
 ### Portal — Light theme
 
@@ -190,7 +256,7 @@ No ad-hoc spacing values. Use tokens exclusively.
 --layout-content-max:     1180px   Reading surfaces: docs, /privacy, /terms
 --layout-dashboard-max:   1500px   Dashboard workspace
 --layout-gutter:            16px   → 24px from 768px up
---app-header-height:        56px
+--app-header-height:        64px   (one height at every width since #289)
 --workspace-breadcrumbs-height: 42px
 ```
 
@@ -214,9 +280,19 @@ lines (`grid-column: 1 / 8`) on wide product surfaces.
 **Landing exception (2026-10-02):** restores the master composition: a 900px
 text container with 24px internal gutters inside a 1080px shell and CV/animation
 stage. The landing footer uses the text width. The shared header uses the same
-1600px canvas and portal gutters on every route, including `/`. Navigation sits
-to the left after the brand. Right-aligned controls are theme, language, then
-account menu or sign-in/sign-up actions (collapsed into a menu below 980px).
+1600px canvas and portal gutters on every route, including `/`.
+
+**App shell (#289, revised from "navigation sits to the left after the brand"):**
+the brand sits alone on the left; everything else is right-aligned in the mockup's
+order: page links (the current one marked `aria-current="page"` with a 2px teal
+underline), the PL/EN segmented language switch, the theme switch, then the
+account avatar or the sign-in/sign-up buttons. Below 980px the page links and guest
+actions collapse into the menu button at the end of the row. A footer
+(docs · privacy · terms) closes every page except `/`, which keeps its own footer
+until #290. Page frame classes: `.ocv-page` (1152px), `--wide` (1400px),
+`--narrow` (860px), `.ocv-page-head`; screens adopt them in their own stages.
+Route changes crossfade the content with a small rise while the header stays
+(React `<ViewTransition>` keyed by path, `app/components/route-transition.tsx`).
 Outer landing gutters match master:
 8px below 480px and 16px from 480px. Hero and final CTA retain the master typography and copy
 (English source plus Polish translation); hero copy is pending a separate review
@@ -373,10 +449,37 @@ With image: `--portal-control-bg` fill. Without image: `--portal-button-primary-
 
 **Philosophy**: purposeful, never decorative.
 
-### Tokens (`:root`, `app/globals.css`)
+### Motion language (ADR 0026, epic #190)
+
+One language, two intensities: **expressive** (landing, login, onboarding —
+choreographed CSS 3D scene changes, 500–700ms, staggered) and **restrained**
+(editor, dashboard, admin, docs — state changes, 100–240ms). Native CSS only
+(transitions, View Transitions, `@property`, `linear()` used sparingly); no
+animation library. Only `transform`, `opacity` and colours animate.
 
 ```
---ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1)   decisive deceleration; the standard curve
+--motion-instant:    100ms   hover, focus, toggles
+--motion-quick:      160ms   section switch, state pills, menus
+--motion-base:       240ms   modals, expanding entries
+--motion-slow:       420ms   onboarding steps, publish
+--motion-base-exit:  160ms   leaving — always shorter than entering
+--motion-slow-exit:  280ms
+--motion-trace:      1600ms  the traced outline only (signature, drawn once)
+--ease-out:          cubic-bezier(0.16, 1, 0.3, 1)   enter
+--ease-in:           cubic-bezier(0.4, 0, 1, 1)      exit
+```
+
+Defined in `app/components/design-system/tokens.css`; under
+`prefers-reduced-motion: reduce` the motion tokens become `0ms` and a global rule
+collapses transitions and animations. Signature moments: the traced outline
+(`.ocv-traced`, a registered `--ocv-trace` angle drawn once around something that
+just appeared, teal for public, indigo for private) and the white `.ocv-paper`
+sheet morphing between thumbnail, preview and public LiveCV via View Transitions.
+
+### Legacy tokens (`:root`, `app/globals.css`)
+
+```
+--ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1)   same curve as --ease-out
 --motion-press:   90ms                            press / tap feedback (faster than settle)
 --motion-settle:  220ms                           hover and settle transitions
 ```
@@ -384,7 +487,7 @@ With image: `--portal-control-bg` fill. Without image: `--portal-button-primary-
 ### Established timings
 
 ```
-Ambient float:     10s ease-in-out infinite, background gradients only
+Route change:      content out --motion-base-exit (--ease-in), in --motion-base (--ease-out) with an 8px rise; header still
 Theme transition:  200ms cubic-bezier(0.22, 1, 0.36, 1), view transitions API
 Micro:             ~160ms, hover / focus / state (legacy; migrating to the tokens above)
 ```
@@ -431,9 +534,9 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 - No looping animations on content elements at idle state, except the explicitly
   requested landing features carousel and restored hero rotating words above
 - `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
-  `app/globals.css` zeroes transition and animation durations; reveal targets are forced visible
-- Light source for ambient gradients: top-left only, never circular bloom
-- New transitions use `--ease-out-expo`. No bounce, no elastic curves
+  `app/components/design-system/tokens.css` (moved there from `app/globals.css`) zeroes
+  transition and animation durations; reveal targets are forced visible
+- New transitions use `--ease-out` to enter and the shorter `--ease-in` to leave (`--ease-out-expo` is the same curve, kept for legacy rules). No bounce, no elastic curves; `linear()` springs only in expressive scene changes, sparingly
 
 ---
 
@@ -464,8 +567,7 @@ This is a hard architectural rule. Impeccable must never cross these boundaries.
 Portal domain:
   app/globals.css
   app/lib/app-theme.ts
-  app/styles/colors.ts
-  app/components/design-system/*
+  app/components/design-system/*   (tokens.css, primitives.css, primitives/, atoms/, molecules/)
   app/components/app-theme-switch.tsx
   app/components/app-header-navigation.tsx
 
@@ -495,7 +597,7 @@ and will be flagged by `/impeccable detect app/` (portal code lives in `app/`, n
 | `nested-cards`               | Maximum one card nesting level                        |
 | `icon-text-pair-every-line`  | An icon beside every line of body copy, or a large rounded-corner icon above every heading. See the note below — section and row markers are allowed |
 | `hardcoded-hex-in-component` | All colors via CSS vars from the token system         |
-| `inter-default-tracking`     | Geist only — no Inter fallback without explicit ADR   |
+| `inter-default-tracking`     | Faces are fixed by ADR 0026 — no Inter or other family without an ADR |
 
 ### Icons as markers
 
@@ -523,7 +625,9 @@ colour introduced for the icon alone.
 | File                                   | Role                                 |
 | -------------------------------------- | ------------------------------------ |
 | `app/globals.css`                      | Portal CSS vars, both themes         |
-| `app/styles/colors.ts`                 | TypeScript color constants           |
+| `app/components/design-system/tokens.css` | LiveCV tokens: colour, type roles, motion (ADR 0026) |
+| `app/components/design-system/primitives.css` + `primitives/` | LiveCV primitives (`.ocv-*`) |
+| `docs/adr/0026-livecv-ui-css-3d-native-motion-and-portal-typography.md` | CSS 3D, native motion, Fraunces |
 | `app/lib/app-theme.ts`                 | Theme IDs, default, enabled set      |
 | `app/components/app-theme-switch.tsx`  | Top-bar theme toggle                 |
 | `app/landing.module.css`               | Reference 12-column grid implementation |

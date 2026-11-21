@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { DEFAULT_APP_THEME } from "../lib/app-theme";
 import {
   APP_THEME_COOKIE_MAX_AGE,
   APP_THEME_COOKIE_NAME,
+  DEFAULT_APP_THEME,
   ENABLED_APP_THEMES,
   getAppThemeMeta,
   getNextAppTheme,
-  resolveAppTheme,
+  readStoredAppTheme,
   type AppTheme,
 } from "../lib/app-theme";
 import { useAppI18n } from "./app-i18n-provider";
@@ -21,32 +21,18 @@ type DocumentWithViewTransition = Document & {
   };
 };
 
-function SunIcon() {
+function ThemeIcon() {
   return (
     <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-      <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8M18.7 18.7l-1.8-1.8M7.1 7.1 5.3 5.3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-      <path
-        d="M15.8 3.7a8.7 8.7 0 1 0 4.5 15.9A9.2 9.2 0 0 1 9.6 4.9a9.6 9.6 0 0 1 6.2-1.2Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor" />
     </svg>
   );
 }
 
 type Props = {
-  initialTheme?: AppTheme;
+  /** The stored choice; null while the portal follows the system theme. */
+  initialTheme: AppTheme | null;
 };
 
 function applyTheme(theme: AppTheme) {
@@ -64,20 +50,26 @@ function persistTheme(theme: AppTheme) {
   document.cookie = `${APP_THEME_COOKIE_NAME}=${theme}; Path=/; Max-Age=${APP_THEME_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
-export default function AppThemeSwitch({ initialTheme = DEFAULT_APP_THEME }: Props) {
+/** The theme on screen: the stored choice, or the one app-theme-script.tsx took from the system. */
+function readDocumentTheme(): AppTheme {
+  return readStoredAppTheme(document.documentElement.dataset.appTheme) ?? DEFAULT_APP_THEME;
+}
+
+export default function AppThemeSwitch({ initialTheme }: Props) {
   const { dictionary } = useAppI18n();
-  const [theme, setTheme] = useState<AppTheme>(() => resolveAppTheme(initialTheme));
+  const [theme, setTheme] = useState<AppTheme>(initialTheme ?? DEFAULT_APP_THEME);
   const transitionTimerRef = useRef<number | null>(null);
   const canToggle = ENABLED_APP_THEMES.length > 1;
-  const isDarkTheme = theme === "dark";
   const nextTheme = getNextAppTheme(theme);
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
-  useEffect(() => {
+    // Mirror the document: without a stored choice its theme comes from the system and follows OS changes.
+    const sync = () => setTheme(readDocumentTheme());
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-app-theme"] });
     return () => {
+      observer.disconnect();
       if (transitionTimerRef.current !== null) {
         window.clearTimeout(transitionTimerRef.current);
       }
@@ -129,13 +121,12 @@ export default function AppThemeSwitch({ initialTheme = DEFAULT_APP_THEME }: Pro
       return;
     }
 
-    const nextResolvedTheme = nextTheme;
+    const nextResolvedTheme = getNextAppTheme(readDocumentTheme());
     const shouldAnimate = beginThemeTransition();
     const viewTransitionDocument = document as DocumentWithViewTransition;
     const commitThemeChange = () => {
-      setTheme(nextResolvedTheme);
-      applyTheme(nextResolvedTheme);
       persistTheme(nextResolvedTheme);
+      applyTheme(nextResolvedTheme);
     };
 
     if (shouldAnimate && typeof viewTransitionDocument.startViewTransition === "function") {
@@ -151,20 +142,14 @@ export default function AppThemeSwitch({ initialTheme = DEFAULT_APP_THEME }: Pro
   return (
     <button
       type="button"
-      className={`app-theme-switch app-theme-switch--${theme}`}
+      className="ocv-icon-btn ocv-topbar__theme"
       role="switch"
       aria-checked={theme === "light"}
       aria-label={dictionary.theme.aria_label.replace("{theme}", theme).replace("{nextTheme}", nextTheme)}
       onClick={handleToggle}
       disabled={!canToggle}
     >
-      <span className="app-theme-switch__track" aria-hidden="true">
-        <span className="app-theme-switch__thumb">
-          <span className="app-theme-switch__icon">
-            {isDarkTheme ? <MoonIcon /> : <SunIcon />}
-          </span>
-        </span>
-      </span>
+      <ThemeIcon />
     </button>
   );
 }

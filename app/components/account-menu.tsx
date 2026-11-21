@@ -1,14 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { FocusEvent, FormEvent } from "react";
+import type { FocusEvent, FormEvent, KeyboardEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
 import { formatAppMessage } from "../i18n/locale";
 import { canAccessAdminArea, isAdminRole } from "../lib/rbac";
 import BetaTestModeModal from "./beta-test-mode-modal";
 import { useAppI18n } from "./app-i18n-provider";
-import { UserAvatar } from "./design-system/atoms/UserAvatar";
+import { Menu, MenuItem } from "./design-system/primitives";
 
 type Props = {
   email: string;
@@ -216,62 +217,59 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
     scheduleMenuAutoClose();
   }
 
+  function handleMenuKeyDown(event: KeyboardEvent<HTMLDetailsElement>) {
+    if (event.key === "Escape" && menuRef.current?.open) {
+      event.stopPropagation();
+      menuRef.current.open = false;
+      menuRef.current.querySelector("summary")?.focus();
+    }
+  }
+
   return (
     <>
     <details
-      className="account-menu"
+      className="ocv-popover ocv-account"
       ref={menuRef}
       onMouseEnter={cancelMenuAutoClose}
       onMouseLeave={scheduleMenuAutoClose}
       onFocus={cancelMenuAutoClose}
       onBlur={handleMenuBlur}
+      onKeyDown={handleMenuKeyDown}
       onToggle={(event) => {
         if (event.currentTarget.open) {
           announceHeaderMenuOpen(ACCOUNT_MENU_NAME);
         }
       }}
     >
-      <summary className="account-menu__trigger" aria-label={labels.open_menu_aria}>
-        <span className="account-menu__avatar" aria-hidden>
-          <UserAvatar
-            initials={getInitial(currentDisplayName || email)}
-            src={avatarUrl || undefined}
-            size="sm"
-            className="account-menu__avatar-image"
-          />
-        </span>
-        <span className="account-menu__identity">
-          <span className="account-menu__email" title={email}>{currentDisplayName || email}</span>
-          <span className="account-menu__role">{role}</span>
+      <summary className="ocv-account__trigger" aria-label={labels.open_menu_aria}>
+        <span className="ocv-avatar" aria-hidden="true">
+          {avatarUrl ? <Image src={avatarUrl} alt="" fill sizes="38px" /> : getInitial(currentDisplayName || email)}
         </span>
       </summary>
-      <div className="account-menu__dropdown" role="menu" aria-label={labels.actions_aria}>
-        <button type="button" className="account-menu__item" onClick={openProfileModal}>
-          {labels.profile}
-        </button>
+      <Menu label={labels.actions_aria} className="ocv-popover__panel">
+        <p className="ocv-account__who">
+          <b title={email}>{currentDisplayName || email}</b>
+          <span title={email}>{email}</span>
+          <span className="ocv-account__role">{role}</span>
+        </p>
+        <MenuItem onClick={openProfileModal}>{labels.profile}</MenuItem>
         {canAccessAdminArea(role) && (
-          <Link href="/admin" className="account-menu__item" role="menuitem">
+          <Link href="/admin" className="ocv-menu__item">
             {labels.user_management}
           </Link>
         )}
-        {isAdminRole(role) && (
-          <button type="button" className="account-menu__item" onClick={openBetaTestModeModal}>
-            {labels.beta_test_mode}
-          </button>
-        )}
+        {isAdminRole(role) && <MenuItem onClick={openBetaTestModeModal}>{labels.beta_test_mode}</MenuItem>}
         {isAdminRole(role) ? (
-          <Link href="/settings" className="account-menu__item" role="menuitem">
+          <Link href="/settings" className="ocv-menu__item">
             {labels.settings}
           </Link>
         ) : (
-          <button type="button" className="account-menu__item" disabled>
-            {labels.settings}
-          </button>
+          <MenuItem disabled>{labels.settings}</MenuItem>
         )}
-        <button type="button" className="account-menu__item account-menu__item--danger" onClick={handleSignOut} disabled={isBusy}>
+        <MenuItem tone="danger" onClick={handleSignOut} disabled={isBusy}>
           {isBusy ? labels.signing_out : labels.log_out}
-        </button>
-      </div>
+        </MenuItem>
+      </Menu>
     </details>
       {isBetaTestModeOpen && <BetaTestModeModal onClose={() => setIsBetaTestModeOpen(false)} />}
       {isProfileOpen && (

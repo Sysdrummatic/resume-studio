@@ -103,7 +103,7 @@ test("account menu exposes Beta test mode only for admin and opens the managemen
   const menuSource = read(accountMenuPath);
   const modalSource = read(modalPath);
 
-  assert.equal(menuSource.includes("isAdminRole(role) && ("), true);
+  assert.equal(menuSource.includes("isAdminRole(role) && <MenuItem onClick={openBetaTestModeModal}>"), true);
   assert.equal(menuSource.includes("labels.beta_test_mode"), true);
   assert.equal(menuSource.includes("BetaTestModeModal"), true);
 
