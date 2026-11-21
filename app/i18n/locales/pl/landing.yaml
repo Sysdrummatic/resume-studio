@@ -71,7 +71,6 @@ landing:
         few: Wybrano {count} elementy doświadczenia
         many: Wybrano {count} elementów doświadczenia
         other: Wybrano {count} elementu doświadczenia
-      free: Za darmo!
       published: opublikowana
       saved: zapisana
       versions:

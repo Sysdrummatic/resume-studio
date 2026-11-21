@@ -215,7 +215,7 @@ test("reduced motion keeps a crossfade: the global guard spares [data-crossfade]
 test("the frame loop: scroll picks the stage, the loop sleeps when settled, off screen and on hidden tabs", () => {
   const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
   assert.doesNotMatch(story, /targetFor|skipping|const step =/, "no lean, no fade-and-jump, no rounded style writes");
-  assert.match(story, /clock\.progress = follow\(clock\.progress, target, dt\);/, "the timeline follows the scroll as in the mockup");
+  assert.match(story, /clock\.progress = follow\(clock\.progress, target, dt, FOLLOW \* paceAt\(clock\.progress, target\)\);/, "the timeline follows the scroll as in the mockup");
   assert.match(story, /addEventListener\("scroll", wake, \{ passive: true \}\)/);
   assert.match(story, /if \(restless\(\)\) frame = window\.requestAnimationFrame\(tick\);\s*else running = false;/, "the loop sleeps once settled");
   assert.match(story, /IntersectionObserver/);
@@ -299,9 +299,10 @@ test("landing polish (#290 review): copy, hero lines, browser window, chips, lin
   assert.ok(en.story.scene.picked.other.includes("{count}"));
   assert.equal(pl.story.scene.picked_note, undefined);
   assert.match(story, /new Intl\.PluralRules\(/);
-  /* 5. rounded chips, a free one, and a real link from content/landing.yaml */
+  /* 5. rounded chips (the free one was dropped again) and a real link from content/landing.yaml */
   assert.match(css, /\.box\[data-kind="format"\] :is\(\.face, \.layerPaper\) \{[^}]*border-radius:/);
-  assert.equal(pl.story.scene.free, "Za darmo!");
+  assert.equal(pl.story.scene.free, undefined);
+  assert.doesNotMatch(css, /format-3/);
   assert.match(story, /<a\b[^>]*href=\{sampleLink\.url\}/s);
   const home = readFileSync("app/page.tsx", "utf8");
   assert.match(home, /loadLandingConfig\(\)/);

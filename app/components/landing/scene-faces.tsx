@@ -37,14 +37,11 @@ export function SceneBox({
   thing,
   cv,
   feature,
-  label,
 }: {
   thing: Pick<Thing, "key" | "kind" | "tone" | "index" | "face">;
   /** absent: CV faces fall back to plain files */
   cv?: SceneCv;
   feature?: AppDictionary["landing"]["features"]["items"][number];
-  /** the text of a format chip */
-  label?: string;
 }) {
   const solid = thing.kind === "card" || thing.kind === "pick";
   /* thin boxes never turn their back far enough to show it: one face, half the layer memory */
@@ -54,7 +51,7 @@ export function SceneBox({
     if (thing.face === "fe" || thing.face === "pf" || thing.face === "ai") return cv ? <CvFace cv={cv} version={thing.face} /> : <DocFace />;
     if (thing.face === "web") return <WebFace />;
     if (thing.face === "tile" && feature) return <TileFace feature={feature} />;
-    if (thing.face === "format") return <span className={styles.formatFace}>{label ?? FORMATS[thing.index]}</span>;
+    if (thing.face === "format") return <span className={styles.formatFace}>{FORMATS[thing.index]}</span>;
     return null;
   })();
   return (

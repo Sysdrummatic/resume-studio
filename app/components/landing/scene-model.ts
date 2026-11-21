@@ -269,11 +269,13 @@ export function buildScene(narrow: boolean, lite: boolean, featureCount: number)
       { at: AT.pick - 0.5, position: [0, y, 0], rotation: lyingFlat(YAW), size: scale3(BRICK, 1.012), alpha: 0, selected: 1, edges: 1 },
       { at: AT.pick - 0.4, alpha: 1 },
       { at: AT.pick, position: [1.6, y, 0.9], size: BRICK },
+      /* they land on the LiveCV still glowing, glow there a moment, then fade into it */
       {
-        at: AT.ready,
+        at: AT.ready - 0.3,
         position: [LIVE_AT[0] + 0.06 * Math.sin(LIVE_YAW), rows[j], LIVE_AT[2] + 0.06 * Math.cos(LIVE_YAW)],
-        rotation: [0, LIVE_YAW, Math.PI / 2], size: [0.42, 2.5, 0.03], alpha: 0, late: 0.6,
+        rotation: [0, LIVE_YAW, Math.PI / 2], size: [0.42, 2.5, 0.03],
       },
+      { at: AT.ready, alpha: 0, late: 0.45 },
     ]);
   });
 
@@ -310,18 +312,15 @@ export function buildScene(narrow: boolean, lite: boolean, featureCount: number)
     ]),
   );
 
-  /* PDF, YAML, TXT and "free" peel off the published LiveCV in the last stage (issue #290; not in the mockup) */
-  [0, 1, 2, 3].forEach((k) =>
+  /* PDF, YAML and TXT peel off the published LiveCV in the last stage (issue #290; not in the mockup) */
+  [0, 1, 2].forEach((k) =>
     add({ key: `format-${k}`, kind: "format", index: k, face: "format", lag: k * 0.08 }, [
       { at: AT.history, position: [pileX, 0.6 - k * 0.6, 0.62], rotation: [0.1, -0.32, 0], size: [1.1, 0.52, 0.03], alpha: 0, texture: 1 },
       { at: AT.go - 0.45 },
       {
         at: AT.go,
-        /* the three formats stack beside the sheet; "free" sits above its other corner, clear of the rail */
-        position: k === 3
-          ? narrow ? [pileX - 0.95, 2.35, 1.2] : [pileX - 1.55, 2.05, 1.2]
-          : narrow ? [pileX + 1.15, 1.5 - k * 0.75, 1.4 + k * 0.2] : [pileX + 1.75, 1.2 - k * 0.85, 1.4 + k * 0.25],
-        rotation: k === 3 ? [0.1, -0.32, 0.12] : [0.1, -0.32, -0.1 + k * 0.1], alpha: 1, late: 0.3,
+        position: narrow ? [pileX + 1.15, 1.5 - k * 0.75, 1.4 + k * 0.2] : [pileX + 1.75, 1.2 - k * 0.85, 1.4 + k * 0.25],
+        rotation: [0.1, -0.32, -0.1 + k * 0.1], alpha: 1, late: 0.3,
       },
     ]),
   );
@@ -587,9 +586,19 @@ export function fogAt(view: View, position: Vec3, dim: number, haze: number) {
 /** each frame the timeline closes this share of the way to the scroll position: the mockup's .1, slowed so a transition lasts 50% longer */
 export const FOLLOW = 0.068;
 
+/** transitions that play slower than the rest, keyed by the stage they leave going forward: the base building up,
+    the picks going into the LiveCV, and the feature tiles coming out from behind it and going back */
+export const SLOW_SEGMENTS: Readonly<Record<number, number>> = { [AT.livecv]: 0.55, [AT.pick]: 0.55, [AT.history]: 0.55, [AT.feats]: 0.55 };
+
+/** the pace of the transition the timeline is in, from position toward target (1 = FOLLOW as it is) */
+export function paceAt(position: number, target: number) {
+  const segment = target >= position ? Math.floor(position) : Math.ceil(position) - 1;
+  return SLOW_SEGMENTS[segment] ?? 1;
+}
+
 /** follow the scroll as the mockup does, corrected for the frame rate so a 120Hz screen moves at the same speed */
-export function follow(position: number, target: number, dt: number) {
-  const next = position + (target - position) * (1 - Math.pow(1 - FOLLOW, dt * 60));
+export function follow(position: number, target: number, dt: number, rate = FOLLOW) {
+  const next = position + (target - position) * (1 - Math.pow(1 - rate, dt * 60));
   return Math.abs(target - next) < 0.0004 ? target : next;
 }
 

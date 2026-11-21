@@ -19,6 +19,8 @@ import {
   feelAir,
   fogAt,
   follow,
+  FOLLOW,
+  paceAt,
   matrix3d,
   objectMatrix,
   placeBrowserFrame,
@@ -140,7 +142,6 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
   const labels = useMemo(() => buildLabels(false), []);
   const picked = superset.picks.length;
   const pickedText = (story.scene.picked[new Intl.PluralRules(locale).select(picked)] ?? story.scene.picked.other).replace("{count}", String(picked));
-  const formatLabels = [...FORMATS, story.scene.free];
 
   const labelContent: Record<string, ReactNode> = {
     "file-0": FILES[0],
@@ -200,8 +201,8 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
   }, [openFeature]);
 
   /*
-   * The frame loop (ADR 0026, amended for #290): scroll picks the stage, the timeline position
-   * follows it over ~600ms, and every frame poses the scene there exactly as the mockup does.
+   * The frame loop (ADR 0026, amended for #290): the page snaps stage by stage, the timeline position
+   * follows the scroll as the mockup's does (slower in SLOW_SEGMENTS), and every frame poses the scene there.
    * The loop sleeps once a stage has settled and nothing restless is on screen, off screen,
    * and on a hidden tab. Only transform and opacity are written.
    */
@@ -478,7 +479,7 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       target = measureTarget();
-      clock.progress = follow(clock.progress, target, dt);
+      clock.progress = follow(clock.progress, target, dt, FOLLOW * paceAt(clock.progress, target));
       clock.intro = clamp(clock.intro + dt / INTRO_SECONDS);
       gaze.x += (pointer.x - gaze.x) * 0.05;
       gaze.y += (pointer.y - gaze.y) * 0.05;
@@ -632,7 +633,6 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
                 thing={thing}
                 cv={cv}
                 feature={thing.kind === "tile" ? features.items[thing.index] : undefined}
-                label={thing.kind === "format" ? formatLabels[thing.index] : undefined}
               />
             ))}
           </div>

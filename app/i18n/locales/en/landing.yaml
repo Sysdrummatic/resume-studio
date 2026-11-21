@@ -71,7 +71,6 @@ landing:
         few: "Selected {count} experience entries"
         many: "Selected {count} experience entries"
         other: "Selected {count} experience entries"
-      free: Free!
       published: published
       saved: saved
       versions:

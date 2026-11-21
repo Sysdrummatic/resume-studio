@@ -329,12 +329,6 @@
   border-radius: 19px;
 }
 
-/* the free chip carries the teal of a published LiveCV */
-.box[data-obj="format-3"] .formatFace {
-  border-color: var(--ocv-teal);
-  color: var(--ocv-teal-ink);
-}
-
 /* glowing edges: the slab's indigo, the picked slab's teal */
 /* the mockup's shader adds the edge colour onto the face: plus-lighter does the same */
 .layerEdge,

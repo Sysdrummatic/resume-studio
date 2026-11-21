@@ -515,13 +515,15 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   as tall as the stage with `scroll-snap-stop: always`, so one wheel step, swipe or key moves
   one stage and the page rests on it (no wheel handler). The timeline follows the scroll
   position as in the mockup (`follow`: `FOLLOW = 0.068` of the remaining way per 60Hz frame,
-  frame rate corrected; the mockup's 0.1 slowed so a transition lasts 50% longer), so it moves continuously through every pose and eases to a stop on the
+  frame rate corrected; the mockup's 0.1 slowed so a transition lasts 50% longer; `SLOW_SEGMENTS`
+  play LiveCV? to base, pick to ready and the feature tiles coming and going at 0.55 of that pace;
+  the picked entries land on the LiveCV glowing teal, stay a moment and fade into it), so it moves continuously through every pose and eases to a stop on the
   stage; style values are written unrounded. The rail and the Scroll/Back pill move exactly
   one stage. On LiveCV? the browser window (rounded corners, set 0.25 units behind the CV so the
   sheet always stays in front) is drawn round the CV from its top-left corner until whole,
   stays, and is taken off the same way round (`lp-trace-frame`: a conic mask, `--lp-trace`
-  0 to 720deg); the last stage peels off rounded PDF, YAML, TXT and
-  "free" chips, and the link beside the LiveCV is a real link set in `content/landing.yaml`
+  0 to 720deg); the last stage peels off rounded PDF, YAML and TXT
+  chips, and the link beside the LiveCV is a real link set in `content/landing.yaml`
   (non-copy home page settings; copy stays in the landing dictionaries). The hero headline
   is four lines (two from `hero.title`, a list, then the rotating word and the suffix), the
   rotating word sized to the word on screen. Idle loops (orbits, drift, dust, traced

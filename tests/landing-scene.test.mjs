@@ -8,7 +8,7 @@ const model = await import("../app/components/landing/scene-model.ts");
 const { buildSceneCv, versionSections, LIVE_URL, versionPath } = await import("../app/components/landing/scene-cv.ts");
 const {
   STAGE_IDS, STAGE_COUNT, AT, buildScene, buildLabels, samplePose, applyMotion, viewAt, toScreen,
-  worldMatrix, follow, FOLLOW, BROWSER, entryCount, pickedEntries, placeBrowserFrame,
+  worldMatrix, follow, FOLLOW, BROWSER, paceAt, entryCount, pickedEntries, placeBrowserFrame,
 } = model;
 
 const LAYOUTS = [
@@ -185,11 +185,37 @@ test("the scene modules stay pure and no animation library is installed (decisio
   }
 });
 
-test("the last stage peels off four chips: PDF, YAML, TXT and a free one", () => {
+test("the last stage peels off three chips: PDF, YAML and TXT", () => {
   for (const { narrow, lite } of [{ narrow: false, lite: false }, { narrow: true, lite: true }]) {
     const chips = buildScene(narrow, lite, 11).things.filter((thing) => thing.kind === "format");
-    assert.equal(chips.length, 4);
+    assert.equal(chips.length, 3);
   }
+});
+
+test("some transitions are slower: the base building up, the picks going into the LiveCV, the tiles coming and going", () => {
+  const slow = [[AT.livecv, AT.base], [AT.pick, AT.ready], [AT.history, AT.feats], [AT.feats, AT.go]];
+  for (const [from, to] of slow) {
+    assert.ok(paceAt(from + 0.4, to) < 0.7, "forward " + from + "->" + to);
+    assert.ok(paceAt(to - 0.4, from) < 0.7, "backward " + to + "->" + from);
+  }
+  assert.equal(paceAt(AT.start + 0.4, AT.livecv), 1, "the others keep their pace");
+  assert.equal(paceAt(AT.base + 0.4, AT.pick), 1);
+  assert.ok(follow(0, 1, 1 / 60, FOLLOW * 0.55) < follow(0, 1, 1 / 60), "a slower pace closes less of the way per frame");
+});
+
+test("the picked entries land on the LiveCV, glow there a moment, then go", () => {
+  const scene = buildScene(false, false, 11);
+  const pick = scene.picks[0];
+  const at = (progress) => {
+    samplePose(pick, progress);
+    return { ...pick.pose, position: [...pick.pose.position] };
+  };
+  const landed = at(AT.ready - 0.25);
+  const done = at(AT.ready);
+  assert.ok(landed.alpha > 0.9, "still there once it has landed");
+  assert.ok(landed.edges === 1 && landed.selected === 1, "glowing teal");
+  assert.ok(Math.hypot(...landed.position.map((v, i) => v - done.position[i])) < 0.01, "it has already reached its row");
+  assert.equal(done.alpha, 0, "gone when the LiveCV is ready");
 });
 
 test("the browser window sits far enough behind the CV that a swaying sheet never cuts into it", () => {
