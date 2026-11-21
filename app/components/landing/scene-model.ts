@@ -606,7 +606,8 @@ export function targetFor(progress: number) {
 /** follow the target over ~600ms; returns the new position (exponential ease-out, retargets on every call) */
 export function follow(position: number, target: number, dt: number, settle = 0.6) {
   const next = position + (target - position) * (1 - Math.exp((-dt * 4.6) / settle));
-  return Math.abs(target - next) < 0.0004 ? target : next;
+  /* the last sub-pixel stretch of the curve is cut, so a stage settles within ~700ms (epic #190: 500–700ms) */
+  return Math.abs(target - next) < 0.006 ? target : next;
 }
 
 /* ---------- CSS ---------- */

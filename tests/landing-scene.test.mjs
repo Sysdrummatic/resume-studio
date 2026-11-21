@@ -43,6 +43,9 @@ test("the timeline follows its target in ~600ms and retargets on every frame", (
   let position = 0;
   for (let t = 0; t < 0.6; t += 1 / 60) position = follow(position, 1, 1 / 60);
   assert.ok(position > 0.98 && position <= 1, `settles in 600ms (${position})`);
+  let frames = 0;
+  for (let p = 0; p !== 1 && frames < 120; frames += 1) p = follow(p, 1, 1 / 60);
+  assert.ok(frames <= 42, `comes to rest within 700ms (${frames} frames)`);
   let p = 0;
   for (let i = 0; i < 10; i += 1) p = follow(p, 1, 1 / 60);
   const turned = follow(p, 0, 1 / 60);
