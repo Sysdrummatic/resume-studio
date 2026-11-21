@@ -63,6 +63,14 @@ landing:
       picked_note: the base stays whole
       published: published
       saved: saved
+      versions:
+        fe: Senior Frontend Developer
+        pf: Platform Engineer
+        ai: AI Systems Engineer
+      snapshots:
+        - v3, Nov 3
+        - v2, Sep 30
+        - v1, Sep 2
   features:
     list_label: OpenCiVera features
     close: Close feature description

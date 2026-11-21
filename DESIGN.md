@@ -450,7 +450,8 @@ One language, two intensities: **expressive** (landing, login, onboarding —
 choreographed CSS 3D scene changes, 500–700ms, staggered) and **restrained**
 (editor, dashboard, admin, docs — state changes, 100–240ms). Native CSS only
 (transitions, View Transitions, `@property`, `linear()` used sparingly); no
-animation library. Only `transform`, `opacity` and colours animate.
+animation library. Only `transform`, `opacity` and colours animate. The landing and
+login CSS 3D scenes run one sleeping `requestAnimationFrame` loop (ADR 0026, amended).
 
 ```
 --motion-instant:    100ms   hover, focus, toggles
@@ -492,25 +493,31 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 - **Button press**: `.button:active:not(:disabled)` cancels the hover lift and settles to
   `scale(0.98)` over `--motion-press` (90ms). Applies to every action button portal-wide.
 - **Landing story (#290)**: one pinned stage, nine stages (start → LiveCV as a link →
-  Experience Base → select → build LiveCV → versions → history → features → public card).
-  Scene objects are DOM in `perspective`; their poses per stage live in
-  `app/components/landing/scene-poses.ts` and are written as `transform` + `opacity` by
-  `landing-story.tsx`. One passive scroll listener picks the stage (`stageFromProgress`):
-  a stage holds until the scroll crosses half a slot, with at most a 10% lean toward the
-  next one in the last 20% before the threshold. CSS transitions (640ms move, 420ms fade,
-  per-object `transition-delay` stagger) retarget mid-flight; a fast scroll goes straight
-  to its stage. Slots snap with `scroll-snap-type: y proximity`; the rail and the
-  Scroll/Back pill move exactly one stage. Pointer tilt at most 4°, fine pointers only. The
-  drifting files of the start stage are the one idle loop; it pauses off screen
-  (IntersectionObserver) and on a hidden tab. Reduced motion: no lean, no tilt, no drift;
-  the scene crossfades (200ms) to a static frame per stage, captions crossfade too.
+  Experience Base → select → build LiveCV → versions → history → features → public card),
+  a port of the "OpenCiVera LiveCV 3D" mockup's scene to DOM. `scene-model.ts` holds the
+  mockup's timeline 1:1 (every box has keyed poses with lag and late fades; swirls, orbits,
+  the opening vortex, drift and a spring for the air), its cameras (fit beside the text,
+  lens shift, pointer parallax) and its distance haze. `landing-story.tsx` writes each
+  box's `matrix3d` from it every frame: bricks are six-faced boxes lit per face, sheets
+  print the public sample CV (three LiveCVs pick different entries, `scene-cv.ts`), the
+  browser window's outline is traced like `.ocv-traced`, labels are projected to the
+  screen and kept inside it on phones, the feature card grows out of its tile. Scroll picks
+  the stage (`targetFor`: a stage holds until half a slot, with at most a 10% lean); the
+  timeline follows over ~600ms and retargets mid-flight; a jump of more than a stage is a
+  quick fade straight to it. Slots snap with `scroll-snap-type: y proximity`; the rail and
+  the Scroll/Back pill move exactly one stage. Idle loops (orbits, drift, dust, traced
+  outlines, the ring round "scroll") pause off screen, on a hidden tab and while a tile is
+  pointed at; the frame loop sleeps once a stage has settled. Sheets sway instead of
+  bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
+  per stage and a 200ms crossfade, captions crossfade too.
   Without JavaScript (`@media (scripting: none)`) every caption is plain text and the
   scene is hidden. The scene is `aria-hidden`; captions are real headings, the feature
   tiles have a real button list (visually hidden on wide screens until focused, swipe
   cards on phones), and the FAQ is a native `<dialog>` drawer opened from any `/#faq`
   link. Hero rotating words pause while the start caption is off stage.
-- **Login sheets (#290)**: loose CV sheets drift slowly behind `/login` (`translate`/
-  `rotate` keyframes only), paused on a hidden tab, still under reduced motion.
+- **Login sheets (#290)**: the mockup's ten loose sheets (every fourth a real CV) circle
+  slowly in a small scene of their own behind `/login`, dimmed and hazed, with the same
+  spring; the loop sleeps on a hidden tab; reduced motion draws one still frame.
 - **Retired (#290)**: the Experience Base explainer iframe, the features carousel and the
   scroll reveal were removed with the old landing. For history, the explainer was: the isolated iframe collects career tiles in
   one randomly ordered column, tracks downward, moves the tiles into a stationary queue,

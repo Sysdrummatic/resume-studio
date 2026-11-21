@@ -169,7 +169,7 @@ test("the old landing pieces are gone, not left unused", () => {
   }
 });
 
-test("landing motion animates transform and opacity only", () => {
+test("landing motion animates transform and opacity only, besides the traced-outline signatures", () => {
   const css = readFileSync("app/landing.module.css", "utf8");
   for (const [, value] of css.matchAll(/transition(?:-property)?:\s*([^;]+);/g)) {
     for (const part of value.split(",")) {
@@ -178,13 +178,18 @@ test("landing motion animates transform and opacity only", () => {
       assert.ok(["transform", "opacity"].includes(property), `transition on ${property}`);
     }
   }
-  for (const [, body] of css.matchAll(/@keyframes [\w-]+\s*\{([\s\S]*?)\n\}/g)) {
+  /* individual transform properties count as transform; the traced outlines (browser window, the
+     "scroll" ring) are the mockup's signature, drawn like .ocv-traced (DESIGN.md → Motion) */
+  const allowed = ["transform", "translate", "rotate", "scale", "opacity", "--lp-trace", "stroke-dashoffset"];
+  for (const [, name, body] of css.matchAll(/@keyframes ([\w-]+)\s*\{([\s\S]*?)\n\}/g)) {
     for (const [, property] of body.matchAll(/([a-z-]+)\s*:/g)) {
-      assert.ok(["transform", "opacity"].includes(property), `keyframes animate ${property}`);
+      assert.ok(allowed.includes(property), `${name} animates ${property}`);
     }
+    if (body.includes("stroke-dashoffset")) assert.equal(name, "lp-ring");
+    if (body.includes("--lp-trace")) assert.match(name, /^lp-trace/);
   }
   assert.match(css, /scroll-snap-type:\s*y proximity/);
-  assert.match(css, /animation-play-state:\s*paused/, "idle loops can pause");
+  assert.match(css, /animation-play-state:\s*paused/, "CSS loops idle with the scene");
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /@media \(scripting: none\)/, "without JavaScript every caption stays readable");
 });
@@ -196,15 +201,23 @@ test("reduced motion keeps a crossfade: the global guard spares [data-crossfade]
   assert.match(guard, /\[data-crossfade\]\s*\{[^}]*transition-property:\s*opacity\s*!important/);
 });
 
-test("one scroll source picks the stage; idle loops pause off-screen and on hidden tabs", () => {
+test("the frame loop: scroll picks the stage, the loop sleeps when settled, off screen and on hidden tabs", () => {
   const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
-  assert.match(story, /stageFromProgress/);
-  assert.match(story, /addEventListener\("scroll", [^)]*\{ passive: true \}/);
+  assert.match(story, /targetFor\(/, "scroll picks the stage (stage-based, not scrubbed)");
+  assert.match(story, /follow\(clock\.progress, target, dt\)/, "the timeline follows the stage over ~600ms");
+  assert.match(story, /addEventListener\("scroll", wake, \{ passive: true \}\)/);
+  assert.match(story, /if \(restless\(\) \|\| skipping\) frame = window\.requestAnimationFrame\(tick\);\s*else running = false;/, "the loop sleeps once settled");
   assert.match(story, /IntersectionObserver/);
   assert.match(story, /visibilitychange/);
   assert.match(story, /prefers-reduced-motion: reduce/);
-  assert.doesNotMatch(story, /setInterval/, "no timer-driven animation");
+  assert.match(story, /stillFrame/, "reduced motion: one still frame per stage and a crossfade");
+  assert.doesNotMatch(story, /setInterval/);
+  const allowedWrites = ["transform", "opacity", "pointerEvents", "perspective", "top", "height", "translate", "animationDuration", "animationDelay"];
+  for (const written of story.matchAll(/style\.(\w+) = /g)) {
+    assert.ok(allowedWrites.includes(written[1]), `writes style.${written[1]}`);
+  }
   const sheets = readFileSync("app/components/landing/floating-sheets.tsx", "utf8");
   assert.match(sheets, /visibilitychange/);
   assert.match(sheets, /aria-hidden="true"/);
+  assert.match(sheets, /if \(!reduced\.matches\) frame = window\.requestAnimationFrame\(tick\);/, "reduced motion: one still frame");
 });

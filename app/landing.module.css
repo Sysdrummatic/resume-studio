@@ -1,13 +1,19 @@
 /*
- * Landing (epic #190, issue #290): one pinned CSS 3D stage tells the story in nine
- * stages. The scene is real DOM in `perspective`; poses come from
- * app/components/landing/scene-poses.ts and are written as transforms by the
- * controller in landing-story.tsx. Only transform and opacity ever animate.
+ * Landing (epic #190, issue #290): one pinned CSS 3D stage tells the story in nine stages,
+ * as in the "OpenCiVera LiveCV 3D" mockup. The scene is real DOM in `perspective`: a camera
+ * (the world element) and boxes whose matrix3d the frame loop in landing-story.tsx writes from
+ * the mockup's timeline (scene-model.ts). Only transform and opacity change per frame; the
+ * box faces read their light, fog, selection and print from custom properties.
  *
- * Phone layouts follow the same two media conditions the controller reads:
- *   stacked: (max-width: 767px)
- *   side:    (orientation: landscape) and (max-height: 500px) and (pointer: coarse)
+ * Phone layouts: stacked (max-width: 767px) and side
+ * (orientation: landscape) and (max-height: 500px) and (pointer: coarse).
  */
+
+@property --lp-trace {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
 
 :global(html):has(.story) {
   scroll-snap-type: y proximity;
@@ -19,7 +25,7 @@
   padding: 0;
 }
 
-/* The scene draws its own dotted floor. */
+/* The scene draws its own floor. */
 :global(.app-main):has(.page)::before {
   content: none;
 }
@@ -28,15 +34,19 @@
   /* The CV sheet is white paper in both themes (DESIGN.md → CV as separate domain). */
   --lp-paper: #ffffff;
   --lp-paper-ink: #1b1b1b;
-  --lp-paper-line: #c9ced6;
+  --lp-paper-muted: #5f6368;
   --lp-paper-accent: #009c8a;
+  --lp-paper-accent-ink: #00705f;
+  --lp-doc-bar: #c3c7d1;
+  --lp-doc-ink: #2a2d36;
+  --lp-doc-sub: #a9aebb;
+  /* a thin outline keeps a white sheet apart from a light page; the dark theme needs none */
+  --lp-sheet-edge: var(--ocv-L, #8a92a8) var(--ocv-D, transparent);
+  --lp-dust: var(--ocv-L, #6f7ab4) var(--ocv-D, #aeb6ff);
   --lp-gut: max(16px, env(safe-area-inset-left, 0px));
   --lp-rest: clamp(52px, 7vh, 72px);
   --lp-foot-h: 64px;
   --lp-slot: 95svh;
-  --lp-move: 640ms;
-  --lp-fade: 420ms;
-  --lp-shadow: 0 1px 2px rgb(0 0 0 / 0.1), 0 calc(0.35 * var(--u)) calc(0.7 * var(--u)) calc(-0.25 * var(--u)) rgb(0 0 0 / 0.35);
   color: var(--ocv-ink);
   background: var(--ocv-bg);
   overflow-x: clip;
@@ -63,7 +73,6 @@
   /* The slots below start at the top of the story, under the pinned stage. */
   margin-bottom: calc(-1 * var(--lp-stage-h));
   overflow: hidden;
-  container-type: size;
 }
 
 .slot {
@@ -77,352 +86,576 @@
   height: var(--lp-stage-h);
 }
 
-/* Text stays readable on the left; the scene shows toward the right. */
+/* Text stays readable on the left; the scene shows toward the right (as in the mockup). */
 .stage::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(70deg, var(--ocv-bg) 14%, color-mix(in srgb, var(--ocv-bg) 72%, transparent) 34%, transparent 58%);
+  background: linear-gradient(70deg, var(--ocv-bg) 4%, transparent 52%);
 }
 
 /* ---------- Scene ---------- */
 
-.viewport {
-  --u: min(calc(100cqh / 7.5), calc(100cqw / 11));
+/* the lens: CSS perspective at the camera; the frame loop sets its perspective and lens shift */
+.lens {
   position: absolute;
-  inset: 0;
-  perspective: calc(11 * var(--u));
+  inset: 0 0 auto;
+  height: 100%;
+  perspective: 1000px;
   opacity: 0;
-  transition: opacity 500ms var(--ease-out);
+  transition: opacity 160ms var(--ease-out);
 }
 
-.stage[data-ready] .viewport {
+.stage[data-ready] .lens {
   opacity: 1;
 }
 
-.tilt,
 .world {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
   transform-style: preserve-3d;
-}
-
-.world {
+  transform-origin: 0 0;
   pointer-events: none;
 }
 
-.stage[data-ready] .tilt {
-  transition: transform 900ms var(--ease-out);
-}
-
-.stage[data-ready] .world {
-  transition: transform var(--lp-move) var(--ease-out);
-}
-
-.floor {
+.gridZ,
+.gridX {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(36 * var(--u));
-  height: calc(36 * var(--u));
-  margin: calc(-18 * var(--u)) 0 0 calc(-18 * var(--u));
-  transform: translateY(calc(3.4 * var(--u))) rotateX(90deg);
-  background: radial-gradient(circle, var(--ocv-grid) 1.2px, transparent 1.8px) 0 0 / calc(0.5 * var(--u)) calc(0.5 * var(--u));
-  mask-image: radial-gradient(closest-side, #000 25%, transparent);
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
-.obj {
+.gridZ {
+  left: -0.75px;
+  top: -2200px;
+  width: 1.5px;
+  height: 4400px;
+  background: linear-gradient(to bottom, transparent, var(--ocv-grid) 35%, var(--ocv-grid));
+}
+
+.gridX {
+  left: -2400px;
+  top: -0.75px;
+  width: 4800px;
+  height: 1.5px;
+  background: linear-gradient(to right, transparent, var(--ocv-grid) 30%, var(--ocv-grid) 70%, transparent);
+}
+
+.dust {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform-style: preserve-3d;
-}
-
-.obj[hidden] {
-  display: none;
-}
-
-.stage[data-ready] .obj,
-.stage[data-ready] .label {
-  transition:
-    transform var(--lp-move) var(--ease-out),
-    opacity var(--lp-fade) var(--ease-out);
-}
-
-/* An Experience Base entry: a CV file, then an indigo slab, teal once picked. */
-.card {
-  width: calc(1.7 * var(--u));
-  height: calc(2.4 * var(--u));
-  margin: calc(-1.2 * var(--u)) 0 0 calc(-0.85 * var(--u));
-}
-
-.drift {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-}
-
-.face,
-.shade {
-  position: absolute;
-  inset: 0;
-  border-radius: calc(0.05 * var(--u));
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lp-dust);
   opacity: 0;
-  transition: opacity 360ms var(--ease-out);
+  animation: lp-dust 120s linear infinite;
 }
 
-.faceFile {
-  background:
-    linear-gradient(var(--lp-paper-ink) 0 0) 14% 12% / 48% 6% no-repeat,
-    linear-gradient(var(--lp-paper-accent) 0 0) 14% 21% / 30% 3% no-repeat,
-    repeating-linear-gradient(to bottom, var(--lp-paper-line) 0 3.2%, transparent 3.2% 8.5%) 14% 34% / 72% 56% no-repeat,
-    var(--ocv-file);
-  box-shadow: var(--lp-shadow);
+/* dust rises slowly and comes round again */
+@keyframes lp-dust {
+  from {
+    translate: 0 800px;
+  }
+  to {
+    translate: 0 -800px;
+  }
 }
 
-.faceSlab {
-  background: var(--ocv-slab);
-  box-shadow: inset 0 0 0 1px var(--ocv-slab-edge), var(--lp-shadow);
-}
-
-.facePicked {
-  background: var(--ocv-sel);
-  box-shadow: inset 0 0 0 1px var(--ocv-sel-edge), var(--lp-shadow);
-}
-
-/* The slab's thickness: a strip hinged on its front edge. */
-.edge {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(0.14 * var(--u));
-  transform-origin: bottom;
-  transform: rotateX(90deg);
-  background: var(--ocv-slab-edge);
-  opacity: 0;
-  transition: opacity 360ms var(--ease-out);
-}
-
-.shade {
-  z-index: 1;
-  background: var(--ocv-bg);
-}
-
-.card[data-look="file"] .faceFile,
-.card[data-look="slab"] .faceSlab,
-.card[data-look="picked"] .facePicked,
-.card[data-look="slab"] .edge,
-.card[data-look="picked"] .edge {
-  opacity: 1;
-}
-
-.card[data-look="picked"] .edge {
-  background: var(--ocv-sel-edge);
-}
-
-.stage[data-ready][data-stage="0"] .drift {
-  animation: lp-drift 7s ease-in-out infinite alternate;
-}
-
-.stage[data-idle="paused"] .drift {
+.stage[data-idle="paused"] .dust,
+.stage[data-idle="paused"] .trace,
+.stage[data-idle="paused"] .nextRing rect {
   animation-play-state: paused;
 }
 
-@keyframes lp-drift {
-  from {
-    transform: translate3d(0, 0, 0) rotateZ(0deg);
-  }
-  to {
-    transform: translate3d(calc(0.06 * var(--u)), calc(-0.16 * var(--u)), calc(0.12 * var(--u))) rotateZ(2.5deg);
-  }
-}
-
-/* A LiveCV sheet (and its earlier snapshots). */
-.paper {
-  display: grid;
-  align-content: start;
-  gap: calc(0.24 * var(--u));
-  width: calc(3 * var(--u));
-  height: calc(4.24 * var(--u));
-  margin: calc(-2.12 * var(--u)) 0 0 calc(-1.5 * var(--u));
-  padding: calc(0.3 * var(--u)) calc(0.32 * var(--u));
-  border-radius: calc(0.06 * var(--u));
-  background: var(--lp-paper);
-  box-shadow: var(--lp-shadow);
-}
-
-.paperHead {
-  display: grid;
-  gap: calc(0.08 * var(--u));
-  padding-bottom: calc(0.12 * var(--u));
-  border-bottom: calc(0.03 * var(--u)) solid var(--lp-paper-accent);
-}
-
-.paperHead i,
-.paperRows i {
-  display: block;
-  border-radius: 2px;
-}
-
-.paperHead i:first-child {
-  width: 58%;
-  height: calc(0.2 * var(--u));
-  background: var(--lp-paper-ink);
-}
-
-.paperHead i:last-child {
-  width: 36%;
-  height: calc(0.09 * var(--u));
-  background: var(--lp-paper-accent);
-}
-
-.paperRows {
-  display: grid;
-  gap: calc(0.2 * var(--u));
-}
-
-.paperRows i {
-  height: calc(0.34 * var(--u));
-  background:
-    linear-gradient(var(--lp-paper-ink) 0 0) 0 0 / 46% 32% no-repeat,
-    linear-gradient(var(--lp-paper-line) 0 0) 0 100% / 88% 26% no-repeat;
-}
-
-.paper[data-variant="paper-1"] .paperRows i:nth-child(n + 5),
-.paper[data-variant="paper-2"] .paperRows i:nth-child(n + 4) {
+/* a box: its faces sit around the element's plane; the frame loop writes its matrix3d */
+.box {
+  --sel: 0;
+  --paper: 0;
+  --edge: 0;
+  --fog: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--w);
+  height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+  transform-style: preserve-3d;
   opacity: 0;
 }
 
-/* The browser window that marks a sheet as a LiveCV. */
-.frame {
-  width: calc(3.3 * var(--u));
-  height: calc(4.98 * var(--u));
-  margin: calc(-2.12 * var(--u) - 0.6 * var(--u)) 0 0 calc(-1.65 * var(--u));
-  border: 1px solid var(--ocv-line-strong);
-  border-radius: calc(0.14 * var(--u));
+.box[hidden] {
+  display: none;
 }
 
-.frameBar {
+.box[data-kind="card"] {
+  --w: 340px;
+  --h: 480px;
+  --d: 22px;
+}
+
+.box[data-kind="pick"] {
+  --w: 150px;
+  --h: 260px;
+  --d: 22px;
+}
+
+.box[data-kind="sheet"],
+.box[data-kind="snap"] {
+  --w: 600px;
+  --h: 848px;
+  --d: 3px;
+}
+
+.box[data-kind="tile"] {
+  --w: 400px;
+  --h: 206.25px;
+  --d: 3px;
+}
+
+.box[data-kind="frame"] {
+  --w: 672px;
+  --h: 988px;
+  --d: 2px;
+}
+
+.box[data-kind="format"] {
+  --w: 220px;
+  --h: 104px;
+  --d: 3px;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.face[data-face="front"] {
+  transform: translateZ(calc(var(--d) / 2));
+}
+
+.face[data-face="back"] {
+  transform: rotateY(180deg) translateZ(calc(var(--d) / 2));
+}
+
+.face[data-face="right"],
+.face[data-face="left"] {
+  inset: 0 auto 0 50%;
+  width: var(--d);
+  margin-left: calc(var(--d) / -2);
+}
+
+.face[data-face="right"] {
+  transform: rotateY(90deg) translateZ(calc(var(--w) / 2));
+}
+
+.face[data-face="left"] {
+  transform: rotateY(-90deg) translateZ(calc(var(--w) / 2));
+}
+
+.face[data-face="top"],
+.face[data-face="bottom"] {
+  inset: 50% 0 auto;
+  height: var(--d);
+  margin-top: calc(var(--d) / -2);
+}
+
+.face[data-face="top"] {
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+}
+
+.face[data-face="bottom"] {
+  transform: rotateX(-90deg) translateZ(calc(var(--h) / 2));
+}
+
+.layerSlab,
+.layerSel,
+.layerPaper,
+.layerEdge,
+.layerEdgeSel,
+.layerLight,
+.layerFog {
+  position: absolute;
+  inset: 0;
+}
+
+.layerSlab {
+  background: var(--ocv-slab);
+}
+
+.layerSel {
+  background: var(--ocv-sel);
+  opacity: var(--sel);
+}
+
+.layerPaper {
+  container-type: inline-size;
+  background: var(--lp-paper);
+  box-shadow: inset 0 0 0 1px var(--lp-sheet-edge);
+  opacity: var(--paper);
+}
+
+.box[data-tone="file"] .layerPaper {
+  background: var(--ocv-file);
+}
+
+.box[data-kind="tile"] .layerPaper,
+.box[data-kind="frame"] .layerPaper,
+.box[data-kind="format"] .layerPaper {
+  background: var(--ocv-raise);
+  box-shadow: none;
+}
+
+/* glowing edges: the slab's indigo, the picked slab's teal */
+.layerEdge {
+  box-shadow: inset 0 0 0 1.5px var(--ocv-slab-edge), inset 0 0 6px color-mix(in srgb, var(--ocv-slab-edge) 45%, transparent);
+  opacity: calc(var(--edge) * (1 - var(--sel)));
+}
+
+.layerEdgeSel {
+  box-shadow: inset 0 0 0 1.5px var(--ocv-sel-edge), inset 0 0 6px color-mix(in srgb, var(--ocv-sel-edge) 55%, transparent);
+  opacity: calc(var(--edge) * var(--sel));
+}
+
+/* printed boxes are laid out at twice the world scale: their edges are drawn twice as thick */
+.box[data-kind="card"] .layerEdge,
+.box[data-kind="card"] .layerEdgeSel {
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 3px var(--ocv-slab-edge), inset 0 0 12px color-mix(in srgb, var(--ocv-slab-edge) 45%, transparent);
+}
+
+.box[data-kind="card"] .layerEdgeSel {
+  box-shadow: inset 0 0 0 3px var(--ocv-sel-edge), inset 0 0 12px color-mix(in srgb, var(--ocv-sel-edge) 55%, transparent);
+}
+
+.box[data-kind="tile"] .layerEdge {
+  box-shadow: inset 0 0 0 2px var(--ocv-teal), inset 0 0 12px color-mix(in srgb, var(--ocv-teal) 40%, transparent);
+}
+
+/* the light of the mockup's renderer: a face turned away from it darkens; printed paper barely */
+.layerLight {
+  background: black;
+  opacity: calc(var(--light, 0) * (1 - var(--paper) * 0.7));
+}
+
+/* distance haze and dimming: the box fades toward the background, still opaque */
+.layerFog {
+  background: var(--ocv-bg);
+  opacity: var(--fog);
+}
+
+/* the browser window's outline, traced from its top-right corner */
+.trace {
+  position: absolute;
+  inset: -1px;
+  padding: 2px;
+  background: conic-gradient(from -45deg, var(--ocv-teal) var(--lp-trace), transparent 0);
+  mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
+  mask-composite: exclude;
+  transform: translateZ(calc(var(--d) / 2 + 0.5px)) scaleX(-1);
+  opacity: 0;
+}
+
+.box[data-trace="cycle"] .trace {
+  opacity: 1;
+  animation: lp-trace-cycle 5.6s linear infinite;
+}
+
+.box[data-trace="once"] .trace {
+  opacity: 1;
+  animation: lp-trace-once 1.3s var(--ease-out) both;
+}
+
+/* traced (1.3s), stays (1s), removed the same way (1.3s), rests (2s), over and over */
+@keyframes lp-trace-cycle {
+  0% {
+    --lp-trace: 0deg;
+    opacity: 1;
+  }
+  23% {
+    --lp-trace: 360deg;
+    opacity: 1;
+  }
+  41% {
+    --lp-trace: 360deg;
+    opacity: 1;
+  }
+  64%,
+  100% {
+    --lp-trace: 360deg;
+    opacity: 0;
+  }
+}
+
+@keyframes lp-trace-once {
+  from {
+    --lp-trace: 0deg;
+  }
+  to {
+    --lp-trace: 360deg;
+  }
+}
+
+/* ---------- Printed faces (the mockup's textures, as DOM) ---------- */
+
+.doc i {
+  position: absolute;
+  left: 10.94%;
+  height: 1.38%;
+  border-radius: 1px;
+  background: var(--lp-doc-bar);
+}
+
+.doc i:nth-child(1) {
+  top: 9.67%;
+  width: 44.92%;
+  height: 3.59%;
+  background: var(--lp-doc-ink);
+}
+
+.doc i:nth-child(2) {
+  top: 15.47%;
+  width: 29.3%;
+  height: 1.66%;
+  background: var(--lp-doc-sub);
+}
+
+.doc i:nth-child(3) { top: 23.48%; width: 78.13%; }
+.doc i:nth-child(4) { top: 28.04%; width: 70.9%; }
+.doc i:nth-child(5) { top: 32.6%; width: 63.67%; }
+.doc i:nth-child(6) { top: 37.15%; width: 36.91%; }
+.doc i:nth-child(7) { top: 41.71%; width: 66.8%; }
+.doc i:nth-child(8) { top: 46.27%; width: 77.15%; }
+.doc i:nth-child(9) { top: 50.83%; width: 69.92%; }
+.doc i:nth-child(10) { top: 55.39%; width: 25.59%; }
+.doc i:nth-child(11) { top: 59.94%; width: 73.05%; }
+.doc i:nth-child(12) { top: 64.5%; width: 65.82%; }
+.doc i:nth-child(13) { top: 69.06%; width: 76.17%; }
+.doc i:nth-child(14) { top: 73.62%; width: 31.84%; }
+.doc i:nth-child(15) { top: 78.18%; width: 61.72%; }
+.doc i:nth-child(16) { top: 82.73%; width: 72.07%; }
+.doc i:nth-child(17) { top: 87.29%; width: 64.84%; }
+
+.cv {
+  display: grid;
+  align-content: start;
+  padding: 10cqw 9cqw 0;
+  color: var(--lp-paper-ink);
+  font-family: var(--ocv-font-doc);
+}
+
+.cvName {
+  font-size: 7.42cqw;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.cvRole {
+  margin-top: 1.2cqw;
+  color: var(--lp-paper-accent-ink);
+  font-size: 3.9cqw;
+  font-weight: 500;
+}
+
+.cvContact {
+  display: block;
+  margin: 1.4cqw 0 4.4cqw;
+  padding-bottom: 3cqw;
+  border-bottom: 0.6cqw solid var(--lp-paper-accent);
+  color: var(--lp-paper-muted);
+  font-size: 2.73cqw;
+  white-space: pre;
+}
+
+.cvSection {
+  display: grid;
+  gap: 1.3cqw;
+  margin-bottom: 3.6cqw;
+}
+
+.cvHeading {
+  color: var(--lp-paper-accent-ink);
+  font-size: 2.93cqw;
+  font-weight: 700;
+}
+
+.cvEntry {
+  display: grid;
+  gap: 0.6cqw;
+}
+
+.cvTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 2cqw;
+  font-size: 3.13cqw;
+  font-weight: 700;
+}
+
+.cvTitle > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cvSection[data-type="skill"] .cvTitle {
+  font-weight: 400;
+}
+
+.cvWhen {
+  flex: none;
+  color: var(--lp-paper-muted);
+  font: 400 2.34cqw / 1.6 var(--ocv-font-mono);
+}
+
+.cvOrg,
+.cvLine {
+  overflow: hidden;
+  font-size: 2.73cqw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cvOrg {
+  color: var(--lp-paper-muted);
+}
+
+.web {
+  position: absolute;
+  inset: 0;
+  border: 1.17cqw solid var(--ocv-line-strong);
+  background: var(--ocv-bg);
+}
+
+.webBar {
   display: flex;
   align-items: center;
-  gap: calc(0.07 * var(--u));
-  height: calc(0.56 * var(--u));
-  padding-inline: calc(0.14 * var(--u));
-  border-radius: calc(0.14 * var(--u)) calc(0.14 * var(--u)) 0 0;
+  gap: 1.6cqw;
+  height: 10%;
+  padding-left: 4cqw;
+  border-bottom: 0.6cqw solid var(--ocv-line-strong);
   background: var(--ocv-raise);
 }
 
-.frameBar > i {
+.webBar > i {
   flex: none;
-  width: calc(0.09 * var(--u));
-  height: calc(0.09 * var(--u));
+  width: 2.7cqw;
+  height: 2.7cqw;
   border-radius: 50%;
   background: var(--ocv-line-strong);
 }
 
-.frameUrl {
-  position: relative;
+.webUrl {
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
   flex: 1;
-  margin-left: calc(0.08 * var(--u));
-  padding: calc(0.06 * var(--u)) calc(0.12 * var(--u));
-  overflow: hidden;
+  min-width: 0;
+  margin: 0 3cqw 0 3.5cqw;
+  padding: 1.6cqw 3cqw;
   border-radius: 999px;
   background: var(--ocv-bg);
-  color: var(--ocv-ink);
-  font: 500 calc(0.13 * var(--u)) / 1.3 var(--ocv-font-mono);
+  color: var(--ocv-ink-2);
+  font: 500 2.83cqw / 1 var(--ocv-font-mono);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* The address types in: a cover slides off it in steps. */
-.frameCover {
-  position: absolute;
-  inset: 0 0 0 calc(0.12 * var(--u));
-  background: var(--ocv-bg);
-  transform-origin: right;
-}
-
-.stage[data-ready]:not([data-stage="0"]) .frameCover {
-  transform: scaleX(0);
-  transition: transform 900ms steps(28) 380ms;
-}
-
-/* A feature tile. */
-.tile {
-  width: calc(2 * var(--u));
-  height: calc(1.2 * var(--u));
-  margin: calc(-0.6 * var(--u)) 0 0 calc(-1 * var(--u));
+.webUrl::before {
+  content: "";
+  flex: none;
+  width: 1.95cqw;
+  height: 1.95cqw;
+  border-radius: 50%;
+  background: var(--ocv-teal);
 }
 
 .tileFace {
+  position: absolute;
+  inset: 0;
   display: grid;
   align-content: start;
-  gap: calc(0.06 * var(--u));
-  height: 100%;
-  padding: calc(0.14 * var(--u)) calc(0.16 * var(--u));
-  border: 1px solid var(--ocv-line-strong);
-  border-radius: calc(0.12 * var(--u));
-  background: var(--ocv-raise);
+  gap: 1.8cqw;
+  padding: 6cqw 6.6cqw;
+  border: 1.17cqw solid var(--ocv-line-strong);
   color: var(--ocv-ink);
-  box-shadow: var(--lp-shadow);
-  font: 400 calc(0.12 * var(--u)) / 1.3 var(--ocv-font-ui);
-  transition: transform var(--motion-base) var(--ease-out);
-}
-
-.tileFace b {
-  font-weight: 600;
-  font-size: calc(0.15 * var(--u));
-  line-height: 1.2;
 }
 
 .tileTag {
   color: var(--ocv-ink-3);
-  font: 500 calc(0.085 * var(--u)) / 1.2 var(--ocv-font-mono);
+  font: 500 3.5cqw / 1.2 var(--ocv-font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tileChip {
   justify-self: start;
-  padding: calc(0.03 * var(--u)) calc(0.06 * var(--u));
-  border-radius: calc(0.04 * var(--u));
-  background: var(--ocv-indigo-wash);
+  max-width: 100%;
+  padding: 1.6cqw 2.7cqw;
+  border-radius: 1.6cqw;
+  background: var(--ocv-bg);
   color: var(--ocv-indigo-ink);
-  font: 500 calc(0.09 * var(--u)) / 1.2 var(--ocv-font-mono);
+  font: 500 3.7cqw / 1 var(--ocv-font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.stage[data-stage="7"] .tile {
+.tileTitle {
+  display: -webkit-box;
+  margin-top: 1.4cqw;
+  overflow: hidden;
+  font: 600 5.9cqw / 1.2 var(--ocv-font-ui);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.tileAbout {
+  overflow: hidden;
+  color: var(--ocv-ink-2);
+  font: 400 4.3cqw / 1.3 var(--ocv-font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage[data-stage="7"] .box[data-kind="tile"] {
   pointer-events: auto;
   cursor: pointer;
 }
 
-.stage[data-stage="7"] .tile:hover .tileFace {
-  transform: translateZ(calc(0.25 * var(--u))) rotateX(8deg) rotateY(-6deg);
-}
-
-/* PDF / YAML / TXT peeling off the published LiveCV. */
-.format {
+.formatFace {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
-  width: calc(1.1 * var(--u));
-  height: calc(0.52 * var(--u));
-  margin: calc(-0.26 * var(--u)) 0 0 calc(-0.55 * var(--u));
-  border: 1px solid var(--ocv-line-strong);
-  border-radius: calc(0.08 * var(--u));
-  background: var(--ocv-raise);
+  border: 2px solid var(--ocv-line-strong);
+  border-radius: 14px;
   color: var(--ocv-ink);
-  box-shadow: var(--lp-shadow);
-  font: 500 calc(0.18 * var(--u)) / 1 var(--ocv-font-mono);
+  font: 500 17cqw / 1 var(--ocv-font-mono);
 }
 
-/* Labels pinned beside objects; they face the camera. */
+/* ---------- Labels: pinned beside objects, projected to the screen every frame ---------- */
+
+.labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .label {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: 0;
+  top: 0;
   padding: 5px 9px 5px 11px;
   border-left: 1px solid var(--ocv-indigo-ink);
   background: color-mix(in srgb, var(--ocv-bg) 72%, transparent);
@@ -430,6 +663,19 @@
   font: 400 10.5px / 1.5 var(--ocv-font-mono);
   white-space: nowrap;
   opacity: 0;
+  translate: 0 -50%;
+}
+
+.label[data-anchor="end"] {
+  translate: -100% -50%;
+}
+
+.label[data-anchor="above"] {
+  translate: -50% -100%;
+}
+
+.label[data-anchor="middle"] {
+  translate: -50% -50%;
 }
 
 .label b {
@@ -476,24 +722,13 @@
   justify-items: start;
   width: min(100% - 2 * var(--lp-gut), 520px);
   opacity: 0;
-  transform: translateY(14px);
   pointer-events: none;
-  transition:
-    opacity var(--motion-base-exit) var(--ease-in),
-    transform var(--motion-base-exit) var(--ease-in);
 }
 
 .captionStart {
   width: min(100% - 2 * var(--lp-gut), 640px);
-}
-
-.captionOn {
   opacity: 1;
-  transform: none;
   pointer-events: auto;
-  transition:
-    opacity 520ms var(--ease-out) 140ms,
-    transform 620ms var(--ease-out) 140ms;
 }
 
 .title {
@@ -665,11 +900,12 @@ h1.title > span {
   border-color: var(--ocv-teal);
 }
 
+/* one feature in full: it grows out of its tile and stays on it (the frame loop places it) */
 .featureCard {
   position: absolute;
   z-index: 6;
-  top: 50%;
-  right: calc(var(--lp-gut) + 140px);
+  left: 0;
+  top: 0;
   display: grid;
   gap: 12px;
   justify-items: start;
@@ -679,8 +915,7 @@ h1.title > span {
   border-radius: var(--ocv-radius-panel);
   background: var(--ocv-raise);
   box-shadow: var(--ocv-shadow-float);
-  transform: translateY(-50%);
-  animation: lp-card-in var(--motion-base) var(--ease-out);
+  animation: lp-card-in 320ms var(--ease-out);
 }
 
 .featureCard[hidden] {
@@ -709,7 +944,7 @@ h1.title > span {
 @keyframes lp-card-in {
   from {
     opacity: 0;
-    transform: translateY(-50%) scale(0.96);
+    scale: 0.8;
   }
 }
 
@@ -748,7 +983,7 @@ h1.title > span {
 }
 
 .iconButton svg,
-.next svg {
+.nextIcon {
   width: 16px;
   height: 16px;
   fill: none;
@@ -826,6 +1061,7 @@ h1.title > span {
   color: var(--ocv-ink-2);
   font: 400 0.6875rem / 1 var(--ocv-font-mono);
   transform: translateX(-50%);
+  opacity: 0;
   cursor: pointer;
 }
 
@@ -833,13 +1069,50 @@ h1.title > span {
   color: var(--ocv-ink);
 }
 
-.next svg {
+/* the ring traced round "scroll" and removed the same way, over and over (the mockup's signature) */
+.nextRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.nextRing rect {
+  x: 0.75px;
+  y: 0.75px;
+  width: calc(100% - 1.5px);
+  height: calc(100% - 1.5px);
+  rx: 17px;
+  fill: none;
+  stroke: var(--ocv-teal);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 1;
+  animation: lp-ring 5s linear infinite;
+}
+
+@keyframes lp-ring {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  32%,
+  52% {
+    stroke-dashoffset: 0;
+  }
+  84%,
+  100% {
+    stroke-dashoffset: -1;
+  }
+}
+
+.nextIcon {
   width: 14px;
   height: 14px;
   transition: transform 400ms var(--ease-out);
 }
 
-.nextBack svg {
+.nextBack .nextIcon {
   transform: rotate(180deg);
 }
 
@@ -993,6 +1266,11 @@ h1.title > span {
 
 /* ---------- Phones: stacked (upright) and side (on its side) ---------- */
 
+/* stacked: the frame loop draws the scene into the band above the text; the text stands on plain background */
+.stage[data-layout="stacked"]::after {
+  background: linear-gradient(to top, var(--ocv-bg) var(--veil, 50%), transparent calc(var(--veil, 50%) + 32px));
+}
+
 @media (max-width: 767px) {
   .page {
     --lp-rest: 58px;
@@ -1001,15 +1279,6 @@ h1.title > span {
 
   .story {
     --lp-stage-h: calc(100svh - var(--app-header-height));
-  }
-
-  .viewport {
-    --u: min(calc(100cqh / 8.5), calc(100cqw / 5.2));
-    transform: translateY(-22%);
-  }
-
-  .stage::after {
-    background: linear-gradient(to top, var(--ocv-bg) 44%, transparent 64%);
   }
 
   .caption {
@@ -1045,7 +1314,6 @@ h1.title > span {
     bottom: calc(var(--lp-rest) + var(--lp-foot-h));
   }
 
-  /* The scene above already shows the link and the formats. */
   .caption[data-stage="go"] > .lead,
   .caption[data-stage="go"] .formats {
     display: none;
@@ -1055,16 +1323,14 @@ h1.title > span {
     bottom: calc(var(--lp-foot-h) + (var(--lp-rest) - 34px) / 2);
   }
 
-  /* The rail row needs the full width; the footer and the drawer link keep FAQ reachable. */
+  /* The rail row needs the full width; the footer link keeps FAQ reachable. */
   .faqButton {
     display: none;
   }
 }
 
 @media (max-width: 767px) and (max-height: 620px) {
-  .captionStart .lead,
-  .caption[data-stage="go"] > .lead,
-  .caption[data-stage="go"] .formats {
+  .captionStart .lead {
     display: none;
   }
 }
@@ -1217,40 +1483,26 @@ h1.title > span {
   }
 
   .featureCard {
-    top: 48px;
-    right: var(--lp-gut);
     left: var(--lp-gut);
+    right: var(--lp-gut);
+    top: 48px;
     width: auto;
-    transform: none;
-  }
-
-  .featureCard {
-    animation-name: lp-card-in-phone;
-  }
-}
-
-@keyframes lp-card-in-phone {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+    translate: none !important;
   }
 }
 
 /* ---------- Reduced motion: a static frame per stage and a crossfade ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .caption,
-  .captionOn {
-    transform: none;
-  }
-
-  .drift,
-  .stage[data-ready][data-stage="0"] .drift {
+  .dust,
+  .nextRing rect,
+  .box[data-trace] .trace {
     animation: none;
   }
 
-  .stage[data-stage="7"] .tile:hover .tileFace {
-    transform: none;
+  .box[data-trace="cycle"] .trace,
+  .box[data-trace="once"] .trace {
+    --lp-trace: 360deg;
   }
 }
 
@@ -1263,11 +1515,10 @@ h1.title > span {
     height: auto;
     margin-bottom: 0;
     overflow: visible;
-    container-type: normal;
   }
 
   .slot,
-  .viewport,
+  .lens,
   .rail,
   .next,
   .faqButton,
@@ -1283,15 +1534,43 @@ h1.title > span {
     padding: 40px var(--lp-gut) 72px;
   }
 
-  .caption,
-  .captionOn {
+  .caption {
     position: static;
     width: min(100%, 640px);
     opacity: 1;
-    transform: none;
   }
 
   .footer {
     margin-top: 0;
+  }
+}
+
+/* ---------- /login: the same sheets drifting loose in a small scene of their own ---------- */
+
+.ambient {
+  position: fixed;
+  inset: var(--app-header-height) 0 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* the same veil as on the start page: the form stays readable, the sheets show toward the right */
+.ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--ocv-bg) 16%, transparent 62%);
+}
+
+.ambientLens {
+  position: absolute;
+  inset: 0;
+  perspective: 1000px;
+}
+
+@media (max-width: 767px) {
+  .ambient::after {
+    background: color-mix(in srgb, var(--ocv-bg) 55%, transparent);
   }
 }

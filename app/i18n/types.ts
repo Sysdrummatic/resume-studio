@@ -90,7 +90,17 @@ export type AppDictionary = {
       start_label: string;
       /** Every stage after the start, in story order. */
       stages: Array<{ id: string; label: string; title: string; body: string }>;
-      scene: { base: string; picked: string; picked_note: string; published: string; saved: string };
+      scene: {
+        base: string;
+        picked: string;
+        picked_note: string;
+        published: string;
+        saved: string;
+        /** titles of the three LiveCVs the scene builds from the sample CV */
+        versions: { fe: string; pf: string; ai: string };
+        /** v3 (published), v2, v1 with their dates */
+        snapshots: string[];
+      };
     };
     features: {
       list_label: string;

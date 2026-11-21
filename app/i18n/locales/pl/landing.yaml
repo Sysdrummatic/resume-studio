@@ -63,6 +63,14 @@ landing:
       picked_note: baza zostaje cała
       published: opublikowana
       saved: zapisana
+      versions:
+        fe: Starsza programistka frontend
+        pf: Inżynierka platformy
+        ai: Inżynierka systemów AI
+      snapshots:
+        - v3, 3 lis
+        - v2, 30 wrz
+        - v1, 2 wrz
   features:
     list_label: Funkcje OpenCiVera
     close: Zamknij opis funkcji
