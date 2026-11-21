@@ -218,6 +218,9 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
     let skipping = false;
     let fade = 0;
     let reaches: number[] = [];
+    let skipTimer = 0;
+    let cardSize = { open: null as number | null, w: 0, h: 0 };
+    const labelWidths = new Map<string, number>();
     let reachesFor = 0;
     const pointer = { x: 0, y: 0 };
     const gaze = { x: 0, y: 0 };
@@ -367,7 +370,12 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
           let x = point[0] - view.shiftX * width * 0.5;
           if (scene.lite) {
             /* a phone keeps every label inside the screen */
-            const w = el.offsetWidth;
+            /* measured once per layout: reading offsetWidth after this frame's writes would force a reflow */
+            let w = labelWidths.get(label.key);
+            if (w === undefined) {
+              w = el.offsetWidth;
+              labelWidths.set(label.key, w);
+            }
             const share = label.anchor === "end" ? -1 : label.anchor === "above" || label.anchor === "middle" ? -0.5 : 0;
             const left = x + w * share;
             x += Math.max(0, 8 - left) - Math.max(0, left + w - (width - 8));
@@ -382,8 +390,9 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       if (tile) {
         const centre = toScreen(view, width, height, ...tile.pose.position);
         if (centre) {
-          const left = clamp(centre[0] - card!.offsetWidth / 2, 16, width - card!.offsetWidth - 16);
-          const top = clamp(centre[1] - card!.offsetHeight / 2, 16, height - card!.offsetHeight - 16);
+          if (cardSize.open !== open) cardSize = { open, w: card!.offsetWidth, h: card!.offsetHeight };
+          const left = clamp(centre[0] - cardSize.w / 2, 16, width - cardSize.w - 16);
+          const top = clamp(centre[1] - cardSize.h / 2, 16, height - cardSize.h - 16);
           card!.style.translate = `${left.toFixed(1)}px ${top.toFixed(1)}px`;
         }
       }
@@ -430,7 +439,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
         /* a fast scroll goes straight to its stage: a quick fade instead of a trip through every stage between */
         skipping = true;
         lens!.style.opacity = "0";
-        window.setTimeout(() => {
+        skipTimer = window.setTimeout(() => {
           clock.progress = target - Math.sign(target - clock.progress) * 0.35;
           lens!.style.opacity = "";
           skipping = false;
@@ -509,6 +518,8 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
     };
     const onLayout = () => {
       reaches = [];
+      labelWidths.clear();
+      cardSize = { open: null, w: 0, h: 0 };
       if (reduced.matches) stillFrame(true);
       else {
         render(0);
@@ -536,6 +547,7 @@ export default function LandingStory({ hero, story, features, cta, cv }: Props) 
       running = false;
       window.cancelAnimationFrame(frame);
       window.clearTimeout(fade);
+      window.clearTimeout(skipTimer);
       observer.disconnect();
       window.removeEventListener("scroll", wake);
       window.removeEventListener("resize", onLayout);
