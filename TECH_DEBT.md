@@ -244,6 +244,11 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
 
 ## Scena landingu (#290): przybliżenia względem makiety
 
+- **Wydajność do potwierdzenia na buildzie produkcyjnym (benchmark 2026-11-21, serwery dev).** LCP na telefonie
+  1096 → 1668 ms (głównie TTFB +425 ms z jednego przebiegu; LCP−TTFB 123 → 270 ms), CSS 228 → 324 KB
+  (nieminifikowany), węzły DOM strony 601 → 1892 (ściany brył i tekst CV na arkuszach). Zmierzyć
+  `next build` + `next start`; jeśli DOM boli, łączyć warstwy ścian (światło i mgła) albo
+  renderować tekst arkuszy tylko na etapach, na których jest czytelny.
 - **Kartki nie wyginają się.** Makieta (WebGL) wygina arkusz w locie (łuk i fala na
   krawędzi, sprężyna). Płaszczyzna DOM nie zgina się, więc ta sama sprężyna obraca
   arkusz o kilka stopni (`airSway` w `scene-model.ts`). Wierniej: arkusz z 3–4 pasków
