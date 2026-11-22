@@ -320,3 +320,10 @@ test("LiveCV?: the browser window waits until the CV has come to rest, then a se
   assert.match(css, /\.box\[data-trace="wait"\] > \.face \{[^}]*opacity: 0;/);
   assert.match(css, /\.box\[data-trace="cycle"\] > \.face \{[^}]*animation: lp-trace-frame 5\.6s [^;]* 1s infinite backwards;/);
 });
+
+test("review fixes: Esc on the short-window screen opens the simplified version too; the carousel loop runs on phones only", () => {
+  const screen = readFileSync("app/components/landing/short-window-screen.tsx", "utf8");
+  const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
+  assert.match(screen, /const dismiss = \(\) => \{\s*dismissed\.current = true;\s*simplify\.current\(\);/);
+  assert.match(story, /if \(!phone\.matches\) return;/);
+});

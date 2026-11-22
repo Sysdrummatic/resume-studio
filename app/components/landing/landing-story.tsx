@@ -96,6 +96,8 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
     const list = featureListRef.current;
     if (!list || active !== AT.feats) return;
     const phone = window.matchMedia("(max-width: 767px), (orientation: landscape) and (max-height: 560px)");
+    // ponytail: checked when the features come on screen; a window resized onto a phone layout meanwhile drifts from the next visit
+    if (!phone.matches) return;
     const reduced = window.matchMedia(REDUCED_QUERY);
     const SPEED = 22;
     let frame = 0;

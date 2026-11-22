@@ -13,8 +13,9 @@ export const LANDING_CONFIG_DEFAULTS: LandingConfig = {
 
 const CONFIG_PATH = path.join(process.cwd(), "content", "landing.yaml");
 
-/* a path on this site, or an https address: never javascript:, data: or a protocol-relative //host */
-const isSafeHref = (value: string) => (value.startsWith("/") && !value.startsWith("//")) || /^https:\/\/[^\s]+$/.test(value);
+/* a path on this site, or an https address: never javascript:, data:, a protocol-relative //host or /\host (browsers read it as //host) */
+const isSafeHref = (value: string) =>
+  (value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")) || /^https:\/\/[^\s\\]+$/.test(value);
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 

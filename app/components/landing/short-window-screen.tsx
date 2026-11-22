@@ -22,6 +22,8 @@ type Props = {
 export default function ShortWindowScreen({ copy, name, onSimplify }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const dismissed = useRef(false);
+  const simplify = useRef(onSimplify);
+  simplify.current = onSimplify;
 
   useEffect(() => {
     const dialog = ref.current;
@@ -31,8 +33,10 @@ export default function ShortWindowScreen({ copy, name, onSimplify }: Props) {
       if (query.matches && !dismissed.current && !dialog.open) dialog.showModal();
       if (!query.matches && dialog.open) dialog.close();
     };
+    /* Esc closes the screen the same way as its button: into the simplified version */
     const dismiss = () => {
       dismissed.current = true;
+      simplify.current();
     };
     sync();
     query.addEventListener("change", sync);
