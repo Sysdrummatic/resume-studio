@@ -103,3 +103,53 @@ test("an expired or already-used recovery link surfaces an error instead of sile
     true,
   );
 });
+
+test("login shows loose floating sheets behind an h1, presentation only (#290)", () => {
+  const page = readSource(loginPagePath);
+  assert.match(page, /<FloatingSheets cv=\{cv\} \/>/);
+  assert.match(page, /<h1 className=\{styles\.title\}>\{entry\.title\}<\/h1>/);
+  assert.match(page, /<AccountAccessClient\b/);
+  const sheets = readSource(path.join(process.cwd(), "app", "components", "landing", "floating-sheets.tsx"));
+  assert.match(sheets, /aria-hidden="true"/);
+  assert.match(sheets, /visibilitychange/);
+  assert.match(sheets, /const COUNT = 10;/, "the mockup's ten loose sheets");
+  /* the sample CV only decorates the sheets: failing to read it must never take /login down */
+  assert.match(page, /loadSampleResumeData\(\)\.catch\(\(\) => null\)/);
+  assert.match(sheets, /cv: SceneCv \| null/);
+});
+
+test("the auth card looks like the mockup's panel, on LiveCV tokens, with AccountAccessClient untouched (#290)", () => {
+  const css = readSource(path.join(process.cwd(), "app", "login", "login.module.css"));
+  const rule = (selector) => extractRule(css, selector);
+  assert.doesNotMatch(css, /--portal-/, "no legacy palette on /login");
+  const card = rule(".entry :global(.auth-card)");
+  assert.match(card, /background: var\(--ocv-raise\)/);
+  assert.match(card, /border: 1px solid var\(--ocv-line-strong\)/);
+  assert.match(card, /border-radius: 20px/);
+  assert.match(rule(".entry :global(.auth-card)::before"), /animation: card-trace/, "traced once round the panel, as in the mockup");
+  assert.match(rule(".entry :global(.auth-card__title)"), /var\(--ocv-font-display\)/);
+  assert.match(rule(".entry :global(.product-surface__eyebrow)"), /color: var\(--ocv-ink-3\)/);
+  const input = rule(".entry :global(.auth-card input:not([type=\"checkbox\"]))");
+  assert.match(input, /border: 1px solid var\(--ocv-control\)/);
+  assert.match(input, /border-radius: 12px/);
+  assert.match(input, /min-height: var\(--ocv-hit\)/);
+  const primary = rule(".entry :global(.auth-card .button--primary)");
+  assert.match(primary, /background: var\(--ocv-ink\)/);
+  assert.match(rule(".entry :global(.auth-card .button)"), /border-radius: var\(--ocv-radius-pill\)/);
+  assert.match(rule(".entry :global(.auth-card__support-row)"), /order: 1/, "'Forgot password?' sits under the button");
+});
+
+test("the copy beside the card stays put when the card changes height (sign in <-> sign up)", () => {
+  const css = readSource(path.join(process.cwd(), "app", "login", "login.module.css"));
+  /* sticky inside the grid row followed the card's height: the headline jumped when switching forms */
+  assert.doesNotMatch(css, /position: sticky/);
+  assert.match(css, /\.copy \{\s*margin-top: clamp\(/);
+});
+
+test("the login sheets read the scene tokens of the landing: a light page outlines the white sheets (#290)", () => {
+  const css = readSource(path.join(process.cwd(), "app", "landing.module.css"));
+  /* one rule for both scenes, so the outline and paper colours never drift apart */
+  const tokens = css.match(/\.page,\s*\.ambient\s*\{([^}]*)\}/)?.[1] || "";
+  assert.match(tokens, /--lp-sheet-edge: var\(--ocv-L, #8a92a8\) var\(--ocv-D, transparent\);/);
+  assert.match(tokens, /--lp-paper: #ffffff;/);
+});

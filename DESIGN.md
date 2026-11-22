@@ -58,8 +58,8 @@ CV only:   Space Grotesk (local @font-face, see below)
 
 Fraunces never appears in dense product UI (labels, buttons, tables, small
 headings). All faces are self-hosted by next/font; Fraunces is vendored, so builds
-never reach Google (offline `verify`/`ci`, `CLAUDE.md`) and it is not preloaded until
-a screen renders it. Do not introduce any other family
+never reach Google (offline `verify`/`ci`, `CLAUDE.md`); it is preloaded since #290
+(the landing h1 renders it above the fold). Do not introduce any other family
 without an ADR. Legacy screens still read `--font-body`/`--font-display` (Geist)
 from `app/globals.css` until their redesign stage.
 
@@ -277,10 +277,11 @@ no header to align with, use `--layout-content-max` instead.
 12 columns, `column-gap: clamp(16px, 1.6vw, 26px)`, placed with explicit column
 lines (`grid-column: 1 / 8`) on wide product surfaces.
 
-**Landing exception (2026-10-02):** restores the master composition: a 900px
-text container with 24px internal gutters inside a 1080px shell and CV/animation
-stage. The landing footer uses the text width. The shared header uses the same
-1600px canvas and portal gutters on every route, including `/`.
+**Landing (#290, replaces the 2026-10-02 master composition):** one pinned CSS 3D
+stage under the shared header, full bleed. Captions sit bottom left (32px gutter from
+768px, 16px below) behind a left veil; the scene shows toward the right; the stage
+rail sits on the right (a single row at the top on phones). The landing's own footer
+is frosted glass sliding over the end of the pinned story. See Motion → Landing story.
 
 **App shell (#289, revised from "navigation sits to the left after the brand"):**
 the brand sits alone on the left; everything else is right-aligned in the mockup's
@@ -288,17 +289,11 @@ order: page links (the current one marked `aria-current="page"` with a 2px teal
 underline), the PL/EN segmented language switch, the theme switch, then the
 account avatar or the sign-in/sign-up buttons. Below 980px the page links and guest
 actions collapse into the menu button at the end of the row. A footer
-(docs · privacy · terms) closes every page except `/`, which keeps its own footer
-until #290. Page frame classes: `.ocv-page` (1152px), `--wide` (1400px),
+(docs · privacy · terms) closes every page except `/`, which has its own frosted
+footer (#290). Page frame classes: `.ocv-page` (1152px), `--wide` (1400px),
 `--narrow` (860px), `.ocv-page-head`; screens adopt them in their own stages.
 Route changes crossfade the content with a small rise while the header stays
 (React `<ViewTransition>` keyed by path, `app/components/route-transition.tsx`).
-Outer landing gutters match master:
-8px below 480px and 16px from 480px. Hero and final CTA retain the master typography and copy
-(English source plus Polish translation); hero copy is pending a separate review
-of the automatic-update claim. Publication behavior remains snapshot-based.
-The sequence is hero → sample CV → Experience Base animation → features → FAQ
-→ final CTA. The sample uses the existing inline renderer, with a full-CV link.
 
 - Never fill a wide row with `justify-self: end` — that pushes body copy to the
   far edge and leaves a 400px void mid-row. Place it on a column line instead.
@@ -311,7 +306,7 @@ The sequence is hero → sample CV → Experience Base animation → features �
 Body / paragraphs:     54–65ch     (never wider)
 Long-form prose:       64–72ch
 Supporting / captions: 44–48ch
-Display headings:      15–18ch     (product; landing restores master's wider heading)
+Display headings:      15–18ch     (product; landing captions are capped at 520–640px)
 ```
 
 Caps go on the element in `ch`, not on the grid column — the column defines
@@ -335,9 +330,18 @@ and `landing.module.css`. Do not add values between these steps:
 `app/components/app-header-navigation.tsx`. In JS/TS **import it**; in CSS write
 `(min-width: 980px)` literally — never redefine the number in a constant of your own.
 
-Landing-only exception: `480px` in `app/landing.module.css` restores master's
-outer gutters. It changes only `/` and does not define a navigation breakpoint.
-The layout guard permits it only in this module, separately from legacy exceptions.
+The landing's compact layouts use `(max-width: 767px)` (stacked) and the height query
+`(orientation: landscape) and (max-height: 560px)` (side). Side is not touch-only: a short
+computer window gets it too, because the wide layout pushes the hero under the header
+below ~560px of height. The CSS and the scene controller read the same two conditions, so
+they never disagree. A short window with a fine pointer (`(max-height: 560px) and
+(pointer: fine)`) also opens a full-screen modal `<dialog>` (`short-window-screen.tsx`) asking
+for a taller window: the LiveCV window in miniature with its traced outline, a CV sheet
+that does not fit and scrolls inside it, and a 560 px dimension line. It closes by itself
+when the window grows; once dismissed (button or Esc) it stays closed until reload. Its button opens the
+simplified version (`.stage[data-simple]`, same media query): only the stage headings,
+centred in height, kept at their horizontal position. A
+phone in landscape never gets it, since it cannot grow.
 
 ### Breakpoints — CV domain
 
@@ -455,7 +459,8 @@ One language, two intensities: **expressive** (landing, login, onboarding —
 choreographed CSS 3D scene changes, 500–700ms, staggered) and **restrained**
 (editor, dashboard, admin, docs — state changes, 100–240ms). Native CSS only
 (transitions, View Transitions, `@property`, `linear()` used sparingly); no
-animation library. Only `transform`, `opacity` and colours animate.
+animation library. Only `transform`, `opacity` and colours animate. The landing and
+login CSS 3D scenes run one sleeping `requestAnimationFrame` loop (ADR 0026, amended).
 
 ```
 --motion-instant:    100ms   hover, focus, toggles
@@ -496,20 +501,64 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 
 - **Button press**: `.button:active:not(:disabled)` cancels the hover lift and settles to
   `scale(0.98)` over `--motion-press` (90ms). Applies to every action button portal-wide.
-- **Scroll reveal (brand / landing only)**: below-the-fold sections fade and rise 16px on
-  `--ease-out-expo` over 600ms as they enter the viewport, with an 80ms stagger across the
-  publishing-model cards. Driven by `app/components/scroll-reveal.tsx` (IntersectionObserver).
-  The hidden start state is gated behind the `.lp--reveal-ready` class the controller adds, so
-  content stays visible without JS and for crawlers. The hero is never gated. The stagger
-  applied to landing cards that no longer exist; only the base reveal remains.
-- **Landing features carousel**: native horizontal scrolling at 30px/s from 768px
-  on devices with hover, only while visible. Hover or keyboard focus pauses movement; the
-  selected card enlarges slightly. A persistent pause/resume button is available.
-  Phones, touch and reduced motion use manual scrolling without duplicate cards; reduced
-  motion also disables enlargement. The repeated visual group is hidden from
-  assistive technology. Hero rotating words retain the master treatment and show
-  a static first word when reduced motion is requested.
-- **Experience Base explainer (landing)**: the isolated iframe collects career tiles in
+- **Landing story (#290)**: one pinned stage, nine stages (start → LiveCV as a link →
+  Experience Base → select → build LiveCV → versions → history → features → public card),
+  a port of the "OpenCiVera LiveCV 3D" mockup's scene to DOM. `scene-model.ts` holds the
+  mockup's timeline 1:1 (every box has keyed poses with lag and late fades; swirls, orbits,
+  the opening vortex, drift and a spring for the air), its cameras (fit beside the text,
+  lens shift, pointer parallax) and its distance haze. `landing-story.tsx` writes each
+  box's `matrix3d` from it every frame: bricks are six-faced boxes lit per face, sheets
+  print the public sample CV (three LiveCVs pick different entries, `scene-cv.ts`), the
+  browser window's outline is traced like `.ocv-traced`, labels are projected to the
+  screen and kept inside it on phones, the feature card grows out of its tile. Scrolling
+  is stage by stage with native snapping: `scroll-snap-type: y mandatory` and slots exactly
+  as tall as the stage with `scroll-snap-stop: always`, so one wheel step, swipe or key moves
+  one stage and the page rests on it (no wheel handler). The timeline follows the scroll
+  position as in the mockup (`follow`: `FOLLOW = 0.068` of the remaining way per 60Hz frame,
+  frame rate corrected; the mockup's 0.1 slowed so a transition lasts 50% longer; `SLOW_SEGMENTS`
+  play LiveCV? to base, pick to ready and the feature tiles coming and going at 0.55 of that pace;
+  the half slot right after the features is slowed further (`TILE_EXIT_PACE`), because following
+  is fastest at the start of a transition, so the tiles hide exactly as slowly as they come out;
+  the picked entries land on the LiveCV glowing teal, stay a moment and fade into it), so it moves continuously through every pose and eases to a stop on the
+  stage; style values are written unrounded. The rail and the Scroll/Back pill move exactly
+  one stage. On LiveCV? the browser window (rounded corners, set 0.25 units behind the CV so the
+  sheet always stays in front) is drawn round the CV from its top-left corner until whole,
+  stays, and is taken off the same way round (`lp-trace-frame`: a conic mask, `--lp-trace`
+  0 to 720deg), starting one second after the CV has come to rest in the middle (`data-trace="wait"`
+  until then); the last stage peels off rounded PDF, YAML and TXT
+  chips, and the link beside the LiveCV is a real link set in `content/landing.yaml`
+  (non-copy home page settings; copy stays in the landing dictionaries). The hero headline
+  is four lines (two from `hero.title`, a list, then the rotating word and the suffix), the
+  rotating word sized to the word on screen. Idle loops (orbits, drift, dust, traced
+  outlines, the ring round "scroll") pause off screen, on a hidden tab and while a tile is
+  pointed at; the frame loop sleeps once a stage has settled. On an upright phone the scene is drawn into the band above the active caption, eased between
+  stages; a short window (phone or computer) uses the side layout with the rail as a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
+  per stage and a 200ms crossfade, captions crossfade too.
+  Without JavaScript (`@media (scripting: none)`) every caption is plain text, the
+  scene is hidden, there is no scroll snap (the page opens at the top and runs to the
+  footer) and the FAQ drawer is a plain section at `/#faq` with native `<details>`.
+  The scene's objects and labels are `aria-hidden`; the one real link (the sample LiveCV
+  in the last stage, `content/landing.yaml`) sits outside them. Captions are real headings;
+  a caption or label that has faded out is `inert`, so Tab and Shift+Tab only reach what is
+  on screen and the rail (each button named by its stage label, `aria-current` on the
+  active one) reaches every stage. The feature tiles have a real button list (visually
+  hidden on wide screens until focused, cards on phones that drift slowly while the
+  features are on screen, stop for 4s when touched and for as long as the focus is in
+  the list); closing a feature card gives the focus back to the button that opened it. The
+  FAQ is a native `<dialog>` drawer opened from any `/#faq` link. Hero rotating words pause
+  while the start caption is off stage. Reduced motion switched on in an open tab stops
+  the scene loop and the rotating word at once (still frame and crossfade); switched off,
+  one loop resumes.
+- **Login card (#290)**: the auth card is the mockup's panel, styled in `app/login/login.module.css`
+  on LiveCV tokens (no portal palette) while AccountAccessClient keeps its markup and logic: raised
+  panel with a 20px radius traced once in teal, mono eyebrow, display title, plain 13px labels, 12px
+  rounded fields on the page background, full-width ink pill button (teal on hover), underlined indigo
+  links, "forgot password" under the button.
+- **Login sheets (#290)**: the mockup's ten loose sheets (every fourth a real CV) circle
+  slowly in a small scene of their own behind `/login`, dimmed and hazed, with the same
+  spring; the loop sleeps on a hidden tab; reduced motion draws one still frame.
+- **Retired (#290)**: the Experience Base explainer iframe, the features carousel and the
+  scroll reveal were removed with the old landing. For history, the explainer was: the isolated iframe collects career tiles in
   one randomly ordered column, tracks downward, moves the tiles into a stationary queue,
   and fills the empty Experience Base one item at a time. The document pans downward
   through its sections, zooms out, then gives rise to three selected CVs. CV 2 finishes
@@ -531,11 +580,13 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
 - Ambient animation only on non-content layers (background pseudo-elements)
 - Entrance animations must not delay information access. Below-the-fold content may be gated;
   in a hero, only a decorative artifact may animate, and never the copy or the CTAs
-- No looping animations on content elements at idle state, except the explicitly
-  requested landing features carousel and restored hero rotating words above
+- No looping animations on content elements at idle state, except the hero rotating
+  words above (paused when off stage); decorative idle loops (landing drift, login
+  sheets) pause off screen and on hidden tabs
 - `prefers-reduced-motion: reduce` must disable all non-essential motion. A global guard in
   `app/components/design-system/tokens.css` (moved there from `app/globals.css`) zeroes
-  transition and animation durations; reveal targets are forced visible
+  transition and animation durations; an element marked `[data-crossfade]` keeps a 200ms
+  opacity transition only (epic #190 decision 2: static frame plus crossfade)
 - New transitions use `--ease-out` to enter and the shorter `--ease-in` to leave (`--ease-out-expo` is the same curve, kept for legacy rules). No bounce, no elastic curves; `linear()` springs only in expressive scene changes, sparingly
 
 ---

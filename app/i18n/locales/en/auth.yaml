@@ -1,4 +1,7 @@
 auth:
+  entry:
+    title: One Experience Base. A separate LiveCV for each job offer.
+    free_note: "Completely free: no paywalls, no hidden fees."
   contextual:
     verified: Email verification completed. You can sign in now.
     account_deleted: Your account and all associated data have been permanently deleted.

@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Filenames in /fonts and /animations are not hashed, so a replaced file must be picked up within a week.
+// Filenames in /fonts are not hashed, so a replaced file must be picked up within a week.
 const STATIC_ASSET_CACHE = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }];
 
 const nextConfig: NextConfig = {
@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   // The sample CV is read from public/data at request time (app/lib/sample-resume.ts);
   // without this the serverless bundle for / and /resume may not contain those files.
   outputFileTracingIncludes: {
-    "/": ["./public/data/public/**/*"],
+    "/": ["./public/data/public/**/*", "./content/landing.yaml"],
     "/resume": ["./public/data/public/**/*"],
   },
   async headers() {
@@ -28,7 +28,6 @@ const nextConfig: NextConfig = {
         ],
       },
       { source: "/fonts/:path*", headers: STATIC_ASSET_CACHE },
-      { source: "/animations/:path*", headers: STATIC_ASSET_CACHE },
       { source: "/api/resume/export/:path*", headers: noindex },
       { source: "/api/public/opencv/v1/:path*", headers: noindex },
     ];

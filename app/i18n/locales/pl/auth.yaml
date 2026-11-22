@@ -1,4 +1,7 @@
 auth:
+  entry:
+    title: Jedna Baza doświadczeń. Osobne LiveCV dla konkretnych ofert.
+    free_note: "Całkowicie bezpłatnie: bez paywalli i ukrytych opłat."
   contextual:
     verified: Adres e-mail został zweryfikowany. Możesz się teraz zalogować.
     account_deleted: Twoje konto i wszystkie powiązane dane zostały trwale usunięte.

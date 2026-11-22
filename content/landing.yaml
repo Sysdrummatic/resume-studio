@@ -1,0 +1,10 @@
+# Strona główna (/): ustawienia, które nie są tekstem do tłumaczenia.
+# Teksty strony głównej (PL i EN) są w app/i18n/locales/pl/landing.yaml i app/i18n/locales/en/landing.yaml.
+# Zmiana w tym pliku działa po przeładowaniu strony; błędny wpis nie psuje strony, tylko wraca do wartości domyślnych.
+
+sample_livecv:
+  # Dokąd prowadzi link przy LiveCV Ariany w etapie „Do dzieła!”:
+  # ścieżka w serwisie (zaczyna się od /) albo pełny adres https://
+  url: /resume
+  # Tekst wyświetlany na linku
+  label: opencivera.com/arianaholt/2f1a2877322e46

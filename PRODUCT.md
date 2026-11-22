@@ -102,9 +102,14 @@ One motion language, two intensities (epic #190 decision 1, ADR 0026):
 Rules for both:
 - Motion shows cause and effect; it never blocks work or delays information.
 - Native CSS only (transitions, View Transitions, `@property`, `linear()`); no
-  animation library. Only `transform` and `opacity` animate.
+  animation library. Only `transform` and `opacity` animate. The expressive CSS 3D
+  scenes (landing, login) may drive them from one `requestAnimationFrame` loop that
+  sleeps when settled (ADR 0026, amended for #290).
 - Entering is slower than leaving (`--ease-out` in, shorter `--ease-in` out).
-- Never: looping animations on idle content.
+- Never: looping animations on idle content. Decorative scene loops (the landing's
+  orbits, drift and dust, the traced outlines, the login sheets) are not content: they
+  are `aria-hidden`, pause off screen, on a hidden tab and while a tile is pointed at,
+  and stop under reduced motion (#290).
 - Always: respect `prefers-reduced-motion` — a static frame and a crossfade.
 
 ## Anti-Patterns (Impeccable-compatible)
