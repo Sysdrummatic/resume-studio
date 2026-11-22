@@ -138,3 +138,10 @@ test("the auth card looks like the mockup's panel, on LiveCV tokens, with Accoun
   assert.match(rule(".entry :global(.auth-card .button)"), /border-radius: var\(--ocv-radius-pill\)/);
   assert.match(rule(".entry :global(.auth-card__support-row)"), /order: 1/, "'Forgot password?' sits under the button");
 });
+
+test("the copy beside the card stays put when the card changes height (sign in <-> sign up)", () => {
+  const css = readSource(path.join(process.cwd(), "app", "login", "login.module.css"));
+  /* sticky inside the grid row followed the card's height: the headline jumped when switching forms */
+  assert.doesNotMatch(css, /position: sticky/);
+  assert.match(css, /\.copy \{\s*margin-top: clamp\(/);
+});

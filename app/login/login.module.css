@@ -62,9 +62,10 @@
     gap: clamp(24px, 5vw, 80px);
   }
 
+  /* a fixed distance from the top: sticky inside the grid row followed the card, so the headline
+     jumped when the card grew from sign in to sign up */
   .copy {
-    position: sticky;
-    top: calc(var(--app-header-height) + 25vh);
+    margin-top: clamp(24px, 22vh - 24px, 220px);
   }
 }
 
