@@ -117,3 +117,24 @@ test("login shows loose floating sheets behind an h1, presentation only (#290)",
   assert.match(page, /loadSampleResumeData\(\)\.catch\(\(\) => null\)/);
   assert.match(sheets, /cv: SceneCv \| null/);
 });
+
+test("the auth card looks like the mockup's panel, on LiveCV tokens, with AccountAccessClient untouched (#290)", () => {
+  const css = readSource(path.join(process.cwd(), "app", "login", "login.module.css"));
+  const rule = (selector) => extractRule(css, selector);
+  assert.doesNotMatch(css, /--portal-/, "no legacy palette on /login");
+  const card = rule(".entry :global(.auth-card)");
+  assert.match(card, /background: var\(--ocv-raise\)/);
+  assert.match(card, /border: 1px solid var\(--ocv-line-strong\)/);
+  assert.match(card, /border-radius: 20px/);
+  assert.match(rule(".entry :global(.auth-card)::before"), /animation: card-trace/, "traced once round the panel, as in the mockup");
+  assert.match(rule(".entry :global(.auth-card__title)"), /var\(--ocv-font-display\)/);
+  assert.match(rule(".entry :global(.product-surface__eyebrow)"), /color: var\(--ocv-ink-3\)/);
+  const input = rule(".entry :global(.auth-card input:not([type=\"checkbox\"]))");
+  assert.match(input, /border: 1px solid var\(--ocv-control\)/);
+  assert.match(input, /border-radius: 12px/);
+  assert.match(input, /min-height: var\(--ocv-hit\)/);
+  const primary = rule(".entry :global(.auth-card .button--primary)");
+  assert.match(primary, /background: var\(--ocv-ink\)/);
+  assert.match(rule(".entry :global(.auth-card .button)"), /border-radius: var\(--ocv-radius-pill\)/);
+  assert.match(rule(".entry :global(.auth-card__support-row)"), /order: 1/, "'Forgot password?' sits under the button");
+});

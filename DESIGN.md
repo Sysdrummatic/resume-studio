@@ -539,6 +539,11 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   tiles have a real button list (visually hidden on wide screens until focused, cards on
   phones that drift slowly while the features are on screen and stop for 4s when touched), and the FAQ is a native `<dialog>` drawer opened from any `/#faq`
   link. Hero rotating words pause while the start caption is off stage.
+- **Login card (#290)**: the auth card is the mockup's panel, styled in `app/login/login.module.css`
+  on LiveCV tokens (no portal palette) while AccountAccessClient keeps its markup and logic: raised
+  panel with a 20px radius traced once in teal, mono eyebrow, display title, plain 13px labels, 12px
+  rounded fields on the page background, full-width ink pill button (teal on hover), underlined indigo
+  links, "forgot password" under the button.
 - **Login sheets (#290)**: the mockup's ten loose sheets (every fourth a real CV) circle
   slowly in a small scene of their own behind `/login`, dimmed and hazed, with the same
   spring; the loop sleeps on a hidden tab; reduced motion draws one still frame.
