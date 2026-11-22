@@ -319,7 +319,7 @@ export function buildScene(narrow: boolean, lite: boolean, featureCount: number)
       { at: AT.go - 0.45 },
       {
         at: AT.go,
-        position: narrow ? [pileX + 1.15, 1.5 - k * 0.75, 1.4 + k * 0.2] : [pileX + 1.75, 1.2 - k * 0.85, 1.4 + k * 0.25],
+        position: narrow ? [pileX + 1.15, 1.5 - k * 0.75, 1.4 + k * 0.2] : [pileX + 1.3, 1.2 - k * 0.85, 1.4 + k * 0.25],
         rotation: [0.1, -0.32, -0.1 + k * 0.1], alpha: 1, late: 0.3,
       },
     ]),
