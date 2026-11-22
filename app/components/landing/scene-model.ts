@@ -591,9 +591,17 @@ export const FOLLOW = 0.068;
 export const SLOW_SEGMENTS: Readonly<Record<number, number>> = { [AT.livecv]: 0.55, [AT.pick]: 0.55, [AT.history]: 0.55, [AT.feats]: 0.55 };
 
 /** the pace of the transition the timeline is in, from position toward target (1 = FOLLOW as it is) */
+/** the tiles tuck away in the first half slot after the features, where following is fastest: that stretch is slowed
+    further, easing back into the segment's pace, so they hide as slowly as they came out at the end of the stretch before */
+export const TILE_EXIT_PACE = 0.13;
+
 export function paceAt(position: number, target: number) {
   const segment = target >= position ? Math.floor(position) : Math.ceil(position) - 1;
-  return SLOW_SEGMENTS[segment] ?? 1;
+  const pace = SLOW_SEGMENTS[segment] ?? 1;
+  const away = Math.abs(position - AT.feats);
+  const reach = TILES_HIDDEN + 0.25;
+  if (away >= reach || Math.abs(target - AT.feats) <= away) return pace;
+  return lerp(TILE_EXIT_PACE, pace, smooth((away - TILES_HIDDEN) / (reach - TILES_HIDDEN)));
 }
 
 /** follow the scroll as the mockup does, corrected for the frame rate so a 120Hz screen moves at the same speed */

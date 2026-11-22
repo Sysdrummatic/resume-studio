@@ -517,6 +517,8 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   position as in the mockup (`follow`: `FOLLOW = 0.068` of the remaining way per 60Hz frame,
   frame rate corrected; the mockup's 0.1 slowed so a transition lasts 50% longer; `SLOW_SEGMENTS`
   play LiveCV? to base, pick to ready and the feature tiles coming and going at 0.55 of that pace;
+  the half slot right after the features is slowed further (`TILE_EXIT_PACE`), because following
+  is fastest at the start of a transition, so the tiles hide exactly as slowly as they come out;
   the picked entries land on the LiveCV glowing teal, stay a moment and fade into it), so it moves continuously through every pose and eases to a stop on the
   stage; style values are written unrounded. The rail and the Scroll/Back pill move exactly
   one stage. On LiveCV? the browser window (rounded corners, set 0.25 units behind the CV so the

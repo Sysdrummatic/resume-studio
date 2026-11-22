@@ -221,3 +221,23 @@ test("the picked entries land on the LiveCV, glow there a moment, then go", () =
 test("the browser window sits far enough behind the CV that a swaying sheet never cuts into it", () => {
   assert.ok(BROWSER.behind >= 0.2, "behind " + BROWSER.behind);
 });
+
+test("the feature tiles hide as slowly as they come out", () => {
+  /* frames the timeline spends inside a window, travelling from one stage to the next at 60Hz */
+  const framesIn = (from, to, low, high) => {
+    let p = from;
+    let frames = 0;
+    for (let i = 0; i < 2000 && p !== to; i += 1) {
+      p = follow(p, to, 1 / 60, FOLLOW * paceAt(p, to));
+      if (p > low && p < high) frames += 1;
+    }
+    return frames;
+  };
+  /* the tiles move in the last ~half slot before the features and the first ~half slot after them */
+  const out = framesIn(AT.history, AT.feats, AT.feats - 0.56, AT.feats - 0.02);
+  const hide = framesIn(AT.feats, AT.go, AT.feats + 0.02, AT.feats + 0.56);
+  const ratio = hide / out;
+  assert.ok(ratio > 0.9 && ratio < 1.1, "hide " + hide + " frames, come out " + out + " frames");
+  const back = framesIn(AT.feats, AT.history, AT.feats - 0.56, AT.feats - 0.02);
+  assert.ok(back / out > 0.8 && back / out < 1.25, "scrolling back up, they hide as slowly too (" + back + ")");
+});
