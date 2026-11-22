@@ -1584,6 +1584,25 @@ h1.title > span {
 /* ---------- Without JavaScript: every caption as plain text, no scene ---------- */
 
 @media (scripting: none) {
+  /* a plain scrolling page: no stage to snap to, so the page opens at the top and runs to the footer */
+  :global(html):has(.story) {
+    scroll-snap-type: none;
+  }
+
+  /* the FAQ drawer cannot open without JavaScript: it is a plain section at /#faq, questions in native <details> */
+  .drawer {
+    display: block;
+    position: static;
+    width: auto;
+    height: auto;
+    border-left: 0;
+    border-top: 1px solid var(--ocv-line);
+  }
+
+  .drawerHead button {
+    display: none;
+  }
+
   .stage {
     position: relative;
     top: 0;

@@ -243,7 +243,7 @@ test("the simplified version: only the stage headings, centred in height, on a s
   const screen = readFileSync("app/components/landing/short-window-screen.tsx", "utf8");
   const css = readFileSync("app/landing.module.css", "utf8");
   assert.match(screen, /onSimplify\(\)/, "choosing the simplified version is reported to the story");
-  assert.match(story, /<ShortWindowScreen copy=\{story\.short_screen\} name=\{cv\.name\} onSimplify=\{\(\) => setSimple\(true\)\} \/>/);
+  assert.match(story, /<ShortWindowScreen copy=\{story\.short_screen\} name=\{cv\.name\} onSimplify=\{simplify\} \/>/);
   assert.match(story, /data-simple=\{simple \|\| undefined\}/);
   /* only inside the short computer window: a taller window or a phone keeps its layout */
   assert.match(css, /@media \(max-height: 560px\) and \(pointer: fine\) \{\s*\.stage\[data-simple\] \.caption \{\s*top: 0;\s*bottom: 0;\s*align-content: center;/);
@@ -324,6 +324,30 @@ test("LiveCV?: the browser window waits until the CV has come to rest, then a se
 test("review fixes: Esc on the short-window screen opens the simplified version too; the carousel loop runs on phones only", () => {
   const screen = readFileSync("app/components/landing/short-window-screen.tsx", "utf8");
   const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
-  assert.match(screen, /const dismiss = \(\) => \{\s*dismissed\.current = true;\s*simplify\.current\(\);/);
+  assert.match(screen, /const dismiss = \(\) => \{\s*dismissed\.current = true;\s*onSimplify\(\);/);
   assert.match(story, /if \(!phone\.matches\) return;/);
+});
+
+test("PR #302 review: focus, no-JS, stage names, reduced motion, carousel focus (browser checks in scripts/qa/landing-animation.mjs)", () => {
+  const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
+  const word = readFileSync("app/components/rotating-word.tsx", "utf8");
+  const css = readFileSync("app/landing.module.css", "utf8");
+  /* 1. the sample link sits outside the aria-hidden labels; faded captions and labels are inert */
+  assert.doesNotMatch(story, /data-lens data-crossfade aria-hidden="true"/);
+  assert.match(story, /<div className=\{styles\.labels\} aria-hidden="true">/);
+  assert.match(story, /el\.inert = opacity <= 0\.5;/);
+  assert.match(story, /openerRef\.current = event\.currentTarget;/);
+  /* 2. without JavaScript: no mandatory snap, the FAQ drawer is a plain section */
+  const noJs = css.slice(css.indexOf("@media (scripting: none)"));
+  assert.match(noJs, /:global\(html\):has\(\.story\) \{\s*scroll-snap-type: none;/);
+  assert.match(noJs, /\.drawer \{[^}]*display: block;[^}]*position: static;/);
+  /* 3. every stage button carries its label as its name */
+  assert.match(story, /aria-label=\{caption\.label\}/);
+  /* 4. reduced motion switched on in an open tab stops the loop and the rotating word */
+  assert.match(story, /reduced\.addEventListener\("change", onMotion\)/);
+  assert.match(word, /addEventListener\("change"/);
+  /* a late fonts.ready from a torn-down effect (React runs effects twice in development) must not start a second loop */
+  assert.match(story, /document\.fonts\?\.ready\.then\(\(\) => !disposed && onLayout\(\)\)/);
+  /* 5. the carousel holds while the focus is inside it */
+  assert.match(story, /list\.matches\(":focus-within"\)/);
 });

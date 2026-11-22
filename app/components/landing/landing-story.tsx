@@ -53,6 +53,7 @@ const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 const FILES = ["CV_final.pdf", "CV_EN_2024.docx", "CV_frontend.pdf", "CV_final_v2.pdf"];
 const CAPTION_TRAVEL = 46;
 const FLOOR_Y = -3.6;
+const CARD_ID = "lp-feature-card";
 /** how close to a stage the timeline counts as resting there */
 const SETTLED = 0.002;
 
@@ -89,7 +90,10 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
   const [active, setActive] = useState(0);
   const [openFeature, setOpenFeature] = useState<number | null>(null);
   const [simple, setSimple] = useState(false);
+  const simplify = useCallback(() => setSimple(true), []);
   const featureListRef = useRef<HTMLUListElement>(null);
+  /* the feature button that opened the card: it gets the focus back when the card closes */
+  const openerRef = useRef<HTMLElement | null>(null);
 
   /* phones: the feature cards drift slowly while the features are on screen; a finger takes over and they drift on after a pause */
   useEffect(() => {
@@ -109,7 +113,7 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
       frame = window.requestAnimationFrame(tick);
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (!phone.matches || reduced.matches || document.hidden || now < heldUntil) {
+      if (!phone.matches || reduced.matches || document.hidden || now < heldUntil || list.matches(":focus-within")) {
         delete list.dataset.drift;
         position = list.scrollLeft;
         return;
@@ -414,7 +418,8 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
             : clamp(1 - distanceFrom(clock.progress, label.from, label.to) * 2.6) * clamp(pose.alpha * 1.6);
         el.style.opacity = fixed(opacity);
         /* the link to the sample LiveCV can be clicked only while it is shown */
-        if (label.url) el.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
+        /* faded labels (the link among them) cannot be clicked or reached with Tab */
+        el.inert = opacity <= 0.5;
         if (opacity && point) {
           /* the labels sit inside the lens, which already carries the lens shift */
           let x = point[0] - view.shiftX * width * 0.5;
@@ -453,7 +458,8 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
         const opacity = clamp(1 - distanceFrom(clock.progress, index) * 2.3);
         el.style.opacity = fixed(opacity);
         el.style.transform = reduced.matches ? "" : `translate3d(0, ${((index - clock.progress) * CAPTION_TRAVEL).toFixed(1)}px, 0)`;
-        el.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
+        /* a caption that has faded out is out of the Tab order too (the rail reaches every stage) */
+        el.inert = opacity <= 0.5;
       });
       nextEl!.style.opacity = "1";
       const stage = Math.round(clock.progress);
@@ -556,6 +562,13 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
       if (document.hidden) running = false;
       else wake();
     };
+    /* reduced motion switched on in an open tab: the loop stops now and the still frame takes over */
+    const onMotion = () => {
+      if (!reduced.matches) return onLayout();
+      running = false;
+      window.cancelAnimationFrame(frame);
+      stillFrame(true);
+    };
     const onLayout = () => {
       reaches = [];
       labelWidths.clear();
@@ -580,10 +593,13 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
     document.addEventListener("visibilitychange", onVisibility);
     stageEl.addEventListener("pointermove", onPointerMove, { passive: true });
     stageEl.addEventListener("pointerleave", onPointerLeave);
-    reduced.addEventListener("change", onLayout);
-    document.fonts?.ready.then(onLayout).catch(() => undefined);
+    reduced.addEventListener("change", onMotion);
+    /* fonts can settle after this effect was torn down (React runs it twice in development): a late call must not start a second loop */
+    let disposed = false;
+    document.fonts?.ready.then(() => !disposed && onLayout()).catch(() => undefined);
 
     return () => {
+      disposed = true;
       running = false;
       window.cancelAnimationFrame(frame);
       window.clearTimeout(fade);
@@ -593,9 +609,18 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
       document.removeEventListener("visibilitychange", onVisibility);
       stageEl.removeEventListener("pointermove", onPointerMove);
       stageEl.removeEventListener("pointerleave", onPointerLeave);
-      reduced.removeEventListener("change", onLayout);
+      reduced.removeEventListener("change", onMotion);
     };
   }, [featureCount, labels, superset]);
+
+  useEffect(() => {
+    if (openFeature !== null) return;
+    const opener = openerRef.current;
+    openerRef.current = null;
+    const current = document.activeElement;
+    const lost = !current || current === document.body || document.getElementById(CARD_ID)?.contains(current);
+    if (opener?.isConnected && lost) opener.focus({ preventScroll: true });
+  }, [openFeature]);
 
   useEffect(() => {
     if (openFeature === null) return;
@@ -611,18 +636,17 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
     setOpenFeature(tile ? Number(tile.dataset.tile) : null);
   };
 
-  /* Keyboard and screen-reader users can reach any caption; reaching one brings its stage. */
+  /* Faded captions are inert, so this fires for the caption on screen; the rail reaches the other stages. */
   const onCaptionFocus = (stage: number) => {
     if (stage !== active) scrollToStage(stage);
   };
 
   const feature = openFeature === null ? null : features.items[openFeature];
-  const cardId = "lp-feature-card";
 
   return (
     <section ref={rootRef} className={styles.story} aria-label={story.aria_label}>
       <div className={styles.stage} data-stage-root data-stage="0" data-layout="wide" data-simple={simple || undefined}>
-        <div className={styles.lens} data-lens data-crossfade aria-hidden="true">
+        <div className={styles.lens} data-lens data-crossfade>
           <div className={styles.world} data-world data-scene aria-hidden="true" onClick={onSceneClick}>
             {GRID_LINES.map((g) => (
               <i key={`x${g}`} className={styles.gridZ} data-grid-x={g} />
@@ -642,18 +666,24 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
               />
             ))}
           </div>
-          <div className={styles.labels}>
-            {labels.map((label) =>
-              label.url ? (
-                <a key={label.key} href={sampleLink.url} className={`${styles.label} ${styles.labelUrl}`} data-label={label.key} data-anchor={label.anchor ?? "middle"}>
-                  {labelContent[label.key]}
-                </a>
-              ) : (
+          <div className={styles.labels} aria-hidden="true">
+            {labels
+              .filter((label) => !label.url)
+              .map((label) => (
                 <div key={label.key} className={styles.label} data-label={label.key} data-anchor={label.anchor ?? "start"}>
                   {labelContent[label.key]}
                 </div>
-              ),
-            )}
+              ))}
+          </div>
+          {/* the one real link of the scene, outside the decorative labels so assistive tech can reach it */}
+          <div className={styles.labels}>
+            {labels
+              .filter((label) => label.url)
+              .map((label) => (
+                <a key={label.key} href={sampleLink.url} className={`${styles.label} ${styles.labelUrl}`} data-label={label.key} data-anchor={label.anchor ?? "middle"}>
+                  {labelContent[label.key]}
+                </a>
+              ))}
           </div>
         </div>
 
@@ -706,8 +736,11 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
                           className={styles.featureButton}
                           data-feature={featureIndex}
                           aria-expanded={openFeature === featureIndex}
-                          aria-controls={cardId}
-                          onClick={() => setOpenFeature(openFeature === featureIndex ? null : featureIndex)}
+                          aria-controls={CARD_ID}
+                          onClick={(event) => {
+                            openerRef.current = event.currentTarget;
+                            setOpenFeature(openFeature === featureIndex ? null : featureIndex);
+                          }}
                         >
                           <b>{item.title}</b>
                           <span>{item.chip}</span>
@@ -736,7 +769,7 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
           })}
         </div>
 
-        <article id={cardId} className={styles.featureCard} data-feature-card hidden={!feature} aria-live="polite">
+        <article id={CARD_ID} className={styles.featureCard} data-feature-card hidden={!feature} aria-live="polite">
           {feature ? (
             <>
               <button type="button" className={styles.iconButton} aria-label={features.close} onClick={() => setOpenFeature(null)}>
@@ -752,12 +785,17 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
           ) : null}
         </article>
 
-        <ShortWindowScreen copy={story.short_screen} name={cv.name} onSimplify={() => setSimple(true)} />
+        <ShortWindowScreen copy={story.short_screen} name={cv.name} onSimplify={simplify} />
         <nav className={styles.rail} aria-label={story.rail_label} data-rail>
           <ol>
             {captions.map((caption, index) => (
               <li key={caption.id} className={index === active ? styles.railOn : undefined}>
-                <button type="button" aria-current={index === active ? "step" : undefined} onClick={() => scrollToStage(index)}>
+                <button
+                  type="button"
+                  aria-label={caption.label}
+                  aria-current={index === active ? "step" : undefined}
+                  onClick={() => scrollToStage(index)}
+                >
                   <span>{caption.label}</span>
                 </button>
               </li>

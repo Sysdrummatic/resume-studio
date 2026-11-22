@@ -534,11 +534,21 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   pointed at; the frame loop sleeps once a stage has settled. On an upright phone the scene is drawn into the band above the active caption, eased between
   stages; a short window (phone or computer) uses the side layout with the rail as a row. Sheets sway instead of bending (TECH_DEBT.md). Reduced motion: no vortex, orbit, drift or sway; one still frame
   per stage and a 200ms crossfade, captions crossfade too.
-  Without JavaScript (`@media (scripting: none)`) every caption is plain text and the
-  scene is hidden. The scene is `aria-hidden`; captions are real headings, the feature
-  tiles have a real button list (visually hidden on wide screens until focused, cards on
-  phones that drift slowly while the features are on screen and stop for 4s when touched), and the FAQ is a native `<dialog>` drawer opened from any `/#faq`
-  link. Hero rotating words pause while the start caption is off stage.
+  Without JavaScript (`@media (scripting: none)`) every caption is plain text, the
+  scene is hidden, there is no scroll snap (the page opens at the top and runs to the
+  footer) and the FAQ drawer is a plain section at `/#faq` with native `<details>`.
+  The scene's objects and labels are `aria-hidden`; the one real link (the sample LiveCV
+  in the last stage, `content/landing.yaml`) sits outside them. Captions are real headings;
+  a caption or label that has faded out is `inert`, so Tab and Shift+Tab only reach what is
+  on screen and the rail (each button named by its stage label, `aria-current` on the
+  active one) reaches every stage. The feature tiles have a real button list (visually
+  hidden on wide screens until focused, cards on phones that drift slowly while the
+  features are on screen, stop for 4s when touched and for as long as the focus is in
+  the list); closing a feature card gives the focus back to the button that opened it. The
+  FAQ is a native `<dialog>` drawer opened from any `/#faq` link. Hero rotating words pause
+  while the start caption is off stage. Reduced motion switched on in an open tab stops
+  the scene loop and the rotating word at once (still frame and crossfade); switched off,
+  one loop resumes.
 - **Login card (#290)**: the auth card is the mockup's panel, styled in `app/login/login.module.css`
   on LiveCV tokens (no portal palette) while AccountAccessClient keeps its markup and logic: raised
   panel with a 20px radius traced once in teal, mono eyebrow, display title, plain 13px labels, 12px

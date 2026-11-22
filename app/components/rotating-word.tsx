@@ -22,11 +22,19 @@ export default function RotatingWord({ words, interval = 2200, paused = false, c
   /* The server (and a crawler) gets the first word only, so the heading reads as one sentence.
      The other words join on the first tick and start rotating on the next one. */
   const [live, setLive] = useState(false);
+  /* follows the system setting, also when it changes in an open tab */
+  const [still, setStill] = useState(false);
 
   useEffect(() => {
-    if (words.length <= 1 || paused) return;
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) return;
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setStill(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (words.length <= 1 || paused || still) return;
 
     const id = window.setInterval(() => {
       if (document.hidden) return;
@@ -34,7 +42,7 @@ export default function RotatingWord({ words, interval = 2200, paused = false, c
       else setIndex((current) => (current + 1) % words.length);
     }, interval);
     return () => window.clearInterval(id);
-  }, [words, interval, paused, live]);
+  }, [words, interval, paused, live, still]);
 
   if (words.length === 0) return null;
 
