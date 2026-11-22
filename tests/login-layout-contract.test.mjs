@@ -145,3 +145,11 @@ test("the copy beside the card stays put when the card changes height (sign in <
   assert.doesNotMatch(css, /position: sticky/);
   assert.match(css, /\.copy \{\s*margin-top: clamp\(/);
 });
+
+test("the login sheets read the scene tokens of the landing: a light page outlines the white sheets (#290)", () => {
+  const css = readSource(path.join(process.cwd(), "app", "landing.module.css"));
+  /* one rule for both scenes, so the outline and paper colours never drift apart */
+  const tokens = css.match(/\.page,\s*\.ambient\s*\{([^}]*)\}/)?.[1] || "";
+  assert.match(tokens, /--lp-sheet-edge: var\(--ocv-L, #8a92a8\) var\(--ocv-D, transparent\);/);
+  assert.match(tokens, /--lp-paper: #ffffff;/);
+});

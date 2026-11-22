@@ -31,7 +31,9 @@
   content: none;
 }
 
-.page {
+/* Scene tokens, shared by the landing story (.page) and the loose sheets behind /login (.ambient) */
+.page,
+.ambient {
   /* The CV sheet is white paper in both themes (DESIGN.md → CV as separate domain). */
   --lp-paper: #ffffff;
   --lp-paper-ink: #1b1b1b;
@@ -44,6 +46,9 @@
   /* a thin outline keeps a white sheet apart from a light page; the dark theme needs none */
   --lp-sheet-edge: var(--ocv-L, #8a92a8) var(--ocv-D, transparent);
   --lp-dust: var(--ocv-L, #6f7ab4) var(--ocv-D, #aeb6ff);
+}
+
+.page {
   --lp-gut: max(16px, env(safe-area-inset-left, 0px));
   --lp-rest: clamp(52px, 7vh, 72px);
   --lp-foot-h: 64px;
