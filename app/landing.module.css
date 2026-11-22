@@ -395,7 +395,13 @@
     black clamp(0deg, calc(var(--lp-trace) - 360deg), 360deg) clamp(0deg, var(--lp-trace), 360deg),
     transparent clamp(0deg, var(--lp-trace), 360deg)
   );
-  animation: lp-trace-frame 5.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  /* one second after the CV has come to rest; until then the first frame (nothing drawn) holds */
+  animation: lp-trace-frame 5.6s cubic-bezier(0.65, 0, 0.35, 1) 1s infinite backwards;
+}
+
+/* on the way to LiveCV?, before the CV has come to rest */
+.box[data-trace="wait"] > .face {
+  opacity: 0;
 }
 
 /* drawn (1.3s), whole (2.3s), erased (1.3s), rests (0.7s) */

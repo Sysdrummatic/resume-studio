@@ -312,3 +312,11 @@ test("landing polish (#290 review): copy, hero lines, browser window, chips, lin
   assert.match(story, /"pointerdown"/);
   assert.match(css, /\.featureList\[data-drift\] \{[^}]*scroll-snap-type: none;/);
 });
+
+test("LiveCV?: the browser window waits until the CV has come to rest, then a second more", () => {
+  const story = readFileSync("app/components/landing/landing-story.tsx", "utf8");
+  const css = readFileSync("app/landing.module.css", "utf8");
+  assert.match(story, /nextTrace === "cycle" && Math\.abs\(clock\.progress - AT\.livecv\) > SETTLED\) nextTrace = "wait";/);
+  assert.match(css, /\.box\[data-trace="wait"\] > \.face \{[^}]*opacity: 0;/);
+  assert.match(css, /\.box\[data-trace="cycle"\] > \.face \{[^}]*animation: lp-trace-frame 5\.6s [^;]* 1s infinite backwards;/);
+});

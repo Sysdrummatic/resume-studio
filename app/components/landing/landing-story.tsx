@@ -53,6 +53,8 @@ const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 const FILES = ["CV_final.pdf", "CV_EN_2024.docx", "CV_frontend.pdf", "CV_final_v2.pdf"];
 const CAPTION_TRAVEL = 46;
 const FLOOR_Y = -3.6;
+/** how close to a stage the timeline counts as resting there */
+const SETTLED = 0.002;
 
 
 type Layout = "wide" | "stacked" | "side";
@@ -369,7 +371,9 @@ export default function LandingStory({ hero, story, features, cta, cv, sampleLin
         applyMotion(thing, dt, clock);
         if (thing.sheet) feelAir(thing, dt);
       });
-      const nextTrace = placeBrowserFrame(scene, clock.progress);
+      let nextTrace: string = placeBrowserFrame(scene, clock.progress);
+      /* the window is drawn only once the CV has come to rest in the middle (CSS then waits one more second) */
+      if (nextTrace === "cycle" && Math.abs(clock.progress - AT.livecv) > SETTLED) nextTrace = "wait";
       if (nextTrace !== trace) {
         trace = nextTrace;
         boxes.get("frame")?.el.setAttribute("data-trace", trace);

@@ -524,7 +524,8 @@ Micro:             ~160ms, hover / focus / state (legacy; migrating to the token
   one stage. On LiveCV? the browser window (rounded corners, set 0.25 units behind the CV so the
   sheet always stays in front) is drawn round the CV from its top-left corner until whole,
   stays, and is taken off the same way round (`lp-trace-frame`: a conic mask, `--lp-trace`
-  0 to 720deg); the last stage peels off rounded PDF, YAML and TXT
+  0 to 720deg), starting one second after the CV has come to rest in the middle (`data-trace="wait"`
+  until then); the last stage peels off rounded PDF, YAML and TXT
   chips, and the link beside the LiveCV is a real link set in `content/landing.yaml`
   (non-copy home page settings; copy stays in the landing dictionaries). The hero headline
   is four lines (two from `hero.title`, a list, then the rotating word and the suffix), the
