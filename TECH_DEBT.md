@@ -306,5 +306,5 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
   `deletePreset`, `publishPreset` i `unpublishPreset` w `app/dashboard/dashboard-client.tsx` nie mają
   `try/catch`: przy zerwanym połączeniu albo odpowiedzi 5xx bez JSON przycisk zostaje w stanie `busy`,
   a odrzucona obietnica jest nieobsłużona. Dialog usuwania zamyka się też po nieudanym usunięciu
-  (`.then(() => setConfirmDeletePreset(null))` nie sprawdza wyniku), a komunikat „usunięto" używa tonu
-  `error`. Naprawa to zmiana zachowania, więc poza zakresem etapów redesignu.
+  (`.then(() => setConfirmDeletePreset(null))` nie sprawdza wyniku). Naprawa to zmiana zachowania,
+  więc poza zakresem etapów redesignu: zgłoszenie #304.
