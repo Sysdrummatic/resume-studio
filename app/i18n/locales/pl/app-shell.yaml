@@ -50,6 +50,7 @@ account:
   profile: Profil
   user_management: Zarządzanie użytkownikami
   beta_test_mode: Tryb testów beta
+  admin_settings: Ustawienia administratora
   settings: Ustawienia
   signing_out: Wylogowywanie…
   log_out: Wyloguj się

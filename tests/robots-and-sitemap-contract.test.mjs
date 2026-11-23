@@ -6,7 +6,7 @@ const robotsSource = readFileSync(new URL("../app/robots.ts", import.meta.url), 
 const sitemapSource = readFileSync(new URL("../app/sitemap.ts", import.meta.url), "utf8");
 const serverSource = readFileSync(new URL("../app/lib/resume-server.ts", import.meta.url), "utf8");
 
-const PRIVATE = ["/api/", "/dashboard", "/admin", "/master-resume", "/user", "/onboarding", "/settings"];
+const PRIVATE = ["/api/", "/dashboard", "/admin", "/master-resume", "/user", "/onboarding", "/settings", "/adminsettings"];
 const PUBLIC = ["/login", "/docs", "/resume", "/privacy", "/terms"];
 
 test("robots disallows only the API; private pages are noindex in their metadata", () => {
@@ -31,7 +31,7 @@ test("sitemap lists the public static pages with lastModified", () => {
 });
 
 test("sitemap contains no protected or noindex routes", () => {
-  for (const path of ["/login", "/dashboard", "/admin", "/master-resume", "/user", "/onboarding", "/settings", "/api"]) {
+  for (const path of ["/login", "/dashboard", "/admin", "/master-resume", "/user", "/onboarding", "/settings", "/adminsettings", "/api"]) {
     assert.ok(!sitemapSource.includes("}" + path), `sitemap must not list ${path}`);
   }
 });

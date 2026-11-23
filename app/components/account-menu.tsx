@@ -7,7 +7,6 @@ import type { FocusEvent, FormEvent, KeyboardEvent } from "react";
 import type { AppRole } from "../lib/auth-types";
 import { formatAppMessage } from "../i18n/locale";
 import { canAccessAdminArea, isAdminRole } from "../lib/rbac";
-import BetaTestModeModal from "./beta-test-mode-modal";
 import { useAppI18n } from "./app-i18n-provider";
 import { Menu, MenuItem } from "./design-system/primitives";
 
@@ -43,7 +42,6 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
   const profileLabels = labels.profile_modal;
   const [isBusy, setIsBusy] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isBetaTestModeOpen, setIsBetaTestModeOpen] = useState(false);
   const [profileFirstName, setProfileFirstName] = useState(firstName);
   const [profileLastName, setProfileLastName] = useState(lastName);
   const [currentDisplayName, setCurrentDisplayName] = useState(displayName);
@@ -95,13 +93,6 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
 
   function openProfileModal() {
     setIsProfileOpen(true);
-    if (menuRef.current) {
-      menuRef.current.open = false;
-    }
-  }
-
-  function openBetaTestModeModal() {
-    setIsBetaTestModeOpen(true);
     if (menuRef.current) {
       menuRef.current.open = false;
     }
@@ -258,7 +249,16 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
             {labels.user_management}
           </Link>
         )}
-        {isAdminRole(role) && <MenuItem onClick={openBetaTestModeModal}>{labels.beta_test_mode}</MenuItem>}
+        {isAdminRole(role) && (
+          <Link href="/adminsettings#beta-test-mode" className="ocv-menu__item">
+            {labels.beta_test_mode}
+          </Link>
+        )}
+        {isAdminRole(role) && (
+          <Link href="/adminsettings" className="ocv-menu__item">
+            {labels.admin_settings}
+          </Link>
+        )}
         {isAdminRole(role) ? (
           <Link href="/settings" className="ocv-menu__item">
             {labels.settings}
@@ -271,7 +271,6 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
         </MenuItem>
       </Menu>
     </details>
-      {isBetaTestModeOpen && <BetaTestModeModal onClose={() => setIsBetaTestModeOpen(false)} />}
       {isProfileOpen && (
         <div className="profile-modal-overlay" onClick={closeProfileModal}>
           <div

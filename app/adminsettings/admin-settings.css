@@ -1,0 +1,58 @@
+/* /adminsettings (#291): admin tools on the shared page frame. The full settings redesign is stage 7/9 (#294). */
+
+.admin-settings {
+  gap: 20px;
+}
+
+.admin-settings > .workspace-breadcrumbs {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ocv-ink-3);
+  font: 400 0.8125rem / 1.5 var(--ocv-font-ui);
+}
+
+.admin-settings > .workspace-breadcrumbs a {
+  color: var(--ocv-ink-2);
+}
+
+.admin-settings > .workspace-breadcrumbs [aria-current="page"] {
+  color: var(--ocv-ink);
+}
+
+.admin-settings__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  border-color: var(--ocv-teal);
+}
+
+.admin-settings__section {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  scroll-margin-top: calc(var(--app-header-height, 64px) + 16px);
+}
+
+.admin-settings__section > * {
+  margin: 0;
+}
+
+.admin-settings__section .ocv-field {
+  justify-self: stretch;
+}
+
+.admin-settings__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-settings__error {
+  padding: 10px 14px;
+  border-radius: var(--ocv-radius-control);
+  background: var(--ocv-danger-wash);
+  color: var(--ocv-danger);
+}

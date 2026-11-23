@@ -1,6 +1,9 @@
 import { createRoot } from "react-dom/client";
 import yaml from "js-yaml";
 import "../../app/globals.css";
+import "../../app/components/design-system/tokens.css";
+import "../../app/components/design-system/primitives.css";
+import "../../app/components/app-shell.css";
 import "../../app/onboarding/onboarding.css";
 import DashboardClient from "../../app/dashboard/dashboard-client";
 import WorkspaceBreadcrumbs from "../../app/components/workspace-breadcrumbs";
@@ -141,7 +144,7 @@ fetch(query.has("pl") ? "/fixture-i18n.json?locale=pl" : "/fixture-i18n.json")
               </nav>
             </div>
           </header>
-          <main className="app-main">
+          <main className="app-shell app-main">
             {query.has("editor") ? (
               <EditorCanvasClient
                 draftPdfEnabled={false}
@@ -151,7 +154,7 @@ fetch(query.has("pl") ? "/fixture-i18n.json?locale=pl" : "/fixture-i18n.json")
                 } : undefined}
               />
             ) : (
-              <div className="dashboard-page editor-theme wide-shell-page">
+              <div className="dashboard-page ocv-page">
                 <WorkspaceBreadcrumbs current="Dashboard" />
                 <DashboardClient
                   masterResume={query.has("empty") ? null : documents[query.has("pl-default") ? 1 : 0]}

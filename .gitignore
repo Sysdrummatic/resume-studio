@@ -54,3 +54,6 @@ public/data/private/
 
 
 .gstack/
+
+# graphify knowledge-graph output (generated, regenerable)
+graphify-out/

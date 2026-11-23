@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "./design-system/atoms/Button";
+import { Button, Checkbox, Modal } from "./design-system/primitives";
 import type { ResumeLocale } from "../lib/resume-schema";
 import type { ResumePresetRow } from "../lib/resume-server";
 import { useAppI18n } from "./app-i18n-provider";
@@ -20,6 +20,7 @@ export type PublishDraft = {
 };
 
 type Props = {
+  open?: boolean;
   draft: PublishDraft;
   locales: ResumeLocale[];
   languageOptions: LanguageMetadata[];
@@ -34,6 +35,7 @@ type Props = {
 };
 
 export default function PublishSavedVersionModal({
+  open = true,
   draft,
   locales,
   languageOptions,
@@ -61,46 +63,47 @@ export default function PublishSavedVersionModal({
   }
 
   return (
-    <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={labels.aria_label}>
-      <button type="button" className="dashboard-modal__backdrop" onClick={onClose} aria-label={labels.close_aria}></button>
-      <div className="dashboard-modal__body">
-        <div className="section-row">
-          <h2>{labels.title}</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            {labels.close}
-          </Button>
-        </div>
-
-        <p className="card-lead">{draft.preset.title}</p>
-
-        <PublicationLanguageFields locales={locales} languageOptions={languageOptions} value={languages} onChange={setLanguages} />
-
-        {indexingEnabled ? (
-          <label className="checkbox-row">
-            <input type="checkbox" checked={allowIndexing} disabled={Boolean(draft.preset.onboarding_test_run_id)} onChange={(event) => setAllowIndexing(event.target.checked)} />
-            {labels.allow_indexing}
-          </label>
-        ) : (
-          <p className="card-lead">{labels.link_only_note}</p>
-        )}
-
-        <div className="card stack">
-          <strong>{labels.link_state}</strong>
-          <p className="card-lead">{labels.canonical_note}</p>
-          <p className="card-lead">{draft.preset.canonical_public_path ? labels.active_link : labels.new_link}</p>
-        </div>
-
-        {error ? <p className="status status--error">{error}</p> : null}
-
-        <div className="actions-row">
-          <Button variant="primary" onClick={() => void submit()} disabled={isSubmitting}>
+    <Modal
+      open={open}
+      onClose={() => onClose()}
+      title={labels.title}
+      description={draft.preset.title}
+      closeLabel={labels.close_aria}
+      footer={
+        <>
+          <Button onClick={onClose}>{labels.cancel}</Button>
+          <Button variant="primary" busy={isSubmitting} onClick={() => void submit()}>
             {isSubmitting ? labels.publishing : labels.publish}
           </Button>
-          <Button variant="ghost" onClick={onClose}>
-            {labels.cancel}
-          </Button>
-        </div>
+        </>
+      }
+    >
+      <p className="ocv-body">{labels.description}</p>
+
+      <PublicationLanguageFields locales={locales} languageOptions={languageOptions} value={languages} onChange={setLanguages} />
+
+      {indexingEnabled ? (
+        <Checkbox
+          label={labels.allow_indexing}
+          checked={allowIndexing}
+          disabled={Boolean(draft.preset.onboarding_test_run_id)}
+          onChange={(event) => setAllowIndexing(event.target.checked)}
+        />
+      ) : (
+        <p className="ocv-meta">{labels.link_only_note}</p>
+      )}
+
+      <div className="publish-link-box">
+        <p className="ocv-label">{labels.link_state}</p>
+        <p className="ocv-meta">{labels.canonical_note}</p>
+        <p className="ocv-meta">{draft.preset.canonical_public_path ? labels.active_link : labels.new_link}</p>
       </div>
-    </div>
+
+      {error ? (
+        <p className="dashboard-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </Modal>
   );
 }

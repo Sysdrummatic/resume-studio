@@ -90,7 +90,8 @@ test("selected CV retains its settings menu and confirmed delete dialog", () => 
   assert.equal(client.includes("formatAppMessage(labels.delete_aria, { title: preset.title })"), true);
   assert.equal(client.includes("preset.is_public ? labels.unpublish : labels.publish"), true);
   assert.equal(client.includes("dashboard-preset-menu__separator"), true);
-  assert.equal(client.includes("labels.delete_modal.aria_label"), true);
+  // The confirmation is a native <dialog> named by its title (Modal primitive, #291).
+  assert.match(client, /<Modal[^>]*\n\s*key=\{deleteDialog\.key\}[\s\S]*?title=\{labels\.delete_modal\.title\}/);
   assert.equal(client.includes("dashboard-resume-list__secondary-actions"), false);
   assert.equal(styles.includes(".dashboard-preset-menu__panel"), true);
 });

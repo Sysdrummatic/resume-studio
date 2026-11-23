@@ -43,12 +43,13 @@ export function buildAiBotRobotsRule() {
 /**
  * First path segments owned by the application (every top-level folder of app/
  * and public/), so they can never be a person slug. Mirrored by the SQL list in
- * supabase/migrations/20261016000000_reserve_route_person_slugs.sql, which keeps
+ * supabase/migrations/20261122000000_reserve_adminsettings_person_slug.sql (latest definition), which keeps
  * profiles from being assigned one; tests/ai-bots-policy.test.mjs fails when
  * either list drifts from the folders.
  */
 export const RESERVED_PERSON_SLUGS = [
   "admin",
+  "adminsettings",
   "animations",
   "api",
   "components",
