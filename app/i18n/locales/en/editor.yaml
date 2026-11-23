@@ -161,6 +161,11 @@ editor:
     "e.g. Added CDQ experience": e.g. Added CDQ experience
     "Cancel": Cancel
     "Saving…": Saving…
+    "Saved": "✓ Saved"
+    "Unsaved changes": "Unsaved changes"
+    "Confirm removal": "Confirm removal"
+    "Close confirmation": "Close confirmation"
+    "Completeness": "Completeness"
     "Use a two-letter language code.": Use a two-letter language code.
     "Language name is required.": Language name is required.
     "Short label must contain two letters.": Short label must contain two letters.

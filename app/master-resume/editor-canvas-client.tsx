@@ -18,6 +18,9 @@ import LanguageVersionModal from "./language-version-modal";
 import SaveVersionModal from "./save-version-modal";
 import { BulletListTextarea, continueBulletsOnEnter } from "./bullet-textarea";
 import { parseBulletLines } from "../lib/bullet-text";
+import "./editor-redesign.css";
+import { useConfirm } from "./confirm-modal";
+import { StatePill } from "../components/design-system/primitives";
 import ImportCvBanner from "./import-cv-banner";
 import ImportReviewModal from "./import-review-modal";
 import { shouldClearLocalDraft } from "./local-draft-policy";
@@ -233,6 +236,12 @@ function clearLocalDraft(locale: string): void {
 export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding, testRun }: { draftPdfEnabled?: boolean; onboarding?: OnboardingState; testRun?: OnboardingTestRun } = {}) {
   const { locale: appLocale, dictionary } = useAppI18n();
   const editorText = (text: string) => dictionary.editor.text[text] ?? text;
+  const { confirm, dialog: confirmDialog } = useConfirm({
+    title: editorText("Confirm removal"),
+    confirm: editorText("Remove"),
+    cancel: editorText("Cancel"),
+    close: editorText("Close confirmation"),
+  });
   const keyedText = (message: EditorFailureMessage) => formatAppMessage(editorText(message.key), message.params);
   const translateKeyedError = (error: unknown): never => {
     throw error instanceof KeyedEditorError ? new Error(keyedText(error.keyed)) : error;
@@ -303,9 +312,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     return [...new Set(losses.map((loss) => loss.locale))].join(", ");
   }
 
-  function handleMatchOthers() {
+  async function handleMatchOthers() {
     const losses = matchOthersLosses();
-    if (losses.length && !window.confirm(formatAppMessage(editorText("Matching removes text from {locales}, because this version has fewer entries or bullets. Continue?"), { locales: lostIn(losses) }))) return;
+    if (losses.length && !(await confirm(formatAppMessage(editorText("Matching removes text from {locales}, because this version has fewer entries or bullets. Continue?"), { locales: lostIn(losses) })))) return;
     matchOthersToActive();
   }
 
@@ -336,6 +345,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   // The one open entry card, keyed "<field>:<index>". Opening a card closes its
   // siblings (exclusive accordion), and a freshly added entry opens itself.
   const [openEntryKey, setOpenEntryKey] = useState<string | null>(null);
+  const [freshEntryIndex, setFreshEntryIndex] = useState<number | null>(null);
 
   // A past revision rendered in the preview pane instead of the live draft.
   // Read-only: the active buffer is never touched, so previewing history can
@@ -546,6 +556,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     const currentValue = resume[field];
     if (!Array.isArray(currentValue)) return;
     setOpenEntryKey(`${String(field)}:${currentValue.length}`);
+    setFreshEntryIndex(currentValue.length);
     applyStructuralOp({ kind: "add", collection: field, item });
   }
 
@@ -567,17 +578,69 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
     setOpenEntryKey((current) => (current === key || (current === null && index === 0) ? "" : current));
   }
 
-  function removeArrayItem(field: ParallelCollection, index: number) {
-    const op: StructuralOp = { kind: "remove", collection: field, index };
-    const losses = structuralOpLosses(op);
-    if (losses.length && !window.confirm(formatAppMessage(editorText("Removing this entry also removes its text in {locales}. Continue?"), { locales: lostIn(losses) }))) return;
-    applyStructuralOp(op);
+  // Restrained motion (epic #190): the collapse plays before the structural op is applied; the class
+  // is cleared right after React commits the op, because the DOM node is reused for the next entry.
+  const collapsedRef = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    collapsedRef.current?.classList.remove("is-removing");
+    collapsedRef.current = null;
+  });
+
+  function collapseEntry(target: HTMLElement | null): Promise<void> {
+    if (!target || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return Promise.resolve();
+    target.classList.add("is-removing");
+    collapsedRef.current = target;
+    return new Promise((resolve) => window.setTimeout(resolve, 160));
   }
 
-  function updateHighlights(index: number, value: string) {
+  useEffect(() => {
+    if (freshEntryIndex === null) return;
+    const entry = document.querySelector(".resume-human-editor__section")?.children[freshEntryIndex];
+    if (entry instanceof HTMLElement && !(entry instanceof HTMLButtonElement)) {
+      entry.classList.add("is-fresh");
+      entry.addEventListener("animationend", (event) => {
+        if (event.target === entry) entry.classList.remove("is-fresh");
+      });
+    }
+    setFreshEntryIndex(null);
+  }, [freshEntryIndex]);
+
+  // The block being edited lights up briefly in the live preview.
+  const previewedResume = useRef(resume);
+  useEffect(() => {
+    if (previewedResume.current === resume) return;
+    previewedResume.current = resume;
+    if (editorTab !== "human" || sidePanelTab !== "preview") return;
+    const timer = window.setTimeout(() => {
+      const block = document.querySelector<HTMLElement>(`.resume-editor-preview .resume-section--${activeSectionId}`);
+      if (!block) return;
+      block.classList.remove("is-changed");
+      void block.offsetWidth;
+      block.classList.add("is-changed");
+    }, 200);
+    return () => window.clearTimeout(timer);
+  }, [resume, editorTab, sidePanelTab, activeSectionId]);
+
+  // One removal at a time: a double click must not apply the same index twice while the collapse plays.
+  const removingRef = useRef(false);
+  async function removeArrayItem(field: ParallelCollection, index: number, source?: HTMLElement) {
+    if (removingRef.current) return;
+    removingRef.current = true;
+    try {
+      const op: StructuralOp = { kind: "remove", collection: field, index };
+      const losses = structuralOpLosses(op);
+      if (losses.length && !(await confirm(formatAppMessage(editorText("Removing this entry also removes its text in {locales}. Continue?"), { locales: lostIn(losses) })))) return;
+      await collapseEntry(source?.closest<HTMLElement>("details") ?? source?.parentElement ?? null);
+      applyStructuralOp(op);
+    } finally {
+      removingRef.current = false;
+    }
+  }
+
+  async function updateHighlights(index: number, value: string) {
     const bullets = parseBulletLines(value);
     const losses = highlightLosses(index, bullets.length);
-    if (losses.length && !window.confirm(formatAppMessage(editorText("Removing this bullet also removes text in {locales}. Continue?"), { locales: lostIn(losses) }))) return;
+    if (losses.length && !(await confirm(formatAppMessage(editorText("Removing this bullet also removes text in {locales}. Continue?"), { locales: lostIn(losses) })))) return;
     setActiveHighlights(index, bullets);
   }
 
@@ -788,7 +851,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   }
 
   const humanEditor = (
-              <div className="resume-human-editor">
+              <div className="resume-human-editor" key={activeSectionId}>
                 <fieldset className="resume-human-editor__fieldset" disabled={isBusy}>
                 {activeSectionId === "personal" && (
                 <section className="resume-human-editor__section">
@@ -889,7 +952,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                             {editorText("Default summary")}
                           </label>
                           <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("summary", index)}>
+                            <button type="button" className="button button--ghost button--small" onClick={(event) => void removeArrayItem("summary", index, event.currentTarget)}>
                               {editorText("Remove entry")}
                             </button>
                           </div>
@@ -937,7 +1000,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                           value={item.size}
                           onChange={(event) => updateQrCode(index, "size", event.target.value)}
                         />
-                        <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("qr_codes", index)}>
+                        <button type="button" className="button button--danger button--small" onClick={(event) => void removeArrayItem("qr_codes", index, event.currentTarget)}>
                           {editorText("Remove")}
                         </button>
                         {errorText ? <p className="status status--error resume-human-editor__row-error">{errorText}</p> : null}
@@ -963,7 +1026,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                     <div className="resume-human-editor__row resume-human-editor__row--compact" key={`skill-${index}`}>
                       <input aria-label={editorText("Skill")} placeholder={editorText("Skill")} value={item.name} onChange={(event) => updateSkill(index, "name", event.target.value)} />
                       <input disabled={!isDefaultLanguage} type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateSkill(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("skills", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={(event) => void removeArrayItem("skills", index, event.currentTarget)}>
                         {editorText("Remove")}
                       </button>
                     </div>
@@ -979,7 +1042,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.tech_stack.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`tech-${index}`}>
                       <input aria-label={editorText("Technology")} placeholder={editorText("Technology")} value={item} onChange={(event) => updateStringList("tech_stack", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("tech_stack", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={(event) => void removeArrayItem("tech_stack", index, event.currentTarget)}>
                         {editorText("Remove")}
                       </button>
                     </div>
@@ -997,7 +1060,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                       <input aria-label={editorText("Language")} placeholder={editorText("Language")} value={item.name} onChange={(event) => updateLanguage(index, "name", event.target.value)} />
                       <input aria-label={editorText("Level text")} placeholder={editorText("Level text")} value={item.level_text} onChange={(event) => updateLanguage(index, "level_text", event.target.value)} />
                       <input disabled={!isDefaultLanguage} type="number" min={1} max={5} aria-label={editorText("Level")} placeholder={editorText("Level")} value={item.level} onChange={(event) => updateLanguage(index, "level", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("languages", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={(event) => void removeArrayItem("languages", index, event.currentTarget)}>
                         {editorText("Remove")}
                       </button>
                     </div>
@@ -1013,7 +1076,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                   {resume.interests.map((item, index) => (
                     <div className="resume-human-editor__row resume-human-editor__row--single" key={`interest-${index}`}>
                       <input aria-label={editorText("Interest")} placeholder={editorText("Interest")} value={item} onChange={(event) => updateStringList("interests", index, event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("interests", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={(event) => void removeArrayItem("interests", index, event.currentTarget)}>
                         {editorText("Remove")}
                       </button>
                     </div>
@@ -1041,9 +1104,9 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         <input disabled={!isDefaultLanguage} aria-label={editorText("Period")} placeholder={editorText("Period")} value={item.period} onChange={(event) => updateExperience(index, "period", event.target.value)} />
                         <input disabled={!isDefaultLanguage} aria-label={editorText("Company")} placeholder={editorText("Company")} value={item.company} onChange={(event) => updateExperience(index, "company", event.target.value)} />
                         <input aria-label={editorText("Role")} placeholder={editorText("Role")} value={item.role} onChange={(event) => updateExperience(index, "role", event.target.value)} />
-                        <BulletListTextarea rows={3} ariaLabel={editorText("Highlights, one per line")} placeholder={editorText("Highlights, one per line")} items={item.highlights} onChange={(text) => updateHighlights(index, text)} />
+                        <BulletListTextarea rows={3} ariaLabel={editorText("Highlights, one per line")} placeholder={editorText("Highlights, one per line")} items={item.highlights} onChange={(text) => void updateHighlights(index, text)} />
                         <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("experience", index)}>
+                            <button type="button" className="button button--ghost button--small" onClick={(event) => void removeArrayItem("experience", index, event.currentTarget)}>
                             {editorText("Remove entry")}
                           </button>
                         </div>
@@ -1079,7 +1142,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         <input aria-label={editorText("Degree")} placeholder={editorText("Degree")} value={item.degree} onChange={(event) => updateEducation(index, "degree", event.target.value)} />
                         <textarea rows={2} aria-label={editorText("Detail")} placeholder={editorText("Detail")} value={item.detail} onKeyDown={(event) => continueBulletsOnEnter(event, (text) => updateEducation(index, "detail", text))} onChange={(event) => updateEducation(index, "detail", event.target.value)} />
                         <div className="resume-human-editor__card-actions">
-                            <button type="button" className="button button--ghost button--small" onClick={() => removeArrayItem("education", index)}>
+                            <button type="button" className="button button--ghost button--small" onClick={(event) => void removeArrayItem("education", index, event.currentTarget)}>
                             {editorText("Remove entry")}
                           </button>
                         </div>
@@ -1102,7 +1165,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                     <div className="resume-human-editor__row resume-human-editor__row--compact" key={`course-${index}`}>
                       <input aria-label={editorText("Course name")} placeholder={editorText("Course name")} value={item.name} onChange={(event) => updateCourse(index, "name", event.target.value)} />
                       <input disabled={!isDefaultLanguage} type="number" min={0} aria-label={editorText("Year")} placeholder={editorText("Year")} value={item.year || 0} onChange={(event) => updateCourse(index, "year", event.target.value)} />
-                      <button type="button" className="button button--danger button--small" onClick={() => removeArrayItem("courses", index)}>
+                      <button type="button" className="button button--danger button--small" onClick={(event) => void removeArrayItem("courses", index, event.currentTarget)}>
                         {editorText("Remove")}
                       </button>
                     </div>
@@ -1155,6 +1218,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
   if (onboarding) {
     const previewResume = normalizeResumeDocument(applyResumeSelectionToRawDocument(resume, firstCvSelection(resume)) ?? resume, "");
     return <>
+      {confirmDialog}
       <StatusToast toast={toast} onClose={closeToast} />
       {importReview}
       <OnboardingClient initialState={onboarding} testRunId={testRun?.id}
@@ -1225,6 +1289,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
         }}
       />
       {importReview}
+      {confirmDialog}
 
       <div className="resume-editor-layout">
         <aside className="resume-editor-sidebar">
@@ -1276,6 +1341,11 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
               onSelect={handleLocaleSwitch}
               onManageLanguages={() => setIsLanguageModalOpen(true)}
             />
+            <span className="resume-editor-save-state" aria-live="polite">
+              <StatePill state={isBusy ? "private" : dirtyLocales.length > 0 ? "changes" : "ok"}>
+                {isBusy ? editorText("Saving…") : dirtyLocales.length > 0 ? editorText("Unsaved changes") : editorText("Saved")}
+              </StatePill>
+            </span>
             {lastLocalSaveAt ? (
               <span
                 className="resume-editor-draft-indicator"
@@ -1288,6 +1358,11 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
           </div>
 
           <div className="resume-editor-toolbar__group">
+            <div className="resume-editor-meter" aria-hidden="true">
+              <span>{editorText("Completeness")}</span>
+              <span className="resume-editor-meter__track"><i style={{ width: `${completion.percent}%` }} /></span>
+              <b className="num">{completion.percent}%</b>
+            </div>
             <button
               type="button"
               className="button button--ghost resume-editor-toolbar__panel-trigger"
@@ -1408,7 +1483,7 @@ export default function EditorCanvasClient({ draftPdfEnabled = true, onboarding,
                         type="button"
                         className="button button--small"
                         disabled={parityStatus.ok || isBusy || isLoading}
-                        onClick={handleMatchOthers}
+                        onClick={() => void handleMatchOthers()}
                       >
                         {editorText("Match")}
                       </button>

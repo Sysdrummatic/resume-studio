@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useAppI18n } from "../components/app-i18n-provider";
+import { Button } from "../components/design-system/primitives/Button";
+import { Checkbox } from "../components/design-system/primitives/Checkbox";
+import { Modal } from "../components/design-system/primitives/Modal";
 import type { ResumeImportResult } from "../lib/resume-import/parse-resume-file";
 import type {
   ResumeContactItem,
@@ -225,22 +228,24 @@ export default function ImportReviewModal({
   }
 
   return (
-    <div
-      className="dashboard-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("Review imported CV")}
-      lang={locale}
+    <Modal
+      open
+      title={t("Review import")}
+      closeLabel={t("Close import review")}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            {t("Cancel")}
+          </Button>
+          <Button variant={nameMismatch ? "danger" : "primary"} onClick={handleConfirm} disabled={!canApply}>
+            {t("Add to draft")}
+          </Button>
+        </>
+      }
     >
-      <button
-        type="button"
-        className="dashboard-modal__backdrop"
-        onClick={onClose}
-        aria-label={t("Close import review")}
-      ></button>
-      <div className="dashboard-modal__body">
-        <h2>{t("Review import")}</h2>
-        <p className="card-lead">
+      <div lang={locale} className="import-review-modal">
+        <p className="ocv-meta">
           <strong>{filename}</strong>.{" "}
           {t(
             "Expand a section to pick which entries to add — nothing you've already entered is removed or replaced."
@@ -274,19 +279,16 @@ export default function ImportReviewModal({
                         const { title, meta } = describeImportItem(key, item, t);
                         return (
                           <li key={index}>
-                            <label className="checkbox-row">
-                              <input
-                                type="checkbox"
-                                checked={Boolean(flags[index])}
-                                onChange={(event) => toggleItem(key, index, event.target.checked)}
-                              />
-                              <span className="import-review-section__item-label">
-                                <span className="import-review-section__item-title">{title}</span>
-                                {meta ? (
-                                  <span className="import-review-list__value">{meta}</span>
-                                ) : null}
-                              </span>
-                            </label>
+                            <Checkbox
+                              checked={Boolean(flags[index])}
+                              onChange={(event) => toggleItem(key, index, event.target.checked)}
+                              label={
+                                <span className="import-review-section__item-label">
+                                  <span className="import-review-section__item-title">{title}</span>
+                                  {meta ? <span className="import-review-list__value">{meta}</span> : null}
+                                </span>
+                              }
+                            />
                           </li>
                         );
                       })}
@@ -297,11 +299,11 @@ export default function ImportReviewModal({
             })}
           </ul>
         ) : (
-          <p className="resume-editor-hint">{t("Nothing usable was found in this file.")}</p>
+          <p className="ocv-meta">{t("Nothing usable was found in this file.")}</p>
         )}
 
         {skippedLabels.length > 0 && hasAnyField ? (
-          <p className="resume-editor-hint">
+          <p className="ocv-meta">
             {t("Not found, left as-is:")} {skippedLabels.map((label) => t(label)).join(", ")}.
           </p>
         ) : null}
@@ -318,34 +320,18 @@ export default function ImportReviewModal({
           <div className="import-review-mismatch">
             <p>
               {t("Name in the file:")} <strong>{parsedName}</strong>. {t("Name in your draft:")}{" "}
-              <strong>{currentName}</strong>.
+              <strong>{currentName}</strong>.{" "}
               {t("Adding this content will combine details from both people in the current draft.")}
             </p>
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={acknowledgedMismatch}
-                onChange={(event) => setAcknowledgedMismatch(event.target.checked)}
-              />
-              {t("Add anyway, even though the names don't match")}
-            </label>
+            <Checkbox
+              checked={acknowledgedMismatch}
+              onChange={(event) => setAcknowledgedMismatch(event.target.checked)}
+              label={t("Add anyway, even though the names don't match")}
+            />
           </div>
         ) : null}
 
-        <div className="actions-row">
-          <button type="button" className="button button--ghost" onClick={onClose}>
-            {t("Cancel")}
-          </button>
-          <button
-            type="button"
-            className={`button ${nameMismatch ? "button--danger" : "button--primary"}`}
-            onClick={handleConfirm}
-            disabled={!canApply}
-          >
-            {t("Add to draft")}
-          </button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,0 +1,251 @@
+/*
+ * Master Resume editor on the LiveCV tokens (epic #190, stage #292).
+ * Presentation only. Every editor colour already flows through the --ed-* variables, so the editor is
+ * re-pointed at tokens.css here instead of restyling each rule. Motion is restrained: crossfade,
+ * expand/collapse, an amber wash on a new entry, a flash on the changed block in the live preview.
+ */
+
+section.resume-editor-shell {
+  --ed-nav-bg: var(--ocv-bg);
+  --ed-nav-hover: var(--ocv-raise);
+  --ed-nav-on: var(--ocv-raise);
+  --ed-work: var(--ocv-bg);
+  --ed-card: var(--ocv-raise);
+  --ed-raised: var(--ocv-raise);
+  --ed-line: var(--ocv-line);
+  --ed-line-2: var(--ocv-line-strong);
+  --ed-t1: var(--ocv-ink);
+  --ed-t2: var(--ocv-ink-2);
+  --ed-t3: var(--ocv-ink-3);
+  --ed-accent: var(--ocv-indigo);
+  --ed-accent-hover: var(--ocv-indigo-ink);
+  --ed-accent-bg: var(--ocv-indigo-wash);
+  --ed-teal: var(--ocv-teal);
+  --ed-teal-bg: var(--ocv-teal-wash);
+  --ed-warn: var(--ocv-amber);
+  --ed-warn-bg: var(--ocv-amber-wash);
+  --ed-warn-border: var(--ocv-amber);
+  --ed-radius: var(--ocv-radius-control);
+  interpolate-size: allow-keywords;
+}
+
+section.resume-editor-shell .resume-editor-layout {
+  border-radius: var(--ocv-radius-panel);
+}
+
+section.resume-editor-shell :focus-visible {
+  outline: 2px solid var(--ocv-focus);
+  outline-offset: 2px;
+}
+
+/* The dialog title takes focus on open so a screen reader starts there; no ring on it. */
+section.resume-editor-shell .ocv-modal__title:focus-visible {
+  outline: 0;
+}
+
+/* Editor bar: language, save state, completeness, mode, save */
+.resume-editor-save-state {
+  display: inline-flex;
+}
+
+.resume-editor-save-state .ocv-state {
+  transition:
+    background var(--motion-quick) var(--ease-out),
+    color var(--motion-quick) var(--ease-out);
+}
+
+.resume-editor-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+  font-size: var(--ocv-text-meta);
+  color: var(--ocv-ink-2);
+}
+
+.resume-editor-meter__track {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--ocv-radius-pill);
+  background: var(--ocv-line);
+  overflow: hidden;
+}
+
+.resume-editor-meter__track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ocv-indigo-ink);
+  transition: width var(--motion-base) var(--ease-out);
+}
+
+.resume-editor-meter .num {
+  font-family: var(--ocv-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ocv-ink);
+}
+
+/* Section nav: pills with completion dots (indigo = filled, hollow = needs content) */
+section.resume-editor-shell .resume-editor-nav__item {
+  border-radius: var(--ocv-radius-pill);
+}
+
+section.resume-editor-shell .resume-editor-nav__item.is-active {
+  box-shadow: inset 0 0 0 1px var(--ocv-line-strong);
+}
+
+section.resume-editor-shell .resume-editor-nav__status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ocv-control);
+  background: transparent;
+}
+
+section.resume-editor-shell .resume-editor-nav__status[data-status="ok"] {
+  border-color: var(--ocv-indigo-ink);
+  background: var(--ocv-indigo-ink);
+}
+
+/* Section switch: 120 ms crossfade of the form */
+.resume-human-editor {
+  animation: resume-editor-fade 120ms var(--ease-out) both;
+}
+
+@keyframes resume-editor-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Entries: expand on open, collapse on close (where ::details-content is supported) */
+.resume-human-editor__card--collapsible[open] > .resume-human-editor__card-body {
+  animation: resume-editor-expand var(--motion-base) var(--ease-out) both;
+}
+
+@keyframes resume-editor-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@supports selector(::details-content) {
+  .resume-human-editor__card--collapsible::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size var(--motion-base) var(--ease-out),
+      content-visibility var(--motion-base) allow-discrete;
+  }
+
+  .resume-human-editor__card--collapsible[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* New entry: amber wash that fades out. Removed entry: collapses before it is dropped. */
+.resume-human-editor__section > .is-fresh {
+  animation: resume-editor-wash 1200ms var(--ease-out) both;
+}
+
+@keyframes resume-editor-wash {
+  from {
+    background-color: var(--ocv-amber-wash);
+    border-color: var(--ocv-amber);
+  }
+}
+
+.resume-human-editor__section .is-removing {
+  overflow: hidden;
+  pointer-events: none;
+  animation: resume-editor-collapse var(--motion-quick) var(--ease-in) forwards;
+}
+
+@keyframes resume-editor-collapse {
+  to {
+    block-size: 0;
+    opacity: 0;
+    margin-block: 0;
+    padding-block: 0;
+    border-width: 0;
+  }
+}
+
+/* Live preview: the block being edited lights up briefly */
+.resume-editor-preview .is-changed {
+  animation: resume-editor-preview-flash 900ms var(--ease-out) both;
+}
+
+@keyframes resume-editor-preview-flash {
+  from {
+    box-shadow: 0 0 0 3px var(--ocv-amber);
+  }
+  to {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+/* Dialogs rendered inside the editor: tidy the import review body on the Modal primitive */
+.import-review-modal {
+  display: grid;
+  gap: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resume-human-editor,
+  .resume-human-editor__card--collapsible[open] > .resume-human-editor__card-body,
+  .resume-human-editor__section > .is-fresh,
+  .resume-editor-preview .is-changed {
+    animation: none;
+  }
+
+  .resume-human-editor__card--collapsible::details-content,
+  .resume-editor-meter__track i {
+    transition: none;
+  }
+}
+
+/* Hardening: long titles, long filenames, many languages, narrow bars */
+.resume-human-editor__card--collapsible summary {
+  min-width: 0;
+}
+
+.resume-human-editor__card-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-human-editor__card-meta {
+  flex: none;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-editor-nav__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-editor-workspace,
+.resume-editor-toolbar__group {
+  min-width: 0;
+}
+
+.import-review-modal strong,
+.ocv-modal__body p {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .resume-editor-meter {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+}
