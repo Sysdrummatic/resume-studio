@@ -302,3 +302,9 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
 - **Brak zalogowanego testu przeglądarkowego `/adminsettings`.** Strona jest sprawdzona ręcznie
   (PL/EN, jasny/ciemny, 500 px) i testami kontraktowymi, ale nie ma testu Playwright
   z sesją admina.
+- **Usuwanie, publikacja i wycofanie LiveCV bez obsługi błędów sieci** (przegląd #303, kod sprzed #291, bez zmian).
+  `deletePreset`, `publishPreset` i `unpublishPreset` w `app/dashboard/dashboard-client.tsx` nie mają
+  `try/catch`: przy zerwanym połączeniu albo odpowiedzi 5xx bez JSON przycisk zostaje w stanie `busy`,
+  a odrzucona obietnica jest nieobsłużona. Dialog usuwania zamyka się też po nieudanym usunięciu
+  (`.then(() => setConfirmDeletePreset(null))` nie sprawdza wyniku), a komunikat „usunięto" używa tonu
+  `error`. Naprawa to zmiana zachowania, więc poza zakresem etapów redesignu.

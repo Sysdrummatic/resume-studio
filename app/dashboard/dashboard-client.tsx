@@ -131,6 +131,8 @@ type DocumentWithViewTransition = Document & {
  * only while it runs, so route and theme transitions never see them). Without the API or with
  * reduced motion the change applies at once.
  */
+let latestViewTransition = 0;
+
 function withViewTransition(kind: "sheet" | "filter", update: () => void) {
   const viewTransitionDocument = document as DocumentWithViewTransition;
   if (
@@ -141,10 +143,12 @@ function withViewTransition(kind: "sheet" | "filter", update: () => void) {
     return;
   }
   const root = document.documentElement;
+  const run = ++latestViewTransition;
   root.dataset.dashboardVt = kind;
   const transition = viewTransitionDocument.startViewTransition(() => flushSync(update));
   void transition.finished.catch(() => undefined).finally(() => {
-    if (root.dataset.dashboardVt === kind) delete root.dataset.dashboardVt;
+    // A newer transition owns the attribute; clearing it here would drop its names mid-animation.
+    if (run === latestViewTransition) delete root.dataset.dashboardVt;
   });
 }
 
