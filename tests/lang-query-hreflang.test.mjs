@@ -98,7 +98,7 @@ test("internal navigation links and the language switcher carry ?lang=", () => {
     "app/components/footer.tsx",
     "app/components/app-header-navigation.tsx",
     "app/components/docs-layout.tsx",
-    "app/page.tsx",
+    "app/components/landing/landing-story.tsx",
   ]) {
     assert.match(read(file), /localized-link/, file);
   }

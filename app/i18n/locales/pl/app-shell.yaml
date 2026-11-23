@@ -25,6 +25,12 @@ common:
   home: Strona główna
   breadcrumb: Okruszki nawigacyjne
   close_notification: Zamknij powiadomienie
+  skip_to_content: Przejdź do treści
+footer:
+  aria_label: Stopka
+  docs: Dokumentacja
+  privacy: Polityka prywatności
+  terms: Warunki korzystania
 navigation:
   personal_hub: Profil i LiveCV
   dashboard: Panel
@@ -44,6 +50,7 @@ account:
   profile: Profil
   user_management: Zarządzanie użytkownikami
   beta_test_mode: Tryb testów beta
+  admin_settings: Ustawienia administratora
   settings: Ustawienia
   signing_out: Wylogowywanie…
   log_out: Wyloguj się

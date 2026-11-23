@@ -58,7 +58,9 @@ test("FAQPage is generated 1:1 from the visible FAQ items", () => {
 test("the landing FAQ dictionaries feed both the page and the schema", () => {
   const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /buildFaqPageJsonLd\(faq\.items\)/);
-  assert.match(page, /faq\.items\.map/);
+  assert.match(page, /<LandingFaq faq=\{faq\} \/>/);
+  const drawer = readFileSync(new URL("../app/components/landing/landing-faq.tsx", import.meta.url), "utf8");
+  assert.match(drawer, /faq\.items\.map/);
 });
 
 test("TechArticle and BreadcrumbList have required fields and positions", () => {

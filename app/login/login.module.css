@@ -1,0 +1,266 @@
+/* /login presentation (#290): copy on the left, the unchanged auth card on the right, loose sheets behind. */
+
+:global(.app-main):has(.entry)::before {
+  content: none;
+}
+
+.entry {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 24px;
+  width: min(1280px, calc(100% - var(--layout-gutter) - var(--layout-gutter)));
+  margin-inline: auto;
+  padding-block: clamp(24px, 5vh, 56px) 56px;
+}
+
+.copy {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  max-width: 560px;
+}
+
+.tag {
+  margin: 0;
+  color: var(--ocv-ink-3);
+  font: 500 0.75rem / 1 var(--ocv-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--ocv-ink);
+  font: var(--ocv-display-weight) clamp(30px, 4.6vw, 64px) / 1.05 var(--ocv-font-display);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.free {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--ocv-ink-2);
+  font-size: 0.84375rem;
+}
+
+.free::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ocv-teal);
+}
+
+@media (min-width: 980px) {
+  .entry {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+    align-items: start;
+    gap: clamp(24px, 5vw, 80px);
+  }
+
+  /* a fixed distance from the top: sticky inside the grid row followed the card, so the headline
+     jumped when the card grew from sign in to sign up */
+  .copy {
+    margin-top: clamp(24px, 22vh - 24px, 220px);
+  }
+}
+
+/* ---------- The auth card as the mockup's panel (#290) ----------
+ * AccountAccessClient keeps its markup and logic; only its look changes here, on LiveCV tokens
+ * instead of the legacy portal palette: a raised panel traced once round its edge, a display
+ * title, plain labels, rounded fields and pill buttons. */
+
+.entry :global(.auth-access) {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+}
+
+.entry :global(.auth-card) {
+  position: relative;
+  gap: 14px;
+  overflow: visible;
+  padding: clamp(18px, 2.2vw, 28px);
+  border: 1px solid var(--ocv-line-strong);
+  border-radius: 20px;
+  background: var(--ocv-raise);
+  box-shadow: none;
+  color: var(--ocv-ink);
+}
+
+/* the outline traced once round a thing that has just appeared, from its top-right corner */
+.entry :global(.auth-card)::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  height: auto;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from -45deg, var(--ocv-teal) var(--ocv-trace), transparent 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transform: scaleX(-1);
+  pointer-events: none;
+  opacity: 0;
+  animation: card-trace 1.6s var(--ease-out) both;
+}
+
+@keyframes card-trace {
+  from {
+    --ocv-trace: 0deg;
+    opacity: 1;
+  }
+  70% {
+    --ocv-trace: 360deg;
+    opacity: 1;
+  }
+  to {
+    --ocv-trace: 360deg;
+    opacity: 0;
+  }
+}
+
+.entry :global(.auth-card__header),
+.entry :global(.auth-card__form) {
+  gap: 14px;
+}
+
+.entry :global(.product-surface__eyebrow) {
+  color: var(--ocv-ink-3);
+  font: 500 0.6875rem / 1 var(--ocv-font-mono);
+  letter-spacing: 0.14em;
+}
+
+.entry :global(.auth-card__title) {
+  color: var(--ocv-ink);
+  font: var(--ocv-display-weight) clamp(22px, 2vw, 28px) / 1.15 var(--ocv-font-display);
+  letter-spacing: -0.02em;
+}
+
+.entry :global(.auth-card__lead) {
+  color: var(--ocv-ink-2);
+  font-size: clamp(15px, 1.2vw, 17px);
+  line-height: 1.55;
+}
+
+.entry :global(.auth-card__note) {
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ocv-teal-wash);
+  color: var(--ocv-teal-ink);
+  font-size: 0.90625rem;
+}
+
+.entry :global(.auth-card__field) {
+  gap: 6px;
+}
+
+.entry :global(.auth-card__label) {
+  color: var(--ocv-ink-2);
+  font: 500 0.8125rem / 1.3 var(--ocv-font-ui);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.entry :global(.auth-card input:not([type="checkbox"])) {
+  min-height: var(--ocv-hit);
+  padding: 0 14px;
+  border: 1px solid var(--ocv-control);
+  border-radius: 12px;
+  background: var(--ocv-bg);
+  color: var(--ocv-ink);
+  font: 400 0.9375rem / 1.4 var(--ocv-font-ui);
+  box-shadow: none;
+}
+
+.entry :global(.auth-card input:focus-visible) {
+  outline: 2px solid var(--ocv-indigo-ink);
+  outline-offset: 2px;
+  border-color: var(--ocv-ink);
+}
+
+.entry :global(.auth-card .checkbox-row) {
+  gap: 10px;
+  color: var(--ocv-ink-2);
+  font-size: 0.90625rem;
+  line-height: 1.5;
+}
+
+.entry :global(.auth-card .checkbox-row input) {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ocv-teal-ink);
+}
+
+/* "Forgot password?" comes under the button, as in the mockup */
+.entry :global(.auth-card__support-row) {
+  order: 1;
+  justify-content: flex-start;
+  font-size: 0.90625rem;
+}
+
+.entry :global(.auth-card .button) {
+  min-height: var(--ocv-hit);
+  padding: 0 20px;
+  border: 1px solid var(--ocv-control);
+  border-radius: var(--ocv-radius-pill);
+  background: transparent;
+  color: var(--ocv-ink);
+  font: 500 0.90625rem / 1 var(--ocv-font-ui);
+  box-shadow: none;
+}
+
+.entry :global(.auth-card .button--primary) {
+  width: 100%;
+  border-color: var(--ocv-ink);
+  background: var(--ocv-ink);
+  color: var(--ocv-on-ink);
+}
+
+.entry :global(.auth-card .button--primary:hover:not(:disabled)) {
+  border-color: var(--ocv-teal-ink);
+  background: var(--ocv-teal-ink);
+}
+
+.entry :global(.auth-card .button:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.entry :global(.auth-card__link),
+.entry :global(.auth-card__text-button) {
+  color: var(--ocv-indigo-ink);
+  font-size: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.entry :global(.auth-card__link:hover),
+.entry :global(.auth-card__text-button:hover) {
+  color: var(--ocv-ink);
+}
+
+.entry :global(.auth-card__link:focus-visible),
+.entry :global(.auth-card__text-button:focus-visible) {
+  outline-color: var(--ocv-indigo-ink);
+}
+
+.entry :global(.auth-card__footer) {
+  display: block;
+  color: var(--ocv-ink-2);
+  font-size: 0.90625rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry :global(.auth-card)::before {
+    animation: none;
+  }
+}

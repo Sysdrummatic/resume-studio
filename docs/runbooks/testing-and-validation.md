@@ -81,18 +81,33 @@ Use test data for publication checks.
 
 With the application running, execute `node scripts/qa/landing-animation.mjs`.
 It defaults to `http://localhost:3000`; set `QA_BASE_URL` for another local/preview
-instance. The check uses the installed Playwright Chromium and writes screenshots
-to a new OS temporary directory, printed on success.
+instance and `QA_SCREENSHOTS` for a fixed screenshot folder (otherwise a new OS
+temporary directory, printed at the end). It uses the installed Playwright Chromium,
+runs every check and lists all failures; exit code 1 when any check fails.
 
-Checks cover desktop/mobile, EN/PL, both themes, progressive collection and stable
-random ordering, the stationary source queue, arrival-only document filling,
-downward tracking, complete-base zoom, three distinct CV selections, final framing,
-named group outlines with real label gaps, one visible arrow before the first CV,
-keyboard pause/resume, playback completion and the reduced-motion overview. It
-also opens the real homepage iframe to check script loading and hidden controls.
-Inspect the screenshots and watch the standalone `/animations/opencivera-animation.html`
-preview for motion quality. These are local illustrative-data checks, not Supabase
-integration or production validation.
+It checks the current CSS 3D landing (the old homepage iframe and
+`/animations/opencivera-animation.html` are gone):
+
+- Tab and Shift+Tab never land on a hidden or faded control; the sample LiveCV link in
+  the last stage is a real, focusable link outside the `aria-hidden` scene and uses the
+  URL from `content/landing.yaml`; closing a feature card (Escape or its button) gives
+  the focus back to the button that opened it.
+- Without JavaScript the page opens at the top, scrolls to the footer, and `/#faq`
+  shows the FAQ with native `<details>`.
+- On a phone every stage button has its PL/EN stage label as its name and
+  `aria-current` on the active one.
+- Reduced motion switched on and off three times in an open tab: the scene loop and the
+  rotating word stop at once, and come back as one loop (rAF calls per frame).
+- The phone feature carousel drifts, holds while the focus is in the list (more than
+  4s), drifts again after, and gives way to a finger scroll.
+- On a short computer window Escape and the screen's button both lead to the simplified
+  version.
+- CTAs and the sample link keep their routes, `/login` renders, no runtime errors.
+- Screenshots of stages 0, 4 and 8 on desktop and phone, PL/EN, light/dark, for
+  comparing frames before and after a change.
+
+Motion quality itself still needs a look in a real browser. These are local checks,
+not Supabase integration or production validation.
 
 The demo profile is Ariana Holt in the source and all three CVs, in both languages.
 Tiles transfer every 0.52 seconds with a 0.38-second flight, filling entries only

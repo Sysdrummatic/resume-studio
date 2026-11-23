@@ -1,10 +1,30 @@
 # ADR 0012: Portal Light Mode Material You Within App Theme Boundary
 
-Status: Accepted
+Status: Accepted (default theme amended 2026-11-21, see below)
 
 Date: 2026-05-19
 
 Extends: [ADR 0011](0011-portal-theme-dark-default-light-deferred.md)
+
+## Amendment 2026-11-21: the system picks the default (#289, epic #190)
+
+Decided in UI redesign stage #289 ([ADR 0026](0026-livecv-ui-css-3d-native-motion-and-portal-typography.md),
+action item 2). It replaces "`dark` remains the default application theme" below.
+
+- Without a stored choice the portal follows the operating system
+  (`prefers-color-scheme`), including live changes.
+- The top-bar switch stores a manual choice (`light` / `dark`) in the
+  `OpenCiVera-theme` cookie; a stored choice always wins.
+- The server renders `data-app-theme` only when the cookie holds a valid theme
+  (`readStoredAppTheme` in `app/lib/app-theme.ts`). Otherwise
+  `app/components/app-theme-script.tsx`, an inline script carrying the request's CSP
+  nonce, sets the attribute from the system before the first paint, so every rule and
+  JS reader that keys on `data-app-theme` (the legacy `--portal-*` palette included)
+  agrees with the LiveCV tokens.
+- `DEFAULT_APP_THEME` (`dark`) remains only a fallback where a concrete theme is
+  needed before the document can be read.
+- The switch has two states. Going back to "follow the system" means clearing the
+  cookie; a UI for it is deferred (`TECH_DEBT.md`).
 
 ## Context
 
@@ -61,7 +81,7 @@ Light mode does not apply to:
 
 ## Checklist
 
-- [x] Keep `dark` as the default application theme.
+- [x] Keep `dark` as the default application theme (superseded 2026-11-21: the system picks the default).
 - [x] Enable `light` inside the existing `app theme` model.
 - [x] Activate the top-bar theme switch.
 - [x] Persist theme preference in a cookie for SSR-safe rendering.

@@ -11,7 +11,7 @@ import { aiBotForbiddenResponse, isPublicCvPath, shouldBlockAiBot } from "./app/
 import { refreshSession } from "./app/lib/supabase-http";
 import { APP_LANG_QUERY_HEADER_NAME, APP_LANG_QUERY_PARAM } from "./app/i18n/locale";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/onboarding", "/settings", "/user", "/admin"];
+const PROTECTED_PREFIXES = ["/dashboard", "/master-resume", "/onboarding", "/settings", "/adminsettings", "/user", "/admin"];
 const ACCESS_TOKEN_SKEW_MS = 30_000;
 
 /**

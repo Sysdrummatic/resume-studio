@@ -156,7 +156,7 @@ test("layout and sample resume use the resolved application locale", () => {
   const samplePage = read("app/resume/page.tsx");
   const sampleConfig = readYaml("public/data/public/locales.yaml");
 
-  assert.equal(layout.includes("<html lang={appI18n.locale}"), true);
+  assert.match(layout, /<html\s+lang=\{appI18n\.locale\}/);
   assert.equal(samplePage.includes("initialLocale={locale}"), true);
   assert.equal(sampleConfig.default_locale, "pl");
 });

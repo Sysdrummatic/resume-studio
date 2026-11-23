@@ -825,7 +825,7 @@ only, indexing disabled). Full behavioral spec:
 Test contracts: `tests/resume-onboarding.test.mjs`,
 `tests/onboarding-progress.test.mjs`.
 
-**Admin Onboarding-Test Harness:** `/settings` (admin-only) and migration
+**Admin Onboarding-Test Harness:** `/settings` and `/adminsettings` (both admin-only; `/adminsettings` also holds beta test mode and the resume-test notice that used to sit on the dashboard, #291 — the account menu Beta test mode item links to it) and migration
 `20260907010000_admin_onboarding_tests.sql` let staff dry-run the onboarding
 guide without touching their own Master Resume or account state. Test runs
 live in `resume_onboarding_test_runs`, not `resume_onboarding`; synthetic

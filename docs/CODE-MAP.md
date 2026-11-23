@@ -48,7 +48,7 @@ Key files NOT to edit directly (read-only):
 - `supabase/migrations/` — ask Backend Engineer / add a new migration instead
 
 Protected routes have no `(authenticated)` route group — `dashboard/`,
-`admin/`, `master-resume/`, `user/`, `onboarding/`, `settings/` are plain
+`admin/`, `master-resume/`, `user/`, `onboarding/`, `settings/`, `adminsettings/` are plain
 top-level segments, each independently gated by `requireRequestActor()`.
 Protected pages use server-side actor checks; API handlers enforce their own
 authorization. `proxy.ts` supports session refresh and request security, but
@@ -82,6 +82,7 @@ this rule is for design *exploration and documentation*, not production assets.
 | `/master-resume` | [Master Resume](../app/master-resume/page.tsx) | Private editor |
 | `/onboarding` | [Guide](../app/onboarding/page.tsx) | First CV; admin test selected by query parameter |
 | `/settings` | [Settings](../app/settings/page.tsx) | Admin-only onboarding test controls |
+| `/adminsettings` | [Admin settings](../app/adminsettings/page.tsx) | Admin-only: onboarding test (incl. the resume-test notice, moved off the dashboard) and beta test mode |
 | `/user` | [Personal Hub](../app/user/page.tsx) | Account workspace |
 | `/admin` | [Administration](../app/admin/page.tsx) | Staff tools with operation-specific RBAC |
 | `/resume` | [Sample CV](../app/resume/page.tsx) | Public sample |

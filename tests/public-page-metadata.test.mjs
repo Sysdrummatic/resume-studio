@@ -64,7 +64,7 @@ test("every public page wires publicPageMetadata with its own canonical path", (
 
 test("login canonical ignores the ?mode= variants", () => {
   const source = read("app/login/page.tsx");
-  const metadataFn = source.slice(source.indexOf("generateMetadata"), source.indexOf("function resolveAuthMode"));
+  const metadataFn = source.slice(source.indexOf("generateMetadata"), source.indexOf("export default async function LoginPage"));
   assert.doesNotMatch(metadataFn, /searchParams|mode/);
 });
 
