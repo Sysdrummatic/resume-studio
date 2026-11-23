@@ -18,6 +18,7 @@ import {
   pickMasterResumeDocument
 } from "../lib/resume-server";
 import { getRequestAppI18n } from "../i18n/server";
+import { Panel, buttonClassName } from "../components/design-system/primitives";
 
 export const dynamic = "force-dynamic";
 
@@ -51,28 +52,20 @@ export default async function DashboardPage() {
   const masterResume = pickMasterResumeDocument(ownedDocuments, resumeLanguages);
 
   return (
-    <div className="dashboard-page editor-theme wide-shell-page">
+    <div className="dashboard-page ocv-page">
       <Script src="/vendor/js-yaml.min.js" strategy="afterInteractive" />
       <WorkspaceBreadcrumbs current={dictionary.dashboard.main.title} />
 
-      {testRun && testRun.status !== "completed" ? (
-        <div className="card stack">
-          <strong>{onboardingText("Onboarding test")}</strong>
-          <Link className="button button--primary" href={`/onboarding?test=${testRun.id}`}>
-            {onboardingText("Resume test")}
-          </Link>
-        </div>
-      ) : null}
       {onboarding && onboarding.status !== "completed" ? (
-        <div className="card stack">
+        <Panel className="dashboard-banner">
           <strong>{onboardingText("Finish your first CV")}</strong>
-          <p>
+          <p className="ocv-meta">
             {onboardingText("Your saved details are ready. Continue the guide where you left off.")}
           </p>
-          <Link className="button button--primary" href="/onboarding">
+          <Link className={buttonClassName("primary")} href="/onboarding">
             {onboardingText("Resume guide")}
           </Link>
-        </div>
+        </Panel>
       ) : null}
       <DashboardClient
         masterResume={masterResume}

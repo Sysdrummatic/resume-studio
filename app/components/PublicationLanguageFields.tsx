@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { ResumeLocale } from "../lib/resume-schema";
 import { useAppI18n } from "./app-i18n-provider";
+import { Checkbox, Select } from "./design-system/primitives";
 
 export type PublicationLanguages = {
   selectedLocales: ResumeLocale[];
@@ -52,26 +53,29 @@ export default function PublicationLanguageFields({
 
   return (
     <>
-      <section className="stack">
-        <h3>{labels.languages}</h3>
+      <fieldset className="publication-languages">
+        <legend className="ocv-label">{labels.languages}</legend>
         {locales.map((locale) => (
-          <label key={locale} className="checkbox-row">
-            <input type="checkbox" checked={value.selectedLocales.includes(locale)} onChange={() => toggleLocale(locale)} />
-            {languageLabel(locale)}
-          </label>
+          <Checkbox
+            key={locale}
+            label={languageLabel(locale)}
+            checked={value.selectedLocales.includes(locale)}
+            onChange={() => toggleLocale(locale)}
+          />
         ))}
-      </section>
+      </fieldset>
 
-      <label>
-        {labels.default}
-        <select value={value.defaultLocale} onChange={(event) => onChange({ ...value, defaultLocale: event.target.value as ResumeLocale })}>
-          {value.selectedLocales.map((locale) => (
-            <option key={locale} value={locale}>
-              {languageLabel(locale)}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select
+        label={labels.default}
+        value={value.defaultLocale}
+        onChange={(event) => onChange({ ...value, defaultLocale: event.target.value as ResumeLocale })}
+      >
+        {value.selectedLocales.map((locale) => (
+          <option key={locale} value={locale}>
+            {languageLabel(locale)}
+          </option>
+        ))}
+      </Select>
     </>
   );
 }

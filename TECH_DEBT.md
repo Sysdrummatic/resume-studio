@@ -280,3 +280,31 @@ tworzyć rewizje i cofać dokumenty kont user/recruiter). Niski priorytet: `is_l
   (`profile-modal-overlay`) — przeniesienie na prymityw `Modal` w #294 (Personal Hub).
 - **Licencja Space Grotesk.** `public/fonts/SpaceGrotesk-*.ttf` leżą bez pliku licencji
   OFL (dla Fraunces jest `Fraunces-OFL.txt`); dodać `SpaceGrotesk-OFL.txt`.
+
+## Dashboard i ustawienia administratora (#291): otwarte punkty (stan z 2026-11-23)
+
+**Status:** otwarte. Audyt `/impeccable audit app/dashboard` dał 17/20 bez P0 i P1; raport w `.impeccable/audit/`.
+
+- **Slug `adminsettings` na prod niesprawdzony.** Migracja `20261122000000_reserve_adminsettings_person_slug`
+  jest nałożona na test i prod, ale zapytanie `select count(*) from public.profiles where person_slug = 'adminsettings'`
+  nie zostało wykonane na prod (uprawnienia MCP). Gdyby taki profil istniał, jego LiveCV
+  `/adminsettings/{publicId}` zniknąłby po wdrożeniu trasy. Sprawdzić przed wdrożeniem.
+- **Tryb beta jako sekcja strony.** Pozycja „Tryb testów beta” w menu konta kieruje do
+  `/adminsettings#beta-test-mode` (wcześniej modal). Pełny redesign ustawień to etap #294.
+- **Wspólna sekcja testu onboardingu.** `OnboardingTestSection` (`app/settings/`) jest
+  używana przez `/settings` i `/adminsettings` i importuje `app/adminsettings/admin-settings.css`;
+  `/settings` zostaje w starym układzie do #294, ale sekcja ma już wygląd prymitywów.
+- **Zmiana filtra listy nie jest ogłaszana** czytnikom ekranu (brak regionu na żywo dla listy
+  i stanu pustego) — `/impeccable harden app/dashboard`.
+- **Pozycje `Menu` mają 43 px** zamiast `--ocv-hit` (44 px) — poprawka w prymitywie.
+- **Miniatura renderuje całą stronę CV** (`.dashboard-thumb__page`, 793 px w `zoom`) przy
+  każdej zmianie zaznaczenia; przy dużych listach rozważyć lżejszy podgląd.
+- **Brak zalogowanego testu przeglądarkowego `/adminsettings`.** Strona jest sprawdzona ręcznie
+  (PL/EN, jasny/ciemny, 500 px) i testami kontraktowymi, ale nie ma testu Playwright
+  z sesją admina.
+- **Usuwanie, publikacja i wycofanie LiveCV bez obsługi błędów sieci** (przegląd #303, kod sprzed #291, bez zmian).
+  `deletePreset`, `publishPreset` i `unpublishPreset` w `app/dashboard/dashboard-client.tsx` nie mają
+  `try/catch`: przy zerwanym połączeniu albo odpowiedzi 5xx bez JSON przycisk zostaje w stanie `busy`,
+  a odrzucona obietnica jest nieobsłużona. Dialog usuwania zamyka się też po nieudanym usunięciu
+  (`.then(() => setConfirmDeletePreset(null))` nie sprawdza wyniku). Naprawa to zmiana zachowania,
+  więc poza zakresem etapów redesignu: zgłoszenie #304.

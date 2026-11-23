@@ -52,8 +52,8 @@ test("indexing controls are hidden unless the flag is on and copy exists in EN a
   const modal = read("app/components/PublishSavedVersionModal.tsx");
   const dashboard = read("app/dashboard/dashboard-client.tsx");
   const page = read("app/dashboard/page.tsx");
-  assert.match(modal, /indexingEnabled \? \(\s*<label className="checkbox-row">/);
-  assert.match(dashboard, /indexingEnabled \? \(\s*<label className="checkbox-row">/);
+  assert.match(modal, /indexingEnabled \? \(\s*<Checkbox/);
+  assert.match(dashboard, /indexingEnabled \? \(\s*<Checkbox/);
   assert.match(dashboard, /indexingEnabled = false/);
   assert.match(page, /indexingEnabled=\{indexingEnabled\}/);
   for (const locale of ["en", "pl"]) {

@@ -72,6 +72,17 @@ obecne ekrany na `--portal-*`, a zerowanie tokenów obejmuje też opóźnienia (
 i odczyty z JS. Animacje wyjścia kończą się wtedy po 0,01 ms, więc `animationend` nadal
 przychodzi (modal ma dodatkowo zegar awaryjny 400 ms).
 
+### Przejścia na dashboardzie (#291)
+
+Lista LiveCV i panel szczegółów używają View Transitions przez
+`document.startViewTransition(() => flushSync(update))`
+(`withViewTransition` w `app/dashboard/dashboard-client.tsx`). Nazwy przejść są ustawiane
+tylko na czas trwania przejścia atrybutem `html[data-dashboard-vt="sheet" | "filter"]`,
+więc przejścia tras i motywu ich nie widzą. Wiersze listy mają
+`view-transition-name: match-element`. Bez API albo przy `prefers-reduced-motion` zmiana
+stanu następuje od razu. Dialogi (`Modal`) dostają wartość przez `useDialogValue`, który
+zachowuje ostatnią wartość do końca animacji wyjścia.
+
 ## Prymitywy (`primitives/`)
 
 Komponenty React w `app/components/design-system/primitives/` (eksport z
