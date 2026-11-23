@@ -62,6 +62,7 @@ export type AppDictionary = {
     profile: string;
     user_management: string;
     beta_test_mode: string;
+    admin_settings: string;
     settings: string;
     signing_out: string;
     log_out: string;

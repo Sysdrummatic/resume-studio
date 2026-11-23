@@ -90,6 +90,11 @@ test("account menu keeps its role boundaries", () => {
   const menu = read("app/components/account-menu.tsx");
 
   assert.equal(menu.includes("{canAccessAdminArea(role) && ("), true);
-  assert.equal(menu.includes("isAdminRole(role) && <MenuItem onClick={openBetaTestModeModal}>"), true);
+  assert.match(menu, /\{isAdminRole\(role\) && \(\s*<Link href="\/adminsettings#beta-test-mode"/);
   assert.match(menu, /\{isAdminRole\(role\) \? \(\s*<Link href="\/settings"[\s\S]*?\) : \(\s*<MenuItem disabled>\{labels\.settings\}<\/MenuItem>/);
+  // #291: Admin settings is admin-only and sits directly above Settings.
+  assert.match(
+    menu,
+    /\{isAdminRole\(role\) && \(\s*<Link href="\/adminsettings" className="ocv-menu__item">\s*\{labels\.admin_settings\}\s*<\/Link>\s*\)\}\s*\{isAdminRole\(role\) \? \(\s*<Link href="\/settings"/,
+  );
 });

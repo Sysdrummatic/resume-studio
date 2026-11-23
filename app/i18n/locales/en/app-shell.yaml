@@ -50,6 +50,7 @@ account:
   profile: Profile
   user_management: User management
   beta_test_mode: Beta test mode
+  admin_settings: Admin settings
   settings: Settings
   signing_out: Signing out…
   log_out: Log out

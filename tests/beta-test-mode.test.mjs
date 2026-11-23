@@ -13,7 +13,10 @@ const headerNavPath = path.join(process.cwd(), "app", "components", "app-header-
 const loginPagePath = path.join(process.cwd(), "app", "login", "page.tsx");
 const loginClientPath = path.join(process.cwd(), "app", "login", "account-access-client.tsx");
 const accountMenuPath = path.join(process.cwd(), "app", "components", "account-menu.tsx");
-const modalPath = path.join(process.cwd(), "app", "components", "beta-test-mode-modal.tsx");
+const sectionPath = path.join(process.cwd(), "app", "adminsettings", "beta-test-mode-settings.tsx");
+const adminSettingsPagePath = path.join(process.cwd(), "app", "adminsettings", "page.tsx");
+const dashboardPagePath = path.join(process.cwd(), "app", "dashboard", "page.tsx");
+const proxyPath = path.join(process.cwd(), "proxy.ts");
 
 function read(filePath) {
   return fs.readFileSync(filePath, "utf8");
@@ -99,16 +102,29 @@ test("login page threads restriction into the client and disables submit buttons
   assert.equal(clientSource.includes("if (restricted) {"), true);
 });
 
-test("account menu exposes Beta test mode only for admin and opens the management modal", () => {
+test("account menu sends admins to the Beta test mode section of /adminsettings (#291)", () => {
   const menuSource = read(accountMenuPath);
-  const modalSource = read(modalPath);
+  const sectionSource = read(sectionPath);
 
-  assert.equal(menuSource.includes("isAdminRole(role) && <MenuItem onClick={openBetaTestModeModal}>"), true);
+  assert.match(menuSource, /\{isAdminRole\(role\) && \(\s*<Link href="\/adminsettings#beta-test-mode"/);
   assert.equal(menuSource.includes("labels.beta_test_mode"), true);
-  assert.equal(menuSource.includes("BetaTestModeModal"), true);
+  assert.equal(menuSource.includes("BetaTestModeModal"), false, "the modal moved to /adminsettings");
 
-  assert.equal(modalSource.includes("Restrict access"), true);
-  assert.equal(modalSource.includes("/api/admin/access-restriction"), true);
-  assert.equal(modalSource.includes("<select"), true);
-  assert.equal(modalSource.includes('role="dialog"'), true);
+  assert.equal(sectionSource.includes("Restrict access"), true);
+  assert.equal(sectionSource.includes("/api/admin/access-restriction"), true);
+  assert.equal(sectionSource.includes("<Select"), true);
+  assert.equal(sectionSource.includes('id="beta-test-mode"'), true);
+});
+
+test("/adminsettings is admin-only, protected, and holds the onboarding test and beta test mode (#291)", () => {
+  const page = read(adminSettingsPagePath);
+  const dashboardPage = read(dashboardPagePath);
+
+  assert.equal(page.includes("await requireAdminActor()"), true);
+  assert.equal(page.includes("<OnboardingTestSection initialRun={run} />"), true);
+  assert.equal(page.includes("<BetaTestModeSettings />"), true);
+  assert.match(page, /href=\{`\/onboarding\?test=\$\{run\.id\}`\}/, "the resume-test notice moved here");
+  assert.equal(dashboardPage.includes('onboardingText("Resume test")'), false, "the dashboard no longer shows the onboarding-test notice");
+  assert.match(dashboardPage, /if \(testRun\?\.auto_start && testRun\.status !== "completed"\)/, "the automatic test start is unchanged");
+  assert.match(read(proxyPath), /"\/adminsettings"/);
 });

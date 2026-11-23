@@ -13,6 +13,7 @@ const PRIVATE_PAGES = [
   "app/onboarding/page.tsx",
   "app/onboarding/test-cv/[runId]/page.tsx",
   "app/settings/page.tsx",
+  "app/adminsettings/page.tsx",
 ];
 
 const NOINDEX = /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/;

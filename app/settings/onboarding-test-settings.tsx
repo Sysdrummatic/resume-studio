@@ -3,9 +3,29 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useAppI18n } from "../components/app-i18n-provider";
+import "../adminsettings/admin-settings.css";
+import { Button, Checkbox, Panel } from "../components/design-system/primitives";
 import type { OnboardingTestRun } from "../lib/onboarding-test";
 
 export default function OnboardingTestSettings({ initialRun }: { initialRun: OnboardingTestRun | null }) {
+  const { dictionary } = useAppI18n();
+  const settingsText = (text: string) => dictionary.settings.text[text] ?? text;
+
+  return (
+    <div className="stack">
+      <div className="section-row">
+        <h1>{settingsText("Account settings")}</h1>
+      </div>
+      <OnboardingTestSection initialRun={initialRun} />
+      <Link className="button button--ghost" href="/dashboard">
+        {settingsText("Go to dashboard")}
+      </Link>
+    </div>
+  );
+}
+
+/** The onboarding test controls; shared by /settings and /adminsettings. */
+export function OnboardingTestSection({ initialRun }: { initialRun: OnboardingTestRun | null }) {
   const { dictionary } = useAppI18n();
   const settingsText = (text: string) => dictionary.settings.text[text] ?? text;
   const [run, setRun] = useState(initialRun);
@@ -54,45 +74,36 @@ export default function OnboardingTestSettings({ initialRun }: { initialRun: Onb
   }
 
   return (
-    <div className="stack">
-      <div className="section-row">
-        <h1>{settingsText("Account settings")}</h1>
+    <Panel as="section" id="onboarding-test" className="admin-settings__section" aria-labelledby="onboarding-test-settings-title">
+      <h2 id="onboarding-test-settings-title" className="ocv-heading">
+        {settingsText("Testing tools")}
+      </h2>
+      <h3 className="ocv-subheading">{settingsText("Onboarding")}</h3>
+      <p className="ocv-body">{settingsText("Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.")}</p>
+      <p className="ocv-body">
+        {settingsText("Status")}: <strong>{status}</strong>
+      </p>
+      <Checkbox
+        label={settingsText("Start onboarding on my next dashboard visit")}
+        checked={Boolean(run?.auto_start && run.status !== "completed")}
+        disabled={busy}
+        onChange={(event) => void configure(event.target.checked ? "arm" : "disarm")}
+      />
+      <div className="admin-settings__actions">
+        <Button variant="primary" disabled={busy} onClick={() => void configure("start")}>
+          {settingsText("Start now")}
+        </Button>
+        {run && run.status !== "completed" ? (
+          <Button variant="secondary" disabled={busy} onClick={() => void configure("restart")}>
+            {settingsText("Start a new blank test")}
+          </Button>
+        ) : null}
       </div>
-      <section className="card stack" aria-labelledby="onboarding-test-settings-title">
-        <h2 id="onboarding-test-settings-title">{settingsText("Testing tools")}</h2>
-        <h3>{settingsText("Onboarding")}</h3>
-        <p>{settingsText("Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.")}</p>
-        <p>
-          {settingsText("Status")}: <strong>{status}</strong>
-        </p>
-        <label className="checkbox-row">
-          <input
-            type="checkbox"
-            checked={Boolean(run?.auto_start && run.status !== "completed")}
-            disabled={busy}
-            onChange={(event) => void configure(event.target.checked ? "arm" : "disarm")}
-          />
-          {settingsText("Start onboarding on my next dashboard visit")}
-        </label>
-        <div className="actions-row">
-          <button className="button button--primary" type="button" disabled={busy} onClick={() => void configure("start")}>
-            {settingsText("Start now")}
-          </button>
-          {run && run.status !== "completed" ? (
-            <button className="button button--ghost" type="button" disabled={busy} onClick={() => void configure("restart")}>
-              {settingsText("Start a new blank test")}
-            </button>
-          ) : null}
-        </div>
-        <p className="muted">
-          {settingsText("Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.")}
-        </p>
-        {message ? <p role="status">{message}</p> : null}
-        {error ? <p role="alert">{error}</p> : null}
-      </section>
-      <Link className="button button--ghost" href="/dashboard">
-        {settingsText("Go to dashboard")}
-      </Link>
-    </div>
+      <p className="ocv-meta">
+        {settingsText("Start now resumes an unfinished test. A new test keeps previous test drafts and published CVs. At the end you choose whether to publish Test onboardingu; the automatic-start option then switches off.")}
+      </p>
+      {message ? <p role="status" className="ocv-body">{message}</p> : null}
+      {error ? <p role="alert" className="admin-settings__error">{error}</p> : null}
+    </Panel>
   );
 }

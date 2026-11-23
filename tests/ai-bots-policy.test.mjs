@@ -58,7 +58,7 @@ test("the CV share image under a third segment is blocked for bots, other third 
 
 test("reserved slugs cover every top-level app and public folder, in TypeScript and in SQL", () => {
   const folders = [...topLevelDirs("app"), ...topLevelDirs("public")];
-  const sql = read("supabase/migrations/20261016000000_reserve_route_person_slugs.sql");
+  const sql = read("supabase/migrations/20261122000000_reserve_adminsettings_person_slug.sql");
   const sqlList = [...sql.match(/array\[([\s\S]*?)\]/)[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
   for (const folder of folders) {
     assert.ok(RESERVED_PERSON_SLUGS.includes(folder), `${folder} missing from RESERVED_PERSON_SLUGS`);

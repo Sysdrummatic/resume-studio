@@ -99,11 +99,9 @@ test(
       }
       assert.equal(await page.locator(".dashboard-library-item").count(), 3);
       assert.equal(
-        await page.locator(".dashboard-library__create").evaluate((element) =>
-          element.nextElementSibling?.classList.contains("dashboard-library__filters")
-        ),
-        true,
-        "CV creation is placed above search and filters"
+        await page.locator(".dashboard-workspace__heading .dashboard-library__create").count(),
+        1,
+        "CV creation is the page heading's primary action (#291)"
       );
       assert.equal(await page.locator(".dashboard-next").count(), 0, "The removed next-step panel stays absent");
       assert.equal(await page.getByRole("navigation", { name: "Breadcrumb" }).count(), 1);
@@ -111,9 +109,10 @@ test(
       const breadcrumbBox = await page
         .getByRole("navigation", { name: "Breadcrumb" })
         .boundingBox();
+      const headingBox = await page.getByRole("heading", { level: 1 }).boundingBox();
       assert.ok(
-        Math.abs(breadcrumbBox.y - headerBox.y - headerBox.height) <= 1,
-        "Breadcrumbs sit directly below the existing top navigation"
+        breadcrumbBox.y >= headerBox.y + headerBox.height && breadcrumbBox.y < headingBox.y,
+        "Breadcrumbs sit between the top navigation and the page heading"
       );
       await page.evaluate(() => document.fonts.ready);
       const preview = page.locator(".dashboard-library-preview");
@@ -121,7 +120,7 @@ test(
       const openCvBox = await actionBar.getByRole("button", { name: "Open LiveCV", exact: true }).boundingBox();
       const settingsBox = await page.locator(".dashboard-preset-menu > summary").boundingBox();
       assert.equal(openCvBox.height, settingsBox.height, "Open LiveCV and settings share a consistent action height");
-      assert.equal(settingsBox.width, 40, "The settings control has a larger, usable target");
+      assert.equal(settingsBox.width, 44, "The settings control has a full-size target");
       assert.equal(
         await preview
           .locator(
@@ -134,25 +133,43 @@ test(
         await preview.innerText(),
         /UNSELECTED|PRIVATE COMPANY|PRIVATE SKILL|Private role/
       );
-      await preview.getByRole("button", { name: "Polski", exact: true }).click();
-      await preview.getByText("Projektantka", { exact: true }).waitFor();
-      await preview.getByRole("button", { name: "English", exact: true }).click();
+      assert.equal(
+        await preview.locator(".dashboard-thumb__page").evaluate((element) => element.inert),
+        true,
+        "The detail sheet is a picture of the CV; its controls live in the preview dialog"
+      );
       await actionBar.getByRole("button", { name: "Open LiveCV", exact: true }).click();
       const expanded = page.getByRole("dialog", { name: "LiveCV version preview", exact: true });
       await expanded.waitFor();
       assert.equal(await expanded.locator('[data-cv-density="compact"]').count(), 1);
-      await expanded.getByRole("button", { name: "Close", exact: true }).click();
+      await expanded.getByRole("button", { name: "Polski", exact: true }).click();
+      await expanded.getByText("Projektantka", { exact: true }).waitFor();
+      await expanded.getByRole("button", { name: "English", exact: true }).click();
+      await expanded.getByRole("button", { name: "Close", exact: true }).last().click();
+      await expanded.waitFor({ state: "hidden" });
+      assert.equal(
+        await actionBar.getByRole("button", { name: "Open LiveCV", exact: true }).evaluate((element) => element === document.activeElement),
+        true,
+        "Closing the preview returns focus to the button that opened it"
+      );
+      await preview.locator(".dashboard-thumb__open").click();
+      await expanded.waitFor();
+      await page.keyboard.press("Escape");
+      await expanded.waitFor({ state: "hidden" });
       const search = page.getByRole("searchbox", { name: "Search LiveCV versions" });
       await search.fill("no matching title");
-      await page.getByText("No CV selected", { exact: true }).waitFor();
+      await page.getByText("No LiveCV selected", { exact: true }).waitFor();
       await page.getByRole("button", { name: "Clear filters", exact: true }).click();
       await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
       assert.equal(await page.getByRole("button", { name: "Copy LiveCV link", exact: true }).count(), 0);
+      await actionBar.getByRole("button", { name: "Open LiveCV", exact: true }).click();
       assert.equal(
-        await preview.getByRole("button", { name: "PDF", exact: true }).isDisabled(),
+        await expanded.getByRole("button", { name: "PDF", exact: true }).isDisabled(),
         true,
         "Private preview must retain the draft-PDF feature gate"
       );
+      await page.keyboard.press("Escape");
+      await expanded.waitFor({ state: "hidden" });
       await page.locator(".dashboard-library-item").filter({ hasText: "Onboarding test" }).click();
       assert.equal(
         await preview.count(),
@@ -186,9 +203,9 @@ test(
         await route.fulfill({ json: { ok: true, preset: saved } });
       });
       await editSelectionFromSettings();
-      const edit = page.locator('.dashboard-modal[role="dialog"]').filter({ has: page.locator("input:not([type])") }).first();
+      const edit = page.getByRole("dialog", { name: "Edit LiveCV version", exact: true });
       await edit.locator("input:not([type])").first().fill("Updated designer");
-      await edit.locator(".actions-row .button--primary").click();
+      await edit.getByRole("button", { name: "Save LiveCV", exact: true }).click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "Updated designer" })
@@ -197,9 +214,9 @@ test(
       assert.equal(requests.at(-1).body.documentId, "document-en");
       assert.deepEqual(requests.at(-1).body.styleSettings, {}, "renaming an inherited-style CV must keep its inheritance marker");
       await editSelectionFromSettings();
-      const styleEdit = page.locator('.dashboard-modal[role="dialog"]');
+      const styleEdit = edit;
       await styleEdit.locator(".dashboard-preset-style select").selectOption("signal-grid");
-      await styleEdit.locator(".actions-row .button--primary").click();
+      await styleEdit.getByRole("button", { name: "Save LiveCV", exact: true }).click();
       await styleEdit.waitFor({ state: "hidden" });
       assert.equal(requests.at(-1).body.styleSettings.template, "signal-grid", "an explicit style edit must save a preset-owned style");
       await page.getByRole("button", { name: "Publish", exact: true }).click();
@@ -217,7 +234,7 @@ test(
       assert.equal(requests.at(-1).body.defaultLocale, "en");
       await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
       await page.getByRole("button", { name: "Copy LiveCV link", exact: true }).click();
-      await page.getByText("Public link copied to the clipboard.", { exact: true }).waitFor();
+      await page.getByText("LiveCV link copied to the clipboard.", { exact: true }).waitFor();
       assert.equal(
         await page.evaluate(() => navigator.clipboard.readText()),
         `${base}/ada-example/private-cv`
@@ -239,7 +256,7 @@ test(
       await menu
         .getByRole("menuitem", { name: "Delete LiveCV version: Updated designer", exact: true })
         .click();
-      const deletion = page.getByRole("dialog", { name: "Delete LiveCV version confirmation" });
+      const deletion = page.getByRole("dialog", { name: "Delete LiveCV version", exact: true });
       await deletion.getByRole("button", { name: "Cancel", exact: true }).click();
       assert.equal(requests.filter((r) => r.method === "DELETE").length, 0);
       await menu.locator("summary").click();
@@ -252,23 +269,25 @@ test(
         .filter({ hasText: "Updated designer" })
         .waitFor({ state: "detached" });
       assert.equal(requests.filter((r) => r.method === "DELETE").length, 1);
-      await preview.getByText("Published designer", { exact: true }).waitFor();
+      await page.locator(".dashboard-library__detail").getByRole("heading", { name: "Published designer" }).waitFor();
       await page.locator('input[type="file"]').setInputFiles({
         name: "backup.yaml",
         mimeType: "text/yaml",
         buffer: Buffer.from("test: fixture")
       });
-      const transfer = page.getByRole("dialog", { name: "Import data confirmation" });
+      const transfer = page.getByRole("dialog", { name: "Import data", exact: true });
       await transfer.getByRole("button", { name: "Cancel", exact: true }).click();
       await page.goto(base);
       await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       const filters = page.getByRole("group", { name: "Filter LiveCV versions" });
       await filters.getByRole("button", { name: "Private", exact: true }).focus();
       await page.keyboard.press("Space");
-      assert.equal(await page.locator(".dashboard-library-item").count(), 2);
+      // The filter applies inside a view transition (one frame later), so wait for the list.
+      await page.waitForFunction((count) => document.querySelectorAll(".dashboard-library-item").length === count, 2);
       await filters.getByRole("button", { name: "All", exact: true }).focus();
       await page.keyboard.press("Enter");
-      assert.equal(await page.locator(".dashboard-library-item").count(), 3);
+      // The filter applies inside a view transition (one frame later), so wait for the list.
+      await page.waitForFunction((count) => document.querySelectorAll(".dashboard-library-item").length === count, 3);
       assert.equal(
         await filters
           .getByRole("button", { name: "All", exact: true })
@@ -289,15 +308,15 @@ test(
         })
       );
       await page.getByRole("button", { name: "Create LiveCV", exact: true }).first().click();
-      const create = page.getByRole("dialog", { name: "LiveCV version editor", exact: true });
-      await create.getByLabel("CV name", { exact: true }).fill("New opportunity");
-      await create.getByRole("button", { name: "Save LiveCV", exact: true }).click();
+      const create = page.getByRole("dialog", { name: "Create LiveCV", exact: true });
+      await create.getByLabel("LiveCV name", { exact: true }).fill("New opportunity");
+      await create.getByRole("button", { name: "Create LiveCV", exact: true }).click();
       await page
         .locator(".dashboard-library-item")
         .filter({ hasText: "New opportunity" })
         .waitFor();
       assert.equal(
-        await preview.getByRole("heading", { name: "New opportunity" }).count(),
+        await page.locator(".dashboard-library__detail").getByRole("heading", { name: "New opportunity" }).count(),
         1,
         "A newly saved CV becomes the selected preview"
       );
@@ -309,14 +328,18 @@ test(
         if (theme === "light")
           await page.screenshot({ path: path.join(output, "desktop-light.png"), fullPage: true });
         await page.setViewportSize({ width: 390, height: 844 });
-        await preview.getByRole("button", { name: "Polski", exact: true }).click();
-        const languageButton = await preview
+        await page.locator(".dashboard-library__actions").getByRole("button", { name: "Open LiveCV", exact: true }).click();
+        const mobilePreview = page.getByRole("dialog", { name: "LiveCV version preview", exact: true });
+        await mobilePreview.getByRole("button", { name: "Polski", exact: true }).click();
+        const languageButton = await mobilePreview
           .getByRole("button", { name: "Polski", exact: true })
           .boundingBox();
         assert.ok(
           languageButton.height >= 24,
           "Mobile CV controls stay readable without shrinking the entire document"
         );
+        await page.keyboard.press("Escape");
+        await mobilePreview.waitFor({ state: "hidden" });
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({ path: path.join(output, `mobile-${theme}.png`), fullPage: true });
         assert.equal(
@@ -331,7 +354,7 @@ test(
       await page.locator(".dashboard-library-item").filter({ hasText: "Private designer" }).click();
       await editSelectionFromSettings();
       await edit.locator("input:not([type])").first().fill("Renamed English CV");
-      await edit.locator(".actions-row .button--primary").click();
+      await edit.getByRole("button", { name: "Save LiveCV", exact: true }).click();
       await page.locator(".dashboard-library-item").filter({ hasText: "Renamed English CV" }).waitFor();
       assert.deepEqual(requests.at(-1).body.selection, { ...fixture.presets[1].selection, summary: [1] });
       assert.equal(requests.at(-1).body.documentId, "document-en", "Renaming retains the preset's source document");
@@ -344,7 +367,7 @@ test(
       });
       await page.getByRole("button", { name: "Create LiveCV", exact: true }).first().click();
       await create.locator("input:not([type])").first().fill("New Polish CV");
-      await create.locator(".actions-row .button--primary").click();
+      await create.getByRole("button", { name: "Create LiveCV", exact: true }).click();
       await page.locator(".dashboard-library-item").filter({ hasText: "New Polish CV" }).waitFor();
       assert.equal(creationBody.documentId, "document-pl");
       assert.equal(creationBody.defaultLocale, "pl");
@@ -362,12 +385,15 @@ test(
       await page.goto(`${base}/?linked-blank`);
       await page.getByRole("progressbar", { name: "Experience Base completeness" }).waitFor();
       await preview.getByText("Linked-only role", { exact: true }).waitFor();
-      await preview.getByRole("button", { name: "Polski", exact: true }).click();
-      await preview.getByText("Projektantka", { exact: true }).waitFor();
-      assert.doesNotMatch(await preview.innerText(), /Beta Company|Linked-only role/);
+      await page.locator(".dashboard-library__actions").getByRole("button", { name: "Open LiveCV", exact: true }).click();
+      const linkedPreview = page.getByRole("dialog", { name: "LiveCV version preview", exact: true });
+      await linkedPreview.getByRole("button", { name: "Polski", exact: true }).click();
+      await linkedPreview.getByText("Projektantka", { exact: true }).waitFor();
+      assert.doesNotMatch(await linkedPreview.innerText(), /Beta Company|Linked-only role/);
+      await page.keyboard.press("Escape");
 
       await page.goto(`${base}/?restricted&empty`);
-      await page.getByRole("heading", { name: "Start with your Experience Base" }).waitFor();
+      await page.getByText("Start with your Experience Base", { exact: true }).waitFor();
       assert.equal(await page.getByRole("button", { name: "Import", exact: true }).count(), 0);
       assert.equal(
         await page.getByRole("button", { name: "Create LiveCV", exact: true }).count(),
