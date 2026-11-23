@@ -162,6 +162,11 @@ editor:
     "e.g. Added CDQ experience": np. dodano doświadczenie w firmie CDQ
     "Cancel": Anuluj
     "Saving…": Zapisywanie…
+    "Saved": "✓ Zapisano"
+    "Unsaved changes": "Niezapisane zmiany"
+    "Confirm removal": "Potwierdź usunięcie"
+    "Close confirmation": "Zamknij potwierdzenie"
+    "Completeness": "Kompletność"
     "Use a two-letter language code.": Użyj dwuliterowego kodu języka.
     "Language name is required.": Podaj nazwę języka.
     "Short label must contain two letters.": Skrót musi składać się z dwóch liter.
