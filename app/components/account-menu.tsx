@@ -8,7 +8,7 @@ import type { AppRole } from "../lib/auth-types";
 import { formatAppMessage } from "../i18n/locale";
 import { canAccessAdminArea, isAdminRole } from "../lib/rbac";
 import { useAppI18n } from "./app-i18n-provider";
-import { Menu, MenuItem } from "./design-system/primitives";
+import { Button, Menu, MenuItem, Modal, StatePill, TextInput } from "./design-system/primitives";
 
 type Props = {
   email: string;
@@ -271,105 +271,105 @@ export default function AccountMenu({ email, displayName, firstName, lastName, a
         </MenuItem>
       </Menu>
     </details>
-      {isProfileOpen && (
-        <div className="profile-modal-overlay" onClick={closeProfileModal}>
-          <div
-            className="profile-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="profile-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="profile-modal__content">
-              <div className="profile-modal__header">
-                <h2 id="profile-modal-title">{profileLabels.title}</h2>
-                <button type="button" className="button button--ghost button--small" onClick={closeProfileModal}>
-                  {profileLabels.close}
-                </button>
-              </div>
-              <form className="profile-modal__form" onSubmit={handleProfileSubmit}>
-                <label className="profile-modal__field">
-                  <span>{profileLabels.first_name}</span>
-                  <input
-                    value={profileFirstName}
-                    onChange={(event) => setProfileFirstName(event.target.value)}
-                    autoComplete="given-name"
-                    maxLength={120}
-                  />
-                </label>
-                <label className="profile-modal__field">
-                  <span>{profileLabels.last_name}</span>
-                  <input
-                    value={profileLastName}
-                    onChange={(event) => setProfileLastName(event.target.value)}
-                    autoComplete="family-name"
-                    maxLength={120}
-                  />
-                </label>
-                {profileError ? <p className="profile-modal__error">{profileError}</p> : null}
-                <div className="profile-modal__actions">
-                  <button type="submit" className="button button--primary button--small" disabled={isBusy}>
-                    {isBusy ? profileLabels.saving : profileLabels.save}
-                  </button>
-                </div>
-              </form>
-              <div className="meta-grid">
-                <p>
-                  <span className="meta-label">{profileLabels.email}</span>
-                  <span className="meta-value">{email}</span>
+      <Modal
+        open={isProfileOpen}
+        onClose={() => closeProfileModal()}
+        title={profileLabels.title}
+        closeLabel={profileLabels.close}
+        footer={
+          <Button type="submit" form="profile-modal-form" variant="primary" busy={isBusy}>
+            {isBusy ? profileLabels.saving : profileLabels.save}
+          </Button>
+        }
+      >
+        <form id="profile-modal-form" className="account-profile__form" onSubmit={handleProfileSubmit}>
+          <div className="account-profile__names">
+            <TextInput
+              label={profileLabels.first_name}
+              value={profileFirstName}
+              onChange={(event) => setProfileFirstName(event.target.value)}
+              autoComplete="given-name"
+              maxLength={120}
+            />
+            <TextInput
+              label={profileLabels.last_name}
+              value={profileLastName}
+              onChange={(event) => setProfileLastName(event.target.value)}
+              autoComplete="family-name"
+              maxLength={120}
+            />
+          </div>
+          {profileError ? (
+            <p role="alert" className="account-profile__error">
+              {profileError}
+            </p>
+          ) : null}
+        </form>
+        <dl className="account-profile__facts">
+          <div>
+            <dt className="ocv-meta">{profileLabels.email}</dt>
+            <dd className="ocv-value">{email}</dd>
+          </div>
+          <div>
+            <dt className="ocv-meta">{profileLabels.role}</dt>
+            <dd className="ocv-value">{role}</dd>
+          </div>
+          <div>
+            <dt className="ocv-meta">{profileLabels.status}</dt>
+            <dd>
+              <StatePill state={isActive ? "ok" : "changes"}>
+                {isActive ? profileLabels.active : profileLabels.inactive}
+              </StatePill>
+            </dd>
+          </div>
+          <div>
+            <dt className="ocv-meta">{profileLabels.email_verification}</dt>
+            <dd>
+              <StatePill state={emailConfirmed ? "ok" : "changes"}>
+                {emailConfirmed ? profileLabels.verified : profileLabels.pending}
+              </StatePill>
+            </dd>
+          </div>
+        </dl>
+        <div className="account-profile__danger">
+          <h3 className="ocv-subheading">{profileLabels.delete_title}</h3>
+          {!isDeleteConfirmOpen ? (
+            <Button variant="danger" size="small" onClick={openDeleteConfirm}>
+              {profileLabels.delete_action}
+            </Button>
+          ) : (
+            <div className="account-profile__danger-confirm">
+              <p className="ocv-body">{formatAppMessage(profileLabels.delete_explanation, { email })}</p>
+              <TextInput
+                label={profileLabels.email}
+                type="email"
+                value={deleteConfirmInput}
+                onChange={(event) => setDeleteConfirmInput(event.target.value)}
+                placeholder={email}
+                autoComplete="off"
+              />
+              {deleteError ? (
+                <p role="alert" className="account-profile__error">
+                  {deleteError}
                 </p>
-                <p>
-                  <span className="meta-label">{profileLabels.role}</span>
-                  <span className="meta-value">{role}</span>
-                </p>
-                <p>
-                  <span className="meta-label">{profileLabels.status}</span>
-                  <span className="meta-value">{isActive ? profileLabels.active : profileLabels.inactive}</span>
-                </p>
-                <p>
-                  <span className="meta-label">{profileLabels.email_verification}</span>
-                  <span className="meta-value">{emailConfirmed ? profileLabels.verified : profileLabels.pending}</span>
-                </p>
-              </div>
-              <div className="profile-modal__danger-zone">
-                <h3>{profileLabels.delete_title}</h3>
-                {!isDeleteConfirmOpen ? (
-                  <button type="button" className="button button--danger button--small" onClick={openDeleteConfirm}>
-                    {profileLabels.delete_action}
-                  </button>
-                ) : (
-                  <div className="profile-modal__danger-zone-confirm">
-                    <p>
-                      {formatAppMessage(profileLabels.delete_explanation, { email })}
-                    </p>
-                    <input
-                      type="email"
-                      value={deleteConfirmInput}
-                      onChange={(event) => setDeleteConfirmInput(event.target.value)}
-                      placeholder={email}
-                      autoComplete="off"
-                    />
-                    {deleteError ? <p className="profile-modal__error">{deleteError}</p> : null}
-                    <div className="profile-modal__actions">
-                      <button type="button" className="button button--ghost button--small" onClick={cancelDeleteConfirm} disabled={isDeleting}>
-                        {profileLabels.cancel}
-                      </button>
-                      <button
-                        type="button"
-                        className="button button--danger button--small"
-                        onClick={handleDeleteAccount}
-                        disabled={isDeleting || deleteConfirmInput.trim().toLowerCase() !== email.toLowerCase()}
-                      >
-                        {isDeleting ? profileLabels.deleting : profileLabels.delete_forever}
-                      </button>
-                    </div>
-                  </div>
-                )}
+              ) : null}
+              <div className="account-profile__actions">
+                <Button size="small" onClick={cancelDeleteConfirm} disabled={isDeleting}>
+                  {profileLabels.cancel}
+                </Button>
+                <Button
+                  variant="danger"
+                  size="small"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting || deleteConfirmInput.trim().toLowerCase() !== email.toLowerCase()}
+                >
+                  {isDeleting ? profileLabels.deleting : profileLabels.delete_forever}
+                </Button>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </Modal>
     </>
   );
 }

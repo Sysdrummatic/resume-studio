@@ -76,7 +76,7 @@ test("reduced motion turns off every view-transition animation, root included", 
 test("account menu uses the menu primitive and closes on Escape, returning focus to the avatar", () => {
   const menu = read("app/components/account-menu.tsx");
 
-  assert.equal(menu.includes('import { Menu, MenuItem } from "./design-system/primitives";'), true);
+  assert.match(menu, /import \{[^}]*\bMenu\b[^}]*\bMenuItem\b[^}]*\} from "\.\/design-system\/primitives";/);
   assert.equal(menu.includes('<Menu label={labels.actions_aria} className="ocv-popover__panel">'), true);
   assert.equal(menu.includes('role="menu"'), false, "a plain list of links and buttons, not an ARIA menu without arrow keys");
   assert.match(

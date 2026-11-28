@@ -10,13 +10,14 @@ function read(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-test("profile modal renders overlay container with a localized close label", () => {
+test("profile modal is the shared Modal primitive with a localized close label", () => {
   const source = read(componentPath);
 
-  assert.equal(source.includes('className="profile-modal-overlay"'), true);
-  assert.equal(source.includes("onClick={closeProfileModal}"), true);
-  assert.equal(source.includes("{profileLabels.close}"), true);
-  assert.equal(source.includes("<dialog"), false);
+  assert.equal(source.includes("<Modal"), true);
+  assert.equal(source.includes("open={isProfileOpen}"), true);
+  assert.equal(source.includes("onClose={() => closeProfileModal()}"), true);
+  assert.equal(source.includes("closeLabel={profileLabels.close}"), true);
+  assert.equal(source.includes('className="profile-modal-overlay"'), false);
 });
 
 test("profile modal exposes editable first and last name fields", () => {
@@ -29,17 +30,8 @@ test("profile modal exposes editable first and last name fields", () => {
   assert.equal(source.includes('fetch("/api/user/profile"'), true);
 });
 
-test("profile modal styles center the modal and blur the background", () => {
+test("the hand-rolled profile modal styles are gone; the Modal primitive owns centring and blur", () => {
   const styles = read(stylesPath);
 
-  // Scoped to the .profile-modal-overlay rule itself — these four
-  // properties each appear elsewhere in globals.css too, so matching
-  // against the whole file would still pass if this specific rule lost
-  // centering/blur.
-  const rule = styles.match(/\.profile-modal-overlay\s*\{[^}]*\}/)?.[0] ?? "";
-  assert.notEqual(rule, "", "the .profile-modal-overlay rule must exist");
-  assert.equal(rule.includes("position: fixed;"), true);
-  assert.equal(rule.includes("inset: 0;"), true);
-  assert.equal(rule.includes("place-items: center;"), true);
-  assert.equal(rule.includes("backdrop-filter: blur("), true);
+  assert.equal(styles.includes(".profile-modal"), false);
 });

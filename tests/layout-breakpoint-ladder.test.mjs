@@ -29,8 +29,7 @@ const GRANDFATHERED = {
   "app/cv-templates/templates.module.css": [720],
   "app/globals.css": [560, 600, 680, 699, 700, 900, 960],
   "app/onboarding/onboarding.css": [600, 900],
-  "app/resume/resume.css": [520, 900],
-  "app/user/user.css": [699, 700, 1100]
+  "app/resume/resume.css": [520, 900]
 };
 
 /** 980px has one home; every other module imports it. See CLAUDE.md and DESIGN.md. */
