@@ -63,7 +63,7 @@ export default function DocsHub({
     <div className="docs-hub">
       <header className="docs-hub__heading">
         <div>
-          <h1>{copy.heading}</h1>
+          <h1 className="ocv-title">{copy.heading}</h1>
           <p>{copy.lead}</p>
         </div>
         <div className="docs-search">

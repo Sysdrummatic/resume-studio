@@ -76,7 +76,7 @@ export default function DocsLayout({
   }, [isMenuOpen]);
 
   return (
-    <div className="docs-page editor-theme wide-shell-page" lang={locale}>
+    <div className="docs-page ocv-page ocv-page--wide" lang={locale}>
       <WorkspaceBreadcrumbs current={activeItem?.title || copy.title} parents={parents} />
       <div className={`docs-workspace${toc.length > 0 ? " docs-workspace--article" : ""}`}>
         <div className="docs-mobile-nav">
