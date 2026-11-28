@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import NextImage from "next/image";
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeResumeDocument } from "../lib/resume-schema";
 import type { ResumeLocale } from "../lib/resume-schema";
 import type { ResumeDocumentRow, ResumePresetRow, ResumeUserLocaleRow } from "../lib/resume-server";
 import { StatusToast, useStatusToast } from "../components/status-toast";
-import { Typography } from "../components/design-system/atoms/Typography";
-import { Button } from "../components/design-system/atoms/Button";
-import { UserAvatar } from "../components/design-system/atoms/UserAvatar";
+import { Button, Panel, StatePill, Textarea, buttonClassName } from "../components/design-system/primitives";
 import { ResumePreviewFrame } from "../components/design-system/molecules/ResumePreviewFrame";
 import type { SessionActor } from "../lib/auth-types";
 import { useAppI18n } from "../components/app-i18n-provider";
-import { DESKTOP_NAVIGATION_BREAKPOINT_QUERY } from "../components/app-header-navigation";
 import { formatAppMessage } from "../i18n/locale";
 
 type Props = {
@@ -28,9 +26,6 @@ type JsYamlLoader = {
   load: (yamlContent: string) => unknown;
 };
 
-/* Same threshold as the app header's compact/desktop switch — imported, not
-   re-declared, so the drawer and the navigation can never drift apart. */
-const MOBILE_DRAWER_BREAKPOINT_QUERY = DESKTOP_NAVIGATION_BREAKPOINT_QUERY;
 const AVATAR_IMAGE_SIZE = 256;
 const AVATAR_IMAGE_QUALITY = 0.82;
 
@@ -109,16 +104,6 @@ async function resizeAvatarImage(
   }
 }
 
-function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(
-    container.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    )
-  ).filter(
-    (element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true"
-  );
-}
-
 function getYamlLoader(): JsYamlLoader | null {
   return typeof window === "undefined" ? null : (window.jsyaml ?? null);
 }
@@ -136,6 +121,7 @@ function parseResumeYaml(yamlContent: string) {
   }
 }
 
+
 export default function UserClient({
   actor,
   masterResume,
@@ -147,7 +133,6 @@ export default function UserClient({
   const { dictionary } = useAppI18n();
   const userText = (text: string) => dictionary.user.text[text] ?? text;
   const { toast, showToast, closeToast } = useStatusToast();
-  const [isHydrated, setIsHydrated] = useState(false);
   const [jsYamlReady, setJsYamlReady] = useState(false);
   const [hasYamlLoaderTimedOut, setHasYamlLoaderTimedOut] = useState(false);
   const [isBioEditing, setIsBioEditing] = useState(false);
@@ -156,20 +141,7 @@ export default function UserClient({
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(actor.avatarUrl);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
-  const [isSidebarDrawerOpen, setIsSidebarDrawerOpen] = useState(false);
-  const drawerTriggerRef = useRef<HTMLButtonElement>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const previousBodyOverflowRef = useRef<string>("");
-
-  useEffect(() => {
-    const frameId = window.requestAnimationFrame(() => {
-      setIsHydrated(true);
-    });
-
-    return () => window.cancelAnimationFrame(frameId);
-  }, []);
 
   useEffect(() => {
     if (!masterResume) {
@@ -192,108 +164,6 @@ export default function UserClient({
 
     return () => window.clearInterval(timer);
   }, [masterResume]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(MOBILE_DRAWER_BREAKPOINT_QUERY);
-    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
-      if (event.matches) {
-        setIsSidebarDrawerOpen(false);
-      }
-    };
-
-    handleChange(mediaQuery);
-
-    const listener = (event: MediaQueryListEvent) => handleChange(event);
-    mediaQuery.addEventListener("change", listener);
-
-    return () => mediaQuery.removeEventListener("change", listener);
-  }, []);
-
-  useEffect(() => {
-    const contentElement = contentRef.current;
-    if (!contentElement) {
-      return;
-    }
-
-    if (isSidebarDrawerOpen) {
-      contentElement.setAttribute("inert", "");
-      contentElement.setAttribute("aria-hidden", "true");
-    } else {
-      contentElement.removeAttribute("inert");
-      contentElement.removeAttribute("aria-hidden");
-    }
-
-    return () => {
-      contentElement.removeAttribute("inert");
-      contentElement.removeAttribute("aria-hidden");
-    };
-  }, [isSidebarDrawerOpen]);
-
-  useEffect(() => {
-    if (!isSidebarDrawerOpen) {
-      return;
-    }
-
-    const drawerElement = drawerRef.current;
-    const drawerTriggerElement = drawerTriggerRef.current;
-    if (!drawerElement) {
-      return;
-    }
-
-    previousBodyOverflowRef.current = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const focusableElements = getFocusableElements(drawerElement);
-    const initialFocusTarget = focusableElements[0] || drawerElement;
-    window.requestAnimationFrame(() => {
-      initialFocusTarget.focus();
-    });
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsSidebarDrawerOpen(false);
-        return;
-      }
-
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      if (!drawerRef.current) {
-        return;
-      }
-
-      const activeFocusableElements = getFocusableElements(drawerRef.current);
-      if (activeFocusableElements.length === 0) {
-        event.preventDefault();
-        drawerRef.current.focus();
-        return;
-      }
-
-      const firstFocusable = activeFocusableElements[0];
-      const lastFocusable = activeFocusableElements[activeFocusableElements.length - 1];
-      const activeElement = document.activeElement;
-
-      if (event.shiftKey && activeElement === firstFocusable) {
-        event.preventDefault();
-        lastFocusable.focus();
-      } else if (!event.shiftKey && activeElement === lastFocusable) {
-        event.preventDefault();
-        firstFocusable.focus();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousBodyOverflowRef.current;
-      window.removeEventListener("keydown", handleKeyDown);
-
-      if (!window.matchMedia(MOBILE_DRAWER_BREAKPOINT_QUERY).matches) {
-        drawerTriggerElement?.focus();
-      }
-    };
-  }, [isSidebarDrawerOpen]);
 
   async function handleBioSave() {
     setIsSavingBio(true);
@@ -394,284 +264,133 @@ export default function UserClient({
   const isPreviewUnavailable =
     !masterResume || hasYamlLoaderTimedOut || (jsYamlReady && !resumeForPreview);
   const publishedPresetsCount = initialPresets.filter((preset) => preset.is_public).length;
+  const avatarLabel = userText(avatarUrl ? "Change profile photo" : "Add profile photo");
 
   return (
-    <div className={`personal-hub py-4 md:py-8 ${isHydrated ? "is-hydrated" : ""}`}>
+    <div className="personal-hub ocv-page">
       <StatusToast toast={toast} onClose={closeToast} />
-
-      <button
-        ref={drawerTriggerRef}
-        type="button"
-        className={`personal-hub__drawer-handle ${isSidebarDrawerOpen ? "is-open" : ""} ${isHydrated ? "is-ready" : ""}`}
-        aria-controls="personal-hub-sidebar-column"
-        aria-expanded={isSidebarDrawerOpen}
-        aria-label={userText(
-          isSidebarDrawerOpen ? "Hide personal hub panel" : "Show personal hub panel"
-        )}
-        onClick={() => setIsSidebarDrawerOpen((current) => !current)}
-      >
-        <span className="personal-hub__drawer-handle-icon" aria-hidden="true">
-          <svg viewBox="0 0 20 20" fill="none">
-            <path
-              d="M7 4L13 10L7 16"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-      </button>
-
-      <button
-        type="button"
-        className={`personal-hub__drawer-overlay ${isSidebarDrawerOpen ? "is-open" : ""} ${isHydrated ? "is-ready" : ""}`}
-        aria-label={userText("Close personal hub panel")}
-        onClick={() => setIsSidebarDrawerOpen(false)}
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(event) => void handleAvatarChange(event)}
       />
 
-      <div className="personal-hub__layout max-w-[1400px] mx-auto">
-        <div
-          id="personal-hub-sidebar-column"
-          ref={drawerRef}
-          className={`personal-hub__sidebar-column ${isSidebarDrawerOpen ? "is-open" : ""} ${isHydrated ? "is-hydrated" : ""}`}
-          role="dialog"
-          aria-modal={isSidebarDrawerOpen ? "true" : undefined}
-          aria-labelledby="personal-hub-profile-title"
-          aria-hidden={isSidebarDrawerOpen ? undefined : "true"}
-          tabIndex={-1}
-        >
-          <div className="personal-hub__sidebar space-y-6">
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={(event) => void handleAvatarChange(event)}
-            />
-            <div className="personal-hub__drawer-toolbar">
-              <button
-                type="button"
-                className="personal-hub__drawer-close"
-                aria-label={userText("Close personal hub panel")}
-                onClick={() => setIsSidebarDrawerOpen(false)}
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            </div>
-            <section
-              className="personal-hub__profile-panel p-8 flex flex-col items-center text-center rounded-bento"
-              aria-labelledby="personal-hub-profile-title"
-            >
-              <div className="personal-hub__profile-summary w-full flex flex-col items-center text-center">
-                <div className="personal-hub__avatar-wrap">
-                  <UserAvatar
-                    initials={initials}
-                    alt={actor.displayName || userText("User")}
-                    src={avatarUrl || undefined}
-                    size="xl"
-                    className="personal-hub__avatar"
-                  />
-                  <button
-                    type="button"
-                    className="personal-hub__add-badge personal-hub__add-badge--avatar"
-                    aria-label={userText(avatarUrl ? "Change profile photo" : "Add profile photo")}
-                    title={userText(avatarUrl ? "Change profile photo" : "Add profile photo")}
-                    disabled={isSavingAvatar}
-                    onClick={() => avatarInputRef.current?.click()}
-                  >
-                    +
-                  </button>
-                </div>
+      <header className="ocv-page-head">
+        <p className="ocv-label">{userText("Profile")}</p>
+        <h1 className="ocv-title">{userText("Personal hub")}</h1>
+      </header>
 
-                <div className="personal-hub__profile-intro mb-8">
-                  <Typography variant="caption" muted className="personal-hub__eyebrow">
-                    {userText("Profile")}
-                  </Typography>
-                  <Typography
-                    id="personal-hub-profile-title"
-                    variant="h2"
-                    className="mb-1 personal-hub__profile-name"
-                  >
-                    {actor.displayName || userText("User")}
-                  </Typography>
-                  <Typography
-                    variant="body"
-                    muted
-                    className="font-medium personal-hub__profile-role"
-                  >
-                    {currentRole || userText("Role unavailable")}
-                  </Typography>
-                </div>
-
-                <div className="personal-hub__bio-shell">
-                  <div className="personal-hub__bio-block w-full text-left space-y-3">
-                    <div className="flex justify-center items-center">
-                      <Typography
-                        variant="caption"
-                        muted
-                        className="font-bold tracking-widest text-[10px]"
-                      >
-                        {userText("Short bio")}
-                      </Typography>
-                    </div>
-
-                    {isBioEditing ? (
-                      <>
-                        <textarea
-                          value={bioValue}
-                          onChange={(event) => setBioValue(event.target.value)}
-                          className="personal-hub__bio-input w-full rounded-xl p-4 text-sm min-h-[120px] leading-relaxed"
-                          placeholder={userText("Share a bit about yourself…")}
-                        />
-                        <div className="personal-hub__bio-actions flex gap-2">
-                          <button
-                            onClick={handleBioSave}
-                            disabled={isSavingBio}
-                            className="personal-hub__text-action personal-hub__text-action--success bg-transparent border-0 cursor-pointer"
-                          >
-                            <Typography variant="small" className="font-bold">
-                              {userText("Save")}
-                            </Typography>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsBioEditing(false);
-                              setBioValue(savedBioValue);
-                            }}
-                            className="personal-hub__text-action personal-hub__text-action--danger bg-transparent border-0 cursor-pointer"
-                          >
-                            <Typography variant="small" className="font-bold">
-                              {userText("Cancel")}
-                            </Typography>
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Typography
-                          variant="body"
-                          className="personal-hub__bio-copy leading-relaxed min-h-[60px]"
-                        >
-                          {bioValue || (
-                            <span className="personal-hub__bio-empty">
-                              {userText("No bio yet. Click the plus icon to add one.")}
-                            </span>
-                          )}
-                        </Typography>
-                        <button
-                          type="button"
-                          className="personal-hub__add-badge personal-hub__add-badge--bio"
-                          aria-label={userText(bioValue ? "Edit short bio" : "Add short bio")}
-                          title={userText(bioValue ? "Edit short bio" : "Add short bio")}
-                          onClick={() => setIsBioEditing(true)}
-                        >
-                          +
-                        </button>
-                      </>
-                    )}
-                  </div>
-                  <div className="personal-hub__profile-actions w-full space-y-3">
-                    <Link href="/master-resume" className="w-full block">
-                      <Button
-                        variant="primary"
-                        className="personal-hub__primary-action w-full justify-center"
-                      >
-                        {userText("Edit Master Resume")}
-                      </Button>
-                    </Link>
-                    <Link href="/dashboard" className="w-full block">
-                      <Button
-                        variant="ghost"
-                        className="personal-hub__secondary-action w-full justify-center"
-                      >
-                        {userText("Manage CV Versions")}
-                      </Button>
-                    </Link>
-                  </div>
-
-                  <div className="personal-hub__policies w-full space-y-3 mt-6">
-                    <Typography
-                      variant="caption"
-                      muted
-                      className="font-bold tracking-widest text-[10px]"
-                    >
-                      {userText("Policies")}
-                    </Typography>
-                    <Link href="/privacy" className="w-full block">
-                      <Button
-                        variant="ghost"
-                        className="personal-hub__secondary-action w-full justify-center"
-                      >
-                        {userText("Privacy Policy")}
-                      </Button>
-                    </Link>
-                    <Link href="/terms" className="w-full block">
-                      <Button
-                        variant="ghost"
-                        className="personal-hub__secondary-action w-full justify-center"
-                      >
-                        {userText("Terms of Service")}
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-
-        <div ref={contentRef} className="personal-hub__content">
-          <section
-            className="personal-hub__resume-panel h-full flex flex-col overflow-hidden relative"
-            aria-label={userText("Resume preview")}
+      <div className="hub-grid">
+        <Panel as="aside" className="hub-card" aria-labelledby="personal-hub-profile-title">
+          <button
+            type="button"
+            className="hub-avatar"
+            aria-label={avatarLabel}
+            title={avatarLabel}
+            disabled={isSavingAvatar}
+            onClick={() => avatarInputRef.current?.click()}
           >
-            <div className="personal-hub__preview-shell">
-              <header className="personal-hub__preview-header">
-                <Typography variant="h3" className="personal-hub__preview-title">
-                  {userText("Resume preview")}
-                </Typography>
-                <div className="personal-hub__preview-meta">
-                  <span className="personal-hub__preview-pill">
-                    {formatAppMessage(userText("{count} published"), {
-                      count: publishedPresetsCount
-                    })}
-                  </span>
-                </div>
-              </header>
+            {avatarUrl ? (
+              <NextImage src={avatarUrl} alt={actor.displayName || userText("User")} fill sizes="88px" />
+            ) : (
+              <span aria-hidden="true">{initials}</span>
+            )}
+          </button>
+          <div className="hub-card__name">
+            <h2 id="personal-hub-profile-title" className="ocv-heading">
+              {actor.displayName || userText("User")}
+            </h2>
+            <p className="ocv-meta">{currentRole || userText("Role unavailable")}</p>
+          </div>
 
-              <div className="personal-hub__resume-preview flex-1 flex items-start justify-center overflow-hidden min-h-[500px]">
-                {resumeForPreview ? (
-                  <div className="w-full max-w-[720px]">
-                    <ResumePreviewFrame
-                      resume={resumeForPreview}
-                      locale={(effectiveLocale as ResumeLocale) || "en"}
-                      languages={previewLanguages}
-                      activeLocale={effectiveLocale}
-                      onLanguageSelect={handlePreviewLocaleChange}
-                    />
-                  </div>
-                ) : isPreviewUnavailable ? (
-                  <div className="personal-hub__preview-fallback">
-                    <Typography variant="h3">{userText("Preview unavailable")}</Typography>
-                    <Typography variant="body" muted>
-                      {userText(
-                        "The resume preview could not be rendered in this view. Reload the page to try again."
-                      )}
-                    </Typography>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                    <Typography variant="body" muted className="animate-pulse">
-                      {userText("Rendering your resume…")}
-                    </Typography>
-                  </div>
-                )}
+          <div className="hub-bio">
+            <p className="hub-split">
+              <b className="ocv-subheading">{userText("Short bio")}</b>
+              {!isBioEditing ? (
+                <button type="button" className="hub-link" onClick={() => setIsBioEditing(true)}>
+                  {userText(bioValue ? "Edit short bio" : "Add short bio")}
+                </button>
+              ) : null}
+            </p>
+            {isBioEditing ? (
+              <div className="hub-bio__form">
+                <Textarea
+                  label={<span className="ocv-sr-only">{userText("Short bio")}</span>}
+                  value={bioValue}
+                  onChange={(event) => setBioValue(event.target.value)}
+                  placeholder={userText("Share a bit about yourself…")}
+                />
+                <div className="hub-row">
+                  <Button variant="primary" size="small" busy={isSavingBio} onClick={() => void handleBioSave()}>
+                    {userText("Save")}
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setIsBioEditing(false);
+                      setBioValue(savedBioValue);
+                    }}
+                  >
+                    {userText("Cancel")}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </section>
-        </div>
+            ) : (
+              <p className={bioValue ? "ocv-body" : "ocv-body hub-bio__empty"}>
+                {bioValue || userText("No bio yet. Click the plus icon to add one.")}
+              </p>
+            )}
+          </div>
+
+          <div className="hub-actions">
+            <Link href="/master-resume" className={buttonClassName("primary")}>
+              {userText("Edit Master Resume")}
+            </Link>
+            <Link href="/dashboard" className={buttonClassName("secondary")}>
+              {userText("Manage CV Versions")}
+            </Link>
+          </div>
+
+          <div className="hub-policies">
+            <p className="ocv-label">{userText("Policies")}</p>
+            <Link href="/privacy">{userText("Privacy Policy")}</Link>
+            <Link href="/terms">{userText("Terms of Service")}</Link>
+          </div>
+        </Panel>
+
+        <section className="hub-preview" aria-label={userText("Resume preview")}>
+          <p className="hub-split">
+            <b className="ocv-subheading">{userText("Resume preview")}</b>
+            <StatePill state="public">
+              {formatAppMessage(userText("{count} published"), { count: publishedPresetsCount })}
+            </StatePill>
+          </p>
+
+          {resumeForPreview ? (
+            <ResumePreviewFrame
+              resume={resumeForPreview}
+              locale={(effectiveLocale as ResumeLocale) || "en"}
+              languages={previewLanguages}
+              activeLocale={effectiveLocale}
+              onLanguageSelect={handlePreviewLocaleChange}
+            />
+          ) : isPreviewUnavailable ? (
+            <Panel className="hub-preview__fallback">
+              <h3 className="ocv-subheading">{userText("Preview unavailable")}</h3>
+              <p className="ocv-body">
+                {userText(
+                  "The resume preview could not be rendered in this view. Reload the page to try again."
+                )}
+              </p>
+            </Panel>
+          ) : (
+            <p className="ocv-body hub-preview__loading" role="status">
+              {userText("Rendering your resume…")}
+            </p>
+          )}
+        </section>
       </div>
     </div>
   );

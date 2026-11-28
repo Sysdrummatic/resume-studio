@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { useAppI18n } from "../components/app-i18n-provider";
 import "../adminsettings/admin-settings.css";
-import { Button, Checkbox, Panel } from "../components/design-system/primitives";
+import { Button, Checkbox, Panel, StatePill, buttonClassName } from "../components/design-system/primitives";
 import type { OnboardingTestRun } from "../lib/onboarding-test";
 
 export default function OnboardingTestSettings({ initialRun }: { initialRun: OnboardingTestRun | null }) {
@@ -12,12 +12,12 @@ export default function OnboardingTestSettings({ initialRun }: { initialRun: Onb
   const settingsText = (text: string) => dictionary.settings.text[text] ?? text;
 
   return (
-    <div className="stack">
-      <div className="section-row">
-        <h1>{settingsText("Account settings")}</h1>
-      </div>
+    <div className="admin-settings ocv-page ocv-page--narrow">
+      <header className="ocv-page-head">
+        <h1 className="ocv-title">{settingsText("Account settings")}</h1>
+      </header>
       <OnboardingTestSection initialRun={initialRun} />
-      <Link className="button button--ghost" href="/dashboard">
+      <Link className={buttonClassName("secondary")} href="/dashboard">
         {settingsText("Go to dashboard")}
       </Link>
     </div>
@@ -80,8 +80,9 @@ export function OnboardingTestSection({ initialRun }: { initialRun: OnboardingTe
       </h2>
       <h3 className="ocv-subheading">{settingsText("Onboarding")}</h3>
       <p className="ocv-body">{settingsText("Test the first-use guide on a separate blank draft. Your Master CV, languages and profile remain unchanged.")}</p>
-      <p className="ocv-body">
-        {settingsText("Status")}: <strong>{status}</strong>
+      <p className="admin-settings__status ocv-body">
+        <b>{settingsText("Status")}</b>
+        <StatePill state={run && run.status !== "completed" ? "ok" : "private"}>{status}</StatePill>
       </p>
       <Checkbox
         label={settingsText("Start onboarding on my next dashboard visit")}

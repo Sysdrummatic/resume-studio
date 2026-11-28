@@ -394,3 +394,60 @@
     transform: translateY(calc(var(--ocv-motion-shift) * 0.8));
   }
 }
+
+/* Profile window (#294): the shared Modal primitive with a form, the account facts and the danger zone. */
+.account-profile__form,
+.account-profile__danger-confirm {
+  display: grid;
+  gap: 14px;
+}
+
+.account-profile__names {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px 14px;
+}
+
+.account-profile__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.account-profile__facts dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.account-profile__error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--ocv-radius-control);
+  background: var(--ocv-danger-wash);
+  color: var(--ocv-danger);
+}
+
+.account-profile__danger {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 14px 16px;
+  border: 1px solid var(--ocv-danger);
+  border-radius: 14px;
+}
+
+.account-profile__danger h3 {
+  color: var(--ocv-danger);
+}
+
+.account-profile__danger-confirm {
+  width: 100%;
+}
+
+.account-profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
